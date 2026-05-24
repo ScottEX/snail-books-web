@@ -5,11 +5,10 @@ import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import PartnerScreen from './PartnerScreen';
 
-type Tab = 'list' | 'add' | 'supply' | 'chart';
+type Tab = 'list' | 'add' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>('list');
-  const [showPartner, setShowPartner] = useState(false);
   const [summary, setSummary] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -82,10 +81,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   const todayStr = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
 
-  if (showPartner) {
-    return <PartnerScreen onBack={() => setShowPartner(false)} />;
-  }
-
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -110,141 +105,147 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
       {/* Page content */}
       <View style={styles.page}>
-        {/* Stats - 8600 style grid-cols-4 */}
-        {summary && (
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>{t('income')}</Text>
-              <Text style={[styles.statNum, { color: '#059669' }]}>¥{(summary.today?.income || 0).toFixed(2)}</Text>
-              <Text style={styles.statSub}>{t('month')}¥{(summary.month?.income || 0).toFixed(2)}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>{t('expense')}</Text>
-              <Text style={[styles.statNum, { color: '#DC2626' }]}>¥{(summary.today?.expense || 0).toFixed(2)}</Text>
-              <Text style={styles.statSub}>{t('month')}¥{(summary.month?.expense || 0).toFixed(2)}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>{t('profit')}</Text>
-              <Text style={[styles.statNum, { color: (summary.today?.profit || 0) >= 0 ? '#1A1A1A' : '#DC2626' }]}>¥{(summary.today?.profit || 0).toFixed(2)}</Text>
-              <Text style={styles.statSub}>{t('month')}¥{(summary.month?.profit || 0).toFixed(2)}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>{t('procurement')}</Text>
-              <Text style={[styles.statNum, { color: '#D97706' }]}>¥{(summary.today?.procurement || 0).toFixed(2)}</Text>
-              <Text style={styles.statSub}>{t('month')}¥{(summary.month?.procurement || 0).toFixed(2)}</Text>
-            </View>
-          </View>
-        )}
+        {tab === 'partner' ? (
+          <PartnerScreen onBack={() => setTab('list')} />
+        ) : (
+          <>
+            {/* Stats - 8600 style grid-cols-4 */}
+            {summary && (
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>{t('income')}</Text>
+                  <Text style={[styles.statNum, { color: '#059669' }]}>¥{(summary.today?.income || 0).toFixed(2)}</Text>
+                  <Text style={styles.statSub}>{t('month')}¥{(summary.month?.income || 0).toFixed(2)}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>{t('expense')}</Text>
+                  <Text style={[styles.statNum, { color: '#DC2626' }]}>¥{(summary.today?.expense || 0).toFixed(2)}</Text>
+                  <Text style={styles.statSub}>{t('month')}¥{(summary.month?.expense || 0).toFixed(2)}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>{t('profit')}</Text>
+                  <Text style={[styles.statNum, { color: (summary.today?.profit || 0) >= 0 ? '#1A1A1A' : '#DC2626' }]}>¥{(summary.today?.profit || 0).toFixed(2)}</Text>
+                  <Text style={styles.statSub}>{t('month')}¥{(summary.month?.profit || 0).toFixed(2)}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>{t('procurement')}</Text>
+                  <Text style={[styles.statNum, { color: '#D97706' }]}>¥{(summary.today?.procurement || 0).toFixed(2)}</Text>
+                  <Text style={styles.statSub}>{t('month')}¥{(summary.month?.procurement || 0).toFixed(2)}</Text>
+                </View>
+              </View>
+            )}
 
-        {/* Tab bar - 8600 underline style */}
-        <View style={styles.tabBar}>
-          {(['list', 'add', 'supply', 'chart'] as Tab[]).map((tId) => (
-            <TouchableOpacity key={tId} onPress={() => setTab(tId)} style={[styles.tabItem, tab === tId && styles.tabActive]}>
-              <Text style={[styles.tabItemText, tab === tId && styles.tabActiveText]}>
-                {t(`tab${tId === 'list' ? 'Bills' : tId === 'add' ? 'Record' : tId === 'supply' ? 'Supply' : 'Trends'}` as any)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Tab Content */}
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {tab === 'list' && (
-            <>
-              {transactions.map((tx: any) => (
-                <View key={tx.id} style={styles.txRow}>
-                  <View style={[styles.txDot, { backgroundColor: tx.type === 'income' ? '#059669' : '#DC2626' }]} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.txCat}>{tx.category}</Text>
-                    {tx.note ? <Text style={styles.txNote}>{tx.note}</Text> : null}
-                  </View>
-                  <Text style={[styles.txAmt, { color: tx.type === 'income' ? '#059669' : '#DC2626' }]}>
-                    {tx.type === 'income' ? '+' : '-'}¥{tx.amount?.toFixed(2)}
+            {/* Tab bar - 8600 underline style */}
+            <View style={styles.tabBar}>
+              {(['list', 'add', 'supply', 'chart'] as Tab[]).map((tId) => (
+                <TouchableOpacity key={tId} onPress={() => setTab(tId)} style={[styles.tabItem, tab === tId && styles.tabActive]}>
+                  <Text style={[styles.tabItemText, tab === tId && styles.tabActiveText]}>
+                    {t(`tab${tId === 'list' ? 'Bills' : tId === 'add' ? 'Record' : tId === 'supply' ? 'Supply' : 'Trends'}` as any)}
                   </Text>
-                  <Text style={styles.txDate}>{formatDate(tx.created_at)}</Text>
-                  <TouchableOpacity onPress={() => handleDeleteTx(tx.id)}>
-                    <Text style={styles.txDel}>✕</Text>
-                  </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
               ))}
-              {pages > 1 && (
-                <View style={styles.pageRow}>
-                  {Array.from({ length: pages }, (_, i) => (
-                    <TouchableOpacity key={i} onPress={() => handlePage(i + 1)}>
-                      <Text style={[styles.pageBtn, page === i + 1 && styles.pageBtnActive]}>{i + 1}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </>
-          )}
-
-          {tab === 'add' && (
-            <View style={styles.addForm}>
-              <View style={styles.typeToggle}>
-                <TouchableOpacity onPress={() => setTxType('income')} style={[styles.typeBtn, txType === 'income' && styles.typeBtnInc]}>
-                  <Text style={[styles.typeBtnText, txType === 'income' && styles.typeBtnIncText]}>{t('income')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setTxType('expense')} style={[styles.typeBtn, txType === 'expense' && styles.typeBtnExp]}>
-                  <Text style={[styles.typeBtnText, txType === 'expense' && styles.typeBtnExpText]}>{t('expense')}</Text>
-                </TouchableOpacity>
-              </View>
-              <TextInput style={styles.addInput} placeholder="¥" value={amount} onChangeText={setAmount}
-                keyboardType="decimal-pad" placeholderTextColor="#999" />
-              <View style={styles.catGrid}>
-                {(cats[txType as keyof typeof cats] || []).map((c: string) => (
-                  <TouchableOpacity key={c} onPress={() => setCategory(c)}>
-                    <Text style={[styles.catBtn, category === c && styles.catBtnActive]}>{c}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <TextInput style={styles.addInput} placeholder="账户" value={account} onChangeText={setAccount} placeholderTextColor="#999" />
-              <TextInput style={styles.addInput} placeholder={t('notePlaceholder') || '备注'} value={note} onChangeText={setNote} placeholderTextColor="#999" />
-              <TouchableOpacity style={styles.saveBtn} onPress={handleAddTx}>
-                <Text style={styles.saveBtnText}>✓</Text>
-              </TouchableOpacity>
             </View>
-          )}
 
-          {tab === 'supply' && (
-            <View>
-              <Text style={styles.sectionTitle}>{t('productCatalog') || '产品目录'}</Text>
-              {products.map((p: any) => (
-                <View key={p.id} style={styles.supplyRow}>
-                  <Text style={styles.supplyName}>{p.name} {p.spec}</Text>
-                  <Text style={styles.supplyPrice}>¥{p.price?.toFixed(2)}</Text>
-                </View>
-              ))}
-              {procurements.length > 0 && (
+            {/* Tab Content */}
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+              {tab === 'list' && (
                 <>
-                  <Text style={[styles.sectionTitle, { marginTop: 16 }]}>{t('recentProcure') || '最近进货'}</Text>
-                  {procurements.map((pr: any) => (
-                    <View key={pr.id} style={styles.supplyRow}>
-                      <Text style={styles.supplyName}>{pr.product_name} x{pr.quantity}</Text>
-                      <Text style={styles.supplyPrice}>¥{pr.total?.toFixed(2)}</Text>
+                  {transactions.map((tx: any) => (
+                    <View key={tx.id} style={styles.txRow}>
+                      <View style={[styles.txDot, { backgroundColor: tx.type === 'income' ? '#059669' : '#DC2626' }]} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.txCat}>{tx.category}</Text>
+                        {tx.note ? <Text style={styles.txNote}>{tx.note}</Text> : null}
+                      </View>
+                      <Text style={[styles.txAmt, { color: tx.type === 'income' ? '#059669' : '#DC2626' }]}>
+                        {tx.type === 'income' ? '+' : '-'}¥{tx.amount?.toFixed(2)}
+                      </Text>
+                      <Text style={styles.txDate}>{formatDate(tx.created_at)}</Text>
+                      <TouchableOpacity onPress={() => handleDeleteTx(tx.id)}>
+                        <Text style={styles.txDel}>✕</Text>
+                      </TouchableOpacity>
                     </View>
                   ))}
+                  {pages > 1 && (
+                    <View style={styles.pageRow}>
+                      {Array.from({ length: pages }, (_, i) => (
+                        <TouchableOpacity key={i} onPress={() => handlePage(i + 1)}>
+                          <Text style={[styles.pageBtn, page === i + 1 && styles.pageBtnActive]}>{i + 1}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
                 </>
               )}
-            </View>
-          )}
 
-          {tab === 'chart' && (
-            <View>
-              <Text style={styles.sectionTitle}>{t('trend12Month') || '近12月收支趋势'}</Text>
-              {chart.map((d: any) => (
-                <View key={d.month} style={styles.barRow}>
-                  <Text style={styles.barLabel}>{d.month?.slice(5)}</Text>
-                  <View style={styles.barWrap}>
-                    <View style={[styles.barIncome, { flex: d.income || 0 } as any]} />
-                    <View style={[styles.barExpense, { flex: d.expense || 0 } as any]} />
+              {tab === 'add' && (
+                <View style={styles.addForm}>
+                  <View style={styles.typeToggle}>
+                    <TouchableOpacity onPress={() => setTxType('income')} style={[styles.typeBtn, txType === 'income' && styles.typeBtnInc]}>
+                      <Text style={[styles.typeBtnText, txType === 'income' && styles.typeBtnIncText]}>{t('income')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setTxType('expense')} style={[styles.typeBtn, txType === 'expense' && styles.typeBtnExp]}>
+                      <Text style={[styles.typeBtnText, txType === 'expense' && styles.typeBtnExpText]}>{t('expense')}</Text>
+                    </TouchableOpacity>
                   </View>
-                  <Text style={styles.barVal}>+{d.income?.toFixed(0)} -{d.expense?.toFixed(0)}</Text>
+                  <TextInput style={styles.addInput} placeholder="¥" value={amount} onChangeText={setAmount}
+                    keyboardType="decimal-pad" placeholderTextColor="#999" />
+                  <View style={styles.catGrid}>
+                    {(cats[txType as keyof typeof cats] || []).map((c: string) => (
+                      <TouchableOpacity key={c} onPress={() => setCategory(c)}>
+                        <Text style={[styles.catBtn, category === c && styles.catBtnActive]}>{c}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <TextInput style={styles.addInput} placeholder="账户" value={account} onChangeText={setAccount} placeholderTextColor="#999" />
+                  <TextInput style={styles.addInput} placeholder={t('notePlaceholder') || '备注'} value={note} onChangeText={setNote} placeholderTextColor="#999" />
+                  <TouchableOpacity style={styles.saveBtn} onPress={handleAddTx}>
+                    <Text style={styles.saveBtnText}>✓</Text>
+                  </TouchableOpacity>
                 </View>
-              ))}
-            </View>
-          )}
-        </ScrollView>
+              )}
+
+              {tab === 'supply' && (
+                <View>
+                  <Text style={styles.sectionTitle}>{t('productCatalog') || '产品目录'}</Text>
+                  {products.map((p: any) => (
+                    <View key={p.id} style={styles.supplyRow}>
+                      <Text style={styles.supplyName}>{p.name} {p.spec}</Text>
+                      <Text style={styles.supplyPrice}>¥{p.price?.toFixed(2)}</Text>
+                    </View>
+                  ))}
+                  {procurements.length > 0 && (
+                    <>
+                      <Text style={[styles.sectionTitle, { marginTop: 16 }]}>{t('recentProcure') || '最近进货'}</Text>
+                      {procurements.map((pr: any) => (
+                        <View key={pr.id} style={styles.supplyRow}>
+                          <Text style={styles.supplyName}>{pr.product_name} x{pr.quantity}</Text>
+                          <Text style={styles.supplyPrice}>¥{pr.total?.toFixed(2)}</Text>
+                        </View>
+                      ))}
+                    </>
+                  )}
+                </View>
+              )}
+
+              {tab === 'chart' && (
+                <View>
+                  <Text style={styles.sectionTitle}>{t('trend12Month') || '近12月收支趋势'}</Text>
+                  {chart.map((d: any) => (
+                    <View key={d.month} style={styles.barRow}>
+                      <Text style={styles.barLabel}>{d.month?.slice(5)}</Text>
+                      <View style={styles.barWrap}>
+                        <View style={[styles.barIncome, { flex: d.income || 0 } as any]} />
+                        <View style={[styles.barExpense, { flex: d.expense || 0 } as any]} />
+                      </View>
+                      <Text style={styles.barVal}>+{d.income?.toFixed(0)} -{d.expense?.toFixed(0)}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          </>
+        )}
       </View>
 
       {/* Bottom Nav */}
@@ -258,11 +259,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         ] as const).map(({ id, label, icon: Icon }) => (
           <TouchableOpacity
             key={id}
-            style={[styles.navItem, (id === 'partner' ? showPartner : tab === id) && styles.navItemActive]}
-            onPress={() => id === 'partner' ? setShowPartner(true) : setTab(id as Tab)}
+            style={[styles.navItem, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navItemActive]}
+            onPress={() => setTab(id as Tab)}
           >
-            <Icon active={id === 'partner' ? showPartner : tab === id} />
-            <Text style={[styles.navLabel, (id === 'partner' ? showPartner : tab === id) && styles.navLabelActive]}>
+            <Icon active={id === 'partner' ? tab === 'partner' : tab === id} />
+            <Text style={[styles.navLabel, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navLabelActive]}>
               {label}
             </Text>
           </TouchableOpacity>
