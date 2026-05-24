@@ -30,7 +30,7 @@ jobs:
       - run: npm ci
       - run: npx expo export --platform web
       - name: 部署到测试服务器
-        uses: appleboy/scp-action@v0
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -39,7 +39,7 @@ jobs:
           target: /opt/snail-books-web-staging/
           strip_components: 0
       - name: 重启测试服务
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -59,7 +59,7 @@ jobs:
       - run: npm ci
       - run: npx expo export --platform web
       - name: 部署到生产服务器
-        uses: appleboy/scp-action@v0
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -68,7 +68,7 @@ jobs:
           target: /opt/snail-books-web/
           strip_components: 0
       - name: 重启生产服务
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
