@@ -273,14 +273,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   {/* active track fill */}
                   <View style={{
                     position: 'absolute', left: 0, height: 4, borderRadius: 2,
-                    width: `${((bgOpacity - 0.15) / 0.7) * 100}%`,
+                    width: `${bgOpacity * 100}%`,
                     backgroundColor: '#8B1E22',
                   }} />
                   {/* range input (invisible, on top) */}
                   <input
                     type="range"
-                    min="0.15"
-                    max="0.85"
+                    min="0"
+                    max="1"
                     step="0.05"
                     value={bgOpacity}
                     onChange={(e: any) => {
@@ -296,9 +296,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 </View>
                 {/* tick labels */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
-                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>15</Text>
+                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>0</Text>
                   <Text style={{ fontSize: 9, color: '#D1D5DB' }}>50</Text>
-                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>85</Text>
+                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>100</Text>
                 </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
