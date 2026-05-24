@@ -76,6 +76,7 @@ export const api = {
   getDividends: () => authFetch('/api/dividends'),
   createDividend: (data: any) => authFetch('/api/dividends', { method: 'POST', body: JSON.stringify(data) }),
   deleteDividend: (id: number) => authFetch(`/api/dividends/${id}`, { method: 'DELETE' }),
+  deleteDividendByNote: (note: string) => authFetch('/api/dividends/delete', { method: 'POST', body: JSON.stringify({ note }) }),
 
   getProducts: () => authFetch('/api/products'),
   createProduct: (data: any) => authFetch('/api/products', { method: 'POST', body: JSON.stringify(data) }),
@@ -88,4 +89,6 @@ export const api = {
 
   getChart: () => authFetch('/api/chart'),
   getStats: () => authFetch('/api/stats'),
+
+  logout: () => fetch(API_BASE + '/logout').then(() => { localStorage.removeItem('user'); }),
 };

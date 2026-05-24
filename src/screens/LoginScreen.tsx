@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 
@@ -9,150 +9,345 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [msg, setMsg] = useState('');
   const [msgOk, setMsgOk] = useState(false);
   const [lang, setLangState] = useState(getLang());
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [shake, setShake] = useState(false);
+
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('saved_login');
+      if (saved) setUsername(saved);
+      if (localStorage.getItem('user')) onLogin();
+    }
+  }, []);
 
   const reset = () => { setMsg(''); setMsgOk(false); };
   const goLogin = () => { setStep('login'); reset(); };
 
+  const validatePassword = (pw: string): string => {
+    if (pw.length < 6) return t('errPwTooShort') || '6 chars min';
+    if (!/[A-Za-z]/.test(pw)) return t('errPwNeedLetter') || 'needs a letter';
+    if (!/[0-9]/.test(pw)) return t('errPwNeedNumber') || 'needs a number';
+    return '';
+  };
+
+  const triggerShake = () => {
+    setShake(true); setTimeout(() => setShake(false), 400);
+  };
+
   const handleLogin = async () => {
-    if (!username || !password) return setMsg(t('errEmptyFields'));
+    if (!username || !password) { setMsg(t('errEmptyFields')); triggerShake(); return; }
     const r = await api.login(username, password);
     if (r.status === 'ok') {
-      if (r.token) localStorage.setItem('token', r.token);
-      localStorage.setItem('user', username);
+      if (r.token && typeof localStorage !== 'undefined') localStorage.setItem('token', r.token);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('user', r.username || username);
+        localStorage.setItem('saved_login', username);
+      }
       onLogin();
     } else if (r.need_verify) {
       setEmail(r.email); setStep('verify'); setMsg('');
     } else {
       setMsg(r.message || t('errWrongCredentials'));
+      triggerShake();
     }
   };
 
   const handleRegister = async () => {
-    if (!username || !password || !email) return setMsg(t('errEmptyFields'));
+    if (!username || !password || !email) { setMsg(t('errEmptyFields')); triggerShake(); return; }
+    if (password !== password2) { setMsg(t('errPwMismatch') || 'Passwords mismatch'); triggerShake(); return; }
+    const pwErr = validatePassword(password);
+    if (pwErr) { setMsg(pwErr); triggerShake(); return; }
     const r = await api.register(username, password, email);
     if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('verify'); }
-    else setMsg(r.message);
+    else { setMsg(r.message); triggerShake(); }
   };
 
   const handleVerify = async () => {
     if (!code) return;
     const r = await api.verify(email, code);
     if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgVerifyOk')); setStep('login'); }
-    else setMsg(r.message);
+    else { setMsg(r.message); triggerShake(); }
   };
 
   const handleForgot = async () => {
-    if (!email) return setMsg(t('errEmptyFields'));
+    if (!email) { setMsg(t('errEmptyFields')); return; }
     const r = await api.forgotPassword(email);
     if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('reset'); }
     else setMsg(r.message);
   };
 
   const handleReset = async () => {
-    if (!code || !password) return setMsg(t('errEmptyFields'));
+    if (!code || !password) { setMsg(t('errEmptyFields')); triggerShake(); return; }
+    const pwErr = validatePassword(password);
+    if (pwErr) { setMsg(pwErr); triggerShake(); return; }
     const r = await api.resetPassword(email, code, password);
-    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('login'); }
-    else setMsg(r.message);
+    if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgResetOk')); setStep('login'); }
+    else { setMsg(r.message); triggerShake(); }
   };
 
+  const handleResend = () => {
+    if (resendCooldown > 0) return;
+    api.resendCode(email);
+    setResendCooldown(30);
+    const iv = setInterval(() => {
+      setResendCooldown(c => { if (c <= 1) { clearInterval(iv); return 0; } return c - 1; });
+    }, 1000);
+  };
+
+  const switchLang = (l: string) => { setLang(l); setLangState(l); };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{t('appTitle')}</Text>
-      <Text style={styles.subtitle}>{t('subtitle')}</Text>
-
-      {/* Lang switcher */}
-      <View style={styles.langRow}>
-        {langs.map(([l, label]) => (
-          <TouchableOpacity key={l} onPress={() => { setLang(l); setLangState(l); }}>
-            <Text style={[styles.langBtn, lang === l && styles.langActive]}>{label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Step tabs */}
-      {step === 'login' || step === 'register' ? (
-        <View style={styles.tabRow}>
-          <TouchableOpacity onPress={goLogin}>
-            <Text style={[styles.tab, step === 'login' && styles.tabActive]}>{t('login')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => { setStep('register'); reset(); }}>
-            <Text style={[styles.tab, step === 'register' && styles.tabActive]}>{t('register')}</Text>
-          </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Background layers */}
+      <View style={styles.bgWrapper} />
+      <View style={styles.bgOverlay} />
+      <View style={styles.content}>
+        {/* Brand */}
+        <View style={styles.brand}>
+          <View style={styles.logoWrap}>
+            <Image source={{ uri: '/static/logo.jpg' }} style={styles.logo} />
+          </View>
+          <Text style={styles.subtitle}>{t('subtitle')}</Text>
+          <View style={styles.langRow}>
+            {langs.map(([l, label]) => (
+              <TouchableOpacity key={l} onPress={() => switchLang(l)}>
+                <Text style={[styles.langBtn, lang === l && styles.langActive]}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      ) : null}
 
-      {/* Message */}
-      {msg ? <Text style={[styles.msg, msgOk && styles.msgOk]}>{msg}</Text> : null}
+        {/* Glass Card */}
+        <View style={[styles.glassCard, shake && styles.shake]}>
+          {/* Message */}
+          {msg ? (
+            <View style={[styles.msgBox, msgOk ? styles.msgOk : styles.msgErr]}>
+              <Text style={[styles.msgText, msgOk ? styles.msgOkText : styles.msgErrText]}>{msg}</Text>
+            </View>
+          ) : null}
 
-      {/* Fields */}
-      {step === 'login' && (
-        <>
-          <TextInput style={styles.input} placeholder={t('username')} value={username} onChangeText={setUsername} placeholderTextColor="#999" />
-          <TextInput style={styles.input} placeholder={t('password')} value={password} onChangeText={setPassword} secureTextEntry placeholderTextColor="#999" />
-          <TouchableOpacity style={styles.btn} onPress={handleLogin}><Text style={styles.btnText}>{t('loginBtn')}</Text></TouchableOpacity>
-          <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
-            <Text style={styles.link}>{t('forgotPassword')}</Text>
-          </TouchableOpacity>
-        </>
-      )}
+          {/* Login/Register tabs */}
+          {(step === 'login' || step === 'register') ? (
+            <View style={styles.tabRow}>
+              <TouchableOpacity onPress={goLogin} style={[styles.tabBtn, step === 'login' && styles.tabActive]}>
+                <Text style={[styles.tabText, step === 'login' && styles.tabActiveText]}>{t('login')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => { setStep('register'); reset(); }} style={[styles.tabBtn, step === 'register' && styles.tabActive]}>
+                <Text style={[styles.tabText, step === 'register' && styles.tabActiveText]}>{t('register')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
 
-      {step === 'register' && (
-        <>
-          <TextInput style={styles.input} placeholder={t('username')} value={username} onChangeText={setUsername} placeholderTextColor="#999" />
-          <TextInput style={styles.input} placeholder={t('password')} value={password} onChangeText={setPassword} secureTextEntry placeholderTextColor="#999" />
-          <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" placeholderTextColor="#999" />
-          <TouchableOpacity style={styles.btn} onPress={handleRegister}><Text style={styles.btnText}>{t('registerBtn')}</Text></TouchableOpacity>
-          <TouchableOpacity onPress={goLogin}><Text style={styles.link}>{t('backToLogin')}</Text></TouchableOpacity>
-        </>
-      )}
+          {/* LOGIN */}
+          {step === 'login' && (
+            <View style={styles.formSection}>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>{t('username')}</Text>
+                <TextInput style={styles.textInput} value={username} onChangeText={setUsername}
+                  placeholder={t('loginPlaceholder') || '用户名 / 邮箱'} placeholderTextColor="rgba(255,255,255,0.55)"
+                  onSubmitEditing={handleLogin} />
+              </View>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>{t('password')}</Text>
+                <TextInput style={styles.textInput} value={password} onChangeText={setPassword}
+                  placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)"
+                  secureTextEntry onSubmitEditing={handleLogin} />
+              </View>
+              <TouchableOpacity onPress={handleLogin} style={styles.btnDark}>
+                <Text style={styles.btnDarkText}>{t('loginBtn')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
+                <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-      {step === 'verify' && (
-        <>
-          <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} placeholderTextColor="#999" />
-          <TextInput style={styles.input} placeholder={t('verifyCode')} value={code} onChangeText={setCode} placeholderTextColor="#999" />
-          <TouchableOpacity style={styles.btn} onPress={handleVerify}><Text style={styles.btnText}>{t('verifyBtn')}</Text></TouchableOpacity>
-          <TouchableOpacity onPress={() => api.resendCode(email)}><Text style={styles.link}>{t('resendCode')}</Text></TouchableOpacity>
-        </>
-      )}
+          {/* REGISTER */}
+          {step === 'register' && (
+            <View style={styles.formSection}>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>{t('username')}</Text>
+                <TextInput style={styles.textInput} value={username} onChangeText={setUsername}
+                  placeholder={t('username')} placeholderTextColor="rgba(255,255,255,0.55)" />
+              </View>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>{t('email') || 'Email'}</Text>
+                <TextInput style={styles.textInput} value={email} onChangeText={setEmail}
+                  placeholder={t('email') || 'Email'} placeholderTextColor="rgba(255,255,255,0.55)" />
+              </View>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>
+                  {t('password')}{' '}
+                  <Text style={styles.hintText}>{t('pwHint') || '6+ chars, letter + number'}</Text>
+                </Text>
+                <TextInput style={styles.textInput} value={password} onChangeText={setPassword}
+                  placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)" secureTextEntry />
+              </View>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>{t('confirmPassword')}</Text>
+                <TextInput style={styles.textInput} value={password2} onChangeText={setPassword2}
+                  placeholder={t('confirmPassword')} placeholderTextColor="rgba(255,255,255,0.55)"
+                  secureTextEntry onSubmitEditing={handleRegister} />
+              </View>
+              <TouchableOpacity onPress={handleRegister} style={styles.btnDark}>
+                <Text style={styles.btnDarkText}>{t('registerBtn')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={goLogin}>
+                <Text style={styles.forgotText}>{t('backToLogin')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-      {step === 'forgot' && (
-        <>
-          <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} placeholderTextColor="#999" />
-          <TouchableOpacity style={styles.btn} onPress={handleForgot}><Text style={styles.btnText}>{t('forgotSendBtn')}</Text></TouchableOpacity>
-          <TouchableOpacity onPress={goLogin}><Text style={styles.link}>{t('backToLogin')}</Text></TouchableOpacity>
-        </>
-      )}
+          {/* VERIFY */}
+          {step === 'verify' && (
+            <View style={styles.formSection}>
+              <Text style={styles.infoText}>
+                {t('verifySent') || 'Code sent to'} <Text style={styles.infoStrong}>{email}</Text>
+              </Text>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>{t('verifyCode')}</Text>
+                <TextInput style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
+                  placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)"
+                  keyboardType="number-pad" onSubmitEditing={handleVerify} />
+              </View>
+              <TouchableOpacity onPress={handleVerify} style={styles.btnRed}>
+                <Text style={styles.btnRedText}>{t('verifyBtn')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleResend} disabled={resendCooldown > 0}>
+                <Text style={[styles.forgotText, resendCooldown > 0 && styles.disabledText]}>
+                  {resendCooldown > 0 ? `${resendCooldown}s` : t('resendCode')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={goLogin}>
+                <Text style={styles.forgotText}>{t('backToLogin')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-      {step === 'reset' && (
-        <>
-          <TextInput style={styles.input} placeholder={t('verifyCode')} value={code} onChangeText={setCode} placeholderTextColor="#999" />
-          <TextInput style={styles.input} placeholder={t('newPassword')} value={password} onChangeText={setPassword} secureTextEntry placeholderTextColor="#999" />
-          <TouchableOpacity style={styles.btn} onPress={handleReset}><Text style={styles.btnText}>{t('resetBtn')}</Text></TouchableOpacity>
-        </>
-      )}
-    </ScrollView>
+          {/* FORGOT */}
+          {step === 'forgot' && (
+            <View style={styles.formSection}>
+              <Text style={styles.infoText}>{t('forgotStep1') || 'Enter email'}</Text>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>{t('email') || 'Email'}</Text>
+                <TextInput style={styles.textInput} value={email} onChangeText={setEmail}
+                  placeholder="Email" placeholderTextColor="rgba(255,255,255,0.55)"
+                  keyboardType="email-address" onSubmitEditing={handleForgot} />
+              </View>
+              <TouchableOpacity onPress={handleForgot} style={styles.btnDark}>
+                <Text style={styles.btnDarkText}>{t('forgotSendBtn') || 'Send Code'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={goLogin}>
+                <Text style={styles.forgotText}>{t('backToLogin')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* RESET */}
+          {step === 'reset' && (
+            <View style={styles.formSection}>
+              <Text style={styles.infoText}>
+                {t('resetHint') || 'Code sent to'} <Text style={styles.infoStrong}>{email}</Text>
+              </Text>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>{t('verifyCode')}</Text>
+                <TextInput style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
+                  placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)}" keyboardType="number-pad" />
+              </View>
+              <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>{t('newPassword')}</Text>
+                <TextInput style={styles.textInput} value={password} onChangeText={setPassword}
+                  placeholder={t('newPassword')} placeholderTextColor="rgba(255,255,255,0.55)" secureTextEntry />
+              </View>
+              <TouchableOpacity onPress={handleReset} style={styles.btnRed}>
+                <Text style={styles.btnRedText}>{t('resetBtn')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={goLogin}>
+                <Text style={styles.forgotText}>{t('backToLogin')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Copyright */}
+          <Text style={styles.copyright}>© 2026 柳味探秘 · 螺蛳粉 · 经营查询</Text>
+        </View>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#FAFAFA', paddingTop: 60 },
-  title: { fontSize: 22, fontWeight: '700', color: '#8B1E22', marginBottom: 4 },
-  subtitle: { fontSize: 13, color: '#999', marginBottom: 16 },
-  langRow: { flexDirection: 'row', gap: 6, marginBottom: 16 },
-  langBtn: { fontSize: 12, color: '#999', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1, borderColor: '#EBEBEB' },
-  langActive: { color: '#8B1E22', borderColor: '#8B1E22', fontWeight: '600' },
-  tabRow: { flexDirection: 'row', gap: 0, marginBottom: 16 },
-  tab: { fontSize: 14, color: '#999', paddingHorizontal: 20, paddingVertical: 6, borderBottomWidth: 2, borderColor: 'transparent' },
-  tabActive: { color: '#8B1E22', borderColor: '#8B1E22', fontWeight: '600' },
-  input: { width: 260, height: 42, borderWidth: 1, borderColor: '#EBEBEB', borderRadius: 10, paddingHorizontal: 14, fontSize: 14, marginBottom: 10, backgroundColor: '#fff', color: '#333' },
-  btn: { width: 260, height: 42, backgroundColor: '#8B1E22', borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  btnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  link: { fontSize: 12, color: '#8B1E22', marginTop: 4 },
-  msg: { fontSize: 12, color: '#DC2626', marginBottom: 8, textAlign: 'center' },
-  msgOk: { color: '#16A34A' },
+  container: { flex: 1, minHeight: '100vh', justifyContent: 'center', padding: 20, paddingTop: 24 },
+  bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+    // @ts-ignore - web-only background image
+    backgroundImage: 'url(/static/bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
+  bgOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
+  content: { position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
+  brand: { alignItems: 'center', marginBottom: 32 },
+  logoWrap: {
+    width: 56, height: 56, borderRadius: 16, overflow: 'hidden', marginBottom: 20,
+    // @ts-ignore - web-only boxShadow
+    boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)',
+  },
+  logo: { width: 56, height: 56 },
+  subtitle: { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
+  langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
+  langBtn: { fontSize: 11, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  langActive: { color: '#fff', backgroundColor: 'rgba(255,255,255,0.15)' },
+  glassCard: {
+    backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 16, padding: 28,
+    // @ts-ignore - web-only
+    backdropFilter: 'blur(24px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  shake: {}, // animation handled by CSS class
+  msgBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+  msgOk: { backgroundColor: 'rgba(16,185,129,0.3)' },
+  msgErr: { backgroundColor: 'rgba(254,242,242,0.9)' },
+  msgText: { fontSize: 11, fontWeight: '500' },
+  msgOkText: { color: '#D1FAE5' },
+  msgErrText: { color: '#991B1B' },
+  tabRow: {
+    flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, padding: 4, marginBottom: 16,
+    // @ts-ignore
+    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
+  tabActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  tabText: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.65)' },
+  tabActiveText: { color: '#fff' },
+  formSection: { gap: 16 },
+  fieldWrap: { gap: 6 },
+  fieldLabel: { fontSize: 11, fontWeight: '500', color: 'rgba(255,255,255,0.6)' },
+  hintText: { fontSize: 10, fontWeight: '400', color: 'rgba(255,255,255,0.3)' },
+  textInput: {
+    backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
+    fontSize: 13, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    // @ts-ignore
+    backdropFilter: 'blur(8px)', outlineStyle: 'none',
+  },
+  codeInput: { textAlign: 'center', letterSpacing: 6 },
+  btnDark: {
+    backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
+    // @ts-ignore
+    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  btnDarkText: { fontSize: 13, fontWeight: '500', color: '#fff', letterSpacing: 1 },
+  btnRed: {
+    backgroundColor: 'rgba(139,30,34,0.7)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
+    // @ts-ignore
+    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  btnRedText: { fontSize: 13, fontWeight: '500', color: '#fff', letterSpacing: 1 },
+  forgotText: { fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
+  disabledText: { opacity: 0.3 },
+  infoText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
+  infoStrong: { fontWeight: '600', color: '#fff' },
+  copyright: { fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });

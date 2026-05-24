@@ -11,7 +11,7 @@ export default function App() {
   return (
     <>
       {page === 'login' && <LoginScreen onLogin={() => setPage('home')} />}
-      {page === 'home' && <HomeScreen onPartner={() => setPage('partner')} />}
+      {page === 'home' && <HomeScreen onPartner={() => setPage('partner')} onLogout={() => setPage('login')} />}
       {page === 'partner' && <PartnerScreen onBack={() => setPage('home')} />}
     </>
   );
