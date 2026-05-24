@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 
@@ -240,24 +241,80 @@ export default function HomeScreen({ onPartner, onLogout }: { onPartner: () => v
         </ScrollView>
       </View>
 
-      {/* Bottom Nav - 8600 glass style */}
+      {/* Bottom Nav */}
       <View style={styles.bottomNav}>
-        {(['list', 'add', 'supply', 'chart'] as Tab[]).map((tabId) => {
-          const icons: Record<Tab, string> = { list: '☰', add: '⊕', supply: '☐', chart: '◫' };
-          const labels: Record<Tab, string> = { list: '账单', add: '记账', supply: '供应链', chart: '趋势' };
-          return (
-            <TouchableOpacity key={tabId} style={styles.navItem} onPress={() => setTab(tabId)}>
-              <Text style={styles.navIcon}>{icons[tabId]}</Text>
-              <Text style={[styles.navLabel, tab === tabId && styles.navLabelActive]}>{labels[tabId]}</Text>
-            </TouchableOpacity>
-          );
-        })}
-        <TouchableOpacity style={styles.navItem} onPress={onPartner}>
-          <Text style={styles.navIcon}>👥</Text>
-          <Text style={styles.navLabel}>{t('navPartner')}</Text>
-        </TouchableOpacity>
+        {([
+          { id: 'list', label: '账单', icon: NavIconList },
+          { id: 'add', label: '记账', icon: NavIconAdd },
+          { id: 'supply', label: '供应链', icon: NavIconSupply },
+          { id: 'chart', label: '趋势', icon: NavIconChart },
+          { id: 'partner', label: t('navPartner'), icon: NavIconPartner },
+        ] as const).map(({ id, label, icon: Icon }) => (
+          <TouchableOpacity
+            key={id}
+            style={styles.navItem}
+            onPress={() => id === 'partner' ? onPartner() : setTab(id as Tab)}
+          >
+            <Icon active={id === 'partner' ? false : tab === id} />
+            <Text style={[styles.navLabel, (id === 'partner' ? false : tab === id) && styles.navLabelActive]}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
+  );
+}
+
+/* ===== NAV SVG ICONS ===== */
+
+function NavIconList({ active }: { active: boolean }) {
+  const c = active ? '#1A1A1A' : '#999';
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
+      <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+      <Path d="M9 5a2 2 0 012-2h2a2 2 0 012 2v0a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      <Path d="M9 12h6M9 16h6" />
+    </Svg>
+  );
+}
+
+function NavIconAdd({ active }: { active: boolean }) {
+  const c = active ? '#1A1A1A' : '#999';
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
+      <Path d="M12 5v14M5 12h14" />
+    </Svg>
+  );
+}
+
+function NavIconSupply({ active }: { active: boolean }) {
+  const c = active ? '#1A1A1A' : '#999';
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+      <Path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
+    </Svg>
+  );
+}
+
+function NavIconChart({ active }: { active: boolean }) {
+  const c = active ? '#1A1A1A' : '#999';
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M3 3v18h18" />
+      <Path d="M7 16l4-8 4 4 4-6" />
+    </Svg>
+  );
+}
+
+function NavIconPartner({ active }: { active: boolean }) {
+  const c = active ? '#1A1A1A' : '#999';
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+      <Path d="M12 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+    </Svg>
   );
 }
 
@@ -334,18 +391,17 @@ const styles = StyleSheet.create({
   barIncome: { backgroundColor: '#059669', height: '100%' },
   barExpense: { backgroundColor: '#EF4444', opacity: 0.7, height: '100%' },
   barVal: { fontSize: 9, color: '#999', width: 90 },
-  // Bottom Nav — 8600: fixed bottom, glass
+  // Bottom Nav
   bottomNav: {
     position: 'fixed' as any, bottom: 0, left: 0, right: 0,
-    backgroundColor: 'rgba(250,250,250,0.92)',
+    backgroundColor: 'rgba(255,255,255,0.88)',
     // @ts-ignore - web-only
-    backdropFilter: 'blur(10px)',
+    backdropFilter: 'blur(16px)',
     borderTopWidth: 1, borderTopColor: '#EBEBEB',
-    flexDirection: 'row', paddingTop: 4, paddingBottom: 14, paddingHorizontal: 8,
+    flexDirection: 'row', paddingTop: 6, paddingBottom: 20, paddingHorizontal: 4,
     zIndex: 100,
   },
-  navItem: { flex: 1, alignItems: 'center', paddingVertical: 4, gap: 1 },
-  navIcon: { fontSize: 13 },
-  navLabel: { fontSize: 10, fontWeight: '500', color: '#999' },
+  navItem: { flex: 1, alignItems: 'center', paddingVertical: 2, gap: 4 },
+  navLabel: { fontSize: 10, fontWeight: '600', color: '#999', letterSpacing: 0.2 },
   navLabelActive: { color: '#1A1A1A' },
 });
