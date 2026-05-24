@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- PWA -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="蓝姐螺蛳粉">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <meta name="theme-color" content="#8B1E22">
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+<title>蓝姐螺蛳粉</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="/static/i18n.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
+  .bg-wrapper { position: fixed; inset: 0; z-index: 0; background: url(/static/bg.jpg) center/cover no-repeat; }
+  .bg-overlay { position: fixed; inset: 0; z-index: 1; background: rgba(0,0,0,0.15); }
+  .bg-content { position: relative; z-index: 2; }
+  .glass-card { background: rgba(255,255,255,0.10); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.10); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+  .glass-input { background: rgba(255,255,255,0.10); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.10); color: #fff; }
+  .glass-input::placeholder { color: rgba(255,255,255,0.55); }
+  .glass-input:focus { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.10); box-shadow: 0 0 0 3px rgba(255,255,255,0.10); outline: none; }
+  .glass-tabs { background: rgba(255,255,255,0.10); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.10); }
+  .tab-active { background: rgba(255,255,255,0.10); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .tab-inactive { color: rgba(255,255,255,0.65); }
+  .btn-dark { background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.10); color: #fff; }
+  .btn-dark:hover { background: rgba(0,0,0,0.7); }
+  .btn-red { background: rgba(139,30,34,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.10); color: #fff; }
+  .btn-red:hover { background: rgba(139,30,34,0.85); }
+  .lang-btn { color: rgba(255,255,255,0.10); font-size: 11px; padding: 2px 8px; border-radius: 6px; cursor: pointer; transition: all .2s; }
+  .lang-btn:hover { color: rgba(255,255,255,0.10); background: rgba(255,255,255,0.10); }
+  .lang-btn.active { color: #fff; background: rgba(255,255,255,0.10); }
+  .shake { animation: shake .4s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+  .fade-in { animation: fadeIn .4s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body class="min-h-screen flex justify-center p-5 relative" style="padding-top:24px">
+<div class="bg-wrapper"></div>
+<div class="bg-overlay"></div>
+<div class="bg-content w-full max-w-[380px] fade-in">
+
+  <!-- Brand -->
+  <div class="text-center mb-8">
+    <div class="w-14 h-14 rounded-2xl overflow-hidden mx-auto mb-5" style="box-shadow:0 1px 3px rgba(0,0,0,.2),0 8px 40px rgba(0,0,0,.15)">
+        <img src="/static/logo.jpg" class="w-full h-full object-cover" alt="Logo">
+      </div>
+    <p data-i18n="subtitle" class="text-[12px] text-white/60 mt-1.5 tracking-wide"></p>
+    <!-- Lang switcher -->
+    <div class="flex justify-center gap-1 mt-3">
+      <span class="lang-btn active" data-lang="zh-CN" onclick="setLang('zh-CN')">简</span>
+      <span class="lang-btn" data-lang="zh-TW" onclick="setLang('zh-TW')">繁</span>
+      <span class="lang-btn" data-lang="en" onclick="setLang('en')">EN</span>
+    </div>
+  </div>
+
+  <!-- Card -->
+  <div class="glass-card rounded-2xl p-7 space-y-5" id="form-box">
+
+    <div id="error-msg" class="hidden bg-[#FEF2F2]/90 backdrop-blur-sm text-[#991B1B] text-[11px] rounded-xl px-4 py-3 font-medium"></div>
+
+    <div id="tabs-row" class="flex glass-tabs rounded-xl p-1">
+      <button onclick="switchMode(true)" id="tab-login" class="flex-1 py-2 text-[12px] font-medium rounded-lg transition-all tab-active" data-i18n="tabLogin"></button>
+      <button onclick="switchMode(false)" id="tab-register" class="flex-1 py-2 text-[12px] font-medium rounded-lg transition-all tab-inactive" data-i18n="tabRegister"></button>
+    </div>
+
+    <!-- Login -->
+    <div id="login-fields" class="space-y-4">
+      <div><label data-i18n="labelUsername" class="block text-[11px] font-medium text-white/60 mb-1.5"></label>
+        <input type="text" id="login-username" data-i18n-placeholder="phUsername" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] transition-all"></div>
+      <div><label data-i18n="labelPassword" class="block text-[11px] font-medium text-white/60 mb-1.5"></label>
+        <input type="password" id="login-password" data-i18n-placeholder="phPassword" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] transition-all" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button onclick="doLogin()" data-i18n="btnLogin" class="btn-dark w-full rounded-xl py-3 text-[13px] font-medium tracking-wide transition-all"></button>
+      <p data-i18n="forgotPw" class="text-center text-[11px] text-white/40 hover:text-white/80 cursor-pointer transition-colors" onclick="showForgotStep1()"></p>
+    </div>
+
+    <!-- Register -->
+    <div id="register-fields" class="hidden space-y-4">
+      <div><label data-i18n="labelUsername" class="block text-[11px] font-medium text-white/60 mb-1.5"></label>
+        <input type="text" id="reg-username" data-i18n-placeholder="phUsernameReg" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] transition-all"></div>
+      <div><label data-i18n="labelEmail" class="block text-[11px] font-medium text-white/60 mb-1.5"></label>
+        <input type="email" id="reg-email" data-i18n-placeholder="phEmail" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] transition-all"></div>
+      <div><label class="block text-[11px] font-medium text-white/60 mb-1.5"><span data-i18n="labelPassword"></span> <span data-i18n="pwHint" class="text-white/30 font-normal"></span></label>
+        <input type="password" id="reg-password" data-i18n-placeholder="phPasswordReg" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] transition-all"></div>
+      <div><label data-i18n="labelPassword2" class="block text-[11px] font-medium text-white/60 mb-1.5"></label>
+        <input type="password" id="reg-password2" data-i18n-placeholder="phPassword2" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] transition-all" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <button onclick="doRegister()" data-i18n="btnRegister" class="btn-dark w-full rounded-xl py-3 text-[13px] font-medium tracking-wide transition-all"></button>
+    </div>
+
+    <!-- Verify -->
+    <div id="verify-fields" class="hidden space-y-4">
+      <p class="text-[12px] text-white/70 text-center leading-relaxed"><span data-i18n="verifySent"></span> <span id="verify-email-text" class="font-medium text-white"></span></p>
+      <div><label data-i18n="labelCode" class="block text-[11px] font-medium text-white/60 mb-1.5"></label>
+        <input type="text" id="verify-code" data-i18n-placeholder="phCode" maxlength="6" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] text-center tracking-[6px] placeholder:tracking-normal transition-all" onkeydown="if(event.key==='Enter')doVerify()"></div>
+      <button onclick="doVerify()" data-i18n="btnVerify" class="btn-red w-full rounded-xl py-3 text-[13px] font-medium tracking-wide transition-all"></button>
+      <button onclick="doResend('verify')" id="resend-btn" data-i18n="resendCode" class="w-full text-[12px] text-white/40 hover:text-white/80 transition-colors"></button>
+    </div>
+
+    <!-- Forgot Step 1 -->
+    <div id="forgot-step1" class="hidden space-y-4">
+      <p data-i18n="forgotTitle" class="text-[13px] text-white font-medium text-center"></p>
+      <p data-i18n="forgotHint" class="text-[11px] text-white/50 text-center -mt-2"></p>
+      <div><label data-i18n="labelEmailReg" class="block text-[11px] font-medium text-white/60 mb-1.5"></label>
+        <input type="email" id="forgot-email" data-i18n-placeholder="phEmailReg" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] transition-all" onkeydown="if(event.key==='Enter')doForgotSend()"></div>
+      <button onclick="doForgotSend()" data-i18n="btnSendCode" class="btn-dark w-full rounded-xl py-3 text-[13px] font-medium tracking-wide transition-all"></button>
+      <p data-i18n="backLogin" class="text-center text-[11px] text-white/40 hover:text-white/80 cursor-pointer transition-colors" onclick="backToLogin()"></p>
+    </div>
+
+    <!-- Forgot Step 2 -->
+    <div id="forgot-step2" class="hidden space-y-4">
+      <p data-i18n="forgotTitle2" class="text-[13px] text-white font-medium text-center"></p>
+      <p class="text-[11px] text-white/50 text-center -mt-2"><span data-i18n="verifySent"></span> <span id="forgot-email-text" class="font-medium text-white"></span></p>
+      <div><label data-i18n="labelCode" class="block text-[11px] font-medium text-white/60 mb-1.5"></label>
+        <input type="text" id="forgot-code" data-i18n-placeholder="phCode" maxlength="6" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] text-center tracking-[6px] placeholder:tracking-normal transition-all"></div>
+      <div><label class="block text-[11px] font-medium text-white/60 mb-1.5"><span data-i18n="labelNewPw"></span> <span data-i18n="pwHint" class="text-white/30 font-normal"></span></label>
+        <input type="password" id="forgot-new-password" data-i18n-placeholder="phPasswordReg" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] transition-all"></div>
+      <div><label data-i18n="labelNewPw2" class="block text-[11px] font-medium text-white/60 mb-1.5"></label>
+        <input type="password" id="forgot-new-password2" data-i18n-placeholder="phPassword2" class="glass-input w-full rounded-xl px-4 py-3 text-[13px] transition-all" onkeydown="if(event.key==='Enter')doResetPassword()"></div>
+      <button onclick="doResetPassword()" data-i18n="btnResetPw" class="btn-red w-full rounded-xl py-3 text-[13px] font-medium tracking-wide transition-all"></button>
+      <button onclick="doResend('forgot')" id="forgot-resend-btn" data-i18n="resendCode" class="w-full text-[12px] text-white/40 hover:text-white/80 transition-colors"></button>
+    </div>
+
+    <!-- Divider -->
+    <div id="divider-row" class="relative">
+      <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+      <div class="relative flex justify-center"><span data-i18n="footer" class="text-[10px] text-white/30 tracking-wider px-3" style="background:inherit"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Keep lang buttons in sync with shared i18n state
+(function() {
+  document.querySelectorAll('.lang-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.lang === curLang);
+  });
+  onLangChange(function(lang) {
+    document.querySelectorAll('.lang-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+  });
+})();
+
+// ====== App Logic ======
+let isLogin = true;
+let pendingEmail = '';
+let forgotEmail = '';
+let resendCooldown = false;
+
+function hideAll() {
+  document.getElementById('login-fields').classList.add('hidden');
+  document.getElementById('register-fields').classList.add('hidden');
+  document.getElementById('verify-fields').classList.add('hidden');
+  document.getElementById('forgot-step1').classList.add('hidden');
+  document.getElementById('forgot-step2').classList.add('hidden');
+  hideError();
+}
+
+function showTabs(show) {
+  document.getElementById('tabs-row').style.display = show ? '' : 'none';
+  document.getElementById('divider-row').style.display = show ? '' : 'none';
+}
+
+function switchMode(login){
+  isLogin = login;
+  hideAll();
+  showTabs(true);
+  document.getElementById('login-fields').classList.toggle('hidden', !login);
+  document.getElementById('register-fields').classList.toggle('hidden', login);
+  document.getElementById('tab-login').className = login
+    ? 'flex-1 py-2 text-[12px] font-medium rounded-lg transition-all tab-active'
+    : 'flex-1 py-2 text-[12px] font-medium rounded-lg transition-all tab-inactive';
+  document.getElementById('tab-register').className = !login
+    ? 'flex-1 py-2 text-[12px] font-medium rounded-lg transition-all tab-active'
+    : 'flex-1 py-2 text-[12px] font-medium rounded-lg transition-all tab-inactive';
+}
+
+function backToLogin() { hideAll(); showTabs(true); document.getElementById('login-fields').classList.remove('hidden'); }
+function showForgotStep1() { hideAll(); showTabs(false); document.getElementById('forgot-step1').classList.remove('hidden'); document.getElementById('forgot-email').value = ''; document.getElementById('forgot-email').focus(); }
+function showForgotStep2(email) { hideAll(); showTabs(false); forgotEmail = email; document.getElementById('forgot-step2').classList.remove('hidden'); document.getElementById('forgot-email-text').textContent = email; document.getElementById('forgot-code').value = ''; document.getElementById('forgot-new-password').value = ''; document.getElementById('forgot-new-password2').value = ''; document.getElementById('forgot-code').focus(); }
+function showError(msg){ const el = document.getElementById('error-msg'); el.textContent = msg; el.classList.remove('hidden'); el.className = 'bg-[#FEF2F2]/90 backdrop-blur-sm text-[#991B1B] text-[11px] rounded-xl px-4 py-3 font-medium'; document.getElementById('form-box').classList.add('shake'); setTimeout(()=>document.getElementById('form-box').classList.remove('shake'), 400); }
+function showSuccess(msg){ const el = document.getElementById('error-msg'); el.textContent = msg; el.classList.remove('hidden'); el.className = 'bg-[#F0FDF4]/90 backdrop-blur-sm text-[#166534] text-[11px] rounded-xl px-4 py-3 font-medium'; }
+function hideError(){ document.getElementById('error-msg').classList.add('hidden'); }
+function showVerifyStep(email) { hideError(); hideAll(); showTabs(false); document.getElementById('verify-fields').classList.remove('hidden'); document.getElementById('verify-email-text').textContent = email; document.getElementById('verify-code').value = ''; document.getElementById('verify-code').focus(); }
+function exitVerify() { hideAll(); showTabs(true); document.getElementById('register-fields').classList.remove('hidden'); }
+
+async function doLogin(){
+  hideError();
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value;
+  if(!u||!p) return showError(t('errEmpty'));
+  try {
+    const r = await fetch('/login', {method:'POST',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify({username:u,password:p})});
+    const d = await r.json();
+    if(r.ok){ localStorage.setItem('saved_login', u); var redir = localStorage.getItem('redirect_after_login'); localStorage.removeItem('redirect_after_login'); window.location.href = redir || '/'; }
+    else if(d.need_verify){ pendingEmail = d.email; document.getElementById('reg-username').value = u; document.getElementById('reg-password').value = p; document.getElementById('reg-password2').value = p; showVerifyStep(d.email); }
+    else { showError(d.message || t('errLoginFailed')); }
+  } catch(e){ showError(t('errNet')); }
+}
+
+async function doRegister(){
+  hideError();
+  const u = document.getElementById('reg-username').value.trim();
+  const e = document.getElementById('reg-email').value.trim();
+  const p = document.getElementById('reg-password').value;
+  const p2 = document.getElementById('reg-password2').value;
+  if(!u||!e||!p) return showError(t('errEmptyAll'));
+  if(p.length < 6) return showError(t('errPwLen'));
+  if(!/[A-Za-z]/.test(p)) return showError(t('errPwLetter'));
+  if(!/[0-9]/.test(p)) return showError(t('errPwNum'));
+  if(p !== p2) return showError(t('errPwMismatch'));
+  try {
+    const r = await fetch('/register', {method:'POST',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify({username:u,password:p,email:e})});
+    const d = await r.json();
+    if(r.ok){ pendingEmail = e; showVerifyStep(e); }
+    else { showError(d.message || t('errRegFailed')); }
+  } catch(e){ showError(t('errNet')); }
+}
+
+async function doVerify(){
+  hideError();
+  const c = document.getElementById('verify-code').value.trim();
+  if(!c) return showError(t('errEmptyCode'));
+  if(c.length !== 6) return showError(t('errCodeLen'));
+  try {
+    const r = await fetch('/verify', {method:'POST',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify({email:pendingEmail,code:c})});
+    const d = await r.json();
+    if(r.ok){
+      exitVerify();
+      document.getElementById('login-username').value = document.getElementById('reg-username').value;
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-password').focus();
+      ['reg-email','reg-username','reg-password','reg-password2'].forEach(id => document.getElementById(id).value='');
+      showSuccess(t('verifyOk'));
+    } else { showError(d.message || t('errVerifyFailed')); }
+  } catch(e){ showError(t('errNet')); }
+}
+
+async function doResend(type){
+  hideError();
+  const btnId = type === 'forgot' ? 'forgot-resend-btn' : 'resend-btn';
+  const btn = document.getElementById(btnId);
+  if(resendCooldown) return;
+  resendCooldown = true;
+  btn.textContent = t('sending'); btn.disabled = true;
+  const email = type === 'forgot' ? forgotEmail : pendingEmail;
+  let url = '/resend-code'; if(type === 'forgot') url = '/forgot-password';
+  try {
+    const r = await fetch(url, {method:'POST',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify({email})});
+    const d = await r.json();
+    if(r.ok){ showSuccess(t('resentOk')); } else { showError(d.message || t('errSendFailed')); }
+  } catch(e){ showError(t('errNet')); }
+  btn.textContent = t('resendCode');
+  setTimeout(()=>{ btn.disabled = false; resendCooldown = false; }, 30000);
+}
+
+async function doForgotSend(){
+  hideError();
+  const e = document.getElementById('forgot-email').value.trim();
+  if(!e) return showError(t('errEmptyEmail'));
+  try {
+    const r = await fetch('/forgot-password', {method:'POST',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify({email:e})});
+    const d = await r.json();
+    if(r.ok){ showForgotStep2(e); } else { showError(d.message || t('errSendFailed')); }
+  } catch(e){ showError(t('errNet')); }
+}
+
+async function doResetPassword(){
+  hideError();
+  const c = document.getElementById('forgot-code').value.trim();
+  const p = document.getElementById('forgot-new-password').value;
+  const p2 = document.getElementById('forgot-new-password2').value;
+  if(!c||!p||!p2) return showError(t('errEmptyAll'));
+  if(c.length !== 6) return showError(t('errCodeLen'));
+  if(p.length < 6) return showError(t('errPwLen'));
+  if(!/[A-Za-z]/.test(p)) return showError(t('errPwLetter'));
+  if(!/[0-9]/.test(p)) return showError(t('errPwNum'));
+  if(p !== p2) return showError(t('errPwMismatch'));
+  try {
+    const r = await fetch('/reset-password', {method:'POST',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify({email:forgotEmail,code:c,password:p})});
+    const d = await r.json();
+    if(r.ok){ backToLogin(); document.getElementById('login-username').value=''; document.getElementById('login-password').value=''; showSuccess(t('resetOk')); }
+    else { showError(d.message || t('errResetFailed')); }
+  } catch(e){ showError(t('errNet')); }
+}
+
+// Load saved username on page load
+(function(){
+  var saved = localStorage.getItem('saved_login');
+  if (saved) {
+    document.getElementById('login-username').value = saved;
+    document.getElementById('login-password').focus();
+  }
+})();
+</script>
+</div>
+  <!-- Service Worker -->
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js');
+  }
+  </script>
+
+</body>
+</html>

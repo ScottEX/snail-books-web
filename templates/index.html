@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- PWA -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="蓝姐螺蛳粉">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <meta name="theme-color" content="#8B1E22">
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+<title>蓝姐螺蛳粉</title>
+<script src="/static/i18n.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+  * { -webkit-tap-highlight-color:transparent; margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter','Noto Sans SC',-apple-system,sans-serif; background:#FAFAFA; color:#1A1A1A; min-height:100vh; -webkit-font-smoothing:antialiased; }
+  .page { padding:0 16px 110px; max-width:520px; margin:0 auto; }
+  .header { padding:28px 20px 0; }
+  .header h1 { font-size:18px; font-weight:600; }
+  .header .date { color:#999; font-size:13px; }
+  .stat-num { font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px; }
+  .stat-label { font-size:11px; color:#999; font-weight:500; }
+  .tabs { display:flex; border-bottom:1px solid #EBEBEB; margin-bottom:16px; overflow-x:auto; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { padding:10px; font-size:12px; font-weight:500; cursor:pointer; color:#999; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:.15s; }
+  .tab.active { color:#1A1A1A; border-bottom-color:#1A1A1A; }
+  .btn { padding:10px 16px; border-radius:8px; font-size:13px; font-weight:500; border:none; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:4px; }
+  .btn:active { opacity:.8; }
+  .btn-primary { background:#1A1A1A; color:white; }
+  .btn-sm { padding:6px 12px; font-size:12px; border-radius:6px; }
+  .btn-outline { background:white; border:1px solid #EBEBEB; color:#1A1A1A; }
+  .input { width:100%; padding:10px 12px; border:1px solid #EBEBEB; border-radius:8px; font-size:14px; font-family:inherit; background:#FAFAFA; color:#1A1A1A; }
+  .input:focus { outline:none; border-color:#1A1A1A; background:white; }
+  .input-lg { font-size:32px; font-weight:700; text-align:center; padding:16px; border:none; background:transparent; letter-spacing:-1px; }
+  select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L2 3h8z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+  .tx-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #F5F5F5; }
+  .tx-row:last-child { border-bottom:none; }
+  .tx-dot { width:7px; height:7px; border-radius:4px; flex-shrink:0; }
+  .tx-dot.income { background:#059669; } .tx-dot.expense { background:#DC2626; }
+  .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:rgba(250,250,250,.92); backdrop-filter:blur(10px); border-top:1px solid #EBEBEB; display:flex; padding:4px 8px 14px; z-index:100; }
+  .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:1px; padding:4px; font-size:10px; color:#999; font-weight:500; cursor:pointer; }
+  .nav-item.active { color:#1A1A1A; }
+  .type-toggle { display:flex; gap:6px; margin-bottom:20px; }
+  .type-btn { flex:1; padding:10px; border-radius:8px; font-size:14px; font-weight:500; text-align:center; cursor:pointer; color:#999; border:1px solid #EBEBEB; background:white; font-family:inherit; }
+  .type-btn.active.inc { border-color:#059669; color:#059669; background:#F0FDF4; }
+  .type-btn.active.exp { border-color:#DC2626; color:#DC2626; background:#FEF2F2; }
+  .bar-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .bar-label { width:36px; font-size:10px; color:#999; font-weight:500; text-align:right; flex-shrink:0; }
+  .bar-wrap { flex:1; height:16px; background:#F5F5F5; border-radius:3px; overflow:hidden; display:flex; }
+  .bar-income { background:#059669; height:100%; transition:width .5s; }
+  .bar-expense { background:#EF4444; opacity:.7; height:100%; transition:width .5s; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} } .fade-in { animation:fadeIn .2s; }
+  @keyframes scaleUp { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+  .animate-scaleUp { animation:scaleUp .2s ease; }
+  .lang-btn { color:#9CA3AF;font-size:10px;padding:2px 7px;border-radius:5px;cursor:pointer;transition:all .2s;font-weight:500; }
+  .lang-btn:hover { color:#4B5563;background:#F3F4F6; }
+  .lang-btn.active { color:#8B1E22;background:#FEE2E2;font-weight:700; }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; display:flex; align-items:flex-end; justify-content:center; }
+  .modal-sheet { background:white; border-radius:16px 16px 0 0; width:100%; max-width:520px; max-height:85vh; overflow-y:auto; padding:20px 16px 32px; }
+  .modal-sheet h2 { font-size:16px; font-weight:600; margin-bottom:16px; }
+  .progress-bar { height:6px; border-radius:3px; background:#F5F5F5; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:3px; transition:width .5s; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="flex justify-between items-end page">
+    <h1 data-i18n="appTitle">蓝姐螺蛳粉</h1>
+    <span class="date" id="today-label"></span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Stats -->
+  <div class="fade-in mb-5">
+    <div class="grid grid-cols-4 gap-2">
+      <div>
+        <div class="stat-label mb-1" data-i18n="income">收入</div>
+        <div class="text-lg font-bold text-emerald-700" id="today-income">0</div>
+        <div class="text-xs mt-0.5" style="color:#bbb" id="month-income-sub">月0</div>
+      </div>
+      <div>
+        <div class="stat-label mb-1" data-i18n="expense">支出</div>
+        <div class="text-lg font-bold text-red-600" id="today-expense">0</div>
+        <div class="text-xs mt-0.5" style="color:#bbb" id="month-expense-sub">月0</div>
+      </div>
+      <div>
+        <div class="stat-label mb-1" data-i18n="profit">利润</div>
+        <div class="text-lg font-bold" id="today-profit">0</div>
+        <div class="text-xs mt-0.5" style="color:#bbb" id="month-profit-sub">月0</div>
+      </div>
+      <div>
+        <div class="stat-label mb-1" data-i18n="procurement">进货</div>
+        <div class="text-lg font-bold text-amber-700" id="month-procurement">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs fade-in">
+    <div class="tab active" id="tab-list" onclick="switchTab('list')" data-i18n="tabBills">账单</div>
+    <div class="tab" id="tab-add" onclick="switchTab('add')" data-i18n="tabRecord">记账</div>
+    <div class="tab" id="tab-supply" onclick="switchTab('supply')" data-i18n="tabSupply">供应链</div>
+    <div class="tab" id="tab-chart" onclick="switchTab('chart')" data-i18n="tabTrends">趋势</div>
+  </div>
+
+  <!-- List -->
+  <div id="tab-list-content" class="fade-in">
+    <div id="transaction-list"></div>
+    <div class="flex justify-center gap-3 mt-4" id="pagination"></div>
+  </div>
+
+  <!-- Add -->
+  <div id="tab-add-content" class="hidden fade-in">
+    <form onsubmit="addTx(event)">
+      <div class="type-toggle">
+        <button type="button" class="type-btn active inc" id="type-income" onclick="setType('income')" data-i18n="income">收入</button>
+        <button type="button" class="type-btn" id="type-expense" onclick="setType('expense')" data-i18n="expense">支出</button>
+      </div>
+      <input type="hidden" name="tx-type" id="form-type" value="income">
+      <div class="mb-4"><input type="number" name="amount" class="input input-lg" placeholder="0" step="0.01" min="0.01" required></div>
+      <div class="mb-3"><select name="category" class="input" id="form-category"></select></div>
+      <div class="mb-3"><select name="account" class="input">{% for a in accounts %}<option>{{a}}</option>{% endfor %}</select></div>
+      <div class="mb-6"><input type="text" name="note" class="input" placeholder="备注" data-i18n-placeholder="notePlaceholder"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%" id="submit-btn" data-i18n="save">保存</button>
+    </form>
+  </div>
+
+  <!-- Supply Chain -->
+  <div id="tab-supply-content" class="hidden fade-in">
+    <div style="background:white;border:1px solid #EBEBEB;border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i data-lucide="package-plus" style="width:16px;height:16px"></i> <span data-i18n="quickProcure">快速进货</span></div>
+      <form onsubmit="quickProcurement(event)">
+        <div class="mb-3"><select name="pid" class="input" id="proc-product" onchange="updateProcPrice()" required><option value="" data-i18n="selectProduct">选择产品...</option></select></div>
+        <div class="mb-3"><input type="number" name="qty" class="input" placeholder="进货数量" data-i18n-placeholder="procureQuantity" step="1" min="1" required id="proc-qty" onchange="updateProcPrice()"></div>
+        <div class="mb-3" style="display:flex;align-items:center;gap:8px">
+          <input type="number" name="price" class="input" placeholder="单价" data-i18n-placeholder="unitPrice" step="0.01" id="proc-price" style="flex:1" required>
+          <span style="font-size:24px;font-weight:700;min-width:80px;text-align:right" id="proc-total">¥0</span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%" data-i18n="confirmProcure">确认进货</button>
+      </form>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:13px;font-weight:500;color:#999" data-i18n="productCatalog">产品目录</span>
+      <button class="btn btn-sm btn-outline" onclick="openProductForm()" data-i18n="addProduct">+ 添加</button>
+    </div>
+    <div style="background:white;border:1px solid #EBEBEB;border-radius:12px;overflow:hidden">
+      <div id="product-list" style="max-height:45vh;overflow-y:auto"></div>
+    </div>
+    <div style="font-size:13px;font-weight:500;color:#999;margin:16px 0 8px" data-i18n="recentProcure">最近进货</div>
+    <div id="procurement-list"></div>
+  </div>
+
+  <!-- Product Modal -->
+  <div id="product-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeProductModal()">
+    <div class="modal-sheet">
+      <h2 id="product-modal-title" data-i18n="addProductTitle">添加产品</h2>
+      <form onsubmit="saveProduct(event)">
+        <input type="hidden" name="pid" id="edit-pid">
+        <div class="mb-3"><input type="text" name="pname" class="input" placeholder="产品名称 *" data-i18n-placeholder="productName" required></div>
+        <div class="mb-3"><input type="text" name="pspec" class="input" placeholder="规格型号" data-i18n-placeholder="productSpec"></div>
+        <div class="mb-3"><input type="text" name="punit" class="input" placeholder="单位" data-i18n-placeholder="productUnit"></div>
+        <div class="mb-3"><input type="number" name="pprice" class="input" placeholder="单价 *" data-i18n-placeholder="productPrice" step="0.01" required></div>
+        <div class="mb-3"><input type="text" name="pnote" class="input" placeholder="备注" data-i18n-placeholder="notePlaceholder"></div>
+        <div class="flex gap-2">
+          <button type="submit" class="btn btn-primary" style="flex:1" data-i18n="save">保存</button>
+          <button type="button" class="btn btn-outline" style="flex:1" onclick="closeProductModal()" data-i18n="cancel">取消</button>
+        </div>
+        <div id="product-delete-btn" class="hidden mt-2">
+          <button type="button" class="btn btn-sm" style="width:100%;color:#DC2626;border:1px solid #FECACA" onclick="deleteProduct()" data-i18n="delete">删除</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div id="tab-chart-content" class="hidden fade-in">
+    <div style="background:white;border:1px solid #EBEBEB;border-radius:12px;padding:16px">
+      <div style="font-size:13px;font-weight:500;color:#999;margin-bottom:12px" data-i18n="trend12Month">近 12 月收支趋势</div>
+      <div id="chart-bars"></div>
+    </div>
+  </div>
+
+  <!-- Partner Tab -->
+  <div id="tab-partner-content" class="hidden fade-in">
+<!-- 3 Stat Cards — Compact Horizontal -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <!-- Card: 初始基金 -->
+    <div class="bg-white rounded-xl border border-gray-100 p-3.5 flex items-center gap-3.5 shadow-sm">
+      <div class="w-9 h-9 rounded-lg bg-[#8B1E22]/8 flex items-center justify-center flex-shrink-0">
+        <svg class="w-[18px] h-[18px] text-[#8B1E22]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z"/>
+        </svg>
+      </div>
+      <div class="min-w-0">
+        <div class="text-[10px] text-gray-400 font-medium tracking-wide" data-i18n="totalCapital">合伙初始基金总额</div>
+        <div class="text-[15px] font-bold text-gray-900 mt-0.5 tracking-tight">¥130,000</div>
+        <div class="text-[9px] text-emerald-600 font-medium mt-0.5"><span data-i18n="paidInRate">实缴率</span> 100%</div>
+      </div>
+    </div>
+
+    <!-- Card: 分红池 -->
+    <div class="bg-white rounded-xl border border-gray-100 p-3.5 flex items-center gap-3.5 shadow-sm justify-between">
+      <div class="flex items-center gap-3.5">
+        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+          <svg class="w-[18px] h-[18px] text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/>
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <div class="text-[10px] text-gray-400 font-medium tracking-wide" data-i18n="distributedPool">已派发分红池</div>
+          <div class="text-[15px] font-bold text-amber-600 mt-0.5 tracking-tight" id="stat-dividends">¥0</div>
+          <div class="text-[9px] text-gray-400 font-medium mt-0.5" data-i18n="cumulativeByShare">累计派发 · 按比例分配</div>
+        </div>
+      </div>
+      <button onclick="openDividendModal()" class="bg-[#8B1E22] hover:bg-[#73181B] text-white text-[10px] px-3 py-2 rounded-lg font-medium transition-all shadow-sm flex-shrink-0" data-i18n="issueDividend">发起分红</button>
+    </div>
+
+    <!-- Card: 合伙席位 -->
+    <div onclick="showOrgChart()" class="bg-white rounded-xl border border-gray-100 p-3.5 flex items-center gap-3.5 shadow-sm cursor-pointer hover:shadow-md transition-all">
+      <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+        <svg class="w-[18px] h-[18px] text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+        </svg>
+      </div>
+      <div class="min-w-0">
+        <div class="text-[10px] text-gray-400 font-medium tracking-wide" data-i18n="partnerSeats">合伙席位</div>
+        <div class="text-[15px] font-bold text-gray-800 mt-0.5 tracking-tight">3 <span data-i18n="shareholders">位股东</span></div>
+        <div class="text-[9px] text-gray-400 font-medium mt-0.5" data-i18n="lpStructure">有限合伙控股结构</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Partner Cards -->
+  <div id="partner-error" class="hidden bg-[#FEF2F2] text-[#991B1B] text-[11px] rounded-xl px-4 py-3 mb-3 font-medium"></div>
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-3" id="partner-cards"></section>
+
+  <!-- Capital Ledger -->
+  <section class="bg-white rounded-2xl border border-gray-100 shadow-sm">
+    <div class="p-5 border-b border-gray-50 space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xs font-bold tracking-wider text-gray-400 uppercase" data-i18n="capitalLedger">合伙人资本账目流水表</h2>
+        <span class="text-[10px] text-gray-400" data-i18n="byRoundAndInvest">按分红轮次与出资分组</span>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="filterLedger('all')" id="filter-all" class="px-3 py-1.5 rounded-full text-[10px] font-bold bg-gray-800 text-white transition-all" data-i18n="all">全部</button>
+        <button onclick="filterLedger('invest')" id="filter-invest" class="px-3 py-1.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all" data-i18n="invest">出资</button>
+        <button onclick="filterLedger('mid')" id="filter-mid" class="px-3 py-1.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all" data-i18n="additional">追加</button>
+        <button onclick="filterLedger('dividend')" id="filter-dividend" class="px-3 py-1.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all" data-i18n="dividend">分红</button>
+      </div>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="hidden md:block px-4 pb-4" id="ledger-desktop"></div>
+
+    <!-- Mobile Cards -->
+    <div class="block md:hidden divide-y divide-gray-50" id="ledger-mobile"></div>
+  </section>
+
+</div>
+
+<!-- Dividend Modal -->
+<div id="dividend-modal" class="fixed inset-0 bg-[#1A1A1A]/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4" onclick="if(event.target===this)closeDividendModal()">
+  <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl animate-scaleUp overflow-hidden" onclick="event.stopPropagation()">
+    <div class="bg-[#8B1E22] px-5 py-3.5 flex justify-between items-center">
+      <div>
+        <h3 class="text-sm font-bold text-white" data-i18n="issueProportional">发起比例分红</h3>
+        <p class="text-[10px] text-red-200 mt-0.5" data-i18n="autoByShare">按股权穿透比例自动分配</p>
+      </div>
+      <button onclick="closeDividendModal()" class="text-red-200 hover:text-white text-lg leading-none">✕</button>
+    </div>
+    <div class="p-5 space-y-3">
+      <div>
+        <label class="block text-[10px] font-bold text-gray-400 mb-1" data-i18n="totalToPool">拟向红利池注入的总金额 (元)</label>
+        <input type="number" id="dividend-amount" data-i18n-placeholder="enterAmount" placeholder="输入金额" class="w-full bg-gray-50 border border-transparent rounded-xl p-3 text-xs font-bold focus:bg-white focus:border-[#8B1E22] focus:outline-none transition-all" oninput="calcDividendPreview()">
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold text-gray-400 mb-1" data-i18n="roundNote">轮次备注</label>
+        <input type="text" id="dividend-note" data-i18n-placeholder="roundNoteExample" placeholder="如：第6次分红" class="w-full bg-gray-50 border border-transparent rounded-xl p-3 text-xs focus:bg-white focus:border-[#8B1E22] focus
+
+... [OUTPUT TRUNCATED - 62 chars omitted out of 50062 total] ...
+
+] ...
+
+blur-sm z-50 hidden items-center justify-center p-4" onclick="closeOrgChart()">
+  <div class="bg-white w-full max-w-xs rounded-2xl shadow-xl animate-scaleUp overflow-hidden" onclick="event.stopPropagation()">
+    <div class="bg-[#8B1E22] px-5 py-3.5 flex justify-between items-center">
+      <div>
+        <h3 class="text-sm font-bold text-white" data-i18n="partnerStructure">合伙架构</h3>
+        <p class="text-[10px] text-red-200 mt-0.5" data-i18n="lpControl">蓝姐螺蛳粉 · 有限合伙控股</p>
+      </div>
+      <button onclick="closeOrgChart()" class="text-red-200 hover:text-white text-lg leading-none">✕</button>
+    </div>
+    <div class="p-5 flex flex-col items-center" id="orgchart-content">
+      <!-- Org chart content rendered by JS via showOrgChart() -->
+    </div>
+  </div>
+
+</div>
+
+  </div>
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchTab('list')"><i data-lucide="list" style="width:17px;height:17px"></i><span data-i18n="tabBills">账单</span></div>
+  <div class="nav-item" onclick="switchTab('add')"><i data-lucide="plus-circle" style="width:17px;height:17px"></i><span data-i18n="tabRecord">记账</span></div>
+  <div class="nav-item" onclick="switchTab('supply')"><i data-lucide="package" style="width:17px;height:17px"></i><span data-i18n="tabSupply">供应链</span></div>
+  <div class="nav-item" onclick="switchTab('chart')"><i data-lucide="bar-chart-2" style="width:17px;height:17px"></i><span data-i18n="tabTrends">趋势</span></div>
+  <div class="nav-item" onclick="switchTab('partner')"><i data-lucide="users" style="width:17px;height:17px"></i><span data-i18n="navPartner">合伙人</span></div>
+</div>
+
+<script>
+// Server-provided raw category arrays (Chinese)
+const IC_RAW = {{ income_cats|tojson }};
+const EC_RAW = {{ expense_cats|tojson }};
+
+// Map Chinese category names to i18n keys
+const CAT_KEY_MAP = {
+  '🍜 堂食': 'catDineIn',
+  '🛵 美团外卖': 'catMeituan',
+  '🛵 饿了吗外卖': 'catEleme',
+  '🎫 美团团购': 'catMeituanGroup',
+  '📦 京东': 'catJD',
+  '🔧 其他收入': 'catOtherIncome',
+  '📦 原材料进货': 'catRawMaterials',
+  '🏠 房租': 'catRent',
+  '⚡ 水电煤气': 'catUtilities',
+  '👨‍🍳 人工工资': 'catLabor',
+  '🔧 设备/工具': 'catEquipment',
+  '🏗️ 装修': 'catRenovation',
+  '📋 培训/证件': 'catTraining',
+  '🧹 卫生/清洁': 'catCleaning',
+  '🧻 餐具/纸巾': 'catTableware',
+  '📦 包装/打包': 'catPackaging',
+  '📢 广告/推广': 'catAdvertising',
+  '💊 杂项/烟酒': 'catMisc',
+  '📝 其他': 'catOther'
+};
+
+// Translate raw category to current language
+function trCat(raw) { return t(CAT_KEY_MAP[raw]) || raw; }
+
+// Getters for translated category arrays
+function getIncomeCats() { return IC_RAW.map(trCat); }
+function getExpenseCats() { return EC_RAW.map(trCat); }
+
+let products = [];
+const tabs = ['list','add','supply','chart','partner'];
+
+// Register lang-change handlers for JS-rendered content
+onLangChange(function() {
+  document.title = t('appTitle');
+  loadData(); // re-render stats
+  document.getElementById('today-label').textContent = new Date().toLocaleDateString(curLang==='en'?'en-US':curLang==='zh-TW'?'zh-TW':'zh-CN',{month:'long',day:'numeric',weekday:'short'});
+  // Also refresh current tab content
+  var activeTab = tabs.find(function(t) { return !document.getElementById('tab-'+t+'-content').classList.contains('hidden'); });
+  if (activeTab === 'list') loadTransactions(currentPage || 1);
+  if (activeTab === 'chart') loadChart();
+  if (activeTab === 'supply') { renderProductList(); loadProcurements(); }
+  updateCats(document.getElementById('form-type').value);
+});
+
+var currentPage = 1;
+document.getElementById('today-label').textContent = new Date().toLocaleDateString(curLang==='en'?'en-US':curLang==='zh-TW'?'zh-TW':'zh-CN',{month:'long',day:'numeric',weekday:'short'});
+
+function updateCats(type){
+  document.getElementById('form-category').innerHTML = (type==='income'?getIncomeCats():getExpenseCats()).map(function(c){return '<option>'+c+'</option>';}).join('');
+}
+updateCats('income');
+
+function setType(type){
+  document.getElementById('form-type').value=type;
+  document.getElementById('type-income').className='type-btn'+(type==='income'?' active inc':'');
+  document.getElementById('type-expense').className='type-btn'+(type==='expense'?' active exp':'');
+  document.getElementById('submit-btn').style.background=type==='income'?'#059669':'#DC2626';
+  updateCats(type);
+}
+
+async function loadData(){
+  const s=await fetch('/api/summary').then(r=>r.json());
+  document.getElementById('today-income').textContent='¥'+s.today.income.toFixed(2);
+  document.getElementById('today-expense').textContent='¥'+s.today.expense.toFixed(2);
+  document.getElementById('today-profit').textContent='¥'+s.today.profit.toFixed(2);
+  document.getElementById('month-income-sub').textContent=(t('monthPrefix')||'')+'¥'+s.month.income.toFixed(2);
+  document.getElementById('month-expense-sub').textContent=(t('monthPrefix')||'')+'¥'+s.month.expense.toFixed(2);
+  document.getElementById('month-profit-sub').textContent=(t('monthPrefix')||'')+'¥'+s.month.profit.toFixed(2);
+  document.getElementById('month-procurement').textContent='¥'+s.month.procurement.toFixed(2);
+  loadTransactions();
+}
+
+async function loadTransactions(page){
+  if (page) currentPage = page; else page = currentPage;
+  const d=await fetch('/api/transactions?page='+page).then(r=>r.json());
+  document.getElementById('transaction-list').innerHTML = d.transactions.length ? d.transactions.map(function(tx){
+    return '<div class="tx-row"><div class="tx-dot '+tx.type+'"></div><div class="flex-1 min-w-0"><div class="text-sm font-medium truncate">'+trCat(tx.category)+'</div><div class="text-xs mt-0.5" style="color:#bbb">'+tx.account+(tx.note?' · '+tx.note:'')+'</div></div><div class="text-right shrink-0"><div class="text-sm font-semibold '+(tx.type==='income'?'text-emerald-700':'text-red-600')+'">'+(tx.type==='income'?'+':'-')+'¥'+tx.amount.toFixed(2)+'</div><div class="text-xs mt-0.5" style="color:#ddd">'+(tx.created_at||'').slice(5,16)+'</div></div></div>';
+  }).join('') : '<div class="text-center py-12" style="color:#ccc">'+t('noRecords')+'</div>';
+  const pag=document.getElementById('pagination');
+  if(d.pages>1) pag.innerHTML='<button onclick="loadTransactions('+(d.page-1)+')" '+(d.page<=1?'disabled':'')+' style="color:'+(d.page<=1?'#ddd':'#1A1A1A')+';font-size:13px">‹ '+t('prevPage')+'</button><span style="color:#999;font-size:12px">'+d.page+'/'+d.pages+'</span><button onclick="loadTransactions('+(d.page+1)+')" '+(d.page>=d.pages?'disabled':'')+' style="color:'+(d.page>=d.pages?'#ddd':'#1A1A1A')+';font-size:13px">'+t('nextPage')+' ›</button>';
+  else pag.innerHTML='';
+}
+
+async function addTx(e){
+  e.preventDefault();
+  const fd=new FormData(e.target);
+  const d={type:fd.get('tx-type'),amount:parseFloat(fd.get('amount')),category:fd.get('category'),account:fd.get('account'),note:fd.get('note')||''};
+  if(!d.amount||d.amount<=0) return;
+  await fetch('/api/transactions',{method:'POST',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify(d)});
+  e.target.reset(); document.getElementById('form-type').value='income'; setType('income');
+  loadData(); switchTab('list');
+}
+
+// Helper: fetch with 401 detection
+async function authFetch(url, opts) {
+  opts = opts || {};
+  opts.headers = opts.headers || {};
+  opts.headers['X-Lang'] = curLang;
+  var r = await fetch(url, opts);
+  if (r.status === 401) {
+    localStorage.setItem('redirect_after_login', window.location.pathname);
+    window.location.href = '/login';
+    return Promise.reject(new Error('redirect'));
+  }
+  return r;
+}
+
+let partnersData = [];
+let dividendRounds = [];
+
+function getPartnerRole(name) {
+  var roles = {
+    '张安武': t('chairman'),
+    '江宽': t('ceo'),
+    '蓝柳富': t('janitor')
+  };
+  return roles[name] || t('partner');
+}
+
+function showPartnerError(msg){
+  var el = document.getElementById('partner-error');
+  if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+}
+
+async function loadPartners(){
+  try {
+  partnersData = await authFetch('/api/partners').then(r=>r.json());
+  const totalDiv = partnersData.reduce((s,p)=>s+p.total_dividends,0);
+  document.getElementById('stat-dividends').textContent = '¥'+totalDiv.toLocaleString();
+
+  document.getElementById('partner-cards').innerHTML = partnersData.map((p,i)=>{
+    const pct = p.investment>0 ? (p.total_dividends/p.investment*100).toFixed(0) : 0;
+    const rem = p.investment - p.total_dividends;
+    const isBack = p.total_dividends >= p.investment;
+    const initInvest = p.name==='张安武'?44200:42900;
+    const midInvest = p.investment - initInvest;
+    const role = getPartnerRole(p.name);
+    return `
+    <div onclick="showPartnerDetail(${i})" class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-4 space-y-2.5 cursor-pointer">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-1.5">
+          <h3 class="text-[13px] font-bold text-gray-800">${p.name}</h3>
+          <span class="text-[10px] text-gray-400">${(p.share*100).toFixed(0)}%</span>
+        </div>
+        <span class="text-[9px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">${t('investComplete')}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1 text-[10px]">
+        <div class="text-center"><span class="text-gray-400 block">${t('subscribedTotal')}</span><span class="font-semibold text-gray-900 tabular-nums">¥${p.investment.toLocaleString()}</span></div>
+        <div class="text-center"><span class="text-gray-400 block">${t('initial')}</span><span class="font-semibold text-gray-700 tabular-nums">¥${initInvest.toLocaleString()}</span></div>
+        <div class="text-center"><span class="text-gray-400 block">${t('additional')}</span><span class="font-semibold text-gray-700 tabular-nums">¥${midInvest.toLocaleString()}</span></div>
+      </div>
+      <div class="flex justify-between text-[11px] pt-1.5 border-t border-gray-50">
+        <span class="text-amber-700 font-medium">${t('totalDividendsPaid')}</span>
+        <span class="font-bold text-amber-600 tabular-nums">¥${p.total_dividends.toLocaleString()}</span>
+      </div>
+      <div class="flex justify-between text-[10px]">
+        <span class="text-gray-400">${t('paybackRate')} ${pct}%</span>
+        <span>${isBack ? '<span class="text-emerald-500 font-medium">'+t('fullyPaidBack')+'</span>' : '<span class="text-amber-500 font-medium">'+t('pendingPayback')+' ¥'+rem.toLocaleString()+'</span>'}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  await loadHistory();
+
+  document.getElementById('filter-all').className = 'px-3 py-1.5 rounded-full text-[10px] font-bold bg-gray-800 text-white transition-all';
+  } catch(e) {
+    if (e.message !== 'redirect') {
+      showPartnerError(t('errNet'));
+    }
+  }
+}
+
+function showPartnerDetail(index){
+  const p = partnersData[index];
+  const role = getPartnerRole(p.name);
+  const pct = p.investment>0 ? (p.total_dividends/p.investment*100).toFixed(0) : 0;
+  const rem = p.investment - p.total_dividends;
+  const isBack = p.total_dividends >= p.investment;
+  const initInvest = p.name==='张安武'?44200:42900;
+  const midInvest = p.investment - initInvest;
+
+  document.getElementById('pdetail-name').textContent = p.name;
+  document.getElementById('pdetail-role').textContent = role;
+  document.getElementById('pdetail-share').textContent = (p.share*100).toFixed(0)+'%';
+  document.getElementById('pdetail-total').textContent = '¥'+p.investment.toLocaleString();
+  document.getElementById('pdetail-dividends').textContent = '¥'+p.total_dividends.toLocaleString();
+  document.getElementById('pdetail-init').textContent = '¥'+initInvest.toLocaleString();
+  document.getElementById('pdetail-mid').textContent = '¥'+midInvest.toLocaleString();
+  document.getElementById('pdetail-pct').textContent = t('paybackRate')+' '+pct+'%';
+  document.getElementById('pdetail-bar').style.width = Math.min(pct,100)+'%';
+  document.getElementById('pdetail-bar').className = 'h-full rounded-full transition-all duration-500 '+(isBack?'bg-emerald-500':'bg-amber-500');
+  document.getElementById('pdetail-rem').innerHTML = isBack
+    ? '<span class="text-emerald-500 font-medium">'+t('fullyPaidBackDetail')+'</span>'
+    : '<span class="text-amber-500 font-medium">'+t('pendingPayback')+' ¥'+rem.toLocaleString()+'</span>';
+
+  // Build dividend history
+  const history = [];
+  dividendRounds.forEach(round => {
+    round.forEach(d => {
+      if(d.partner === p.name && d.amount > 0){
+        history.push({note: d.note || t('dividend'), amount: d.amount});
+      }
+    });
+  });
+  document.getElementById('pdetail-history').innerHTML = history.length
+    ? history.map(h=>`
+      <div class="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-amber-50/40 text-[11px]">
+        <span class="text-gray-600">${h.note}</span>
+        <span class="font-bold text-amber-600">¥${h.amount.toLocaleString()}</span>
+      </div>`).join('')
+    : '<div class="text-[10px] text-gray-400 text-center py-3">'+t('noDividendRecords')+'</div>';
+
+  document.getElementById('partner-detail-modal').classList.remove('hidden');
+  document.getElementById('partner-detail-modal').classList.add('flex');
+}
+
+function closePartnerDetail(){
+  document.getElementById('partner-detail-modal').classList.add('hidden');
+  document.getElementById('partner-detail-modal').classList.remove('flex');
+}
+
+function showOrgChart(){
+  var content = document.getElementById('orgchart-content');
+  content.innerHTML = `
+      <!-- Node 1: 张安武 -->
+      <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 w-full text-center mb-0">
+        <div class="text-[13px] font-bold text-[#8B1E22]">${t('nameZhang')}</div>
+        <div class="text-[10px] text-gray-500 mt-0.5 font-bold">${t('chairman')} · 34%</div>
+      </div>
+      <!-- Connector -->
+      <div class="flex flex-col items-center -my-1">
+        <div class="w-0.5 h-6 bg-gray-300"></div>
+      </div>
+      <!-- Node 2: 江宽 -->
+      <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 w-full text-center">
+        <div class="text-[13px] font-bold text-gray-800">${t('nameJiang')}</div>
+        <div class="text-[10px] text-gray-500 mt-0.5">${t('ceo')} · 33%</div>
+      </div>
+      <!-- Connector -->
+      <div class="flex flex-col items-center -my-1">
+        <div class="w-0.5 h-6 bg-gray-300"></div>
+      </div>
+      <!-- Node 3: 蓝柳富 -->
+      <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 w-full text-center">
+        <div class="text-[13px] font-bold text-gray-800">${t('nameLan')}</div>
+        <div class="text-[10px] text-gray-500 mt-0.5">${t('janitor')} · 33%</div>
+      </div>
+      <!-- Casual text -->
+      <p class="text-[10px] text-gray-400 text-center mt-5 leading-relaxed font-semibold">${t('jokeClosedLoop')}</p>`;
+
+  document.getElementById('orgchart-modal').classList.remove('hidden');
+  document.getElementById('orgchart-modal').classList.add('flex');
+}
+
+function closeOrgChart(){
+  document.getElementById('orgchart-modal').classList.add('hidden');
+  document.getElementById('orgchart-modal').classList.remove('flex');
+}
+
+let allGroups = [];
+
+async function loadHistory(){
+  const res = await authFetch('/api/dividends').then(r=>r.json());
+  // Group flat dividend list by note
+  const byNote = {};
+  res.forEach(d => {
+    const key = d.note || '__no_note__';
+    if (!byNote[key]) byNote[key] = [];
+    byNote[key].push(d);
+  });
+  dividendRounds = Object.values(byNote);
+
+  allGroups = [];
+
+  allGroups.push({
+    title: t('initialApr2024'), type: 'invest',
+    items: [{name:t('nameZhang'),amount:44200,sub:'34%'},{name:t('nameLan'),amount:42900,sub:'33%'},{name:t('nameJiang'),amount:42900,sub:'33%'}],
+    total: 130000
+  });
+  allGroups.push({
+    title: t('additionalJan2025'), type: 'mid',
+    items: [{name:t('nameZhang'),amount:10255.08,sub:'34%'},{name:t('nameLan'),amount:9953.46,sub:'33%'},{name:t('nameJiang'),amount:9953.46,sub:'33%'}],
+    total: 30162
+  });
+
+  dividendRounds.forEach(items => {
+    const sorted = [...items].sort((a,b)=>b.amount-a.amount);
+    const total = items.reduce((s,d)=>s+d.amount,0);
+    allGroups.push({
+      title: items[0].note || t('dividend'), type: 'dividend',
+      items: sorted.map(d=>({name:d.partner,amount:d.amount,sub:''})),
+      total, note: items[0].note
+    });
+  });
+
+  filterLedger('all');
+}
+
+function filterLedger(filter){
+  document.querySelectorAll('#filter-all,#filter-invest,#filter-mid,#filter-dividend').forEach(b=>{
+    b.className = 'px-3 py-1.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all';
+  });
+  document.getElementById('filter-'+filter).className = 'px-3 py-1.5 rounded-full text-[10px] font-bold bg-gray-800 text-white transition-all';
+
+  const groups = filter==='all' ? allGroups : allGroups.filter(g=>g.type===filter);
+  renderLedger(groups);
+}
+
+function renderLedger(groups){
+  // Desktop
+  document.getElementById('ledger-desktop').innerHTML = groups.map(g=>{
+    var typeLabel = g.type==='invest' ? t('invest') : (g.type==='mid' ? t('additional') : t('dividend'));
+    var colors = {
+      invest:  {dot:'bg-blue-500', headerBg:'bg-blue-50/60', typeText:'text-blue-600', label:typeLabel, amt:'text-gray-900'},
+      mid:     {dot:'bg-purple-500', headerBg:'bg-purple-50/60', typeText:'text-purple-600', label:typeLabel, amt:'text-gray-900'},
+      dividend:{dot:'bg-amber-500', headerBg:'bg-amber-50/60', typeText:'text-amber-600', label:typeLabel, amt:'text-amber-600'}
+    };
+    var c = colors[g.type];
+    return `
+    <div class="rounded-xl border border-gray-100 overflow-hidden mb-3 shadow-sm">
+      <table class="w-full">
+        <thead>
+          <tr class="${c.headerBg} border-b border-gray-100/80">
+            <th class="text-left px-4 py-2.5 text-[12px] font-semibold text-gray-800">${g.title}</th>
+            <th class="text-center px-0 py-2.5 w-[2.5rem] text-[11px] ${c.typeText} font-semibold">${c.label}</th>
+            <th class="text-right px-4 py-2.5 w-[6.5rem] text-xs font-bold ${c.amt} tabular-nums tracking-tight">
+              ¥${g.total.toLocaleString()}
+              ${g.type==='dividend'?`<button onclick="deleteRound(this)" data-note="${g.note.replace(/"/g,'&quot;')}" class="text-[10px] text-red-400 hover:text-red-500 font-medium transition-colors ml-2 font-normal">${t('deleteRecord')}</button>`:''}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          ${g.items.map(d=>`
+          <tr class="border-t border-gray-50/80 hover:bg-gray-50/40 transition-colors">
+            <td class="px-4 py-2.5 text-xs font-medium text-gray-700">${d.name}</td>
+            <td class="text-center px-0 py-2.5 text-[11px] text-gray-400">${d.sub}</td>
+            <td class="text-right px-4 py-2.5 text-xs font-bold ${c.amt} tabular-nums tracking-tight">¥${d.amount.toLocaleString()}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }).join('');
+
+  // Mobile
+  document.getElementById('ledger-mobile').innerHTML = groups.map(g=>{
+    var typeLabel = g.type==='invest' ? t('invest') : (g.type==='mid' ? t('additional') : t('dividend'));
+    var colors = {
+      invest:  {dot:'bg-blue-500', dotBg:'bg-blue-50', typeText:'text-blue-600', label:typeLabel, amt:'text-gray-900'},
+      mid:     {dot:'bg-purple-500', dotBg:'bg-purple-50', typeText:'text-purple-600', label:typeLabel, amt:'text-gray-900'},
+      dividend:{dot:'bg-amber-500', dotBg:'bg-amber-50', typeText:'text-amber-600', label:typeLabel, amt:'text-amber-600'}
+    };
+    var c = colors[g.type];
+    return `
+    <div class="px-4 py-3.5">
+      <div class="flex items-center justify-between mb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full ${c.dot}"></span>
+          <span class="text-[12px] font-semibold text-gray-800">${g.title}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] ${c.typeText} font-semibold">¥${g.total.toLocaleString()}</span>
+          ${g.type==='dividend'?`<button onclick="deleteRound(this)" data-note="${g.note.replace(/"/g,'&quot;')}" class="text-[10px] text-red-400 hover:text-red-500 font-medium">${t('deleteRecord')}</button>`:''}
+        </div>
+      </div>
+      <div class="space-y-1.5">
+        ${g.items.map(d=>`
+        <div class="flex justify-between items-center py-1.5 px-2.5 rounded-lg ${c.dotBg}/40">
+          <span class="text-xs text-gray-600">${d.name} ${d.sub?`<span class="text-gray-400">· ${d.sub}</span>`:''}</span>
+          <span class="text-xs font-bold ${c.amt} tabular-nums text-right">¥${d.amount.toLocaleString()}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteRound(btn){
+  const note = btn.dataset.note;
+  document.getElementById('delete-note').value = note;
+  document.getElementById('delete-round-name').textContent = note;
+  document.getElementById('delete-confirm-modal').classList.remove('hidden');
+  document.getElementById('delete-confirm-modal').classList.add('flex');
+}
+
+function confirmDeleteRound(){
+  const note = document.getElementById('delete-note').value;
+  document.getElementById('delete-confirm-modal').classList.add('hidden');
+  document.getElementById('delete-confirm-modal').classList.remove('flex');
+  authFetch('/api/dividends/delete',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({note})
+  }).then(()=>loadPartners());
+}
+
+function cancelDeleteRound(){
+  document.getElementById('delete-confirm-modal').classList.add('hidden');
+  document.getElementById('delete-confirm-modal').classList.remove('flex');
+}
+
+function openDividendModal(){
+  document.getElementById('dividend-modal').classList.remove('hidden');
+  document.getElementById('dividend-modal').classList.add('flex');
+  document.getElementById('dividend-amount').value = '';
+  document.getElementById('dividend-note').value = '';
+  calcDividendPreview();
+}
+
+function closeDividendModal(){
+  document.getElementById('dividend-modal').classList.add('hidden');
+  document.getElementById('dividend-modal').classList.remove('flex');
+}
+
+function calcDividendPreview(){
+  const amount = parseFloat(document.getElementById('dividend-amount').value)||0;
+  document.getElementById('dividend-preview').innerHTML = partnersData.map(p=>
+    `<div class="flex justify-between text-xs text-gray-600"><span>${p.name} (${(p.share*100).toFixed(0)}%)</span><span class="font-medium text-gray-900">¥ ${(amount * p.share).toFixed(2)}</span></div>`
+  ).join('');
+}
+
+async function executeDividend(){
+  const amount = parseFloat(document.getElementById('dividend-amount').value);
+  const note = document.getElementById('dividend-note').value.trim() || t('dividend');
+  if(!amount||amount<=0) return;
+  
+  for(const p of partnersData){
+    const share = parseFloat((amount * p.share).toFixed(2));
+    await authFetch('/api/dividends',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({partner:p.name, amount:share, note})
+    });
+  }
+  closeDividendModal();
+  loadPartners();
+}
+
+// ====== Supply Chain ======
+// ====== Supply Chain ======
+
+async function loadProducts(){
+  products = await fetch('/api/products').then(r=>r.json());
+  const sel = document.getElementById('proc-product');
+  sel.innerHTML = '<option value="">'+t('selectProduct')+'</option>' + products.map(function(p){return '<option value="'+p.id+'" data-price="'+p.price+'" data-name="'+p.name+' '+p.spec+'">'+p.name+' '+p.spec+' · ¥'+p.price+'/'+(p.unit||t('pieceUnit'))+'</option>';}).join('');
+  renderProductList();
+}
+
+function renderProductList(){
+  const grouped={};
+  products.forEach(function(p){(grouped[p.name]=grouped[p.name]||[]).push(p);});
+  document.getElementById('product-list').innerHTML = Object.entries(grouped).map(function(entry){
+    var name=entry[0], items=entry[1];
+    return '<div style="padding:8px 12px;background:#FAFAFA;border-bottom:1px solid #F0F0F0;font-size:12px;font-weight:600;color:#999">'+name+'</div>'+
+      items.map(function(p){return '<div class="tx-row" style="padding:10px 12px;cursor:pointer" onclick="openProductForm('+p.id+')"><div class="flex-1 min-w-0"><div class="text-sm">'+(p.spec||p.name)+'</div><div class="text-xs mt-0.5" style="color:#bbb">'+(p.unit||'')+' '+(p.note?'· '+p.note:'')+'</div></div><div class="font-semibold text-sm">¥'+p.price.toFixed(2)+'</div></div>';}).join('');
+  }).join('') || '<div class="text-center py-8" style="color:#ccc">'+t('noProducts')+'</div>';
+}
+
+function updateProcPrice(){
+  const sel=document.getElementById('proc-product'), opt=sel.selectedOptions[0];
+  if(opt&&opt.dataset.price) document.getElementById('proc-price').value=opt.dataset.price;
+  const qty=parseFloat(document.getElementById('proc-qty').value)||0, price=parseFloat(document.getElementById('proc-price').value)||0;
+  document.getElementById('proc-total').textContent='¥'+(qty*price).toFixed(2);
+}
+
+async function quickProcurement(e){
+  e.preventDefault();
+  const pid=parseInt(document.getElementById('proc-product').value), qty=parseInt(document.getElementById('proc-qty').value), price=parseFloat(document.getElementById('proc-price').value);
+  if(!pid||!qty||!price) return;
+  const product=products.find(function(p){return p.id===pid;});
+  await fetch('/api/procurements',{method:'POST',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify({product_id:pid,product_name:product.name+' '+product.spec,quantity:qty,unit_price:price})});
+  e.target.reset(); document.getElementById('proc-total').textContent='¥0';
+  loadData(); loadProcurements();
+}
+
+async function loadProcurements(){
+  const d=await fetch('/api/procurements').then(r=>r.json());
+  document.getElementById('procurement-list').innerHTML = d.items.length ? d.items.map(function(p){
+    return '<div class="tx-row"><div class="tx-dot expense"></div><div class="flex-1 min-w-0"><div class="text-sm truncate">'+p.product_name+'</div><div class="text-xs mt-0.5" style="color:#bbb">×'+p.quantity+' · ¥'+p.unit_price+'/'+(p.unit||t('pieceUnit'))+'</div></div><div class="text-right shrink-0"><div class="text-sm font-semibold text-red-600">¥'+p.total.toFixed(2)+'</div><div class="text-xs mt-0.5" style="color:#ddd">'+(p.created_at||'').slice(5,16)+'</div></div></div>';
+  }).join('') : '<div class="text-center py-6" style="color:#ccc">'+t('noProcurement')+'</div>';
+}
+
+function openProductForm(pid){
+  if(pid){
+    const p=products.find(function(p){return p.id===pid;}); if(!p) return;
+    document.getElementById('edit-pid').value=p.id;
+    document.querySelector('[name="pname"]').value=p.name; document.querySelector('[name="pspec"]').value=p.spec||'';
+    document.querySelector('[name="punit"]').value=p.unit||''; document.querySelector('[name="pprice"]').value=p.price;
+    document.querySelector('[name="pnote"]').value=p.note||'';
+    document.getElementById('product-modal-title').textContent=t('editProductTitle');
+    document.getElementById('product-delete-btn').classList.remove('hidden');
+  } else {
+    document.getElementById('edit-pid').value='';
+    document.querySelectorAll('#product-modal input').forEach(function(i){i.value='';});
+    document.getElementById('product-modal-title').textContent=t('addProductTitle');
+    document.getElementById('product-delete-btn').classList.add('hidden');
+  }
+  document.getElementById('product-modal').classList.remove('hidden');
+}
+function closeProductModal(){ document.getElementById('product-modal').classList.add('hidden'); }
+async function saveProduct(e){
+  e.preventDefault();
+  const fd=new FormData(e.target);
+  const d={name:fd.get('pname'),spec:fd.get('pspec'),unit:fd.get('punit'),price:parseFloat(fd.get('pprice')),note:fd.get('pnote')};
+  const pid=fd.get('pid');
+  if(pid){ d.id=parseInt(pid); await fetch('/api/products',{method:'PUT',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify(d)}); }
+  else await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','X-Lang':curLang},body:JSON.stringify(d)});
+  closeProductModal(); loadProducts();
+}
+async function deleteProduct(){
+  const pid=document.getElementById('edit-pid').value;
+  if(!pid||!confirm(t('confirmDelete'))) return;
+  await fetch('/api/products?id='+pid,{method:'DELETE'}); closeProductModal(); loadProducts();
+}
+
+// ====== Chart ======
+
+async function loadChart(){
+  const data=await fetch('/api/chart').then(r=>r.json());
+  if(!data.length){document.getElementById('chart-bars').innerHTML='<div class="text-center py-8" style="color:#ccc">'+t('noData')+'</div>';return;}
+  const max=Math.max.apply(null,data.map(function(d){return Math.max(d.income,d.expense);}),1);
+  document.getElementById('chart-bars').innerHTML=data.map(function(d){
+    return '<div class="bar-row"><div class="bar-label">'+d.month.slice(5)+'</div><div class="bar-wrap"><div class="bar-income" style="width:'+(d.income/max*100).toFixed(0)+'%"></div><div class="bar-expense" style="width:'+(d.expense/max*100).toFixed(0)+'%"></div></div><div style="font-size:9px;width:56px;flex-shrink:0"><span class="text-emerald-700 font-medium">+'+d.income.toFixed(0)+'</span> <span class="text-red-600 font-medium">-'+d.expense.toFixed(0)+'</span></div></div>';
+  }).join('');
+}
+
+// ====== Navigation ======
+
+function switchTab(tab){
+  tabs.forEach(function(t,i){
+    document.getElementById('tab-'+t+'-content').classList.toggle('hidden',t!==tab);
+    var tabEl = document.getElementById('tab-'+t);
+    if (tabEl) tabEl.classList.toggle('active',t===tab);
+    document.querySelectorAll('.nav-item')[i].classList.toggle('active',t===tab);
+  });
+  lucide.createIcons();
+  if(tab==='chart') loadChart();
+  if(tab==='list') loadTransactions();
+  if(tab==='supply') { loadProducts(); loadProcurements(); }
+  if(tab==='partner') loadPartners();
+}
+
+// Initialize: update lang buttons, load data
+updateLangBtns();
+lucide.createIcons();
+loadData();
+</script>
+  <!-- Service Worker -->
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js');
+  }
+  </script>
+
+</body>
+</html>
