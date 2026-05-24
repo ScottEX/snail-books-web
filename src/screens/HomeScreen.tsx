@@ -287,11 +287,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
   // Header — frosted glass, compact
   header: {
+    position: 'sticky' as any,
+    top: 0,
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(250,250,250,0.55)',
     // @ts-ignore - web-only
-    backdropFilter: 'saturate(180%) blur(20px)',
+    backdropFilter: 'saturate(180%) blur(30px)',
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(0,0,0,0.08)',
     zIndex: 50,
