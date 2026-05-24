@@ -86,7 +86,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       {/* Header — frosted glass */}
       <View style={styles.header}>
         <View style={styles.headerInner}>
-          <Text style={styles.title}>{t('appTitle')}</Text>
+          <View />
           <View style={styles.headerRight}>
             <Text style={styles.date}>{todayStr}</Text>
             <TouchableOpacity onPress={async () => { await api.logout(); onLogout(); }}>
@@ -330,16 +330,18 @@ const styles = StyleSheet.create({
   // Header — frosted glass
   header: {
     paddingTop: 48,
-    paddingBottom: 12,
+    paddingBottom: 10,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(250,250,250,0.72)',
+    backgroundColor: 'rgba(255,255,255,0.80)',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(180%) blur(20px)',
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
+    borderBottomColor: 'rgba(0,0,0,0.08)',
+    // @ts-ignore - web-only
+    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
     zIndex: 50,
   },
-  headerInner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
   // Title: clean, no accent
   title: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
