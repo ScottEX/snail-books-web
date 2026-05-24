@@ -568,7 +568,7 @@ const s = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   redBar: { width: 8, height: 36, backgroundColor: '#8B1E22', borderRadius: 100 },
   mainTitle: { fontSize: 22, fontWeight: '700', color: '#1A1A1A', letterSpacing: -0.3 },
-  engSub: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', letterSpacing: 0.5, marginTop: 2 },
+  engSub: { fontSize: 13, color: '#9CA3AF', fontWeight: '700', letterSpacing: 0.5, marginTop: 2 },
   langRow: { flexDirection: 'row', gap: 4, paddingTop: 4 },
   langBtn: { fontSize: 10, color: '#9CA3AF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '500' as any },
   langActive: { color: '#8B1E22', backgroundColor: '#FEE2E2', fontWeight: '700' as any },
