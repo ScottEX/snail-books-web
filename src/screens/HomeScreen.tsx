@@ -83,15 +83,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Header — frosted glass */}
       <View style={styles.header}>
-        {/* Red accent line */}
-        <View style={styles.headerAccent} />
         <View style={styles.headerInner}>
-          <View>
-            <Text style={styles.title}>{t('appTitle')}</Text>
-            <Text style={styles.subtitle}>Lan's Luosifen · Accounting</Text>
-          </View>
+          <Text style={styles.title}>{t('appTitle')}</Text>
           <View style={styles.headerRight}>
             <Text style={styles.date}>{todayStr}</Text>
             <TouchableOpacity onPress={async () => { await api.logout(); onLogout(); }}>
@@ -332,13 +327,21 @@ function NavIconPartner({ active }: { active: boolean }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
-  // Header — 8600: padding:28px 20px 0
-  header: { paddingTop: 28, paddingHorizontal: 20 },
-  headerAccent: { width: 44, height: 4, backgroundColor: '#8B1E22', marginBottom: 12, borderRadius: 0 },
-  headerInner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  // Title: 26px, weight 800
-  title: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.5 },
-  subtitle: { fontSize: 11, color: '#bbb', fontWeight: '400', marginTop: 2 },
+  // Header — frosted glass
+  header: {
+    paddingTop: 48,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(250,250,250,0.72)',
+    // @ts-ignore - web-only
+    backdropFilter: 'saturate(180%) blur(20px)',
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
+    zIndex: 50,
+  },
+  headerInner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  // Title: clean, no accent
+  title: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   // 8600: color:#999 font-size:13px
   date: { color: '#999', fontSize: 13 },
