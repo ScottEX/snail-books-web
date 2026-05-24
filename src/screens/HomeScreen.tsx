@@ -302,7 +302,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={styles.bottomNav}>
         {([
           { id: 'list', icon: NavIconList },
-          { id: 'add', icon: NavIconAdd },
+          { id: 'expense', icon: NavIconAdd },
           { id: 'supply', icon: NavIconSupply },
           { id: 'chart', icon: NavIconChart },
           { id: 'partner', icon: NavIconPartner },
