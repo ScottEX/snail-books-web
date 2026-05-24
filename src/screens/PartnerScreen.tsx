@@ -38,7 +38,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     if (!grouped[n]) grouped[n] = [];
     grouped[n].push(d);
   });
-  const groupKeys = Object.keys(grouped).reverse();
+  const groupKeys = Object.keys(grouped);
 
   const calcPreview = (total: number) => {
     setDivPreview(partners.map((p: any) => ({
