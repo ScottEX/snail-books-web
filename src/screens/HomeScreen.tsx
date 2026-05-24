@@ -85,8 +85,13 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        {/* Red accent line */}
+        <View style={styles.headerAccent} />
         <View style={styles.headerInner}>
-          <Text style={styles.title}>{t('appTitle')}</Text>
+          <View>
+            <Text style={styles.title}>{t('appTitle')}</Text>
+            <Text style={styles.subtitle}>Lan's Luosifen · Accounting</Text>
+          </View>
           <View style={styles.headerRight}>
             <Text style={styles.date}>{todayStr}</Text>
             <TouchableOpacity onPress={async () => { await api.logout(); onLogout(); }}>
@@ -329,9 +334,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
   // Header — 8600: padding:28px 20px 0
   header: { paddingTop: 28, paddingHorizontal: 20 },
+  headerAccent: { width: 44, height: 4, backgroundColor: '#8B1E22', marginBottom: 12, borderRadius: 0 },
   headerInner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  // 8600: font-size:18px font-weight:600
-  title: { fontSize: 18, fontWeight: '600', color: '#1A1A1A' },
+  // Title: 26px, weight 800
+  title: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.5 },
+  subtitle: { fontSize: 11, color: '#bbb', fontWeight: '400', marginTop: 2 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   // 8600: color:#999 font-size:13px
   date: { color: '#999', fontSize: 13 },
