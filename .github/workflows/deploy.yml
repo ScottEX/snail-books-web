@@ -16,7 +16,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npx tsc --noEmit
-      - run: npx expo export --platform web
+      - run: npm run build:web
 
   deploy-staging:
     needs: test
@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: npx expo export --platform web
+      - run: npm run build:web
       - name: 部署到测试服务器
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -57,7 +57,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: npx expo export --platform web
+      - run: npm run build:web
       - name: 部署到生产服务器
         uses: appleboy/scp-action@v0.1.7
         with:
