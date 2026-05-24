@@ -30,7 +30,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [bgVersion, setBgVersion] = useState(0);
   const [bgImage, setBgImage] = useState('/static/home-bg.jpg');
   const [bgOpacity, setBgOpacity] = useState(() => {
-    try { return parseFloat(localStorage.getItem('bg-opacity') || '') || 0.5; } catch { return 0.5; }
+    try {
+      const saved = localStorage.getItem('bg-opacity');
+      return saved !== null ? parseFloat(saved) : 0.5;
+    } catch { return 0.5; }
   });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
