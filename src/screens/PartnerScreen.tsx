@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 
@@ -29,7 +30,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
   useEffect(() => { loadData(); }, []);
 
-  // Group dividends by note
   const grouped: Record<string, any[]> = {};
   dividends.forEach((d: any) => {
     const n = d.note || '---';
@@ -60,207 +60,218 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const switchLang = (l: string) => { setLang(l, loadData); setLangState(l); };
 
   return (
-    <div style={{ backgroundColor: '#FAFAFA', minHeight: '100vh', fontFamily: 'Inter, Noto Sans SC, sans-serif' }}>
+    <View style={s.container}>
       {/* Header */}
-      <div style={{ padding: '20px 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: 600, margin: '0 auto' }}>
-        <div>
-          <h1 style={{ fontSize: 15, fontWeight: 600, color: '#1A1A1A' }}>{t('appTitle')}</h1>
-          <p style={{ fontSize: 11, color: '#999' }}>{t('partnerSeats')}</p>
-        </div>
-        <div style={{ display: 'flex', gap: 4 }}>
-          <span onClick={onBack} style={{ fontSize: 12, color: '#8B1E22', cursor: 'pointer', padding: '4px 8px' }}>← {t('navHome')}</span>
+      <View style={s.header}>
+        <View>
+          <Text style={s.headerTitle}>{t('appTitle')}</Text>
+          <Text style={s.headerSub}>{t('partnerSeats')}</Text>
+        </View>
+        <View style={s.headerRight}>
+          <TouchableOpacity onPress={onBack}>
+            <Text style={s.backBtn}>← {t('navHome')}</Text>
+          </TouchableOpacity>
           {langs.map(([l, label]) => (
-            <span key={l} onClick={() => switchLang(l)}
-              style={{ fontSize: 10, padding: '2px 7px', borderRadius: 5, cursor: 'pointer',
-                color: lang === l ? '#8B1E22' : '#9CA3AF', fontWeight: lang === l ? 700 : 500,
-                background: lang === l ? '#FEE2E2' : 'transparent' }}>{label}</span>
+            <TouchableOpacity key={l} onPress={() => switchLang(l)}>
+              <Text style={[s.langBtn, lang === l && s.langActive]}>{label}</Text>
+            </TouchableOpacity>
           ))}
-        </div>
-      </div>
+        </View>
+      </View>
 
-      <div style={{ maxWidth: 600, margin: '0 auto', padding: '0 16px 100px' }}>
+      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+        <View style={s.content}>
 
-        {/* Stat Cards */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 140, background: '#fff', borderRadius: 10, border: '1px solid #EBEBEB', padding: 12 }}>
-            <div style={{ fontSize: 10, color: '#999' }}>{t('totalCapital')}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#8B1E22', marginTop: 4 }}>¥130,000</div>
-            <div style={{ fontSize: 9, color: '#10B981', marginTop: 2 }}>{t('paidInRate')} 100%</div>
-          </div>
-          <div style={{ flex: 1, minWidth: 140, background: '#fff', borderRadius: 10, border: '1px solid #EBEBEB', padding: 12 }}>
-            <div style={{ fontSize: 10, color: '#999' }}>{t('distributedPool')}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#D97706', marginTop: 4 }}>¥{totalDiv.toLocaleString()}</div>
-            <button onClick={() => setShowDividend(true)} style={{ marginTop: 6, background: '#8B1E22', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 10, cursor: 'pointer' }}>{t('issueDividend')}</button>
-          </div>
-          <div onClick={() => setShowOrg(true)} style={{ flex: 1, minWidth: 140, background: '#fff', borderRadius: 10, border: '1px solid #EBEBEB', padding: 12, cursor: 'pointer' }}>
-            <div style={{ fontSize: 10, color: '#999' }}>{t('partnerSeats')}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>3 {t('shareholders')}</div>
-            <div style={{ fontSize: 9, color: '#999', marginTop: 2 }}>{t('lpStructure')}</div>
-          </div>
-        </div>
+          {/* Stat Cards */}
+          <View style={s.statsRow}>
+            <View style={s.statCard}>
+              <Text style={s.statLabel}>{t('totalCapital')}</Text>
+              <Text style={[s.statNum, { color: '#8B1E22' }]}>¥130,000</Text>
+              <Text style={s.statGreen}>{t('paidInRate')} 100%</Text>
+            </View>
+            <View style={s.statCard}>
+              <Text style={s.statLabel}>{t('distributedPool')}</Text>
+              <Text style={[s.statNum, { color: '#D97706' }]}>¥{totalDiv.toLocaleString()}</Text>
+              <TouchableOpacity style={s.dividendBtn} onPress={() => setShowDividend(true)}>
+                <Text style={s.dividendBtnText}>{t('issueDividend')}</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={s.statCard} onPress={() => setShowOrg(true)}>
+              <Text style={s.statLabel}>{t('partnerSeats')}</Text>
+              <Text style={s.statNum}>3 {t('shareholders')}</Text>
+              <Text style={s.statSub}>{t('lpStructure')}</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Partner Cards */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-          {partners.map((p: any) => (
-            <div key={p.id} onClick={() => setShowDetail(p)}
-              style={{ flex: 1, minWidth: 160, background: '#fff', borderRadius: 10, border: '1px solid #EBEBEB', padding: 12, cursor: 'pointer' }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A' }}>{p.name}</div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: '#8B1E22', marginTop: 2 }}>{Math.round(p.share * 100)}%</div>
-              <div style={{ fontSize: 10, color: '#999', marginTop: 4 }}>
-                {t('invest')} ¥{p.investment?.toLocaleString()}
-              </div>
-              <div style={{ fontSize: 10, color: '#D97706', marginTop: 1 }}>
-                {t('dividend')} +¥{p.total_dividends?.toLocaleString()}
-              </div>
-            </div>
-          ))}
-        </div>
+          {/* Partner Cards */}
+          <View style={s.partnerRow}>
+            {partners.map((p: any) => (
+              <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => setShowDetail(p)}>
+                <Text style={s.partnerName}>{p.name}</Text>
+                <Text style={s.partnerPct}>{Math.round(p.share * 100)}%</Text>
+                <Text style={s.partnerInvest}>{t('invest')} ¥{p.investment?.toLocaleString()}</Text>
+                <Text style={s.partnerDiv}>{t('dividend')} +¥{p.total_dividends?.toLocaleString()}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* Capital Ledger */}
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#999', padding: '8px 0' }}>{t('capitalLedger')}</div>
-        <div style={{ fontSize: 10, color: '#999', marginBottom: 8 }}>{t('byRoundAndInvest')}</div>
+          {/* Capital Ledger */}
+          <Text style={s.sectionTitle}>{t('capitalLedger')}</Text>
+          <Text style={s.sectionSub}>{t('byRoundAndInvest')}</Text>
 
-        {/* Filter buttons */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-          {(['all', 'invest', 'mid', 'dividend'] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              style={{
-                padding: '4px 12px', borderRadius: 20, fontSize: 10, fontWeight: filter === f ? 700 : 500,
-                border: 'none', cursor: 'pointer',
-                color: filter === f ? '#fff' : '#999',
-                background: filter === f ? '#1A1A1A' : '#F3F4F6',
-              }}>{t(f)}</button>
-          ))}
-        </div>
+          {/* Filter buttons */}
+          <View style={s.filterRow}>
+            {(['all', 'invest', 'mid', 'dividend'] as const).map(f => (
+              <TouchableOpacity key={f} onPress={() => setFilter(f)}
+                style={[s.filterBtn, filter === f && s.filterBtnActive]}>
+                <Text style={[s.filterBtnText, filter === f && s.filterBtnActiveText]}>{t(f)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* Initial Capital */}
-        {(filter === 'all' || filter === 'invest') && (
-          <TableGroup title="初始出资 · 2024年4月" type="invest" total={130000}
-            items={[
-              { name: '张安武', sub: '34%', amount: 44200 },
-              { name: '蓝柳富', sub: '33%', amount: 42900 },
-              { name: '江宽', sub: '33%', amount: 42900 },
-            ]} />
-        )}
+          {/* Initial Capital */}
+          {(filter === 'all' || filter === 'invest') && (
+            <TableGroup title="初始出资 · 2024年4月" type="invest" total={130000}
+              items={[
+                { name: '张安武', sub: '34%', amount: 44200 },
+                { name: '蓝柳富', sub: '33%', amount: 42900 },
+                { name: '江宽', sub: '33%', amount: 42900 },
+              ]} />
+          )}
 
-        {/* Mid Investment */}
-        {(filter === 'all' || filter === 'mid') && (
-          <TableGroup title="追加 · 2025年1月21日" type="mid" total={30162}
-            items={[
-              { name: '张安武', sub: '34%', amount: 10255.08 },
-              { name: '蓝柳富', sub: '33%', amount: 9953.46 },
-              { name: '江宽', sub: '33%', amount: 9953.46 },
-            ]} />
-        )}
+          {/* Mid Investment */}
+          {(filter === 'all' || filter === 'mid') && (
+            <TableGroup title="追加 · 2025年1月21日" type="mid" total={30162}
+              items={[
+                { name: '张安武', sub: '34%', amount: 10255.08 },
+                { name: '蓝柳富', sub: '33%', amount: 9953.46 },
+                { name: '江宽', sub: '33%', amount: 9953.46 },
+              ]} />
+          )}
 
-        {/* Dividend Rounds */}
-        {(filter === 'all' || filter === 'dividend') && groupKeys.map(note => {
-          const items = grouped[note];
-          const total = items.reduce((s: number, d: any) => s + d.amount, 0);
-          return (
-            <TableGroup key={note} title={note} type="dividend" total={total}
-              items={items.map((d: any) => ({ name: d.partner, sub: '', amount: d.amount }))}
-              onDelete={() => handleDelete(note)} />
-          );
-        })}
+          {/* Dividend Rounds */}
+          {(filter === 'all' || filter === 'dividend') && groupKeys.map(note => {
+            const items = grouped[note];
+            const total = items.reduce((s: number, d: any) => s + d.amount, 0);
+            return (
+              <TableGroup key={note} title={note} type="dividend" total={total}
+                items={items.map((d: any) => ({ name: d.partner, sub: '', amount: d.amount }))}
+                onDelete={() => handleDelete(note)} />
+            );
+          })}
+        </View>
+      </ScrollView>
 
-        {/* Org Chart Modal */}
-        {showOrg && (
-          <div onClick={() => setShowOrg(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, width: 280, overflow: 'hidden', textAlign: 'center' }}>
-              <div style={{ background: '#8B1E22', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{t('partnerSeats')}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>{t('lpStructure')}</div>
-                </div>
-                <span onClick={() => setShowOrg(false)} style={{ color: 'rgba(255,255,255,.7)', cursor: 'pointer', fontSize: 16 }}>✕</span>
-              </div>
-              <div style={{ padding: 16 }}>
+      {/* Org Chart Modal */}
+      {showOrg && (
+        <View style={s.overlay}>
+          <TouchableOpacity style={s.overlayBack} onPress={() => setShowOrg(false)} activeOpacity={1}>
+            <View style={s.modal} onStartShouldSetResponder={() => true}>
+              <View style={s.modalHeader}>
+                <View>
+                  <Text style={s.modalTitle}>{t('partnerSeats')}</Text>
+                  <Text style={s.modalSub}>{t('lpStructure')}</Text>
+                </View>
+                <TouchableOpacity onPress={() => setShowOrg(false)}>
+                  <Text style={s.modalClose}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={s.modalBody}>
                 {[
                   { name: '张安武', role: 'chairman', pct: '34%' },
                   { name: '江宽', role: 'ceo', pct: '33%' },
                   { name: '蓝柳富', role: 'janitor', pct: '33%' },
                 ].map(({ name, pct }, i) => (
-                  <div key={name}>
-                    <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10, padding: '8px 12px' }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#8B1E22' }}>{name}</div>
-                      <div style={{ fontSize: 10, color: '#999' }}>{pct}</div>
-                    </div>
-                    {i < 2 && <div style={{ width: 1, height: 12, background: '#D1D5DB', margin: '0 auto' }} />}
-                  </div>
+                  <View key={name}>
+                    <View style={s.orgCard}>
+                      <Text style={s.orgName}>{name}</Text>
+                      <Text style={s.orgPct}>{pct}</Text>
+                    </View>
+                    {i < 2 && <View style={s.orgLine} />}
+                  </View>
                 ))}
-              </div>
-            </div>
-          </div>
-        )}
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
 
-        {/* Dividend Modal */}
-        {showDividend && (
-          <div onClick={() => setShowDividend(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, width: 280, overflow: 'hidden' }}>
-              <div style={{ background: '#8B1E22', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{t('issueDividend')}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>{t('cumulativeByShare')}</div>
-                </div>
-                <span onClick={() => setShowDividend(false)} style={{ color: 'rgba(255,255,255,.7)', cursor: 'pointer', fontSize: 16 }}>✕</span>
-              </div>
-              <div style={{ padding: 16 }}>
-                <input type="number" placeholder="总金额" value={divAmount} onChange={e => setDivAmount((e.target as HTMLInputElement).value)}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #EBEBEB', borderRadius: 8, fontSize: 14, marginBottom: 10, boxSizing: 'border-box' }} />
-                <input placeholder="备注 (如: 第6次分红)" value={divNote} onChange={e => setDivNote((e.target as HTMLInputElement).value)}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #EBEBEB', borderRadius: 8, fontSize: 14, marginBottom: 10, boxSizing: 'border-box' }} />
-                <button onClick={handleDividend}
-                  style={{ width: '100%', padding: '10px', background: '#8B1E22', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                  确认
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Dividend Modal */}
+      {showDividend && (
+        <View style={s.overlay}>
+          <TouchableOpacity style={s.overlayBack} onPress={() => setShowDividend(false)} activeOpacity={1}>
+            <View style={s.modal} onStartShouldSetResponder={() => true}>
+              <View style={s.modalHeader}>
+                <View>
+                  <Text style={s.modalTitle}>{t('issueDividend')}</Text>
+                  <Text style={s.modalSub}>{t('cumulativeByShare')}</Text>
+                </View>
+                <TouchableOpacity onPress={() => setShowDividend(false)}>
+                  <Text style={s.modalClose}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={s.modalBody}>
+                <TextInput style={s.modalInput} placeholder="总金额" value={divAmount}
+                  onChangeText={setDivAmount} keyboardType="decimal-pad" placeholderTextColor="#999" />
+                <TextInput style={s.modalInput} placeholder="备注 (如: 第6次分红)" value={divNote}
+                  onChangeText={setDivNote} placeholderTextColor="#999" />
+                <TouchableOpacity style={s.modalConfirm} onPress={handleDividend}>
+                  <Text style={s.modalConfirmText}>确认</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
 
-        {/* Partner Detail Modal */}
-        {showDetail && (
-          <div onClick={() => setShowDetail(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, width: 300, maxHeight: '80vh', overflow: 'auto' }}>
-              <div style={{ background: '#8B1E22', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{showDetail.name}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>{(showDetail.share * 100).toFixed(0)}%</div>
-                </div>
-                <span onClick={() => setShowDetail(null)} style={{ color: 'rgba(255,255,255,.7)', cursor: 'pointer', fontSize: 16 }}>✕</span>
-              </div>
-              <div style={{ padding: 16 }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  <div style={{ flex: 1, textAlign: 'center', padding: 8, background: '#F9FAFB', borderRadius: 8 }}>
-                    <div style={{ fontSize: 9, color: '#999' }}>{t('invest')}</div>
-                    <div style={{ fontSize: 16, fontWeight: 700 }}>¥{showDetail.investment?.toLocaleString()}</div>
-                  </div>
-                  <div style={{ flex: 1, textAlign: 'center', padding: 8, background: '#FFFBEB', borderRadius: 8 }}>
-                    <div style={{ fontSize: 9, color: '#999' }}>{t('dividend')}</div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: '#D97706' }}>¥{showDetail.total_dividends?.toLocaleString()}</div>
-                  </div>
-                </div>
-                {/* Payback progress */}
-                {showDetail.investment > 0 && (
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#999', marginBottom: 4 }}>
-                      <span>{t('paidInRate')}</span>
-                      <span>{Math.min(100, Math.round(showDetail.total_dividends / showDetail.investment * 100))}%</span>
-                    </div>
-                    <div style={{ height: 4, background: '#F3F4F6', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', background: '#D97706', borderRadius: 2,
-                        width: `${Math.min(100, showDetail.total_dividends / showDetail.investment * 100)}%` }} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-      </div>
-    </div>
+      {/* Partner Detail Modal */}
+      {showDetail && (
+        <View style={s.overlay}>
+          <TouchableOpacity style={s.overlayBack} onPress={() => setShowDetail(null)} activeOpacity={1}>
+            <View style={[s.modal, { width: 300 }]} onStartShouldSetResponder={() => true}>
+              <View style={s.modalHeader}>
+                <View>
+                  <Text style={s.modalTitle}>{showDetail.name}</Text>
+                  <Text style={s.modalSub}>{(showDetail.share * 100).toFixed(0)}%</Text>
+                </View>
+                <TouchableOpacity onPress={() => setShowDetail(null)}>
+                  <Text style={s.modalClose}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false}>
+                <View style={s.modalBody}>
+                  <View style={s.detailGrid}>
+                    <View style={[s.detailCell, { backgroundColor: '#F9FAFB' }]}>
+                      <Text style={s.detailCellLabel}>{t('invest')}</Text>
+                      <Text style={s.detailCellNum}>¥{showDetail.investment?.toLocaleString()}</Text>
+                    </View>
+                    <View style={[s.detailCell, { backgroundColor: '#FFFBEB' }]}>
+                      <Text style={s.detailCellLabel}>{t('dividend')}</Text>
+                      <Text style={[s.detailCellNum, { color: '#D97706' }]}>¥{showDetail.total_dividends?.toLocaleString()}</Text>
+                    </View>
+                  </View>
+                  {showDetail.investment > 0 && (
+                    <View style={{ marginBottom: 8 }}>
+                      <View style={s.progressLabel}>
+                        <Text style={{ fontSize: 10, color: '#999' }}>{t('paidInRate')}</Text>
+                        <Text style={{ fontSize: 10, color: '#999' }}>
+                          {Math.min(100, Math.round(showDetail.total_dividends / showDetail.investment * 100))}%
+                        </Text>
+                      </View>
+                      <View style={s.progressBar}>
+                        <View style={[s.progressFill, {
+                          width: `${Math.min(100, showDetail.total_dividends / showDetail.investment * 100)}%` as any,
+                        }]} />
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </ScrollView>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -276,25 +287,102 @@ function TableGroup({ title, type, total, items, onDelete }: {
   const c = colors[type] || colors.invest;
 
   return (
-    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #EBEBEB', overflow: 'hidden', marginBottom: 10 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: c.headerBg, borderBottom: '1px solid #EBEBEB' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 6, height: 6, borderRadius: 3, background: c.dot }} />
-          <span style={{ fontSize: 12, fontWeight: 600 }}>{title}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: c.amt }}>¥{total.toLocaleString()}</span>
+    <View style={tg.card}>
+      <View style={[tg.header, { backgroundColor: c.headerBg }]}>
+        <View style={tg.headerLeft}>
+          <View style={[tg.dot, { backgroundColor: c.dot }]} />
+          <Text style={tg.headerTitle}>{title}</Text>
+        </View>
+        <View style={tg.headerRight}>
+          <Text style={[tg.headerAmt, { color: c.amt }]}>¥{total.toLocaleString()}</Text>
           {onDelete && (
-            <button onClick={onDelete} style={{ fontSize: 10, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer' }}>删除</button>
+            <TouchableOpacity onPress={onDelete}>
+              <Text style={tg.deleteBtn}>删除</Text>
+            </TouchableOpacity>
           )}
-        </div>
-      </div>
+        </View>
+      </View>
       {items.map((item, i) => (
-        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 14px', borderTop: i > 0 ? '1px solid #F3F4F6' : 'none' }}>
-          <span style={{ fontSize: 12, color: '#666' }}>{item.name}{item.sub ? <span style={{ color: '#999', fontSize: 10 }}> · {item.sub}</span> : ''}</span>
-          <span style={{ fontSize: 12, fontWeight: 600, color: c.amt }}>¥{item.amount.toLocaleString()}</span>
-        </div>
+        <View key={i} style={[tg.row, i > 0 && tg.rowBorder]}>
+          <Text style={tg.rowName}>{item.name}{item.sub ? <Text style={tg.rowSub}> · {item.sub}</Text> : ''}</Text>
+          <Text style={[tg.rowAmt, { color: c.amt }]}>¥{item.amount.toLocaleString()}</Text>
+        </View>
       ))}
-    </div>
+    </View>
   );
 }
+
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FAFAFA' },
+  header: { paddingTop: 20, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', maxWidth: 600, alignSelf: 'center', width: '100%' },
+  headerTitle: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
+  headerSub: { fontSize: 11, color: '#999' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  backBtn: { fontSize: 12, color: '#8B1E22', fontWeight: '500', paddingVertical: 4, paddingHorizontal: 8 },
+  langBtn: { fontSize: 10, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, color: '#9CA3AF', fontWeight: '500' as any },
+  langActive: { color: '#8B1E22', backgroundColor: '#FEE2E2', fontWeight: '700' as any },
+  scroll: { flex: 1 },
+  content: { maxWidth: 600, alignSelf: 'center', width: '100%', paddingHorizontal: 16, paddingBottom: 100 },
+  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
+  statCard: { flex: 1, minWidth: 140, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#EBEBEB', padding: 12 },
+  statLabel: { fontSize: 10, color: '#999' },
+  statNum: { fontSize: 18, fontWeight: '700', marginTop: 4 },
+  statGreen: { fontSize: 9, color: '#10B981', marginTop: 2 },
+  statSub: { fontSize: 9, color: '#999', marginTop: 2 },
+  dividendBtn: { marginTop: 6, backgroundColor: '#8B1E22', borderRadius: 6, paddingVertical: 4, paddingHorizontal: 10, alignSelf: 'flex-start' },
+  dividendBtnText: { color: '#fff', fontSize: 10 },
+  partnerRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
+  partnerCard: { flex: 1, minWidth: 160, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#EBEBEB', padding: 12 },
+  partnerName: { fontSize: 13, fontWeight: '600', color: '#1A1A1A' },
+  partnerPct: { fontSize: 24, fontWeight: '700', color: '#8B1E22', marginTop: 2 },
+  partnerInvest: { fontSize: 10, color: '#999', marginTop: 4 },
+  partnerDiv: { fontSize: 10, color: '#D97706', marginTop: 1 },
+  sectionTitle: { fontSize: 12, fontWeight: '600', color: '#999', paddingVertical: 8 },
+  sectionSub: { fontSize: 10, color: '#999', marginBottom: 8 },
+  filterRow: { flexDirection: 'row', gap: 6, marginBottom: 10 },
+  filterBtn: { paddingVertical: 4, paddingHorizontal: 12, borderRadius: 20, backgroundColor: '#F3F4F6' },
+  filterBtnActive: { backgroundColor: '#1A1A1A' },
+  filterBtnText: { fontSize: 10, fontWeight: '500' as any, color: '#999' },
+  filterBtnActiveText: { color: '#fff', fontWeight: '700' as any },
+  // Modals
+  overlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200, justifyContent: 'center', alignItems: 'center' },
+  overlayBack: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
+  modal: { backgroundColor: '#fff', borderRadius: 12, width: 280, overflow: 'hidden' },
+  modalHeader: { backgroundColor: '#8B1E22', paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  modalTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  modalSub: { fontSize: 10, color: 'rgba(255,255,255,0.7)' },
+  modalClose: { color: 'rgba(255,255,255,0.7)', fontSize: 16 },
+  modalBody: { padding: 16 },
+  modalInput: { width: '100%', paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EBEBEB', borderRadius: 8, fontSize: 14, marginBottom: 10, color: '#1A1A1A', fontFamily: undefined },
+  modalConfirm: { width: '100%', paddingVertical: 10, backgroundColor: '#8B1E22', borderRadius: 8, alignItems: 'center' },
+  modalConfirmText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  // Detail
+  detailGrid: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  detailCell: { flex: 1, alignItems: 'center', padding: 8, borderRadius: 8 },
+  detailCellLabel: { fontSize: 9, color: '#999' },
+  detailCellNum: { fontSize: 16, fontWeight: '700' },
+  progressLabel: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+  progressBar: { height: 4, backgroundColor: '#F3F4F6', borderRadius: 2, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: '#D97706', borderRadius: 2 },
+  // Org chart
+  orgCard: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12 },
+  orgName: { fontSize: 13, fontWeight: '700', color: '#8B1E22' },
+  orgPct: { fontSize: 10, color: '#999' },
+  orgLine: { width: 1, height: 12, backgroundColor: '#D1D5DB', alignSelf: 'center' },
+});
+
+const tg = StyleSheet.create({
+  card: { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#EBEBEB', overflow: 'hidden', marginBottom: 10 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: 1, borderBottomColor: '#EBEBEB' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  headerTitle: { fontSize: 12, fontWeight: '600' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerAmt: { fontSize: 13, fontWeight: '700' },
+  deleteBtn: { fontSize: 10, color: '#EF4444' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, paddingHorizontal: 14 },
+  rowBorder: { borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  rowName: { fontSize: 12, color: '#666' },
+  rowSub: { color: '#999', fontSize: 10 },
+  rowAmt: { fontSize: 12, fontWeight: '600' },
+});

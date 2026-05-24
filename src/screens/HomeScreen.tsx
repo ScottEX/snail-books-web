@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   langBtn: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
   langActive: { color: '#8B1E22', backgroundColor: '#FEE2E2', fontWeight: '700' },
   // Page — 8600: padding:0 16px 110px, max-width:520px, margin:0 auto
-  page: { paddingHorizontal: 16, paddingBottom: 110, maxWidth: 520, alignSelf: 'center', width: '100%' },
+  page: { flex: 1, paddingHorizontal: 16, paddingBottom: 110, maxWidth: 520, alignSelf: 'center', width: '100%' },
   // Stats — 8600: grid-cols-4
   statsRow: { flexDirection: 'row', marginBottom: 20 },
   statItem: { flex: 1 },
