@@ -28,6 +28,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [uploadingBg, setUploadingBg] = useState(false);
   const [bgVersion, setBgVersion] = useState(0);
   const [bgImage, setBgImage] = useState('/static/home-bg.jpg');
+  const [bgOpacity, setBgOpacity] = useState(() => {
+    try { return parseFloat(localStorage.getItem('bg-opacity') || '') || 0.5; } catch { return 0.5; }
+  });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const INCOME_CATS = ['🍜 堂食','🛵 美团外卖','🛵 饿了吗外卖','🎫 美团团购','📦 京东','🔧 其他收入'];
@@ -112,7 +115,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   return (
     <View style={styles.container}>
       {/* Background */}
-      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center' } as any]} />
+      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -255,6 +258,27 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             </View>
             <View style={styles.modalBodyBg}>
               <Text style={styles.modalHint}>选择一张图片作为首页背景</Text>
+              {/* Opacity selector */}
+              <View style={{ marginTop: 16 }}>
+                <Text style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 8 }}>透明度</Text>
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                  {[0.3, 0.4, 0.5, 0.6, 0.7].map(v => (
+                    <TouchableOpacity
+                      key={v}
+                      onPress={() => { setBgOpacity(v); try { localStorage.setItem('bg-opacity', String(v)); } catch {} }}
+                      style={{
+                        flex: 1, paddingVertical: 6, borderRadius: 8,
+                        backgroundColor: bgOpacity === v ? '#8B1E22' : '#F3F4F6',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: '500', color: bgOpacity === v ? '#fff' : '#6B7280' }}>
+                        {Math.round(v * 100)}%
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
                 <TouchableOpacity
                   style={[styles.bgBtn, styles.bgBtnOutline]}
@@ -362,7 +386,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
   bgLayer: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
-    opacity: 0.5,
   },
   // Header — match bottom nav glass (0.20 opacity)
   header: {
