@@ -26,6 +26,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
+  const [bgVersion, setBgVersion] = useState(0);
+  const [bgImage, setBgImage] = useState('/static/home-bg.jpg');
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const INCOME_CATS = ['🍜 堂食','🛵 美团外卖','🛵 饿了吗外卖','🎫 美团团购','📦 京东','🔧 其他收入'];
@@ -90,10 +92,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setUploadingBg(true);
     try {
       await api.uploadBackground(file);
-      // force background refresh
-      const ts = Date.now();
-      const el = document.getElementById('home-bg-layer');
-      if (el) el.style.backgroundImage = `url(/static/home-bg.jpg?t=${ts})`;
+      setBgImage('/static/home-bg.jpg');
+      setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
     setShowBgModal(false);
@@ -102,9 +102,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setUploadingBg(true);
     try {
       await api.resetBackground();
-      const ts = Date.now();
-      const el = document.getElementById('home-bg-layer');
-      if (el) el.style.backgroundImage = `url(/static/bg.jpg?t=${ts})`;
+      setBgImage('/static/bg.jpg');
+      setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
     setShowBgModal(false);
@@ -113,7 +112,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   return (
     <View style={styles.container}>
       {/* Background */}
-      <View style={styles.bgLayer} />
+      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center' } as any]} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -363,8 +362,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
   bgLayer: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
-    // @ts-ignore - web-only
-    backgroundImage: 'url(/static/home-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center',
     opacity: 0.5,
   },
   // Header — match bottom nav glass (0.20 opacity)
