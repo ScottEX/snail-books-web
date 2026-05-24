@@ -5,6 +5,19 @@ import { api } from '../api/client';
 
 const partnerShare: Record<string, number> = { '张安武': 0.34, '江宽': 0.33, '蓝柳富': 0.33 };
 const initCapital: Record<string, number> = { '张安武': 44200, '江宽': 42900, '蓝柳富': 42900 };
+const roleMap: Record<string, string> = { '张安武': '董事长', '江宽': 'CEO', '蓝柳富': '打杂' };
+const nameMap: Record<string, string> = { '张安武': 'nameZhang', '江宽': 'nameJiang', '蓝柳富': 'nameLan' };
+
+function translateName(name: string): string {
+  const key = nameMap[name];
+  return key ? t(key) : name;
+}
+
+function translateDividendNote(note: string): string {
+  const m = note.match(/^第(\d+)次分红 \((.+)\)$/);
+  if (m) return t('dividendRoundFmt').replace('{n}', m[1]).replace('{date}', m[2]);
+  return note;
+}
 
 export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [partners, setPartners] = useState<any[]>([]);
@@ -32,6 +45,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
   useEffect(() => { loadData(); }, []);
 
+  // Regroup dividends on each render (language can change)
   const grouped: Record<string, any[]> = {};
   dividends.forEach((d: any) => {
     const n = d.note || '---';
@@ -63,22 +77,25 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   };
 
   const handleDelete = async () => {
-    if (!showDelete) return;
+    if (showDelete === null) return;
     await api.deleteDividendByNote(showDelete);
     setShowDelete(null);
     loadData();
   };
 
-  const switchLang = (l: string) => { setLang(l, loadData); setLangState(l); };
-
-  const roles: Record<string, string> = { '张安武': '董事长', '江宽': 'CEO', '蓝柳富': '打杂' };
+  const switchLang = (l: string) => {
+    setLang(l);
+    setLangState(l);
+    // Re-trigger data load for language-dependent UI
+    setTimeout(() => loadData(), 50);
+  };
 
   return (
     <View style={s.root}>
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
         <View style={s.container}>
 
-          {/* ====== HEADER (8600 exact) ====== */}
+          {/* ====== HEADER ====== */}
           <View style={s.header}>
             <View style={{ flex: 1 }}>
               <TouchableOpacity onPress={onBack} style={s.backLink} accessibilityRole="link">
@@ -102,9 +119,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             </View>
           </View>
 
-          {/* ====== 3 STAT CARDS (8600 exact layout) ====== */}
+          {/* ====== 3 STAT CARDS ====== */}
           <View style={s.statGrid}>
-            {/* Card 1: 初始基金 */}
             <View style={s.statCard}>
               <View style={[s.statIconBg, { backgroundColor: 'rgba(139,30,34,0.08)' }]}>
                 <Text style={s.statIcon}>🏛</Text>
@@ -116,7 +132,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               </View>
             </View>
 
-            {/* Card 2: 分红池 */}
             <View style={s.statCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 }}>
                 <View style={[s.statIconBg, { backgroundColor: '#FFFBEB' }]}>
@@ -133,7 +148,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               </TouchableOpacity>
             </View>
 
-            {/* Card 3: 合伙席位 */}
             <TouchableOpacity style={s.statCard} onPress={() => setShowOrg(true)}>
               <View style={[s.statIconBg, { backgroundColor: '#F3F4F6' }]}>
                 <Text style={s.statIcon}>👥</Text>
@@ -148,37 +162,60 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
           {/* ====== PARTNER CARDS ====== */}
           <View style={s.partnerGrid}>
-            {partners.map((p: any) => (
-              <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => setShowDetail(p)}>
-                <View style={s.partnerHeader}>
-                  <Text style={s.partnerName}>{p.name}</Text>
-                  <Text style={s.partnerPct}>{Math.round(p.share * 100)}%</Text>
-                  <View style={s.paidBadge}>
-                    <Text style={s.paidBadgeText}>出资完结</Text>
+            {partners.map((p: any, i: number) => {
+              const initInv = initCapital[p.name] || 42900;
+              const midInv = p.investment - initInv;
+              const pct = p.investment > 0 ? (p.total_dividends / p.investment * 100).toFixed(0) : 0;
+              const rem = p.investment - p.total_dividends;
+              const isBack = p.total_dividends >= p.investment;
+              return (
+                <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => setShowDetail(p)}>
+                  <View style={s.partnerHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={s.partnerName}>{translateName(p.name)}</Text>
+                      <Text style={s.partnerPct}>{(p.share * 100).toFixed(0)}%</Text>
+                    </View>
+                    <View style={s.paidBadge}>
+                      <Text style={s.paidBadgeText}>{t('investComplete')}</Text>
+                    </View>
                   </View>
-                </View>
-                <View style={s.partnerDataRow}>
-                  <View style={s.partnerDataCell}>
-                    <Text style={s.dataLabel}>认缴总额</Text>
-                    <Text style={s.dataValue}>¥{(initCapital[p.name] || 0).toLocaleString()}</Text>
+                  <View style={s.partnerDataRow}>
+                    <View style={s.partnerDataCell}>
+                      <Text style={s.dataLabel}>{t('subscribedTotal')}</Text>
+                      <Text style={s.dataValue}>¥{p.investment.toLocaleString()}</Text>
+                    </View>
+                    <View style={s.partnerDataCell}>
+                      <Text style={s.dataLabel}>{t('initial')}</Text>
+                      <Text style={s.dataValue}>¥{initInv.toLocaleString()}</Text>
+                    </View>
+                    <View style={s.partnerDataCell}>
+                      <Text style={s.dataLabel}>{t('additional')}</Text>
+                      <Text style={s.dataValue}>¥{midInv.toLocaleString()}</Text>
+                    </View>
                   </View>
-                  <View style={s.partnerDataCell}>
-                    <Text style={s.dataLabel}>初始</Text>
-                    <Text style={s.dataValue}>¥{(initCapital[p.name] || 0).toLocaleString()}</Text>
+                  <View style={s.partnerFooter}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={s.footerLabel}>{t('totalDividendsPaid')}</Text>
+                      <Text style={s.footerAmt}>¥{p.total_dividends.toLocaleString()}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
+                      <Text style={s.footerSub}>{t('paybackRate')} {pct}%</Text>
+                      {isBack ? (
+                        <Text style={{ fontSize: 10, color: '#059669', fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
+                      ) : (
+                        <Text style={{ fontSize: 10, color: '#D97706', fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString()}</Text>
+                      )}
+                    </View>
                   </View>
-                  <View style={s.partnerDataCell}>
-                    <Text style={s.dataLabel}>追加</Text>
-                    <Text style={s.dataValue}>¥{(p.investment - initCapital[p.name]).toLocaleString()}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           {/* ====== CAPITAL LEDGER ====== */}
           <View style={s.ledgerCard}>
             <View style={s.ledgerHeader}>
-              <View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={s.ledgerTitle}>{t('capitalLedger')}</Text>
                 <Text style={s.ledgerSub}>{t('byRoundAndInvest')}</Text>
               </View>
@@ -192,135 +229,178 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               </View>
             </View>
 
-            {/* Initial Capital */}
             {(filter === 'all' || filter === 'invest') && (
-              <TableGroup title="初始出资 · 2024年4月" type="invest" total={130000}
+              <TableGroup
+                title={t('initialApr2024')}
+                type="invest" total={130000}
                 items={[
-                  { name: '张安武', sub: '34%', amount: 44200 },
-                  { name: '蓝柳富', sub: '33%', amount: 42900 },
-                  { name: '江宽', sub: '33%', amount: 42900 },
+                  { name: translateName('张安武'), sub: '34%', amount: 44200 },
+                  { name: translateName('蓝柳富'), sub: '33%', amount: 42900 },
+                  { name: translateName('江宽'), sub: '33%', amount: 42900 },
                 ]} />
             )}
 
-            {/* Mid Investment */}
             {(filter === 'all' || filter === 'mid') && (
-              <TableGroup title="追加 · 2025年1月21日" type="mid" total={30162}
+              <TableGroup
+                title={t('midJan2025')}
+                type="mid" total={30162}
                 items={[
-                  { name: '张安武', sub: '34%', amount: 10255.08 },
-                  { name: '蓝柳富', sub: '33%', amount: 9953.46 },
-                  { name: '江宽', sub: '33%', amount: 9953.46 },
+                  { name: translateName('张安武'), sub: '34%', amount: 10255.08 },
+                  { name: translateName('蓝柳富'), sub: '33%', amount: 9953.46 },
+                  { name: translateName('江宽'), sub: '33%', amount: 9953.46 },
                 ]} />
             )}
 
-            {/* Dividend Rounds */}
             {(filter === 'all' || filter === 'dividend') && groupKeys.map(note => {
               const items = grouped[note];
               const total = items.reduce((s: number, d: any) => s + d.amount, 0);
+              const displayTitle = translateDividendNote(note);
               return (
-                <TableGroup key={note} title={note} type="dividend" total={total}
-                  items={items.map((d: any) => ({ name: d.partner, sub: '', amount: d.amount }))}
+                <TableGroup key={note} title={displayTitle} type="dividend" total={total}
+                  items={items.map((d: any) => ({
+                    name: translateName(d.partner),
+                    sub: '',
+                    amount: d.amount,
+                  }))}
                   onDelete={() => setShowDelete(note)} />
               );
             })}
           </View>
-
         </View>
       </ScrollView>
 
-      {/* ====== DIVIDEND MODAL ====== */}
+      {/* ====== DIVIDEND MODAL (8600 exact) ====== */}
       {showDividend && (
         <ModalOverlay onClose={() => setShowDividend(false)}>
-          <ModalHeader title={t('issueProportional')} sub={t('autoByShare')} onClose={() => setShowDividend(false)} />
-          <View style={ms.body}>
-            <Text style={ms.label}>{t('totalToPool')}</Text>
-            <TextInput style={ms.input} placeholder={t('enterAmount')} value={divAmount}
-              onChangeText={(v) => { setDivAmount(v); calcPreview(parseFloat(v) || 0); }}
-              keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
-            <Text style={ms.label}>{t('roundNote')}</Text>
-            <TextInput style={ms.input} placeholder={t('roundNoteExample')} value={divNote}
-              onChangeText={setDivNote} placeholderTextColor="#9CA3AF" />
-            {divPreview.length > 0 && (
-              <View style={ms.preview}>
-                <Text style={ms.previewTitle}>{t('shareCalcResult')}</Text>
-                {divPreview.map((item: any) => (
-                  <View key={item.name} style={ms.previewRow}>
-                    <Text style={ms.previewName}>{item.name} ({item.share.toFixed(0)}%)</Text>
-                    <Text style={ms.previewAmt}>¥{item.amount.toLocaleString()}</Text>
-                  </View>
-                ))}
+          <View style={mo.modalCard} onStartShouldSetResponder={() => true}>
+            <View style={mo.header}>
+              <View>
+                <Text style={mo.title}>{t('issueProportional')}</Text>
+                <Text style={mo.sub}>{t('autoByShare')}</Text>
               </View>
-            )}
-            <View style={ms.btnRow}>
-              <TouchableOpacity style={ms.cancelBtn} onPress={() => setShowDividend(false)}>
-                <Text style={ms.cancelBtnText}>{t('cancel')}</Text>
+              <TouchableOpacity onPress={() => setShowDividend(false)}>
+                <Text style={mo.close}>✕</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={ms.confirmBtn} onPress={handleDividend}>
-                <Text style={ms.confirmBtnText}>{t('confirmIssue')}</Text>
-              </TouchableOpacity>
+            </View>
+            <View style={moBody.body}>
+              <Text style={moBody.label}>{t('totalToPool')}</Text>
+              <TextInput style={moBody.input} placeholder={t('enterAmount')} value={divAmount}
+                onChangeText={(v) => { setDivAmount(v); calcPreview(parseFloat(v) || 0); }}
+                keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+              <Text style={moBody.label}>{t('roundNote')}</Text>
+              <TextInput style={moBody.input} placeholder={t('roundNoteExample')} value={divNote}
+                onChangeText={setDivNote} placeholderTextColor="#9CA3AF" />
+              {divPreview.length > 0 && (
+                <View style={moBody.preview}>
+                  <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
+                  {divPreview.map((item: any) => (
+                    <View key={item.name} style={moBody.previewRow}>
+                      <Text style={moBody.previewName}>{translateName(item.name)} ({item.share.toFixed(0)}%)</Text>
+                      <Text style={moBody.previewAmt}>¥{item.amount.toLocaleString()}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              <View style={moBody.btnRow}>
+                <TouchableOpacity style={moBody.cancelBtn} onPress={() => setShowDividend(false)}>
+                  <Text style={moBody.cancelBtnText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={moBody.confirmBtn} onPress={handleDividend}>
+                  <Text style={moBody.confirmBtnText}>{t('confirmIssue')}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ModalOverlay>
       )}
 
-      {/* ====== DELETE MODAL ====== */}
+      {/* ====== DELETE MODAL (8600 exact) ====== */}
       {showDelete !== null && (
         <ModalOverlay onClose={() => setShowDelete(null)}>
-          <ModalHeader title={t('confirmDeleteRecord')} sub={t('irreversible')} onClose={() => setShowDelete(null)} />
-          <View style={ms.body}>
-            <View style={ms.deleteBox}>
-              <Text style={ms.deleteText}>{t('willDelete')}「<Text style={{ fontWeight: '600' }}>{showDelete}</Text>」{t('allDividendRecords')}</Text>
+          <View style={[mo.modalCard, { maxWidth: 320 }]} onStartShouldSetResponder={() => true}>
+            <View style={mo.header}>
+              <View>
+                <Text style={mo.title}>{t('confirmDeleteRecord')}</Text>
+                <Text style={mo.sub}>{t('irreversible')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowDelete(null)}>
+                <Text style={mo.close}>✕</Text>
+              </TouchableOpacity>
             </View>
-            <View style={ms.btnRow}>
-              <TouchableOpacity style={ms.cancelBtn} onPress={() => setShowDelete(null)}>
-                <Text style={ms.cancelBtnText}>{t('cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[ms.confirmBtn, { backgroundColor: '#EF4444' }]} onPress={handleDelete}>
-                <Text style={ms.confirmBtnText}>{t('confirmDeleteRecord')}</Text>
-              </TouchableOpacity>
+            <View style={{ padding: 20, gap: 16 }}>
+              <View style={moBody.deleteBox}>
+                <Text style={moBody.deleteText}>
+                  {t('willDelete')}<Text style={{ fontWeight: '600', color: '#1F2937' }}>{translateDividendNote(showDelete)}</Text>{t('allDividendRecords')}
+                </Text>
+              </View>
+              <View style={moBody.btnRow}>
+                <TouchableOpacity style={moBody.cancelBtn} onPress={() => setShowDelete(null)}>
+                  <Text style={moBody.cancelBtnText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={moBody.deleteConfirmBtn} onPress={handleDelete}>
+                  <Text style={moBody.confirmBtnText}>{t('confirmDeleteRecord')}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ModalOverlay>
       )}
 
-      {/* ====== PARTNER DETAIL MODAL ====== */}
+      {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
       {showDetail && (
         <ModalOverlay onClose={() => setShowDetail(null)}>
-          <View style={[ms.modal, { width: 320 }]}>
-            <ModalHeader
-              title={showDetail.name}
-              sub={`${roles[showDetail.name] || ''} · ${t('sharePercent')} ${(showDetail.share * 100).toFixed(0)}%`}
-              onClose={() => setShowDetail(null)} />
-            <View style={ms.body}>
-              <View style={ds.grid}>
-                <View style={ds.cell}>
-                  <Text style={ds.cellLabel}>{t('totalInvest')}</Text>
-                  <Text style={ds.cellNum}>¥{(showDetail.investment || 0).toLocaleString()}</Text>
+          <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
+            <View style={mo.header}>
+              <View>
+                <Text style={mo.title}>{translateName(showDetail.name)}</Text>
+                <Text style={mo.sub}>
+                  {roleMap[showDetail.name]} · {t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowDetail(null)}>
+                <Text style={mo.close}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={moBody.body}>
+              <View style={detailStyles.grid}>
+                <View style={[detailStyles.cell, { backgroundColor: '#F9FAFB' }]}>
+                  <Text style={detailStyles.cellLabel}>{t('totalInvest')}</Text>
+                  <Text style={detailStyles.cellNum}>¥{(showDetail.investment || 0).toLocaleString()}</Text>
                 </View>
-                <View style={[ds.cell, { backgroundColor: '#FFFBEB' }]}>
-                  <Text style={ds.cellLabel}>{t('dividend')}</Text>
-                  <Text style={[ds.cellNum, { color: '#D97706' }]}>¥{(showDetail.total_dividends || 0).toLocaleString()}</Text>
+                <View style={[detailStyles.cell, { backgroundColor: '#FFFBEB' }]}>
+                  <Text style={[detailStyles.cellLabel, { color: '#D97706' }]}>{t('totalDividends')}</Text>
+                  <Text style={[detailStyles.cellNum, { color: '#D97706' }]}>¥{(showDetail.total_dividends || 0).toLocaleString()}</Text>
                 </View>
-                <View style={ds.cell}>
-                  <Text style={ds.cellLabel}>初始</Text>
-                  <Text style={ds.cellNum}>¥{(initCapital[showDetail.name] || 0).toLocaleString()}</Text>
+                <View style={[detailStyles.cell, { backgroundColor: '#F9FAFB' }]}>
+                  <Text style={detailStyles.cellLabel}>{t('initialInvest')}</Text>
+                  <Text style={detailStyles.cellNumSmall}>¥{(initCapital[showDetail.name] || 0).toLocaleString()}</Text>
                 </View>
-                <View style={ds.cell}>
-                  <Text style={ds.cellLabel}>追加</Text>
-                  <Text style={ds.cellNum}>¥{((showDetail.investment || 0) - (initCapital[showDetail.name] || 0)).toLocaleString()}</Text>
+                <View style={[detailStyles.cell, { backgroundColor: '#F9FAFB' }]}>
+                  <Text style={detailStyles.cellLabel}>{t('additional')}</Text>
+                  <Text style={detailStyles.cellNumSmall}>¥{((showDetail.investment || 0) - (initCapital[showDetail.name] || 0)).toLocaleString()}</Text>
                 </View>
               </View>
               {showDetail.investment > 0 && (
-                <View>
-                  <View style={ds.progressLabel}>
-                    <Text style={ds.progressLabelText}>{t('paidInRate')}</Text>
-                    <Text style={ds.progressLabelText}>
+                <View style={detailStyles.progressWrap}>
+                  <View style={detailStyles.progressLabel}>
+                    <Text style={detailStyles.progressLabelText}>{t('paybackProgress')}</Text>
+                    <Text style={detailStyles.progressLabelText}>
                       {Math.min(100, Math.round((showDetail.total_dividends || 0) / showDetail.investment * 100))}%
                     </Text>
                   </View>
-                  <View style={ds.progressBar}>
-                    <View style={[ds.progressFill, {
+                  <View style={detailStyles.progressBar}>
+                    <View style={[detailStyles.progressFill, {
                       width: `${Math.min(100, ((showDetail.total_dividends || 0) / showDetail.investment * 100))}%` as any,
                     }]} />
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                    {showDetail.total_dividends >= showDetail.investment ? (
+                      <Text style={{ fontSize: 10, color: '#059669', fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
+                    ) : (
+                      <Text style={{ fontSize: 10, color: '#D97706' }}>
+                        {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString()}
+                      </Text>
+                    )}
                   </View>
                 </View>
               )}
@@ -329,24 +409,34 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
         </ModalOverlay>
       )}
 
-      {/* ====== ORG CHART MODAL ====== */}
+      {/* ====== ORG CHART MODAL (8600 exact) ====== */}
       {showOrg && (
         <ModalOverlay onClose={() => setShowOrg(false)}>
-          <ModalHeader title={t('partnerSeats')} sub={t('lpStructure')} onClose={() => setShowOrg(false)} />
-          <View style={{ padding: 16, alignItems: 'center' }}>
-            {[
-              { name: '张安武', role: 'chairman', pct: '34%' },
-              { name: '江宽', role: 'ceo', pct: '33%' },
-              { name: '蓝柳富', role: 'janitor', pct: '33%' },
-            ].map(({ name, pct }, i) => (
-              <View key={name} style={{ alignItems: 'center' }}>
-                <View style={os.card}>
-                  <Text style={os.name}>{name}</Text>
-                  <Text style={os.pct}>{pct}</Text>
-                </View>
-                {i < 2 && <View style={os.line} />}
+          <View style={[mo.modalCard, { maxWidth: 300 }]} onStartShouldSetResponder={() => true}>
+            <View style={mo.header}>
+              <View>
+                <Text style={mo.title}>{t('partnerSeats')}</Text>
+                <Text style={mo.sub}>{t('lpStructure')}</Text>
               </View>
-            ))}
+              <TouchableOpacity onPress={() => setShowOrg(false)}>
+                <Text style={mo.close}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ padding: 20, alignItems: 'center', gap: 0 }}>
+              {[
+                { name: '张安武', pct: '34%' },
+                { name: '江宽', pct: '33%' },
+                { name: '蓝柳富', pct: '33%' },
+              ].map(({ name, pct }, i) => (
+                <View key={name} style={{ alignItems: 'center' }}>
+                  <View style={orgStyles.card}>
+                    <Text style={orgStyles.orgName}>{translateName(name)}</Text>
+                    <Text style={orgStyles.orgPct}>{pct}</Text>
+                  </View>
+                  {i < 2 && <View style={orgStyles.line} />}
+                </View>
+              ))}
+            </View>
           </View>
         </ModalOverlay>
       )}
@@ -354,29 +444,13 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-/* ========== MODAL COMPONENTS ========== */
+/* ========== MODAL OVERLAY WITH ANIMATION ========== */
 
 function ModalOverlay({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <View style={mo.overlay}>
       <TouchableOpacity style={mo.backdrop} onPress={onClose} activeOpacity={1} />
-      <View style={[mo.content, (children as any)?.type === ModalHeader ? {} : {}]}>
-        {children}
-      </View>
-    </View>
-  );
-}
-
-function ModalHeader({ title, sub, onClose }: { title: string; sub: string; onClose: () => void }) {
-  return (
-    <View style={mo.header}>
-      <View>
-        <Text style={mo.title}>{title}</Text>
-        <Text style={mo.sub}>{sub}</Text>
-      </View>
-      <TouchableOpacity onPress={onClose}>
-        <Text style={mo.close}>✕</Text>
-      </TouchableOpacity>
+      <View style={mo.content}>{children}</View>
     </View>
   );
 }
@@ -387,38 +461,36 @@ function TableGroup({ title, type, total, items, onDelete }: {
   title: string; type: string; total: number; items: { name: string; sub: string; amount: number }[];
   onDelete?: () => void;
 }) {
-  const colors: Record<string, { dot: string; headerBg: string; headerColor: string; badge: string; amt: string }> = {
-    invest: { dot: '#3B82F6', headerBg: '#EFF6FF', headerColor: '#1F2937', badge: '#3B82F6', amt: '#111827' },
-    mid: { dot: '#8B5CF6', headerBg: '#F5F3FF', headerColor: '#1F2937', badge: '#8B5CF6', amt: '#111827' },
-    dividend: { dot: '#F59E0B', headerBg: '#FFFBEB', headerColor: '#1F2937', badge: '#F59E0B', amt: '#D97706' },
+  const colors: Record<string, { dot: string; headerBg: string; badge: string; amt: string }> = {
+    invest: { dot: '#3B82F6', headerBg: '#EFF6FF', badge: '#3B82F6', amt: '#111827' },
+    mid: { dot: '#8B5CF6', headerBg: '#F5F3FF', badge: '#8B5CF6', amt: '#111827' },
+    dividend: { dot: '#F59E0B', headerBg: '#FFFBEB', badge: '#F59E0B', amt: '#D97706' },
   };
   const c = colors[type] || colors.invest;
-  const typeLabel: Record<string, string> = { invest: t('invest'), mid: t('mid'), dividend: t('dividend') };
+  const typeLabels: Record<string, string> = { invest: t('invest'), mid: t('mid'), dividend: t('dividend') };
 
   return (
     <View style={tg.card}>
-      {/* Table Header */}
       <View style={[tg.theadRow, { backgroundColor: c.headerBg }]}>
-        <View style={[tg.thLeft, { flex: 1 }]}>
+        <View style={tg.thLeft}>
           <View style={[tg.dot, { backgroundColor: c.dot }]} />
-          <Text style={[tg.thTitle, { color: c.headerColor }]}>{title}</Text>
+          <Text style={tg.thTitle}>{title}</Text>
         </View>
         <View style={tg.thMid}>
-          <Text style={[tg.thBadge, { color: c.badge }]}>{typeLabel[type] || ''}</Text>
+          <Text style={[tg.thBadge, { color: c.badge }]}>{typeLabels[type]}</Text>
         </View>
         <View style={tg.thRight}>
           <Text style={[tg.thAmt, { color: c.amt }]}>¥{total.toLocaleString()}</Text>
           {onDelete && (
-            <TouchableOpacity onPress={onDelete} style={{ marginLeft: 8 }}>
-              <Text style={tg.delBtn}>删除</Text>
+            <TouchableOpacity onPress={onDelete}>
+              <Text style={tg.delBtn}>{t('deleteRecord')}</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
-      {/* Table Body */}
       {items.map((item, i) => (
         <View key={i} style={[tg.tbodyRow, i > 0 && tg.rowBorder]}>
-          <Text style={[tg.tdName, { flex: 1, paddingLeft: 16 }]}>{item.name}
+          <Text style={tg.tdName}>{item.name}
             {item.sub ? <Text style={tg.tdSub}> · {item.sub}</Text> : null}
           </Text>
           <View style={tg.tdMid} />
@@ -435,8 +507,6 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#FAFAFA' },
   scroll: { flex: 1 },
   container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 64 },
-
-  // Header (matching 8600 partner.html)
   header: { borderBottomWidth: 1, borderBottomColor: '#F3F4F6', paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 8 },
   backArrow: { fontSize: 22, color: '#9CA3AF', lineHeight: 22, fontWeight: '300' },
@@ -449,7 +519,6 @@ const s = StyleSheet.create({
   langBtn: { fontSize: 10, color: '#9CA3AF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '500' as any },
   langActive: { color: '#8B1E22', backgroundColor: '#FEE2E2', fontWeight: '700' as any },
 
-  // Stat Cards (8600: grid-cols-3 gap-3)
   statGrid: { flexDirection: 'row', gap: 12, marginTop: 16, flexWrap: 'wrap' },
   statCard: {
     flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F3F4F6',
@@ -466,7 +535,6 @@ const s = StyleSheet.create({
   dividendBtn: { backgroundColor: '#8B1E22', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12 },
   dividendBtnText: { color: '#fff', fontSize: 10, fontWeight: '500' },
 
-  // Partner Cards (8600: grid-cols-3)
   partnerGrid: { flexDirection: 'row', gap: 12, marginTop: 12, flexWrap: 'wrap' },
   partnerCard: {
     flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F3F4F6',
@@ -474,7 +542,7 @@ const s = StyleSheet.create({
     // @ts-ignore
     boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
   },
-  partnerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  partnerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   partnerName: { fontSize: 13, fontWeight: '700', color: '#1F2937' },
   partnerPct: { fontSize: 10, color: '#9CA3AF' },
   paidBadge: { backgroundColor: '#ECFDF5', borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
@@ -483,39 +551,48 @@ const s = StyleSheet.create({
   partnerDataCell: { flex: 1, alignItems: 'center' },
   dataLabel: { fontSize: 9, color: '#9CA3AF' },
   dataValue: { fontSize: 10, fontWeight: '600', color: '#111827' },
+  partnerFooter: { borderTopWidth: 1, borderTopColor: '#F9FAFB', paddingTop: 6 },
+  footerLabel: { fontSize: 11, color: '#D97706', fontWeight: '500' },
+  footerAmt: { fontSize: 11, fontWeight: '700', color: '#D97706' },
+  footerSub: { fontSize: 10, color: '#9CA3AF' },
 
-  // Ledger Card (8600: rounded-2xl white card)
   ledgerCard: {
     backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#F3F4F6', marginTop: 16,
     // @ts-ignore
     boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
   },
-  ledgerHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F9FAFB' },
+  ledgerHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F9FAFB', gap: 12 },
   ledgerTitle: { fontSize: 12, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5 },
-  ledgerSub: { fontSize: 10, color: '#9CA3AF', marginTop: 4 },
-  filterRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  ledgerSub: { fontSize: 10, color: '#9CA3AF' },
+  filterRow: { flexDirection: 'row', gap: 8 },
   filterBtn: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, backgroundColor: '#F3F4F6' },
   filterBtnActive: { backgroundColor: '#1F2937' },
   filterBtnText: { fontSize: 10, fontWeight: '500' as any, color: '#6B7280' },
   filterBtnActiveText: { color: '#fff', fontWeight: '700' as any },
 });
 
-/* Modal Overlay Styles */
+/* ========== MODAL OVERLAY STYLES ========== */
 const mo = StyleSheet.create({
   overlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 },
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(26,26,26,0.4)' },
-  content: { backgroundColor: '#fff', borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden' },
+  content: { alignItems: 'center', justifyContent: 'center' },
+  modalCard: {
+    backgroundColor: '#fff', borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
+    // @ts-ignore - animation
+    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    // @ts-ignore
+    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+  },
   header: { backgroundColor: '#8B1E22', paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 14, fontWeight: '700', color: '#fff' },
   sub: { fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
   close: { color: 'rgba(255,255,255,0.7)', fontSize: 18 },
 });
 
-/* Modal Body Styles */
-const ms = StyleSheet.create({
-  modal: { backgroundColor: '#fff', borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden' },
+/* Modal Body */
+const moBody = StyleSheet.create({
   body: { padding: 20, gap: 12 },
-  label: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', marginBottom: 4 },
+  label: { fontSize: 10, fontWeight: '700', color: '#9CA3AF' },
   input: { width: '100%', backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: 12, fontWeight: '600' as any, color: '#1A1A1A', fontFamily: undefined },
   preview: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12, gap: 8 },
   previewTitle: { fontSize: 9, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5 },
@@ -527,47 +604,48 @@ const ms = StyleSheet.create({
   cancelBtnText: { fontSize: 12, fontWeight: '500', color: '#6B7280' },
   confirmBtn: { flex: 1, backgroundColor: '#8B1E22', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   confirmBtnText: { fontSize: 12, fontWeight: '500', color: '#fff' },
+  deleteConfirmBtn: { flex: 1, backgroundColor: '#EF4444', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   deleteBox: { backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12, alignItems: 'center' },
-  deleteText: { fontSize: 12, color: '#6B7280' },
+  deleteText: { fontSize: 12, color: '#6B7280', textAlign: 'center' },
 });
 
-/* Detail Modal Styles */
-const ds = StyleSheet.create({
+/* Detail Modal */
+const detailStyles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  cell: { width: '47%' as any, backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12 },
-  cellLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500' },
+  cell: { width: '47%' as any, borderRadius: 12, padding: 12 },
+  cellLabel: { fontSize: 10, fontWeight: '500', color: '#9CA3AF' },
   cellNum: { fontSize: 14, fontWeight: '700', color: '#111827', marginTop: 2 },
-  progressLabel: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4, marginTop: 4 },
-  progressLabelText: { fontSize: 10, color: '#9CA3AF' },
-  progressBar: { height: 4, backgroundColor: '#F3F4F6', borderRadius: 2, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#D97706', borderRadius: 2 },
+  cellNumSmall: { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 2 },
+  progressWrap: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12 },
+  progressLabel: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  progressLabelText: { fontSize: 11, color: '#9CA3AF' },
+  progressBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 100, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: '#059669', borderRadius: 100 },
 });
 
-/* Org Chart Styles */
-const os = StyleSheet.create({
+/* Org Chart */
+const orgStyles = StyleSheet.create({
   card: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, alignItems: 'center' },
-  name: { fontSize: 13, fontWeight: '700', color: '#8B1E22' },
-  pct: { fontSize: 10, color: '#9CA3AF' },
+  orgName: { fontSize: 13, fontWeight: '700', color: '#8B1E22' },
+  orgPct: { fontSize: 10, color: '#9CA3AF' },
   line: { width: 1, height: 12, backgroundColor: '#D1D5DB' },
 });
 
-/* Table Group Styles */
+/* Table Group */
 const tg = StyleSheet.create({
   card: { borderTopWidth: 1, borderTopColor: '#F9FAFB' },
-  // Table header row
   theadRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  thLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 16 },
+  thLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 16, flex: 1 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  thTitle: { fontSize: 12, fontWeight: '600' },
+  thTitle: { fontSize: 12, fontWeight: '600', color: '#1F2937' },
   thMid: { width: 40, alignItems: 'center' },
   thBadge: { fontSize: 11, fontWeight: '600' },
   thRight: { flexDirection: 'row', alignItems: 'center', paddingRight: 16 },
   thAmt: { fontSize: 12, fontWeight: '700' },
-  delBtn: { fontSize: 10, color: '#EF4444' },
-  // Table body rows
+  delBtn: { fontSize: 10, color: '#EF4444', marginLeft: 8 },
   tbodyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   rowBorder: { borderTopWidth: 1, borderTopColor: '#F9FAFB' },
-  tdName: { fontSize: 12, color: '#4B5563' },
+  tdName: { fontSize: 12, color: '#4B5563', flex: 1, paddingLeft: 16 },
   tdSub: { fontSize: 10, color: '#9CA3AF' },
   tdMid: { width: 40 },
   tdAmt: { fontSize: 12, fontWeight: '600', paddingRight: 16 },
