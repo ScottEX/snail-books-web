@@ -285,15 +285,14 @@ function NavIconPartner({ active }: { active: boolean }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
-  // Header — frosted glass, compact
+  // Header — ultra-transparent glass
   header: {
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(250,250,250,0.55)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     // @ts-ignore - web-only
-    backdropFilter: 'saturate(180%) blur(30px)',
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
+    backdropFilter: 'saturate(180%) blur(20px)',
+    borderBottomWidth: 0,
     zIndex: 50,
   },
   headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
@@ -303,7 +302,7 @@ const styles = StyleSheet.create({
   date: { color: '#999', fontSize: 13 },
   logoutBtn: { fontSize: 11, color: '#DC2626', fontWeight: '500' },
   langRow: { flexDirection: 'row', gap: 4 },
-  langBtn: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
+  langBtn: { fontSize: 10, color: '#6B7280', fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
   langActive: { color: '#8B1E22', backgroundColor: '#FEE2E2', fontWeight: '700' },
   // Page — 8600: padding:0 16px 110px, max-width:520px, margin:0 auto
   page: { flex: 1, paddingHorizontal: 16, paddingBottom: 12, maxWidth: 520, alignSelf: 'center', width: '100%' },
