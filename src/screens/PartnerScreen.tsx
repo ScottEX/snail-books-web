@@ -553,7 +553,7 @@ function TableGroup({ title, type, total, items, onDelete }: {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#FAFAFA' },
   scroll: { flex: 1 },
-  container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 64 },
+  container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 },
   header: { borderBottomWidth: 1, borderBottomColor: '#F3F4F6', paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 8 },
   backArrow: { fontSize: 22, color: '#9CA3AF', lineHeight: 22, fontWeight: '300' },
