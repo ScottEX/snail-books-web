@@ -11,58 +11,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
-      - name: 模板语法验证
-        run: |
-          pip install jinja2
-          python -c "
-          from jinja2 import Environment, FileSystemLoader
-          import os
-          env = Environment(loader=FileSystemLoader('templates'))
-          for f in os.listdir('templates'):
-              if f.endswith('.html'):
-                  t = env.get_template(f)
-                  h = t.render(income_cats=[], expense_cats=[])
-                  print('OK:', f, len(h), 'bytes')
-          "
-      - name: JS 括号检查
-        run: |
-          python -c "
-          import os, re
-          errs = 0
-          for root, dirs, files in os.walk('.'):
-              for f in files:
-                  if f.endswith(('.html','.js')):
-                      path = os.path.join(root, f)
-                      c = open(path).read()
-                      scripts = re.findall(r'<script[^>]*>(.*?)</script>', c, re.DOTALL) if f.endswith('.html') else [c]
-                      for i, s in enumerate(scripts):
-                          o, c2 = s.count('{'), s.count('}')
-                          if o != c2:
-                              print('MISMATCH:', path, 'script#'+str(i), '{='+str(o), '}='+str(c2))
-                              errs += 1
-          exit(errs)
-          "
+          node-version: 22
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx expo export:web
 
   deploy-staging:
     needs: test
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
-      - name: 部署 Web 到测试服务器
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx expo export:web
+      - name: 部署到测试服务器
+        uses: appleboy/scp-action@v0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: dist/
+          target: /opt/snail-books-web-staging/
+          strip_components: 0
+      - name: 重启测试服务
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /opt/snail-books-web-staging
-            git checkout develop
-            git pull origin develop
-            systemctl restart snail-books-staging
-            echo "Web staging deployed"
+          script: systemctl restart snail-books-staging
 
   deploy-production:
     needs: test
@@ -70,15 +52,25 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: 部署 Web 到生产服务器
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx expo export:web
+      - name: 部署到生产服务器
+        uses: appleboy/scp-action@v0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: dist/
+          target: /opt/snail-books-web/
+          strip_components: 0
+      - name: 重启生产服务
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /opt/snail-books-web
-            git checkout main
-            git pull origin main
-            systemctl restart snail-books
-            echo "Web production deployed"
+          script: systemctl restart snail-books
