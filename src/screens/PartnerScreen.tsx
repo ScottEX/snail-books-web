@@ -313,24 +313,30 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               </TouchableOpacity>
             </View>
             <View style={moBody.body}>
-              <Text style={moBody.label}>{t('totalToPool')}</Text>
-              <TextInput style={moBody.input} placeholder={t('enterAmount')} value={divAmount}
-                onChangeText={(v) => { setDivAmount(v); calcPreview(parseFloat(v) || 0); }}
-                keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
-              <Text style={moBody.label}>{t('roundNote')}</Text>
-              <TextInput style={moBody.input} placeholder={t('roundNoteExample')} value={divNote}
-                onChangeText={setDivNote} placeholderTextColor="#9CA3AF" />
-              {divPreview.length > 0 && (
-                <View style={moBody.preview}>
-                  <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
-                  {divPreview.map((item: any) => (
-                    <View key={item.name} style={moBody.previewRow}>
-                      <Text style={moBody.previewName}>{translateName(item.name)} ({item.share.toFixed(0)}%)</Text>
-                      <Text style={moBody.previewAmt}>¥{item.amount.toLocaleString()}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+              <View>
+                <Text style={moBody.label}>{t('totalToPool')}</Text>
+                <TextInput style={moBody.input} placeholder={t('enterAmount')} value={divAmount}
+                  onChangeText={(v) => { setDivAmount(v); calcPreview(parseFloat(v) || 0); }}
+                  keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+              </View>
+              <View>
+                <Text style={moBody.label}>{t('roundNote')}</Text>
+                <TextInput style={moBody.input} placeholder={t('roundNoteExample')} value={divNote}
+                  onChangeText={setDivNote} placeholderTextColor="#9CA3AF" />
+              </View>
+              <View style={moBody.preview}>
+                <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
+                {(divPreview.length > 0 ? divPreview : partners.map((p: any) => ({
+                  name: p.name,
+                  share: (partnerShare[p.name] || 0.33) * 100,
+                  amount: 0,
+                }))).map((item: any) => (
+                  <View key={item.name} style={moBody.previewRow}>
+                    <Text style={moBody.previewName}>{item.name} ({item.share.toFixed(0)}%)</Text>
+                    <Text style={moBody.previewAmt}>¥ {item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  </View>
+                ))}
+              </View>
               <View style={moBody.btnRow}>
                 <TouchableOpacity style={moBody.cancelBtn} onPress={() => setShowDividend(false)}>
                   <Text style={moBody.cancelBtnText}>{t('cancel')}</Text>
@@ -627,14 +633,14 @@ const mo = StyleSheet.create({
   },
   header: { backgroundColor: '#8B1E22', paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  sub: { fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-  close: { color: 'rgba(255,255,255,0.7)', fontSize: 18 },
+  sub: { fontSize: 10, color: '#FECACA', marginTop: 2 },
+  close: { color: '#FECACA', fontSize: 18 },
 });
 
 const moBody = StyleSheet.create({
   body: { padding: 20, gap: 12 },
-  label: { fontSize: 10, fontWeight: '700', color: '#9CA3AF' },
-  input: { width: '100%', backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: 12, fontWeight: '600' as any, color: '#1A1A1A', fontFamily: undefined },
+  label: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', marginBottom: 4 },
+  input: { width: '100%', backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: 12, fontWeight: '700' as any, color: '#1A1A1A', fontFamily: undefined },
   preview: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12, gap: 8 },
   previewTitle: { fontSize: 9, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5 },
   previewRow: { flexDirection: 'row', justifyContent: 'space-between' },
@@ -642,7 +648,7 @@ const moBody = StyleSheet.create({
   previewAmt: { fontSize: 11, fontWeight: '700', color: '#1F2937' },
   btnRow: { flexDirection: 'row', gap: 12, paddingTop: 4 },
   cancelBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  cancelBtnText: { fontSize: 12, fontWeight: '500', color: '#6B7280' },
+  cancelBtnText: { fontSize: 12, fontWeight: '500', color: '#4B5563' },
   confirmBtn: { flex: 1, backgroundColor: '#8B1E22', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   confirmBtnText: { fontSize: 12, fontWeight: '500', color: '#fff' },
   deleteConfirmBtn: { flex: 1, backgroundColor: '#EF4444', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
