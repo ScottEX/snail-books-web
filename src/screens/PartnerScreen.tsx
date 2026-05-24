@@ -147,13 +147,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 </View>
               </View>
             </View>
-            <View style={s.langRow}>
-              {langs.map(([l, label]) => (
-                <TouchableOpacity key={l} onPress={() => switchLang(l)}>
-                  <Text style={[s.langBtn, lang === l && s.langActive]}>{label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
           </View>
 
           {/* ====== 3 STAT CARDS (8600 exact) ====== */}
