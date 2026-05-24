@@ -139,10 +139,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           {/* ====== HEADER ====== */}
           <View style={s.header}>
             <View style={{ flex: 1 }}>
-              <TouchableOpacity onPress={onBack} style={s.backLink}>
-                <Text style={s.backArrow}>‹</Text>
-                <Text style={s.backText}>{t('backHome')}</Text>
-              </TouchableOpacity>
               <View style={s.titleRow}>
                 <View style={s.redBar} />
                 <View>
