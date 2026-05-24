@@ -17,6 +17,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [lang, setLangState] = useState(getLang());
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
@@ -167,9 +168,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               </View>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('password')}</Text>
-                <TextInput style={styles.textInput} value={password} onChangeText={setPassword}
-                  placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)"
-                  secureTextEntry onSubmitEditing={handleLogin} />
+                <View style={styles.pwWrap}>
+                  <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
+                    placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)"
+                    secureTextEntry={!showPw} onSubmitEditing={handleLogin} />
+                  <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
+                    <Text style={styles.pwEyeText}>{showPw ? '隐' : '显'}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <TouchableOpacity onPress={handleLogin} style={styles.btnDark}>
                 <Text style={styles.btnDarkText}>{t('loginBtn')}</Text>
@@ -198,14 +204,24 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   {t('password')}{' '}
                   <Text style={styles.hintText}>{t('pwHint') || '6+ chars, letter + number'}</Text>
                 </Text>
-                <TextInput style={styles.textInput} value={password} onChangeText={setPassword}
-                  placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)" secureTextEntry />
+                <View style={styles.pwWrap}>
+                  <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
+                    placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)" secureTextEntry={!showPw} />
+                  <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
+                    <Text style={styles.pwEyeText}>{showPw ? '隐' : '显'}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('confirmPassword')}</Text>
-                <TextInput style={styles.textInput} value={password2} onChangeText={setPassword2}
-                  placeholder={t('confirmPassword')} placeholderTextColor="rgba(255,255,255,0.55)"
-                  secureTextEntry onSubmitEditing={handleRegister} />
+                <View style={styles.pwWrap}>
+                  <TextInput style={styles.pwInput} value={password2} onChangeText={setPassword2}
+                    placeholder={t('confirmPassword')} placeholderTextColor="rgba(255,255,255,0.55)"
+                    secureTextEntry={!showPw} onSubmitEditing={handleRegister} />
+                  <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
+                    <Text style={styles.pwEyeText}>{showPw ? '隐' : '显'}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <TouchableOpacity onPress={handleRegister} style={styles.btnDark}>
                 <Text style={styles.btnDarkText}>{t('registerBtn')}</Text>
@@ -274,8 +290,13 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               </View>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('newPassword')}</Text>
-                <TextInput style={styles.textInput} value={password} onChangeText={setPassword}
-                  placeholder={t('newPassword')} placeholderTextColor="rgba(255,255,255,0.55)" secureTextEntry />
+                <View style={styles.pwWrap}>
+                  <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
+                    placeholder={t('newPassword')} placeholderTextColor="rgba(255,255,255,0.55)" secureTextEntry={!showPw} />
+                  <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
+                    <Text style={styles.pwEyeText}>{showPw ? '隐' : '显'}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <TouchableOpacity onPress={handleReset} style={styles.btnRed}>
                 <Text style={styles.btnRedText}>{t('resetBtn')}</Text>
@@ -339,6 +360,18 @@ const styles = StyleSheet.create({
   fieldWrap: { gap: 6 },
   fieldLabel: { fontSize: 11, fontWeight: '500', color: 'rgba(255,255,255,0.6)' },
   hintText: { fontSize: 10, fontWeight: '400', color: 'rgba(255,255,255,0.3)' },
+  pwWrap: { position: 'relative' as any },
+  pwInput: {
+    backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
+    paddingRight: 44, fontSize: 16, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    // @ts-ignore - web-only style
+    backdropFilter: 'blur(8px)', outlineStyle: 'none' as any,
+  },
+  pwEye: {
+    position: 'absolute' as any, right: 0, top: 0, bottom: 0,
+    paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center',
+  },
+  pwEyeText: { fontSize: 11, color: 'rgba(255,255,255,0.45)' },
   textInput: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
     fontSize: 16, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
