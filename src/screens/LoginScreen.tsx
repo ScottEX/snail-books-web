@@ -283,7 +283,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, minHeight: '100vh', justifyContent: 'center', padding: 20, paddingTop: 24 },
+  container: { flex: 1, justifyContent: 'center', padding: 20, paddingTop: 24 },
   bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only background image
     backgroundImage: 'url(/static/bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   content: { position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
   brand: { alignItems: 'center', marginBottom: 32 },
   logoWrap: {
-    width: 56, height: 56, borderRadius: 16, overflow: 'hidden', marginBottom: 20,
+    width: 56, height: 56, borderRadius: 16, overflow: 'hidden' as const, marginBottom: 20,
     // @ts-ignore - web-only boxShadow
     boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)',
   },
@@ -329,8 +329,8 @@ const styles = StyleSheet.create({
   textInput: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
     fontSize: 13, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
-    // @ts-ignore
-    backdropFilter: 'blur(8px)', outlineStyle: 'none',
+    // @ts-ignore - web-only style
+    backdropFilter: 'blur(8px)', outlineStyle: 'none' as any,
   },
   codeInput: { textAlign: 'center', letterSpacing: 6 },
   btnDark: {
