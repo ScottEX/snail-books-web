@@ -3,11 +3,13 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 
 import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
+import PartnerScreen from './PartnerScreen';
 
 type Tab = 'list' | 'add' | 'supply' | 'chart';
 
-export default function HomeScreen({ onPartner, onLogout }: { onPartner: () => void; onLogout: () => void }) {
+export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>('list');
+  const [showPartner, setShowPartner] = useState(false);
   const [summary, setSummary] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -79,6 +81,10 @@ export default function HomeScreen({ onPartner, onLogout }: { onPartner: () => v
   const formatDate = (d: string) => (d || '').slice(5, 16);
 
   const todayStr = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
+
+  if (showPartner) {
+    return <PartnerScreen onBack={() => setShowPartner(false)} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -252,11 +258,11 @@ export default function HomeScreen({ onPartner, onLogout }: { onPartner: () => v
         ] as const).map(({ id, label, icon: Icon }) => (
           <TouchableOpacity
             key={id}
-            style={[styles.navItem, (id === 'partner' ? false : tab === id) && styles.navItemActive]}
-            onPress={() => id === 'partner' ? onPartner() : setTab(id as Tab)}
+            style={[styles.navItem, (id === 'partner' ? showPartner : tab === id) && styles.navItemActive]}
+            onPress={() => id === 'partner' ? setShowPartner(true) : setTab(id as Tab)}
           >
-            <Icon active={id === 'partner' ? false : tab === id} />
-            <Text style={[styles.navLabel, (id === 'partner' ? false : tab === id) && styles.navLabelActive]}>
+            <Icon active={id === 'partner' ? showPartner : tab === id} />
+            <Text style={[styles.navLabel, (id === 'partner' ? showPartner : tab === id) && styles.navLabelActive]}>
               {label}
             </Text>
           </TouchableOpacity>
