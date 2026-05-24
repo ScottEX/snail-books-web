@@ -115,6 +115,14 @@ const I18N: Record<string, Record<string, string>> = {
     nameLan: '蓝柳富',
     // Dividend round format
     dividendRoundFmt: '第{n}次分红 ({date})',
+    // Org chart & roles
+    partnerStructure: '合伙架构',
+    lpControl: '有限合伙控股',
+    chairman: '董事长',
+    ceo: 'CEO',
+    janitor: '打杂',
+    jokeClosedLoop: '一个董事长负责画饼，一个CEO负责烙饼，一个打杂的负责吃饼 —— 完美的商业闭环',
+    noDividendRecords: '暂无分红记录',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -226,6 +234,13 @@ const I18N: Record<string, Record<string, string>> = {
     nameJiang: '江寬',
     nameLan: '藍柳富',
     dividendRoundFmt: '第{n}次分紅 ({date})',
+    partnerStructure: '合夥架構',
+    lpControl: '有限合夥控股',
+    chairman: '董事長',
+    ceo: 'CEO',
+    janitor: '打雜',
+    jokeClosedLoop: '一個董事長負責畫餅，一個CEO負責烙餅，一個打雜的負責吃餅 —— 完美的商業閉環',
+    noDividendRecords: '暫無分紅記錄',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -337,6 +352,13 @@ const I18N: Record<string, Record<string, string>> = {
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
     dividendRoundFmt: 'Dividend #{n} ({date})',
+    partnerStructure: 'Partner Structure',
+    lpControl: 'Limited Partnership Control',
+    chairman: 'Chairman',
+    ceo: 'CEO',
+    janitor: 'Helper',
+    jokeClosedLoop: 'One chairman paints the pie, one CEO bakes it, one helper eats it — the perfect business loop',
+    noDividendRecords: 'No dividend records',
   },
 };
 
