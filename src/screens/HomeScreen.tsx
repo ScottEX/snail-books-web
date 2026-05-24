@@ -248,24 +248,21 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         )}
       </View>
 
-      {/* Bottom Nav */}
+      {/* Bottom Nav — glass pill, icons only */}
       <View style={styles.bottomNav}>
         {([
-          { id: 'list', label: '账单', icon: NavIconList },
-          { id: 'add', label: '记账', icon: NavIconAdd },
-          { id: 'supply', label: '供应链', icon: NavIconSupply },
-          { id: 'chart', label: '趋势', icon: NavIconChart },
-          { id: 'partner', label: t('navPartner'), icon: NavIconPartner },
-        ] as const).map(({ id, label, icon: Icon }) => (
+          { id: 'list', icon: NavIconList },
+          { id: 'add', icon: NavIconAdd },
+          { id: 'supply', icon: NavIconSupply },
+          { id: 'chart', icon: NavIconChart },
+          { id: 'partner', icon: NavIconPartner },
+        ] as const).map(({ id, icon: Icon }) => (
           <TouchableOpacity
             key={id}
             style={[styles.navItem, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navItemActive]}
             onPress={() => setTab(id as Tab)}
           >
             <Icon active={id === 'partner' ? tab === 'partner' : tab === id} />
-            <Text style={[styles.navLabel, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navLabelActive]}>
-              {label}
-            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -410,34 +407,35 @@ const styles = StyleSheet.create({
   barIncome: { backgroundColor: '#059669', height: '100%' },
   barExpense: { backgroundColor: '#EF4444', opacity: 0.7, height: '100%' },
   barVal: { fontSize: 9, color: '#999', width: 90 },
-  // Bottom Nav — floating pill
+  // Bottom Nav — glass pill, icons only, 80% transparent
   bottomNav: {
     position: 'fixed' as any,
-    bottom: 12,
+    bottom: 16,
     left: '50%',
     // @ts-ignore - web-only translateX
     transform: 'translateX(-50%)',
-    width: '92%',
-    maxWidth: 480,
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    width: 'auto',
+    minWidth: 200,
+    maxWidth: 320,
+    backgroundColor: 'rgba(255,255,255,0.20)',
     // @ts-ignore - web-only
-    backdropFilter: 'blur(20px)',
-    borderRadius: 22,
+    backdropFilter: 'saturate(180%) blur(24px)',
+    borderRadius: 28,
     flexDirection: 'row',
-    paddingVertical: 6,
-    paddingHorizontal: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     // @ts-ignore - web-only boxShadow
-    boxShadow: '0 2px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    boxShadow: '0 2px 16px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(255,255,255,0.3) inset',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.25)',
     zIndex: 100,
   },
   navItem: {
-    flex: 1, alignItems: 'center', paddingVertical: 6, gap: 3,
-    borderRadius: 16, marginHorizontal: 2,
+    width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
+    borderRadius: 22, marginHorizontal: 4,
   },
   navItemActive: {
-    backgroundColor: 'rgba(0,0,0,0.04)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   navLabel: { fontSize: 10, fontWeight: '600', color: '#999', letterSpacing: 0.3 },
   navLabelActive: { color: '#1A1A1A' },
