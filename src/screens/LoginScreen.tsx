@@ -27,7 +27,19 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   }, []);
 
   const reset = () => { setMsg(''); setMsgOk(false); };
-  const goLogin = () => { setStep('login'); reset(); };
+  const goLogin = () => {
+    setStep('login'); reset();
+    // restore saved login username
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('saved_login');
+      if (saved) setUsername(saved);
+    }
+  };
+
+  const goRegister = () => {
+    setStep('register'); reset();
+    setUsername(''); // don't carry over saved login
+  };
 
   const validatePassword = (pw: string): string => {
     if (pw.length < 6) return t('errPwTooShort') || '6 chars min';
@@ -138,7 +150,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <TouchableOpacity onPress={goLogin} style={[styles.tabBtn, step === 'login' && styles.tabActive]}>
                 <Text style={[styles.tabText, step === 'login' && styles.tabActiveText]}>{t('login')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => { setStep('register'); reset(); }} style={[styles.tabBtn, step === 'register' && styles.tabActive]}>
+              <TouchableOpacity onPress={goRegister} style={[styles.tabBtn, step === 'register' && styles.tabActive]}>
                 <Text style={[styles.tabText, step === 'register' && styles.tabActiveText]}>{t('register')}</Text>
               </TouchableOpacity>
             </View>
