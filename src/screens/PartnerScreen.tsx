@@ -108,7 +108,11 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
   const handleDelete = async () => {
     if (showDelete === null) return;
-    await api.deleteDividendByNote(showDelete);
+    // find all dividends matching this note and delete by ID
+    const toDelete = dividends.filter((d: any) => d.note === showDelete);
+    for (const d of toDelete) {
+      await api.deleteDividend(d.id);
+    }
     setShowDelete(null);
     loadData();
   };

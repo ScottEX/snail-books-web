@@ -285,13 +285,13 @@ function NavIconPartner({ active }: { active: boolean }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
-  // Header — ultra-transparent glass
+  // Header — match bottom nav glass (0.20 opacity)
   header: {
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.20)',
     // @ts-ignore - web-only
-    backdropFilter: 'saturate(180%) blur(20px)',
+    backdropFilter: 'saturate(180%) blur(24px)',
     borderBottomWidth: 0,
     zIndex: 50,
   },
