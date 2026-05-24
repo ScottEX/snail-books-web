@@ -50,23 +50,18 @@ function NumberTicker({ value, duration = 500, style }: {
 /* ═══════════════════════════════════════════════════════════
    FadeInView — 卡片平滑淡入提升 (300ms)
    ═══════════════════════════════════════════════════════════ */
-function FadeInView({ visible, children, style }: {
-  visible: boolean; children: React.ReactNode; style?: any;
+function FadeInView({ children, style }: {
+  children: React.ReactNode; style?: any;
 }) {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(10)).current;
 
   useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: false }),
-        Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: false }),
-      ]).start();
-    } else {
-      opacity.setValue(0);
-      translateY.setValue(10);
-    }
-  }, [visible]);
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: false }),
+      Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: false }),
+    ]).start();
+  }, []);
 
   return (
     <Animated.View style={[style, { opacity, transform: [{ translateY }] }]}>
@@ -272,7 +267,8 @@ export default function ExpenseScreen() {
         contentContainerStyle={st.contentInner}>
 
         {/* ── 模块一：每日对账 ── */}
-        <FadeInView visible={activeTab === 0} style={st.moduleWrap}>
+        {activeTab === 0 && (
+        <FadeInView style={st.moduleWrap}>
           <View style={st.card}>
             {/* 日期行 */}
             <View style={st.dateRow}>
@@ -347,9 +343,11 @@ export default function ExpenseScreen() {
             </View>
           </View>
         </FadeInView>
+        )}
 
         {/* ── 模块二：营业额追踪 ── */}
-        <FadeInView visible={activeTab === 1} style={st.moduleWrap}>
+        {activeTab === 1 && (
+        <FadeInView style={st.moduleWrap}>
           <View style={st.card}>
             {/* KPI 卡片 */}
             <View style={st.kpiRow}>
@@ -385,9 +383,11 @@ export default function ExpenseScreen() {
             )}
           </View>
         </FadeInView>
+        )}
 
         {/* ── 模块三：支出明细 ── */}
-        <FadeInView visible={activeTab === 2} style={st.moduleWrap}>
+        {activeTab === 2 && (
+        <FadeInView style={st.moduleWrap}>
           <View style={st.card}>
             {/* 录入台 */}
             <View style={st.expForm}>
@@ -437,6 +437,7 @@ export default function ExpenseScreen() {
             )}
           </View>
         </FadeInView>
+        )}
       </ScrollView>
     </View>
   );
