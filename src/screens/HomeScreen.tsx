@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     left: '50%',
     // @ts-ignore - web-only translateX
     transform: 'translateX(-50%)',
-    width: '88%',
+    width: '80%',
     maxWidth: 420,
     backgroundColor: 'rgba(255,255,255,0.20)',
     // @ts-ignore - web-only
