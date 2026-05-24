@@ -138,13 +138,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
           {/* ====== HEADER ====== */}
           <View style={s.header}>
-            <View style={{ flex: 1 }}>
-              <View style={s.titleRow}>
-                <View style={s.redBar} />
-                <View>
-                  <Text style={s.mainTitle}>{t('partnerTitle')}</Text>
-                  <Text style={s.engSub}>Lan's Luosifen · Partner Capital</Text>
-                </View>
+            <View style={s.headerLeft}>
+              <View style={s.accentBar} />
+              <View>
+                <Text style={s.mainTitle}>{t('partnerTitle')}</Text>
+                <Text style={s.engSub}>Lan's Luosifen · Partner Capital</Text>
+                <Text style={s.tagline}>合伙搞钱 一起做大做强</Text>
               </View>
             </View>
             <View style={s.langRow}>
@@ -557,15 +556,13 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#FAFAFA' },
   scroll: { flex: 1 },
   container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 64 },
-  header: { borderBottomWidth: 1, borderBottomColor: '#F3F4F6', paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  backLink: { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 8 },
-  backArrow: { fontSize: 22, color: '#9CA3AF', lineHeight: 22, fontWeight: '300' },
-  backText: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  redBar: { width: 8, height: 36, backgroundColor: '#8B1E22', borderRadius: 100 },
-  mainTitle: { fontSize: 22, fontWeight: '700', color: '#1A1A1A', letterSpacing: -0.3 },
-  engSub: { fontSize: 13, color: '#9CA3AF', fontWeight: '700', letterSpacing: 0.5, marginTop: 2 },
-  langRow: { flexDirection: 'row', gap: 4, paddingTop: 4 },
+  header: { paddingTop: 6, paddingBottom: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  headerLeft: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, flex: 1 },
+  accentBar: { width: 4, height: 52, backgroundColor: '#8B1E22', borderRadius: 2 },
+  mainTitle: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.5, lineHeight: 32 },
+  engSub: { fontSize: 12, color: '#6B7280', fontWeight: '600', letterSpacing: 0.8, marginTop: 4, textTransform: 'uppercase' as any },
+  tagline: { fontSize: 11, color: '#D1D5DB', fontWeight: '500', marginTop: 4, letterSpacing: 0.2 },
+  langRow: { flexDirection: 'row', gap: 4, paddingTop: 6 },
   langBtn: { fontSize: 10, color: '#9CA3AF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '500' as any },
   langActive: { color: '#8B1E22', backgroundColor: '#FEE2E2', fontWeight: '700' as any },
   statGrid: { flexDirection: 'row', gap: 12, marginTop: 16, flexWrap: 'wrap' },
