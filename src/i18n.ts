@@ -123,6 +123,13 @@ const I18N: Record<string, Record<string, string>> = {
     janitor: '打杂',
     jokeClosedLoop: '一个董事长负责画饼，一个CEO负责烙饼，一个打杂的负责吃饼 —— 完美的商业闭环',
     noDividendRecords: '暂无分红记录',
+    // Background settings
+    bgSettings: '背景设置',
+    bgHint: '选择一张图片作为首页背景',
+    opacity: '透明度',
+    uploading: '上传中...',
+    chooseImage: '选择图片',
+    resetDefault: '恢复默认',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -241,6 +248,13 @@ const I18N: Record<string, Record<string, string>> = {
     janitor: '打雜',
     jokeClosedLoop: '一個董事長負責畫餅，一個CEO負責烙餅，一個打雜的負責吃餅 —— 完美的商業閉環',
     noDividendRecords: '暫無分紅記錄',
+    // Background settings
+    bgSettings: '背景設置',
+    bgHint: '選擇一張圖片作為首頁背景',
+    opacity: '透明度',
+    uploading: '上傳中...',
+    chooseImage: '選擇圖片',
+    resetDefault: '恢復默認',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -359,6 +373,13 @@ const I18N: Record<string, Record<string, string>> = {
     janitor: 'Helper',
     jokeClosedLoop: 'One chairman paints the pie, one CEO bakes it, one helper eats it — the perfect business loop',
     noDividendRecords: 'No dividend records',
+    // Background settings
+    bgSettings: 'Background',
+    bgHint: 'Choose an image as home page background',
+    opacity: 'Opacity',
+    uploading: 'Uploading...',
+    chooseImage: 'Choose Image',
+    resetDefault: 'Reset to Default',
   },
 };
 

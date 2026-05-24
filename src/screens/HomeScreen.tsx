@@ -122,7 +122,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         <View style={styles.headerInner}>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
-              <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>背景设置</Text>
+              <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={async () => { await api.logout(); onLogout(); }}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
@@ -251,17 +251,17 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>背景设置</Text>
+              <Text style={styles.modalTitle}>{t('bgSettings')}</Text>
               <TouchableOpacity onPress={() => setShowBgModal(false)}>
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.modalBodyBg}>
-              <Text style={styles.modalHint}>选择一张图片作为首页背景</Text>
+              <Text style={styles.modalHint}>{t('bgHint')}</Text>
               {/* Opacity slider */}
               <View style={{ marginTop: 16 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ fontSize: 11, color: '#374151', fontWeight: '500' }}>透明度</Text>
+                  <Text style={{ fontSize: 11, color: '#374151', fontWeight: '500' }}>{t('opacity')}</Text>
                   <Text style={{ fontSize: 13, fontWeight: '700', color: '#8B1E22' }}>{Math.round(bgOpacity * 100)}%</Text>
                 </View>
                 <View style={{ position: 'relative', height: 32, justifyContent: 'center' }}>
@@ -307,14 +307,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   disabled={uploadingBg}
                   onPress={() => fileRef.current?.click()}
                 >
-                  <Text style={styles.bgBtnOutlineText}>{uploadingBg ? '上传中...' : '选择图片'}</Text>
+                  <Text style={styles.bgBtnOutlineText}>{uploadingBg ? t('uploading') : t('chooseImage')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.bgBtn, styles.bgBtnDanger]}
                   disabled={uploadingBg}
                   onPress={handleBgReset}
                 >
-                  <Text style={styles.bgBtnDangerText}>恢复默认</Text>
+                  <Text style={styles.bgBtnDangerText}>{t('resetDefault')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
