@@ -94,38 +94,16 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   ICONS — 三个小圆点SVG
+   ICONS — 三色圆点图标 (28px, 大号)
    ═══════════════════════════════════════════════════════════ */
-function IconRecon() {
+function IconDot({ color }: { color: string }) {
   return (
     <View style={{
-      width: 20, height: 20, borderRadius: 10,
-      backgroundColor: '#8B1E22', opacity: 0.12,
+      width: 28, height: 28, borderRadius: 14,
+      backgroundColor: color, opacity: 0.10,
       alignItems: 'center', justifyContent: 'center',
     }}>
-      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#8B1E22' }} />
-    </View>
-  );
-}
-function IconRevenue() {
-  return (
-    <View style={{
-      width: 20, height: 20, borderRadius: 10,
-      backgroundColor: '#059669', opacity: 0.12,
-      alignItems: 'center', justifyContent: 'center',
-    }}>
-      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#059669' }} />
-    </View>
-  );
-}
-function IconExpense() {
-  return (
-    <View style={{
-      width: 20, height: 20, borderRadius: 10,
-      backgroundColor: '#DC2626', opacity: 0.12,
-      alignItems: 'center', justifyContent: 'center',
-    }}>
-      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#DC2626' }} />
+      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: color, opacity: 0.85 }} />
     </View>
   );
 }
@@ -221,10 +199,10 @@ export default function ExpenseScreen() {
   };
 
   /* ── 卡片摘要数据 ── */
-  const tabSummaries = [
-    { icon: <IconRecon />, title: t('dailyReconciliation'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
-    { icon: <IconRevenue />, title: t('revenueTracking'), stat: revenueData.todayRevenue, statFmt: fmt(revenueData.todayRevenue), statColor: '#1A1A1A', prefix: '' },
-    { icon: <IconExpense />, title: t('expenseDetails'), stat: expenses.length, statFmt: fmtInt(expenses.length), statColor: '#1A1A1A', prefix: '' },
+  const tabCards = [
+    { color: '#8B1E22', title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
+    { color: '#059669', title: t('tabRevenue'), stat: revenueData.todayRevenue, statFmt: fmt(revenueData.todayRevenue), statColor: '#1A1A1A', prefix: '' },
+    { color: '#DC2626', title: t('tabExpense'), stat: expenses.length, statFmt: fmtInt(expenses.length), statColor: '#1A1A1A', prefix: '' },
   ];
 
   /* ── Render ── */
@@ -234,7 +212,7 @@ export default function ExpenseScreen() {
       <View style={st.tabBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
           contentContainerStyle={st.tabScroll}>
-          {tabSummaries.map((tab, i) => {
+          {tabCards.map((tab, i) => {
             const active = activeTab === i;
             return (
               <TouchableOpacity
@@ -243,18 +221,17 @@ export default function ExpenseScreen() {
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
-                {/* 激活态左边框 */}
                 {active && <View style={st.tabActiveBar} />}
                 <View style={st.tabInner}>
-                  <View style={st.tabTop}>
-                    {tab.icon}
+                  <IconDot color={active ? tab.color : '#B0B0B0'} />
+                  <View style={{ gap: 2 }}>
                     <Text style={[st.tabTitle, active && st.tabTitleActive]}>
                       {tab.title}
                     </Text>
+                    <Text style={[st.tabStat, { color: tab.statColor }]}>
+                      {tab.prefix}{tab.statFmt}
+                    </Text>
                   </View>
-                  <Text style={[st.tabStat, { color: tab.statColor }]}>
-                    {tab.prefix}{tab.statFmt}
-                  </Text>
                 </View>
               </TouchableOpacity>
             );
@@ -450,46 +427,44 @@ const st = StyleSheet.create({
   /* ── Tab Bar ── */
   tabBar: {
     backgroundColor: '#FAFAFA',
-    paddingTop: 8, paddingBottom: 4,
+    paddingTop: 10, paddingBottom: 6,
   },
   tabScroll: {
-    paddingHorizontal: 12, gap: 10,
+    paddingHorizontal: 12, gap: 12,
   },
   tabCard: {
-    width: 160, height: 72,
-    backgroundColor: '#fff',
-    borderRadius: 14,
+    width: 185, height: 96,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 18,
     borderWidth: 1, borderColor: '#EBEBEB',
-    paddingHorizontal: 14, paddingVertical: 11,
+    paddingHorizontal: 18, paddingVertical: 14,
     justifyContent: 'center',
     overflow: 'hidden' as const,
     position: 'relative' as const,
   },
   tabCardActive: {
-    borderColor: '#E5E5E5',
+    backgroundColor: '#fff',
+    borderColor: '#E8E8E8',
     // @ts-ignore
-    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+    boxShadow: '0 2px 16px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.03)',
   },
   tabActiveBar: {
     position: 'absolute' as const,
     left: 0, top: 0, bottom: 0, width: 3,
     backgroundColor: '#8B1E22',
-    borderTopLeftRadius: 14, borderBottomLeftRadius: 14,
+    borderTopLeftRadius: 18, borderBottomLeftRadius: 18,
   },
   tabInner: {
-    gap: 6,
-  },
-  tabTop: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 14,
   },
   tabTitle: {
-    fontSize: 13, fontWeight: '600', color: '#6B7280',
+    fontSize: 13, fontWeight: '600', color: '#9CA3AF',
   },
   tabTitleActive: {
-    color: '#1A1A1A',
+    color: '#1A1A1A', fontWeight: '700',
   },
   tabStat: {
-    fontSize: 17, fontWeight: '800', letterSpacing: -0.3,
+    fontSize: 20, fontWeight: '800', letterSpacing: -0.4,
   },
 
   /* ── Content ── */

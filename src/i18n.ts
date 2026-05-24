@@ -157,6 +157,10 @@ const I18N: Record<string, Record<string, string>> = {
     expenseLedger: '支出流水',
     noExpenseRecords: '暂无支出记录',
     noNote: '无备注',
+    // Tab short names
+    tabRecon: '对账',
+    tabRevenue: '营业',
+    tabExpense: '支出',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -309,6 +313,10 @@ const I18N: Record<string, Record<string, string>> = {
     expenseLedger: '支出流水',
     noExpenseRecords: '暫無支出記錄',
     noNote: '無備註',
+    // Tab short names
+    tabRecon: '對賬',
+    tabRevenue: '營業',
+    tabExpense: '支出',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -461,6 +469,10 @@ const I18N: Record<string, Record<string, string>> = {
     expenseLedger: 'Expense Ledger',
     noExpenseRecords: 'No expense records',
     noNote: 'No note',
+    // Tab short names
+    tabRecon: 'Recon',
+    tabRevenue: 'Revenue',
+    tabExpense: 'Expenses',
   },
 };
 
