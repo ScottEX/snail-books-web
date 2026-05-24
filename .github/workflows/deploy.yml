@@ -1,0 +1,92 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Jinja2 模板语法验证
+        run: |
+          pip install jinja2
+          python -c "
+          from jinja2 import Environment, FileSystemLoader
+          import os, sys
+          env = Environment(loader=FileSystemLoader('templates'))
+          for tmpl_name in os.listdir('templates'):
+              if tmpl_name.endswith('.html'):
+                  tmpl = env.get_template(tmpl_name)
+                  # 用空数据渲染，确保不崩溃
+                  html = tmpl.render(income_cats=[], expense_cats=[])
+                  print(f'✅ {tmpl_name}: {len(html)} bytes')
+          "
+      - name: JS 括号配对检查
+        run: |
+          python -c "
+          import os, re
+          errs = 0
+          for root, dirs, files in os.walk('.'):
+              for f in files:
+                  if f.endswith(('.html','.js')):
+                      path = os.path.join(root, f)
+                      with open(path) as fh:
+                          content = fh.read()
+                      # 检查 script 标签内的花括号
+                      scripts = re.findall(r'<script[^>]*>(.*?)</script>', content, re.DOTALL)
+                      for i, s in enumerate(scripts):
+                          o, c = s.count('{'), s.count('}')
+                          if o != c:
+                              print(f'❌ {path} script#{i}: {{={o} }}={c}')
+                              errs += 1
+          exit(errs)
+          "
+
+  deploy-staging:
+    needs: test
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH 部署到测试服务器
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/snail-books-staging
+            git checkout develop
+            git pull origin develop
+            # Bump Service Worker 缓存版本
+            VER=$(grep -oP 'snail-v\K\d+' static/sw.js)
+            NEW=$((VER + 1))
+            sed -i "s/snail-v${VER}/snail-v${NEW}/" static/sw.js
+            git add static/sw.js && git commit -m "ci: bump SW cache to v${NEW}" && git push origin develop || true
+            systemctl restart snail-books-staging
+            echo "✅ Staging 部署完成 (SW v${NEW})"
+
+  deploy-production:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: SSH 部署到生产服务器
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/snail-books
+            git checkout main
+            git pull origin main
+            systemctl restart snail-books
+            echo "✅ 生产部署完成"
