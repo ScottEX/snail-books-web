@@ -4,8 +4,9 @@ import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import PartnerScreen from './PartnerScreen';
+import ExpenseScreen from './ExpenseScreen';
 
-type Tab = 'list' | 'add' | 'supply' | 'chart' | 'partner';
+type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>('list');
@@ -176,31 +177,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 </>
               )}
 
-              {tab === 'add' && (
-                <View style={styles.addForm}>
-                  <View style={styles.typeToggle}>
-                    <TouchableOpacity onPress={() => setTxType('income')} style={[styles.typeBtn, txType === 'income' && styles.typeBtnInc]}>
-                      <Text style={[styles.typeBtnText, txType === 'income' && styles.typeBtnIncText]}>{t('income')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setTxType('expense')} style={[styles.typeBtn, txType === 'expense' && styles.typeBtnExp]}>
-                      <Text style={[styles.typeBtnText, txType === 'expense' && styles.typeBtnExpText]}>{t('expense')}</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <TextInput style={styles.addInput} placeholder="¥" value={amount} onChangeText={setAmount}
-                    keyboardType="decimal-pad" placeholderTextColor="#999" />
-                  <View style={styles.catGrid}>
-                    {(cats[txType as keyof typeof cats] || []).map((c: string) => (
-                      <TouchableOpacity key={c} onPress={() => setCategory(c)}>
-                        <Text style={[styles.catBtn, category === c && styles.catBtnActive]}>{c}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  <TextInput style={styles.addInput} placeholder="账户" value={account} onChangeText={setAccount} placeholderTextColor="#999" />
-                  <TextInput style={styles.addInput} placeholder={t('notePlaceholder') || '备注'} value={note} onChangeText={setNote} placeholderTextColor="#999" />
-                  <TouchableOpacity style={styles.saveBtn} onPress={handleAddTx}>
-                    <Text style={styles.saveBtnText}>✓</Text>
-                  </TouchableOpacity>
-                </View>
+              {tab === 'expense' && (
+                <ExpenseScreen />
               )}
 
               {tab === 'supply' && (
