@@ -143,6 +143,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={styles.page}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} />
+        ) : tab === 'expense' ? (
+          <ExpenseScreen />
         ) : (
           <>
             {/* Tab Content */}
@@ -175,10 +177,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     </View>
                   )}
                 </>
-              )}
-
-              {tab === 'expense' && (
-                <ExpenseScreen />
               )}
 
               {tab === 'supply' && (
