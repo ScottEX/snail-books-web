@@ -258,25 +258,47 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             </View>
             <View style={styles.modalBodyBg}>
               <Text style={styles.modalHint}>选择一张图片作为首页背景</Text>
-              {/* Opacity selector */}
+              {/* Opacity slider */}
               <View style={{ marginTop: 16 }}>
-                <Text style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 8 }}>透明度</Text>
-                <View style={{ flexDirection: 'row', gap: 6 }}>
-                  {[0.3, 0.4, 0.5, 0.6, 0.7].map(v => (
-                    <TouchableOpacity
-                      key={v}
-                      onPress={() => { setBgOpacity(v); try { localStorage.setItem('bg-opacity', String(v)); } catch {} }}
-                      style={{
-                        flex: 1, paddingVertical: 6, borderRadius: 8,
-                        backgroundColor: bgOpacity === v ? '#8B1E22' : '#F3F4F6',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 11, fontWeight: '500', color: bgOpacity === v ? '#fff' : '#6B7280' }}>
-                        {Math.round(v * 100)}%
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ fontSize: 11, color: '#374151', fontWeight: '500' }}>透明度</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#8B1E22' }}>{Math.round(bgOpacity * 100)}%</Text>
+                </View>
+                <View style={{ position: 'relative', height: 32, justifyContent: 'center' }}>
+                  {/* track background */}
+                  <View style={{
+                    position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2,
+                    backgroundColor: '#E5E7EB',
+                  }} />
+                  {/* active track fill */}
+                  <View style={{
+                    position: 'absolute', left: 0, height: 4, borderRadius: 2,
+                    width: `${((bgOpacity - 0.15) / 0.7) * 100}%`,
+                    backgroundColor: '#8B1E22',
+                  }} />
+                  {/* range input (invisible, on top) */}
+                  <input
+                    type="range"
+                    min="0.15"
+                    max="0.85"
+                    step="0.05"
+                    value={bgOpacity}
+                    onChange={(e: any) => {
+                      const v = parseFloat(e.target.value);
+                      setBgOpacity(v);
+                      try { localStorage.setItem('bg-opacity', String(v)); } catch {}
+                    }}
+                    style={{
+                      width: '100%', height: 32, opacity: 0, cursor: 'pointer',
+                      margin: 0, position: 'relative', zIndex: 1,
+                    }}
+                  />
+                </View>
+                {/* tick labels */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
+                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>15</Text>
+                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>50</Text>
+                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>85</Text>
                 </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
