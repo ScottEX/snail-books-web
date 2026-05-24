@@ -1,17 +1,147 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
-import { t, setLang, getLang } from '../i18n';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
+} from 'react-native';
+import { t } from '../i18n';
 import { api } from '../api/client';
 
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+const fmtInt = (n: number) => n.toLocaleString();
 const todayStr = () => new Date().toISOString().slice(0, 10);
+const toNum = (s: string) => parseFloat(s) || 0;
 
 /* ═══════════════════════════════════════════════════════════
-   EXPENSE SCREEN — 三模块：对账 / 营业额 / 支出明细
+   NumberTicker — 数字从 0 平滑滚动到目标值
+   ═══════════════════════════════════════════════════════════ */
+function NumberTicker({ value, duration = 500, style }: {
+  value: number; duration?: number; style?: any;
+}) {
+  const [display, setDisplay] = useState(value);
+  const prevRef = useRef(value);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    prevRef.current = value;
+    const start = performance.now();
+
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(from + (value - from) * eased);
+      if (p < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [value, duration]);
+
+  // Pick formatter: if value has decimals use fmt, else fmtInt + ¥
+  const text = Number.isInteger(value) && Number.isInteger(display)
+    ? '¥' + fmtInt(Math.round(display))
+    : fmt(display);
+
+  return <Text style={style}>{text}</Text>;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FadeInView — 卡片平滑淡入提升 (300ms)
+   ═══════════════════════════════════════════════════════════ */
+function FadeInView({ visible, children, style }: {
+  visible: boolean; children: React.ReactNode; style?: any;
+}) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(10)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: false }),
+        Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: false }),
+      ]).start();
+    } else {
+      opacity.setValue(0);
+      translateY.setValue(10);
+    }
+  }, [visible]);
+
+  return (
+    <Animated.View style={[style, { opacity, transform: [{ translateY }] }]}>
+      {children}
+    </Animated.View>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   InputWithFocus — 聚焦时边框过渡到品牌红
+   ═══════════════════════════════════════════════════════════ */
+function InputWithFocus({ style, inputStyle, ...props }: any) {
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <TextInput
+      {...props}
+      onFocus={(e: any) => { setFocused(true); props.onFocus?.(e); }}
+      onBlur={(e: any) => { setFocused(false); props.onBlur?.(e); }}
+      style={[
+        inputStyle,
+        {
+          borderColor: focused ? '#8B1E22' : '#E5E7EB',
+          // @ts-ignore — web-only transition
+          transition: 'border-color 200ms ease',
+        },
+      ]}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ICONS — 三个小圆点SVG
+   ═══════════════════════════════════════════════════════════ */
+function IconRecon() {
+  return (
+    <View style={{
+      width: 20, height: 20, borderRadius: 10,
+      backgroundColor: '#8B1E22', opacity: 0.12,
+      alignItems: 'center', justifyContent: 'center',
+    }}>
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#8B1E22' }} />
+    </View>
+  );
+}
+function IconRevenue() {
+  return (
+    <View style={{
+      width: 20, height: 20, borderRadius: 10,
+      backgroundColor: '#059669', opacity: 0.12,
+      alignItems: 'center', justifyContent: 'center',
+    }}>
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#059669' }} />
+    </View>
+  );
+}
+function IconExpense() {
+  return (
+    <View style={{
+      width: 20, height: 20, borderRadius: 10,
+      backgroundColor: '#DC2626', opacity: 0.12,
+      alignItems: 'center', justifyContent: 'center',
+    }}>
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#DC2626' }} />
+    </View>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EXPENSE SCREEN
    ═══════════════════════════════════════════════════════════ */
 export default function ExpenseScreen() {
-  /* ── 模块一：对账 state ── */
+  const [activeTab, setActiveTab] = useState(0); // 0=对账, 1=营业, 2=支出
+
+  /* ── 模块一：对账 ── */
   const [recDate, setRecDate] = useState(todayStr());
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
@@ -21,45 +151,48 @@ export default function ExpenseScreen() {
   const [tuan, setTuan] = useState('');
   const [jd, setJd] = useState('');
 
-  // Load saved reconciliation from localStorage
+  // Load from localStorage
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
       const d = saved[recDate];
-      if (d) {
-        setCardBalance(d.card || '');
-        setCashBalance(d.cash || '');
-        setDineIn(d.dineIn || '');
-        setMeituan(d.meituan || '');
-        setEleme(d.eleme || '');
-        setTuan(d.tuan || '');
-        setJd(d.jd || '');
-      } else {
-        setCardBalance(''); setCashBalance('');
-        setDineIn(''); setMeituan('');
-        setEleme(''); setTuan(''); setJd('');
-      }
+      setCardBalance(d?.card || '');
+      setCashBalance(d?.cash || '');
+      setDineIn(d?.dineIn || '');
+      setMeituan(d?.meituan || '');
+      setEleme(d?.eleme || '');
+      setTuan(d?.tuan || '');
+      setJd(d?.jd || '');
     } catch {}
   }, [recDate]);
 
-  // Save reconciliation to localStorage
   const saveRec = useCallback(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
-      saved[recDate] = {
-        card: cardBalance, cash: cashBalance,
-        dineIn, meituan, eleme, tuan, jd,
-      };
+      saved[recDate] = { card: cardBalance, cash: cashBalance, dineIn, meituan, eleme, tuan, jd };
       localStorage.setItem('expense-rec', JSON.stringify(saved));
     } catch {}
   }, [recDate, cardBalance, cashBalance, dineIn, meituan, eleme, tuan, jd]);
 
-  const toNum = (s: string) => parseFloat(s) || 0;
   const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(eleme) + toNum(tuan) + toNum(jd);
   const realTotal = toNum(cardBalance) + toNum(cashBalance);
   const diff = realTotal - channelTotal;
 
-  /* ── 模块三：支出 state ── */
+  /* ── 模块二：营业额 ── */
+  const [revenueData, setRevenueData] = useState({ todayRevenue: 0, todayActual: 0 });
+  const [revenueList, setRevenueList] = useState<any[]>([]);
+
+  const loadRevenue = async () => {
+    try {
+      const s = await api.getSummary();
+      setRevenueData({ todayRevenue: s.income || 0, todayActual: s.income || 0 });
+      const tx = await api.getTransactions(1);
+      setRevenueList((tx.transactions || []).filter((t: any) => t.type === 'income').slice(0, 20));
+    } catch {}
+  };
+  useEffect(() => { loadRevenue(); }, []);
+
+  /* ── 模块三：支出 ── */
   const [expDate, setExpDate] = useState(todayStr());
   const [expAmount, setExpAmount] = useState('');
   const [expNote, setExpNote] = useState('');
@@ -69,11 +202,9 @@ export default function ExpenseScreen() {
   const loadExpenses = async () => {
     try {
       const tx = await api.getTransactions(1);
-      const expenseList = (tx.transactions || []).filter((t: any) => t.type === 'expense');
-      setExpenses(expenseList);
+      setExpenses((tx.transactions || []).filter((t: any) => t.type === 'expense'));
     } catch {}
   };
-
   useEffect(() => { loadExpenses(); }, []);
 
   const handleAddExpense = async () => {
@@ -94,279 +225,385 @@ export default function ExpenseScreen() {
     setLoadingExp(false);
   };
 
-  /* ── 模块二：营业额 state ── */
-  const [revenueData, setRevenueData] = useState<any>({ todayRevenue: 0, todayActual: 0 });
-  const [revenueList, setRevenueList] = useState<any[]>([]);
+  /* ── 卡片摘要数据 ── */
+  const tabSummaries = [
+    { icon: <IconRecon />, title: t('dailyReconciliation'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
+    { icon: <IconRevenue />, title: t('revenueTracking'), stat: revenueData.todayRevenue, statFmt: fmt(revenueData.todayRevenue), statColor: '#1A1A1A', prefix: '' },
+    { icon: <IconExpense />, title: t('expenseDetails'), stat: expenses.length, statFmt: fmtInt(expenses.length), statColor: '#1A1A1A', prefix: '' },
+  ];
 
-  const loadRevenue = async () => {
-    try {
-      const s = await api.getSummary();
-      setRevenueData({
-        todayRevenue: s.income || 0,
-        todayActual: s.income || 0,
-      });
-      // Build daily revenue list from transactions
-      const tx = await api.getTransactions(1);
-      const incomeTx = (tx.transactions || []).filter((t: any) => t.type === 'income');
-      // Simple list — group by date later
-      setRevenueList(incomeTx.slice(0, 20));
-    } catch {}
-  };
-
-  useEffect(() => { loadRevenue(); }, []);
-
-  /* ── render ── */
+  /* ── Render ── */
   return (
-    <View style={s.root}>
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
-        <View style={s.grid}>
-          {/* ══════════ 模块一：每日对账 ══════════ */}
-          <View style={s.col}>
-            <View style={s.card}>
-              <View style={s.cardHead}>
-                <Text style={s.cardTitle}>{t('dailyReconciliation')}</Text>
-                <input
-                  type="date"
-                  value={recDate}
-                  onChange={(e: any) => setRecDate(e.target.value)}
-                  style={s.dateInput}
-                />
-              </View>
-
-              {/* 实盘录入 */}
-              <Text style={s.sectionLabel}>{t('physicalCount')}</Text>
-              <View style={s.row2}>
-                <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>{t('cardBalance')}</Text>
-                  <TextInput style={s.input} value={cardBalance}
-                    onChangeText={setCardBalance} onBlur={saveRec}
-                    keyboardType="decimal-pad" placeholder="0" placeholderTextColor="#D1D5DB" />
+    <View style={st.root}>
+      {/* ══════ 卡片式Tab ══════ */}
+      <View style={st.tabBar}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}
+          contentContainerStyle={st.tabScroll}>
+          {tabSummaries.map((tab, i) => {
+            const active = activeTab === i;
+            return (
+              <TouchableOpacity
+                key={i}
+                style={[st.tabCard, active && st.tabCardActive]}
+                onPress={() => setActiveTab(i)}
+                activeOpacity={0.7}
+              >
+                {/* 激活态左边框 */}
+                {active && <View style={st.tabActiveBar} />}
+                <View style={st.tabInner}>
+                  <View style={st.tabTop}>
+                    {tab.icon}
+                    <Text style={[st.tabTitle, active && st.tabTitleActive]}>
+                      {tab.title}
+                    </Text>
+                  </View>
+                  <Text style={[st.tabStat, { color: tab.statColor }]}>
+                    {tab.prefix}{tab.statFmt}
+                  </Text>
                 </View>
-                <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>{t('cashBalance')}</Text>
-                  <TextInput style={s.input} value={cashBalance}
-                    onChangeText={setCashBalance} onBlur={saveRec}
-                    keyboardType="decimal-pad" placeholder="0" placeholderTextColor="#D1D5DB" />
-                </View>
-              </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
-              {/* 渠道未到账 */}
-              <Text style={s.sectionLabel}>{t('channelPending')}</Text>
-              <View style={s.row5}>
-                {([
-                  [dineIn, setDineIn, t('dineIn')],
-                  [meituan, setMeituan, t('meituan')],
-                  [eleme, setEleme, t('eleme')],
-                  [tuan, setTuan, t('tuan')],
-                  [jd, setJd, t('jd')],
-                ] as const).map(([val, setter, label]: any, i: number) => (
-                  <View style={s.inputGroupSm} key={i}>
-                    <Text style={s.inputLabelSm}>{label}</Text>
-                    <TextInput style={s.inputSm} value={val}
-                      onChangeText={setter} onBlur={saveRec}
-                      keyboardType="decimal-pad" placeholder="0" placeholderTextColor="#D1D5DB" />
+      {/* ══════ 内容区（FadeIn 切换） ══════ */}
+      <ScrollView style={st.contentScroll} showsVerticalScrollIndicator={false}
+        contentContainerStyle={st.contentInner}>
+
+        {/* ── 模块一：每日对账 ── */}
+        <FadeInView visible={activeTab === 0} style={st.moduleWrap}>
+          <View style={st.card}>
+            {/* 日期行 */}
+            <View style={st.dateRow}>
+              <Text style={st.sectionLabel}>{t('dailyReconciliation')}</Text>
+              <input
+                type="date"
+                value={recDate}
+                onChange={(e: any) => setRecDate(e.target.value)}
+                style={st.dateInput as any}
+              />
+            </View>
+
+            {/* 实盘录入 */}
+            <Text style={st.subLabel}>{t('physicalCount')}</Text>
+            <View style={st.row2}>
+              <View style={st.inputGroup}>
+                <Text style={st.inputLabel}>{t('cardBalance')}</Text>
+                <InputWithFocus inputStyle={st.input}
+                  value={cardBalance} onChangeText={setCardBalance}
+                  onBlur={saveRec} keyboardType="decimal-pad"
+                  placeholder="0" placeholderTextColor="#D1D5DB" />
+              </View>
+              <View style={st.inputGroup}>
+                <Text style={st.inputLabel}>{t('cashBalance')}</Text>
+                <InputWithFocus inputStyle={st.input}
+                  value={cashBalance} onChangeText={setCashBalance}
+                  onBlur={saveRec} keyboardType="decimal-pad"
+                  placeholder="0" placeholderTextColor="#D1D5DB" />
+              </View>
+            </View>
+
+            {/* 渠道未到账 */}
+            <Text style={st.subLabel}>{t('channelPending')}</Text>
+            <View style={st.channelGrid}>
+              {([
+                [dineIn, setDineIn, t('dineIn')],
+                [meituan, setMeituan, t('meituan')],
+                [eleme, setEleme, t('eleme')],
+                [tuan, setTuan, t('tuan')],
+                [jd, setJd, t('jd')],
+              ] as const).map(([val, setter, label]: any, i: number) => (
+                <TouchableOpacity style={st.channelChip} key={i} activeOpacity={1}>
+                  <Text style={st.chipLabel}>{label}</Text>
+                  <InputWithFocus inputStyle={st.chipInput}
+                    value={val} onChangeText={setter}
+                    onBlur={saveRec} keyboardType="decimal-pad"
+                    placeholder="0" placeholderTextColor="#D1D5DB" />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* 渠道汇总 */}
+            <View style={st.sumRow}>
+              <Text style={st.sumLabel}>{t('channelTotal')}</Text>
+              <NumberTicker value={channelTotal} style={st.sumVal} />
+            </View>
+
+            {/* 核算看板 */}
+            <View style={st.resultBar}>
+              <View style={st.resultItem}>
+                <Text style={st.resultLabel}>{t('bookBalance')}</Text>
+                <NumberTicker value={realTotal} style={st.resultVal} duration={400} />
+              </View>
+              <View style={st.resultDivider} />
+              <View style={st.resultItem}>
+                <Text style={st.resultLabel}>{t('reconDiff')}</Text>
+                <NumberTicker value={diff} style={[
+                  st.resultDiff,
+                  { color: diff >= 0 ? '#059669' : '#DC2626' },
+                ]} />
+              </View>
+            </View>
+          </View>
+        </FadeInView>
+
+        {/* ── 模块二：营业额追踪 ── */}
+        <FadeInView visible={activeTab === 1} style={st.moduleWrap}>
+          <View style={st.card}>
+            {/* KPI 卡片 */}
+            <View style={st.kpiRow}>
+              <View style={st.kpiCard}>
+                <Text style={st.kpiLabel}>{t('revenue')}</Text>
+                <NumberTicker value={revenueData.todayRevenue} style={st.kpiVal} />
+              </View>
+              <View style={st.kpiCard}>
+                <Text style={st.kpiLabel}>{t('actualRevenue')}</Text>
+                <NumberTicker value={revenueData.todayActual} style={st.kpiVal} />
+              </View>
+            </View>
+
+            {/* 明细表 */}
+            <Text style={st.subLabel}>{t('revenueDetails')}</Text>
+            {revenueList.length === 0 ? (
+              <Text style={st.empty}>{t('noData')}</Text>
+            ) : (
+              <View style={st.tableWrap}>
+                <View style={[st.tableRow, st.tableHead]}>
+                  <Text style={[st.td, st.tdDate]}>{t('date')}</Text>
+                  <Text style={[st.td, st.tdCat]}>{t('category2')}</Text>
+                  <Text style={[st.td, st.tdAmt]}>{t('amount')}</Text>
+                </View>
+                {revenueList.map((r: any, i: number) => (
+                  <View style={st.tableRow} key={i}>
+                    <Text style={[st.td, st.tdDate]}>{(r.created_at || '').slice(0, 10)}</Text>
+                    <Text style={[st.td, st.tdCat]}>{r.category}</Text>
+                    <Text style={[st.td, st.tdAmt, { color: '#059669' }]}>+{fmt(r.amount)}</Text>
                   </View>
                 ))}
               </View>
-              <View style={s.channelSum}>
-                <Text style={s.channelSumLabel}>{t('channelTotal')}</Text>
-                <Text style={s.channelSumVal}>{fmt(channelTotal)}</Text>
-              </View>
-
-              {/* 核算看板 */}
-              <View style={s.resultBar}>
-                <View style={s.resultItem}>
-                  <Text style={s.resultLabel}>{t('bookBalance')}</Text>
-                  <Text style={s.resultVal}>{fmt(realTotal)}</Text>
-                </View>
-                <View style={s.resultItem}>
-                  <Text style={s.resultLabel}>{t('reconDiff')}</Text>
-                  <Text style={[s.resultDiff, { color: diff >= 0 ? '#059669' : '#DC2626' }]}>
-                    {diff >= 0 ? '+' : ''}{fmt(diff)}
-                  </Text>
-                </View>
-              </View>
-            </View>
+            )}
           </View>
+        </FadeInView>
 
-          {/* ══════════ 右侧列：营业额 + 支出 ══════════ */}
-          <View style={s.col}>
-            {/* 模块二：营业额 */}
-            <View style={s.card}>
-              <Text style={s.cardTitle}>{t('revenueTracking')}</Text>
-              <View style={s.kpiRow}>
-                <View style={s.kpiCard}>
-                  <Text style={s.kpiLabel}>{t('revenue')}</Text>
-                  <Text style={s.kpiVal}>{fmt(revenueData.todayRevenue)}</Text>
-                </View>
-                <View style={s.kpiCard}>
-                  <Text style={s.kpiLabel}>{t('actualRevenue')}</Text>
-                  <Text style={s.kpiVal}>{fmt(revenueData.todayActual)}</Text>
+        {/* ── 模块三：支出明细 ── */}
+        <FadeInView visible={activeTab === 2} style={st.moduleWrap}>
+          <View style={st.card}>
+            {/* 录入台 */}
+            <View style={st.expForm}>
+              <View style={st.expFormRow}>
+                <input
+                  type="date"
+                  value={expDate}
+                  onChange={(e: any) => setExpDate(e.target.value)}
+                  style={{ ...st.dateInput, flex: 1, marginRight: 8 } as any}
+                />
+                <View style={{ flex: 1 }}>
+                  <InputWithFocus inputStyle={st.input}
+                    value={expAmount} onChangeText={setExpAmount}
+                    keyboardType="decimal-pad" placeholder={t('amount')}
+                    placeholderTextColor="#D1D5DB" />
                 </View>
               </View>
-
-              {/* 明细表 */}
-              <Text style={s.sectionLabel}>{t('revenueDetails')}</Text>
-              {revenueList.length === 0 ? (
-                <Text style={s.empty}>{t('noData')}</Text>
-              ) : (
-                <View style={s.tableWrap}>
-                  <View style={[s.tableRow, s.tableHead]}>
-                    <Text style={[s.td, s.tdDate]}>{t('date')}</Text>
-                    <Text style={[s.td, s.tdCat]}>{t('category2')}</Text>
-                    <Text style={[s.td, s.tdAmt]}>{t('amount')}</Text>
-                  </View>
-                  {revenueList.map((r: any, i: number) => (
-                    <View style={s.tableRow} key={i}>
-                      <Text style={[s.td, s.tdDate]}>{(r.created_at || '').slice(0, 10)}</Text>
-                      <Text style={[s.td, s.tdCat]}>{r.category}</Text>
-                      <Text style={[s.td, s.tdAmt, { color: '#059669' }]}>+{fmt(r.amount)}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+              <InputWithFocus inputStyle={st.input}
+                value={expNote} onChangeText={setExpNote}
+                placeholder={t('expenseNote')} placeholderTextColor="#D1D5DB" />
+              <TouchableOpacity
+                style={[st.expBtn, (!expAmount || loadingExp) && st.expBtnDisabled]}
+                onPress={handleAddExpense}
+                disabled={!expAmount || loadingExp}
+                activeOpacity={0.8}
+              >
+                <Text style={st.expBtnText}>
+                  {loadingExp ? '...' : t('confirmRecord')}
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            {/* 模块三：支出明细 */}
-            <View style={s.card}>
-              <Text style={s.cardTitle}>{t('expenseDetails')}</Text>
-
-              {/* 录入台 */}
-              <View style={s.expForm}>
-                <View style={s.expFormRow}>
-                  <input
-                    type="date"
-                    value={expDate}
-                    onChange={(e: any) => setExpDate(e.target.value)}
-                    style={{ ...s.dateInput, flex: 1, marginBottom: 0 }}
-                  />
-                  <View style={s.inputGroup} key="amount">
-                    <TextInput style={s.input} value={expAmount}
-                      onChangeText={setExpAmount}
-                      keyboardType="decimal-pad" placeholder={t('amount')}
-                      placeholderTextColor="#D1D5DB" />
+            {/* 支出流水 */}
+            <Text style={st.subLabel}>{t('expenseLedger')}</Text>
+            {expenses.length === 0 ? (
+              <Text style={st.empty}>{t('noExpenseRecords')}</Text>
+            ) : (
+              expenses.slice(0, 20).map((ex: any, i: number) => (
+                <View style={st.expRow} key={i}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={st.expNote}>{ex.note || t('noNote')}</Text>
+                    <Text style={st.expDateText}>{(ex.created_at || '').slice(0, 10)}</Text>
                   </View>
+                  <Text style={st.expAmt}>-{fmt(ex.amount)}</Text>
                 </View>
-                <TextInput style={s.input} value={expNote}
-                  onChangeText={setExpNote}
-                  placeholder={t('expenseNote')} placeholderTextColor="#D1D5DB" />
-                <TouchableOpacity
-                  style={[s.expBtn, !expAmount && s.expBtnDisabled]}
-                  onPress={handleAddExpense}
-                  disabled={!expAmount || loadingExp}
-                >
-                  <Text style={s.expBtnText}>{loadingExp ? '...' : t('confirmRecord')}</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* 瀑布流水账 */}
-              <Text style={s.sectionLabel}>{t('expenseLedger')}</Text>
-              {expenses.length === 0 ? (
-                <Text style={s.empty}>{t('noExpenseRecords')}</Text>
-              ) : (
-                expenses.slice(0, 20).map((ex: any, i: number) => (
-                  <View style={s.expRow} key={i}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={s.expNote}>{ex.note || t('noNote')}</Text>
-                      <Text style={s.expDateText}>{(ex.created_at || '').slice(0, 10)}</Text>
-                    </View>
-                    <Text style={s.expAmt}>-{fmt(ex.amount)}</Text>
-                  </View>
-                ))
-              )}
-            </View>
+              ))
+            )}
           </View>
-        </View>
+        </FadeInView>
       </ScrollView>
     </View>
   );
 }
 
-/* ═══════════════════════════════════ STYLES ═══════════════════════════════════ */
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F9FAFB' },
-  scroll: { flex: 1 },
-  grid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 16,
-    padding: 16, paddingBottom: 100,
+/* ═══════════════════════════════════════ STYLES ═══════════════════════════════════ */
+const st = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#FAFAFA' },
+
+  /* ── Tab Bar ── */
+  tabBar: {
+    backgroundColor: '#FAFAFA',
+    paddingTop: 8, paddingBottom: 4,
   },
-  col: {
-    flex: 1, minWidth: 320, gap: 16,
+  tabScroll: {
+    paddingHorizontal: 12, gap: 10,
+  },
+  tabCard: {
+    width: 160, height: 72,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1, borderColor: '#EBEBEB',
+    paddingHorizontal: 14, paddingVertical: 11,
+    justifyContent: 'center',
+    overflow: 'hidden' as const,
+    position: 'relative' as const,
+  },
+  tabCardActive: {
+    borderColor: '#E5E5E5',
+    // @ts-ignore
+    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+  },
+  tabActiveBar: {
+    position: 'absolute' as const,
+    left: 0, top: 0, bottom: 0, width: 3,
+    backgroundColor: '#8B1E22',
+    borderTopLeftRadius: 14, borderBottomLeftRadius: 14,
+  },
+  tabInner: {
+    gap: 6,
+  },
+  tabTop: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+  },
+  tabTitle: {
+    fontSize: 13, fontWeight: '600', color: '#6B7280',
+  },
+  tabTitleActive: {
+    color: '#1A1A1A',
+  },
+  tabStat: {
+    fontSize: 17, fontWeight: '800', letterSpacing: -0.3,
   },
 
-  /* ── card ── */
-  card: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 20, gap: 16,
-    borderWidth: 1, borderColor: '#F3F4F6',
-    // @ts-ignore
-    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+  /* ── Content ── */
+  contentScroll: { flex: 1 },
+  contentInner: {
+    paddingHorizontal: 12, paddingBottom: 100, gap: 0,
   },
-  cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
+  moduleWrap: {
+    width: '100%',
+  },
+
+  /* ── Card ── */
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 18,
+    gap: 14,
+    borderWidth: 1, borderColor: '#EBEBEB',
+  },
+
+  /* ── Date ── */
+  dateRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
   dateInput: {
-    fontSize: 12, color: '#6B7280', borderWidth: 1, borderColor: '#E5E7EB',
-    borderRadius: 8, paddingVertical: 6, paddingHorizontal: 8,
-    backgroundColor: '#F9FAFB', fontFamily: undefined, marginBottom: 0,
+    fontSize: 13, color: '#6B7280',
+    borderWidth: 1, borderColor: '#E5E7EB',
+    borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10,
+    backgroundColor: '#F9FAFB', fontFamily: undefined,
+    // @ts-ignore
+    transition: 'border-color 200ms ease',
   } as any,
 
-  /* ── sections ── */
-  sectionLabel: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5, textTransform: 'uppercase' },
+  /* ── Labels ── */
+  sectionLabel: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
+  subLabel: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5, textTransform: 'uppercase' },
 
-  /* ── inputs ── */
+  /* ── Inputs ── */
   row2: { flexDirection: 'row', gap: 12 },
-  row5: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   inputGroup: { flex: 1 },
-  inputGroupSm: { flex: 1, minWidth: 64 },
   inputLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', marginBottom: 4 },
-  inputLabelSm: { fontSize: 9, color: '#9CA3AF', fontWeight: '500', marginBottom: 4, textAlign: 'center' },
   input: {
     backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB',
     borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12,
     fontSize: 15, fontWeight: '600', color: '#1A1A1A', fontFamily: undefined,
   },
-  inputSm: {
-    backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB',
-    borderRadius: 8, paddingVertical: 10, paddingHorizontal: 8,
-    fontSize: 13, fontWeight: '600', color: '#1A1A1A', textAlign: 'center',
+
+  /* ── Channel grid ── */
+  channelGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 8,
+  },
+  channelChip: {
+    flex: 1, minWidth: 60, maxWidth: 80,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10, borderWidth: 1, borderColor: '#EBEBEB',
+    paddingVertical: 6, paddingHorizontal: 6,
+    alignItems: 'center',
+    gap: 2,
+  },
+  chipLabel: {
+    fontSize: 9, color: '#9CA3AF', fontWeight: '600',
+  },
+  chipInput: {
+    fontSize: 14, fontWeight: '700', color: '#1A1A1A',
+    textAlign: 'center', paddingVertical: 2,
     fontFamily: undefined,
+    width: '100%',
+    borderWidth: 0, backgroundColor: 'transparent',
   },
 
-  /* ── channel sum ── */
-  channelSum: {
+  /* ── Sum row ── */
+  sumRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#F9FAFB', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12,
+    backgroundColor: '#F9FAFB', borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 14,
   },
-  channelSumLabel: { fontSize: 11, color: '#6B7280', fontWeight: '500' },
-  channelSumVal: { fontSize: 14, fontWeight: '700', color: '#1A1A1A' },
+  sumLabel: { fontSize: 11, color: '#6B7280', fontWeight: '500' },
+  sumVal: { fontSize: 16, fontWeight: '800', color: '#1A1A1A' },
 
-  /* ── result bar ── */
+  /* ── Result bar ── */
   resultBar: {
-    flexDirection: 'row', backgroundColor: '#F9FAFB', borderRadius: 12,
-    padding: 14, gap: 24,
+    flexDirection: 'row', backgroundColor: '#F9FAFB',
+    borderRadius: 14, padding: 16,
+    alignItems: 'center',
   },
   resultItem: { flex: 1, alignItems: 'center' },
+  resultDivider: { width: 1, height: 32, backgroundColor: '#E5E7EB' },
   resultLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', marginBottom: 4 },
-  resultVal: { fontSize: 16, fontWeight: '700', color: '#374151' },
+  resultVal: { fontSize: 17, fontWeight: '700', color: '#374151' },
   resultDiff: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
 
-  /* ── KPI cards ── */
+  /* ── KPI ── */
   kpiRow: { flexDirection: 'row', gap: 12 },
   kpiCard: {
-    flex: 1, backgroundColor: '#F9FAFB', borderRadius: 12, padding: 14, alignItems: 'center',
+    flex: 1, backgroundColor: '#F9FAFB',
+    borderRadius: 14, padding: 16, alignItems: 'center',
+    borderWidth: 1, borderColor: '#EBEBEB',
   },
   kpiLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', marginBottom: 4 },
-  kpiVal: { fontSize: 18, fontWeight: '800', color: '#1A1A1A' },
+  kpiVal: { fontSize: 20, fontWeight: '800', color: '#1A1A1A' },
 
-  /* ── table ── */
-  tableWrap: { borderWidth: 1, borderColor: '#F3F4F6', borderRadius: 10, overflow: 'hidden' },
+  /* ── Table ── */
+  tableWrap: {
+    borderWidth: 1, borderColor: '#EBEBEB', borderRadius: 12, overflow: 'hidden',
+  },
   tableHead: { backgroundColor: '#F9FAFB' },
-  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  tableRow: {
+    flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#EBEBEB',
+  },
   td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: 12, color: '#374151' },
   tdDate: { width: 90, color: '#6B7280', fontSize: 11 },
   tdCat: { flex: 1 },
   tdAmt: { width: 100, textAlign: 'right', fontWeight: '600' },
 
-  /* ── expense form ── */
+  /* ── Expense form ── */
   expForm: { gap: 10 },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   expBtn: {
@@ -376,15 +613,17 @@ const s = StyleSheet.create({
   expBtnDisabled: { backgroundColor: '#E5E7EB' },
   expBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
-  /* ── expense list ── */
+  /* ── Expense list ── */
   expRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+    borderBottomWidth: 1, borderBottomColor: '#EBEBEB',
   },
   expNote: { fontSize: 13, color: '#374151', fontWeight: '500' },
   expDateText: { fontSize: 10, color: '#9CA3AF', marginTop: 2 },
   expAmt: { fontSize: 15, fontWeight: '700', color: '#DC2626' },
 
-  /* ── empty ── */
-  empty: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', paddingVertical: 20 },
+  /* ── Empty ── */
+  empty: {
+    fontSize: 12, color: '#9CA3AF', textAlign: 'center', paddingVertical: 24,
+  },
 });
