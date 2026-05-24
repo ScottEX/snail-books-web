@@ -86,9 +86,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       {/* Header — frosted glass */}
       <View style={styles.header}>
         <View style={styles.headerInner}>
-          <View />
           <View style={styles.headerRight}>
-            <Text style={styles.date}>{todayStr}</Text>
             <TouchableOpacity onPress={async () => { await api.logout(); onLogout(); }}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
             </TouchableOpacity>
@@ -287,24 +285,20 @@ function NavIconPartner({ active }: { active: boolean }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
-  // Header — frosted glass
+  // Header — frosted glass, compact
   header: {
-    paddingTop: 48,
-    paddingBottom: 10,
+    paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(255,255,255,0.80)',
+    backgroundColor: 'rgba(255,255,255,0.10)',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(180%) blur(20px)',
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(0,0,0,0.08)',
-    // @ts-ignore - web-only
-    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
     zIndex: 50,
   },
   headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
-  // Title: clean, no accent
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   title: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   // 8600: color:#999 font-size:13px
   date: { color: '#999', fontSize: 13 },
   logoutBtn: { fontSize: 11, color: '#DC2626', fontWeight: '500' },
