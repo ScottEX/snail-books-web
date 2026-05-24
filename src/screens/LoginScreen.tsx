@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   hintText: { fontSize: 10, fontWeight: '400', color: 'rgba(255,255,255,0.3)' },
   textInput: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
-    fontSize: 13, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    fontSize: 16, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
     // @ts-ignore - web-only style
     backdropFilter: 'blur(8px)', outlineStyle: 'none' as any,
   },

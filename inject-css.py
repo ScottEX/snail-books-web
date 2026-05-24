@@ -59,6 +59,12 @@ html = html.replace('<head>', '<head>\n' + INJECT_HEAD)
 # Insert custom CSS into the existing expo-reset style block, or add a new one
 html = html.replace('</style>', '</style>\n<style>' + INJECT_CSS + '</style>')
 
+# Fix viewport to prevent iOS auto-zoom on input focus
+html = html.replace(
+    '<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />',
+    '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />'
+)
+
 # Fix title
 html = html.replace('<title>snail-books-web</title>', '<title>蓝姐螺蛳粉</title>')
 
