@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 
@@ -107,7 +107,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       {/* Background layers */}
       <View style={styles.bgWrapper} />
       <View style={styles.bgOverlay} />
-      <View style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
         <View style={styles.brand}>
           <View style={styles.logoWrap}>
@@ -277,19 +277,20 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           {/* Copyright */}
           <Text style={styles.copyright}>© 2026 柳味探秘 · 螺蛳粉 · 经营查询</Text>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, paddingTop: 24 },
+  container: { flex: 1, padding: 20, paddingTop: 24 },
   bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only background image
     backgroundImage: 'url(/static/bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
   bgOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
-  content: { position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
+  content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
+  contentScroll: { paddingBottom: 40 },
   brand: { alignItems: 'center', marginBottom: 32 },
   logoWrap: {
     width: 56, height: 56, borderRadius: 16, overflow: 'hidden' as const, marginBottom: 20,
