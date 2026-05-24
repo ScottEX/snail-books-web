@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import PartnerScreen from './PartnerScreen';
@@ -24,6 +24,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [category, setCategory] = useState('');
   const [account, setAccount] = useState('');
   const [note, setNote] = useState('');
+  const [showBgModal, setShowBgModal] = useState(false);
+  const [uploadingBg, setUploadingBg] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const INCOME_CATS = ['🍜 堂食','🛵 美团外卖','🛵 饿了吗外卖','🎫 美团团购','📦 京东','🔧 其他收入'];
   const EXPENSE_CATS = ['📦 原材料进货','🏠 房租','⚡ 水电煤气','👨‍🍳 人工工资','🔧 设备/工具','🏗️ 装修','📋 培训/证件','🧹 卫生/清洁','🧻 餐具/纸巾','📦 包装/打包','📢 广告/推广','💊 杂项/烟酒','📝 其他'];
@@ -81,12 +84,47 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   const todayStr = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
 
+  const handleBgUpload = async (e: any) => {
+    const file = e.target?.files?.[0];
+    if (!file) return;
+    setUploadingBg(true);
+    try {
+      await api.uploadBackground(file);
+      // force background refresh
+      const ts = Date.now();
+      const el = document.getElementById('home-bg-layer');
+      if (el) el.style.backgroundImage = `url(/static/home-bg.jpg?t=${ts})`;
+    } catch (err) { /* ignore */ }
+    setUploadingBg(false);
+    setShowBgModal(false);
+  };
+  const handleBgReset = async () => {
+    setUploadingBg(true);
+    try {
+      await api.resetBackground();
+      const ts = Date.now();
+      const el = document.getElementById('home-bg-layer');
+      if (el) el.style.backgroundImage = `url(/static/bg.jpg?t=${ts})`;
+    } catch (err) { /* ignore */ }
+    setUploadingBg(false);
+    setShowBgModal(false);
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header — frosted glass */}
+      {/* Background */}
+      <View style={styles.bgLayer} />
+
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerInner}>
           <View style={styles.headerRight}>
+            <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
+              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                <Path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                <Circle cx="12" cy="12" r="3" />
+              </Svg>
+            </TouchableOpacity>
             <TouchableOpacity onPress={async () => { await api.logout(); onLogout(); }}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
             </TouchableOpacity>
@@ -209,7 +247,40 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         )}
       </View>
 
-      {/* Bottom Nav — glass pill, icons only */}
+      {/* Background settings modal */}
+      {showBgModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>背景设置</Text>
+              <TouchableOpacity onPress={() => setShowBgModal(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalBodyBg}>
+              <Text style={styles.modalHint}>选择一张图片作为首页背景</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+                <TouchableOpacity
+                  style={[styles.bgBtn, styles.bgBtnOutline]}
+                  disabled={uploadingBg}
+                  onPress={() => fileRef.current?.click()}
+                >
+                  <Text style={styles.bgBtnOutlineText}>{uploadingBg ? '上传中...' : '选择图片'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.bgBtn, styles.bgBtnDanger]}
+                  disabled={uploadingBg}
+                  onPress={handleBgReset}
+                >
+                  <Text style={styles.bgBtnDangerText}>恢复默认</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Bottom Nav */}
       <View style={styles.bottomNav}>
         {([
           { id: 'list', icon: NavIconList },
@@ -227,6 +298,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           </TouchableOpacity>
         ))}
       </View>
+      {/* Hidden file input for background upload */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleBgUpload}
+      />
     </View>
   );
 }
@@ -285,6 +364,12 @@ function NavIconPartner({ active }: { active: boolean }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
+  bgLayer: {
+    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
+    // @ts-ignore - web-only
+    backgroundImage: 'url(/static/home-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center',
+    opacity: 0.18,
+  },
   // Header — match bottom nav glass (0.20 opacity)
   header: {
     paddingVertical: 8,
@@ -394,4 +479,27 @@ const styles = StyleSheet.create({
   },
   navLabel: { fontSize: 10, fontWeight: '600', color: '#999', letterSpacing: 0.3 },
   navLabelActive: { color: '#1A1A1A' },
+  // Background settings modal
+  modalOverlay: {
+    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+    zIndex: 200, backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  modalCard: {
+    backgroundColor: '#fff', borderRadius: 16, width: 340, maxWidth: '90%',
+    overflow: 'hidden' as const,
+  },
+  modalHeader: {
+    backgroundColor: '#8B1E22', paddingHorizontal: 20, paddingVertical: 14,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
+  modalTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  modalClose: { fontSize: 18, color: 'rgba(255,255,255,0.7)', fontWeight: '300' },
+  modalBodyBg: { padding: 24 },
+  modalHint: { fontSize: 12, color: '#6B7280', textAlign: 'center' },
+  bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
+  bgBtnOutline: { borderWidth: 1, borderColor: '#D1D5DB' },
+  bgBtnOutlineText: { fontSize: 12, color: '#374151', fontWeight: '500' },
+  bgBtnDanger: { borderWidth: 1, borderColor: '#FCA5A5' },
+  bgBtnDangerText: { fontSize: 12, color: '#DC2626', fontWeight: '500' },
 });

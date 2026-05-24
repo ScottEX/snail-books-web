@@ -78,6 +78,19 @@ export const api = {
   deleteDividend: (id: number) => authFetch(`/api/dividends/${id}`, { method: 'DELETE' }),
   deleteDividendByNote: (note: string) => authFetch('/api/dividends/delete', { method: 'POST', body: JSON.stringify({ note }) }),
 
+  // Background image
+  uploadBackground: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const resp = await fetch('/api/settings/background', {
+      method: 'POST',
+      headers: { 'X-Lang': getLang() },
+      body: form,
+    });
+    return resp.json();
+  },
+  resetBackground: () => authFetch('/api/settings/background', { method: 'DELETE' }),
+
   getProducts: () => authFetch('/api/products'),
   createProduct: (data: any) => authFetch('/api/products', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (data: any) => authFetch('/api/products', { method: 'PUT', body: JSON.stringify(data) }),
