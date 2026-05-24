@@ -252,7 +252,7 @@ export default function HomeScreen({ onPartner, onLogout }: { onPartner: () => v
         ] as const).map(({ id, label, icon: Icon }) => (
           <TouchableOpacity
             key={id}
-            style={styles.navItem}
+            style={[styles.navItem, (id === 'partner' ? false : tab === id) && styles.navItemActive]}
             onPress={() => id === 'partner' ? onPartner() : setTab(id as Tab)}
           >
             <Icon active={id === 'partner' ? false : tab === id} />
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   langBtn: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
   langActive: { color: '#8B1E22', backgroundColor: '#FEE2E2', fontWeight: '700' },
   // Page — 8600: padding:0 16px 110px, max-width:520px, margin:0 auto
-  page: { flex: 1, paddingHorizontal: 16, paddingBottom: 110, maxWidth: 520, alignSelf: 'center', width: '100%' },
+  page: { flex: 1, paddingHorizontal: 16, paddingBottom: 80, maxWidth: 520, alignSelf: 'center', width: '100%' },
   // Stats — 8600: grid-cols-4
   statsRow: { flexDirection: 'row', marginBottom: 20 },
   statItem: { flex: 1 },
@@ -391,17 +391,35 @@ const styles = StyleSheet.create({
   barIncome: { backgroundColor: '#059669', height: '100%' },
   barExpense: { backgroundColor: '#EF4444', opacity: 0.7, height: '100%' },
   barVal: { fontSize: 9, color: '#999', width: 90 },
-  // Bottom Nav
+  // Bottom Nav — floating pill
   bottomNav: {
-    position: 'fixed' as any, bottom: 0, left: 0, right: 0,
-    backgroundColor: 'rgba(255,255,255,0.88)',
+    position: 'fixed' as any,
+    bottom: 12,
+    left: '50%',
+    // @ts-ignore - web-only translateX
+    transform: 'translateX(-50%)',
+    width: '92%',
+    maxWidth: 480,
+    backgroundColor: 'rgba(255,255,255,0.94)',
     // @ts-ignore - web-only
-    backdropFilter: 'blur(16px)',
-    borderTopWidth: 1, borderTopColor: '#EBEBEB',
-    flexDirection: 'row', paddingTop: 6, paddingBottom: 20, paddingHorizontal: 4,
+    backdropFilter: 'blur(20px)',
+    borderRadius: 22,
+    flexDirection: 'row',
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    // @ts-ignore - web-only boxShadow
+    boxShadow: '0 2px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
     zIndex: 100,
   },
-  navItem: { flex: 1, alignItems: 'center', paddingVertical: 2, gap: 4 },
-  navLabel: { fontSize: 10, fontWeight: '600', color: '#999', letterSpacing: 0.2 },
+  navItem: {
+    flex: 1, alignItems: 'center', paddingVertical: 6, gap: 3,
+    borderRadius: 16, marginHorizontal: 2,
+  },
+  navItemActive: {
+    backgroundColor: 'rgba(0,0,0,0.04)',
+  },
+  navLabel: { fontSize: 10, fontWeight: '600', color: '#999', letterSpacing: 0.3 },
   navLabelActive: { color: '#1A1A1A' },
 });
