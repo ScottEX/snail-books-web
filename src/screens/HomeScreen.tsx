@@ -109,43 +109,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           <PartnerScreen onBack={() => setTab('list')} />
         ) : (
           <>
-            {/* Stats - 8600 style grid-cols-4 */}
-            {summary && (
-              <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('income')}</Text>
-                  <Text style={[styles.statNum, { color: '#059669' }]}>¥{(summary.today?.income || 0).toFixed(2)}</Text>
-                  <Text style={styles.statSub}>{t('month')}¥{(summary.month?.income || 0).toFixed(2)}</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('expense')}</Text>
-                  <Text style={[styles.statNum, { color: '#DC2626' }]}>¥{(summary.today?.expense || 0).toFixed(2)}</Text>
-                  <Text style={styles.statSub}>{t('month')}¥{(summary.month?.expense || 0).toFixed(2)}</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('profit')}</Text>
-                  <Text style={[styles.statNum, { color: (summary.today?.profit || 0) >= 0 ? '#1A1A1A' : '#DC2626' }]}>¥{(summary.today?.profit || 0).toFixed(2)}</Text>
-                  <Text style={styles.statSub}>{t('month')}¥{(summary.month?.profit || 0).toFixed(2)}</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('procurement')}</Text>
-                  <Text style={[styles.statNum, { color: '#D97706' }]}>¥{(summary.today?.procurement || 0).toFixed(2)}</Text>
-                  <Text style={styles.statSub}>{t('month')}¥{(summary.month?.procurement || 0).toFixed(2)}</Text>
-                </View>
-              </View>
-            )}
-
-            {/* Tab bar - 8600 underline style */}
-            <View style={styles.tabBar}>
-              {(['list', 'add', 'supply', 'chart'] as Tab[]).map((tId) => (
-                <TouchableOpacity key={tId} onPress={() => setTab(tId)} style={[styles.tabItem, tab === tId && styles.tabActive]}>
-                  <Text style={[styles.tabItemText, tab === tId && styles.tabActiveText]}>
-                    {t(`tab${tId === 'list' ? 'Bills' : tId === 'add' ? 'Record' : tId === 'supply' ? 'Supply' : 'Trends'}` as any)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
             {/* Tab Content */}
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
