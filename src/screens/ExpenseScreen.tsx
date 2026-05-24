@@ -422,40 +422,43 @@ export default function ExpenseScreen() {
 
 /* ═══════════════════════════════════════ STYLES ═══════════════════════════════════ */
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FAFAFA' },
+  root: { flex: 1 },
 
   /* ── Tab Bar ── */
   tabBar: {
-    backgroundColor: '#FAFAFA',
-    paddingTop: 10, paddingBottom: 6,
+    paddingTop: 12, paddingBottom: 8,
   },
   tabScroll: {
-    paddingHorizontal: 12, gap: 12,
+    paddingHorizontal: 18, gap: 14,
   },
   tabCard: {
-    width: 185, height: 96,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 18,
-    borderWidth: 1, borderColor: '#EBEBEB',
-    paddingHorizontal: 18, paddingVertical: 14,
+    width: 178, height: 90,
+    backgroundColor: 'rgba(255,255,255,0.65)',
+    borderRadius: 14,
+    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
+    paddingHorizontal: 16, paddingVertical: 12,
     justifyContent: 'center',
     overflow: 'hidden' as const,
     position: 'relative' as const,
+    // @ts-ignore — glassmorphism
+    backdropFilter: 'blur(20px) saturate(180%)',
+    // @ts-ignore
+    boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
   },
   tabCardActive: {
-    backgroundColor: '#fff',
-    borderColor: '#E8E8E8',
+    backgroundColor: 'rgba(255,255,255,0.88)',
+    borderColor: 'rgba(255,255,255,0.55)',
     // @ts-ignore
-    boxShadow: '0 2px 16px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.03)',
+    boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
   },
   tabActiveBar: {
     position: 'absolute' as const,
     left: 0, top: 0, bottom: 0, width: 3,
     backgroundColor: '#8B1E22',
-    borderTopLeftRadius: 18, borderBottomLeftRadius: 18,
+    borderTopLeftRadius: 14, borderBottomLeftRadius: 14,
   },
   tabInner: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
   },
   tabTitle: {
     fontSize: 13, fontWeight: '600', color: '#9CA3AF',
@@ -470,19 +473,23 @@ const st = StyleSheet.create({
   /* ── Content ── */
   contentScroll: { flex: 1 },
   contentInner: {
-    paddingHorizontal: 12, paddingBottom: 100, gap: 0,
+    paddingHorizontal: 18, paddingBottom: 100, gap: 0,
   },
   moduleWrap: {
     width: '100%',
   },
 
-  /* ── Card ── */
+  /* ── Content Card (glass) ── */
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255,255,255,0.75)',
     borderRadius: 14,
     padding: 18,
     gap: 14,
-    borderWidth: 1, borderColor: '#EBEBEB',
+    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
+    // @ts-ignore — glassmorphism
+    backdropFilter: 'blur(20px) saturate(180%)',
+    // @ts-ignore
+    boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
   },
 
   /* ── Date ── */
