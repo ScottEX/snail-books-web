@@ -414,9 +414,8 @@ const styles = StyleSheet.create({
     left: '50%',
     // @ts-ignore - web-only translateX
     transform: 'translateX(-50%)',
-    width: 'auto',
-    minWidth: 200,
-    maxWidth: 320,
+    width: '88%',
+    maxWidth: 420,
     backgroundColor: 'rgba(255,255,255,0.20)',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(180%) blur(24px)',
@@ -431,8 +430,8 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   navItem: {
-    width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
-    borderRadius: 22, marginHorizontal: 4,
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    height: 44, borderRadius: 22, marginHorizontal: 2,
   },
   navItemActive: {
     backgroundColor: 'rgba(0,0,0,0.06)',
