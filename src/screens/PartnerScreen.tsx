@@ -521,16 +521,12 @@ function TableGroup({ title, type, total, items, onDelete }: {
     dividend: { dot: '#F59E0B', headerBg: '#FFFBEB', badge: '#F59E0B', amt: '#D97706' },
   };
   const c = colors[type] || colors.invest;
-  const typeLabels: Record<string, string> = { invest: t('invest'), mid: t('mid'), dividend: t('dividend') };
   return (
     <View style={tg.card}>
       <View style={[tg.theadRow, { backgroundColor: c.headerBg }]}>
         <View style={tg.thLeft}>
           <View style={[tg.dot, { backgroundColor: c.dot }]} />
           <Text style={tg.thTitle}>{title}</Text>
-        </View>
-        <View style={tg.thMid}>
-          <Text style={[tg.thBadge, { color: c.badge }]}>{typeLabels[type]}</Text>
         </View>
         <View style={tg.thRight}>
           <Text style={[tg.thAmt, { color: c.amt }]}>¥{total.toLocaleString()}</Text>
@@ -546,7 +542,6 @@ function TableGroup({ title, type, total, items, onDelete }: {
           <Text style={tg.tdName}>{item.name}
             {item.sub ? <Text style={tg.tdSub}> · {item.sub}</Text> : null}
           </Text>
-          <View style={tg.tdMid} />
           <Text style={[tg.tdAmt, { color: c.amt }]}>¥{item.amount.toLocaleString()}</Text>
         </View>
       ))}
