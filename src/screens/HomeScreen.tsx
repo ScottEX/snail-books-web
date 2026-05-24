@@ -287,8 +287,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
   // Header — frosted glass, compact
   header: {
-    position: 'sticky' as any,
-    top: 0,
     paddingVertical: 8,
     paddingHorizontal: 20,
     backgroundColor: 'rgba(250,250,250,0.55)',
