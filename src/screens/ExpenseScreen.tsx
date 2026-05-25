@@ -336,7 +336,7 @@ export default function ExpenseScreen() {
             {/* 渠道未到账 */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={[st.subLabel, { fontSize: 12, fontWeight: '800', color: '#1A1A1A' }]}>{t('channelPending')}</Text>
-              <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#1A1A1A' }} />
+              <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#C93638' }} />
             </View>
             <View style={st.channelGrid}>
               {/* Row 1: 堂食 + 美团 + 闪购 */}
@@ -597,7 +597,7 @@ const st = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   dateText: {
-    fontSize: 14, fontWeight: '600', color: '#000000',
+    fontSize: 14, fontWeight: '700', color: '#000000',
     fontFamily: undefined,
   },
   dateInput: {
