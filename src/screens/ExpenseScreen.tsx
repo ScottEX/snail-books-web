@@ -259,7 +259,7 @@ export default function ExpenseScreen() {
                     <Text style={[st.tabTitle, active && st.tabTitleActive]}>
                       {tab.title}
                     </Text>
-                    <Text style={[st.tabStat, { color: tab.statColor }]}>
+                    <Text style={st.tabStat}>
                       {tab.prefix}{tab.statFmt}
                     </Text>
                   </View>
@@ -498,13 +498,22 @@ const st = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 16,
   },
   tabTitle: {
-    fontSize: 16, fontWeight: '600', color: '#9CA3AF',
+    fontSize: 16, fontWeight: '500', color: 'rgba(255,255,255,0.95)',
+    fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
+    // @ts-ignore
+    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   tabTitleActive: {
-    color: '#1A1A1A', fontWeight: '700',
+    color: '#FFFFFF', fontWeight: '600',
+    // @ts-ignore
+    textShadow: '0 1px 4px rgba(0,0,0,0.15)',
   },
   tabStat: {
-    fontSize: 28, fontWeight: '800', letterSpacing: -0.5,
+    fontSize: 28, fontWeight: '600', letterSpacing: -0.5,
+    fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
+    color: '#FFFFFF',
+    // @ts-ignore
+    textShadow: '0 1px 4px rgba(0,0,0,0.15)',
   },
 
   /* ── Content ── */
