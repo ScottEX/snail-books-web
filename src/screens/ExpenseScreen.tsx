@@ -236,7 +236,10 @@ export default function ExpenseScreen() {
                 key={i}
                 testID="snap-card"
                 style={[st.tabCard, active && st.tabCardActive]}
-                onPress={() => setActiveTab(i)}
+                onPress={() => {
+                  setActiveTab(i);
+                  scrollElRef.current?.scrollTo({ left: i * 310, behavior: 'smooth' });
+                }}
                 activeOpacity={0.7}
               >
                 <View style={st.tabInner}>
@@ -481,7 +484,7 @@ const st = StyleSheet.create({
   },
   tabCardActive: {
     // @ts-ignore — 激活态渐变更饱满
-    backgroundImage: 'linear-gradient(to bottom, rgba(0,175,185,0.85), rgba(254,217,183,0.85))',
+    backgroundImage: 'linear-gradient(to bottom, rgba(0,175,185,1), rgba(254,217,183,1))',
     borderColor: 'rgba(255,255,255,0.55)',
     // @ts-ignore
     boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
