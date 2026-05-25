@@ -225,16 +225,7 @@ export default function ExpenseScreen() {
             return (
               <TouchableOpacity
                 key={i}
-                style={[
-                  st.tabCard,
-                  active && st.tabCardActive,
-                  {
-                    // @ts-ignore — snap each card
-                    scrollSnapAlign: 'start',
-                    // @ts-ignore
-                    scrollSnapStop: 'always',
-                  } as any,
-                ]}
+                style={[st.tabCard, active && st.tabCardActive]}
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
@@ -454,6 +445,10 @@ const st = StyleSheet.create({
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
     paddingHorizontal: 24, paddingVertical: 20,
     justifyContent: 'center',
+    // @ts-ignore — CSS scroll-snap
+    scrollSnapAlign: 'start',
+    // @ts-ignore
+    scrollSnapStop: 'always',
     overflow: 'hidden' as const,
     position: 'relative' as const,
     // @ts-ignore — glassmorphism
