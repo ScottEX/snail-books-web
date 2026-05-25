@@ -458,8 +458,8 @@ const st = StyleSheet.create({
   },
   tabCard: {
     width: 296, height: 120,
-    // @ts-ignore — gradient: 青(#00A8AA) → 过渡灰(#A8B5A0) → 黄(#F0F600)
-    backgroundImage: 'linear-gradient(to bottom, rgba(0,168,170,0.55), rgba(168,181,160,0.55), rgba(240,246,0,0.55))',
+    // @ts-ignore — gradient: 暖杏(#FED9B7) → 过渡灰(#A8B5A0) → 柔红(#F0767B)
+    backgroundImage: 'linear-gradient(to bottom, rgba(254,217,183,0.55), rgba(168,181,160,0.55), rgba(240,118,123,0.55))',
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
     paddingHorizontal: 16, paddingVertical: 14,
@@ -477,7 +477,7 @@ const st = StyleSheet.create({
   },
   tabCardActive: {
     // @ts-ignore — 激活态渐变更饱满
-    backgroundImage: 'linear-gradient(to bottom, rgba(0,168,170,0.85), rgba(168,181,160,0.85), rgba(240,246,0,0.85))',
+    backgroundImage: 'linear-gradient(to bottom, rgba(254,217,183,0.85), rgba(168,181,160,0.85), rgba(240,118,123,0.85))',
     borderColor: 'rgba(255,255,255,0.55)',
     // @ts-ignore
     boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
@@ -501,7 +501,7 @@ const st = StyleSheet.create({
     flex: 1, justifyContent: 'space-evenly', gap: 4,
   },
   cardFieldRow: {
-    flexDirection: 'row', justifyContent: 'space-around',
+    flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 8,
   },
   cardFieldLabel: {
     fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.75)',
