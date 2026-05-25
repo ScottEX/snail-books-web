@@ -100,6 +100,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
 export default function ExpenseScreen() {
   const [activeTab, setActiveTab] = useState(0); // 0=对账, 1=营业, 2=支出
   const [showToast, setShowToast] = useState(false);
+  const hideToast = () => setShowToast(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollElRef = useRef<HTMLElement | null>(null);
 
@@ -384,10 +385,7 @@ export default function ExpenseScreen() {
             </View>
 
             {/* 添加 */}
-            <TouchableOpacity style={st.reconBtn} onPress={() => {
-              setShowToast(true);
-              setTimeout(() => setShowToast(false), 2500);
-            }} activeOpacity={0.8}>
+            <TouchableOpacity style={st.reconBtn} onPress={() => setShowToast(true)} activeOpacity={0.8}>
               <Text style={st.reconBtnText}>{t('addBtn')}</Text>
             </TouchableOpacity>
           </View>
@@ -489,11 +487,25 @@ export default function ExpenseScreen() {
         )}
       </ScrollView>
 
-      {/* Toast */}
+      {/* 添加提示弹窗 */}
       {showToast && (
-        <View style={st.toastOverlay}>
-          <View style={st.toastBox}>
-            <Text style={st.toastText}>对账不认真，董事长打你屁屁</Text>
+        <View style={st.modalOverlay}>
+          <TouchableOpacity style={st.modalBackdrop} onPress={hideToast} activeOpacity={1} />
+          <View style={st.modalCard}>
+            <View style={st.modalHeader}>
+              <Text style={st.modalTitle}>温馨提示</Text>
+              <TouchableOpacity onPress={hideToast}>
+                <Text style={st.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ padding: 20, alignItems: 'center', gap: 16 }}>
+              <Text style={{ fontSize: 14, color: '#4B5563', textAlign: 'center' }}>
+                对账不认真，董事长打你屁屁
+              </Text>
+              <TouchableOpacity style={st.modalBtn} onPress={hideToast}>
+                <Text style={st.modalBtnText}>知道了</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       )}
@@ -737,18 +749,30 @@ const st = StyleSheet.create({
     fontSize: 12, color: '#9CA3AF', textAlign: 'center', paddingVertical: 24,
   },
 
-  /* ── Toast ── */
-  toastOverlay: {
+  /* ── Modal ── */
+  modalOverlay: {
+    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+    zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16,
+  },
+  modalBackdrop: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    justifyContent: 'center', alignItems: 'center',
-    zIndex: 999, pointerEvents: 'none',
-  } as any,
-  toastBox: {
-    backgroundColor: 'rgba(0,0,0,0.82)', borderRadius: 10,
-    paddingHorizontal: 24, paddingVertical: 14,
+    backgroundColor: 'rgba(26,26,26,0.4)',
   },
-  toastText: {
-    color: '#FFFFFF', fontSize: 15, fontWeight: '600',
-    textAlign: 'center',
+  modalCard: {
+    backgroundColor: '#fff', borderRadius: 16, width: 320, maxWidth: '100%',
+    overflow: 'hidden',
+    // @ts-ignore
+    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
   },
+  modalHeader: {
+    backgroundColor: '#8B1E22', paddingVertical: 14, paddingHorizontal: 20,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
+  modalTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  modalClose: { color: '#FECACA', fontSize: 18 },
+  modalBtn: {
+    backgroundColor: '#8B1E22', borderRadius: 12,
+    paddingVertical: 10, paddingHorizontal: 48, alignItems: 'center',
+  },
+  modalBtnText: { fontSize: 12, fontWeight: '500', color: '#fff' },
 });
