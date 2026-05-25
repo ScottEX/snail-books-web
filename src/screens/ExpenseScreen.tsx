@@ -289,15 +289,12 @@ export default function ExpenseScreen() {
             {/* 日期行 */}
             <View style={st.dateRow}>
               <Text style={st.sectionLabel}>{t('billDate')}</Text>
-              <Text style={st.dateText}>
-                {(() => {
-                  const d = new Date(recDate + 'T00:00:00');
-                  if (getLang().startsWith('en')) {
-                    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                  }
-                  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-                })()}
-              </Text>
+              {React.createElement('input', {
+                type: 'date',
+                value: recDate,
+                onChange: (e: any) => setRecDate(e.target.value),
+                style: st.dateInput,
+              })}
             </View>
 
             {/* 实盘录入 */}
@@ -561,12 +558,13 @@ const st = StyleSheet.create({
     fontFamily: undefined,
   },
   dateInput: {
-    fontSize: 13, color: '#6B7280',
-    borderWidth: 1, borderColor: '#E5E7EB',
-    borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10,
-    backgroundColor: '#F9FAFB', fontFamily: undefined,
+    fontSize: 14, fontWeight: '600', color: '#000000',
+    borderWidth: 0, padding: 0, margin: 0,
+    backgroundColor: 'transparent', fontFamily: 'inherit',
     // @ts-ignore
-    transition: 'border-color 200ms ease',
+    outline: 'none',
+    // @ts-ignore — native date picker icon
+    WebkitAppearance: 'none',
   } as any,
 
   /* ── Labels ── */
