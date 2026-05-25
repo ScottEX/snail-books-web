@@ -130,6 +130,16 @@ export default function ExpenseScreen() {
     };
   }, []);
 
+  // Auto-scroll to active card when activeTab changes (click or swipe)
+  useEffect(() => {
+    const el = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement;
+    if (el) {
+      requestAnimationFrame(() => {
+        el.scrollLeft = activeTab * 310;
+      });
+    }
+  }, [activeTab]);
+
   /* ── 模块一：对账 ── */
   const [recDate, setRecDate] = useState(todayStr());
   const [cardBalance, setCardBalance] = useState('');
@@ -236,13 +246,7 @@ export default function ExpenseScreen() {
                 key={i}
                 testID="snap-card"
                 style={[st.tabCard, active && st.tabCardActive]}
-                onPress={() => {
-                  setActiveTab(i);
-                  requestAnimationFrame(() => {
-                    const el = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement;
-                    if (el) el.scrollLeft = i * 310;
-                  });
-                }}
+                onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
                 <View style={st.tabInner}>
