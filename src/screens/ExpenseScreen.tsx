@@ -335,7 +335,7 @@ export default function ExpenseScreen() {
 
             {/* 渠道未到账 */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={st.subLabel}>{t('channelPending')}</Text>
+              <Text style={[st.subLabel, { fontSize: 14, fontWeight: '800', color: '#1A1A1A' }]}>{t('channelPending')}</Text>
               <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#1A1A1A' }} />
             </View>
             <View style={st.channelGrid}>
