@@ -164,6 +164,10 @@ const I18N: Record<string, Record<string, string>> = {
     tabExpense: '支出',
     // Card field labels
     fundsInTransit: '在途资金',
+    // Modal
+    friendlyReminder: '温馨提示',
+    jokeRecon: '对账不认真，董事长打你屁屁',
+    confirm: '确认',
     currentBalance: '当前结余',
     bookDiff: '账面差额',
   },
@@ -325,6 +329,10 @@ const I18N: Record<string, Record<string, string>> = {
     tabExpense: '支出',
     // Card field labels
     fundsInTransit: '在途資金',
+    // Modal
+    friendlyReminder: '溫馨提示',
+    jokeRecon: '對賬不認真，董事長打你屁屁',
+    confirm: '確認',
     currentBalance: '當前結餘',
     bookDiff: '賬面差額',
   },
@@ -486,6 +494,10 @@ const I18N: Record<string, Record<string, string>> = {
     tabExpense: 'Expenses',
     // Card field labels
     fundsInTransit: 'Funds in Transit',
+    // Modal
+    friendlyReminder: 'Friendly Reminder',
+    jokeRecon: 'Sloppy reconciliation? The Chairman will spank you!',
+    confirm: 'Confirm',
     currentBalance: 'Balance',
     bookDiff: 'Difference',
   },

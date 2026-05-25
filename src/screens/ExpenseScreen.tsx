@@ -497,21 +497,21 @@ export default function ExpenseScreen() {
           <TouchableOpacity style={st.modalBackdrop} onPress={hideToast} activeOpacity={1} />
           <View style={st.modalCard}>
             <View style={st.modalHeader}>
-              <Text style={st.modalTitle}>温馨提示</Text>
+              <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
               <TouchableOpacity onPress={hideToast}>
                 <Text style={st.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
             <View style={{ padding: 20, gap: 16 }}>
               <Text style={{ fontSize: 14, color: '#4B5563', textAlign: 'center' }}>
-                对账不认真，董事长打你屁屁
+                {t('jokeRecon')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <TouchableOpacity style={st.modalCancelBtn} onPress={hideToast}>
                   <Text style={st.modalCancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={st.modalBtn} onPress={hideToast}>
-                  <Text style={st.modalBtnText}>确认</Text>
+                  <Text style={st.modalBtnText}>{t('confirm')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -768,27 +768,27 @@ const st = StyleSheet.create({
     backgroundColor: 'rgba(26,26,26,0.4)',
   },
   modalCard: {
-    backgroundColor: '#fff', borderRadius: 16, width: 320, maxWidth: '100%',
+    backgroundColor: '#fff', borderRadius: 20, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
     animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
     // @ts-ignore
-    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+    boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
   },
   modalHeader: {
     backgroundColor: '#8B1E22', paddingVertical: 14, paddingHorizontal: 20,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  modalTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  modalTitle: { fontSize: 14, fontWeight: '600', color: '#fff' },
   modalClose: { color: '#FECACA', fontSize: 18 },
   modalBtn: {
-    flex: 1, backgroundColor: '#8B1E22', borderRadius: 12,
+    flex: 1, backgroundColor: '#8B1E22', borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',
   },
-  modalBtnText: { fontSize: 12, fontWeight: '500', color: '#fff' },
+  modalBtnText: { fontSize: 13, fontWeight: '500', color: '#fff' },
   modalCancelBtn: {
-    flex: 1, backgroundColor: '#F3F4F6', borderRadius: 12,
+    flex: 1, backgroundColor: '#F3F4F6', borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',
   },
-  modalCancelText: { fontSize: 12, fontWeight: '500', color: '#4B5563' },
+  modalCancelText: { fontSize: 13, fontWeight: '500', color: '#4B5563' },
 });
