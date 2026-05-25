@@ -239,7 +239,7 @@ export default function ExpenseScreen() {
                 onPress={() => {
                   setActiveTab(i);
                   const el = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement;
-                  el?.scrollTo({ left: i * 310, behavior: 'smooth' });
+                  if (el) el.scrollLeft = i * 310;
                 }}
                 activeOpacity={0.7}
               >
