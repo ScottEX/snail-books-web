@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
+  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Alert,
 } from 'react-native';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
@@ -382,9 +382,11 @@ export default function ExpenseScreen() {
               </View>
             </View>
 
-            {/* 对账完成 */}
-            <TouchableOpacity style={st.reconBtn} onPress={() => {}} activeOpacity={0.8}>
-              <Text style={st.reconBtnText}>{t('reconComplete')}</Text>
+            {/* 添加 */}
+            <TouchableOpacity style={st.reconBtn} onPress={() => {
+              Alert.alert('对账不认真，董事长打你屁屁');
+            }} activeOpacity={0.8}>
+              <Text style={st.reconBtnText}>{t('addBtn')}</Text>
             </TouchableOpacity>
           </View>
         </FadeInView>
