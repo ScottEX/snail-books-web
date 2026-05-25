@@ -505,8 +505,8 @@ const st = StyleSheet.create({
   },
   tabCard: {
     width: 296, height: 120,
-    // @ts-ignore — 极透磨砂玻璃：微白高光→淡青绿→微暖杏
-    backgroundImage: 'linear-gradient(160deg, rgba(255,255,255,0.08) 0%, rgba(0,175,185,0.22) 35%, rgba(254,217,183,0.18) 100%)',
+    // @ts-ignore — 极透磨砂玻璃：微白高光→深青绿→微暖杏
+    backgroundImage: 'linear-gradient(160deg, rgba(255,255,255,0.08) 0%, rgba(16,86,102,0.22) 35%, rgba(254,217,183,0.18) 100%)',
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
     paddingHorizontal: 16, paddingVertical: 14,
@@ -522,7 +522,7 @@ const st = StyleSheet.create({
   },
   tabCardActive: {
     // @ts-ignore — 激活：高光更亮、颜色更浓
-    backgroundImage: 'linear-gradient(160deg, rgba(255,255,255,0.15) 0%, rgba(0,175,185,0.48) 35%, rgba(254,217,183,0.42) 100%)',
+    backgroundImage: 'linear-gradient(160deg, rgba(255,255,255,0.15) 0%, rgba(16,86,102,0.48) 35%, rgba(254,217,183,0.42) 100%)',
     borderColor: 'rgba(255,255,255,0.55)',
     // @ts-ignore — 仅玻璃内边框
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.55)',
