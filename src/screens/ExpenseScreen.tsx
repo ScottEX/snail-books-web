@@ -453,7 +453,7 @@ const st = StyleSheet.create({
     backgroundImage: 'linear-gradient(to bottom, rgba(0,168,170,0.55), rgba(168,181,160,0.55), rgba(240,246,0,0.55))',
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
-    paddingHorizontal: 24, paddingVertical: 20,
+    paddingHorizontal: 16, paddingVertical: 14,
     justifyContent: 'flex-start',
     // @ts-ignore — CSS scroll-snap
     scrollSnapAlign: 'start',
@@ -477,7 +477,7 @@ const st = StyleSheet.create({
     alignItems: 'flex-start', gap: 8,
   },
   tabTitle: {
-    fontSize: 18, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
+    fontSize: 20, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     // @ts-ignore
     textShadow: '0 1px 3px rgba(0,0,0,0.1)',
