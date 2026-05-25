@@ -462,8 +462,8 @@ const st = StyleSheet.create({
   },
   tabCard: {
     width: 296, height: 120,
-    // @ts-ignore — gradient: 暖杏(#FED9B7) → 过渡灰(#A8B5A0) → 柔红(#F0767B)
-    backgroundImage: 'linear-gradient(to bottom, rgba(254,217,183,0.55), rgba(168,181,160,0.55), rgba(240,118,123,0.55))',
+    // @ts-ignore — gradient: 青绿(#00AFB9) → 暖杏(#FED9B7)
+    backgroundImage: 'linear-gradient(to bottom, rgba(0,175,185,0.55), rgba(254,217,183,0.55))',
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
     paddingHorizontal: 16, paddingVertical: 14,
@@ -481,7 +481,7 @@ const st = StyleSheet.create({
   },
   tabCardActive: {
     // @ts-ignore — 激活态渐变更饱满
-    backgroundImage: 'linear-gradient(to bottom, rgba(254,217,183,0.85), rgba(168,181,160,0.85), rgba(240,118,123,0.85))',
+    backgroundImage: 'linear-gradient(to bottom, rgba(0,175,185,0.85), rgba(254,217,183,0.85))',
     borderColor: 'rgba(255,255,255,0.55)',
     // @ts-ignore
     boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
