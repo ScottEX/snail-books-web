@@ -289,11 +289,32 @@ export default function ExpenseScreen() {
             {/* 日期行 */}
             <View style={st.dateRow}>
               <Text style={st.sectionLabel}>{t('billDate')}</Text>
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                onPress={() => { (document.getElementById('hidden-date-picker') as HTMLInputElement)?.showPicker?.(); }}
+                activeOpacity={0.6}
+              >
+                <Text style={st.dateText}>
+                  {(() => {
+                    const d = new Date(recDate + 'T00:00:00');
+                    const l = getLang();
+                    if (l.startsWith('en')) {
+                      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                    }
+                    if (l === 'zh-Hant' || l === 'zh-TW') {
+                      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+                    }
+                    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+                  })()}
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: '#9CA3AF' }}>›</Text>
+              </TouchableOpacity>
               {React.createElement('input', {
+                id: 'hidden-date-picker',
                 type: 'date',
                 value: recDate,
                 onChange: (e: any) => setRecDate(e.target.value),
-                style: st.dateInput,
+                style: { ...st.dateInput, position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' },
               })}
             </View>
 
@@ -301,18 +322,18 @@ export default function ExpenseScreen() {
             <Text style={st.subLabel}>{t('physicalCount')}</Text>
             <View style={st.row2}>
               <View style={st.inputGroup}>
-                <Text style={st.inputLabel}>{t('cardBalance')}</Text>
+                <Text style={st.inputLabel}>💳 {t('cardBalance')}</Text>
                 <InputWithFocus inputStyle={st.input}
                   value={cardBalance} onChangeText={setCardBalance}
                   onBlur={saveRec} keyboardType="decimal-pad"
-                  placeholder="0" placeholderTextColor="#D1D5DB" />
+                  placeholder="0.00" placeholderTextColor="#D1D5DB" />
               </View>
               <View style={st.inputGroup}>
-                <Text style={st.inputLabel}>{t('cashBalance')}</Text>
+                <Text style={st.inputLabel}>💴 {t('cashBalance')}</Text>
                 <InputWithFocus inputStyle={st.input}
                   value={cashBalance} onChangeText={setCashBalance}
                   onBlur={saveRec} keyboardType="decimal-pad"
-                  placeholder="0" placeholderTextColor="#D1D5DB" />
+                  placeholder="0.00" placeholderTextColor="#D1D5DB" />
               </View>
             </View>
 
@@ -334,7 +355,7 @@ export default function ExpenseScreen() {
                   <InputWithFocus inputStyle={st.chipInput}
                     value={val} onChangeText={setter}
                     onBlur={saveRec} keyboardType="decimal-pad"
-                    placeholder="0" placeholderTextColor="#D1D5DB" />
+                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
               ))}
             </View>
