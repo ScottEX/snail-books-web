@@ -454,7 +454,7 @@ const st = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
     paddingHorizontal: 24, paddingVertical: 20,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     // @ts-ignore — CSS scroll-snap
     scrollSnapAlign: 'start',
     // @ts-ignore
@@ -474,16 +474,16 @@ const st = StyleSheet.create({
     boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
   },
   tabInner: {
-    flexDirection: 'row', alignItems: 'center', gap: 16,
+    alignItems: 'flex-start', gap: 8,
   },
   tabTitle: {
-    fontSize: 16, fontWeight: '500', color: 'rgba(255,255,255,0.95)',
+    fontSize: 18, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     // @ts-ignore
     textShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   tabTitleActive: {
-    color: '#FFFFFF', fontWeight: '600',
+    color: '#FFFFFF', fontWeight: '700',
     // @ts-ignore
     textShadow: '0 1px 4px rgba(0,0,0,0.15)',
   },
