@@ -288,7 +288,7 @@ export default function ExpenseScreen() {
           <View style={st.card}>
             {/* 日期行 */}
             <View style={st.dateRow}>
-              <Text style={st.sectionLabel}>{t('billDate')}</Text>
+              <Text style={[st.sectionLabel, { fontSize: 14 }]}>{t('billDate')}</Text>
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
                 activeOpacity={1}
