@@ -669,7 +669,7 @@ const st = StyleSheet.create({
   resultDiff: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
   /* ── Recon button ── */
   reconBtn: {
-    backgroundColor: '#8B1E22', borderRadius: 12,
+    backgroundColor: '#E06C6B', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
     marginTop: 4,
   },
