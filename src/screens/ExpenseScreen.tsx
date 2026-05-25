@@ -114,8 +114,9 @@ function IconDot({ color }: { color: string }) {
 export default function ExpenseScreen() {
   const [activeTab, setActiveTab] = useState(0); // 0=对账, 1=营业, 2=支出
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollElRef = useRef<HTMLElement | null>(null);
 
-  // Inject scroll-snap CSS (RN Web doesn't pass custom CSS through StyleSheet)
+  // Inject scroll-snap CSS + native scroll listener (RN Web onScroll unreliable with CSS snap)
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
@@ -123,16 +124,24 @@ export default function ExpenseScreen() {
       [data-testid="snap-card"] { scroll-snap-align: start; scroll-snap-stop: always; }
     `;
     document.head.appendChild(style);
-    return () => { document.head.removeChild(style); };
-  }, []);
 
-  // Debounced auto-select: use onScroll + 150ms debounce instead of unreliable onMomentumScrollEnd
-  const handleTabScroll = useCallback((e: any) => {
-    if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
-    scrollTimerRef.current = setTimeout(() => {
-      const idx = Math.round(e.nativeEvent.contentOffset.x / 310);
-      setActiveTab(Math.min(2, Math.max(0, idx)));
-    }, 150);
+    // Native DOM scroll listener — more reliable than RN synthetic onScroll with CSS snap
+    const el = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement | null;
+    scrollElRef.current = el;
+    const onNativeScroll = () => {
+      if (!scrollElRef.current) return;
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => {
+        const idx = Math.round(scrollElRef.current!.scrollLeft / 310);
+        setActiveTab(Math.min(2, Math.max(0, idx)));
+      }, 150);
+    };
+    el?.addEventListener('scroll', onNativeScroll, { passive: true });
+
+    return () => {
+      document.head.removeChild(style);
+      el?.removeEventListener('scroll', onNativeScroll);
+    };
   }, []);
 
   /* ── 模块一：对账 ── */
@@ -233,8 +242,6 @@ export default function ExpenseScreen() {
       <View style={st.tabBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
           testID="snap-scroll"
-          onScroll={handleTabScroll}
-          scrollEventThrottle={16}
           contentContainerStyle={st.tabScroll}>
           {tabCards.map((tab, i) => {
             const active = activeTab === i;
