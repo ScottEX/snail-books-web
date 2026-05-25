@@ -244,9 +244,6 @@ export default function ExpenseScreen() {
                     <Text style={[st.tabTitle, active && st.tabTitleActive]}>
                       {tab.title}
                     </Text>
-                    <Text style={st.tabStat}>
-                      {tab.prefix}{tab.statFmt}
-                    </Text>
                   </View>
                 </View>
               </TouchableOpacity>
