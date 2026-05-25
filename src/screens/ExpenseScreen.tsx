@@ -99,11 +99,11 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
 function IconDot({ color }: { color: string }) {
   return (
     <View style={{
-      width: 28, height: 28, borderRadius: 14,
+      width: 36, height: 36, borderRadius: 18,
       backgroundColor: color, opacity: 0.10,
       alignItems: 'center', justifyContent: 'center',
     }}>
-      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: color, opacity: 0.85 }} />
+      <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: color, opacity: 0.85 }} />
     </View>
   );
 }
@@ -432,11 +432,11 @@ const st = StyleSheet.create({
     paddingHorizontal: 18, gap: 14,
   },
   tabCard: {
-    width: 178, height: 90,
+    width: 296, height: 180,
     backgroundColor: 'rgba(255,255,255,0.65)',
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
-    paddingHorizontal: 16, paddingVertical: 12,
+    paddingHorizontal: 24, paddingVertical: 20,
     justifyContent: 'center',
     overflow: 'hidden' as const,
     position: 'relative' as const,
@@ -453,21 +453,21 @@ const st = StyleSheet.create({
   },
   tabActiveBar: {
     position: 'absolute' as const,
-    left: 0, top: 0, bottom: 0, width: 3,
+    left: 0, top: 0, bottom: 0, width: 4,
     backgroundColor: '#8B1E22',
     borderTopLeftRadius: 14, borderBottomLeftRadius: 14,
   },
   tabInner: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
   },
   tabTitle: {
-    fontSize: 13, fontWeight: '600', color: '#9CA3AF',
+    fontSize: 16, fontWeight: '600', color: '#9CA3AF',
   },
   tabTitleActive: {
     color: '#1A1A1A', fontWeight: '700',
   },
   tabStat: {
-    fontSize: 20, fontWeight: '800', letterSpacing: -0.4,
+    fontSize: 28, fontWeight: '800', letterSpacing: -0.5,
   },
 
   /* ── Content ── */
