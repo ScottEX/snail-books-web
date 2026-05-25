@@ -450,7 +450,7 @@ const st = StyleSheet.create({
     paddingHorizontal: 18, gap: 14,
   },
   tabCard: {
-    width: 296, height: 120,
+    width: 296, height: 100,
     // @ts-ignore — gradient: 青(#00A8AA) → 过渡灰(#A8B5A0) → 黄(#F0F600)
     backgroundImage: 'linear-gradient(to bottom, rgba(0,168,170,0.55), rgba(168,181,160,0.55), rgba(240,246,0,0.55))',
     borderRadius: 14,
