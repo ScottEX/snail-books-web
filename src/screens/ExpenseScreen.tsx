@@ -240,11 +240,16 @@ export default function ExpenseScreen() {
                 activeOpacity={0.7}
               >
                 <View style={st.tabInner}>
-                  <View style={{ gap: 4 }}>
-                    <Text style={[st.tabTitle, active && st.tabTitleActive]}>
-                      {tab.title}
-                    </Text>
-                  </View>
+                  <Text style={[st.tabTitle, active && st.tabTitleActive]}>
+                    {tab.title}
+                  </Text>
+                  {i === 0 && (
+                    <View style={st.cardFields}>
+                      <Text style={st.cardField}>在途资金 ¥{fmtInt(channelTotal)}</Text>
+                      <Text style={st.cardField}>当前结余 ¥{fmtInt(realTotal)}</Text>
+                      <Text style={[st.cardField, { color: diff >= 0 ? '#E6F7EE' : '#FDE8E8' }]}>账面差额 {diff >= 0 ? '+' : ''}¥{fmtInt(Math.abs(diff))}</Text>
+                    </View>
+                  )}
                 </View>
               </TouchableOpacity>
             );
@@ -483,6 +488,16 @@ const st = StyleSheet.create({
     color: '#FFFFFF', fontWeight: '700',
     // @ts-ignore
     textShadow: '0 1px 4px rgba(0,0,0,0.15)',
+  },
+  /* ── 对账卡片内字段 ── */
+  cardFields: {
+    gap: 2, marginTop: 6,
+  },
+  cardField: {
+    fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.85)',
+    fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
+    // @ts-ignore
+    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
   },
   tabStat: {
     fontSize: 28, fontWeight: '600', letterSpacing: -0.5,
