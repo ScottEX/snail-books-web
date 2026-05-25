@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
 } from 'react-native';
+import Svg, { Defs, Ellipse, RadialGradient, Stop, LinearGradient, Rect, Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { api } from '../api/client';
 
@@ -94,16 +95,48 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   ICONS — 三色圆点图标 (28px, 大号)
+   MushroomLamp — 选中卡片右上角蘑菇灯装饰
    ═══════════════════════════════════════════════════════════ */
-function IconDot({ color }: { color: string }) {
+function MushroomLamp() {
   return (
     <View style={{
-      width: 36, height: 36, borderRadius: 18,
-      backgroundColor: color, opacity: 0.10,
-      alignItems: 'center', justifyContent: 'center',
+      position: 'absolute',
+      top: -16, right: 10,
+      width: 52, height: 52,
+      zIndex: 1,
     }}>
-      <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: color, opacity: 0.85 }} />
+      <Svg width="52" height="52" viewBox="0 0 52 52">
+        <Defs>
+          {/* Cap highlight gradient */}
+          <RadialGradient id="capHL" cx="38%" cy="30%" rx="50%" ry="50%">
+            <Stop offset="0%" stopColor="#FFFDF7" stopOpacity="0.9" />
+            <Stop offset="60%" stopColor="#F8F0E5" stopOpacity="0.3" />
+            <Stop offset="100%" stopColor="#F5E9D9" stopOpacity="0" />
+          </RadialGradient>
+          {/* Stem gradient for 3D volume */}
+          <LinearGradient id="stemG" x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0%" stopColor="#E8D5C0" />
+            <Stop offset="40%" stopColor="#F8F0E5" />
+            <Stop offset="100%" stopColor="#E0CDB5" />
+          </LinearGradient>
+        </Defs>
+
+        {/* Warm glow — blurred ellipse under cap */}
+        <Ellipse cx="26" cy="30" rx="20" ry="9" fill="#FFD8A8" opacity="0.45" />
+        <Ellipse cx="26" cy="30" rx="13" ry="5" fill="#FFE0B2" opacity="0.55" />
+
+        {/* Stem */}
+        <Rect x="19" y="26" width="14" height="20" rx="7" fill="url(#stemG)" />
+
+        {/* Cap dome */}
+        <Path d="M2 24 C2 6, 16 2, 26 2 C36 2, 50 6, 50 24 Z" fill="#F8F0E5" />
+
+        {/* Cap bottom rim */}
+        <Ellipse cx="26" cy="26" rx="24" ry="6" fill="#EDE0D0" />
+
+        {/* Cap highlight */}
+        <Ellipse cx="22" cy="14" rx="14" ry="9" fill="url(#capHL)" />
+      </Svg>
     </View>
   );
 }
@@ -253,7 +286,7 @@ export default function ExpenseScreen() {
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
-                {active && <View style={st.tabActiveBar} />}
+                {active && <MushroomLamp />}
                 <View style={st.tabInner}>
                   <View style={{ gap: 4 }}>
                     <Text style={[st.tabTitle, active && st.tabTitleActive]}>
