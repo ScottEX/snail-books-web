@@ -144,9 +144,7 @@ export default function ExpenseScreen() {
   const [recDate, setRecDate] = useState(todayStr());
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
-  const [dineIn, setDineIn] = useState('');
-  const [meituan, setMeituan] = useState('');
-  const [eleme, setEleme] = useState('');
+  const [flashSale, setFlashSale] = useState('');
   const [tuan, setTuan] = useState('');
   const [jd, setJd] = useState('');
 
@@ -157,9 +155,7 @@ export default function ExpenseScreen() {
       const d = saved[recDate];
       setCardBalance(d?.card || '');
       setCashBalance(d?.cash || '');
-      setDineIn(d?.dineIn || '');
-      setMeituan(d?.meituan || '');
-      setEleme(d?.eleme || '');
+      setFlashSale(d?.flashSale || d?.dineIn || '');
       setTuan(d?.tuan || '');
       setJd(d?.jd || '');
     } catch {}
@@ -168,12 +164,12 @@ export default function ExpenseScreen() {
   const saveRec = useCallback(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
-      saved[recDate] = { card: cardBalance, cash: cashBalance, dineIn, meituan, eleme, tuan, jd };
+      saved[recDate] = { card: cardBalance, cash: cashBalance, flashSale, tuan, jd };
       localStorage.setItem('expense-rec', JSON.stringify(saved));
     } catch {}
-  }, [recDate, cardBalance, cashBalance, dineIn, meituan, eleme, tuan, jd]);
+  }, [recDate, cardBalance, cashBalance, flashSale, tuan, jd]);
 
-  const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(eleme) + toNum(tuan) + toNum(jd);
+  const channelTotal = toNum(flashSale) + toNum(tuan) + toNum(jd);
   const realTotal = toNum(cardBalance) + toNum(cashBalance);
   const diff = realTotal - channelTotal;
 
@@ -290,9 +286,8 @@ export default function ExpenseScreen() {
             <View style={st.dateRow}>
               <Text style={st.sectionLabel}>{t('billDate')}</Text>
               <TouchableOpacity
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-                onPress={() => { document.getElementById('hidden-date-picker')?.click(); }}
-                activeOpacity={0.6}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
+                activeOpacity={1}
               >
                 <Text style={st.dateText}>
                   {(() => {
@@ -308,14 +303,13 @@ export default function ExpenseScreen() {
                   })()}
                 </Text>
                 <Text style={{ fontSize: 14, fontWeight: '600', color: '#9CA3AF' }}>›</Text>
+                {React.createElement('input', {
+                  type: 'date',
+                  value: recDate,
+                  onChange: (e: any) => setRecDate(e.target.value),
+                  style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
+                })}
               </TouchableOpacity>
-              {React.createElement('input', {
-                id: 'hidden-date-picker',
-                type: 'date',
-                value: recDate,
-                onChange: (e: any) => setRecDate(e.target.value),
-                style: { ...st.dateInput, position: 'absolute', left: -9999, opacity: 0 },
-              })}
             </View>
 
             {/* 实盘录入 */}
@@ -343,21 +337,31 @@ export default function ExpenseScreen() {
               <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#1A1A1A' }} />
             </View>
             <View style={st.channelGrid}>
-              {([
-                [dineIn, setDineIn, t('dineIn')],
-                [meituan, setMeituan, t('meituan')],
-                [eleme, setEleme, t('eleme')],
-                [tuan, setTuan, t('tuan')],
-                [jd, setJd, t('jd')],
-              ] as const).map(([val, setter, label]: any, i: number) => (
-                <TouchableOpacity style={st.channelChip} key={i} activeOpacity={1}>
-                  <Text style={st.chipLabel}>{label}</Text>
+              {/* Row 1: 闪购 */}
+              <TouchableOpacity style={st.channelChip} activeOpacity={1}>
+                <Text style={st.chipLabel}>{t('flashSale')}</Text>
+                <InputWithFocus inputStyle={st.chipInput}
+                  value={flashSale} onChangeText={setFlashSale}
+                  onBlur={saveRec} keyboardType="decimal-pad"
+                  placeholder="0.00" placeholderTextColor="#D1D5DB" />
+              </TouchableOpacity>
+              {/* Row 2: 团购 + 京东 */}
+              <View style={{ flexDirection: 'row', flex: 1, gap: 8 }}>
+                <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
+                  <Text style={st.chipLabel}>{t('tuan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={val} onChangeText={setter}
+                    value={tuan} onChangeText={setTuan}
                     onBlur={saveRec} keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
-              ))}
+                <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
+                  <Text style={st.chipLabel}>{t('jd')}</Text>
+                  <InputWithFocus inputStyle={st.chipInput}
+                    value={jd} onChangeText={setJd}
+                    onBlur={saveRec} keyboardType="decimal-pad"
+                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* 对账完成 */}
