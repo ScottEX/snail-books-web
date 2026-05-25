@@ -506,15 +506,13 @@ const st = StyleSheet.create({
 
   /* ── Content Card (glass) ── */
   card: {
-    backgroundColor: 'rgba(255,255,255,0.75)',
     borderRadius: 14,
     padding: 18,
     gap: 14,
-    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
-    // @ts-ignore — glassmorphism
-    backdropFilter: 'blur(20px) saturate(180%)',
+    backgroundColor: '#FAF7F2',
+    borderWidth: 0.5, borderColor: '#E8E4DD',
     // @ts-ignore
-    boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
   },
 
   /* ── Date ── */
