@@ -228,9 +228,9 @@ export default function ExpenseScreen() {
 
   /* ── 卡片摘要数据 ── */
   const tabCards = [
-    { color: '#8B1E22', title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
-    { color: '#059669', title: t('tabRevenue'), stat: revenueData.todayRevenue, statFmt: fmt(revenueData.todayRevenue), statColor: '#1A1A1A', prefix: '' },
-    { color: '#DC2626', title: t('tabExpense'), stat: expenses.length, statFmt: fmtInt(expenses.length), statColor: '#1A1A1A', prefix: '' },
+    { gradient: ['rgba(13,148,136,0.22)', 'rgba(101,163,13,0.22)'], gradientActive: ['rgba(13,148,136,0.48)', 'rgba(101,163,13,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
+    { gradient: ['rgba(236,72,153,0.22)', 'rgba(249,115,22,0.22)'], gradientActive: ['rgba(236,72,153,0.48)', 'rgba(249,115,22,0.48)'], title: t('tabRevenue'), stat: revenueData.todayRevenue, statFmt: fmt(revenueData.todayRevenue), statColor: '#1A1A1A', prefix: '' },
+    { gradient: ['rgba(220,38,38,0.22)', 'rgba(153,27,27,0.22)'], gradientActive: ['rgba(220,38,38,0.48)', 'rgba(153,27,27,0.48)'], title: t('tabExpense'), stat: expenses.length, statFmt: fmtInt(expenses.length), statColor: '#1A1A1A', prefix: '' },
   ];
 
   /* ── Render ── */
@@ -243,11 +243,15 @@ export default function ExpenseScreen() {
           contentContainerStyle={st.tabScroll}>
           {tabCards.map((tab, i) => {
             const active = activeTab === i;
+            const bgGrad = active ? tab.gradientActive : tab.gradient;
             return (
               <TouchableOpacity
                 key={i}
                 testID="snap-card"
-                style={[st.tabCard, active && st.tabCardActive]}
+                style={[st.tabCard, active && st.tabCardActive, {
+                  // @ts-ignore — 每张卡片独立渐变色
+                  backgroundImage: `linear-gradient(90deg, ${bgGrad[0]} 0%, ${bgGrad[1]} 100%)`,
+                }]}
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
@@ -259,15 +263,15 @@ export default function ExpenseScreen() {
                     <View style={st.cardFields}>
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>在途资金</Text>
+                          <Text style={st.cardFieldLabel}>{t('fundsInTransit')}</Text>
                           <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>当前结余</Text>
+                          <Text style={st.cardFieldLabel}>{t('currentBalance')}</Text>
                           <Text style={st.cardFieldVal}>¥{fmtInt(realTotal)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>账面差额</Text>
+                          <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
                           <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FDE8E8' }]}>{diff >= 0 ? '+' : ''}¥{fmtInt(Math.abs(diff))}</Text>
                         </View>
                       </View>
@@ -534,8 +538,9 @@ const st = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabCard: {
-    width: 296, height: 120,
-    // @ts-ignore — 极透磨砂玻璃：暖橙→深蓝 水平渐变
+    // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
+    width: 'calc(100vw - 61px)', height: 120,
+    // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: 'linear-gradient(90deg, rgba(239,104,55,0.22) 0%, rgba(17,68,104,0.22) 100%)',
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
@@ -551,8 +556,7 @@ const st = StyleSheet.create({
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
   },
   tabCardActive: {
-    // @ts-ignore — 激活：高光更亮、颜色更浓
-    backgroundImage: 'linear-gradient(90deg, rgba(239,104,55,0.48) 0%, rgba(17,68,104,0.48) 100%)',
+    // @ts-ignore — 激活：高光更亮（渐变色由 render 动态设置）
     borderColor: 'rgba(255,255,255,0.55)',
     // @ts-ignore — 仅玻璃内边框
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.55)',

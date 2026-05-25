@@ -162,6 +162,10 @@ const I18N: Record<string, Record<string, string>> = {
     tabRecon: '对账',
     tabRevenue: '营业',
     tabExpense: '支出',
+    // Card field labels
+    fundsInTransit: '在途资金',
+    currentBalance: '当前结余',
+    bookDiff: '账面差额',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -319,6 +323,10 @@ const I18N: Record<string, Record<string, string>> = {
     tabRecon: '對賬',
     tabRevenue: '營業',
     tabExpense: '支出',
+    // Card field labels
+    fundsInTransit: '在途資金',
+    currentBalance: '當前結餘',
+    bookDiff: '賬面差額',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -476,6 +484,10 @@ const I18N: Record<string, Record<string, string>> = {
     tabRecon: 'Recon',
     tabRevenue: 'Revenue',
     tabExpense: 'Expenses',
+    // Card field labels
+    fundsInTransit: 'Funds in Transit',
+    currentBalance: 'Balance',
+    bookDiff: 'Difference',
   },
 };
 
