@@ -461,10 +461,10 @@ const st = StyleSheet.create({
   },
   tabCard: {
     width: 296, height: 120,
-    // @ts-ignore — gradient: 青绿(#00AFB9) → 暖杏(#FED9B7)
-    backgroundImage: 'linear-gradient(to bottom, rgba(0,175,185,0.55), rgba(254,217,183,0.55))',
+    // @ts-ignore — 玻璃渐变：青绿(#00AFB9) → 暖杏(#FED9B7)
+    backgroundImage: 'linear-gradient(to bottom, rgba(0,175,185,0.35), rgba(254,217,183,0.35))',
     borderRadius: 14,
-    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
+    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.45)',
     paddingHorizontal: 16, paddingVertical: 14,
     justifyContent: 'flex-start',
     // @ts-ignore — CSS scroll-snap
@@ -473,17 +473,17 @@ const st = StyleSheet.create({
     scrollSnapStop: 'always',
     overflow: 'hidden' as const,
     position: 'relative' as const,
-    // @ts-ignore — glassmorphism
-    backdropFilter: 'blur(20px) saturate(180%)',
-    // @ts-ignore
-    boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+    // @ts-ignore — 悬浮玻璃：强模糊 + 饱和
+    backdropFilter: 'blur(32px) saturate(200%)',
+    // @ts-ignore — 悬浮阴影
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.3)',
   },
   tabCardActive: {
-    // @ts-ignore — 激活态渐变更饱满
-    backgroundImage: 'linear-gradient(to bottom, rgba(0,175,185,1), rgba(254,217,183,1))',
-    borderColor: 'rgba(255,255,255,0.55)',
-    // @ts-ignore
-    boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+    // @ts-ignore — 激活态更饱满但仍通透
+    backgroundImage: 'linear-gradient(to bottom, rgba(0,175,185,0.70), rgba(254,217,183,0.70))',
+    borderColor: 'rgba(255,255,255,0.60)',
+    // @ts-ignore — 激活悬浮更强
+    boxShadow: '0 12px 40px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.4)',
   },
   tabInner: {
     flex: 1, alignItems: 'stretch',
