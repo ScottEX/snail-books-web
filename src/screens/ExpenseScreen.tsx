@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Alert,
+  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
 } from 'react-native';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
@@ -99,6 +99,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
    ═══════════════════════════════════════════════════════════ */
 export default function ExpenseScreen() {
   const [activeTab, setActiveTab] = useState(0); // 0=对账, 1=营业, 2=支出
+  const [showToast, setShowToast] = useState(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollElRef = useRef<HTMLElement | null>(null);
 
@@ -384,7 +385,8 @@ export default function ExpenseScreen() {
 
             {/* 添加 */}
             <TouchableOpacity style={st.reconBtn} onPress={() => {
-              Alert.alert('对账不认真，董事长打你屁屁');
+              setShowToast(true);
+              setTimeout(() => setShowToast(false), 2500);
             }} activeOpacity={0.8}>
               <Text style={st.reconBtnText}>{t('addBtn')}</Text>
             </TouchableOpacity>
@@ -486,6 +488,15 @@ export default function ExpenseScreen() {
         </FadeInView>
         )}
       </ScrollView>
+
+      {/* Toast */}
+      {showToast && (
+        <View style={st.toastOverlay}>
+          <View style={st.toastBox}>
+            <Text style={st.toastText}>对账不认真，董事长打你屁屁</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -724,5 +735,20 @@ const st = StyleSheet.create({
   /* ── Empty ── */
   empty: {
     fontSize: 12, color: '#9CA3AF', textAlign: 'center', paddingVertical: 24,
+  },
+
+  /* ── Toast ── */
+  toastOverlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center', alignItems: 'center',
+    zIndex: 999, pointerEvents: 'none',
+  } as any,
+  toastBox: {
+    backgroundColor: 'rgba(0,0,0,0.82)', borderRadius: 10,
+    paddingHorizontal: 24, paddingVertical: 14,
+  },
+  toastText: {
+    color: '#FFFFFF', fontSize: 15, fontWeight: '600',
+    textAlign: 'center',
   },
 });
