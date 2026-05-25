@@ -246,14 +246,18 @@ export default function ExpenseScreen() {
                   {i === 0 && (
                     <View style={st.cardFields}>
                       <View style={st.cardFieldRow}>
-                        <Text style={st.cardFieldLabel}>在途资金</Text>
-                        <Text style={st.cardFieldLabel}>当前结余</Text>
-                        <Text style={st.cardFieldLabel}>账面差额</Text>
-                      </View>
-                      <View style={st.cardFieldRow}>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(realTotal)}</Text>
-                        <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FDE8E8' }]}>{diff >= 0 ? '+' : ''}¥{fmtInt(Math.abs(diff))}</Text>
+                        <View style={st.cardFieldCol}>
+                          <Text style={st.cardFieldLabel}>在途资金</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
+                        </View>
+                        <View style={st.cardFieldCol}>
+                          <Text style={st.cardFieldLabel}>当前结余</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(realTotal)}</Text>
+                        </View>
+                        <View style={st.cardFieldCol}>
+                          <Text style={st.cardFieldLabel}>账面差额</Text>
+                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FDE8E8' }]}>{diff >= 0 ? '+' : ''}¥{fmtInt(Math.abs(diff))}</Text>
+                        </View>
                       </View>
                     </View>
                   )}
@@ -498,19 +502,22 @@ const st = StyleSheet.create({
   },
   /* ── 对账卡片内字段 ── */
   cardFields: {
-    flex: 1, justifyContent: 'space-evenly', gap: 4,
+    flex: 1, justifyContent: 'center',
   },
   cardFieldRow: {
-    flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 8,
+    flexDirection: 'row',
+  },
+  cardFieldCol: {
+    flex: 1, alignItems: 'center', gap: 2,
   },
   cardFieldLabel: {
-    fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.75)',
+    fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.70)',
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     // @ts-ignore
     textShadow: '0 1px 2px rgba(0,0,0,0.1)',
   },
   cardFieldVal: {
-    fontSize: 20, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
+    fontSize: 18, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     // @ts-ignore
     textShadow: '0 1px 2px rgba(0,0,0,0.1)',
