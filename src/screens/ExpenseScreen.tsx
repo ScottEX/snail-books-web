@@ -767,6 +767,8 @@ const st = StyleSheet.create({
     backgroundColor: '#fff', borderRadius: 16, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
+    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    // @ts-ignore
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
   },
   modalHeader: {
