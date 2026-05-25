@@ -342,7 +342,7 @@ export default function ExpenseScreen() {
             </View>
             <View style={st.channelGrid}>
               {/* Row 1: 堂食 + 美团 + 闪购 */}
-              <View style={{ flexDirection: 'row', flex: 1, gap: 8 }}>
+              <View style={{ flexDirection: 'row', width: '100%', gap: 8 }}>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('dineIn')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
@@ -366,7 +366,7 @@ export default function ExpenseScreen() {
                 </TouchableOpacity>
               </View>
               {/* Row 2: 京东 + 团购 */}
-              <View style={{ flexDirection: 'row', flex: 1, gap: 8 }}>
+              <View style={{ flexDirection: 'row', width: '100%', gap: 8 }}>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('jd')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
