@@ -487,11 +487,12 @@ const st = StyleSheet.create({
     boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
   },
   tabInner: {
-    flex: 1, alignItems: 'flex-start',
+    flex: 1, alignItems: 'stretch',
   },
   tabTitle: {
     fontSize: 20, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
+    alignSelf: 'flex-start',
     // @ts-ignore
     textShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
