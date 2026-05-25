@@ -464,7 +464,8 @@ const st = StyleSheet.create({
   },
   tabCard: {
     width: 296, height: 120,
-    backgroundColor: 'rgba(255,255,255,0.65)',
+    // @ts-ignore — gradient: 青灰(#6C9B9B) → 中性灰绿(#B8C5B0) → 豆沙粉(#E6C2C2)
+    backgroundImage: 'linear-gradient(to bottom, rgba(108,155,155,0.55), rgba(184,197,176,0.55), rgba(230,194,194,0.55))',
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
     paddingHorizontal: 24, paddingVertical: 20,
@@ -481,7 +482,8 @@ const st = StyleSheet.create({
     boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
   },
   tabCardActive: {
-    backgroundColor: 'rgba(255,255,255,0.88)',
+    // @ts-ignore — 激活态渐变更饱满
+    backgroundImage: 'linear-gradient(to bottom, rgba(108,155,155,0.85), rgba(184,197,176,0.85), rgba(230,194,194,0.85))',
     borderColor: 'rgba(255,255,255,0.55)',
     // @ts-ignore
     boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
