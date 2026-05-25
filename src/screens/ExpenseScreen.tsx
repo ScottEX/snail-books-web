@@ -290,7 +290,7 @@ export default function ExpenseScreen() {
           <View style={st.card}>
             {/* 日期行 */}
             <View style={st.dateRow}>
-              <Text style={[st.sectionLabel, { fontSize: 14 }]}>{t('billDate')}</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#6B7280' }}>{t('billDate')}</Text>
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
                 activeOpacity={1}
@@ -614,7 +614,7 @@ const st = StyleSheet.create({
   /* ── Content Card (glass) ── */
   card: {
     borderRadius: 14,
-    padding: 18,
+    paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12,
     gap: 14,
     backgroundColor: '#FAF7F2',
     borderWidth: 0.5, borderColor: '#E8E4DD',
@@ -662,7 +662,7 @@ const st = StyleSheet.create({
     flex: 1, minWidth: 60,
     backgroundColor: '#F9FAFB',
     borderRadius: 10, borderWidth: 1, borderColor: '#EBEBEB',
-    paddingVertical: 6, paddingHorizontal: 6,
+    paddingVertical: 4, paddingHorizontal: 4,
     alignItems: 'center',
     gap: 2,
   },
