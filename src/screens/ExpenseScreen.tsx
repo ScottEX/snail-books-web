@@ -211,6 +211,12 @@ export default function ExpenseScreen() {
       {/* ══════ 卡片式Tab ══════ */}
       <View style={st.tabBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
+          snapToInterval={310}
+          decelerationRate="fast"
+          onMomentumScrollEnd={(e: any) => {
+            const idx = Math.round(e.nativeEvent.contentOffset.x / 310);
+            setActiveTab(Math.min(2, Math.max(0, idx)));
+          }}
           contentContainerStyle={st.tabScroll}>
           {tabCards.map((tab, i) => {
             const active = activeTab === i;
@@ -223,8 +229,7 @@ export default function ExpenseScreen() {
               >
                 {active && <View style={st.tabActiveBar} />}
                 <View style={st.tabInner}>
-                  <IconDot color={active ? tab.color : '#B0B0B0'} />
-                  <View style={{ gap: 2 }}>
+                  <View style={{ gap: 4 }}>
                     <Text style={[st.tabTitle, active && st.tabTitleActive]}>
                       {tab.title}
                     </Text>
@@ -432,7 +437,7 @@ const st = StyleSheet.create({
     paddingHorizontal: 18, gap: 14,
   },
   tabCard: {
-    width: 296, height: 180,
+    width: 296, height: 120,
     backgroundColor: 'rgba(255,255,255,0.65)',
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.40)',
