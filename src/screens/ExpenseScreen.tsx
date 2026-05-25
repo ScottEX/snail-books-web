@@ -245,9 +245,18 @@ export default function ExpenseScreen() {
                   </Text>
                   {i === 0 && (
                     <View style={st.cardFields}>
-                      <Text style={st.cardField}>在途资金 ¥{fmtInt(channelTotal)}</Text>
-                      <Text style={st.cardField}>当前结余 ¥{fmtInt(realTotal)}</Text>
-                      <Text style={[st.cardField, { color: diff >= 0 ? '#E6F7EE' : '#FDE8E8' }]}>账面差额 {diff >= 0 ? '+' : ''}¥{fmtInt(Math.abs(diff))}</Text>
+                      <View style={st.cardFieldRow}>
+                        <Text style={st.cardFieldLabel}>在途资金</Text>
+                        <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
+                      </View>
+                      <View style={st.cardFieldRow}>
+                        <Text style={st.cardFieldLabel}>当前结余</Text>
+                        <Text style={st.cardFieldVal}>¥{fmtInt(realTotal)}</Text>
+                      </View>
+                      <View style={st.cardFieldRow}>
+                        <Text style={st.cardFieldLabel}>账面差额</Text>
+                        <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FDE8E8' }]}>{diff >= 0 ? '+' : ''}¥{fmtInt(Math.abs(diff))}</Text>
+                      </View>
                     </View>
                   )}
                 </View>
@@ -450,7 +459,7 @@ const st = StyleSheet.create({
     paddingHorizontal: 18, gap: 14,
   },
   tabCard: {
-    width: 296, height: 100,
+    width: 296, height: 120,
     // @ts-ignore — gradient: 青(#00A8AA) → 过渡灰(#A8B5A0) → 黄(#F0F600)
     backgroundImage: 'linear-gradient(to bottom, rgba(0,168,170,0.55), rgba(168,181,160,0.55), rgba(240,246,0,0.55))',
     borderRadius: 14,
@@ -476,7 +485,7 @@ const st = StyleSheet.create({
     boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
   },
   tabInner: {
-    alignItems: 'flex-start', gap: 8,
+    flex: 1, alignItems: 'flex-start',
   },
   tabTitle: {
     fontSize: 20, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
@@ -491,10 +500,19 @@ const st = StyleSheet.create({
   },
   /* ── 对账卡片内字段 ── */
   cardFields: {
-    gap: 2, marginTop: 6,
+    flex: 1, justifyContent: 'space-evenly',
   },
-  cardField: {
-    fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.85)',
+  cardFieldRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
+  },
+  cardFieldLabel: {
+    fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.80)',
+    fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
+    // @ts-ignore
+    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+  },
+  cardFieldVal: {
+    fontSize: 18, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     // @ts-ignore
     textShadow: '0 1px 2px rgba(0,0,0,0.1)',
