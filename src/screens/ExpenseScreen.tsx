@@ -628,7 +628,7 @@ const st = StyleSheet.create({
 
   /* ── Channel grid ── */
   channelGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 8,
+    flexDirection: 'column', gap: 8,
   },
   channelChip: {
     flex: 1, minWidth: 60, maxWidth: 80,
