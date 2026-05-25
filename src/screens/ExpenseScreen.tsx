@@ -144,6 +144,8 @@ export default function ExpenseScreen() {
   const [recDate, setRecDate] = useState(todayStr());
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
+  const [dineIn, setDineIn] = useState('');
+  const [meituan, setMeituan] = useState('');
   const [flashSale, setFlashSale] = useState('');
   const [tuan, setTuan] = useState('');
   const [jd, setJd] = useState('');
@@ -155,7 +157,9 @@ export default function ExpenseScreen() {
       const d = saved[recDate];
       setCardBalance(d?.card || '');
       setCashBalance(d?.cash || '');
-      setFlashSale(d?.flashSale || d?.dineIn || '');
+      setDineIn(d?.dineIn || '');
+      setMeituan(d?.meituan || '');
+      setFlashSale(d?.flashSale || '');
       setTuan(d?.tuan || '');
       setJd(d?.jd || '');
     } catch {}
@@ -164,12 +168,12 @@ export default function ExpenseScreen() {
   const saveRec = useCallback(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
-      saved[recDate] = { card: cardBalance, cash: cashBalance, flashSale, tuan, jd };
+      saved[recDate] = { card: cardBalance, cash: cashBalance, dineIn, meituan, flashSale, tuan, jd };
       localStorage.setItem('expense-rec', JSON.stringify(saved));
     } catch {}
-  }, [recDate, cardBalance, cashBalance, flashSale, tuan, jd]);
+  }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd]);
 
-  const channelTotal = toNum(flashSale) + toNum(tuan) + toNum(jd);
+  const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
   const realTotal = toNum(cardBalance) + toNum(cashBalance);
   const diff = realTotal - channelTotal;
 
@@ -337,27 +341,43 @@ export default function ExpenseScreen() {
               <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#1A1A1A' }} />
             </View>
             <View style={st.channelGrid}>
-              {/* Row 1: 闪购 */}
-              <TouchableOpacity style={st.channelChip} activeOpacity={1}>
-                <Text style={st.chipLabel}>{t('flashSale')}</Text>
-                <InputWithFocus inputStyle={st.chipInput}
-                  value={flashSale} onChangeText={setFlashSale}
-                  onBlur={saveRec} keyboardType="decimal-pad"
-                  placeholder="0.00" placeholderTextColor="#D1D5DB" />
-              </TouchableOpacity>
-              {/* Row 2: 团购 + 京东 */}
+              {/* Row 1: 堂食 + 美团 + 闪购 */}
               <View style={{ flexDirection: 'row', flex: 1, gap: 8 }}>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
-                  <Text style={st.chipLabel}>{t('tuan')}</Text>
+                  <Text style={st.chipLabel}>{t('dineIn')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={tuan} onChangeText={setTuan}
+                    value={dineIn} onChangeText={setDineIn}
                     onBlur={saveRec} keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
+                  <Text style={st.chipLabel}>{t('meituan')}</Text>
+                  <InputWithFocus inputStyle={st.chipInput}
+                    value={meituan} onChangeText={setMeituan}
+                    onBlur={saveRec} keyboardType="decimal-pad"
+                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                </TouchableOpacity>
+                <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
+                  <Text style={st.chipLabel}>{t('flashSale')}</Text>
+                  <InputWithFocus inputStyle={st.chipInput}
+                    value={flashSale} onChangeText={setFlashSale}
+                    onBlur={saveRec} keyboardType="decimal-pad"
+                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                </TouchableOpacity>
+              </View>
+              {/* Row 2: 京东 + 团购 */}
+              <View style={{ flexDirection: 'row', flex: 1, gap: 8 }}>
+                <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('jd')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={jd} onChangeText={setJd}
+                    onBlur={saveRec} keyboardType="decimal-pad"
+                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                </TouchableOpacity>
+                <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
+                  <Text style={st.chipLabel}>{t('tuan')}</Text>
+                  <InputWithFocus inputStyle={st.chipInput}
+                    value={tuan} onChangeText={setTuan}
                     onBlur={saveRec} keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
