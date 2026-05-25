@@ -114,6 +114,17 @@ function IconDot({ color }: { color: string }) {
 export default function ExpenseScreen() {
   const [activeTab, setActiveTab] = useState(0); // 0=对账, 1=营业, 2=支出
 
+  // Inject scroll-snap CSS (RN Web doesn't pass custom CSS through StyleSheet)
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      [data-testid="snap-scroll"] { scroll-snap-type: x mandatory; }
+      [data-testid="snap-card"] { scroll-snap-align: start; scroll-snap-stop: always; }
+    `;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
   /* ── 模块一：对账 ── */
   const [recDate, setRecDate] = useState(todayStr());
   const [cardBalance, setCardBalance] = useState('');
@@ -211,10 +222,7 @@ export default function ExpenseScreen() {
       {/* ══════ 卡片式Tab ══════ */}
       <View style={st.tabBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
-          style={{
-            // @ts-ignore — CSS scroll-snap (RN Web snapToInterval 不生效)
-            scrollSnapType: 'x mandatory',
-          } as any}
+          testID="snap-scroll"
           onMomentumScrollEnd={(e: any) => {
             const idx = Math.round(e.nativeEvent.contentOffset.x / 310);
             setActiveTab(Math.min(2, Math.max(0, idx)));
@@ -225,6 +233,7 @@ export default function ExpenseScreen() {
             return (
               <TouchableOpacity
                 key={i}
+                testID="snap-card"
                 style={[st.tabCard, active && st.tabCardActive]}
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
