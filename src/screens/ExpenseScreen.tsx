@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
 } from 'react-native';
-import { t } from '../i18n';
+import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 
 /* ── helpers ── */
@@ -288,13 +288,16 @@ export default function ExpenseScreen() {
           <View style={st.card}>
             {/* 日期行 */}
             <View style={st.dateRow}>
-              <Text style={st.sectionLabel}>{t('dailyReconciliation')}</Text>
-              <input
-                type="date"
-                value={recDate}
-                onChange={(e: any) => setRecDate(e.target.value)}
-                style={st.dateInput as any}
-              />
+              <Text style={st.sectionLabel}>{t('billDate')}</Text>
+              <Text style={st.dateText}>
+                {(() => {
+                  const d = new Date(recDate + 'T00:00:00');
+                  if (getLang().startsWith('en')) {
+                    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                  }
+                  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+                })()}
+              </Text>
             </View>
 
             {/* 实盘录入 */}
@@ -317,7 +320,10 @@ export default function ExpenseScreen() {
             </View>
 
             {/* 渠道未到账 */}
-            <Text style={st.subLabel}>{t('channelPending')}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={st.subLabel}>{t('channelPending')}</Text>
+              <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#1A1A1A' }} />
+            </View>
             <View style={st.channelGrid}>
               {([
                 [dineIn, setDineIn, t('dineIn')],
@@ -336,27 +342,10 @@ export default function ExpenseScreen() {
               ))}
             </View>
 
-            {/* 渠道汇总 */}
-            <View style={st.sumRow}>
-              <Text style={st.sumLabel}>{t('channelTotal')}</Text>
-              <NumberTicker value={channelTotal} style={st.sumVal} />
-            </View>
-
-            {/* 核算看板 */}
-            <View style={st.resultBar}>
-              <View style={st.resultItem}>
-                <Text style={st.resultLabel}>{t('bookBalance')}</Text>
-                <NumberTicker value={realTotal} style={st.resultVal} duration={400} />
-              </View>
-              <View style={st.resultDivider} />
-              <View style={st.resultItem}>
-                <Text style={st.resultLabel}>{t('reconDiff')}</Text>
-                <NumberTicker value={diff} style={[
-                  st.resultDiff,
-                  { color: diff >= 0 ? '#059669' : '#DC2626' },
-                ]} />
-              </View>
-            </View>
+            {/* 对账完成 */}
+            <TouchableOpacity style={st.reconBtn} onPress={() => {}} activeOpacity={0.8}>
+              <Text style={st.reconBtnText}>{t('reconComplete')}</Text>
+            </TouchableOpacity>
           </View>
         </FadeInView>
         )}
@@ -565,6 +554,10 @@ const st = StyleSheet.create({
   dateRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
+  dateText: {
+    fontSize: 14, fontWeight: '600', color: '#000000',
+    fontFamily: undefined,
+  },
   dateInput: {
     fontSize: 13, color: '#6B7280',
     borderWidth: 1, borderColor: '#E5E7EB',
@@ -631,6 +624,15 @@ const st = StyleSheet.create({
   resultLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', marginBottom: 4 },
   resultVal: { fontSize: 17, fontWeight: '700', color: '#374151' },
   resultDiff: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  /* ── Recon button ── */
+  reconBtn: {
+    backgroundColor: '#8B1E22', borderRadius: 12,
+    paddingVertical: 14, alignItems: 'center',
+    marginTop: 4,
+  },
+  reconBtnText: {
+    fontSize: 15, fontWeight: '700', color: '#FFFFFF',
+  },
 
   /* ── KPI ── */
   kpiRow: { flexDirection: 'row', gap: 12 },
