@@ -498,13 +498,18 @@ export default function ExpenseScreen() {
                 <Text style={st.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <View style={{ padding: 20, alignItems: 'center', gap: 16 }}>
+            <View style={{ padding: 20, gap: 16 }}>
               <Text style={{ fontSize: 14, color: '#4B5563', textAlign: 'center' }}>
                 对账不认真，董事长打你屁屁
               </Text>
-              <TouchableOpacity style={st.modalBtn} onPress={hideToast}>
-                <Text style={st.modalBtnText}>知道了</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity style={st.modalCancelBtn} onPress={hideToast}>
+                  <Text style={st.modalCancelText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={st.modalBtn} onPress={hideToast}>
+                  <Text style={st.modalBtnText}>确认</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -771,8 +776,13 @@ const st = StyleSheet.create({
   modalTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
   modalClose: { color: '#FECACA', fontSize: 18 },
   modalBtn: {
-    backgroundColor: '#8B1E22', borderRadius: 12,
-    paddingVertical: 10, paddingHorizontal: 48, alignItems: 'center',
+    flex: 1, backgroundColor: '#8B1E22', borderRadius: 12,
+    paddingVertical: 10, alignItems: 'center',
   },
   modalBtnText: { fontSize: 12, fontWeight: '500', color: '#fff' },
+  modalCancelBtn: {
+    flex: 1, backgroundColor: '#F3F4F6', borderRadius: 12,
+    paddingVertical: 10, alignItems: 'center',
+  },
+  modalCancelText: { fontSize: 12, fontWeight: '500', color: '#4B5563' },
 });
