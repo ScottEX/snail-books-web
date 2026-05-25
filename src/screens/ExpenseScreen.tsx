@@ -455,16 +455,20 @@ const st = StyleSheet.create({
   /* ── Tab Bar ── */
   tabBar: {
     paddingTop: 12, paddingBottom: 8,
+    // @ts-ignore — 确保容器透明，让底层背景透出
+    backgroundColor: 'transparent',
   },
   tabScroll: {
     paddingHorizontal: 18, gap: 14,
+    // @ts-ignore — 确保 ScrollView 内容区透明
+    backgroundColor: 'transparent',
   },
   tabCard: {
     width: 296, height: 120,
-    // @ts-ignore — 磨砂玻璃：顶部高光白→青绿→暖杏
-    backgroundImage: 'linear-gradient(160deg, rgba(255,255,255,0.12) 0%, rgba(0,175,185,0.42) 35%, rgba(254,217,183,0.38) 100%)',
+    // @ts-ignore — 极透磨砂玻璃：微白高光→淡青绿→微暖杏
+    backgroundImage: 'linear-gradient(160deg, rgba(255,255,255,0.08) 0%, rgba(0,175,185,0.22) 35%, rgba(254,217,183,0.18) 100%)',
     borderRadius: 14,
-    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.30)',
+    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
     paddingHorizontal: 16, paddingVertical: 14,
     justifyContent: 'flex-start',
     // @ts-ignore — CSS scroll-snap
@@ -473,15 +477,15 @@ const st = StyleSheet.create({
     scrollSnapStop: 'always',
     overflow: 'hidden' as const,
     position: 'relative' as const,
-    // @ts-ignore — 悬浮阴影（玻璃悬浮感）
-    boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06), inset 0 0.5px 0 rgba(255,255,255,0.45)',
+    // @ts-ignore — 仅玻璃内边框高光，无外阴影
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
   },
   tabCardActive: {
     // @ts-ignore — 激活：高光更亮、颜色更浓
-    backgroundImage: 'linear-gradient(160deg, rgba(255,255,255,0.20) 0%, rgba(0,175,185,0.68) 35%, rgba(254,217,183,0.62) 100%)',
-    borderColor: 'rgba(255,255,255,0.50)',
-    // @ts-ignore — 激活阴影更深
-    boxShadow: '0 16px 48px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.55)',
+    backgroundImage: 'linear-gradient(160deg, rgba(255,255,255,0.15) 0%, rgba(0,175,185,0.48) 35%, rgba(254,217,183,0.42) 100%)',
+    borderColor: 'rgba(255,255,255,0.55)',
+    // @ts-ignore — 仅玻璃内边框
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.55)',
   },
   tabInner: {
     flex: 1, alignItems: 'stretch',
