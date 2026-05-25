@@ -316,6 +316,23 @@ export default function ExpenseScreen() {
               </TouchableOpacity>
             </View>
 
+            <View style={st.row2}>
+              <View style={st.inputGroup}>
+                <Text style={st.inputLabel}>{t('cardBalance')} 💳</Text>
+                <InputWithFocus inputStyle={st.input}
+                  value={cardBalance} onChangeText={setCardBalance}
+                  onBlur={saveRec} keyboardType="decimal-pad"
+                  placeholder="0.00" placeholderTextColor="#D1D5DB" />
+              </View>
+              <View style={st.inputGroup}>
+                <Text style={st.inputLabel}>{t('cashBalance')} 💴</Text>
+                <InputWithFocus inputStyle={st.input}
+                  value={cashBalance} onChangeText={setCashBalance}
+                  onBlur={saveRec} keyboardType="decimal-pad"
+                  placeholder="0.00" placeholderTextColor="#D1D5DB" />
+              </View>
+            </View>
+
             {/* 渠道未到账 */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={st.subLabel}>{t('channelPending')}</Text>
