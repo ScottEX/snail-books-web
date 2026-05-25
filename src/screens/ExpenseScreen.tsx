@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
 } from 'react-native';
-import Svg, { Defs, Ellipse, RadialGradient, Stop, LinearGradient, Rect, Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { api } from '../api/client';
 
@@ -94,53 +93,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════
-   MushroomLamp — 选中卡片右上角蘑菇灯装饰
-   ═══════════════════════════════════════════════════════════ */
-function MushroomLamp() {
-  return (
-    <View style={{
-      position: 'absolute',
-      top: -16, right: 10,
-      width: 52, height: 52,
-      zIndex: 1,
-    }}>
-      <Svg width="52" height="52" viewBox="0 0 52 52">
-        <Defs>
-          {/* Cap highlight gradient */}
-          <RadialGradient id="capHL" cx="38%" cy="30%" rx="50%" ry="50%">
-            <Stop offset="0%" stopColor="#FFFDF7" stopOpacity="0.9" />
-            <Stop offset="60%" stopColor="#F8F0E5" stopOpacity="0.3" />
-            <Stop offset="100%" stopColor="#F5E9D9" stopOpacity="0" />
-          </RadialGradient>
-          {/* Stem gradient for 3D volume */}
-          <LinearGradient id="stemG" x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0%" stopColor="#E8D5C0" />
-            <Stop offset="40%" stopColor="#F8F0E5" />
-            <Stop offset="100%" stopColor="#E0CDB5" />
-          </LinearGradient>
-        </Defs>
-
-        {/* Warm glow — blurred ellipse under cap */}
-        <Ellipse cx="26" cy="30" rx="20" ry="9" fill="#FFD8A8" opacity="0.45" />
-        <Ellipse cx="26" cy="30" rx="13" ry="5" fill="#FFE0B2" opacity="0.55" />
-
-        {/* Stem */}
-        <Rect x="19" y="26" width="14" height="20" rx="7" fill="url(#stemG)" />
-
-        {/* Cap dome */}
-        <Path d="M2 24 C2 6, 16 2, 26 2 C36 2, 50 6, 50 24 Z" fill="#F8F0E5" />
-
-        {/* Cap bottom rim */}
-        <Ellipse cx="26" cy="26" rx="24" ry="6" fill="#EDE0D0" />
-
-        {/* Cap highlight */}
-        <Ellipse cx="22" cy="14" rx="14" ry="9" fill="url(#capHL)" />
-      </Svg>
-    </View>
-  );
-}
-
+/* ═══════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════
    EXPENSE SCREEN
    ═══════════════════════════════════════════════════════════ */
@@ -286,7 +239,9 @@ export default function ExpenseScreen() {
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
-                {active && <MushroomLamp />}
+                {active && (
+                  <View style={st.glowOverlay} pointerEvents="none" />
+                )}
                 <View style={st.tabInner}>
                   <View style={{ gap: 4 }}>
                     <Text style={[st.tabTitle, active && st.tabTitleActive]}>
@@ -518,8 +473,17 @@ const st = StyleSheet.create({
     // @ts-ignore — 激活态渐变更饱满
     backgroundImage: 'linear-gradient(to bottom, rgba(108,155,155,0.85), rgba(184,197,176,0.85), rgba(230,194,194,0.85))',
     borderColor: 'rgba(255,255,255,0.55)',
-    // @ts-ignore
-    boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+    // @ts-ignore — 多层外发光：青灰 → 柔和扩散
+    boxShadow: '0 0 18px rgba(108,155,155,0.45), 0 0 40px rgba(108,155,155,0.18), 0 0 70px rgba(184,197,176,0.10), 0 4px 10px rgba(0,0,0,0.05)',
+  },
+  /* ── 选中卡片内部光晕 ── */
+  glowOverlay: {
+    position: 'absolute' as const,
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: 14,
+    // @ts-ignore — 中心白光向外渐隐
+    backgroundImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 40%, transparent 70%)',
+    zIndex: 0,
   },
   tabActiveBar: {
     position: 'absolute' as const,
@@ -529,6 +493,7 @@ const st = StyleSheet.create({
   },
   tabInner: {
     flexDirection: 'row', alignItems: 'center', gap: 16,
+    zIndex: 1,
   },
   tabTitle: {
     fontSize: 16, fontWeight: '500', color: 'rgba(255,255,255,0.95)',
