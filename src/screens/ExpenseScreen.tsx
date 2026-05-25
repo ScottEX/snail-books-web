@@ -291,7 +291,7 @@ export default function ExpenseScreen() {
               <Text style={st.sectionLabel}>{t('billDate')}</Text>
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-                onPress={() => { (document.getElementById('hidden-date-picker') as HTMLInputElement)?.showPicker?.(); }}
+                onPress={() => { document.getElementById('hidden-date-picker')?.click(); }}
                 activeOpacity={0.6}
               >
                 <Text style={st.dateText}>
@@ -314,7 +314,7 @@ export default function ExpenseScreen() {
                 type: 'date',
                 value: recDate,
                 onChange: (e: any) => setRecDate(e.target.value),
-                style: { ...st.dateInput, position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' },
+                style: { ...st.dateInput, position: 'absolute', left: -9999, opacity: 0 },
               })}
             </View>
 
@@ -322,14 +322,14 @@ export default function ExpenseScreen() {
             <Text style={st.subLabel}>{t('physicalCount')}</Text>
             <View style={st.row2}>
               <View style={st.inputGroup}>
-                <Text style={st.inputLabel}>💳 {t('cardBalance')}</Text>
+                <Text style={st.inputLabel}>{t('cardBalance')} 💳</Text>
                 <InputWithFocus inputStyle={st.input}
                   value={cardBalance} onChangeText={setCardBalance}
                   onBlur={saveRec} keyboardType="decimal-pad"
                   placeholder="0.00" placeholderTextColor="#D1D5DB" />
               </View>
               <View style={st.inputGroup}>
-                <Text style={st.inputLabel}>💴 {t('cashBalance')}</Text>
+                <Text style={st.inputLabel}>{t('cashBalance')} 💴</Text>
                 <InputWithFocus inputStyle={st.input}
                   value={cashBalance} onChangeText={setCashBalance}
                   onBlur={saveRec} keyboardType="decimal-pad"
