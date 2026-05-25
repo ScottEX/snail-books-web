@@ -211,8 +211,10 @@ export default function ExpenseScreen() {
       {/* ══════ 卡片式Tab ══════ */}
       <View style={st.tabBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
-          snapToInterval={310}
-          decelerationRate="fast"
+          style={{
+            // @ts-ignore — CSS scroll-snap (RN Web snapToInterval 不生效)
+            scrollSnapType: 'x mandatory',
+          } as any}
           onMomentumScrollEnd={(e: any) => {
             const idx = Math.round(e.nativeEvent.contentOffset.x / 310);
             setActiveTab(Math.min(2, Math.max(0, idx)));
@@ -223,7 +225,16 @@ export default function ExpenseScreen() {
             return (
               <TouchableOpacity
                 key={i}
-                style={[st.tabCard, active && st.tabCardActive]}
+                style={[
+                  st.tabCard,
+                  active && st.tabCardActive,
+                  {
+                    // @ts-ignore — snap each card
+                    scrollSnapAlign: 'start',
+                    // @ts-ignore
+                    scrollSnapStop: 'always',
+                  } as any,
+                ]}
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
