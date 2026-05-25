@@ -238,8 +238,10 @@ export default function ExpenseScreen() {
                 style={[st.tabCard, active && st.tabCardActive]}
                 onPress={() => {
                   setActiveTab(i);
-                  const el = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement;
-                  if (el) el.scrollLeft = i * 310;
+                  requestAnimationFrame(() => {
+                    const el = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement;
+                    if (el) el.scrollLeft = i * 310;
+                  });
                 }}
                 activeOpacity={0.7}
               >
