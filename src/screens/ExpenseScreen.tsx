@@ -239,9 +239,6 @@ export default function ExpenseScreen() {
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
-                {active && (
-                  <View style={st.glowOverlay} pointerEvents="none" />
-                )}
                 <View style={st.tabInner}>
                   <View style={{ gap: 4 }}>
                     <Text style={[st.tabTitle, active && st.tabTitleActive]}>
@@ -473,27 +470,11 @@ const st = StyleSheet.create({
     // @ts-ignore — 激活态渐变更饱满
     backgroundImage: 'linear-gradient(to bottom, rgba(108,155,155,0.85), rgba(184,197,176,0.85), rgba(230,194,194,0.85))',
     borderColor: 'rgba(255,255,255,0.55)',
-    // @ts-ignore — 多层外发光：青灰 → 柔和扩散
-    boxShadow: '0 0 18px rgba(108,155,155,0.45), 0 0 40px rgba(108,155,155,0.18), 0 0 70px rgba(184,197,176,0.10), 0 4px 10px rgba(0,0,0,0.05)',
-  },
-  /* ── 选中卡片内部光晕 ── */
-  glowOverlay: {
-    position: 'absolute' as const,
-    top: 0, left: 0, right: 0, bottom: 0,
-    borderRadius: 14,
-    // @ts-ignore — 中心白光向外渐隐
-    backgroundImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 40%, transparent 70%)',
-    zIndex: 0,
-  },
-  tabActiveBar: {
-    position: 'absolute' as const,
-    left: 0, top: 0, bottom: 0, width: 4,
-    backgroundColor: '#8B1E22',
-    borderTopLeftRadius: 14, borderBottomLeftRadius: 14,
+    // @ts-ignore
+    boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
   },
   tabInner: {
     flexDirection: 'row', alignItems: 'center', gap: 16,
-    zIndex: 1,
   },
   tabTitle: {
     fontSize: 16, fontWeight: '500', color: 'rgba(255,255,255,0.95)',
