@@ -9,7 +9,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
   const touchRef = useRef({ startX: 0, startY: 0 });
 
   useEffect(() => {
@@ -18,7 +17,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         const data = await api.getReconciliations();
         const list = data || [];
         setRecords(list);
-        setHasMore(list.length > PAGE_SIZE);
       } catch { /* ignore */ }
       setLoading(false);
     })();
@@ -26,14 +24,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   const visible = records.slice(0, page * PAGE_SIZE);
   const showMore = page * PAGE_SIZE < records.length;
-
-  // Split into two columns for waterfall
-  const leftColumn: any[] = [];
-  const rightColumn: any[] = [];
-  visible.forEach((r, i) => {
-    if (i % 2 === 0) leftColumn.push(r);
-    else rightColumn.push(r);
-  });
 
   const fmtDate = (d: string) => {
     const date = new Date(d + 'T00:00:00');
@@ -135,14 +125,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           renderEmpty()
         ) : (
           <>
-            <View style={st.masonry}>
-              <View style={st.column}>
-                {leftColumn.map(renderCard)}
-              </View>
-              <View style={st.column}>
-                {rightColumn.map(renderCard)}
-              </View>
-            </View>
+            {visible.map(renderCard)}
             {showMore && (
               <TouchableOpacity style={st.loadMore} onPress={() => setPage(p => p + 1)} activeOpacity={0.8}>
                 <Text style={st.loadMoreText}>{t('loadMore')}</Text>
@@ -184,14 +167,10 @@ const st = StyleSheet.create({
   /* ── List ── */
   list: { flex: 1, paddingHorizontal: 12 },
   loading: { textAlign: 'center', marginTop: 40, fontSize: 14, color: '#999' },
-  /* ── Waterfall masonry ── */
-  masonry: {
-    flexDirection: 'row', gap: 10, alignItems: 'flex-start',
-  },
-  column: { flex: 1, gap: 10 },
   /* ── Card ── */
   card: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
+    marginBottom: 12,
     borderWidth: 1, borderColor: '#EBEBEB',
     // @ts-ignore
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
