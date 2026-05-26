@@ -389,6 +389,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 <Text style={st.inputLabel}>{t('cashBalance')} 💴</Text>
                 <InputWithFocus inputStyle={st.input}
                   value={cashBalance} onChangeText={(v: string) => setCashBalance(blockNeg(v))}
+                  keyboardType="decimal-pad"
                   placeholder="0.00" placeholderTextColor="#D1D5DB" />
               </View>
             </View>
