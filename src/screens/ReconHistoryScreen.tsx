@@ -252,38 +252,49 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </TouchableOpacity>
       {/* Header */}
       <View style={st.header}>
-        <TouchableOpacity style={st.filterBtn} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
-          <Text style={st.filterBtnText}>{t('filter')}</Text>
-        </TouchableOpacity>
-        <Text style={st.title}>{t('reconHistory')}</Text>
         <View style={{ width: 44 }} />
+        <Text style={st.title}>{t('reconHistory')}</Text>
+        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
+          <Text style={[st.filterBtnText, showFilter && st.filterBtnTextActive]}>{t('filter')}</Text>
+        </TouchableOpacity>
       </View>
       {/* Filter bar */}
       {showFilter && (
         <View style={st.filterBar}>
-          <View style={st.filterRow}>
-            <Text style={st.filterLabel}>{t('billDate')}</Text>
-            <input type="date" value={filBillFrom} onChange={(e: any) => setFilBillFrom(e.target.value)}
-              style={st.filterInput as any} />
-            <Text style={st.filterSep}>-</Text>
-            <input type="date" value={filBillTo} onChange={(e: any) => setFilBillTo(e.target.value)}
-              style={st.filterInput as any} />
+          {/* Date rows */}
+          <View style={st.filterSection}>
+            <Text style={st.filterSectionTitle}>{t('billDate')}</Text>
+            <View style={st.filterDateRow}>
+              <input type="date" value={filBillFrom} onChange={(e: any) => setFilBillFrom(e.target.value)}
+                style={{ ...st.filterDateInput, borderWidth: 0, backgroundColor: 'transparent', flex: 1, fontSize: 13, fontWeight: '500', color: '#374151', fontFamily: 'inherit', padding: 0, outline: 'none' } as any} />
+              <Text style={st.filterDateSep}>—</Text>
+              <input type="date" value={filBillTo} onChange={(e: any) => setFilBillTo(e.target.value)}
+                style={{ ...st.filterDateInput, borderWidth: 0, backgroundColor: 'transparent', flex: 1, fontSize: 13, fontWeight: '500', color: '#374151', fontFamily: 'inherit', padding: 0, outline: 'none' } as any} />
+            </View>
           </View>
-          <View style={st.filterRow}>
-            <Text style={st.filterLabel}>{t('reconDate')}</Text>
-            <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
-              style={st.filterInput as any} />
-            <Text style={st.filterSep}>-</Text>
-            <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
-              style={st.filterInput as any} />
+          <View style={st.filterSection}>
+            <Text style={st.filterSectionTitle}>{t('reconDate')}</Text>
+            <View style={st.filterDateRow}>
+              <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
+                style={{ ...st.filterDateInput, borderWidth: 0, backgroundColor: 'transparent', flex: 1, fontSize: 13, fontWeight: '500', color: '#374151', fontFamily: 'inherit', padding: 0, outline: 'none' } as any} />
+              <Text style={st.filterDateSep}>—</Text>
+              <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
+                style={{ ...st.filterDateInput, borderWidth: 0, backgroundColor: 'transparent', flex: 1, fontSize: 13, fontWeight: '500', color: '#374151', fontFamily: 'inherit', padding: 0, outline: 'none' } as any} />
+            </View>
           </View>
-          <View style={st.filterRow}>
-            <Text style={st.filterLabel}>{t('reconciledBy')}</Text>
+          <View style={st.filterSection}>
+            <Text style={st.filterSectionTitle}>{t('reconciledBy')}</Text>
             <TextInput style={st.filterTextInput} value={filBy}
               onChangeText={setFilBy} placeholder={t('reconciledBy')}
-              placeholderTextColor="#CCC" />
-            <TouchableOpacity style={st.filterReset} onPress={resetFilters} activeOpacity={0.7}>
-              <Text style={st.filterResetText}>{t('reset')}</Text>
+              placeholderTextColor="#B0B0B0" />
+          </View>
+          {/* Buttons row */}
+          <View style={st.filterBtnRow}>
+            <TouchableOpacity style={st.filterResetBtn} onPress={resetFilters} activeOpacity={0.7}>
+              <Text style={st.filterResetBtnText}>{t('reset')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={st.filterApplyBtn} onPress={() => setShowFilter(false)} activeOpacity={0.7}>
+              <Text style={st.filterApplyBtnText}>✓</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -405,41 +416,62 @@ const st = StyleSheet.create({
   emptyEmoji: { fontSize: 30 },
   emptyTitle: { fontSize: 16, fontWeight: '500', color: '#6B7280' },
   emptyHint: { fontSize: 13, color: '#B0B0B0', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
-  /* Filter bar */
+  /* Filter */
   filterBtn: {
-    width: 44, paddingVertical: 4, paddingHorizontal: 8,
-    borderRadius: 6, borderWidth: 1, borderColor: '#E5E7EB',
-    alignItems: 'center',
+    width: 44, height: 32, borderRadius: 8,
+    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: '#F3F4F6',
   },
-  filterBtnText: { fontSize: 12, fontWeight: '500', color: '#6B7280' },
+  filterBtnActive: { backgroundColor: '#8B1E22' },
+  filterBtnText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
+  filterBtnTextActive: { color: '#FFFFFF' },
   filterBar: {
-    marginHorizontal: 14, marginBottom: 8, padding: 12,
-    backgroundColor: '#FAF7F2', borderRadius: 12,
+    marginHorizontal: 14, marginBottom: 10,
+    backgroundColor: '#FFFFFF', borderRadius: 16,
     borderWidth: 1, borderColor: '#EBEBEB',
+    // @ts-ignore
+    boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+    overflow: 'hidden',
+  },
+  filterSection: {
+    paddingHorizontal: 16, paddingTop: 12, gap: 6,
+  },
+  filterSectionTitle: {
+    fontSize: 10, fontWeight: '600', color: '#9CA3AF',
+    textTransform: 'uppercase', letterSpacing: 0.5,
+  },
+  filterDateRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#F9FAFB', borderRadius: 10,
+    paddingHorizontal: 12, paddingVertical: 10,
     gap: 8,
   },
-  filterRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
+  filterDateInput: {
+    flex: 1,
   },
-  filterLabel: { fontSize: 11, fontWeight: '600', color: '#6B7280', width: 56 },
-  filterSep: { fontSize: 13, color: '#B0B0B0' },
-  filterInput: {
-    flex: 1, fontSize: 12, fontWeight: '500', color: '#374151',
-    paddingVertical: 4, paddingHorizontal: 6,
-    backgroundColor: '#FFFFFF', borderRadius: 6, borderWidth: 1, borderColor: '#E5E7EB',
-    // @ts-ignore
-    outline: 'none',
+  filterDateSep: {
+    fontSize: 12, color: '#D1D5DB', fontWeight: '300',
   },
   filterTextInput: {
-    flex: 1, fontSize: 12, fontWeight: '500', color: '#374151',
-    paddingVertical: 6, paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF', borderRadius: 6, borderWidth: 1, borderColor: '#E5E7EB',
+    fontSize: 13, fontWeight: '500', color: '#374151',
+    backgroundColor: '#F9FAFB', borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 12,
+    borderWidth: 0,
   },
-  filterReset: {
-    paddingVertical: 6, paddingHorizontal: 12,
-    backgroundColor: '#E5E7EB', borderRadius: 6,
+  filterBtnRow: {
+    flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#F3F4F6',
+    marginTop: 4,
   },
-  filterResetText: { fontSize: 11, fontWeight: '500', color: '#4B5563' },
+  filterResetBtn: {
+    flex: 1, paddingVertical: 12, alignItems: 'center',
+    borderRightWidth: 1, borderRightColor: '#F3F4F6',
+  },
+  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: '#9CA3AF' },
+  filterApplyBtn: {
+    flex: 1, paddingVertical: 12, alignItems: 'center',
+    backgroundColor: '#8B1E22',
+  },
+  filterApplyBtnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
   /* Reconciler in card */
   reconByRow: { alignItems: 'center', paddingBottom: 2 },
   reconByText: { fontSize: 10, color: '#9CA3AF', fontWeight: '500' },
