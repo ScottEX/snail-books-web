@@ -128,6 +128,9 @@ const I18N: Record<string, Record<string, string>> = {
     bgHint: '选择一张图片作为首页背景',
     opacity: '透明度',
     uploading: '上传中...',
+    loading: '加载中...',
+    noRecords: '暂无记录',
+    back: '返回',
     chooseImage: '选择图片',
     resetDefault: '恢复默认',
     // Expense screen (记账)
@@ -297,6 +300,9 @@ const I18N: Record<string, Record<string, string>> = {
     bgHint: '選擇一張圖片作為首頁背景',
     opacity: '透明度',
     uploading: '上傳中...',
+    loading: '載入中...',
+    noRecords: '暫無記錄',
+    back: '返回',
     chooseImage: '選擇圖片',
     resetDefault: '恢復默認',
     // Expense screen
@@ -466,6 +472,9 @@ const I18N: Record<string, Record<string, string>> = {
     bgHint: 'Choose an image as home page background',
     opacity: 'Opacity',
     uploading: 'Uploading...',
+    loading: 'Loading...',
+    noRecords: 'No records yet',
+    back: 'Back',
     chooseImage: 'Choose Image',
     resetDefault: 'Reset to Default',
     // Expense screen

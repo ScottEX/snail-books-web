@@ -6,6 +6,7 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import PartnerScreen from './PartnerScreen';
 import ExpenseScreen from './ExpenseScreen';
+import ReconHistoryScreen from './ReconHistoryScreen';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
@@ -27,6 +28,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [account, setAccount] = useState('');
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
+  const [showReconHistory, setShowReconHistory] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
   const [bgVersion, setBgVersion] = useState(0);
@@ -148,8 +150,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={styles.page}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} />
+        ) : showReconHistory ? (
+          <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />
         ) : tab === 'expense' ? (
-          <ExpenseScreen />
+          <ExpenseScreen onReconHistory={() => setShowReconHistory(true)} />
         ) : (
           <>
             {/* Tab Content */}

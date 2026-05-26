@@ -9,6 +9,10 @@ import Toast from '../components/Toast';
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
 const fmtInt = (n: number) => n.toLocaleString();
+const yesterdayStr = () => {
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+};
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const toNum = (s: string) => parseFloat(s) || 0;
 const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
@@ -99,7 +103,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
 /* ═══════════════════════════════════════════════════════════
    EXPENSE SCREEN
    ═══════════════════════════════════════════════════════════ */
-export default function ExpenseScreen() {
+export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () => void }) {
   const [activeTab, setActiveTab] = useState(0); // 0=对账, 1=营业, 2=支出
   const [showToast, setShowToast] = useState(false);
   const hideToast = () => setShowToast(false);
@@ -145,7 +149,7 @@ export default function ExpenseScreen() {
   }, [activeTab]);
 
   /* ── 模块一：对账 ── */
-  const [recDate, setRecDate] = useState(todayStr());
+  const [recDate, setRecDate] = useState(yesterdayStr());
   const [toast, setToast] = useState('');
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
@@ -175,6 +179,23 @@ export default function ExpenseScreen() {
       const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
       saved[recDate] = { card: cardBalance, cash: cashBalance, dineIn, meituan, flashSale, tuan, jd };
       localStorage.setItem('expense-rec', JSON.stringify(saved));
+    } catch { setToast(t('toastSubmitFailed')); }
+  }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd]);
+
+  // 提交对账到后端
+  const submitRecon = useCallback(async () => {
+    try {
+      await api.createReconciliation({
+        date: recDate,
+        card_balance: toNum(cardBalance),
+        cash_balance: toNum(cashBalance),
+        dine_in: toNum(dineIn),
+        meituan: toNum(meituan),
+        flash_sale: toNum(flashSale),
+        jd: toNum(jd),
+        tuan: toNum(tuan),
+      });
+      setToast(t('reconComplete'));
     } catch { setToast(t('toastSubmitFailed')); }
   }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd]);
 
@@ -315,7 +336,7 @@ export default function ExpenseScreen() {
                     return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
                   })()}
                 </Text>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#9CA3AF' }}>›</Text>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: '#9CA3AF' }}>›</Text>
                 {React.createElement('input', {
                   type: 'date',
                   value: recDate,
@@ -393,10 +414,10 @@ export default function ExpenseScreen() {
 
             {/* 按钮行：对账记录(左) + 添加(右) */}
             <View style={st.btnRow}>
-              <TouchableOpacity style={st.reconRecordBtn} onPress={() => setToast(t('reconHistory'))} activeOpacity={0.8}>
+              <TouchableOpacity style={st.reconRecordBtn} onPress={onReconHistory} activeOpacity={0.8}>
                 <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.reconBtn} onPress={() => setShowToast(true)} activeOpacity={0.8}>
+              <TouchableOpacity style={st.reconBtn} onPress={submitRecon} activeOpacity={0.8}>
                 <Text style={st.reconBtnText}>{t('addBtn')}</Text>
               </TouchableOpacity>
             </View>

@@ -110,6 +110,9 @@ export const api = {
   updateProduct: (data: any) => authFetch('/api/products', { method: 'PUT', body: JSON.stringify(data) }),
   deleteProduct: (id: number) => authFetch(`/api/products?id=${id}`, { method: 'DELETE' }),
 
+  createReconciliation: (data: any) => authFetch('/api/reconciliations', { method: 'POST', body: JSON.stringify(data) }),
+  getReconciliations: (limit = 30) => authFetch(`/api/reconciliations?limit=${limit}`),
+
   getProcurements: () => authFetch('/api/procurements'),
   createProcurement: (data: any) => authFetch('/api/procurements', { method: 'POST', body: JSON.stringify(data) }),
   deleteProcurement: (id: number) => authFetch(`/api/procurements/${id}`, { method: 'DELETE' }),
