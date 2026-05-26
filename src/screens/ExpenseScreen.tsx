@@ -227,8 +227,9 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
         tuan: toNum(tuan),
       });
       setToast(t('reconComplete'));
+      onReconHistory?.();
     } catch { setToast(t('toastSubmitFailed')); }
-  }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd]);
+  }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
 
   const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
   const realTotal = toNum(cardBalance) + toNum(cashBalance);
