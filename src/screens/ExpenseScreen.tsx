@@ -336,7 +336,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                     return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
                   })()}
                 </Text>
-                <Text style={{ fontSize: 18, fontWeight: '600', color: '#9CA3AF' }}>›</Text>
+                <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF' }}>›</Text>
                 {React.createElement('input', {
                   type: 'date',
                   value: recDate,
@@ -417,7 +417,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
               <TouchableOpacity style={st.reconRecordBtn} onPress={onReconHistory} activeOpacity={0.8}>
                 <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.reconBtn} onPress={submitRecon} activeOpacity={0.8}>
+              <TouchableOpacity style={st.reconBtn} onPress={() => setShowToast(true)} activeOpacity={0.8}>
                 <Text style={st.reconBtnText}>{t('addBtn')}</Text>
               </TouchableOpacity>
             </View>
@@ -539,7 +539,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 <TouchableOpacity style={st.modalCancelBtn} onPress={hideToast}>
                   <Text style={st.modalCancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={st.modalBtn} onPress={hideToast}>
+                <TouchableOpacity style={st.modalBtn} onPress={() => { hideToast(); submitRecon(); }}>
                   <Text style={st.modalBtnText}>{t('confirm')}</Text>
                 </TouchableOpacity>
               </View>
