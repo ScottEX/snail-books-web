@@ -86,43 +86,43 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         </View>
       </View>
       {/* Row 2: 3 vertical pair columns */}
-      <View style={st.pairRow}>
+      <View style={st.cardPairRow}>
         {/* Col 1: 卡余额 / 账面余额 */}
-        <View style={st.pairCol}>
-          <View style={st.pairItem}>
-            <Text style={st.pairLabel}>{t('cardBalance')}</Text>
-            <Text style={st.pairVal}>{fmtAmt(r.card_balance)}</Text>
+        <View style={st.cardPairCol}>
+          <View style={st.cardPairItem}>
+            <Text style={st.cardPairLabel}>{t('cardBalance')}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.card_balance)}</Text>
           </View>
-          <View style={st.pairDivider} />
-          <View style={st.pairItem}>
-            <Text style={st.pairLabel}>{t('bookBalance')}</Text>
-            <Text style={st.pairVal}>{fmtInt(r.channel_total)}</Text>
+          <View style={st.cardPairDiv} />
+          <View style={st.cardPairItem}>
+            <Text style={st.cardPairLabel}>{t('bookBalance')}</Text>
+            <Text style={st.cardPairVal}>{fmtInt(r.channel_total)}</Text>
           </View>
         </View>
         {/* Col 2: 当前结余 / 现金 */}
-        <View style={st.pairCol}>
-          <View style={st.pairItem}>
-            <Text style={st.pairLabel}>{t('currentBalance')}</Text>
-            <Text style={st.pairVal}>{fmtInt(r.real_total)}</Text>
+        <View style={st.cardPairCol}>
+          <View style={st.cardPairItem}>
+            <Text style={st.cardPairLabel}>{t('currentBalance')}</Text>
+            <Text style={st.cardPairVal}>{fmtInt(r.real_total)}</Text>
           </View>
-          <View style={st.pairDivider} />
-          <View style={st.pairItem}>
-            <Text style={st.pairLabel}>{t('cashBalance')}</Text>
-            <Text style={st.pairVal}>{fmtAmt(r.cash_balance)}</Text>
+          <View style={st.cardPairDiv} />
+          <View style={st.cardPairItem}>
+            <Text style={st.cardPairLabel}>{t('cashBalance')}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.cash_balance)}</Text>
           </View>
         </View>
         {/* Col 3: 账面差额 / 在途资金 */}
-        <View style={st.pairCol}>
-          <View style={st.pairItem}>
-            <Text style={st.pairLabel}>{t('bookDiff')}</Text>
-            <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? '#059669' : '#DC2626' }]}>
+        <View style={st.cardPairCol}>
+          <View style={st.cardPairItem}>
+            <Text style={st.cardPairLabel}>{t('bookDiff')}</Text>
+            <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? '#059669' : '#DC2626' }]}>
               {r.diff >= 0 ? '+' : ''}{fmtInt(Math.abs(r.diff))}
             </Text>
           </View>
-          <View style={st.pairDivider} />
-          <View style={st.pairItem}>
-            <Text style={st.pairLabel}>{t('fundsInTransit')}</Text>
-            <Text style={st.pairVal}>{fmtAmt(r.channel_total)}</Text>
+          <View style={st.cardPairDiv} />
+          <View style={st.cardPairItem}>
+            <Text style={st.cardPairLabel}>{t('fundsInTransit')}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.channel_total)}</Text>
           </View>
         </View>
       </View>
@@ -286,15 +286,13 @@ const st = StyleSheet.create({
   dateLabel: { fontSize: 9, color: '#B0B0B0', fontWeight: '500', marginBottom: 2 },
   dateVal: { fontSize: 13, fontWeight: '600', color: '#374151' },
   dateSep: { width: 1, height: 24, backgroundColor: '#EBEBEB' },
-  summaryRow: { flexDirection: 'row' },
-  sumCol: { flex: 1, alignItems: 'center', gap: 2 },
-  sumLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
-  sumVal: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
-  divider: { height: 1, backgroundColor: '#F3F4F6' },
-  detailRow: { flexDirection: 'row' },
-  detailCol: { flex: 1, gap: 2 },
-  detailLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
-  detailVal: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  /* Card vertical pairs — plain, no background */
+  cardPairRow: { flexDirection: 'row', gap: 4 },
+  cardPairCol: { flex: 1, alignItems: 'center' },
+  cardPairItem: { alignItems: 'center', gap: 2, paddingVertical: 4 },
+  cardPairLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
+  cardPairVal: { fontSize: 14, fontWeight: '700', color: '#374151' },
+  cardPairDiv: { height: 1, backgroundColor: '#F3F4F6', width: '60%', marginVertical: 2 },
   tapHint: { fontSize: 10, color: '#C0C0C0', textAlign: 'center', marginTop: 2 },
   /* Modal */
   mask: {
