@@ -171,7 +171,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
           const data = await api.getReconciliations(1);
           if (data && data.length > 0) {
             const last = data[0];
-            const d = last.date || yesterdayStr();
+            const d = last.bill_date || last.date || yesterdayStr();
             setRecDate(d);
             setCardBalance(String(last.card_balance || ''));
             setCashBalance(String(last.cash_balance || ''));
@@ -189,7 +189,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
     (async () => {
       try {
         const data = await api.getReconciliations(365);
-        const match = (data || []).find((r: any) => r.date === recDate);
+        const match = (data || []).find((r: any) => r.bill_date === recDate);
         if (match) {
           setCardBalance(String(match.card_balance || ''));
           setCashBalance(String(match.cash_balance || ''));
