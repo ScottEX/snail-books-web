@@ -542,6 +542,26 @@ def api_delete_dividend(id):
 # ========== 设置 - 首页背景图 ==========
 ALLOWED_BG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_BG_SIZE = 5 * 1024 * 1024  # 5MB
+_BG_DIR = os.environ.get('UPLOAD_DIR', os.path.join(os.path.dirname(__file__), 'user-uploads'))
+
+def _bg_path():
+    return os.path.join(_BG_DIR, f'home-bg-{g.user_id}.jpg') if hasattr(g, 'user_id') else os.path.join(_BG_DIR, 'home-bg.jpg')
+
+# Public image serving (no auth needed for browser image loads)
+@app.route('/bg/<int:user_id>.jpg')
+def serve_bg(user_id):
+    bp = os.path.join(_BG_DIR, f'home-bg-{user_id}.jpg')
+    if os.path.exists(bp):
+        return send_file(bp, mimetype='image/jpeg')
+    return '', 404
+
+@app.route('/api/settings/background', methods=['GET'])
+@login_required
+def api_get_background():
+    bp = _bg_path()
+    if os.path.exists(bp):
+        return jsonify({'url': f'/bg/{g.user_id}.jpg'})
+    return jsonify({'url': None})
 
 @app.route('/api/settings/background', methods=['POST'])
 @login_required
@@ -554,29 +574,22 @@ def api_upload_background():
     ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
     if ext not in ALLOWED_BG_EXT:
         return jsonify({'status': 'error', 'message': f'仅支持 {", ".join(ALLOWED_BG_EXT)} 格式'}), 400
-    # check size
     f.seek(0, 2)
     size = f.tell()
     f.seek(0)
     if size > MAX_BG_SIZE:
-        return jsonify({'status': 'error', 'message': f'文件最大 5MB'}), 400
-    os.makedirs(IMG_DIR, exist_ok=True)
-    save_path = os.path.join(IMG_DIR, 'home-bg.jpg')
+        return jsonify({'status': 'error', 'message': '文件最大 5MB'}), 400
+    os.makedirs(_BG_DIR, exist_ok=True)
+    save_path = _bg_path()
     f.save(save_path)
-    return jsonify({'status': 'ok'})
+    return jsonify({'status': 'ok', 'url': f'/bg/{g.user_id}.jpg'})
 
 @app.route('/api/settings/background', methods=['DELETE'])
 @login_required
 def api_reset_background():
-    save_path = os.path.join(IMG_DIR, 'home-bg.jpg')
-    # Remove uploaded image
+    save_path = _bg_path()
     if os.path.exists(save_path):
         os.remove(save_path)
-    # Restore default bg
-    default_bg = os.path.join(IMG_DIR, 'bg.jpg')
-    if os.path.exists(default_bg):
-        import shutil
-        shutil.copy(default_bg, save_path)
     return jsonify({'status': 'ok'})
 
 @app.route('/api/partners/<int:id>', methods=['PUT'])
