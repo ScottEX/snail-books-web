@@ -77,12 +77,12 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       <View style={st.dateRow}>
         <View style={st.dateItem}>
           <Text style={st.dateLabel}>{t('reconDate')}</Text>
-          <Text style={st.dateVal}>{fmtDateTime(r.created_at)}</Text>
+          <Text style={st.dateVal}>{fmtDate(r.date)}</Text>
         </View>
         <View style={st.dateSep} />
         <View style={st.dateItem}>
           <Text style={st.dateLabel}>{t('billDate')}</Text>
-          <Text style={st.dateVal}>{fmtDate(r.date)}</Text>
+          <Text style={st.dateVal}>{fmtDate(r.bill_date || r.date)}</Text>
         </View>
       </View>
       {/* Row 2: 3 vertical pair columns */}
@@ -142,8 +142,8 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           {/* Header */}
           <View style={st.modalHeader}>
             <View>
-              <Text style={st.modalDate}>{t('reconDate')}: {fmtDateTime(r.created_at)}</Text>
-              <Text style={st.modalDateSub}>{t('billDate')}: {fmtDate(r.date)}</Text>
+              <Text style={st.modalDate}>{t('reconDate')}: {fmtDate(r.date)}</Text>
+              <Text style={st.modalDateSub}>{t('billDate')}: {fmtDate(r.bill_date || r.date)}</Text>
             </View>
             <TouchableOpacity onPress={() => setSelected(null)} activeOpacity={0.6}>
               <Text style={st.modalClose}>{'\u2715'}</Text>

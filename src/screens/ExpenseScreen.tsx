@@ -223,8 +223,10 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
     try {
+      const today = new Date().toISOString().slice(0, 10); // 对账日期 = 今天
       await api.createReconciliation({
-        date: recDate,
+        date: today,
+        bill_date: recDate,
         card_balance: toNum(cardBalance),
         cash_balance: toNum(cashBalance),
         dine_in: toNum(dineIn),
