@@ -340,7 +340,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           <TouchableOpacity
             key={id}
             style={[styles.navItem, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navItemActive]}
-            onPress={() => setTab(id as Tab)}
+            onPress={() => { setTab(id as Tab); setShowReconHistory(false); }}
           >
             <Icon active={id === 'partner' ? tab === 'partner' : tab === id} />
           </TouchableOpacity>
