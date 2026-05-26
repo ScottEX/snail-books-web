@@ -2,11 +2,15 @@ import { useEffect, useRef } from 'react';
 
 export function useIdleTimeout(onTimeout: () => void, minutes = 120) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cbRef = useRef(onTimeout);
+  cbRef.current = onTimeout; // always track latest callback
 
   useEffect(() => {
+    const fire = () => cbRef.current();
+
     const reset = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(onTimeout, minutes * 60_000);
+      timerRef.current = setTimeout(fire, minutes * 60_000);
     };
 
     // Reset on any user interaction
@@ -19,5 +23,5 @@ export function useIdleTimeout(onTimeout: () => void, minutes = 120) {
       if (timerRef.current) clearTimeout(timerRef.current);
       events.forEach((e) => window.removeEventListener(e, reset));
     };
-  }, [onTimeout, minutes]);
+  }, [minutes]); // only re-bind when minutes change
 }
