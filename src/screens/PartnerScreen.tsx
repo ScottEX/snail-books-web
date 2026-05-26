@@ -90,8 +90,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const calcPreview = (total: number) => {
     setDivPreview(partners.map((p: any) => ({
       name: p.name,
-      share: (partnerShare[p.name] || 0.33) * 100,
-      amount: parseFloat((total * (partnerShare[p.name] || 0.33)).toFixed(2)),
+      share: (partnerShare[p.name] ?? 0.33) * 100,
+      amount: parseFloat((total * (partnerShare[p.name] ?? 0.33)).toFixed(2)),
     })));
   };
 
@@ -100,23 +100,29 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const amt = parseFloat(divAmount);
     const items = partners.map((p: any) => ({
       partner: p.name,
-      amount: parseFloat((amt * (partnerShare[p.name] || 0.33)).toFixed(2)),
+      amount: parseFloat((amt * (partnerShare[p.name] ?? 0.33)).toFixed(2)),
       note: divNote || `第${groupKeys.length + 1}次分红`,
     }));
-    await api.createDividend({ items });
-    setShowDividend(false);
-    setDivAmount(''); setDivNote(''); setDivPreview([]);
-    loadData();
+    try {
+      await api.createDividend({ items });
+      setShowDividend(false);
+      setDivAmount(''); setDivNote(''); setDivPreview([]);
+      loadData();
+    } catch {
+      setToast(t('toastSubmitFailed'));
+    }
   };
 
   const handleDelete = async () => {
     if (showDelete === null) return;
-    // find all dividends matching this note and delete by ID
     const toDelete = dividends.filter((d: any) => d.note === showDelete);
+    let failed = 0;
     for (const d of toDelete) {
-      await api.deleteDividend(d.id);
+      try { await api.deleteDividend(d.id); }
+      catch { failed++; }
     }
     setShowDelete(null);
+    if (failed > 0) setToast(t('toastSubmitFailed'));
     loadData();
   };
 
@@ -132,7 +138,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     Object.entries(grouped).forEach(([note, items]) => {
       items.forEach((d: any) => {
         if (d.partner === name && d.amount > 0)
-          history.push({ note: translateDividendNote(note || d.note), amount: d.amount });
+          history.push({ note: translateDividendNote(note), amount: d.amount });
       });
     });
     return history;
@@ -200,10 +206,10 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           {/* ====== PARTNER CARDS ====== */}
           <View style={s.partnerGrid}>
             {partners.map((p: any) => {
-              const initInv = initCapital[p.name] || 42900;
+              const initInv = initCapital[p.name] ?? 42900;
               const midInv = p.investment - initInv;
               const pct = p.investment > 0 ? (p.total_dividends / p.investment * 100).toFixed(0) : 0;
-              const rem = p.investment - p.total_dividends;
+              const rem = Math.max(0, p.investment - p.total_dividends);
               const isBack = p.total_dividends >= p.investment;
               return (
                 <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => setShowDetail(p)}>
@@ -324,7 +330,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
                 {(divPreview.length > 0 ? divPreview : partners.map((p: any) => ({
                   name: p.name,
-                  share: (partnerShare[p.name] || 0.33) * 100,
+                  share: (partnerShare[p.name] ?? 0.33) * 100,
                   amount: 0,
                 }))).map((item: any) => (
                   <View key={item.name} style={moBody.previewRow}>
@@ -655,7 +661,7 @@ const moBody = StyleSheet.create({
 
 const ds = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  cell: { width: '47%' as any, borderRadius: 12, padding: 12 },
+  cell: { flex: 1, minWidth: '45%', borderRadius: 12, padding: 12 },
   cellLabel: { fontSize: 10, fontWeight: '500', color: '#9CA3AF' },
   cellNum: { fontSize: 14, fontWeight: '700', color: '#111827', marginTop: 2 },
   cellNumSmall: { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 2 },
