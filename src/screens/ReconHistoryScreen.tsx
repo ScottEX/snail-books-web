@@ -317,7 +317,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={200}
-        contentContainerStyle={{ paddingTop: 8 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 248 : 56 }}>
         {loading ? (
           <Text style={st.loading}>{t('loading')}</Text>
         ) : records.length === 0 ? (
@@ -350,7 +350,16 @@ const st = StyleSheet.create({
     boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
   },
   backFloatArrow: { fontSize: 22, fontWeight: '400', color: '#8B1E22', marginTop: -1, marginLeft: -1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 16 },
+  /* Frosted glass header — iOS 26 style */
+  header: {
+    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 14, paddingHorizontal: 16,
+    backgroundColor: 'rgba(250,250,250,0.72)',
+    // @ts-ignore
+    backdropFilter: 'saturate(180%) blur(20px)',
+    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)',
+  },
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
   list: { flex: 1, paddingHorizontal: 12 },
   loading: { textAlign: 'center', marginTop: 40, fontSize: 14, color: '#999' },
@@ -441,7 +450,7 @@ const st = StyleSheet.create({
   filterBtnText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
   filterBtnTextActive: { color: '#FFFFFF' },
   filterPanel: {
-    marginHorizontal: 12, marginBottom: 8,
+    position: 'absolute', top: 50, left: 12, right: 12, zIndex: 89,
     backgroundColor: '#FAFAFA', borderRadius: 10,
     borderWidth: 1, borderColor: '#EBEBEB',
     overflow: 'hidden',
