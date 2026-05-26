@@ -164,31 +164,49 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
     try {
       const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
       const d = saved[recDate];
-      setCardBalance(d?.card || '');
-      setCashBalance(d?.cash || '');
-      setDineIn(d?.dineIn || '');
-      setMeituan(d?.meituan || '');
-      setFlashSale(d?.flashSale || '');
-      setTuan(d?.tuan || '');
-      setJd(d?.jd || '');
+      if (d) {
+        setCardBalance(d?.card || '');
+        setCashBalance(d?.cash || '');
+        setDineIn(d?.dineIn || '');
+        setMeituan(d?.meituan || '');
+        setFlashSale(d?.flashSale || '');
+        setTuan(d?.tuan || '');
+        setJd(d?.jd || '');
+      }
     } catch { setToast(t('toastLoadFailed')); }
   }, [recDate]);
 
-  // Pre-fill with last reconciliation data on mount
+  // Pre-fill with last reconciliation data on mount (also save to localStorage)
   useEffect(() => {
     (async () => {
       try {
         const data = await api.getReconciliations(1);
         if (data && data.length > 0) {
           const last = data[0];
-          setRecDate(last.date || yesterdayStr());
-          setCardBalance(String(last.card_balance || ''));
-          setCashBalance(String(last.cash_balance || ''));
-          setDineIn(String(last.dine_in || ''));
-          setMeituan(String(last.meituan || ''));
-          setFlashSale(String(last.flash_sale || ''));
-          setTuan(String(last.tuan || ''));
-          setJd(String(last.jd || ''));
+          const d = last.date || yesterdayStr();
+          const vals = {
+            card: String(last.card_balance || ''),
+            cash: String(last.cash_balance || ''),
+            dineIn: String(last.dine_in || ''),
+            meituan: String(last.meituan || ''),
+            flashSale: String(last.flash_sale || ''),
+            tuan: String(last.tuan || ''),
+            jd: String(last.jd || ''),
+          };
+          // Save to localStorage so next render picks it up
+          try {
+            const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
+            saved[d] = vals;
+            localStorage.setItem('expense-rec', JSON.stringify(saved));
+          } catch {}
+          setRecDate(d);
+          setCardBalance(vals.card);
+          setCashBalance(vals.cash);
+          setDineIn(vals.dineIn);
+          setMeituan(vals.meituan);
+          setFlashSale(vals.flashSale);
+          setTuan(vals.tuan);
+          setJd(vals.jd);
         }
       } catch { /* ignore */ }
     })();
