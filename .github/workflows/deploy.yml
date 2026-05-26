@@ -29,7 +29,10 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:web
-      - name: 部署前端 dist
+      # Bundle app.py into dist so SCP deploys it with frontend
+      - name: Bundle app.py into dist
+        run: cp app.py dist/app.py
+      - name: 部署到测试服务器
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -38,26 +41,23 @@ jobs:
           source: dist/
           target: /opt/snail-books-web-staging/
           strip_components: 0
-      - name: Encode app.py
-        run: |
-          echo "APP_B64=$(base64 -w0 app.py)" >> $GITHUB_ENV
-      - name: 部署后端 app.py + 强杀重启
+      - name: 移动 app.py 到正确位置
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          envs: APP_B64
           script: |
-            echo "$APP_B64" | base64 -d > /opt/snail-books-web-staging/app.py
-            echo "✅ app.py written ($(wc -c < /opt/snail-books-web-staging/app.py) bytes)"
-            head -5 /opt/snail-books-web-staging/app.py
-            echo "--- Killing gunicorn ---"
-            pkill -f gunicorn || true
-            sleep 2
-            systemctl restart snail-books-staging
-            sleep 2
-            systemctl is-active snail-books-staging
+            cp /opt/snail-books-web-staging/dist/app.py /opt/snail-books-web-staging/app.py
+            rm /opt/snail-books-web-staging/dist/app.py
+            echo "✅ app.py moved ($(wc -c < /opt/snail-books-web-staging/app.py) bytes)"
+      - name: 重启测试服务
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: systemctl restart snail-books-staging
 
   deploy-production:
     needs: test
@@ -71,7 +71,9 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:web
-      - name: 部署前端 dist
+      - name: Bundle app.py into dist
+        run: cp app.py dist/app.py
+      - name: 部署到生产服务器
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -80,21 +82,20 @@ jobs:
           source: dist/
           target: /opt/snail-books-web/
           strip_components: 0
-      - name: Encode app.py
-        run: |
-          echo "APP_B64=$(base64 -w0 app.py)" >> $GITHUB_ENV
-      - name: 部署后端 app.py + 强杀重启
+      - name: 移动 app.py 到正确位置
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          envs: APP_B64
           script: |
-            echo "$APP_B64" | base64 -d > /opt/snail-books-web/app.py
-            echo "✅ app.py written ($(wc -c < /opt/snail-books-web/app.py) bytes)"
-            pkill -f gunicorn || true
-            sleep 2
-            systemctl restart snail-books
-            sleep 2
-            systemctl is-active snail-books
+            cp /opt/snail-books-web/dist/app.py /opt/snail-books-web/app.py
+            rm /opt/snail-books-web/dist/app.py
+            echo "✅ app.py moved"
+      - name: 重启生产服务
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: systemctl restart snail-books
