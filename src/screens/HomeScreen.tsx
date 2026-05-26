@@ -40,7 +40,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [toast, setToast] = useState('');
   const [bgVersion, setBgVersion] = useState(0);
   const [bgImage, setBgImage] = useState('/img/bg.jpg');
-  const [userId, setUserId] = useState<string | null>(null);
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
       const saved = localStorage.getItem('bg-opacity');
@@ -68,15 +67,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   // Load background image — user-specific
   useEffect(() => {
-    const uid = localStorage.getItem('user_id');
-    if (uid) {
-      setUserId(uid);
-      api.getBackground().then((r: any) => {
-        if (r?.has_custom) {
-          setBgImage(`/img/home-bg-${uid}.jpg`);
-        }
-      }).catch(() => {});
-    }
+    api.getBackground().then((r: any) => {
+      if (r?.url) setBgImage(r.url);
+    }).catch(() => {});
   }, []);
 
   const loadChart = async () => {
@@ -124,7 +117,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setUploadingBg(true);
     try {
       await api.uploadBackground(file);
-      setBgImage(`/img/home-bg-${userId}.jpg`);
+      const r = await api.getBackground();
+      if (r?.url) setBgImage(r.url);
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
@@ -134,7 +128,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setUploadingBg(true);
     try {
       await api.resetBackground();
-      setBgImage('/img/bg.jpg');
+      const r = await api.getBackground();
+      if (r?.url) setBgImage(r.url);
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
