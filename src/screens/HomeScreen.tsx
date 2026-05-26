@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 
 import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
+import Toast from '../components/Toast';
 import PartnerScreen from './PartnerScreen';
 import ExpenseScreen from './ExpenseScreen';
 
@@ -27,6 +28,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
+  const [toast, setToast] = useState('');
   const [bgVersion, setBgVersion] = useState(0);
   const [bgImage, setBgImage] = useState('/static/home-bg.jpg');
   const [bgOpacity, setBgOpacity] = useState(() => {
@@ -49,21 +51,21 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       setTransactions(tx.transactions || []);
       setPages(tx.pages || 1);
       setPage(1);
-    } catch {}
+    } catch { setToast(t('toastLoadFailed')); }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   const loadChart = async () => {
-    try { const d = await api.getChart(); setChart(d || []); } catch {}
+    try { const d = await api.getChart(); setChart(d || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
   const loadProducts = async () => {
-    try { const p = await api.getProducts(); setProducts(p || []); } catch {}
+    try { const p = await api.getProducts(); setProducts(p || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
   const loadProcurements = async () => {
-    try { const p = await api.getProcurements(); setProcurements(p || []); } catch {}
+    try { const p = await api.getProcurements(); setProcurements(p || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
   useEffect(() => {
@@ -327,6 +329,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         style={{ display: 'none' }}
         onChange={handleBgUpload}
       />
+      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
   );
 }

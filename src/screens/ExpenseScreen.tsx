@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
+import Toast from '../components/Toast';
 
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -144,6 +145,7 @@ export default function ExpenseScreen() {
 
   /* ── 模块一：对账 ── */
   const [recDate, setRecDate] = useState(todayStr());
+  const [toast, setToast] = useState('');
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
   const [dineIn, setDineIn] = useState('');
@@ -164,7 +166,7 @@ export default function ExpenseScreen() {
       setFlashSale(d?.flashSale || '');
       setTuan(d?.tuan || '');
       setJd(d?.jd || '');
-    } catch {}
+    } catch { setToast(t('toastLoadFailed')); }
   }, [recDate]);
 
   const saveRec = useCallback(() => {
@@ -172,7 +174,7 @@ export default function ExpenseScreen() {
       const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
       saved[recDate] = { card: cardBalance, cash: cashBalance, dineIn, meituan, flashSale, tuan, jd };
       localStorage.setItem('expense-rec', JSON.stringify(saved));
-    } catch {}
+    } catch { setToast(t('toastSubmitFailed')); }
   }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd]);
 
   const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
@@ -189,7 +191,7 @@ export default function ExpenseScreen() {
       setRevenueData({ todayRevenue: s.income || 0, todayActual: s.income || 0 });
       const tx = await api.getTransactions(1);
       setRevenueList((tx.transactions || []).filter((t: any) => t.type === 'income').slice(0, 20));
-    } catch {}
+    } catch { setToast(t('toastLoadFailed')); }
   };
   useEffect(() => { loadRevenue(); }, []);
 
@@ -204,7 +206,7 @@ export default function ExpenseScreen() {
     try {
       const tx = await api.getTransactions(1);
       setExpenses((tx.transactions || []).filter((t: any) => t.type === 'expense'));
-    } catch {}
+    } catch { setToast(t('toastLoadFailed')); }
   };
   useEffect(() => { loadExpenses(); }, []);
 
@@ -222,7 +224,7 @@ export default function ExpenseScreen() {
       setExpAmount('');
       setExpNote('');
       await loadExpenses();
-    } catch {}
+    } catch { setToast(t('toastSubmitFailed')); }
     setLoadingExp(false);
   };
 
@@ -518,6 +520,7 @@ export default function ExpenseScreen() {
           </View>
         </View>
       )}
+      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
   );
 }

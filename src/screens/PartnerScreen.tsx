@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 
 import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
+import Toast from '../components/Toast';
 
 const partnerShare: Record<string, number> = { '张安武': 0.34, '江宽': 0.33, '蓝柳富': 0.33 };
 const initCapital: Record<string, number> = { '张安武': 44200, '江宽': 42900, '蓝柳富': 42900 };
@@ -64,6 +65,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [filter, setFilter] = useState('all');
   const [lang, setLangState] = useState(getLang());
 
+  const [toast, setToast] = useState('');
+
   const loadData = async () => {
     try {
       const p = await api.getPartners();
@@ -71,7 +74,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       const d = await api.getDividends();
       setDividends(d || []);
       setTotalDiv((d || []).reduce((s: number, x: any) => s + x.amount, 0));
-    } catch {}
+    } catch { setToast(t('toastLoadFailed')); }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -488,6 +491,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           </View>
         </ModalOverlay>
       )}
+      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
   );
 }

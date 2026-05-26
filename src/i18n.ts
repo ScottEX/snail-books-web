@@ -170,6 +170,9 @@ const I18N: Record<string, Record<string, string>> = {
     confirm: '确认',
     currentBalance: '当前结余',
     bookDiff: '账面差额',
+    // Toast messages
+    toastLoadFailed: '数据加载失败',
+    toastSubmitFailed: '提交失败，请重试',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -335,6 +338,9 @@ const I18N: Record<string, Record<string, string>> = {
     confirm: '確認',
     currentBalance: '當前結餘',
     bookDiff: '賬面差額',
+    // Toast messages
+    toastLoadFailed: '資料載入失敗',
+    toastSubmitFailed: '提交失敗，請重試',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -500,6 +506,9 @@ const I18N: Record<string, Record<string, string>> = {
     confirm: 'Confirm',
     currentBalance: 'Balance',
     bookDiff: 'Difference',
+    // Toast messages
+    toastLoadFailed: 'Failed to load data',
+    toastSubmitFailed: 'Submit failed, please retry',
   },
 };
 
