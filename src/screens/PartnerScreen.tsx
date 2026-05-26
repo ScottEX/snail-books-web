@@ -5,6 +5,8 @@ import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 
+// NOTE: 合伙人持股/初始投资/姓名映射硬编码。若后端合伙人变更（增减/改名），
+// 默认值（33%、42900）可能不准确。理想方案是从后端返回并缓存这些映射。
 const partnerShare: Record<string, number> = { '张安武': 0.34, '江宽': 0.33, '蓝柳富': 0.33 };
 const initCapital: Record<string, number> = { '张安武': 44200, '江宽': 42900, '蓝柳富': 42900 };
 const nameMap: Record<string, string> = { '张安武': 'nameZhang', '江宽': 'nameJiang', '蓝柳富': 'nameLan' };
@@ -159,6 +161,13 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <Text style={s.engSub}>Lan's Luosifen · Partner Capital</Text>
                 </View>
               </View>
+              <View style={s.langRow}>
+                {langs.map(([l, label]) => (
+                  <TouchableOpacity key={l} onPress={() => switchLang(l)}>
+                    <Text style={[s.langBtn, lang === l && s.langActive]}>{label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
 
@@ -208,7 +217,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             {partners.map((p: any) => {
               const initInv = initCapital[p.name] ?? 42900;
               const midInv = p.investment - initInv;
-              const pct = p.investment > 0 ? (p.total_dividends / p.investment * 100).toFixed(0) : 0;
+              const pct = p.investment > 0 ? Number((p.total_dividends / p.investment * 100).toFixed(0)) : 0;
               const rem = Math.max(0, p.investment - p.total_dividends);
               const isBack = p.total_dividends >= p.investment;
               return (
@@ -661,7 +670,7 @@ const moBody = StyleSheet.create({
 
 const ds = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  cell: { flex: 1, minWidth: '45%', borderRadius: 12, padding: 12 },
+  cell: { flex: 1, flexBasis: '45%' as any, borderRadius: 12, padding: 12 },
   cellLabel: { fontSize: 10, fontWeight: '500', color: '#9CA3AF' },
   cellNum: { fontSize: 14, fontWeight: '700', color: '#111827', marginTop: 2 },
   cellNumSmall: { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 2 },
