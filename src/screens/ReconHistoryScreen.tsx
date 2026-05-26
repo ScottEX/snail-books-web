@@ -261,7 +261,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </TouchableOpacity>
       {/* Header */}
       <View style={st.header}>
-        <View style={{ width: 36 }} />
+        <View style={{ width: 44 }} />
         <Text style={st.title}>{t('reconHistory')}</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#6B7280'} strokeWidth={2} strokeLinecap="round">
@@ -445,7 +445,7 @@ const st = StyleSheet.create({
   emptyHint: { fontSize: 13, color: '#B0B0B0', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   /* Filter — ultra-minimal */
   filterBtn: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 44, height: 44, borderRadius: 22,
     justifyContent: 'center', alignItems: 'center',
     backgroundColor: 'rgba(250,250,250,0.55)',
     // @ts-ignore

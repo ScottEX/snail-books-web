@@ -333,21 +333,22 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           { id: 'chart', icon: NavIconChart },
           { id: 'partner', icon: NavIconPartner },
         ] as const).map(({ id, icon: Icon }, i) => (
-          <Animated.View key={id} style={{ flex: 1, transform: [{ scale: navScaleAnims[i] }] }}>
-            <TouchableOpacity
-              style={[styles.navItem, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navItemActive]}
-              onPress={() => {
-                Animated.sequence([
-                  Animated.spring(navScaleAnims[i], { toValue: 0.82, useNativeDriver: true, speed: 30, bounciness: 6 }),
-                  Animated.spring(navScaleAnims[i], { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 14 }),
-                ]).start();
-                setTab(id as Tab);
-                setShowReconHistory(false);
-              }}
-            >
+          <TouchableOpacity
+            key={id}
+            style={[styles.navItem, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navItemActive]}
+            onPress={() => {
+              Animated.sequence([
+                Animated.spring(navScaleAnims[i], { toValue: 0.85, useNativeDriver: false, speed: 30, bounciness: 6 }),
+                Animated.spring(navScaleAnims[i], { toValue: 1, useNativeDriver: false, speed: 20, bounciness: 14 }),
+              ]).start();
+              setTab(id as Tab);
+              setShowReconHistory(false);
+            }}
+          >
+            <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>
               <Icon active={id === 'partner' ? tab === 'partner' : tab === id} />
-            </TouchableOpacity>
-          </Animated.View>
+            </Animated.View>
+          </TouchableOpacity>
         ))}
       </View>
       {/* Hidden file input for background upload */}
