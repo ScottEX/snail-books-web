@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(255,255,255,0.20)',
+    backgroundColor: 'rgba(255,255,255,0.30)',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(180%) blur(24px)',
     borderBottomWidth: 0,
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     transform: 'translateX(-50%)',
     width: '80%',
     maxWidth: 420,
-    backgroundColor: 'rgba(255,255,255,0.20)',
+    backgroundColor: 'rgba(255,255,255,0.30)',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(180%) blur(24px)',
     borderRadius: 28,

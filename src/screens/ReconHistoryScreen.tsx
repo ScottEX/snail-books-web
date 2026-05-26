@@ -344,7 +344,7 @@ const st = StyleSheet.create({
   backFloat: {
     position: 'absolute', top: 10, left: 14,
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(250,250,250,0.55)',
+    backgroundColor: 'rgba(250,250,250,0.30)',
     justifyContent: 'center', alignItems: 'center', zIndex: 100,
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
@@ -444,7 +444,7 @@ const st = StyleSheet.create({
   filterBtn: {
     width: 44, height: 44, borderRadius: 22,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(250,250,250,0.55)',
+    backgroundColor: 'rgba(250,250,250,0.30)',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
