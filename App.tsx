@@ -11,7 +11,7 @@ export default function App() {
   useIdleTimeout(() => {
     localStorage.removeItem('user');
     window.location.href = '/login';
-  }, 120); // 2 hours
+  }, 2); // TEST: 2 minutes (change back to 120 for production)
 
   return (
     <>
