@@ -143,5 +143,5 @@ export const api = {
   getChart: () => authFetch('/api/chart'),
   getStats: () => authFetch('/api/stats'),
 
-  logout: () => fetch(API_BASE + '/logout').then(() => { localStorage.removeItem('user'); }),
+  logout: () => { if (idleTimer) clearTimeout(idleTimer); return fetch(API_BASE + '/logout').then(() => { localStorage.removeItem('user'); }); },
 };
