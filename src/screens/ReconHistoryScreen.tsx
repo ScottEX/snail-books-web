@@ -255,13 +255,13 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     <View style={st.root} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Toast */}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
-      {/* Back button */}
-      <TouchableOpacity style={st.backFloat} onPress={onBack} activeOpacity={0.7}>
-        <Text style={st.backFloatArrow}>{'\u2039'}</Text>
-      </TouchableOpacity>
       {/* Header */}
       <View style={st.header}>
-        <View style={{ width: 44 }} />
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+          <View style={st.backBtn}>
+            <Text style={st.backBtnArrow}>{'\u2039'}</Text>
+          </View>
+        </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')}</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#6B7280'} strokeWidth={2} strokeLinecap="round">
@@ -341,18 +341,15 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
 const st = StyleSheet.create({
   root: { flex: 1 },
-  backFloat: {
-    position: 'absolute', top: 10, left: 14,
+  backBtn: {
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: 'rgba(250,250,250,0.30)',
-    justifyContent: 'center', alignItems: 'center', zIndex: 100,
+    justifyContent: 'center', alignItems: 'center',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
-    // @ts-ignore
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
   },
-  backFloatArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
+  backBtnArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
   /* Frosted glass header — iOS 26 style */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
