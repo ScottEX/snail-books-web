@@ -40,6 +40,14 @@ INJECT_CSS = '''
     @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
 '''
 
+BOOT_JS = r'''<script>(function(){
+  if(window.Capacitor||navigator.userAgent.indexOf('Capacitor')!==-1){
+    if(!localStorage.getItem('api_base')){
+      localStorage.setItem('api_base','http://8.135.58.90:8600');
+    }
+  }
+})();</script>'''
+
 INJECT_HEAD = '''
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -53,7 +61,8 @@ INJECT_HEAD = '''
     </script>
 '''
 
-# Inject after <head> or before </head> based on position
+# Inject boot.js first (before React bundle, for Capacitor config)
+html = html.replace('<head>', '<head>\n' + BOOT_JS)
 # Insert Tailwind CDN right after <head>
 html = html.replace('<head>', '<head>\n' + INJECT_HEAD)
 # Insert custom CSS into the existing expo-reset style block, or add a new one

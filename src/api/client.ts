@@ -1,6 +1,20 @@
 import { getLang } from '../i18n';
 
-const API_BASE = '';
+function getApiBase(): string {
+  if (typeof localStorage !== 'undefined') {
+    const saved = localStorage.getItem('api_base');
+    if (saved) return saved;
+  }
+  if (
+    typeof window !== 'undefined' &&
+    ((window as any).Capacitor || navigator.userAgent.indexOf('Capacitor') !== -1)
+  ) {
+    return 'http://8.135.58.90:8600';
+  }
+  return '';
+}
+
+const API_BASE = getApiBase();
 
 function headers(): Record<string, string> {
   return {
