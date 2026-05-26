@@ -48,6 +48,14 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
   };
 
+  const fmtDateTime = (dt: string) => {
+    // dt is like "2026-05-26 09:13:45"
+    const d = dt ? new Date(dt.replace(' ', 'T') + '+08:00') : new Date();
+    const l = getLang();
+    if (l.startsWith('en')) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  };
+
   const fmtAmt = (n: number) => '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
   const fmtInt = (n: number) => '\u00A5' + n.toLocaleString();
 
@@ -65,10 +73,17 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   // Card: compact summary (tap to open detail modal)
   const renderCard = (r: any) => (
     <TouchableOpacity key={r.id} style={st.card} onPress={() => setSelected(r)} activeOpacity={0.7}>
-      {/* Row 1: date */}
+      {/* Row 1: two dates */}
       <View style={st.dateRow}>
-        <Text style={st.dateIcon}>{'\uD83D\uDCC5'}</Text>
-        <Text style={st.dateText}>{fmtDate(r.date)}</Text>
+        <View style={st.dateItem}>
+          <Text style={st.dateLabel}>{t('reconDate')}</Text>
+          <Text style={st.dateVal}>{fmtDateTime(r.created_at)}</Text>
+        </View>
+        <View style={st.dateSep} />
+        <View style={st.dateItem}>
+          <Text style={st.dateLabel}>{t('billDate')}</Text>
+          <Text style={st.dateVal}>{fmtDate(r.date)}</Text>
+        </View>
       </View>
       {/* Row 2: 3-column summary */}
       <View style={st.summaryRow}>
@@ -119,7 +134,10 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.modal}>
           {/* Header */}
           <View style={st.modalHeader}>
-            <Text style={st.modalDate}>{fmtDate(r.date)}</Text>
+            <View>
+              <Text style={st.modalDate}>{t('reconDate')}: {fmtDateTime(r.created_at)}</Text>
+              <Text style={st.modalDateSub}>{t('billDate')}: {fmtDate(r.date)}</Text>
+            </View>
             <TouchableOpacity onPress={() => setSelected(null)} activeOpacity={0.6}>
               <Text style={st.modalClose}>{'\u2715'}</Text>
             </TouchableOpacity>
@@ -256,9 +274,11 @@ const st = StyleSheet.create({
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 10,
   },
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
-  dateIcon: { fontSize: 14 },
-  dateText: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
+  dateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 8 },
+  dateItem: { flex: 1, alignItems: 'center' },
+  dateLabel: { fontSize: 9, color: '#B0B0B0', fontWeight: '500', marginBottom: 2 },
+  dateVal: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  dateSep: { width: 1, height: 24, backgroundColor: '#EBEBEB' },
   summaryRow: { flexDirection: 'row' },
   sumCol: { flex: 1, alignItems: 'center', gap: 2 },
   sumLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
@@ -291,6 +311,7 @@ const st = StyleSheet.create({
     paddingVertical: 12, paddingHorizontal: 18,
   },
   modalDate: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  modalDateSub: { fontSize: 12, fontWeight: '400', color: 'rgba(255,255,255,0.75)', marginTop: 2 },
   modalClose: { fontSize: 18, fontWeight: '400', color: '#FFFFFF', paddingLeft: 8 },
   /* Three vertical pairs */
   pairRow: {
