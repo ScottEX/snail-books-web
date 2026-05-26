@@ -722,7 +722,7 @@ const st = StyleSheet.create({
     fontSize: 15, fontWeight: '700', color: '#FFFFFF',
   },
   reconRecordBtn: {
-    flex: 1, backgroundColor: '#F3F4F6', borderRadius: 12,
+    flex: 1, backgroundColor: '#B3CFE5', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
     borderWidth: 1, borderColor: '#E5E7EB',
   },
