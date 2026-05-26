@@ -32,7 +32,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
   const [bgVersion, setBgVersion] = useState(0);
-  const [bgImage, setBgImage] = useState('/static/home-bg.jpg');
+  const [bgImage, setBgImage] = useState('/img/home-bg.jpg');
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
       const saved = localStorage.getItem('bg-opacity');
@@ -103,7 +103,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setUploadingBg(true);
     try {
       await api.uploadBackground(file);
-      setBgImage('/static/home-bg.jpg');
+      setBgImage('/img/home-bg.jpg');
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
@@ -113,7 +113,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setUploadingBg(true);
     try {
       await api.resetBackground();
-      setBgImage('/static/home-bg.jpg');
+      setBgImage('/img/home-bg.jpg');
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
