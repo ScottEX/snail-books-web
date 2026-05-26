@@ -38,6 +38,15 @@ jobs:
           source: dist/
           target: /opt/snail-books-web-staging/
           strip_components: 0
+      - name: 部署后端 app.py
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: app.py
+          target: /opt/snail-books-web-staging/
+          strip_components: 0
       - name: 重启测试服务
         uses: appleboy/ssh-action@v1.2.5
         with:
@@ -65,6 +74,15 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           source: dist/
+          target: /opt/snail-books-web/
+          strip_components: 0
+      - name: 部署后端 app.py (生产)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: app.py
           target: /opt/snail-books-web/
           strip_components: 0
       - name: 重启生产服务
