@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
@@ -38,6 +38,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [showReconHistory, setShowReconHistory] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
+  const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
   const [bgImage, setBgImage] = useState('/img/bg.jpg');
   const [bgOpacity, setBgOpacity] = useState(() => {
@@ -331,14 +332,22 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           { id: 'supply', icon: NavIconSupply },
           { id: 'chart', icon: NavIconChart },
           { id: 'partner', icon: NavIconPartner },
-        ] as const).map(({ id, icon: Icon }) => (
-          <TouchableOpacity
-            key={id}
-            style={[styles.navItem, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navItemActive]}
-            onPress={() => { setTab(id as Tab); setShowReconHistory(false); }}
-          >
-            <Icon active={id === 'partner' ? tab === 'partner' : tab === id} />
-          </TouchableOpacity>
+        ] as const).map(({ id, icon: Icon }, i) => (
+          <Animated.View key={id} style={{ flex: 1, transform: [{ scale: navScaleAnims[i] }] }}>
+            <TouchableOpacity
+              style={[styles.navItem, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navItemActive]}
+              onPress={() => {
+                Animated.sequence([
+                  Animated.spring(navScaleAnims[i], { toValue: 0.82, useNativeDriver: true, speed: 30, bounciness: 6 }),
+                  Animated.spring(navScaleAnims[i], { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 14 }),
+                ]).start();
+                setTab(id as Tab);
+                setShowReconHistory(false);
+              }}
+            >
+              <Icon active={id === 'partner' ? tab === 'partner' : tab === id} />
+            </TouchableOpacity>
+          </Animated.View>
         ))}
       </View>
       {/* Hidden file input for background upload */}

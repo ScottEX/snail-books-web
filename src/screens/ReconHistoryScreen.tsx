@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -260,10 +261,12 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </TouchableOpacity>
       {/* Header */}
       <View style={st.header}>
-        <View style={{ width: 44 }} />
+        <View style={{ width: 36 }} />
         <Text style={st.title}>{t('reconHistory')}</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
-          <Text style={[st.filterBtnText, showFilter && st.filterBtnTextActive]}>{t('filter')}</Text>
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#6B7280'} strokeWidth={2} strokeLinecap="round">
+            <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
+          </Svg>
         </TouchableOpacity>
       </View>
       {/* Filter bar */}
@@ -339,17 +342,17 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 const st = StyleSheet.create({
   root: { flex: 1 },
   backFloat: {
-    position: 'absolute', top: 14, left: 14,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(250,250,250,0.72)',
+    position: 'absolute', top: 10, left: 14,
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: 'rgba(250,250,250,0.55)',
     justifyContent: 'center', alignItems: 'center', zIndex: 100,
     // @ts-ignore
-    backdropFilter: 'saturate(180%) blur(20px)',
-    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
     // @ts-ignore
-    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
   },
-  backFloatArrow: { fontSize: 22, fontWeight: '400', color: '#8B1E22', marginTop: -1, marginLeft: -1 },
+  backFloatArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
   /* Frosted glass header — iOS 26 style */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
@@ -442,11 +445,14 @@ const st = StyleSheet.create({
   emptyHint: { fontSize: 13, color: '#B0B0B0', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   /* Filter — ultra-minimal */
   filterBtn: {
-    width: 44, height: 32, borderRadius: 8,
+    width: 36, height: 36, borderRadius: 18,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(250,250,250,0.55)',
+    // @ts-ignore
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
   },
-  filterBtnActive: { backgroundColor: '#8B1E22' },
+  filterBtnActive: { backgroundColor: '#8B1E22', borderColor: '#8B1E22' },
   filterBtnText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
   filterBtnTextActive: { color: '#FFFFFF' },
   filterPanel: {
