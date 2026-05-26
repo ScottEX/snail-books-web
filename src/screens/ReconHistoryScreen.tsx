@@ -87,16 +87,16 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </View>
       {/* Row 2: 3 vertical pair columns */}
       <View style={st.cardPairRow}>
-        {/* Col 1: 卡余额 / 账面余额 */}
+        {/* Col 1: 账面余额 / 卡余额 */}
         <View style={st.cardPairCol}>
-          <View style={st.cardPairItem}>
-            <Text style={st.cardPairLabel}>{t('cardBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmt(r.card_balance)}</Text>
-          </View>
-          <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookBalance')}</Text>
             <Text style={st.cardPairVal}>{fmtInt(r.channel_total)}</Text>
+          </View>
+          <View style={st.cardPairDiv} />
+          <View style={st.cardPairItem}>
+            <Text style={st.cardPairLabel}>{t('cardBalance')}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.card_balance)}</Text>
           </View>
         </View>
         {/* Col 2: 当前结余 / 现金 */}
@@ -151,16 +151,16 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           </View>
           {/* Three vertical pair groups */}
           <View style={st.pairRow}>
-            {/* Group 1: 卡余额 / 账面余额 */}
+            {/* Group 1: 账面余额 / 卡余额 */}
             <View style={st.pairCol}>
-              <View style={st.pairItem}>
-                <Text style={st.pairLabel}>{t('cardBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmt(r.card_balance)}</Text>
-              </View>
-              <View style={st.pairDivider} />
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('bookBalance')}</Text>
                 <Text style={st.pairVal}>{fmtAmt(r.channel_total)}</Text>
+              </View>
+              <View style={st.pairDivider} />
+              <View style={st.pairItem}>
+                <Text style={st.pairLabel}>{t('cardBalance')}</Text>
+                <Text style={st.pairVal}>{fmtAmt(r.card_balance)}</Text>
               </View>
             </View>
             {/* Group 2: 当前结余 / 现金 */}
@@ -309,6 +309,8 @@ const st = StyleSheet.create({
     overflow: 'hidden',
     // @ts-ignore
     boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
+    // @ts-ignore
+    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
   },
   modalHeader: {
     backgroundColor: '#8B1E22',
