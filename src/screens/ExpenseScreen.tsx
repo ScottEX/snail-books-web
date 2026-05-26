@@ -391,13 +391,15 @@ export default function ExpenseScreen() {
               </View>
             </View>
 
-            {/* 添加 */}
-            <TouchableOpacity style={st.reconBtn} onPress={() => setShowToast(true)} activeOpacity={0.8}>
-              <Text style={st.reconBtnText}>{t('addBtn')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={st.reconRecordBtn} onPress={() => setToast(t('reconHistory'))} activeOpacity={0.8}>
-              <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
-            </TouchableOpacity>
+            {/* 按钮行：对账记录(左) + 添加(右) */}
+            <View style={st.btnRow}>
+              <TouchableOpacity style={st.reconRecordBtn} onPress={() => setToast(t('reconHistory'))} activeOpacity={0.8}>
+                <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={st.reconBtn} onPress={() => setShowToast(true)} activeOpacity={0.8}>
+                <Text style={st.reconBtnText}>{t('addBtn')}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </FadeInView>
         )}
@@ -708,19 +710,20 @@ const st = StyleSheet.create({
   resultLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', marginBottom: 4 },
   resultVal: { fontSize: 17, fontWeight: '700', color: '#374151' },
   resultDiff: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  /* ── Recon button ── */
+  /* ── Recon buttons ── */
+  btnRow: {
+    flexDirection: 'row', gap: 10, marginTop: 4,
+  },
   reconBtn: {
-    backgroundColor: '#FA855A', borderRadius: 12,
+    flex: 1, backgroundColor: '#FA855A', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
-    marginTop: 4,
   },
   reconBtnText: {
     fontSize: 15, fontWeight: '700', color: '#FFFFFF',
   },
   reconRecordBtn: {
-    backgroundColor: '#F3F4F6', borderRadius: 12,
-    paddingVertical: 12, alignItems: 'center',
-    marginTop: 8,
+    flex: 1, backgroundColor: '#F3F4F6', borderRadius: 12,
+    paddingVertical: 14, alignItems: 'center',
     borderWidth: 1, borderColor: '#E5E7EB',
   },
   reconRecordBtnText: {
