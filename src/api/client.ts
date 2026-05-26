@@ -93,6 +93,7 @@ export const api = {
   deleteDividendByNote: (note: string) => authFetch('/api/dividends/delete', { method: 'POST', body: JSON.stringify({ note }) }),
 
   // Background image
+  getBackground: () => authFetch('/api/settings/background'),
   uploadBackground: async (file: File) => {
     const form = new FormData();
     form.append('file', file);

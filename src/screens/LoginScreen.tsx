@@ -61,6 +61,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       if (r.token && typeof localStorage !== 'undefined') localStorage.setItem('token', r.token);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('user', r.username || username);
+        localStorage.setItem('user_id', String(r.user_id || ''));
         localStorage.setItem('saved_login', username);
       }
       onLogin();
