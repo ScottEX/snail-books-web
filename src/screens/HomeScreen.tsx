@@ -113,7 +113,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setUploadingBg(true);
     try {
       await api.resetBackground();
-      setBgImage('/static/bg.jpg');
+      setBgImage('/static/home-bg.jpg');
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
