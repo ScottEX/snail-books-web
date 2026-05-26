@@ -48,9 +48,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            cp /opt/snail-books-web-staging/dist/app.py /opt/snail-books-web-staging/app.py
+            cp /opt/snail-books-web-staging/dist/app.py /opt/snail-books-backend-staging/app.py
             rm /opt/snail-books-web-staging/dist/app.py
-            echo "✅ app.py moved ($(wc -c < /opt/snail-books-web-staging/app.py) bytes)"
+            echo "✅ app.py → /opt/snail-books-backend-staging/ ($(wc -c < /opt/snail-books-backend-staging/app.py) bytes)"
       - name: 重启测试服务
         uses: appleboy/ssh-action@v1.2.5
         with:
@@ -89,9 +89,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            cp /opt/snail-books-web/dist/app.py /opt/snail-books-web/app.py
+            cp /opt/snail-books-web/dist/app.py /opt/snail-books-backend/app.py
             rm /opt/snail-books-web/dist/app.py
-            echo "✅ app.py moved"
+            echo "✅ app.py → /opt/snail-books-backend/"
       - name: 重启生产服务
         uses: appleboy/ssh-action@v1.2.5
         with:
