@@ -48,16 +48,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
   };
 
-  const fmtDateTime = (dt: string) => {
-    // dt is like "2026-05-26 09:13:45"
-    const d = dt ? new Date(dt.replace(' ', 'T') + '+08:00') : new Date();
-    const l = getLang();
-    if (l.startsWith('en')) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
-  };
-
   const fmtAmt = (n: number) => '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
-  const fmtInt = (n: number) => '\u00A5' + n.toLocaleString();
 
   const onTouchStart = (e: any) => {
     const t = e.nativeEvent?.touches?.[0] || e.nativeEvent;
@@ -91,7 +82,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtInt(r.channel_total)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.channel_total)}</Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
@@ -103,7 +94,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('currentBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtInt(r.real_total)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.real_total)}</Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
@@ -116,7 +107,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookDiff')}</Text>
             <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? '#059669' : '#DC2626' }]}>
-              {r.diff >= 0 ? '+' : ''}{fmtInt(Math.abs(r.diff))}
+              {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
             </Text>
           </View>
           <View style={st.cardPairDiv} />
