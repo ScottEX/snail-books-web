@@ -215,6 +215,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   const submitRecon = useCallback(async () => {
     try {
       const today = new Date().toISOString().slice(0, 10); // 对账日期 = 今天
+      const username = localStorage.getItem('user') || '';
       await api.createReconciliation({
         date: today,
         bill_date: recDate,
@@ -225,6 +226,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
         flash_sale: toNum(flashSale),
         jd: toNum(jd),
         tuan: toNum(tuan),
+        reconciled_by: username,
       });
       setToast(t('reconComplete'));
       onReconHistory?.();

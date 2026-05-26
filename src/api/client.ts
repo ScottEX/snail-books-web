@@ -111,7 +111,14 @@ export const api = {
   deleteProduct: (id: number) => authFetch(`/api/products?id=${id}`, { method: 'DELETE' }),
 
   createReconciliation: (data: any) => authFetch('/api/reconciliations', { method: 'POST', body: JSON.stringify(data) }),
-  getReconciliations: (limit = 30) => authFetch(`/api/reconciliations?limit=${limit}`),
+  getReconciliations: (limit = 30, filters?: Record<string, string>) => {
+    const params = new URLSearchParams();
+    params.append('limit', String(limit));
+    if (filters) {
+      Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v); });
+    }
+    return authFetch(`/api/reconciliations?${params}`);
+  },
 
   getProcurements: () => authFetch('/api/procurements'),
   createProcurement: (data: any) => authFetch('/api/procurements', { method: 'POST', body: JSON.stringify(data) }),

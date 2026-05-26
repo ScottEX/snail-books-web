@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -15,13 +15,37 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const touchRef = useRef({ startX: 0, startY: 0 });
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [showFilter, setShowFilter] = useState(false);
+  const [filBillFrom, setFilBillFrom] = useState('');
+  const [filBillTo, setFilBillTo] = useState('');
+  const [filDateFrom, setFilDateFrom] = useState('');
+  const [filDateTo, setFilDateTo] = useState('');
+  const [filBy, setFilBy] = useState('');
+
+  const buildFilters = useCallback(() => {
+    const f: Record<string, string> = {};
+    if (filBillFrom) f.bill_date_from = filBillFrom;
+    if (filBillTo) f.bill_date_to = filBillTo;
+    if (filDateFrom) f.date_from = filDateFrom;
+    if (filDateTo) f.date_to = filDateTo;
+    if (filBy) f.reconciled_by = filBy;
+    return f;
+  }, [filBillFrom, filBillTo, filDateFrom, filDateTo, filBy]);
+
+  const resetFilters = () => {
+    setFilBillFrom(''); setFilBillTo('');
+    setFilDateFrom(''); setFilDateTo('');
+    setFilBy('');
+  };
+
   const loadData = useCallback(async () => {
     try {
-      const data = await api.getReconciliations(0);
+      const filters = buildFilters();
+      const data = await api.getReconciliations(0, filters);
       setRecords(data || []);
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
-  }, []);
+  }, [buildFilters]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -76,6 +100,12 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           <Text style={st.dateVal}>{fmtDate(r.bill_date || r.date)}</Text>
         </View>
       </View>
+      {/* Reconciler */}
+      {r.reconciled_by ? (
+        <View style={st.reconByRow}>
+          <Text style={st.reconByText}>{t('reconciledBy')}: {r.reconciled_by}</Text>
+        </View>
+      ) : null}
       {/* Row 2: 3 vertical pair columns */}
       <View style={st.cardPairRow}>
         {/* Col 1: 账面余额 / 卡余额 */}
@@ -135,6 +165,9 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View>
               <Text style={st.modalDate}>{t('reconDate')}: {fmtDate(r.date)}</Text>
               <Text style={st.modalDateSub}>{t('billDate')}: {fmtDate(r.bill_date || r.date)}</Text>
+              {r.reconciled_by ? (
+                <Text style={st.modalDateSub}>{t('reconciledBy')}: {r.reconciled_by}</Text>
+              ) : null}
             </View>
             <TouchableOpacity onPress={() => setSelected(null)} activeOpacity={0.6}>
               <Text style={st.modalClose}>{'\u2715'}</Text>
@@ -219,10 +252,42 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </TouchableOpacity>
       {/* Header */}
       <View style={st.header}>
-        <View style={{ width: 44 }} />
+        <TouchableOpacity style={st.filterBtn} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
+          <Text style={st.filterBtnText}>{t('filter')}</Text>
+        </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')}</Text>
         <View style={{ width: 44 }} />
       </View>
+      {/* Filter bar */}
+      {showFilter && (
+        <View style={st.filterBar}>
+          <View style={st.filterRow}>
+            <Text style={st.filterLabel}>{t('billDate')}</Text>
+            <input type="date" value={filBillFrom} onChange={(e: any) => setFilBillFrom(e.target.value)}
+              style={st.filterInput as any} />
+            <Text style={st.filterSep}>-</Text>
+            <input type="date" value={filBillTo} onChange={(e: any) => setFilBillTo(e.target.value)}
+              style={st.filterInput as any} />
+          </View>
+          <View style={st.filterRow}>
+            <Text style={st.filterLabel}>{t('reconDate')}</Text>
+            <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
+              style={st.filterInput as any} />
+            <Text style={st.filterSep}>-</Text>
+            <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
+              style={st.filterInput as any} />
+          </View>
+          <View style={st.filterRow}>
+            <Text style={st.filterLabel}>{t('reconciledBy')}</Text>
+            <TextInput style={st.filterTextInput} value={filBy}
+              onChangeText={setFilBy} placeholder={t('reconciledBy')}
+              placeholderTextColor="#CCC" />
+            <TouchableOpacity style={st.filterReset} onPress={resetFilters} activeOpacity={0.7}>
+              <Text style={st.filterResetText}>{t('reset')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={200}
@@ -340,4 +405,42 @@ const st = StyleSheet.create({
   emptyEmoji: { fontSize: 30 },
   emptyTitle: { fontSize: 16, fontWeight: '500', color: '#6B7280' },
   emptyHint: { fontSize: 13, color: '#B0B0B0', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+  /* Filter bar */
+  filterBtn: {
+    width: 44, paddingVertical: 4, paddingHorizontal: 8,
+    borderRadius: 6, borderWidth: 1, borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  filterBtnText: { fontSize: 12, fontWeight: '500', color: '#6B7280' },
+  filterBar: {
+    marginHorizontal: 14, marginBottom: 8, padding: 12,
+    backgroundColor: '#FAF7F2', borderRadius: 12,
+    borderWidth: 1, borderColor: '#EBEBEB',
+    gap: 8,
+  },
+  filterRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+  },
+  filterLabel: { fontSize: 11, fontWeight: '600', color: '#6B7280', width: 56 },
+  filterSep: { fontSize: 13, color: '#B0B0B0' },
+  filterInput: {
+    flex: 1, fontSize: 12, fontWeight: '500', color: '#374151',
+    paddingVertical: 4, paddingHorizontal: 6,
+    backgroundColor: '#FFFFFF', borderRadius: 6, borderWidth: 1, borderColor: '#E5E7EB',
+    // @ts-ignore
+    outline: 'none',
+  },
+  filterTextInput: {
+    flex: 1, fontSize: 12, fontWeight: '500', color: '#374151',
+    paddingVertical: 6, paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF', borderRadius: 6, borderWidth: 1, borderColor: '#E5E7EB',
+  },
+  filterReset: {
+    paddingVertical: 6, paddingHorizontal: 12,
+    backgroundColor: '#E5E7EB', borderRadius: 6,
+  },
+  filterResetText: { fontSize: 11, fontWeight: '500', color: '#4B5563' },
+  /* Reconciler in card */
+  reconByRow: { alignItems: 'center', paddingBottom: 2 },
+  reconByText: { fontSize: 10, color: '#9CA3AF', fontWeight: '500' },
 });
