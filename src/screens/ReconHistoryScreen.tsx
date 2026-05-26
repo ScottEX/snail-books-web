@@ -85,38 +85,45 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           <Text style={st.dateVal}>{fmtDate(r.date)}</Text>
         </View>
       </View>
-      {/* Row 2: 3-column summary */}
-      <View style={st.summaryRow}>
-        <View style={st.sumCol}>
-          <Text style={st.sumLabel}>{t('bookBalance')}</Text>
-          <Text style={st.sumVal}>{fmtInt(r.channel_total)}</Text>
+      {/* Row 2: 3 vertical pair columns */}
+      <View style={st.pairRow}>
+        {/* Col 1: 卡余额 / 账面余额 */}
+        <View style={st.pairCol}>
+          <View style={st.pairItem}>
+            <Text style={st.pairLabel}>{t('cardBalance')}</Text>
+            <Text style={st.pairVal}>{fmtAmt(r.card_balance)}</Text>
+          </View>
+          <View style={st.pairDivider} />
+          <View style={st.pairItem}>
+            <Text style={st.pairLabel}>{t('bookBalance')}</Text>
+            <Text style={st.pairVal}>{fmtInt(r.channel_total)}</Text>
+          </View>
         </View>
-        <View style={st.sumCol}>
-          <Text style={st.sumLabel}>{t('currentBalance')}</Text>
-          <Text style={st.sumVal}>{fmtInt(r.real_total)}</Text>
+        {/* Col 2: 当前结余 / 现金 */}
+        <View style={st.pairCol}>
+          <View style={st.pairItem}>
+            <Text style={st.pairLabel}>{t('currentBalance')}</Text>
+            <Text style={st.pairVal}>{fmtInt(r.real_total)}</Text>
+          </View>
+          <View style={st.pairDivider} />
+          <View style={st.pairItem}>
+            <Text style={st.pairLabel}>{t('cashBalance')}</Text>
+            <Text style={st.pairVal}>{fmtAmt(r.cash_balance)}</Text>
+          </View>
         </View>
-        <View style={st.sumCol}>
-          <Text style={st.sumLabel}>{t('bookDiff')}</Text>
-          <Text style={[st.sumVal, { color: Math.abs(r.diff) < 0.005 ? '#059669' : '#DC2626' }]}>
-            {r.diff >= 0 ? '+' : ''}{fmtInt(Math.abs(r.diff))}
-          </Text>
-        </View>
-      </View>
-      {/* Divider */}
-      <View style={st.divider} />
-      {/* Row 3: card + cash + funds in transit */}
-      <View style={st.detailRow}>
-        <View style={st.detailCol}>
-          <Text style={st.detailLabel}>{t('cardBalance')}</Text>
-          <Text style={st.detailVal}>{fmtAmt(r.card_balance)}</Text>
-        </View>
-        <View style={st.detailCol}>
-          <Text style={st.detailLabel}>{t('cashBalance')}</Text>
-          <Text style={st.detailVal}>{fmtAmt(r.cash_balance)}</Text>
-        </View>
-        <View style={st.detailCol}>
-          <Text style={st.detailLabel}>{t('fundsInTransit')}</Text>
-          <Text style={st.detailVal}>{fmtAmt(r.channel_total)}</Text>
+        {/* Col 3: 账面差额 / 在途资金 */}
+        <View style={st.pairCol}>
+          <View style={st.pairItem}>
+            <Text style={st.pairLabel}>{t('bookDiff')}</Text>
+            <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? '#059669' : '#DC2626' }]}>
+              {r.diff >= 0 ? '+' : ''}{fmtInt(Math.abs(r.diff))}
+            </Text>
+          </View>
+          <View style={st.pairDivider} />
+          <View style={st.pairItem}>
+            <Text style={st.pairLabel}>{t('fundsInTransit')}</Text>
+            <Text style={st.pairVal}>{fmtAmt(r.channel_total)}</Text>
+          </View>
         </View>
       </View>
       {/* Tap hint */}
