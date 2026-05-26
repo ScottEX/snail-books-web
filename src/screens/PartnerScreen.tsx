@@ -420,7 +420,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 </View>
                 <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{(initCapital[showDetail.name] || 0).toLocaleString()}</Text>
+                  <Text style={ds.cellNumSmall}>¥{(initCapital[showDetail.name] ?? 42900).toLocaleString()}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
                   <Text style={ds.cellLabel}>{t('additional')}</Text>

@@ -323,8 +323,8 @@ with get_db() as db:
 
 # ── Validation helper ──
 def validate_required(data, *fields):
-    """Return list of missing field names; empty if all present."""
-    return [f for f in fields if not data.get(f)]
+    """Return list of missing field names; empty if all present. (0 is valid.)"""
+    return [f for f in fields if data.get(f) is None]
 
 # ====== Auth ======
 
@@ -501,8 +501,10 @@ def api_transactions():
 @login_required
 def api_delete_transaction(id):
     with get_db() as db:
-        db.execute('DELETE FROM transactions WHERE id=?', (id,))
+        cur = db.execute('DELETE FROM transactions WHERE id=?', (id,))
         db.commit()
+        if cur.rowcount == 0:
+            return jsonify({'status':'error','message': '记录不存在'}), 404
     return jsonify({'status':'ok'})
 
 @app.route('/api/partners')
@@ -522,6 +524,8 @@ def api_dividends():
             missing = validate_required(item, 'partner', 'amount')
             if missing:
                 return jsonify({'status':'error','message': _t('err_missing_fields', g.lang, fields=', '.join(missing))}), 400
+            if float(item['amount']) <= 0:
+                return jsonify({'status':'error','message': '分红金额必须大于0'}), 400
         with get_db() as db:
             for item in items:
                 db.execute('INSERT INTO dividends (partner,amount,note) VALUES (?,?,?)', (item['partner'], item['amount'], item.get('note','')))
@@ -535,8 +539,10 @@ def api_dividends():
 @login_required
 def api_delete_dividend(id):
     with get_db() as db:
-        db.execute('DELETE FROM dividends WHERE id=?', (id,))
+        cur = db.execute('DELETE FROM dividends WHERE id=?', (id,))
         db.commit()
+        if cur.rowcount == 0:
+            return jsonify({'status':'error','message': '记录不存在'}), 404
     return jsonify({'status':'ok'})
 
 # ========== 设置 - 首页背景图 ==========
@@ -630,8 +636,10 @@ def api_products():
     if request.method == 'DELETE':
         pid = request.args.get('id')
         with get_db() as db:
-            db.execute('DELETE FROM products WHERE id=?', (pid,))
+            cur = db.execute('DELETE FROM products WHERE id=?', (pid,))
             db.commit()
+            if cur.rowcount == 0:
+                return jsonify({'status':'error','message': '记录不存在'}), 404
         return jsonify({'status':'ok'})
     # GET
     with get_db() as db:
@@ -658,8 +666,10 @@ def api_procurements():
 @login_required
 def api_delete_procurement(id):
     with get_db() as db:
-        db.execute('DELETE FROM procurements WHERE id=?', (id,))
+        cur = db.execute('DELETE FROM procurements WHERE id=?', (id,))
         db.commit()
+        if cur.rowcount == 0:
+            return jsonify({'status':'error','message': '记录不存在'}), 404
     return jsonify({'status':'ok'})
 
 @app.route('/api/stats')
