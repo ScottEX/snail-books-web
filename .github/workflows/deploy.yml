@@ -41,7 +41,7 @@ jobs:
       - name: Encode app.py
         run: |
           echo "APP_B64=$(base64 -w0 app.py)" >> $GITHUB_ENV
-      - name: 部署后端 app.py
+      - name: 部署后端 app.py + 强杀重启
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -50,14 +50,14 @@ jobs:
           envs: APP_B64
           script: |
             echo "$APP_B64" | base64 -d > /opt/snail-books-web-staging/app.py
-            echo "✅ app.py deployed ($(wc -c < /opt/snail-books-web-staging/app.py) bytes)"
-      - name: 重启测试服务
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: systemctl restart snail-books-staging
+            echo "✅ app.py written ($(wc -c < /opt/snail-books-web-staging/app.py) bytes)"
+            head -5 /opt/snail-books-web-staging/app.py
+            echo "--- Killing gunicorn ---"
+            pkill -f gunicorn || true
+            sleep 2
+            systemctl restart snail-books-staging
+            sleep 2
+            systemctl is-active snail-books-staging
 
   deploy-production:
     needs: test
@@ -83,7 +83,7 @@ jobs:
       - name: Encode app.py
         run: |
           echo "APP_B64=$(base64 -w0 app.py)" >> $GITHUB_ENV
-      - name: 部署后端 app.py
+      - name: 部署后端 app.py + 强杀重启
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -92,11 +92,9 @@ jobs:
           envs: APP_B64
           script: |
             echo "$APP_B64" | base64 -d > /opt/snail-books-web/app.py
-            echo "✅ app.py deployed ($(wc -c < /opt/snail-books-web/app.py) bytes)"
-      - name: 重启生产服务
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: systemctl restart snail-books
+            echo "✅ app.py written ($(wc -c < /opt/snail-books-web/app.py) bytes)"
+            pkill -f gunicorn || true
+            sleep 2
+            systemctl restart snail-books
+            sleep 2
+            systemctl is-active snail-books
