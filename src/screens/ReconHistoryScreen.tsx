@@ -358,10 +358,7 @@ const st = StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: 'rgba(250,250,250,0.72)',
-    // @ts-ignore
-    backdropFilter: 'saturate(180%) blur(20px)',
-    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)',
+    backgroundColor: 'transparent',
   },
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
   list: { flex: 1, paddingHorizontal: 12 },
