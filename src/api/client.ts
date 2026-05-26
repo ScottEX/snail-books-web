@@ -17,15 +17,18 @@ function getApiBase(): string {
 const API_BASE = getApiBase();
 
 // ── Idle timeout: 2 hours no API call → redirect to login ──
-const IDLE_MINUTES = 2; // TEST: set to 120 for production
-let idleTimer: ReturnType<typeof setTimeout> | null = null;
+const IDLE_MS = 2 * 60_000; // TEST: 2 min (set to 120 * 60_000 for production)
+let lastActivity = Date.now();
 
-function resetIdleTimer() {
-  if (idleTimer) clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
+setInterval(() => {
+  if (Date.now() - lastActivity > IDLE_MS) {
     localStorage.removeItem('user');
     window.location.href = '/login';
-  }, IDLE_MINUTES * 60_000);
+  }
+}, 10_000); // check every 10s
+
+function bumpActivity() {
+  lastActivity = Date.now();
 }
 
 function headers(): Record<string, string> {
@@ -47,17 +50,19 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     }
     throw new Error('Unauthorized');
   }
-  resetIdleTimer(); // successful API call resets idle clock
+  bumpActivity();
   return resp.json();
 }
 
 export const api = {
-  login: (username: string, password: string) =>
-    fetch(API_BASE + '/login', {
+  login: (username: string, password: string) => {
+    bumpActivity(); // login also counts as activity
+    return fetch(API_BASE + '/login', {
       method: 'POST',
       headers: headers(),
       body: JSON.stringify({ username, password }),
-    }).then((r) => r.json()),
+    }).then((r) => r.json());
+  },
 
   register: (username: string, password: string, email: string) =>
     fetch(API_BASE + '/register', {
@@ -108,6 +113,7 @@ export const api = {
   // Background image
   getBackground: () => authFetch('/api/settings/background'),
   uploadBackground: async (file: File) => {
+    bumpActivity();
     const form = new FormData();
     form.append('file', file);
     const resp = await fetch('/api/settings/background', {
@@ -143,5 +149,5 @@ export const api = {
   getChart: () => authFetch('/api/chart'),
   getStats: () => authFetch('/api/stats'),
 
-  logout: () => { if (idleTimer) clearTimeout(idleTimer); return fetch(API_BASE + '/logout').then(() => { localStorage.removeItem('user'); }); },
+  logout: () => fetch(API_BASE + '/logout').then(() => { localStorage.removeItem('user'); }),
 };
