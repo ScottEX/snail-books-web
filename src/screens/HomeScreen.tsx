@@ -11,7 +11,14 @@ import ReconHistoryScreen from './ReconHistoryScreen';
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<Tab>('list');
+  const [tab, setTabState] = useState<Tab>(() => {
+    try { return (localStorage.getItem('active_tab') as Tab) || 'list'; }
+    catch { return 'list'; }
+  });
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    try { localStorage.setItem('active_tab', t); } catch {}
+  };
   const [summary, setSummary] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [page, setPage] = useState(1);
