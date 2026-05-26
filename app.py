@@ -32,7 +32,7 @@ def handle_options():
     if request.method == 'OPTIONS':
         return make_response('', 200)
 
-FRONTEND_VERSION = '1'
+FRONTEND_VERSION = '2'
 FRONTEND_DIR = os.environ.get('FRONTEND_DIR', os.path.join(os.path.dirname(__file__), '..', 'snail-books-web', 'dist'))
 IMG_DIR = os.path.join(FRONTEND_DIR, 'img')
 
