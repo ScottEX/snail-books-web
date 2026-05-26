@@ -11,6 +11,7 @@ const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionD
 const fmtInt = (n: number) => n.toLocaleString();
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const toNum = (s: string) => parseFloat(s) || 0;
+const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
 
 /* ═══════════════════════════════════════════════════════════
    NumberTicker — 数字从 0 平滑滚动到目标值
@@ -265,7 +266,7 @@ export default function ExpenseScreen() {
                     <View style={st.cardFields}>
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('fundsInTransit')}</Text>
+                          <Text style={st.cardFieldLabel}>{t('bookBalance')}</Text>
                           <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
@@ -274,7 +275,7 @@ export default function ExpenseScreen() {
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
-                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FDE8E8' }]}>{diff >= 0 ? '+' : ''}¥{fmtInt(Math.abs(diff))}</Text>
+                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FCA5A5' }]}>{diff >= 0 ? '+' : '-'}¥{fmtInt(Math.abs(diff))}</Text>
                         </View>
                       </View>
                     </View>
@@ -328,22 +329,22 @@ export default function ExpenseScreen() {
               <View style={st.inputGroup}>
                 <Text style={st.inputLabel}>{t('cardBalance')} 💳</Text>
                 <InputWithFocus inputStyle={st.input}
-                  value={cardBalance} onChangeText={setCardBalance}
+                  value={cardBalance} onChangeText={(v: string) => setCardBalance(blockNeg(v))}
                   onBlur={saveRec} keyboardType="decimal-pad"
                   placeholder="0.00" placeholderTextColor="#D1D5DB" />
               </View>
               <View style={st.inputGroup}>
                 <Text style={st.inputLabel}>{t('cashBalance')} 💴</Text>
                 <InputWithFocus inputStyle={st.input}
-                  value={cashBalance} onChangeText={setCashBalance}
+                  value={cashBalance} onChangeText={(v: string) => setCashBalance(blockNeg(v))}
                   onBlur={saveRec} keyboardType="decimal-pad"
                   placeholder="0.00" placeholderTextColor="#D1D5DB" />
               </View>
             </View>
 
-            {/* 渠道未到账 */}
+            {/* 在途资金 */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: '#6B7280' }}>{t('channelPending')}</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#6B7280' }}>{t('fundsInTransit')}</Text>
               <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#C93638' }} />
             </View>
             <View style={st.channelGrid}>
@@ -352,21 +353,21 @@ export default function ExpenseScreen() {
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('dineIn')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={dineIn} onChangeText={setDineIn}
+                    value={dineIn} onChangeText={(v: string) => setDineIn(blockNeg(v))}
                     onBlur={saveRec} keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('meituan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={meituan} onChangeText={setMeituan}
+                    value={meituan} onChangeText={(v: string) => setMeituan(blockNeg(v))}
                     onBlur={saveRec} keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('flashSale')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={flashSale} onChangeText={setFlashSale}
+                    value={flashSale} onChangeText={(v: string) => setFlashSale(blockNeg(v))}
                     onBlur={saveRec} keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
@@ -376,14 +377,14 @@ export default function ExpenseScreen() {
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('jd')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={jd} onChangeText={setJd}
+                    value={jd} onChangeText={(v: string) => setJd(blockNeg(v))}
                     onBlur={saveRec} keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('tuan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={tuan} onChangeText={setTuan}
+                    value={tuan} onChangeText={(v: string) => setTuan(blockNeg(v))}
                     onBlur={saveRec} keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
@@ -393,6 +394,9 @@ export default function ExpenseScreen() {
             {/* 添加 */}
             <TouchableOpacity style={st.reconBtn} onPress={() => setShowToast(true)} activeOpacity={0.8}>
               <Text style={st.reconBtnText}>{t('addBtn')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={st.reconRecordBtn} onPress={() => setToast(t('reconHistory'))} activeOpacity={0.8}>
+              <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
             </TouchableOpacity>
           </View>
         </FadeInView>
@@ -453,7 +457,7 @@ export default function ExpenseScreen() {
                 />
                 <View style={{ flex: 1 }}>
                   <InputWithFocus inputStyle={st.input}
-                    value={expAmount} onChangeText={setExpAmount}
+                    value={expAmount} onChangeText={(v: string) => setExpAmount(blockNeg(v))}
                     keyboardType="decimal-pad" placeholder={t('amount')}
                     placeholderTextColor="#D1D5DB" />
                 </View>
@@ -712,6 +716,15 @@ const st = StyleSheet.create({
   },
   reconBtnText: {
     fontSize: 15, fontWeight: '700', color: '#FFFFFF',
+  },
+  reconRecordBtn: {
+    backgroundColor: '#F3F4F6', borderRadius: 12,
+    paddingVertical: 12, alignItems: 'center',
+    marginTop: 8,
+    borderWidth: 1, borderColor: '#E5E7EB',
+  },
+  reconRecordBtnText: {
+    fontSize: 14, fontWeight: '600', color: '#4B5563',
   },
 
   /* ── KPI ── */

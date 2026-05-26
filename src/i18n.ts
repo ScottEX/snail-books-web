@@ -506,6 +506,7 @@ const I18N: Record<string, Record<string, string>> = {
     confirm: 'Confirm',
     currentBalance: 'Balance',
     bookDiff: 'Difference',
+    reconHistory: 'Recon History',
     // Toast messages
     toastLoadFailed: 'Failed to load data',
     toastSubmitFailed: 'Submit failed, please retry',
