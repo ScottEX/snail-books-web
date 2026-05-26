@@ -29,7 +29,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:web
-      - name: 部署到测试服务器
+      - name: 部署前端 dist
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -38,15 +38,19 @@ jobs:
           source: dist/
           target: /opt/snail-books-web-staging/
           strip_components: 0
+      - name: Encode app.py
+        run: |
+          echo "APP_B64=$(base64 -w0 app.py)" >> $GITHUB_ENV
       - name: 部署后端 app.py
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: app.py
-          target: /opt/snail-books-web-staging/
-          strip_components: 0
+          envs: APP_B64
+          script: |
+            echo "$APP_B64" | base64 -d > /opt/snail-books-web-staging/app.py
+            echo "✅ app.py deployed ($(wc -c < /opt/snail-books-web-staging/app.py) bytes)"
       - name: 重启测试服务
         uses: appleboy/ssh-action@v1.2.5
         with:
@@ -67,7 +71,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:web
-      - name: 部署到生产服务器
+      - name: 部署前端 dist
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -76,15 +80,19 @@ jobs:
           source: dist/
           target: /opt/snail-books-web/
           strip_components: 0
-      - name: 部署后端 app.py (生产)
-        uses: appleboy/scp-action@v0.1.7
+      - name: Encode app.py
+        run: |
+          echo "APP_B64=$(base64 -w0 app.py)" >> $GITHUB_ENV
+      - name: 部署后端 app.py
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: app.py
-          target: /opt/snail-books-web/
-          strip_components: 0
+          envs: APP_B64
+          script: |
+            echo "$APP_B64" | base64 -d > /opt/snail-books-web/app.py
+            echo "✅ app.py deployed ($(wc -c < /opt/snail-books-web/app.py) bytes)"
       - name: 重启生产服务
         uses: appleboy/ssh-action@v1.2.5
         with:
