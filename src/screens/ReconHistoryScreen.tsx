@@ -53,7 +53,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     const d = dt ? new Date(dt.replace(' ', 'T') + '+08:00') : new Date();
     const l = getLang();
     if (l.startsWith('en')) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    return `${d.getMonth() + 1}/${d.getDate()}`;
+    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
   };
 
   const fmtAmt = (n: number) => '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
