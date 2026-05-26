@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -21,6 +21,14 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [filDateFrom, setFilDateFrom] = useState('');
   const [filDateTo, setFilDateTo] = useState('');
   const [filBy, setFilBy] = useState('');
+  const [users, setUsers] = useState<{id: number; username: string}[]>([]);
+
+  // Fetch users when filter panel opens
+  useEffect(() => {
+    if (showFilter && users.length === 0) {
+      api.getUsers().then(data => setUsers(data || [])).catch(() => {});
+    }
+  }, [showFilter]);
 
   const buildFilters = useCallback(() => {
     const f: Record<string, string> = {};
@@ -284,9 +292,16 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             </View>
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('reconciledBy')}</Text>
-              <TextInput style={st.filterInput} value={filBy}
-                onChangeText={setFilBy} placeholder={t('any')}
-                placeholderTextColor="#C0C0C0" />
+              <View style={st.filterSelectWrap}>
+                <select value={filBy} onChange={(e: any) => setFilBy(e.target.value)}
+                  style={st.filterSelect as any}>
+                  <option value="">{t('any')}</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.username}>{u.username}</option>
+                  ))}
+                </select>
+                <Text style={st.filterSelectArrow}>▾</Text>
+              </View>
             </View>
             <View style={st.filterActions}>
               <TouchableOpacity style={st.filterResetBtn} onPress={resetFilters} activeOpacity={0.7}>
@@ -467,6 +482,31 @@ const st = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1, borderColor: '#F0F0F0',
     fontSize: 13, fontWeight: '500', color: '#374151',
+  },
+  filterSelectWrap: {
+    position: 'relative',
+  },
+  filterSelect: {
+    width: '100%',
+    height: 40,
+    paddingLeft: 12,
+    paddingRight: 34,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10,
+    borderWidth: 1, borderColor: '#F0F0F0',
+    fontSize: 13, fontWeight: '500', color: '#374151',
+    fontFamily: 'inherit',
+    outline: 'none',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    appearance: 'none',
+    cursor: 'pointer',
+  },
+  filterSelectArrow: {
+    position: 'absolute',
+    right: 12, top: 11,
+    fontSize: 12, color: '#9CA3AF', fontWeight: '700',
+    pointerEvents: 'none',
   },
   filterActions: {
     flexDirection: 'row', gap: 10, paddingTop: 2,

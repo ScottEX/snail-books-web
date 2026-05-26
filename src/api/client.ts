@@ -121,6 +121,8 @@ export const api = {
     return authFetch(`/api/reconciliations?${params}`);
   },
 
+  getUsers: () => authFetch('/api/users'),
+
   getProcurements: () => authFetch('/api/procurements'),
   createProcurement: (data: any) => authFetch('/api/procurements', { method: 'POST', body: JSON.stringify(data) }),
   deleteProcurement: (id: number) => authFetch(`/api/procurements/${id}`, { method: 'DELETE' }),
