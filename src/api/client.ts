@@ -16,6 +16,18 @@ function getApiBase(): string {
 
 const API_BASE = getApiBase();
 
+// ── Idle timeout: 2 hours no API call → redirect to login ──
+const IDLE_MINUTES = 2; // TEST: set to 120 for production
+let idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+function resetIdleTimer() {
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  }, IDLE_MINUTES * 60_000);
+}
+
 function headers(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
@@ -35,6 +47,7 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     }
     throw new Error('Unauthorized');
   }
+  resetIdleTimer(); // successful API call resets idle clock
   return resp.json();
 }
 
