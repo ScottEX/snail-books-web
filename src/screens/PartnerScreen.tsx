@@ -278,16 +278,16 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               <TableGroup title={t('initialApr2024')} type="invest" total={130000}
                 items={[
                   { name: translateName('张安武'), sub: '34%', amount: 44200 },
-                  { name: translateName('蓝柳富'), sub: '33%', amount: 42900 },
                   { name: translateName('江宽'), sub: '33%', amount: 42900 },
+                  { name: translateName('蓝柳富'), sub: '33%', amount: 42900 },
                 ]} />
             )}
             {(filter === 'all' || filter === 'mid') && (
               <TableGroup title={t('midJan2025')} type="mid" total={30162}
                 items={[
                   { name: translateName('张安武'), sub: '34%', amount: 10255.08 },
-                  { name: translateName('蓝柳富'), sub: '33%', amount: 9953.46 },
                   { name: translateName('江宽'), sub: '33%', amount: 9953.46 },
+                  { name: translateName('蓝柳富'), sub: '33%', amount: 9953.46 },
                 ]} />
             )}
             {(filter === 'all' || filter === 'dividend') && groupKeys.map(note => {

@@ -140,8 +140,8 @@ ACCOUNTS = ['💚 微信收款', '💙 支付宝收款', '💵 现金', '🏦 �
 # 实际合伙人数据
 PARTNER_DATA = [
     ('张安武', 0.34, 44200, '完结'),
-    ('蓝柳富', 0.33, 42900, '完结'),
     ('江宽',   0.33, 42900, '完结'),
+    ('蓝柳富', 0.33, 42900, '完结'),
 ]
 
 DEFAULT_PRODUCTS = [
@@ -511,7 +511,7 @@ def api_delete_transaction(id):
 @login_required
 def api_partners():
     with get_db() as db:
-        rows = db.execute("""SELECT p.*, COALESCE(SUM(d.amount),0) as total_dividends FROM partners p LEFT JOIN dividends d ON d.partner = p.name GROUP BY p.id""").fetchall()
+        rows = db.execute("""SELECT p.*, COALESCE(SUM(d.amount),0) as total_dividends FROM partners p LEFT JOIN dividends d ON d.partner = p.name GROUP BY p.id ORDER BY p.share DESC, p.name""").fetchall()
     return jsonify([dict(r) for r in rows])
 
 @app.route('/api/dividends', methods=['GET','POST'])
