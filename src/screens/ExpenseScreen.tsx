@@ -159,66 +159,57 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   const [tuan, setTuan] = useState('');
   const [jd, setJd] = useState('');
 
-  // Load from localStorage
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
-      const d = saved[recDate];
-      if (d) {
-        setCardBalance(d?.card || '');
-        setCashBalance(d?.cash || '');
-        setDineIn(d?.dineIn || '');
-        setMeituan(d?.meituan || '');
-        setFlashSale(d?.flashSale || '');
-        setTuan(d?.tuan || '');
-        setJd(d?.jd || '');
-      }
-    } catch { setToast(t('toastLoadFailed')); }
-  }, [recDate]);
+  const mountedRef = useRef(false);
 
-  // Pre-fill with last reconciliation data on mount (also save to localStorage)
+  // Load reconciliation data from backend
   useEffect(() => {
+    if (!mountedRef.current) {
+      // First mount: load the last reconciliation
+      mountedRef.current = true;
+      (async () => {
+        try {
+          const data = await api.getReconciliations(1);
+          if (data && data.length > 0) {
+            const last = data[0];
+            const d = last.date || yesterdayStr();
+            setRecDate(d);
+            setCardBalance(String(last.card_balance || ''));
+            setCashBalance(String(last.cash_balance || ''));
+            setDineIn(String(last.dine_in || ''));
+            setMeituan(String(last.meituan || ''));
+            setFlashSale(String(last.flash_sale || ''));
+            setTuan(String(last.tuan || ''));
+            setJd(String(last.jd || ''));
+          }
+        } catch { /* ignore */ }
+      })();
+      return;
+    }
+    // When recDate changes: fetch reconciliation for that date from backend
     (async () => {
       try {
-        const data = await api.getReconciliations(1);
-        if (data && data.length > 0) {
-          const last = data[0];
-          const d = last.date || yesterdayStr();
-          const vals = {
-            card: String(last.card_balance || ''),
-            cash: String(last.cash_balance || ''),
-            dineIn: String(last.dine_in || ''),
-            meituan: String(last.meituan || ''),
-            flashSale: String(last.flash_sale || ''),
-            tuan: String(last.tuan || ''),
-            jd: String(last.jd || ''),
-          };
-          // Save to localStorage so next render picks it up
-          try {
-            const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
-            saved[d] = vals;
-            localStorage.setItem('expense-rec', JSON.stringify(saved));
-          } catch {}
-          setRecDate(d);
-          setCardBalance(vals.card);
-          setCashBalance(vals.cash);
-          setDineIn(vals.dineIn);
-          setMeituan(vals.meituan);
-          setFlashSale(vals.flashSale);
-          setTuan(vals.tuan);
-          setJd(vals.jd);
+        const data = await api.getReconciliations(365);
+        const match = (data || []).find((r: any) => r.date === recDate);
+        if (match) {
+          setCardBalance(String(match.card_balance || ''));
+          setCashBalance(String(match.cash_balance || ''));
+          setDineIn(String(match.dine_in || ''));
+          setMeituan(String(match.meituan || ''));
+          setFlashSale(String(match.flash_sale || ''));
+          setTuan(String(match.tuan || ''));
+          setJd(String(match.jd || ''));
+        } else {
+          setCardBalance('');
+          setCashBalance('');
+          setDineIn('');
+          setMeituan('');
+          setFlashSale('');
+          setTuan('');
+          setJd('');
         }
       } catch { /* ignore */ }
     })();
-  }, []);
-
-  const saveRec = useCallback(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
-      saved[recDate] = { card: cardBalance, cash: cashBalance, dineIn, meituan, flashSale, tuan, jd };
-      localStorage.setItem('expense-rec', JSON.stringify(saved));
-    } catch { setToast(t('toastSubmitFailed')); }
-  }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd]);
+  }, [recDate]);
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
@@ -391,14 +382,13 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 <Text style={st.inputLabel}>{t('cardBalance')} 💳</Text>
                 <InputWithFocus inputStyle={st.input}
                   value={cardBalance} onChangeText={(v: string) => setCardBalance(blockNeg(v))}
-                  onBlur={saveRec} keyboardType="decimal-pad"
+                  keyboardType="decimal-pad"
                   placeholder="0.00" placeholderTextColor="#D1D5DB" />
               </View>
               <View style={st.inputGroup}>
                 <Text style={st.inputLabel}>{t('cashBalance')} 💴</Text>
                 <InputWithFocus inputStyle={st.input}
                   value={cashBalance} onChangeText={(v: string) => setCashBalance(blockNeg(v))}
-                  onBlur={saveRec} keyboardType="decimal-pad"
                   placeholder="0.00" placeholderTextColor="#D1D5DB" />
               </View>
             </View>
@@ -415,21 +405,21 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                   <Text style={st.chipLabel}>{t('dineIn')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={dineIn} onChangeText={(v: string) => setDineIn(blockNeg(v))}
-                    onBlur={saveRec} keyboardType="decimal-pad"
+                    keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('meituan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={meituan} onChangeText={(v: string) => setMeituan(blockNeg(v))}
-                    onBlur={saveRec} keyboardType="decimal-pad"
+                    keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('flashSale')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={flashSale} onChangeText={(v: string) => setFlashSale(blockNeg(v))}
-                    onBlur={saveRec} keyboardType="decimal-pad"
+                    keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
               </View>
@@ -439,14 +429,14 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                   <Text style={st.chipLabel}>{t('jd')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={jd} onChangeText={(v: string) => setJd(blockNeg(v))}
-                    onBlur={saveRec} keyboardType="decimal-pad"
+                    keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('tuan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={tuan} onChangeText={(v: string) => setTuan(blockNeg(v))}
-                    onBlur={saveRec} keyboardType="decimal-pad"
+                    keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor="#D1D5DB" />
                 </TouchableOpacity>
               </View>
