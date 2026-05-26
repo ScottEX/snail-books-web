@@ -65,6 +65,7 @@ IDLE_TIMEOUT_JS = r'''<script>
   setInterval(function(){
     if(Date.now() - lastActivity > IDLE_MS){
       localStorage.removeItem('user');
+      localStorage.removeItem('active_tab');
       window.location.href = '/login';
     }
   }, 10000);

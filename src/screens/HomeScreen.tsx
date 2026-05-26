@@ -12,8 +12,8 @@ type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [tab, setTabState] = useState<Tab>(() => {
-    try { return (localStorage.getItem('active_tab') as Tab) || 'list'; }
-    catch { return 'list'; }
+    try { return (localStorage.getItem('active_tab') as Tab) || 'partner'; }
+    catch { return 'partner'; }
   });
   const setTab = (t: Tab) => {
     setTabState(t);
@@ -149,7 +149,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
               <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={async () => { await api.logout(); onLogout(); }}>
+            <TouchableOpacity onPress={async () => { await api.logout(); localStorage.removeItem('active_tab'); onLogout(); }}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
             </TouchableOpacity>
             <View style={styles.langRow}>
