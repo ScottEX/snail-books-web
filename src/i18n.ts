@@ -174,6 +174,7 @@ const I18N: Record<string, Record<string, string>> = {
     currentBalance: '当前结余',
     bookDiff: '账面差额',
     reconHistory: '对账记录',
+    reconDate: '对账日期',
     emptyReconHint: '每完成一次对账，这里就多一张小卡片',
     loadMore: '加载更多',
     // Toast messages
@@ -348,6 +349,7 @@ const I18N: Record<string, Record<string, string>> = {
     currentBalance: '當前結餘',
     bookDiff: '賬面差額',
     reconHistory: '對賬記錄',
+    reconDate: '對賬日期',
     emptyReconHint: '每完成一次對賬，這裡就多一張小卡片',
     loadMore: '載入更多',
     // Toast messages
@@ -522,6 +524,7 @@ const I18N: Record<string, Record<string, string>> = {
     currentBalance: 'Balance',
     bookDiff: 'Difference',
     reconHistory: 'Recon History',
+    reconDate: 'Date',
     emptyReconHint: 'Each reconciliation adds a card here',
     loadMore: 'Load More',
     // Toast messages

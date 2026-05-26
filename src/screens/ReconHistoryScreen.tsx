@@ -15,7 +15,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     (async () => {
       try {
-        const data = await api.getReconciliations();
+        const data = await api.getReconciliations(0); // 0 = no limit
         setRecords(data || []);
       } catch { /* ignore */ }
       setLoading(false);
@@ -25,31 +25,29 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const visible = records.slice(0, page * PAGE_SIZE);
   const hasMore = page * PAGE_SIZE < records.length;
 
-  /* Infinite scroll */
   const handleScroll = useCallback((e: any) => {
     if (!hasMore) return;
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-    const nearBottom = contentOffset.y + layoutMeasurement.height >= contentSize.height - 120;
-    if (!nearBottom) return;
-    if (scrollTimerRef.current) return;
-    scrollTimerRef.current = setTimeout(() => {
-      scrollTimerRef.current = null;
-      setPage(p => p + 1);
-    }, 300);
+    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 120) {
+      if (!scrollTimerRef.current) {
+        scrollTimerRef.current = setTimeout(() => {
+          scrollTimerRef.current = null;
+          setPage(p => p + 1);
+        }, 300);
+      }
+    }
   }, [hasMore]);
 
   const fmtDate = (d: string) => {
     const date = new Date(d + 'T00:00:00');
     const l = getLang();
-    if (l.startsWith('en')) {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-    return `${date.getMonth() + 1}/${date.getDate()}`;
+    if (l.startsWith('en')) return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
   };
 
   const fmtAmt = (n: number) => '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+  const fmtInt = (n: number) => '\u00A5' + n.toLocaleString();
 
-  /* Swipe-to-back */
   const onTouchStart = (e: any) => {
     const t = e.nativeEvent?.touches?.[0] || e.nativeEvent;
     touchRef.current = { startX: t.pageX, startY: t.pageY };
@@ -58,33 +56,48 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     const t = e.nativeEvent?.changedTouches?.[0] || e.nativeEvent;
     const dx = t.pageX - touchRef.current.startX;
     const dy = Math.abs(t.pageY - touchRef.current.startY);
-    if (touchRef.current.startX < 36 && dx > 80 && dx > dy * 1.5) {
-      onBack();
-    }
+    if (touchRef.current.startX < 36 && dx > 80 && dx > dy * 1.5) onBack();
   };
 
   const renderCard = (r: any) => (
     <View key={r.id} style={st.card}>
-      <View style={st.cardHeader}>
-        <Text style={st.date}>{fmtDate(r.date)}</Text>
-        <Text style={[st.diff, { color: Math.abs(r.diff) < 0.005 ? '#059669' : '#DC2626' }]}>
-          {r.diff >= 0 ? '+' : ''}{fmtAmt(r.diff)}
-        </Text>
-      </View>
-      <View style={st.row}>
-        <View style={st.item}>
-          <Text style={st.label}>{t('cardBalance')}</Text>
-          <Text style={st.val}>{fmtAmt(r.card_balance)}</Text>
+      {/* Row 1: date */}
+      <Text style={st.dateLabel}>{t('reconDate')}: {fmtDate(r.date)}</Text>
+      {/* Row 2: 3-column summary */}
+      <View style={st.summaryRow}>
+        <View style={st.sumCol}>
+          <Text style={st.sumLabel}>{t('bookBalance')}</Text>
+          <Text style={st.sumVal}>{fmtInt(r.channel_total)}</Text>
         </View>
-        <View style={st.item}>
-          <Text style={st.label}>{t('cashBalance')}</Text>
-          <Text style={st.val}>{fmtAmt(r.cash_balance)}</Text>
+        <View style={st.sumCol}>
+          <Text style={st.sumLabel}>{t('currentBalance')}</Text>
+          <Text style={st.sumVal}>{fmtInt(r.real_total)}</Text>
+        </View>
+        <View style={st.sumCol}>
+          <Text style={st.sumLabel}>{t('bookDiff')}</Text>
+          <Text style={[st.sumVal, { color: Math.abs(r.diff) < 0.005 ? '#059669' : '#DC2626' }]}>
+            {r.diff >= 0 ? '+' : ''}{fmtInt(Math.abs(r.diff))}
+          </Text>
         </View>
       </View>
-      <View style={st.channels}>
-        <Text style={st.chLabel}>{t('fundsInTransit')}\uFF1A</Text>
-        <Text style={st.chVal}>{fmtAmt(r.channel_total)}</Text>
+      {/* Divider */}
+      <View style={st.divider} />
+      {/* Row 3: card + cash + funds in transit */}
+      <View style={st.detailRow}>
+        <View style={st.detailCol}>
+          <Text style={st.detailLabel}>{t('cardBalance')}</Text>
+          <Text style={st.detailVal}>{fmtAmt(r.card_balance)}</Text>
+        </View>
+        <View style={st.detailCol}>
+          <Text style={st.detailLabel}>{t('cashBalance')}</Text>
+          <Text style={st.detailVal}>{fmtAmt(r.cash_balance)}</Text>
+        </View>
+        <View style={st.detailCol}>
+          <Text style={st.detailLabel}>{t('fundsInTransit')}</Text>
+          <Text style={st.detailVal}>{fmtAmt(r.channel_total)}</Text>
+        </View>
       </View>
+      {/* Channel chips */}
       <View style={st.cRow}>
         {[
           ['\uD83C\uDF5C', r.dine_in],
@@ -101,9 +114,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   const renderEmpty = () => (
     <View style={st.emptyWrap}>
-      <View style={st.emptyIcon}>
-        <Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text>
-      </View>
+      <View style={st.emptyIcon}><Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text></View>
       <Text style={st.emptyTitle}>{t('noRecords')}</Text>
       <Text style={st.emptyHint}>{t('emptyReconHint')}</Text>
     </View>
@@ -120,7 +131,8 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={{ width: 44 }} />
       </View>
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
-        onScroll={handleScroll} scrollEventThrottle={200}>
+        onScroll={handleScroll} scrollEventThrottle={200}
+        contentContainerStyle={{ paddingTop: 8 }}>
         {loading ? (
           <Text style={st.loading}>{t('loading')}</Text>
         ) : records.length === 0 ? (
@@ -143,8 +155,7 @@ const st = StyleSheet.create({
     position: 'absolute', top: 14, left: 14,
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: 'rgba(250,250,250,0.72)',
-    justifyContent: 'center', alignItems: 'center',
-    zIndex: 100,
+    justifyContent: 'center', alignItems: 'center', zIndex: 100,
     // @ts-ignore
     backdropFilter: 'saturate(180%) blur(20px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
@@ -157,24 +168,27 @@ const st = StyleSheet.create({
   list: { flex: 1, paddingHorizontal: 12 },
   loading: { textAlign: 'center', marginTop: 40, fontSize: 14, color: '#999' },
   loadingMore: { textAlign: 'center', paddingVertical: 20, fontSize: 13, color: '#B0B0B0' },
+  /* Card */
   card: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
     marginBottom: 12, borderWidth: 1, borderColor: '#EBEBEB',
     // @ts-ignore
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+    gap: 10,
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  date: { fontSize: 14, fontWeight: '500', color: '#1A1A1A' },
-  diff: { fontSize: 15, fontWeight: '600' },
-  row: { flexDirection: 'row', gap: 10, marginBottom: 8 },
-  item: { flex: 1 },
-  label: { fontSize: 10, color: '#999', fontWeight: '500', marginBottom: 2 },
-  val: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  channels: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  chLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
-  chVal: { fontSize: 12, fontWeight: '600', color: '#374151' },
+  dateLabel: { fontSize: 13, fontWeight: '500', color: '#374151' },
+  summaryRow: { flexDirection: 'row' },
+  sumCol: { flex: 1, alignItems: 'center', gap: 2 },
+  sumLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
+  sumVal: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
+  divider: { height: 1, backgroundColor: '#F3F4F6' },
+  detailRow: { flexDirection: 'row' },
+  detailCol: { flex: 1, gap: 2 },
+  detailLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
+  detailVal: { fontSize: 13, fontWeight: '600', color: '#374151' },
   cRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   chip: { fontSize: 10, color: '#6B7280', backgroundColor: '#F3F4F6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#FAF7F2', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#EBEBEB' },
   emptyEmoji: { fontSize: 30 },

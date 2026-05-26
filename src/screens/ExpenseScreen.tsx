@@ -174,6 +174,26 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
     } catch { setToast(t('toastLoadFailed')); }
   }, [recDate]);
 
+  // Pre-fill with last reconciliation data on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await api.getReconciliations(1);
+        if (data && data.length > 0) {
+          const last = data[0];
+          setRecDate(last.date || yesterdayStr());
+          setCardBalance(String(last.card_balance || ''));
+          setCashBalance(String(last.cash_balance || ''));
+          setDineIn(String(last.dine_in || ''));
+          setMeituan(String(last.meituan || ''));
+          setFlashSale(String(last.flash_sale || ''));
+          setTuan(String(last.tuan || ''));
+          setJd(String(last.jd || ''));
+        }
+      } catch { /* ignore */ }
+    })();
+  }, []);
+
   const saveRec = useCallback(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('expense-rec') || '{}');
