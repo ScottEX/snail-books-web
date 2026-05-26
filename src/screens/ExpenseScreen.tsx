@@ -418,7 +418,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={st.reconBtn} onPress={() => setShowToast(true)} activeOpacity={0.8}>
-                <Text style={st.reconBtnText}>{t('addBtn')}</Text>
+                <Text style={st.reconBtnText}>{t('reconComplete')}</Text>
               </TouchableOpacity>
             </View>
           </View>
