@@ -177,6 +177,7 @@ const I18N: Record<string, Record<string, string>> = {
     reconDate: '对账日期',
     emptyReconHint: '每完成一次对账，这里就多一张小卡片',
     loadMore: '加载更多',
+    tapForDetail: '点击卡片查看详情',
     // Toast messages
     toastLoadFailed: '数据加载失败',
     toastSubmitFailed: '提交失败，请重试',
@@ -352,6 +353,7 @@ const I18N: Record<string, Record<string, string>> = {
     reconDate: '對賬日期',
     emptyReconHint: '每完成一次對賬，這裡就多一張小卡片',
     loadMore: '載入更多',
+    tapForDetail: '點擊卡片檢視詳情',
     // Toast messages
     toastLoadFailed: '資料載入失敗',
     toastSubmitFailed: '提交失敗，請重試',
@@ -527,6 +529,7 @@ const I18N: Record<string, Record<string, string>> = {
     reconDate: 'Date',
     emptyReconHint: 'Each reconciliation adds a card here',
     loadMore: 'Load More',
+    tapForDetail: 'Tap card for details',
     // Toast messages
     toastLoadFailed: 'Failed to load data',
     toastSubmitFailed: 'Submit failed, please retry',
