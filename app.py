@@ -15,8 +15,8 @@ from i18n_backend import get_lang, t as _t
 app = Flask(__name__)
 # Persistent secret key (survives restarts)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'snail-books-lanxu-2026-secret-key-v1')
-# Session timeout: 2 hours idle
-app.permanent_session_lifetime = timedelta(hours=2)
+# Session timeout: 3 hours idle
+app.permanent_session_lifetime = timedelta(hours=3)
 
 # ── CORS (for iOS App cross-origin requests) ──
 @ app.after_request

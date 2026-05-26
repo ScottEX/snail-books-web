@@ -51,7 +51,7 @@ BOOT_JS = r'''<script>(function(){
 # Idle timeout: 2 minutes no API call → redirect to login
 IDLE_TIMEOUT_JS = r'''<script>
 (function(){
-  var IDLE_MS = 2*60*1000; // TEST: 2 min (set to 120*60*1000 for 2 hours)
+  var IDLE_MS = 180*60*1000; // 3 hours
   var lastActivity = Date.now();
 
   // Hook fetch to track API calls
