@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
 } from 'react-native';
+import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -553,7 +554,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
             <View style={st.expForm}>
               {/* 大金额输入 */}
               <View style={st.bigAmtWrap}>
-                <Text style={st.bigAmtLabel}>{t('amount')}</Text>
+                <Text style={st.bigAmtLabel}>{t('amountLabel')}</Text>
                 <View style={st.bigAmtRow}>
                   <Text style={st.bigAmtSymbol}>¥</Text>
                   <InputWithFocus inputStyle={st.bigAmtInput}
@@ -561,34 +562,54 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                     keyboardType="decimal-pad" placeholder="0"
                     placeholderTextColor="#D1D5DB" />
                 </View>
+                <View style={st.amtCursor} />
               </View>
               {/* 分类胶囊 */}
               <Text style={st.catSectionTitle}>{t('expenseCategory')}</Text>
               <View style={st.catGrid}>
-                {['日常', '房租', '薪资', '采购'].map((cat) => {
+                {(() => {
+                  const icons: Record<string, React.ReactElement> = {
+                    '日常': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><Path d="M9 22V12h6v10"/></Svg>,
+                    '房租': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M1 22V8.5L12 2l11 6.5V22"/><Rect x="8" y="14" width="8" height="8" rx="1"/></Svg>,
+                    '薪资': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Circle cx="12" cy="12" r="10"/><Path d="M16 8h-4a2 2 0 100 4h2a2 2 0 110 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
+                    '采购': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><Line x1="3" y1="6" x2="21" y2="6"/><Path d="M16 10a4 4 0 01-8 0"/></Svg>,
+                  };
                   const keys: Record<string, string> = { '日常': 'daily', '房租': 'rent', '薪资': 'salary', '采购': 'goods' };
-                  const active = expCategory === cat;
-                  return (
-                    <TouchableOpacity key={cat} style={[st.catChip, active && st.catChipActive]}
-                      onPress={() => setExpCategory(cat)} activeOpacity={0.7}>
-                      <Text style={[st.catChipText, active && st.catChipTextActive]}>{t(keys[cat] as any)}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+                  return (['日常', '房租', '薪资', '采购'] as const).map((cat) => {
+                    const active = expCategory === cat;
+                    return (
+                      <TouchableOpacity key={cat} style={[st.catChip, active && st.catChipActive]}
+                        onPress={() => setExpCategory(cat)} activeOpacity={0.7}>
+                        <View style={{ marginRight: 5 }}>{icons[cat]}</View>
+                        <Text style={[st.catChipText, active && st.catChipTextActive]}>{t(keys[cat] as any)}</Text>
+                      </TouchableOpacity>
+                    );
+                  });
+                })()}
               </View>
               {/* 支付方式 */}
               <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
               <View style={st.payGrid}>
-                {['现金', '微信', '支付宝'].map((m) => {
+                {(() => {
+                  const payIcons: Record<string, React.ReactElement> = {
+                    '现金': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Rect x="2" y="6" width="20" height="12" rx="2"/><Circle cx="12" cy="12" r="2"/><Path d="M2 10h20"/></Svg>,
+                    '微信': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></Svg>,
+                    '支付宝': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M18 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z"/><Path d="M10 14l2 2 4-4"/></Svg>,
+                  };
                   const keyMap: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
-                  const active = payMethod === m;
-                  return (
-                    <TouchableOpacity key={m} style={[st.payChip, active && st.payChipActive]}
-                      onPress={() => setPayMethod(m)} activeOpacity={0.7}>
-                      <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(keyMap[m] as any)}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+                  return (['现金', '微信', '支付宝'] as const).map((m) => {
+                    const active = payMethod === m;
+                    const isWechat = m === '微信';
+                    return (
+                      <TouchableOpacity key={m}
+                        style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : st.payChipActive)]}
+                        onPress={() => setPayMethod(m)} activeOpacity={0.7}>
+                        <View style={{ marginRight: 5 }}>{payIcons[m]}</View>
+                        <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(keyMap[m] as any)}</Text>
+                      </TouchableOpacity>
+                    );
+                  });
+                })()}
               </View>
               {/* 支出说明 */}
               <Text style={st.catSectionTitle}>{t('expenseNote')}</Text>
@@ -878,34 +899,39 @@ const st = StyleSheet.create({
   /* ── Expense form ── */
   expForm: { gap: 14 },
   /* Big amount input */
-  bigAmtWrap: { alignItems: 'center', paddingVertical: 8 },
-  bigAmtLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500', marginBottom: 6 },
+  bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
+  bigAmtLabel: { fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
   bigAmtRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' },
-  bigAmtSymbol: { fontSize: 28, fontWeight: '300', color: '#3B82F6', marginRight: 2 },
+  bigAmtSymbol: { fontSize: 32, fontWeight: '300', color: '#FA855A', marginRight: 2 },
   bigAmtInput: {
-    fontSize: 32, fontWeight: '700', color: '#1A1A1A',
+    fontSize: 36, fontWeight: '700', color: '#1A1A1A',
     borderWidth: 0, backgroundColor: 'transparent',
     textAlign: 'center', padding: 0,
     fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif',
-    minWidth: 80,
+    minWidth: 120,
+  },
+  amtCursor: {
+    width: 40, height: 2, backgroundColor: '#FA855A',
+    marginTop: 10, borderRadius: 1,
   },
   /* Category chips */
-  catSectionTitle: { fontSize: 11, color: '#9CA3AF', fontWeight: '700', marginBottom: 8 },
+  catSectionTitle: { fontSize: 12, color: '#1A1A1A', fontWeight: '700', marginBottom: 10 },
   catGrid: { flexDirection: 'row', gap: 8 },
   catChip: {
-    flex: 1, paddingVertical: 12, borderRadius: 22,
-    backgroundColor: '#F3F4F6', alignItems: 'center',
+    flex: 1, flexDirection: 'row', paddingVertical: 12, borderRadius: 22,
+    backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
   },
-  catChipActive: { backgroundColor: '#3B82F6' },
-  catChipText: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
+  catChipActive: { backgroundColor: '#FA855A' },
+  catChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   catChipTextActive: { color: '#FFFFFF' },
   /* Payment method chips */
   payGrid: { flexDirection: 'row', gap: 8 },
   payChip: {
-    flex: 1, paddingVertical: 10, borderRadius: 22,
-    backgroundColor: '#F3F4F6', alignItems: 'center',
+    flex: 1, flexDirection: 'row', paddingVertical: 12, borderRadius: 22,
+    backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
   },
-  payChipActive: { backgroundColor: '#3B82F6' },
+  payChipActive: { backgroundColor: '#FA855A' },
+  payChipActiveWechat: { backgroundColor: '#07C160' },
   payChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   payChipTextActive: { color: '#FFFFFF' },
   /* Expense note */
@@ -918,7 +944,7 @@ const st = StyleSheet.create({
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   expCatLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
   expBtn: {
-    backgroundColor: '#8B1E22', borderRadius: 10, paddingVertical: 13,
+    backgroundColor: '#FA855A', borderRadius: 12, paddingVertical: 14,
     alignItems: 'center',
   },
   expBtnDisabled: { backgroundColor: '#E5E7EB' },
