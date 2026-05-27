@@ -560,7 +560,8 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                   <TextInput style={st.bigAmtInput}
                     value={expAmount} onChangeText={(v: string) => setExpAmount(blockNeg(v))}
                     keyboardType="decimal-pad" placeholder="0"
-                    placeholderTextColor="#D1D5DB" />
+                    placeholderTextColor="#D1D5DB"
+                    autoFocus={false} />
                 </View>
                 <View style={st.amtCursor} />
               </View>
@@ -901,14 +902,14 @@ const st = StyleSheet.create({
   /* Big amount input */
   bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
   bigAmtLabel: { fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
-  bigAmtRow: { flexDirection: 'row', alignItems: 'baseline' },
-  bigAmtSymbol: { fontSize: 36, fontWeight: '300', color: '#FA855A', marginRight: 6, lineHeight: 44 },
+  bigAmtRow: { flexDirection: 'row', alignItems: 'flex-end' },
+  bigAmtSymbol: { fontSize: 42, fontWeight: '300', color: '#FA855A', marginRight: 6 },
   bigAmtInput: {
-    fontSize: 36, fontWeight: '700', color: '#1A1A1A',
+    fontSize: 42, fontWeight: '700', color: '#1A1A1A',
     borderWidth: 0, backgroundColor: 'transparent',
-    textAlign: 'center', padding: 0,
+    textAlign: 'left', padding: 0,
     fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif',
-    lineHeight: 44,
+    flex: 0, width: 180,
     // @ts-ignore
     outline: 'none',
   },
