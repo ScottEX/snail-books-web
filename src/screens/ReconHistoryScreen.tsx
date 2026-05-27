@@ -320,7 +320,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={200}
-        contentContainerStyle={{ paddingTop: showFilter ? 248 : 56 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 260 : 64 }}>
         {loading ? (
           <Text style={st.loading}>{t('loading')}</Text>
         ) : records.length === 0 ? (
