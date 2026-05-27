@@ -337,7 +337,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
               >
                 <View style={st.tabInner}>
                   <Text style={[st.tabTitle, active && st.tabTitleActive]}>
-                    {tab.title}
+                    {tab.title}{i === 2 ? ' ¥' + fmtInt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods) : ''}
                   </Text>
                   {i === 0 && (
                     <View style={st.cardFields}>
@@ -360,7 +360,6 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 </View>
                 {i === 2 && (
                   <View style={st.cardFields}>
-                    <Text style={st.totalExpLabel}>{t('totalExpense')}<Text style={st.totalExpVal}> ¥{fmtInt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods)}</Text></Text>
                     <View style={st.cardFieldRow}>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('daily')}</Text>
