@@ -17,7 +17,7 @@ function getApiBase(): string {
 const API_BASE = getApiBase();
 
 // ── Idle timeout: 2 hours no API call → redirect to login ──
-const IDLE_MS = 2 * 60_000; // TEST: 2 min (set to 120 * 60_000 for production)
+const IDLE_MS = 120 * 60_000; // 120 minutes = 2 hours
 let lastActivity = Date.now();
 
 setInterval(() => {
