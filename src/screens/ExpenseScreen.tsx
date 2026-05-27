@@ -561,6 +561,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 </View>
               </View>
               {/* 分类胶囊 */}
+              <Text style={st.catSectionTitle}>{t('expenseCategory')}</Text>
               <View style={st.catGrid}>
                 {['日常', '房租', '薪资', '采购'].map((cat) => {
                   const keys: Record<string, string> = { '日常': 'daily', '房租': 'rent', '薪资': 'salary', '采购': 'goods' };
@@ -865,6 +866,7 @@ const st = StyleSheet.create({
     minWidth: 80,
   },
   /* Category chips */
+  catSectionTitle: { fontSize: 11, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   catChip: {
     width: '47%', paddingVertical: 12, borderRadius: 22,
