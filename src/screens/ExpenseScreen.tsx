@@ -597,22 +597,6 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 </Text>
               </TouchableOpacity>
             </View>
-
-            {/* 支出流水 */}
-            <Text style={st.subLabel}>{t('expenseLedger')}</Text>
-            {expenses.length === 0 ? (
-              <Text style={st.empty}>{t('noExpenseRecords')}</Text>
-            ) : (
-              expenses.slice(0, 20).map((ex: any, i: number) => (
-                <View style={st.expRow} key={i}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={st.expNote}>{ex.note || t('noNote')}</Text>
-                    <Text style={st.expDateText}>{(ex.created_at || '').slice(0, 10)}</Text>
-                  </View>
-                  <Text style={st.expAmt}>-{fmt(ex.amount)}</Text>
-                </View>
-              ))
-            )}
           </View>
         </FadeInView>
         )}
