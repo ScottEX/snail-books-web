@@ -891,9 +891,9 @@ const st = StyleSheet.create({
   },
   /* Category chips */
   catSectionTitle: { fontSize: 11, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
-  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  catGrid: { flexDirection: 'row', gap: 8 },
   catChip: {
-    width: '47%', paddingVertical: 12, borderRadius: 22,
+    flex: 1, paddingVertical: 12, borderRadius: 22,
     backgroundColor: '#F3F4F6', alignItems: 'center',
   },
   catChipActive: { backgroundColor: '#3B82F6' },
