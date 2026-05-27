@@ -890,7 +890,7 @@ const st = StyleSheet.create({
     minWidth: 80,
   },
   /* Category chips */
-  catSectionTitle: { fontSize: 11, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
+  catSectionTitle: { fontSize: 11, color: '#9CA3AF', fontWeight: '700', marginBottom: 8 },
   catGrid: { flexDirection: 'row', gap: 8 },
   catChip: {
     flex: 1, paddingVertical: 12, borderRadius: 22,
