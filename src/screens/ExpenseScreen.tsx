@@ -255,6 +255,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   const [expDate, setExpDate] = useState(todayStr());
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('日常');
+  const [payMethod, setPayMethod] = useState('现金');
   const [expNote, setExpNote] = useState('');
   const [expenses, setExpenses] = useState<any[]>([]);
   const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
@@ -296,10 +297,11 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
         type: 'expense',
         amount: parseFloat(expAmount),
         category: expCategory,
-        account: '现金',
+        account: payMethod,
         note: expNote,
       });
       setExpAmount('');
+      setPayMethod('现金');
       setExpNote('');
       await loadExpenses();
     } catch { setToast(t('toastSubmitFailed')); }
@@ -574,6 +576,28 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                   );
                 })}
               </View>
+              {/* 支付方式 */}
+              <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
+              <View style={st.payGrid}>
+                {['现金', '微信', '支付宝'].map((m) => {
+                  const keyMap: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
+                  const active = payMethod === m;
+                  return (
+                    <TouchableOpacity key={m} style={[st.payChip, active && st.payChipActive]}
+                      onPress={() => setPayMethod(m)} activeOpacity={0.7}>
+                      <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(keyMap[m] as any)}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              {/* 支出说明 */}
+              <Text style={st.catSectionTitle}>{t('expenseNote')}</Text>
+              <InputWithFocus inputStyle={st.noteInput}
+                value={expNote}
+                onChangeText={setExpNote}
+                placeholder={t('notePlaceholder')}
+                placeholderTextColor="#D1D5DB"
+                multiline />
               <TouchableOpacity
                 style={[st.expBtn, (!expAmount || loadingExp) && st.expBtnDisabled]}
                 onPress={handleAddExpense}
@@ -875,6 +899,22 @@ const st = StyleSheet.create({
   catChipActive: { backgroundColor: '#3B82F6' },
   catChipText: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
   catChipTextActive: { color: '#FFFFFF' },
+  /* Payment method chips */
+  payGrid: { flexDirection: 'row', gap: 8 },
+  payChip: {
+    flex: 1, paddingVertical: 10, borderRadius: 22,
+    backgroundColor: '#F3F4F6', alignItems: 'center',
+  },
+  payChipActive: { backgroundColor: '#3B82F6' },
+  payChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
+  payChipTextActive: { color: '#FFFFFF' },
+  /* Expense note */
+  noteInput: {
+    fontSize: 14, color: '#1A1A1A',
+    borderWidth: 0, backgroundColor: '#F9FAFB',
+    borderRadius: 10, padding: 12, minHeight: 60,
+    textAlignVertical: 'top',
+  },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   expCatLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
   expBtn: {

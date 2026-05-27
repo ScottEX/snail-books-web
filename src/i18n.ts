@@ -170,6 +170,10 @@ const I18N: Record<string, Record<string, string>> = {
     salary: '薪资',
     goods: '采购',
     expenseCategory: '支出分类',
+    paymentMethod: '支付方式',
+    payCash: '现金',
+    payWechat: '微信',
+    payAlipay: '支付宝',
     noNote: '无备注',
     // Tab short names
     tabRecon: '对账',
@@ -356,6 +360,10 @@ const I18N: Record<string, Record<string, string>> = {
     salary: '薪資',
     goods: '採購',
     expenseCategory: '支出分類',
+    paymentMethod: '支付方式',
+    payCash: '現金',
+    payWechat: '微信',
+    payAlipay: '支付寶',
     noExpenseRecords: '暫無支出記錄',
     noNote: '無備註',
     // Tab short names
@@ -543,6 +551,10 @@ const I18N: Record<string, Record<string, string>> = {
     salary: 'Salary',
     goods: 'Procurement',
     expenseCategory: 'Category',
+    paymentMethod: 'Payment Method',
+    payCash: 'Cash',
+    payWechat: 'WeChat',
+    payAlipay: 'Alipay',
     noExpenseRecords: 'No expense records',
     noNote: 'No note',
     // Tab short names
