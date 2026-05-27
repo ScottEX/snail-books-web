@@ -902,13 +902,15 @@ const st = StyleSheet.create({
   bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
   bigAmtLabel: { fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
   bigAmtRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  bigAmtSymbol: { fontSize: 36, fontWeight: '300', color: '#FA855A', marginRight: 4 },
+  bigAmtSymbol: { fontSize: 36, fontWeight: '300', color: '#FA855A', marginRight: 6, lineHeight: 44 },
   bigAmtInput: {
     fontSize: 36, fontWeight: '700', color: '#1A1A1A',
     borderWidth: 0, backgroundColor: 'transparent',
     textAlign: 'center', padding: 0,
     fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif',
-    minWidth: 120,
+    lineHeight: 44,
+    // @ts-ignore
+    outline: 'none',
   },
   amtCursor: {
     width: 40, height: 2, backgroundColor: '#FA855A',
