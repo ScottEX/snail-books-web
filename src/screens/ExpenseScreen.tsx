@@ -765,7 +765,7 @@ const st = StyleSheet.create({
   /* ── Content ── */
   contentScroll: { flex: 1 },
   contentInner: {
-    paddingHorizontal: 18, paddingBottom: 100, gap: 0,
+    paddingHorizontal: 18, paddingBottom: 150, gap: 0,
   },
   moduleWrap: {
     width: '100%',
