@@ -557,7 +557,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 <Text style={st.bigAmtLabel}>{t('amountLabel')}</Text>
                 <View style={st.bigAmtRow}>
                   <Text style={st.bigAmtSymbol}>¥</Text>
-                  <InputWithFocus inputStyle={st.bigAmtInput}
+                  <TextInput style={st.bigAmtInput}
                     value={expAmount} onChangeText={(v: string) => setExpAmount(blockNeg(v))}
                     keyboardType="decimal-pad" placeholder="0"
                     placeholderTextColor="#D1D5DB" />
@@ -901,8 +901,8 @@ const st = StyleSheet.create({
   /* Big amount input */
   bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
   bigAmtLabel: { fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
-  bigAmtRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' },
-  bigAmtSymbol: { fontSize: 32, fontWeight: '300', color: '#FA855A', marginRight: 2 },
+  bigAmtRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  bigAmtSymbol: { fontSize: 36, fontWeight: '300', color: '#FA855A', marginRight: 4 },
   bigAmtInput: {
     fontSize: 36, fontWeight: '700', color: '#1A1A1A',
     borderWidth: 0, backgroundColor: 'transparent',
