@@ -280,8 +280,8 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
         const amt = e.amount || 0;
         if (cat.includes('日常')) daily += amt;
         else if (cat.includes('房租')) rent += amt;
-        else if (cat.includes('工资')) salary += amt;
-        else if (cat.includes('货款')) goods += amt;
+        else if (cat.includes('薪资')) salary += amt;
+        else if (cat.includes('采购')) goods += amt;
       });
       setExpCatTotals({ daily, rent, salary, goods });
     } catch { setToast(t('toastLoadFailed')); }
@@ -295,7 +295,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
       await api.createTransaction({
         type: 'expense',
         amount: parseFloat(expAmount),
-        category: `💸 ${expCategory}`,
+        category: expCategory,
         account: '现金',
         note: expNote,
       });
@@ -360,6 +360,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 </View>
                 {i === 2 && (
                   <View style={st.cardFields}>
+                    <Text style={st.totalExpLabel}>{t('totalExpense')}<Text style={st.totalExpVal}> ¥{fmtInt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods)}</Text></Text>
                     <View style={st.cardFieldRow}>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('daily')}</Text>
@@ -579,8 +580,8 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 },
                   React.createElement('option', { value: '日常' }, t('daily')),
                   React.createElement('option', { value: '房租' }, t('rent')),
-                  React.createElement('option', { value: '工资' }, t('salary')),
-                  React.createElement('option', { value: '货款' }, t('goods'))
+                  React.createElement('option', { value: '薪资' }, t('salary')),
+                  React.createElement('option', { value: '采购' }, t('goods'))
                 )}
               </View>
               <InputWithFocus inputStyle={st.input}
@@ -725,6 +726,13 @@ const st = StyleSheet.create({
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     // @ts-ignore
     textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+  },
+  totalExpLabel: {
+    fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.70)',
+    textAlign: 'center', marginBottom: 6,
+  },
+  totalExpVal: {
+    fontSize: 22, fontWeight: '800', color: 'rgba(255,255,255,0.95)',
   },
   tabStat: {
     fontSize: 28, fontWeight: '600', letterSpacing: -0.5,
