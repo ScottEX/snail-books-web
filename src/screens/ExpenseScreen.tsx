@@ -901,7 +901,7 @@ const st = StyleSheet.create({
   /* Big amount input */
   bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
   bigAmtLabel: { fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
-  bigAmtRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  bigAmtRow: { flexDirection: 'row', alignItems: 'baseline' },
   bigAmtSymbol: { fontSize: 36, fontWeight: '300', color: '#FA855A', marginRight: 6, lineHeight: 44 },
   bigAmtInput: {
     fontSize: 36, fontWeight: '700', color: '#1A1A1A',
