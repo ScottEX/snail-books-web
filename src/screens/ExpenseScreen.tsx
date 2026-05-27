@@ -300,10 +300,12 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
         category: expCategory,
         account: payMethod,
         note: expNote,
+        date: expDate,
       });
       setExpAmount('');
       setPayMethod('现金');
       setExpNote('');
+      setExpDate(todayStr());
       await loadExpenses();
     } catch { setToast(t('toastSubmitFailed')); }
     setLoadingExp(false);
@@ -620,6 +622,22 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 placeholder={t('notePlaceholder')}
                 placeholderTextColor="#D1D5DB"
                 multiline />
+              {/* 日期选择 */}
+              <View style={st.expDateRow}>
+                {/* Calendar icon */}
+                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.5}>
+                  <Rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <Line x1="16" y1="2" x2="16" y2="6"/>
+                  <Line x1="8" y1="2" x2="8" y2="6"/>
+                  <Line x1="3" y1="10" x2="21" y2="10"/>
+                </Svg>
+                <input
+                  type="date"
+                  value={expDate}
+                  onChange={(e: any) => setExpDate(e.target.value)}
+                  style={st.expDateInput as any}
+                />
+              </View>
               <TouchableOpacity
                 style={st.expBtn}
                 onPress={handleAddExpense}
@@ -899,6 +917,18 @@ const st = StyleSheet.create({
   tdDate: { width: 90, color: '#6B7280', fontSize: 11 },
   tdCat: { flex: 1 },
   tdAmt: { width: 100, textAlign: 'right', fontWeight: '600' },
+
+  /* ── Date row ── */
+  expDateRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#F9FAFB', borderRadius: 10, padding: 12,
+  },
+  expDateInput: {
+    fontSize: 14, fontWeight: '500', color: '#1A1A1A',
+    borderWidth: 0, padding: 0, backgroundColor: 'transparent',
+    // @ts-ignore
+    outline: 'none',
+  },
 
   /* ── Expense form ── */
   expForm: { gap: 14 },
