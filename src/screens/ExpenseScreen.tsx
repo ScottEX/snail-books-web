@@ -621,7 +621,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 placeholderTextColor="#D1D5DB"
                 multiline />
               <TouchableOpacity
-                style={[st.expBtn, (!expAmount || loadingExp) && st.expBtnDisabled]}
+                style={st.expBtn}
                 onPress={handleAddExpense}
                 disabled={!expAmount || loadingExp}
                 activeOpacity={0.8}
@@ -629,6 +629,9 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 <Text style={st.expBtnText}>
                   {loadingExp ? '...' : t('confirmRecord')}
                 </Text>
+                {(!expAmount || loadingExp) && (
+                  <View style={st.expBtnMask} />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -948,9 +951,12 @@ const st = StyleSheet.create({
   expCatLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
   expBtn: {
     backgroundColor: '#FA855A', borderRadius: 12, paddingVertical: 14,
-    alignItems: 'center',
+    alignItems: 'center', position: 'relative', overflow: 'hidden',
   },
-  expBtnDisabled: { backgroundColor: '#E5E7EB' },
+  expBtnMask: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 12,
+  },
   expBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
   /* ── Expense list ── */
