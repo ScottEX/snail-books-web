@@ -549,43 +549,30 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
           <View style={st.card}>
             {/* 录入台 */}
             <View style={st.expForm}>
-              <View style={st.expFormRow}>
-                <input
-                  type="date"
-                  value={expDate}
-                  onChange={(e: any) => setExpDate(e.target.value)}
-                  style={{ ...st.dateInput, flex: 1, marginRight: 8 } as any}
-                />
-                <View style={{ flex: 1 }}>
-                  <InputWithFocus inputStyle={st.input}
+              {/* 大金额输入 */}
+              <View style={st.bigAmtWrap}>
+                <Text style={st.bigAmtLabel}>{t('amount')}</Text>
+                <View style={st.bigAmtRow}>
+                  <Text style={st.bigAmtSymbol}>¥</Text>
+                  <InputWithFocus inputStyle={st.bigAmtInput}
                     value={expAmount} onChangeText={(v: string) => setExpAmount(blockNeg(v))}
-                    keyboardType="decimal-pad" placeholder={t('amount')}
+                    keyboardType="decimal-pad" placeholder="0"
                     placeholderTextColor="#D1D5DB" />
                 </View>
               </View>
-              <View style={st.expFormRow}>
-                <Text style={st.expCatLabel}>{t('expenseCategory')}</Text>
-                {React.createElement('select', {
-                  value: expCategory,
-                  onChange: (e: any) => setExpCategory(e.target.value),
-                  style: {
-                    flex: 1, height: 44, paddingLeft: 10,
-                    backgroundColor: '#FFFFFF', borderRadius: 10,
-                    borderWidth: 1, borderColor: '#E5E7EB',
-                    fontSize: 14, fontWeight: '600', color: '#374151',
-                    fontFamily: 'inherit', outline: 'none',
-                    cursor: 'pointer',
-                  },
-                },
-                  React.createElement('option', { value: '日常' }, t('daily')),
-                  React.createElement('option', { value: '房租' }, t('rent')),
-                  React.createElement('option', { value: '薪资' }, t('salary')),
-                  React.createElement('option', { value: '采购' }, t('goods'))
-                )}
+              {/* 分类胶囊 */}
+              <View style={st.catGrid}>
+                {['日常', '房租', '薪资', '采购'].map((cat) => {
+                  const keys: Record<string, string> = { '日常': 'daily', '房租': 'rent', '薪资': 'salary', '采购': 'goods' };
+                  const active = expCategory === cat;
+                  return (
+                    <TouchableOpacity key={cat} style={[st.catChip, active && st.catChipActive]}
+                      onPress={() => setExpCategory(cat)} activeOpacity={0.7}>
+                      <Text style={[st.catChipText, active && st.catChipTextActive]}>{t(keys[cat] as any)}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-              <InputWithFocus inputStyle={st.input}
-                value={expNote} onChangeText={setExpNote}
-                placeholder={t('expenseNote')} placeholderTextColor="#D1D5DB" />
               <TouchableOpacity
                 style={[st.expBtn, (!expAmount || loadingExp) && st.expBtnDisabled]}
                 onPress={handleAddExpense}
@@ -864,7 +851,28 @@ const st = StyleSheet.create({
   tdAmt: { width: 100, textAlign: 'right', fontWeight: '600' },
 
   /* ── Expense form ── */
-  expForm: { gap: 10 },
+  expForm: { gap: 14 },
+  /* Big amount input */
+  bigAmtWrap: { alignItems: 'center', paddingVertical: 8 },
+  bigAmtLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500', marginBottom: 6 },
+  bigAmtRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' },
+  bigAmtSymbol: { fontSize: 28, fontWeight: '300', color: '#3B82F6', marginRight: 2 },
+  bigAmtInput: {
+    fontSize: 32, fontWeight: '700', color: '#1A1A1A',
+    borderWidth: 0, backgroundColor: 'transparent',
+    textAlign: 'center', padding: 0,
+    fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif',
+    minWidth: 80,
+  },
+  /* Category chips */
+  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  catChip: {
+    width: '47%', paddingVertical: 12, borderRadius: 22,
+    backgroundColor: '#F3F4F6', alignItems: 'center',
+  },
+  catChipActive: { backgroundColor: '#3B82F6' },
+  catChipText: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
+  catChipTextActive: { color: '#FFFFFF' },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   expCatLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
   expBtn: {
