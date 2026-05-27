@@ -254,14 +254,36 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   /* ── 模块三：支出 ── */
   const [expDate, setExpDate] = useState(todayStr());
   const [expAmount, setExpAmount] = useState('');
+  const [expCategory, setExpCategory] = useState('日常');
   const [expNote, setExpNote] = useState('');
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
   const [loadingExp, setLoadingExp] = useState(false);
 
   const loadExpenses = async () => {
     try {
-      const tx = await api.getTransactions(1);
-      setExpenses((tx.transactions || []).filter((t: any) => t.type === 'expense'));
+      // Load all expense transactions for complete category totals
+      const allExpenses: any[] = [];
+      let page = 1;
+      while (true) {
+        const tx: any = await api.getTransactions(page);
+        const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
+        allExpenses.push(...exps);
+        if (page >= (tx.pages || 1)) break;
+        page++;
+      }
+      setExpenses(allExpenses);
+      // Compute category totals
+      let daily = 0, rent = 0, salary = 0, goods = 0;
+      allExpenses.forEach((e: any) => {
+        const cat = e.category || '';
+        const amt = e.amount || 0;
+        if (cat.includes('日常')) daily += amt;
+        else if (cat.includes('房租')) rent += amt;
+        else if (cat.includes('工资')) salary += amt;
+        else if (cat.includes('货款')) goods += amt;
+      });
+      setExpCatTotals({ daily, rent, salary, goods });
     } catch { setToast(t('toastLoadFailed')); }
   };
   useEffect(() => { loadExpenses(); }, []);
@@ -273,7 +295,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
       await api.createTransaction({
         type: 'expense',
         amount: parseFloat(expAmount),
-        category: '📝 其他',
+        category: `💸 ${expCategory}`,
         account: '现金',
         note: expNote,
       });
@@ -288,7 +310,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   const tabCards = [
     { gradient: ['rgba(13,148,136,0.22)', 'rgba(101,163,13,0.22)'], gradientActive: ['rgba(13,148,136,0.48)', 'rgba(101,163,13,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
     { gradient: ['rgba(236,72,153,0.22)', 'rgba(249,115,22,0.22)'], gradientActive: ['rgba(236,72,153,0.48)', 'rgba(249,115,22,0.48)'], title: t('tabRevenue'), stat: revenueData.todayRevenue, statFmt: fmt(revenueData.todayRevenue), statColor: '#1A1A1A', prefix: '' },
-    { gradient: ['rgba(220,38,38,0.22)', 'rgba(153,27,27,0.22)'], gradientActive: ['rgba(220,38,38,0.48)', 'rgba(153,27,27,0.48)'], title: t('tabExpense'), stat: expenses.length, statFmt: fmtInt(expenses.length), statColor: '#1A1A1A', prefix: '' },
+    { gradient: ['rgba(220,38,38,0.22)', 'rgba(153,27,27,0.22)'], gradientActive: ['rgba(220,38,38,0.48)', 'rgba(153,27,27,0.48)'], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: '#1A1A1A', prefix: '' },
   ];
 
   /* ── Render ── */
@@ -336,6 +358,28 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                     </View>
                   )}
                 </View>
+                {i === 2 && (
+                  <View style={st.cardFields}>
+                    <View style={st.cardFieldRow}>
+                      <View style={st.cardFieldCol}>
+                        <Text style={st.cardFieldLabel}>{t('daily')}</Text>
+                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.daily)}</Text>
+                      </View>
+                      <View style={st.cardFieldCol}>
+                        <Text style={st.cardFieldLabel}>{t('rent')}</Text>
+                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.rent)}</Text>
+                      </View>
+                      <View style={st.cardFieldCol}>
+                        <Text style={st.cardFieldLabel}>{t('salary')}</Text>
+                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.salary)}</Text>
+                      </View>
+                      <View style={st.cardFieldCol}>
+                        <Text style={st.cardFieldLabel}>{t('goods')}</Text>
+                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.goods)}</Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })}
@@ -518,6 +562,26 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                     keyboardType="decimal-pad" placeholder={t('amount')}
                     placeholderTextColor="#D1D5DB" />
                 </View>
+              </View>
+              <View style={st.expFormRow}>
+                <Text style={st.expCatLabel}>{t('expenseCategory')}</Text>
+                {React.createElement('select', {
+                  value: expCategory,
+                  onChange: (e: any) => setExpCategory(e.target.value),
+                  style: {
+                    flex: 1, height: 44, paddingLeft: 10,
+                    backgroundColor: '#FFFFFF', borderRadius: 10,
+                    borderWidth: 1, borderColor: '#E5E7EB',
+                    fontSize: 14, fontWeight: '600', color: '#374151',
+                    fontFamily: 'inherit', outline: 'none',
+                    cursor: 'pointer',
+                  },
+                },
+                  React.createElement('option', { value: '日常' }, t('daily')),
+                  React.createElement('option', { value: '房租' }, t('rent')),
+                  React.createElement('option', { value: '工资' }, t('salary')),
+                  React.createElement('option', { value: '货款' }, t('goods'))
+                )}
               </View>
               <InputWithFocus inputStyle={st.input}
                 value={expNote} onChangeText={setExpNote}
@@ -811,6 +875,7 @@ const st = StyleSheet.create({
   /* ── Expense form ── */
   expForm: { gap: 10 },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  expCatLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
   expBtn: {
     backgroundColor: '#8B1E22', borderRadius: 10, paddingVertical: 13,
     alignItems: 'center',
