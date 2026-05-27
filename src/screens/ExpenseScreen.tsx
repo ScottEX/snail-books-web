@@ -300,10 +300,12 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
         category: expCategory,
         account: payMethod,
         note: expNote,
+        date: expDate,
       });
       setExpAmount('');
       setPayMethod('现金');
       setExpNote('');
+      setExpDate(todayStr());
       await loadExpenses();
     } catch { setToast(t('toastSubmitFailed')); }
     setLoadingExp(false);
@@ -552,6 +554,14 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
           <View style={st.card}>
             {/* 录入台 */}
             <View style={st.expForm}>
+              {/* 日期选择 */}
+              <Text style={st.catSectionTitle}>{t('expDate')}</Text>
+              <input
+                type="date"
+                value={expDate}
+                onChange={(e: any) => setExpDate(e.target.value)}
+                style={st.expDateInput as any}
+              />
               {/* 大金额输入 */}
               <View style={st.bigAmtWrap}>
                 <Text style={st.bigAmtLabel}>{t('amountLabel')}</Text>
@@ -899,6 +909,15 @@ const st = StyleSheet.create({
   tdDate: { width: 90, color: '#6B7280', fontSize: 11 },
   tdCat: { flex: 1 },
   tdAmt: { width: 100, textAlign: 'right', fontWeight: '600' },
+
+  /* ── Expense Date ── */
+  expDateInput: {
+    fontSize: 14, color: '#1A1A1A', fontWeight: '500',
+    borderWidth: 0, backgroundColor: '#F9FAFB', borderRadius: 10,
+    padding: 12, width: '100%' as any,
+    // @ts-ignore
+    outline: 'none',
+  },
 
   /* ── Expense form ── */
   expForm: { gap: 14 },
