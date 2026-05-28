@@ -261,6 +261,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   const [expenses, setExpenses] = useState<any[]>([]);
   const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
   const [loadingExp, setLoadingExp] = useState(false);
+  const [showExpRecords, setShowExpRecords] = useState(false);
 
   const loadExpenses = async () => {
     try {
@@ -572,10 +573,10 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
               <View style={st.catGrid}>
                 {(() => {
                   const icons: Record<string, React.ReactElement> = {
-                    '日常': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><Path d="M9 22V12h6v10"/></Svg>,
-                    '房租': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M1 22V8.5L12 2l11 6.5V22"/><Rect x="8" y="14" width="8" height="8" rx="1"/></Svg>,
-                    '薪资': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Circle cx="12" cy="12" r="10"/><Path d="M16 8h-4a2 2 0 100 4h2a2 2 0 110 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
-                    '采购': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><Line x1="3" y1="6" x2="21" y2="6"/><Path d="M16 10a4 4 0 01-8 0"/></Svg>,
+                    '日常': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><Path d="M9 22V12h6v10"/></Svg>,
+                    '房租': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M1 22V8.5L12 2l11 6.5V22"/><Rect x="8" y="14" width="8" height="8" rx="1"/></Svg>,
+                    '薪资': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Circle cx="12" cy="12" r="10"/><Path d="M16 8h-4a2 2 0 100 4h2a2 2 0 110 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
+                    '采购': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><Line x1="3" y1="6" x2="21" y2="6"/><Path d="M16 10a4 4 0 01-8 0"/></Svg>,
                   };
                   const keys: Record<string, string> = { '日常': 'daily', '房租': 'rent', '薪资': 'salary', '采购': 'goods' };
                   return (['日常', '房租', '薪资', '采购'] as const).map((cat) => {
@@ -583,7 +584,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                     return (
                       <TouchableOpacity key={cat} style={[st.catChip, active && st.catChipActive]}
                         onPress={() => setExpCategory(cat)} activeOpacity={0.7}>
-                        <View style={{ marginRight: 5 }}>{icons[cat]}</View>
+                        <View style={[st.chipIconCircle, active && st.chipIconCircleActive]}>{icons[cat]}</View>
                         <Text style={[st.catChipText, active && st.catChipTextActive]}>{t(keys[cat] as any)}</Text>
                       </TouchableOpacity>
                     );
@@ -595,9 +596,9 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
               <View style={st.payGrid}>
                 {(() => {
                   const payIcons: Record<string, React.ReactElement> = {
-                    '现金': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Rect x="2" y="6" width="20" height="12" rx="2"/><Circle cx="12" cy="12" r="2"/><Path d="M2 10h20"/></Svg>,
-                    '微信': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></Svg>,
-                    '支付宝': <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><Path d="M18 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z"/><Path d="M10 14l2 2 4-4"/></Svg>,
+                    '现金': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Rect x="2" y="6" width="20" height="12" rx="2"/><Circle cx="12" cy="12" r="2"/><Path d="M2 10h20"/></Svg>,
+                    '微信': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></Svg>,
+                    '支付宝': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M18 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z"/><Path d="M10 14l2 2 4-4"/></Svg>,
                   };
                   const keyMap: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
                   return (['现金', '微信', '支付宝'] as const).map((m) => {
@@ -608,7 +609,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                       <TouchableOpacity key={m}
                         style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : isAlipay ? st.payChipActiveAlipay : st.payChipActive)]}
                         onPress={() => setPayMethod(m)} activeOpacity={0.7}>
-                        <View style={{ marginRight: 5 }}>{payIcons[m]}</View>
+                        <View style={[st.chipIconCircle, active && st.chipIconCircleActive]}>{payIcons[m]}</View>
                         <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(keyMap[m] as any)}</Text>
                       </TouchableOpacity>
                     );
@@ -654,19 +655,48 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                   })}
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={st.expBtn}
-                onPress={handleAddExpense}
-                disabled={!expAmount || loadingExp}
-                activeOpacity={0.8}
-              >
-                <Text style={st.expBtnText}>
-                  {loadingExp ? '...' : t('confirmRecord')}
-                </Text>
-                {(!expAmount || loadingExp) && (
-                  <View style={st.expBtnMask} />
-                )}
-              </TouchableOpacity>
+              {/* 按钮行 */}
+              <View style={st.btnRow}>
+                <TouchableOpacity style={st.reconRecordBtn}
+                  onPress={() => setShowExpRecords(!showExpRecords)} activeOpacity={0.8}>
+                  <Text style={st.reconRecordBtnText}>{t('expenseHistory')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[st.expBtn, { flex: 1 }]}
+                  onPress={handleAddExpense}
+                  disabled={!expAmount || loadingExp}
+                  activeOpacity={0.8}
+                >
+                  <Text style={st.expBtnText}>
+                    {loadingExp ? '...' : t('confirmRecord')}
+                  </Text>
+                  {(!expAmount || loadingExp) && (
+                    <View style={st.expBtnMask} />
+                  )}
+                </TouchableOpacity>
+              </View>
+              {/* 支出记录列表 */}
+              {showExpRecords && (
+                <View style={st.expRecList}>
+                  {expenses.length === 0 ? (
+                    <Text style={st.empty}>{t('noData')}</Text>
+                  ) : (
+                    expenses.slice(0, 20).map((e: any, i: number) => (
+                      <View key={i} style={st.expRow}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={st.expNote}>
+                            {e.note || e.category || t('noNote')}
+                          </Text>
+                          <Text style={st.expDateText}>
+                            {e.date || (e.created_at || '').slice(0, 10)}
+                          </Text>
+                        </View>
+                        <Text style={st.expAmt}>-¥{e.amount.toLocaleString()}</Text>
+                      </View>
+                    ))
+                  )}
+                </View>
+              )}
             </View>
           </View>
         </FadeInView>
@@ -987,7 +1017,15 @@ const st = StyleSheet.create({
   payChipActiveAlipay: { backgroundColor: '#1677FF' },
   payChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   payChipTextActive: { color: '#FFFFFF' },
-  /* Expense note */
+  /* Chip icon circle */
+  chipIconCircle: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    alignItems: 'center', justifyContent: 'center',
+    marginRight: 4,
+  },
+  chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  /* Expense records */
   noteInput: {
     fontSize: 14, color: '#1A1A1A',
     borderWidth: 0, backgroundColor: '#F9FAFB',
@@ -1005,6 +1043,14 @@ const st = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 12,
   },
   expBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+
+  /* ── Expense records list ── */
+  expRecList: {
+    borderTopWidth: 1, borderTopColor: '#EBEBEB',
+    paddingTop: 12, maxHeight: 300,
+    // @ts-ignore — RN Web doesn't support overflowY but the browser does
+    overflowY: 'auto' as any,
+  },
 
   /* ── Expense list ── */
   expRow: {
