@@ -711,7 +711,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       >
                         <Text style={{ fontSize: 13, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
                       </TouchableOpacity>
-                      {[...allFees].sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
+                      {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
                         const isSel = feeMonth !== 'all' && feeMonth.year === f.year && feeMonth.month === f.month;
                         return (
                           <TouchableOpacity
@@ -1132,7 +1132,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     >
                       <Text style={{ fontSize: 12, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
                     </TouchableOpacity>
-                    {allFees.map((f: any) => {
+                    {allFees.filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).map((f: any) => {
                       const isSel = feeHistoryFilter !== 'all' && feeHistoryFilter.year === f.year && feeHistoryFilter.month === f.month;
                       return (
                         <TouchableOpacity
