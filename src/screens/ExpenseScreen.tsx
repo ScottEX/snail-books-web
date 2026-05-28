@@ -1130,34 +1130,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   </View>
                 );
               })}
-              {/* Total row */}
-              {(() => {
-                const ft = feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month);
-                const ftTotal = ft.reduce((s: number, f: any) => s + (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0), 0);
-                const totals = [
-                  { label: '美团收银', value: ft.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0), color: '#3B82F6' as const },
-                  { label: '美团外卖', value: ft.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0), color: '#F59E0B' as const },
-                  { label: '闪购外卖', value: ft.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0), color: '#06B6D4' as const },
-                  { label: '美团团购', value: ft.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0), color: '#10B981' as const },
-                ];
-                return (
-                  <View style={{ backgroundColor: '#FDF2F2', borderRadius: 14, padding: 16, marginTop: 4, borderWidth: 2, borderColor: '#F5D0D0' } as any}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-                      <Text style={{ fontSize: 14, color: '#991B1B', fontWeight: '700' }}>{feeHistoryFilter === 'all' ? t('feeAllMonths') : t('feePreview')}</Text>
-                      <Text style={{ fontSize: 18, color: '#991B1B', fontWeight: '700', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>¥{ftTotal.toFixed(2)}</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                      {totals.map((p) => (
-                        <View key={p.label} style={{ flex: 1, minWidth: '46%', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: p.color }} />
-                          <Text style={{ fontSize: 11, color: '#991B1B', fontWeight: '500', flex: 1 }}>{p.label}</Text>
-                          <Text style={{ fontSize: 12, color: '#991B1B', fontWeight: '600' }}>¥{p.value.toFixed(2)}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                );
-              })()}
             </ScrollView>
           </View>
         </View>
