@@ -63,6 +63,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
   useEffect(() => { fetchUntil(PAGE_SIZE); }, []);
 
+  // Current user for displaying who filled each record
+  const currentUser = (() => { try { return localStorage.getItem('user') || ''; } catch { return ''; } })();
+
   // Scroll pagination — matches ReconHistoryScreen pattern
   const handleScroll = useCallback((e: any) => {
     if (loadingRef.current) return;
@@ -117,6 +120,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                   </View>
                   <Text style={st.amount}>-¥{e.amount.toLocaleString()}</Text>
                 </View>
+                {currentUser ? (
+                  <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
+                ) : null}
                 <View style={st.rowBottom}>
                   <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
                   {e.note ? (
@@ -189,6 +195,7 @@ const st = StyleSheet.create({
   },
   payBadgeText: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
   amount: { fontSize: 17, fontWeight: '700', color: '#DC2626' },
+  filledBy: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
   rowBottom: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
