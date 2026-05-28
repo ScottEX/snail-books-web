@@ -190,6 +190,8 @@ const I18N: Record<string, Record<string, string>> = {
     // Modal
     friendlyReminder: '温馨提示',
     jokeRecon: '对账不认真，董事长打你屁屁',
+    expConfirmTitle: '确认记录',
+    expConfirmMsg: '提交后将无法修改，确定要记录吗？',
     confirm: '确认',
     currentBalance: '当前结余',
     bookDiff: '账面差额',
@@ -387,6 +389,8 @@ const I18N: Record<string, Record<string, string>> = {
     // Modal
     friendlyReminder: '溫馨提示',
     jokeRecon: '對賬不認真，董事長打你屁屁',
+    expConfirmTitle: '確認記錄',
+    expConfirmMsg: '提交後將無法修改，確定要記錄嗎？',
     confirm: '確認',
     currentBalance: '當前結餘',
     bookDiff: '賬面差額',
@@ -584,6 +588,8 @@ const I18N: Record<string, Record<string, string>> = {
     // Modal
     friendlyReminder: 'Friendly Reminder',
     jokeRecon: 'Sloppy reconciliation? The Chairman will spank you!',
+    expConfirmTitle: 'Confirm Record',
+    expConfirmMsg: 'This cannot be edited after submission. Proceed?',
     confirm: 'Confirm',
     currentBalance: 'Balance',
     bookDiff: 'Difference',

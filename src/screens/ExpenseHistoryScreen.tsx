@@ -15,6 +15,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
+  const touchStartX = useRef(0);
   const loadingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const apiPageRef = useRef(1);
@@ -57,8 +58,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       let all = [...records];
       while (all.length < minNeeded && !doneRef.current) {
         const tx: any = await api.getTransactions(apiPageRef.current);
-        if (apiPageRef.current === 1) totalRef.current = tx.total || 0;
+        if (apiPageRef.current === 1) totalRef.current = 0;
         const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
+        totalRef.current += exps.length;
         all = [...all, ...exps];
         if (apiPageRef.current >= (tx.pages || 1)) {
           doneRef.current = true;
@@ -171,7 +173,19 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
       {/* Fullscreen image preview with left/right swipe */}
       {previewData && (
-        <View style={st.previewOverlay}>
+        <View style={st.previewOverlay}
+          onTouchStart={(e: any) => { touchStartX.current = e.nativeEvent.pageX || e.nativeEvent.touches?.[0]?.pageX || 0; }}
+          onTouchEnd={(e: any) => {
+            const endX = e.nativeEvent.pageX || e.nativeEvent.changedTouches?.[0]?.pageX || 0;
+            const dx = endX - touchStartX.current;
+            if (Math.abs(dx) > 60) {
+              if (dx < 0 && previewData.idx < previewData.images.length - 1) {
+                setPreviewData({ images: previewData.images, idx: previewData.idx + 1 });
+              } else if (dx > 0 && previewData.idx > 0) {
+                setPreviewData({ images: previewData.images, idx: previewData.idx - 1 });
+              }
+            }
+          }}>
           <TouchableOpacity style={st.previewClose}
             onPress={() => setPreviewData(null)}
             activeOpacity={0.7}>

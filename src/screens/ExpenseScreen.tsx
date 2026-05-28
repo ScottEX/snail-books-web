@@ -272,6 +272,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [expenses, setExpenses] = useState<any[]>([]);
   const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
   const [loadingExp, setLoadingExp] = useState(false);
+  const [showExpConfirm, setShowExpConfirm] = useState(false);
 
   const loadExpenses = async () => {
     try {
@@ -757,7 +758,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <View key={`img-${i}`} style={st.imgPreview}>
                     {React.createElement('img', {
                       src: URL.createObjectURL(file),
-                      style: { width: 100, height: 100, borderRadius: 16, objectFit: 'cover' },
+                      style: { width: 90, height: 90, borderRadius: 16, objectFit: 'cover' },
                       alt: file.name,
                     })}
                     <TouchableOpacity style={st.imgRemove}
@@ -809,7 +810,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[st.expBtn, { flex: 1 }]}
-                  onPress={handleAddExpense}
+                  onPress={() => { if (expAmount) setShowExpConfirm(true); }}
                   disabled={!expAmount || loadingExp}
                   activeOpacity={0.8}
                 >
@@ -826,6 +827,34 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </FadeInView>
         )}
       </ScrollView>
+
+      {/* 支出确认弹窗 */}
+      {showExpConfirm && (
+        <View style={st.modalOverlay}>
+          <TouchableOpacity style={st.modalBackdrop} onPress={() => setShowExpConfirm(false)} activeOpacity={1} />
+          <View style={st.modalCard}>
+            <View style={st.modalHeader}>
+              <Text style={st.modalTitle}>{t('expConfirmTitle')}</Text>
+              <TouchableOpacity onPress={() => setShowExpConfirm(false)}>
+                <Text style={st.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ padding: 20, gap: 16 }}>
+              <Text style={{ fontSize: 14, color: '#4B5563', textAlign: 'center' }}>
+                {t('expConfirmMsg')}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity style={st.modalCancelBtn} onPress={() => setShowExpConfirm(false)}>
+                  <Text style={st.modalCancelText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={st.modalBtn} onPress={() => { setShowExpConfirm(false); handleAddExpense(); }}>
+                  <Text style={st.modalBtnText}>{t('confirm')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* 添加提示弹窗 */}
       {showToast && (
@@ -1107,7 +1136,7 @@ const st = StyleSheet.create({
   /* ── Image upload ── */
   imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4, paddingHorizontal: 10 },
   imgAddBtn: {
-    width: 100, height: 100, borderRadius: 16,
+    width: 90, height: 90, borderRadius: 16,
     borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D1D5DB',
     backgroundColor: '#FAFAFA',
     alignItems: 'center', justifyContent: 'center',
