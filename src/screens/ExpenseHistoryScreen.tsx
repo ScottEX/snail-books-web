@@ -16,6 +16,10 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
   const touchStartX = useRef(0);
+  const [showFilter, setShowFilter] = useState(false);
+  const [filDateFrom, setFilDateFrom] = useState('');
+  const [filDateTo, setFilDateTo] = useState('');
+  const [filCategories, setFilCategories] = useState<string[]>([]);
   const loadingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const apiPageRef = useRef(1);
@@ -99,6 +103,22 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
   const visible = records.slice(0, Math.min(displayCount, records.length));
 
+  // Category toggle
+  const toggleCat = (cat: string) => {
+    setFilCategories(prev =>
+      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+    );
+  };
+
+  // Client-side filtering
+  const filtered = (() => {
+    let result = visible;
+    if (filDateFrom) result = result.filter(e => (e.date || (e.created_at || '').slice(0, 10)) >= filDateFrom);
+    if (filDateTo) result = result.filter(e => (e.date || (e.created_at || '').slice(0, 10)) <= filDateTo);
+    if (filCategories.length > 0) result = result.filter(e => filCategories.some(c => (e.category || '').includes(c)));
+    return result;
+  })();
+
   return (
     <View style={st.root}>
       {/* Header — absolute, transparent, floats above scroll (matches ReconHistoryScreen) */}
@@ -109,18 +129,68 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('expenseHistory')} ({totalRef.current})</Text>
-        <View style={{ width: 44 }} />
+        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#6B7280'} strokeWidth={2} strokeLinecap="round">
+            <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
+          </Svg>
+        </TouchableOpacity>
       </View>
+
+      {/* Filter panel */}
+      {showFilter && (
+        <View style={st.filterPanel}>
+          <View style={st.filterContent}>
+            {/* Date range */}
+            <View style={st.filterField}>
+              <Text style={st.filterLabel}>{t('filterDate')}</Text>
+              <View style={st.filterDateRange}>
+                <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
+                  style={st.filterDateInput as any} />
+                <Text style={st.filterDateArrow}>→</Text>
+                <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
+                  style={st.filterDateInput as any} />
+              </View>
+            </View>
+            {/* Category chips */}
+            <View style={st.filterField}>
+              <Text style={st.filterLabel}>{t('filterCategory')}</Text>
+              <View style={st.filterChipRow}>
+                {(['日常', '房租', '薪资', '采购'] as const).map(cat => {
+                  const active = filCategories.includes(cat);
+                  return (
+                    <TouchableOpacity key={cat}
+                      style={[st.filterChip, active && st.filterChipActive]}
+                      onPress={() => toggleCat(cat)} activeOpacity={0.7}>
+                      <Text style={[st.filterChipText, active && st.filterChipTextActive]}>{t(cat === '日常' ? 'daily' : cat === '房租' ? 'rent' : cat === '薪资' ? 'salary' : 'goods' as any)}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+            {/* Actions */}
+            <View style={st.filterActions}>
+              <TouchableOpacity style={st.filterResetBtn} onPress={() => {
+                setFilDateFrom(''); setFilDateTo(''); setFilCategories([]);
+              }} activeOpacity={0.7}>
+                <Text style={st.filterResetBtnText}>{t('reset')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={st.filterApplyBtn} onPress={() => setShowFilter(false)} activeOpacity={0.8}>
+                <Text style={st.filterApplyBtnText}>{t('apply')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={200}
-        contentContainerStyle={{ paddingTop: 76, paddingHorizontal: 16, paddingBottom: 80 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 240 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
           <Text style={st.empty}>{t('noData')}</Text>
         ) : (
           <>
-            {visible.map((e: any, i: number) => (
+            {filtered.map((e: any, i: number) => (
               <View key={i} style={st.row}>
                 <View style={st.rowTop}>
                   <View style={st.badges}>
@@ -313,4 +383,51 @@ const st = StyleSheet.create({
     position: 'absolute', bottom: 60, zIndex: 10,
     fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.7)',
   },
+  /* Filter panel — matches ReconHistoryScreen */
+  filterBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(250,250,250,0.30)',
+    // @ts-ignore
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
+  },
+  filterBtnActive: { backgroundColor: '#8B1E22', borderColor: '#8B1E22' },
+  filterPanel: {
+    position: 'absolute', top: 50, left: 12, right: 12, zIndex: 89,
+    backgroundColor: '#FAFAFA', borderRadius: 10,
+    borderWidth: 1, borderColor: '#EBEBEB',
+    overflow: 'hidden',
+  },
+  filterContent: { padding: 12, gap: 8 },
+  filterField: { gap: 3 },
+  filterLabel: { fontSize: 11, fontWeight: '500', color: '#999', paddingLeft: 2 },
+  filterDateRange: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  filterDateInput: {
+    flex: 1, height: 34, paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF', borderRadius: 6,
+    borderWidth: 1, borderColor: '#EBEBEB',
+    fontSize: 13, fontWeight: '400', color: '#374151',
+    fontFamily: 'inherit', outline: 'none',
+  },
+  filterDateArrow: { fontSize: 11, color: '#CCC', fontWeight: '300', marginHorizontal: 2 },
+  filterChipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
+  filterChip: {
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+  },
+  filterChipActive: { backgroundColor: '#FA855A' },
+  filterChipText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
+  filterChipTextActive: { color: '#FFFFFF' },
+  filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  filterResetBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: 8,
+    backgroundColor: '#F3F4F6', borderRadius: 8,
+  },
+  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
+  filterApplyBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: 8,
+    backgroundColor: '#8B1E22', borderRadius: 8,
+  },
+  filterApplyBtnText: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
 });
