@@ -758,7 +758,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <View key={`img-${i}`} style={st.imgPreview}>
                     {React.createElement('img', {
                       src: URL.createObjectURL(file),
-                      style: { width: 90, height: 90, borderRadius: 16, objectFit: 'cover' },
+                      style: { width: 95, height: 95, borderRadius: 16, objectFit: 'cover' },
                       alt: file.name,
                     })}
                     <TouchableOpacity style={st.imgRemove}
@@ -1136,7 +1136,7 @@ const st = StyleSheet.create({
   /* ── Image upload ── */
   imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4, paddingHorizontal: 10 },
   imgAddBtn: {
-    width: 90, height: 90, borderRadius: 16,
+    width: 95, height: 95, borderRadius: 16,
     borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D1D5DB',
     backgroundColor: '#FAFAFA',
     alignItems: 'center', justifyContent: 'center',
