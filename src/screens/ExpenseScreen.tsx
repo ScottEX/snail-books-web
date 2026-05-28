@@ -455,6 +455,24 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       </View>
                     </View>
                   )}
+                  {i === 1 && (
+                    <View style={st.cardFields}>
+                      <View style={st.cardFieldRow}>
+                        <View style={st.cardFieldCol}>
+                          <Text style={st.cardFieldLabel}>{t('cumulativeRevenue')}</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(statsData.income)}</Text>
+                        </View>
+                        <View style={st.cardFieldCol}>
+                          <Text style={st.cardFieldLabel}>{t('cumulativeExpense')}</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(statsData.expense)}</Text>
+                        </View>
+                        <View style={st.cardFieldCol}>
+                          <Text style={st.cardFieldLabel}>{t('cashOnHand')}</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(statsData.income - statsData.expense)}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
                 </View>
                 {i === 2 && (
                   <View style={st.cardFields}>
@@ -601,26 +619,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </FadeInView>
         )}
 
-        {/* ── 模块二：营业额追踪 ── */}
+        {/* ── 模块二：营业额 ── */}
         {activeTab === 1 && (
         <FadeInView style={st.moduleWrap}>
           <View style={st.card}>
-            {/* Cumulative card — 3 columns: 累计营收 | 累计支出 | 在手资金 */}
-            <View style={st.kpiRow}>
-              <View style={st.kpiCard}>
-                <Text style={st.kpiLabel}>{t('cumulativeRevenue')}</Text>
-                <NumberTicker value={statsData.income} style={st.kpiVal} />
-              </View>
-              <View style={st.kpiCard}>
-                <Text style={st.kpiLabel}>{t('cumulativeExpense')}</Text>
-                <NumberTicker value={statsData.expense} style={st.kpiVal} />
-              </View>
-              <View style={st.kpiCard}>
-                <Text style={st.kpiLabel}>{t('cashOnHand')}</Text>
-                <NumberTicker value={statsData.income - statsData.expense} style={st.kpiVal} />
-              </View>
-            </View>
-
             {/* Detail card — 3 columns: 实收金额 | 应收金额 | 优惠减免 */}
             <View style={st.kpiRow}>
               <View style={st.kpiCard}>
