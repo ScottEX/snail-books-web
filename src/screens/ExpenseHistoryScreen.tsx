@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -274,7 +274,12 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                 })()}
               </View>
             ))}
-            {loading && <Text style={st.loading}>...</Text>}
+            {loading && (
+              <View style={st.loading}>
+                <ActivityIndicator size="small" color="#8B1E22" />
+                <Text style={st.loadingText}>...</Text>
+              </View>
+            )}
           </>
         )}
       </ScrollView>
@@ -397,7 +402,8 @@ const st = StyleSheet.create({
   dateText: { fontSize: 13, color: '#9CA3AF' },
   note: { fontSize: 13, color: '#6B7280', flex: 1, textAlign: 'right' },
   empty: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingVertical: 40 },
-  loading: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingVertical: 16 },
+  loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
+  loadingText: { fontSize: 13, color: '#8B1E22' },
   /* Preview overlay */
   previewOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,

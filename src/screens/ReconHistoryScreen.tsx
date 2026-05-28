@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
@@ -393,13 +393,21 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         onScroll={handleScroll} scrollEventThrottle={200}
         contentContainerStyle={{ paddingTop: showFilter ? 300 : 76 }}>
         {loading ? (
-          <Text style={st.loading}>{t('loading')}</Text>
+          <View style={st.loading}>
+            <ActivityIndicator size="large" color="#8B1E22" />
+            <Text style={st.loadingText}>{t('loading')}</Text>
+          </View>
         ) : records.length === 0 ? (
           renderEmpty()
         ) : (
           <>
             {records.map(renderCard)}
-            {hasMore && <Text style={st.loadingMore}>{t('loading')}...</Text>}
+            {hasMore && (
+              <View style={st.loadingMore}>
+                <ActivityIndicator size="small" color="#8B1E22" />
+                <Text style={st.loadingMoreText}>{t('loading')}...</Text>
+              </View>
+            )}
           </>
         )}
         <View style={{ height: 100 }} />
@@ -433,8 +441,10 @@ const st = StyleSheet.create({
   },
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
   list: { flex: 1, paddingHorizontal: 12 },
-  loading: { textAlign: 'center', marginTop: 40, fontSize: 14, color: '#999' },
-  loadingMore: { textAlign: 'center', paddingVertical: 20, fontSize: 13, color: '#B0B0B0' },
+  loading: { marginTop: 80, alignItems: 'center' },
+  loadingText: { marginTop: 12, fontSize: 14, color: '#8B1E22' },
+  loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
+  loadingMoreText: { fontSize: 13, color: '#8B1E22' },
   /* Card */
   card: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
