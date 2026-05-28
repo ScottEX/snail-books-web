@@ -515,7 +515,7 @@ def api_delete_transaction(id):
     return jsonify({'status':'ok'})
 
 # ========== 支出图片上传 ==========
-_EXPENSE_IMG_DIR = os.path.join(os.path.dirname(__file__), 'user-uploads', 'expenses')
+_EXPENSE_IMG_DIR = os.path.join(os.path.dirname(__file__), 'financial-records', 'expenses')
 _EXPENSE_IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 
 @app.route('/expense-imgs/<int:user_id>/<filename>')
