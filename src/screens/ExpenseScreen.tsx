@@ -257,6 +257,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [showFeeMonthPicker, setShowFeeMonthPicker] = useState(false);
   const [showFeeSheet, setShowFeeSheet] = useState(false);
   const [showFeeHistory, setShowFeeHistory] = useState(false);
+  const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
+  const [showFeeHistoryFilterPicker, setShowFeeHistoryFilterPicker] = useState(false);
   const [feeEntryDate, setFeeEntryDate] = useState(todayStr());
   const [feeMc, setFeeMc] = useState('');
   const [feeMw, setFeeMw] = useState('');
@@ -276,7 +278,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       } else {
         setFeeData(null);
       }
-    } catch {}
+    } catch (err) { console.error('loadFeeData failed:', err); }
   };
   useEffect(() => { loadFeeData(); }, [feeMonth]);
 
@@ -730,7 +732,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
                 onPress={() => {
                   if (feeMonth === 'all') {
-                    setShowFeeHistory(true);
+                    setShowFeeHistory(true); setFeeHistoryFilter('all');
                   } else {
                     setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
                     loadFeeData(); setShowFeeSheet(true);
@@ -1101,15 +1103,53 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Fee history bottom sheet — "全部" detail view */}
       {showFeeHistory && (
         <View style={[st.modalOverlay, { justifyContent: 'flex-end' }]}>
-          <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => setShowFeeHistory(false)} />
+          <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }} />
           <View style={[st.feeSheet, { maxHeight: '80%' }]}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
-              <TouchableOpacity onPress={() => setShowFeeHistory(false)}>
+              <TouchableOpacity onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
                 <Text style={st.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ paddingHorizontal: 20, paddingBottom: 20, maxHeight: 450 }} showsVerticalScrollIndicator={false}>
+            {/* Month filter */}
+            <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '500' }}>筛选：</Text>
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 3, position: 'relative' }}
+                onPress={() => setShowFeeHistoryFilterPicker(!showFeeHistoryFilterPicker)}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 12, color: '#8B1E22', fontWeight: '600' }}>
+                  {feeHistoryFilter === 'all' ? t('feeAllMonths') : `${feeHistoryFilter.year}年${feeHistoryFilter.month}月`}
+                </Text>
+                <Text style={{ fontSize: 10, color: '#8B1E22' }}>▼</Text>
+                {showFeeHistoryFilterPicker && (
+                  <View style={{ position: 'absolute', top: 24, left: 0, zIndex: 200, backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 4px 24px rgba(0,0,0,0.12)', paddingVertical: 6, minWidth: 120, maxHeight: 260, overflow: 'scroll' as any }}>
+                    <TouchableOpacity
+                      style={{ paddingHorizontal: 14, paddingVertical: 9, backgroundColor: feeHistoryFilter === 'all' ? '#FFF0F1' : 'transparent' }}
+                      onPress={() => { setFeeHistoryFilter('all'); setShowFeeHistoryFilterPicker(false); }}
+                      activeOpacity={0.6}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
+                    </TouchableOpacity>
+                    {allFees.map((f: any) => {
+                      const isSel = feeHistoryFilter !== 'all' && feeHistoryFilter.year === f.year && feeHistoryFilter.month === f.month;
+                      return (
+                        <TouchableOpacity
+                          key={`hf-${f.year}-${f.month}`}
+                          style={{ paddingHorizontal: 14, paddingVertical: 9, backgroundColor: isSel ? '#FFF0F1' : 'transparent' }}
+                          onPress={() => { setFeeHistoryFilter({ year: f.year, month: f.month }); setShowFeeHistoryFilterPicker(false); }}
+                          activeOpacity={0.6}
+                        >
+                          <Text style={{ fontSize: 12, fontWeight: isSel ? '700' : '500', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ paddingHorizontal: 20, paddingBottom: 20, maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               {/* Column headers */}
               <View style={{ flexDirection: 'row', paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', marginBottom: 8 }}>
                 <Text style={{ flex: 1.2, fontSize: 10, color: '#9CA3AF', fontWeight: '600' }}>{t('reconDate')}</Text>
@@ -1119,7 +1159,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ flex: 0.9, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('shangouWaimai')}</Text>
                 <Text style={{ flex: 0.9, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanTuan')}</Text>
               </View>
-              {allFees.map((f: any) => {
+              {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0);
                 return (
                   <View key={f.id} style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: '#F5F5F5' }}>
@@ -1133,22 +1173,28 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 );
               })}
               {/* Total row */}
-              <View style={{ flexDirection: 'row', paddingVertical: 10, paddingTop: 12, borderTopWidth: 2, borderTopColor: '#8B1E22', marginTop: 4 }}>
-                <Text style={{ flex: 1.2, fontSize: 13, color: '#1A1A1A', fontWeight: '700' }}>{t('feeAllMonths')}</Text>
-                <Text style={{ flex: 1, fontSize: 13, color: '#8B1E22', fontWeight: '700', textAlign: 'right' }}>¥{feeTotal.toFixed(2)}</Text>
-                <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
-                  ¥{allFees.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0).toFixed(2)}
-                </Text>
-                <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
-                  ¥{allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0).toFixed(2)}
-                </Text>
-                <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
-                  ¥{allFees.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0).toFixed(2)}
-                </Text>
-                <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
-                  ¥{allFees.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0).toFixed(2)}
-                </Text>
-              </View>
+              {(() => {
+                const ft = feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month);
+                const ftTotal = ft.reduce((s: number, f: any) => s + (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0), 0);
+                return (
+                  <View style={{ flexDirection: 'row', paddingVertical: 10, paddingTop: 12, borderTopWidth: 2, borderTopColor: '#8B1E22', marginTop: 4 }}>
+                    <Text style={{ flex: 1.2, fontSize: 13, color: '#1A1A1A', fontWeight: '700' }}>{feeHistoryFilter === 'all' ? t('feeAllMonths') : t('feePreview')}</Text>
+                    <Text style={{ flex: 1, fontSize: 13, color: '#8B1E22', fontWeight: '700', textAlign: 'right' }}>¥{ftTotal.toFixed(2)}</Text>
+                    <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
+                      ¥{ft.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0).toFixed(2)}
+                    </Text>
+                    <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
+                      ¥{ft.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0).toFixed(2)}
+                    </Text>
+                    <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
+                      ¥{ft.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0).toFixed(2)}
+                    </Text>
+                    <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
+                      ¥{ft.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0).toFixed(2)}
+                    </Text>
+                  </View>
+                );
+              })()}
             </ScrollView>
           </View>
         </View>
