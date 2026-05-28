@@ -477,7 +477,7 @@ const st = StyleSheet.create({
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
   },
-  filterBtnActive: { backgroundColor: '#8B1E22', borderColor: '#8B1E22' },
+  filterBtnActive: { backgroundColor: '#FA855A', borderColor: '#FA855A' },
   filterBtnText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
   filterBtnTextActive: { color: '#FFFFFF' },
   filterPanel: {
@@ -565,13 +565,13 @@ const st = StyleSheet.create({
   filterResetBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#B3CFE5',
   },
   filterResetBtnText: { fontSize: 12, fontWeight: '500', color: '#999' },
   filterApplyBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#8B1E22',
+    backgroundColor: '#FA855A',
   },
   filterApplyBtnText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
   /* Reconciler in card */
