@@ -701,31 +701,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     {feeMonth === 'all' ? t('feeAllMonths') : `${feeMonth.year}年${feeMonth.month}月`}
                   </Text>
                   <Text style={{ fontSize: 10, color: '#8B1E22' }}>▼</Text>
-                  {/* Month picker dropdown */}
-                  {showFeeMonthPicker && (
-                    <View style={{ position: 'absolute', top: 24, left: 0, zIndex: 100, backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 4px 24px rgba(0,0,0,0.12)', paddingVertical: 6, minWidth: 130 }}>
-                      <TouchableOpacity
-                        style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: feeMonth === 'all' ? '#FFF0F1' : 'transparent' }}
-                        onPress={() => { setFeeMonth('all'); setShowFeeMonthPicker(false); }}
-                        activeOpacity={0.6}
-                      >
-                        <Text style={{ fontSize: 13, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
-                      </TouchableOpacity>
-                      {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
-                        const isSel = feeMonth !== 'all' && feeMonth.year === f.year && feeMonth.month === f.month;
-                        return (
-                          <TouchableOpacity
-                            key={`${f.year}-${f.month}`}
-                            style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: isSel ? '#FFF0F1' : 'transparent' }}
-                            onPress={() => { setFeeMonth({ year: f.year, month: f.month }); setShowFeeMonthPicker(false); }}
-                            activeOpacity={0.6}
-                          >
-                            <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '500', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  )}
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
@@ -1111,37 +1086,37 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={st.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            {/* Month filter */}
-            <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '500' }}>筛选：</Text>
+            {/* Month filter — stylish pill */}
+            <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>{t('filterDate')}</Text>
               <TouchableOpacity
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 3, position: 'relative' }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F9F7F4', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#E8E4DD', position: 'relative' }}
                 onPress={() => setShowFeeHistoryFilterPicker(!showFeeHistoryFilterPicker)}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 12, color: '#8B1E22', fontWeight: '600' }}>
+                <Text style={{ fontSize: 13, color: '#8B1E22', fontWeight: '600' }}>
                   {feeHistoryFilter === 'all' ? t('feeAllMonths') : `${feeHistoryFilter.year}年${feeHistoryFilter.month}月`}
                 </Text>
-                <Text style={{ fontSize: 10, color: '#8B1E22' }}>▼</Text>
+                <Text style={{ fontSize: 10, color: '#8B1E22', marginLeft: 2 }}>▼</Text>
                 {showFeeHistoryFilterPicker && (
-                  <View style={{ position: 'absolute', top: 24, left: 0, zIndex: 200, backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 4px 24px rgba(0,0,0,0.12)', paddingVertical: 6, minWidth: 120, maxHeight: 260, overflow: 'scroll' as any }}>
+                  <View style={{ position: 'absolute', top: 40, left: 0, zIndex: 300, backgroundColor: '#fff', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.15)', paddingVertical: 6, minWidth: 130, maxHeight: 280, overflow: 'scroll' as any }}>
                     <TouchableOpacity
-                      style={{ paddingHorizontal: 14, paddingVertical: 9, backgroundColor: feeHistoryFilter === 'all' ? '#FFF0F1' : 'transparent' }}
+                      style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: feeHistoryFilter === 'all' ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                       onPress={() => { setFeeHistoryFilter('all'); setShowFeeHistoryFilterPicker(false); }}
                       activeOpacity={0.6}
                     >
-                      <Text style={{ fontSize: 12, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
+                      <Text style={{ fontSize: 13, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
                     </TouchableOpacity>
                     {allFees.filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).map((f: any) => {
                       const isSel = feeHistoryFilter !== 'all' && feeHistoryFilter.year === f.year && feeHistoryFilter.month === f.month;
                       return (
                         <TouchableOpacity
                           key={`hf-${f.year}-${f.month}`}
-                          style={{ paddingHorizontal: 14, paddingVertical: 9, backgroundColor: isSel ? '#FFF0F1' : 'transparent' }}
+                          style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: isSel ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                           onPress={() => { setFeeHistoryFilter({ year: f.year, month: f.month }); setShowFeeHistoryFilterPicker(false); }}
                           activeOpacity={0.6}
                         >
-                          <Text style={{ fontSize: 12, fontWeight: isSel ? '700' : '500', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
+                          <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
                         </TouchableOpacity>
                       );
                     })}
@@ -1149,26 +1124,27 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 )}
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ paddingHorizontal: 20, paddingBottom: 20, maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ paddingHorizontal: 16, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
               {/* Column headers */}
-              <View style={{ flexDirection: 'row', paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', marginBottom: 8 }}>
-                <Text style={{ flex: 1.2, fontSize: 10, color: '#9CA3AF', fontWeight: '600' }}>{t('reconDate')}</Text>
-                <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feePreview')}</Text>
-                <Text style={{ flex: 0.9, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanCashier')}</Text>
-                <Text style={{ flex: 0.9, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanWaimai')}</Text>
-                <Text style={{ flex: 0.9, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('shangouWaimai')}</Text>
-                <Text style={{ flex: 0.9, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanTuan')}</Text>
+              <View style={{ flexDirection: 'row', paddingHorizontal: 4, paddingBottom: 10, borderBottomWidth: 1.5, borderBottomColor: '#E8E4DD', marginBottom: 4 }}>
+                <Text style={{ flex: 1.4, fontSize: 11, color: '#9CA3AF', fontWeight: '600', letterSpacing: 0.5 }}>{t('reconDate')}</Text>
+                <Text style={{ flex: 1, fontSize: 11, color: '#9CA3AF', fontWeight: '600', textAlign: 'right', letterSpacing: 0.5 }}>{t('feePreview')}</Text>
+                <Text style={{ flex: 0.85, fontSize: 11, color: '#9CA3AF', fontWeight: '600', textAlign: 'right', letterSpacing: 0.5 }}>{t('meituanCashier')}</Text>
+                <Text style={{ flex: 0.85, fontSize: 11, color: '#9CA3AF', fontWeight: '600', textAlign: 'right', letterSpacing: 0.5 }}>{t('meituanWaimai')}</Text>
+                <Text style={{ flex: 0.85, fontSize: 11, color: '#9CA3AF', fontWeight: '600', textAlign: 'right', letterSpacing: 0.5 }}>{t('shangouWaimai')}</Text>
+                <Text style={{ flex: 0.85, fontSize: 11, color: '#9CA3AF', fontWeight: '600', textAlign: 'right', letterSpacing: 0.5 }}>{t('meituanTuan')}</Text>
               </View>
-              {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any) => {
+              {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0);
+                const isEven = idx % 2 === 0;
                 return (
-                  <View key={f.id} style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: '#F5F5F5' }}>
-                    <Text style={{ flex: 1.2, fontSize: 12, color: '#374151', fontWeight: '500' }}>{f.year}年{f.month}月</Text>
-                    <Text style={{ flex: 1, fontSize: 12, color: '#8B1E22', fontWeight: '600', textAlign: 'right' }}>¥{monthTotal.toFixed(2)}</Text>
-                    <Text style={{ flex: 0.9, fontSize: 12, color: '#1A1A1A', textAlign: 'right' }}>¥{f.meituan_cashier.toFixed(2)}</Text>
-                    <Text style={{ flex: 0.9, fontSize: 12, color: '#1A1A1A', textAlign: 'right' }}>¥{f.meituan_waimai.toFixed(2)}</Text>
-                    <Text style={{ flex: 0.9, fontSize: 12, color: '#1A1A1A', textAlign: 'right' }}>¥{f.eleme_waimai.toFixed(2)}</Text>
-                    <Text style={{ flex: 0.9, fontSize: 12, color: '#1A1A1A', textAlign: 'right' }}>¥{f.meituan_tuan.toFixed(2)}</Text>
+                  <View key={f.id} style={{ flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 6, borderRadius: 10, marginBottom: 2, backgroundColor: isEven ? '#FAFAF8' : 'transparent' }}>
+                    <Text style={{ flex: 1.4, fontSize: 13, color: '#374151', fontWeight: '500' }}>{f.year}年{f.month}月</Text>
+                    <Text style={{ flex: 1, fontSize: 13, color: '#8B1E22', fontWeight: '600', textAlign: 'right' }}>¥{monthTotal.toFixed(2)}</Text>
+                    <Text style={{ flex: 0.85, fontSize: 13, color: '#6B7280', textAlign: 'right' }}>¥{f.meituan_cashier.toFixed(2)}</Text>
+                    <Text style={{ flex: 0.85, fontSize: 13, color: '#6B7280', textAlign: 'right' }}>¥{f.meituan_waimai.toFixed(2)}</Text>
+                    <Text style={{ flex: 0.85, fontSize: 13, color: '#6B7280', textAlign: 'right' }}>¥{f.eleme_waimai.toFixed(2)}</Text>
+                    <Text style={{ flex: 0.85, fontSize: 13, color: '#6B7280', textAlign: 'right' }}>¥{f.meituan_tuan.toFixed(2)}</Text>
                   </View>
                 );
               })}
@@ -1177,19 +1153,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 const ft = feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month);
                 const ftTotal = ft.reduce((s: number, f: any) => s + (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0), 0);
                 return (
-                  <View style={{ flexDirection: 'row', paddingVertical: 10, paddingTop: 12, borderTopWidth: 2, borderTopColor: '#8B1E22', marginTop: 4 }}>
-                    <Text style={{ flex: 1.2, fontSize: 13, color: '#1A1A1A', fontWeight: '700' }}>{feeHistoryFilter === 'all' ? t('feeAllMonths') : t('feePreview')}</Text>
-                    <Text style={{ flex: 1, fontSize: 13, color: '#8B1E22', fontWeight: '700', textAlign: 'right' }}>¥{ftTotal.toFixed(2)}</Text>
-                    <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
+                  <View style={{ flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 8, borderRadius: 12, marginTop: 8, backgroundColor: '#FDF2F2' }}>
+                    <Text style={{ flex: 1.4, fontSize: 14, color: '#991B1B', fontWeight: '700' }}>{feeHistoryFilter === 'all' ? t('feeAllMonths') : t('feePreview')}</Text>
+                    <Text style={{ flex: 1, fontSize: 14, color: '#991B1B', fontWeight: '700', textAlign: 'right' }}>¥{ftTotal.toFixed(2)}</Text>
+                    <Text style={{ flex: 0.85, fontSize: 14, color: '#991B1B', fontWeight: '700', textAlign: 'right' }}>
                       ¥{ft.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0).toFixed(2)}
                     </Text>
-                    <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
+                    <Text style={{ flex: 0.85, fontSize: 14, color: '#991B1B', fontWeight: '700', textAlign: 'right' }}>
                       ¥{ft.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0).toFixed(2)}
                     </Text>
-                    <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
+                    <Text style={{ flex: 0.85, fontSize: 14, color: '#991B1B', fontWeight: '700', textAlign: 'right' }}>
                       ¥{ft.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0).toFixed(2)}
                     </Text>
-                    <Text style={{ flex: 0.9, fontSize: 13, color: '#1A1A1A', fontWeight: '700', textAlign: 'right' }}>
+                    <Text style={{ flex: 0.85, fontSize: 14, color: '#991B1B', fontWeight: '700', textAlign: 'right' }}>
                       ¥{ft.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0).toFixed(2)}
                     </Text>
                   </View>
@@ -1200,6 +1176,35 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </View>
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {/* Month picker dropdown — rendered at root for correct z-index */}
+      {showFeeMonthPicker && (
+        // @ts-ignore — RN types don't include position:'fixed' but it works in RN Web
+        <View style={{ position: 'fixed' as any, top: '38%', left: '50%', marginLeft: -90, zIndex: 9999, backgroundColor: '#fff', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', paddingVertical: 8, width: 180, maxHeight: 300, overflow: 'scroll' as any }}>
+          {/* Backdrop to close */}
+          <TouchableOpacity style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: -1 }} activeOpacity={1} onPress={() => setShowFeeMonthPicker(false)} />
+          <TouchableOpacity
+            style={{ paddingHorizontal: 18, paddingVertical: 11, backgroundColor: feeMonth === 'all' ? '#FFF0F1' : 'transparent', borderRadius: 10, marginHorizontal: 6 }}
+            onPress={() => { setFeeMonth('all'); setShowFeeMonthPicker(false); }}
+            activeOpacity={0.6}
+          >
+            <Text style={{ fontSize: 14, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
+          </TouchableOpacity>
+          <View style={{ height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 12, marginVertical: 4 }} />
+          {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
+            const isSel = feeMonth !== 'all' && feeMonth.year === f.year && feeMonth.month === f.month;
+            return (
+              <TouchableOpacity
+                key={`${f.year}-${f.month}`}
+                style={{ paddingHorizontal: 18, paddingVertical: 11, backgroundColor: isSel ? '#FFF0F1' : 'transparent', borderRadius: 10, marginHorizontal: 6 }}
+                onPress={() => { setFeeMonth({ year: f.year, month: f.month }); setShowFeeMonthPicker(false); }}
+                activeOpacity={0.6}
+              >
+                <Text style={{ fontSize: 14, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 }
