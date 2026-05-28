@@ -84,6 +84,15 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       if (r?.opacity !== null && r?.opacity !== undefined) {
         setBgOpacity(r.opacity);
         try { localStorage.setItem('bg-opacity', String(r.opacity)); } catch {}
+      } else {
+        // Migration: push localStorage opacity to server if not saved yet
+        try {
+          const local = localStorage.getItem('bg-opacity');
+          if (local !== null) {
+            const v = parseFloat(local);
+            api.saveBackgroundSettings({ opacity: v }).catch(() => {});
+          }
+        } catch {}
       }
     }).catch(() => {});
   }, []);
