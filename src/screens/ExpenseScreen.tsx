@@ -984,7 +984,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF', marginLeft: 4 }}>›</Text>
                   {React.createElement('input', {
                     type: 'date', value: feeEntryDate, max: todayStr(),
-                    onChange: (e: any) => setFeeEntryDate(e.target.value),
+                    onChange: (e: any) => {
+                      const v = e.target.value;
+                      if (v > todayStr()) { setToast(t('noFutureDate')); setShowToast(true); return; }
+                      setFeeEntryDate(v);
+                    },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
                   })}
                 </TouchableOpacity>
