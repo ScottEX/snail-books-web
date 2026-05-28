@@ -145,6 +145,7 @@ export const api = {
     return resp.json();
   },
   resetBackground: () => authFetch('/api/settings/background', { method: 'DELETE' }),
+  saveBackgroundSettings: (data: any) => authFetch('/api/settings/background', { method: 'PUT', body: JSON.stringify(data) }),
 
   getProducts: () => authFetch('/api/products'),
   createProduct: (data: any) => authFetch('/api/products', { method: 'POST', body: JSON.stringify(data) }),

@@ -80,6 +80,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         setBgImage(r.url);
         try { localStorage.setItem('bg-image', r.url); } catch {}
       }
+      // Load opacity from server (overrides localStorage default)
+      if (r?.opacity !== null && r?.opacity !== undefined) {
+        setBgOpacity(r.opacity);
+        try { localStorage.setItem('bg-opacity', String(r.opacity)); } catch {}
+      }
     }).catch(() => {});
   }, []);
 
@@ -301,6 +306,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       const v = parseFloat(e.target.value);
                       setBgOpacity(v);
                       try { localStorage.setItem('bg-opacity', String(v)); } catch {}
+                      // Debounced save to server
+                      clearTimeout((window as any).__bgOpacityTimer);
+                      (window as any).__bgOpacityTimer = setTimeout(() => {
+                        api.saveBackgroundSettings({ opacity: v }).catch(() => {});
+                      }, 500);
                     }}
                     style={{
                       width: '100%', height: 32, opacity: 0, cursor: 'pointer',
