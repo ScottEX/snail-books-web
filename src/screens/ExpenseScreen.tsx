@@ -247,22 +247,53 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const realTotal = toNum(cardBalance) + toNum(cashBalance);
   const diff = realTotal - channelTotal;
 
-  /* ── 模块二：营业额 ── */
-  const [revenueData, setRevenueData] = useState({ todayRevenue: 0, todayActual: 0 });
-  const [revenueList, setRevenueList] = useState<any[]>([]);
-  const [statsData, setStatsData] = useState({ income: 0, expense: 0 });
+  /* ── 模块二：平台手续费 ── */
+  const [feeData, setFeeData] = useState<any>(null);        // current month
+  const [allFees, setAllFees] = useState<any[]>([]);         // all months for detail
+  const [showFeeSheet, setShowFeeSheet] = useState(false);
+  const [showFeeHistory, setShowFeeHistory] = useState(false);
+  const [feeEntryDate, setFeeEntryDate] = useState(todayStr());
+  const [feeMc, setFeeMc] = useState('');
+  const [feeMw, setFeeMw] = useState('');
+  const [feeEw, setFeeEw] = useState('');
+  const [feeMt, setFeeMt] = useState('');
+  const [savingFee, setSavingFee] = useState(false);
 
-  const loadRevenue = async () => {
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  const thisMonth = now.getMonth() + 1;
+
+  const loadFeeData = async () => {
     try {
-      const s = await api.getSummary();
-      setRevenueData({ todayRevenue: s.income || 0, todayActual: s.income || 0 });
-      const tx = await api.getTransactions(1, 20);
-      setRevenueList((tx.transactions || []).filter((t: any) => t.type === 'income').slice(0, 20));
-      const st = await api.getStats();
-      setStatsData({ income: st.income || 0, expense: st.expense || 0 });
-    } catch { setToast(t('toastLoadFailed')); }
+      const [data, all] = await Promise.all([
+        api.getPlatformFees(thisYear, thisMonth),
+        api.getPlatformFees(),
+      ]);
+      setFeeData(data);
+      setAllFees(Array.isArray(all) ? all : []);
+    } catch {}
   };
-  useEffect(() => { loadRevenue(); }, []);
+  useEffect(() => { loadFeeData(); }, []);
+
+  const handleAddFee = async () => {
+    const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
+    if (mc + mw + ew + mt === 0) { setToast('至少输入一个平台的手续费'); setShowToast(true); return; }
+    setSavingFee(true);
+    try {
+      const r = await api.addPlatformFeeEntry({
+        year: thisYear, month: thisMonth,
+        entry_date: feeEntryDate,
+        meituan_cashier: mc, meituan_waimai: mw,
+        eleme_waimai: ew, meituan_tuan: mt,
+      });
+      if (r?.status === 'ok') {
+        setFeeData(r.data);
+        setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
+        setShowFeeSheet(false);
+      }
+    } catch { setToast(t('toastSubmitFailed')); setShowToast(true); }
+    setSavingFee(false);
+  };
 
   /* ── 模块三：支出 ── */
   const [expDate, setExpDate] = useState(todayStr());
@@ -405,9 +436,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
 
   /* ── 卡片摘要数据 ── */
+  const feeTotal = feeData
+    ? (feeData.meituan_cashier + feeData.meituan_waimai + feeData.eleme_waimai + feeData.meituan_tuan)
+    : 0;
   const tabCards = [
     { gradient: ['rgba(13,148,136,0.22)', 'rgba(101,163,13,0.22)'], gradientActive: ['rgba(13,148,136,0.48)', 'rgba(101,163,13,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
-    { gradient: ['rgba(236,72,153,0.22)', 'rgba(249,115,22,0.22)'], gradientActive: ['rgba(236,72,153,0.48)', 'rgba(249,115,22,0.48)'], title: t('tabRevenue'), stat: revenueData.todayRevenue, statFmt: fmt(revenueData.todayRevenue), statColor: '#1A1A1A', prefix: '' },
+    { gradient: ['rgba(236,72,153,0.22)', 'rgba(249,115,22,0.22)'], gradientActive: ['rgba(236,72,153,0.48)', 'rgba(249,115,22,0.48)'], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: '#1A1A1A', prefix: '' },
     { gradient: ['rgba(220,38,38,0.22)', 'rgba(153,27,27,0.22)'], gradientActive: ['rgba(220,38,38,0.48)', 'rgba(153,27,27,0.48)'], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: '#1A1A1A', prefix: '' },
   ];
 
@@ -459,16 +493,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     <View style={st.cardFields}>
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('cumulativeRevenue')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(statsData.income)}</Text>
+                          <Text style={st.cardFieldLabel}>{t('meituanWaimai')}</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(feeData?.meituan_waimai || 0)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('cumulativeExpense')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(statsData.expense)}</Text>
+                          <Text style={st.cardFieldLabel}>{t('meituanCashier')}</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(feeData?.meituan_cashier || 0)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('cashOnHand')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(statsData.income - statsData.expense)}</Text>
+                          <Text style={st.cardFieldLabel}>{t('elemeWaimai')}</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(feeData?.eleme_waimai || 0)}</Text>
                         </View>
                       </View>
                     </View>
@@ -619,24 +653,62 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </FadeInView>
         )}
 
-        {/* ── 模块二：营业额 ── */}
+        {/* ── 模块二：平台手续费 ── */}
         {activeTab === 1 && (
         <FadeInView style={st.moduleWrap}>
           <View style={st.card}>
-            {/* Detail card — 3 columns: 实收金额 | 应收金额 | 优惠减免 */}
-            <View style={st.kpiRow}>
-              <View style={st.kpiCard}>
-                <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+            {/* Header */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#1A1A1A' }}>{t('platformFee')}</Text>
+                <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500' }}>{thisYear}年{thisMonth}月</Text>
               </View>
-              <View style={st.kpiCard}>
-                <Text style={st.kpiLabel}>{t('receivable')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
-              </View>
-              <View style={st.kpiCard}>
-                <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
-              </View>
+            </View>
+
+            {/* Total */}
+            <View style={{ marginBottom: 14 }}>
+              <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 2 }}>{t('cumulativeRevenue')}</Text>
+              <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5 }}>
+                ¥{feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </Text>
+            </View>
+
+            {/* Platform rows — 2x2 grid */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+              {([
+                { k: 'meituanCashier', v: feeData?.meituan_cashier || 0, color: '#3B82F6' },
+                { k: 'meituanWaimai', v: feeData?.meituan_waimai || 0, color: '#F59E0B' },
+                { k: 'elemeWaimai', v: feeData?.eleme_waimai || 0, color: '#06B6D4' },
+                { k: 'meituanTuan', v: feeData?.meituan_tuan || 0, color: '#10B981' },
+              ] as const).map((p) => (
+                <View key={p.k} style={{ flex: 1, minWidth: '45%', backgroundColor: '#F9FAFB', borderRadius: 10, padding: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: p.color }} />
+                    <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t(p.k)}</Text>
+                  </View>
+                  <Text style={{ fontSize: 17, fontWeight: '700', color: '#1A1A1A' }}>
+                    ¥{p.v.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Action buttons */}
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity
+                style={{ flex: 1, backgroundColor: '#8B1E22', borderRadius: 10, paddingVertical: 12, alignItems: 'center' }}
+                onPress={() => { setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt(''); setShowFeeSheet(true); }}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>+ {t('addFeeEntry')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, backgroundColor: '#F3F4F6', borderRadius: 10, paddingVertical: 12, alignItems: 'center' }}
+                onPress={() => setShowFeeHistory(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: '#374151', fontSize: 14, fontWeight: '600' }}>{t('feeDetail')}</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </FadeInView>
@@ -884,6 +956,112 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </TouchableOpacity>
               </View>
             </View>
+          </View>
+        </View>
+      )}
+      {/* Platform fee entry bottom sheet */}
+      {showFeeSheet && (
+        <View style={[st.modalOverlay, { justifyContent: 'flex-end' }]}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowFeeSheet(false)} />
+          <View style={st.feeSheet}>
+            <View style={st.modalHeader}>
+              <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
+              <TouchableOpacity onPress={() => setShowFeeSheet(false)}>
+                <Text style={st.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+              {/* Date */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>{t('billDate')}</Text>
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }} activeOpacity={1}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#1A1A1A' }}>
+                    {(() => { const d = new Date(feeEntryDate + 'T00:00:00'); return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; })()}
+                  </Text>
+                  <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF', marginLeft: 4 }}>›</Text>
+                  {React.createElement('input', {
+                    type: 'date', value: feeEntryDate,
+                    onChange: (e: any) => setFeeEntryDate(e.target.value),
+                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
+                  })}
+                </TouchableOpacity>
+              </View>
+
+              {/* Column headers */}
+              <View style={{ flexDirection: 'row', marginBottom: 8, paddingHorizontal: 4 }}>
+                <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600' }}>{t('feePreview')}</Text>
+                <Text style={{ width: 80, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 80, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
+              </View>
+
+              {/* Fee rows */}
+              {([
+                { k: 'meituanCashier', cur: feeData?.meituan_cashier || 0, val: feeMc, set: setFeeMc },
+                { k: 'meituanWaimai', cur: feeData?.meituan_waimai || 0, val: feeMw, set: setFeeMw },
+                { k: 'elemeWaimai', cur: feeData?.eleme_waimai || 0, val: feeEw, set: setFeeEw },
+                { k: 'meituanTuan', cur: feeData?.meituan_tuan || 0, val: feeMt, set: setFeeMt },
+              ] as const).map((row) => {
+                const inputNum = toNum(row.val);
+                return (
+                  <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <Text style={{ flex: 1, fontSize: 13, color: '#374151', fontWeight: '500' }}>{t(row.k)}</Text>
+                    <Text style={{ width: 80, fontSize: 14, fontWeight: '700', color: '#1A1A1A', textAlign: 'right' }}>
+                      ¥{(row.cur + inputNum).toFixed(2)}
+                    </Text>
+                    <Text style={{ width: 80, fontSize: 12, color: '#9CA3AF', textAlign: 'right' }}>
+                      ¥{row.cur.toFixed(2)}
+                    </Text>
+                    <TextInput
+                      style={{ width: 80, height: 36, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 8, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA' }}
+                      value={row.val} onChangeText={row.set}
+                      keyboardType="decimal-pad" placeholder="0" placeholderTextColor="#D1D5DB"
+                    />
+                  </View>
+                );
+              })}
+
+              {/* Confirm */}
+              <TouchableOpacity
+                style={{ backgroundColor: '#8B1E22', borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: savingFee ? 0.6 : 1 }}
+                onPress={handleAddFee} disabled={savingFee} activeOpacity={0.8}
+              >
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{savingFee ? '...' : t('confirm')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Fee history bottom sheet */}
+      {showFeeHistory && (
+        <View style={[st.modalOverlay, { justifyContent: 'flex-end' }]}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowFeeHistory(false)} />
+          <View style={[st.feeSheet, { maxHeight: '70%' }]}>
+            <View style={st.modalHeader}>
+              <Text style={st.modalTitle}>{t('feeHistory')}</Text>
+              <TouchableOpacity onPress={() => setShowFeeHistory(false)}>
+                <Text style={st.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ paddingHorizontal: 20, paddingBottom: 20, maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+              {/* Column headers */}
+              <View style={{ flexDirection: 'row', paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', marginBottom: 8 }}>
+                <Text style={{ flex: 1.5, fontSize: 10, color: '#9CA3AF', fontWeight: '600' }}>{t('reconDate')}</Text>
+                <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanCashier')}</Text>
+                <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanWaimai')}</Text>
+                <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('elemeWaimai')}</Text>
+                <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanTuan')}</Text>
+              </View>
+              {allFees.map((f: any) => (
+                <View key={f.id} style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: '#F5F5F5' }}>
+                  <Text style={{ flex: 1.5, fontSize: 12, color: '#374151', fontWeight: '500' }}>{f.year}年{f.month}月</Text>
+                  <Text style={{ flex: 1, fontSize: 12, color: '#1A1A1A', textAlign: 'right' }}>¥{f.meituan_cashier.toFixed(2)}</Text>
+                  <Text style={{ flex: 1, fontSize: 12, color: '#1A1A1A', textAlign: 'right' }}>¥{f.meituan_waimai.toFixed(2)}</Text>
+                  <Text style={{ flex: 1, fontSize: 12, color: '#1A1A1A', textAlign: 'right' }}>¥{f.eleme_waimai.toFixed(2)}</Text>
+                  <Text style={{ flex: 1, fontSize: 12, color: '#1A1A1A', textAlign: 'right' }}>¥{f.meituan_tuan.toFixed(2)}</Text>
+                </View>
+              ))}
+            </ScrollView>
           </View>
         </View>
       )}
@@ -1279,4 +1457,13 @@ const st = StyleSheet.create({
     paddingVertical: 10, alignItems: 'center',
   },
   modalCancelText: { fontSize: 13, fontWeight: '500', color: '#4B5563' },
+  /* Platform fee sheet — bottom half-screen */
+  feeSheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 16,
+    // @ts-ignore
+    boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
+  },
 });

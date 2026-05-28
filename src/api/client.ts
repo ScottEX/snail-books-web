@@ -175,6 +175,17 @@ export const api = {
 
   getUsers: () => authFetch('/api/users'),
 
+  // Platform fees
+  getPlatformFees: (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', String(year));
+    if (month) params.append('month', String(month));
+    const qs = params.toString();
+    return authFetch('/api/platform-fees' + (qs ? '?' + qs : ''));
+  },
+  addPlatformFeeEntry: (data: any) => authFetch('/api/platform-fees/entry', { method: 'POST', body: JSON.stringify(data) }),
+  updatePlatformFee: (id: number, data: any) => authFetch(`/api/platform-fees/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
   getProcurements: () => authFetch('/api/procurements'),
   createProcurement: (data: any) => authFetch('/api/procurements', { method: 'POST', body: JSON.stringify(data) }),
   deleteProcurement: (id: number) => authFetch(`/api/procurements/${id}`, { method: 'DELETE' }),
