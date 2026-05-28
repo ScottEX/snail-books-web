@@ -205,6 +205,8 @@ const I18N: Record<string, Record<string, string>> = {
     // Toast messages
     toastLoadFailed: '数据加载失败',
     toastSubmitFailed: '提交失败，请重试',
+    errDateFuture: '不能选择未来的日期',
+    errDateRange: '结束日期必须晚于开始日期',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -406,6 +408,8 @@ const I18N: Record<string, Record<string, string>> = {
     // Toast messages
     toastLoadFailed: '資料載入失敗',
     toastSubmitFailed: '提交失敗，請重試',
+    errDateFuture: '不能選擇未來的日期',
+    errDateRange: '結束日期必須晚於開始日期',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -607,6 +611,8 @@ const I18N: Record<string, Record<string, string>> = {
     // Toast messages
     toastLoadFailed: 'Failed to load data',
     toastSubmitFailed: 'Submit failed, please retry',
+    errDateFuture: 'Cannot select a future date',
+    errDateRange: 'End date must be after start date',
   },
 };
 

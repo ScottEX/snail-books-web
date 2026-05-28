@@ -128,6 +128,14 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     }, 150);
   };
 
+  const validateExpDates = (): boolean => {
+    const today = new Date().toISOString().split('T')[0];
+    const from = filDateFrom, to = filDateTo;
+    if ((from && from > today) || (to && to > today)) { setToast(t('errDateFuture')); return false; }
+    if (from && to && from > to) { setToast(t('errDateRange')); return false; }
+    return true;
+  };
+
   return (
     <View style={st.root}>
       {/* Header — absolute, transparent, floats above scroll (matches ReconHistoryScreen) */}
@@ -197,7 +205,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
               }} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.filterApplyBtn} onPress={() => setShowFilter(false)} activeOpacity={0.8}>
+              <TouchableOpacity style={st.filterApplyBtn} onPress={() => { if (validateExpDates()) setShowFilter(false); }} activeOpacity={0.8}>
                 <Text style={st.filterApplyBtnText}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>

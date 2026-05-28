@@ -251,6 +251,16 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     </View>
   );
 
+  const validateReconDates = (): boolean => {
+    const today = new Date().toISOString().split('T')[0];
+    const pairs: [string, string][] = [[filBillFrom, filBillTo], [filDateFrom, filDateTo]];
+    for (const [from, to] of pairs) {
+      if ((from && from > today) || (to && to > today)) { setToast(t('errDateFuture')); return false; }
+      if (from && to && from > to) { setToast(t('errDateRange')); return false; }
+    }
+    return true;
+  };
+
   return (
     <View style={st.root} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Toast */}
@@ -338,7 +348,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               <TouchableOpacity style={st.filterResetBtn} onPress={resetFilters} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.filterApplyBtn} onPress={() => setShowFilter(false)} activeOpacity={0.8}>
+              <TouchableOpacity style={st.filterApplyBtn} onPress={() => { if (validateReconDates()) setShowFilter(false); }} activeOpacity={0.8}>
                 <Text style={st.filterApplyBtnText}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
