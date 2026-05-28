@@ -7,6 +7,7 @@ import Toast from '../components/Toast';
 import PartnerScreen from './PartnerScreen';
 import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
+import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
@@ -36,6 +37,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [showReconHistory, setShowReconHistory] = useState(false);
+  const [showExpenseHistory, setShowExpenseHistory] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
@@ -167,10 +169,12 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={styles.page}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} />
+        ) : showExpenseHistory ? (
+          <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />
         ) : showReconHistory ? (
           <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />
         ) : tab === 'expense' ? (
-          <ExpenseScreen onReconHistory={() => setShowReconHistory(true)} />
+          <ExpenseScreen onReconHistory={() => setShowReconHistory(true)} onExpenseHistory={() => setShowExpenseHistory(true)} />
         ) : (
           <>
             {/* Tab Content */}
@@ -343,6 +347,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               ]).start();
               setTab(id as Tab);
               setShowReconHistory(false);
+              setShowExpenseHistory(false);
             }}
           >
             <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>

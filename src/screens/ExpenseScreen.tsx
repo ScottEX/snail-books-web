@@ -6,7 +6,6 @@ import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
-import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -105,7 +104,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
 /* ═══════════════════════════════════════════════════════════
    EXPENSE SCREEN
    ═══════════════════════════════════════════════════════════ */
-export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () => void }) {
+export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { onReconHistory?: () => void; onExpenseHistory?: () => void }) {
   const [activeTab, setActiveTab] = useState(0); // 0=对账, 1=营业, 2=支出
   const [showToast, setShowToast] = useState(false);
   const hideToast = () => setShowToast(false);
@@ -262,7 +261,6 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   const [expenses, setExpenses] = useState<any[]>([]);
   const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
   const [loadingExp, setLoadingExp] = useState(false);
-  const [showExpHistory, setShowExpHistory] = useState(false);
 
   const loadExpenses = async () => {
     try {
@@ -659,7 +657,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
               {/* 按钮行 */}
               <View style={st.btnRow}>
                 <TouchableOpacity style={st.reconRecordBtn}
-                  onPress={() => setShowExpHistory(true)} activeOpacity={0.8}>
+                  onPress={() => onExpenseHistory?.()} activeOpacity={0.8}>
                   <Text style={st.reconRecordBtnText}>{t('expenseHistory')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -710,12 +708,6 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
         </View>
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
-      {/* 支出记录全屏 — absolute 在 ExpenseScreen 容器内，自然避让 app header */}
-      {showExpHistory && (
-        <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 150 }}>
-          <ExpenseHistoryScreen onBack={() => setShowExpHistory(false)} />
-        </View>
-      )}
     </View>
   );
 }

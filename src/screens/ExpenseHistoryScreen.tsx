@@ -118,14 +118,17 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 }
 
 const st = StyleSheet.create({
-  /* Root — flex: 1, no background (matches ReconHistoryScreen root) */
-  root: { flex: 1 },
-  /* Header — absolute, transparent (matches ReconHistoryScreen header) */
+  /* Root — flex: 1, white bg (page-level background) */
+  root: { flex: 1, backgroundColor: '#FAFAFA' },
+  /* Header — frosted glass, floats above scroll */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(250,250,250,0.55)',
+    // @ts-ignore
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   backBtn: {
     width: 44, height: 44, borderRadius: 22,
