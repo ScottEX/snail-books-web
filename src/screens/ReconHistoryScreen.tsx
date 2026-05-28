@@ -320,7 +320,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={200}
-        contentContainerStyle={{ paddingTop: showFilter ? 260 : 76 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 300 : 76 }}>
         {loading ? (
           <Text style={st.loading}>{t('loading')}</Text>
         ) : records.length === 0 ? (
@@ -453,7 +453,7 @@ const st = StyleSheet.create({
   filterBtnText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
   filterBtnTextActive: { color: '#FFFFFF' },
   filterPanel: {
-    position: 'absolute', top: 50, left: 12, right: 12, zIndex: 89,
+    position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: '#FAFAFA', borderRadius: 10,
     borderWidth: 1, borderColor: '#EBEBEB',
     overflow: 'hidden',

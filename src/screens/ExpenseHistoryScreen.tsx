@@ -185,7 +185,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={200}
-        contentContainerStyle={{ paddingTop: showFilter ? 240 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 260 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
           <Text style={st.empty}>{t('noData')}</Text>
         ) : (
@@ -394,7 +394,7 @@ const st = StyleSheet.create({
   },
   filterBtnActive: { backgroundColor: '#8B1E22', borderColor: '#8B1E22' },
   filterPanel: {
-    position: 'absolute', top: 50, left: 12, right: 12, zIndex: 89,
+    position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: '#FAFAFA', borderRadius: 10,
     borderWidth: 1, borderColor: '#EBEBEB',
     overflow: 'hidden',
