@@ -625,19 +625,34 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                 multiline />
               {/* 日期选择 */}
               <View style={st.expDateRow}>
-                {/* Calendar icon */}
                 <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.5}>
                   <Rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                   <Line x1="16" y1="2" x2="16" y2="6"/>
                   <Line x1="8" y1="2" x2="8" y2="6"/>
                   <Line x1="3" y1="10" x2="21" y2="10"/>
                 </Svg>
-                <input
-                  type="date"
-                  value={expDate}
-                  onChange={(e: any) => setExpDate(e.target.value)}
-                  style={st.expDateInput as any}
-                />
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', flex: 1, position: 'relative' }}
+                  activeOpacity={1}
+                >
+                  <Text style={st.dateText}>
+                    {(() => {
+                      const d = new Date(expDate + 'T00:00:00');
+                      const l = getLang();
+                      if (l.startsWith('en')) {
+                        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                      }
+                      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+                    })()}
+                  </Text>
+                  <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF' }}>›</Text>
+                  {React.createElement('input', {
+                    type: 'date',
+                    value: expDate,
+                    onChange: (e: any) => setExpDate(e.target.value),
+                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
+                  })}
+                </TouchableOpacity>
               </View>
               <TouchableOpacity
                 style={st.expBtn}
