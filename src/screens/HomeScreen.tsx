@@ -42,7 +42,12 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [toast, setToast] = useState('');
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
-  const [bgImage, setBgImage] = useState('/img/bg.jpg');
+  const [bgImage, setBgImage] = useState(() => {
+    try {
+      const saved = localStorage.getItem('bg-image');
+      return saved || '/img/bg.jpg';
+    } catch { return '/img/bg.jpg'; }
+  });
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
       const saved = localStorage.getItem('bg-opacity');
@@ -71,7 +76,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   // Load background image — user-specific
   useEffect(() => {
     api.getBackground().then((r: any) => {
-      if (r?.url) setBgImage(r.url);
+      if (r?.url) {
+        setBgImage(r.url);
+        try { localStorage.setItem('bg-image', r.url); } catch {}
+      }
     }).catch(() => {});
   }, []);
 
