@@ -876,6 +876,8 @@ const st = StyleSheet.create({
     backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB',
     borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12,
     fontSize: 15, fontWeight: '600', color: '#1A1A1A', fontFamily: undefined,
+    // @ts-ignore
+    outline: 'none',
   },
 
   /* ── Channel grid ── */
@@ -899,6 +901,8 @@ const st = StyleSheet.create({
     fontFamily: undefined,
     width: '100%',
     borderWidth: 0, backgroundColor: 'transparent',
+    // @ts-ignore
+    outline: 'none',
   },
 
   /* ── Sum row ── */
