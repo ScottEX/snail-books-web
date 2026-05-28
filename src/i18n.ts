@@ -228,6 +228,8 @@ const I18N: Record<string, Record<string, string>> = {
     feePreview: '累计手续费',
     feeCurrent: '当前手续费',
     feeEntry: '今日手续费',
+    feeViewDetail: '查看明细',
+    feeAllMonths: '全部',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -452,6 +454,8 @@ const I18N: Record<string, Record<string, string>> = {
     feePreview: '累計手續費',
     feeCurrent: '當期手續費',
     feeEntry: '今日手續費',
+    feeViewDetail: '檢視明細',
+    feeAllMonths: '全部',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -676,6 +680,8 @@ const I18N: Record<string, Record<string, string>> = {
     feePreview: 'Cumulative',
     feeCurrent: 'Current Fee',
     feeEntry: 'Today Fee',
+    feeViewDetail: 'View Details',
+    feeAllMonths: 'All',
   },
 };
 
