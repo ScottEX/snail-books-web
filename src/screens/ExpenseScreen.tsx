@@ -262,6 +262,43 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
   const [loadingExp, setLoadingExp] = useState(false);
   const [showExpRecords, setShowExpRecords] = useState(false);
+  const [expRecList, setExpRecList] = useState<any[]>([]);
+  const [expRecPage, setExpRecPage] = useState(0);
+  const [expRecHasMore, setExpRecHasMore] = useState(false);
+  const [expRecLoading, setExpRecLoading] = useState(false);
+  const expRecRef = useRef<HTMLDivElement | null>(null);
+
+  const loadExpRecs = async (page: number) => {
+    if (expRecLoading) return;
+    setExpRecLoading(true);
+    try {
+      const tx: any = await api.getTransactions(page);
+      const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
+      setExpRecList(prev => page === 1 ? exps : [...prev, ...exps]);
+      setExpRecHasMore(page < (tx.pages || 1));
+      setExpRecPage(page);
+    } catch { setToast(t('toastLoadFailed')); }
+    setExpRecLoading(false);
+  };
+
+  // First page on toggle
+  useEffect(() => {
+    if (showExpRecords && expRecPage === 0) loadExpRecs(1);
+  }, [showExpRecords]);
+
+  // Scroll-to-bottom pagination
+  useEffect(() => {
+    if (!showExpRecords) return;
+    const el = expRecRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      if (el.scrollHeight - el.scrollTop - el.clientHeight < 40 && expRecHasMore && !expRecLoading) {
+        loadExpRecs(expRecPage + 1);
+      }
+    };
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [showExpRecords, expRecHasMore, expRecLoading, expRecPage]);
 
   const loadExpenses = async () => {
     try {
@@ -307,6 +344,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
       setPayMethod('微信');
       setExpNote('');
       setExpDate(todayStr());
+      setExpRecList([]); setExpRecPage(0);
       await loadExpenses();
     } catch { setToast(t('toastSubmitFailed')); }
     setLoadingExp(false);
@@ -677,23 +715,34 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
               </View>
               {/* 支出记录列表 */}
               {showExpRecords && (
-                <View style={st.expRecList}>
-                  {expenses.length === 0 ? (
+                <View style={st.expRecList} ref={expRecRef as any}>
+                  {expRecList.length === 0 && !expRecLoading ? (
                     <Text style={st.empty}>{t('noData')}</Text>
                   ) : (
-                    expenses.slice(0, 20).map((e: any, i: number) => (
-                      <View key={i} style={st.expRow}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={st.expNote}>
-                            {e.note || e.category || t('noNote')}
-                          </Text>
-                          <Text style={st.expDateText}>
-                            {e.date || (e.created_at || '').slice(0, 10)}
-                          </Text>
+                    <>
+                      {expRecList.map((e: any, i: number) => (
+                        <View key={i} style={st.expRecRow}>
+                          <View style={st.expRecMeta}>
+                            <View style={st.expRecBadges}>
+                              <View style={st.expCatBadge}>
+                                <Text style={st.expCatBadgeText}>{e.category || '日常'}</Text>
+                              </View>
+                              <View style={st.expPayBadge}>
+                                <Text style={st.expPayBadgeText}>{e.account || '微信'}</Text>
+                              </View>
+                              <Text style={st.expRecDate}>{e.date || (e.created_at || '').slice(0, 10)}</Text>
+                            </View>
+                            <Text style={st.expAmt}>-¥{e.amount.toLocaleString()}</Text>
+                          </View>
+                          {(e.note) ? (
+                            <Text style={st.expRecNote}>{e.note}</Text>
+                          ) : null}
                         </View>
-                        <Text style={st.expAmt}>-¥{e.amount.toLocaleString()}</Text>
-                      </View>
-                    ))
+                      ))}
+                      {expRecLoading && (
+                        <Text style={st.empty}>...</Text>
+                      )}
+                    </>
                   )}
                 </View>
               )}
@@ -1053,10 +1102,32 @@ const st = StyleSheet.create({
   /* ── Expense records list ── */
   expRecList: {
     borderTopWidth: 1, borderTopColor: '#EBEBEB',
-    paddingTop: 12, maxHeight: 300,
-    // @ts-ignore — RN Web doesn't support overflowY but the browser does
+    paddingTop: 10, maxHeight: 340,
+    // @ts-ignore
     overflowY: 'auto' as any,
   },
+  expRecRow: {
+    paddingVertical: 10, gap: 4,
+    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+  },
+  expRecMeta: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
+  expRecBadges: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1,
+  },
+  expCatBadge: {
+    backgroundColor: '#FFF0EB', borderRadius: 4,
+    paddingHorizontal: 6, paddingVertical: 2,
+  },
+  expCatBadgeText: { fontSize: 11, fontWeight: '600', color: '#FA855A' },
+  expPayBadge: {
+    backgroundColor: '#F3F4F6', borderRadius: 4,
+    paddingHorizontal: 6, paddingVertical: 2,
+  },
+  expPayBadgeText: { fontSize: 11, fontWeight: '500', color: '#6B7280' },
+  expRecDate: { fontSize: 10, color: '#9CA3AF' },
+  expRecNote: { fontSize: 12, color: '#6B7280', paddingLeft: 2 },
 
   /* ── Expense list ── */
   expRow: {
