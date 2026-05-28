@@ -494,15 +494,46 @@ def api_transactions():
             db.execute('INSERT INTO transactions (type,amount,category,account,note,images) VALUES (?,?,?,?,?,?)', (data['type'], data['amount'], data['category'], data['account'], data.get('note',''), images_json))
             db.commit()
         return jsonify({'status':'ok'})
-    # GET with pagination
+    # GET with pagination & filtering
     page = request.args.get('page', 1, type=int)
-    per_page = 20
+    per_page = request.args.get('per_page', 10, type=int)
+    tx_type = request.args.get('type')           # 'income' or 'expense'
+    date_from = request.args.get('date_from')    # 'YYYY-MM-DD'
+    date_to = request.args.get('date_to')
+    category = request.args.get('category')      # comma-separated: '日常,房租'
+
+    where = []
+    params = []
+    if tx_type:
+        where.append('type=?')
+        params.append(tx_type)
+    if date_from:
+        where.append('date(created_at) >= ?')
+        params.append(date_from)
+    if date_to:
+        where.append('date(created_at) <= ?')
+        params.append(date_to)
+    if category:
+        cats = [c.strip() for c in category.split(',') if c.strip()]
+        if cats:
+            placeholders = ','.join(['?' for _ in cats])
+            where.append(f'category IN ({placeholders})')
+            params.extend(cats)
+
+    where_sql = ' AND '.join(where) if where else '1=1'
+
     with get_db() as db:
-        count = db.execute('SELECT COUNT(*) FROM transactions').fetchone()[0]
+        count = db.execute(f'SELECT COUNT(*) FROM transactions WHERE {where_sql}', params).fetchone()[0]
         pages = max(1, (count + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        rows = db.execute('SELECT * FROM transactions ORDER BY created_at DESC LIMIT ? OFFSET ?', (per_page, offset)).fetchall()
-    return jsonify({'transactions': [dict(r) for r in rows], 'page': page, 'pages': pages, 'total': count})
+        rows = db.execute(
+            f'SELECT * FROM transactions WHERE {where_sql} ORDER BY created_at DESC LIMIT ? OFFSET ?',
+            params + [per_page, offset]
+        ).fetchall()
+    return jsonify({
+        'transactions': [dict(r) for r in rows],
+        'page': page, 'pages': pages, 'total': count, 'per_page': per_page,
+    })
 
 @app.route('/api/transactions/<int:id>', methods=['DELETE'])
 @login_required

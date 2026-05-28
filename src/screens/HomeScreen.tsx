@@ -59,7 +59,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     try {
       const s = await api.getSummary();
       setSummary(s);
-      const tx = await api.getTransactions(1);
+      const tx = await api.getTransactions(1, 20);
       setTransactions(tx.transactions || []);
       setPages(tx.pages || 1);
       setPage(1);
@@ -100,7 +100,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   };
 
   const handlePage = async (p: number) => {
-    const tx = await api.getTransactions(p);
+    const tx = await api.getTransactions(p, 20);
     setTransactions(tx.transactions || []);
     setPage(p);
   };

@@ -7,11 +7,13 @@ import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 10;
 
 export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
-  const [displayCount, setDisplayCount] = useState(30);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
@@ -21,11 +23,21 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [filDateFrom, setFilDateFrom] = useState('');
   const [filDateTo, setFilDateTo] = useState('');
   const [filCategories, setFilCategories] = useState<string[]>([]);
+  // Track active filters (snapshot at last apply) — compare strings to avoid object deps
+  const [appliedFrom, setAppliedFrom] = useState('');
+  const [appliedTo, setAppliedTo] = useState('');
+  const [appliedCats, setAppliedCats] = useState('');
   const loadingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const apiPageRef = useRef(1);
-  const doneRef = useRef(false);
-  const totalRef = useRef(0);
+
+  // Build filter params from applied values
+  const getFilterParams = useCallback((): Record<string, string> => {
+    const f: Record<string, string> = { type: 'expense' };
+    if (appliedFrom) f.date_from = appliedFrom;
+    if (appliedTo) f.date_to = appliedTo;
+    if (appliedCats) f.category = appliedCats;
+    return f;
+  }, [appliedFrom, appliedTo, appliedCats]);
 
   // i18n mapping for category & payment from API raw strings
   const trCat = (s: string) => {
@@ -55,55 +67,46 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     try { const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; } catch { return []; }
   };
 
-  const fetchUntil = useCallback(async (minNeeded: number) => {
-    if (loadingRef.current || doneRef.current) return;
+  // Fetch one page from server (with current filters)
+  const loadPage = useCallback(async (pg: number, reset: boolean) => {
+    if (loadingRef.current) return;
     loadingRef.current = true;
     setLoading(true);
     try {
-      let all = [...records];
-      while (all.length < minNeeded && !doneRef.current) {
-        const tx: any = await api.getTransactions(apiPageRef.current);
-        if (apiPageRef.current === 1) totalRef.current = 0;
-        const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
-        totalRef.current += exps.length;
-        all = [...all, ...exps];
-        if (apiPageRef.current >= (tx.pages || 1)) {
-          doneRef.current = true;
-          break;
-        }
-        apiPageRef.current++;
-      }
-      setRecords(all);
-      setDisplayCount(all.length); // show all loaded data immediately
+      const tx: any = await api.getTransactions(pg, PAGE_SIZE, getFilterParams());
+      const exps = tx.transactions || [];
+      setRecords(prev => reset ? exps : [...prev, ...exps]);
+      setPage(pg);
+      setTotal(tx.total || 0);
+      setHasMore(pg < (tx.pages || 1));
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
     loadingRef.current = false;
-  }, [records]);
+  }, [getFilterParams]);
 
-  useEffect(() => { fetchUntil(PAGE_SIZE); }, []);
+  // Initial load — trigger when filter params change
+  const filterKey = `${appliedFrom}|${appliedTo}|${appliedCats}`;
+  useEffect(() => {
+    setRecords([]);
+    loadPage(1, true);
+  }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Current user for displaying who filled each record
   const currentUser = (() => { try { return localStorage.getItem('user') || ''; } catch { return ''; } })();
 
-  // Scroll pagination — load more API pages when near bottom
+  // Scroll pagination — load next page when near bottom
   const handleScroll = useCallback((e: any) => {
-    if (loadingRef.current) return;
+    if (loadingRef.current || !hasMore) return;
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
     if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 120) {
       if (!scrollTimerRef.current) {
         scrollTimerRef.current = setTimeout(() => {
           scrollTimerRef.current = null;
-          const next = displayCount + PAGE_SIZE;
-          if (next > records.length && !doneRef.current) {
-            fetchUntil(next);
-          }
-          setDisplayCount(next);
+          loadPage(page + 1, false);
         }, 300);
       }
     }
-  }, [displayCount, records.length, fetchUntil]);
-
-  const visible = records.slice(0, Math.min(displayCount, records.length));
+  }, [page, hasMore, loadPage]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
@@ -112,14 +115,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     );
   };
 
-  // Client-side filtering
-  const filtered = (() => {
-    let result = visible;
-    if (filDateFrom) result = result.filter(e => (e.date || (e.created_at || '').slice(0, 10)) >= filDateFrom);
-    if (filDateTo) result = result.filter(e => (e.date || (e.created_at || '').slice(0, 10)) <= filDateTo);
-    if (filCategories.length > 0) result = result.filter(e => filCategories.some(c => (e.category || '').includes(c)));
-    return result;
-  })();
+  // No client-side filtering — server handles it
+  const visible = records;
 
   const navPreview = (newIdx: number) => {
     setPreviewOpacity(0);
@@ -146,7 +143,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             <Text style={st.backArrow}>{'\u2039'}</Text>
           </View>
         </TouchableOpacity>
-        <Text style={st.title}>{t('expenseHistory')} ({totalRef.current})</Text>
+        <Text style={st.title}>{t('expenseHistory')} ({total})</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#6B7280'} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
@@ -203,10 +200,19 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             <View style={st.filterActions}>
               <TouchableOpacity style={st.filterResetBtn} onPress={() => {
                 setFilDateFrom(''); setFilDateTo(''); setFilCategories([]);
+                setAppliedFrom(''); setAppliedTo(''); setAppliedCats('');
               }} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.filterApplyBtn} onPress={() => { if (validateExpDates()) setShowFilter(false); }} activeOpacity={0.8}>
+              <TouchableOpacity style={st.filterApplyBtn} onPress={() => {
+                if (validateExpDates()) {
+                  // Snapshot filter values so server query runs with new params
+                  setAppliedFrom(filDateFrom);
+                  setAppliedTo(filDateTo);
+                  setAppliedCats(filCategories.join(','));
+                  setShowFilter(false);
+                }
+              }} activeOpacity={0.8}>
                 <Text style={st.filterApplyBtnText}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
@@ -222,7 +228,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           <Text style={st.empty}>{t('noData')}</Text>
         ) : (
           <>
-            {filtered.map((e: any, i: number) => (
+            {visible.map((e: any, i: number) => (
               <View key={i} style={st.row}>
                 <View style={st.rowTop}>
                   <View style={st.badges}>

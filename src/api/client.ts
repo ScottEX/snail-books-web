@@ -100,7 +100,15 @@ export const api = {
     }).then((r) => r.json()),
 
   getSummary: () => authFetch('/api/summary'),
-  getTransactions: (page = 1) => authFetch(`/api/transactions?page=${page}`),
+  getTransactions: (page = 1, perPage = 10, filters?: Record<string, string>) => {
+    const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('per_page', String(perPage));
+    if (filters) {
+      Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v); });
+    }
+    return authFetch(`/api/transactions?${params}`);
+  },
   createTransaction: (data: any) => authFetch('/api/transactions', { method: 'POST', body: JSON.stringify(data) }),
   deleteTransaction: (id: number) => authFetch(`/api/transactions/${id}`, { method: 'DELETE' }),
 

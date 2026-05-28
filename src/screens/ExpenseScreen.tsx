@@ -256,7 +256,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     try {
       const s = await api.getSummary();
       setRevenueData({ todayRevenue: s.income || 0, todayActual: s.income || 0 });
-      const tx = await api.getTransactions(1);
+      const tx = await api.getTransactions(1, 20);
       setRevenueList((tx.transactions || []).filter((t: any) => t.type === 'income').slice(0, 20));
       const st = await api.getStats();
       setStatsData({ income: st.income || 0, expense: st.expense || 0 });
@@ -283,7 +283,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       const allExpenses: any[] = [];
       let page = 1;
       while (true) {
-        const tx: any = await api.getTransactions(page);
+        const tx: any = await api.getTransactions(page, 100);
         const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
         allExpenses.push(...exps);
         if (page >= (tx.pages || 1)) break;
