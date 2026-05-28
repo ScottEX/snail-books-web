@@ -1016,7 +1016,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 95, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA' }}
+                      style={{ width: 95, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA', outline: 'none' } as any}
                       value={row.val} onChangeText={row.set}
                       keyboardType="decimal-pad" placeholder="0" placeholderTextColor="#D1D5DB"
                     />
@@ -1466,8 +1466,7 @@ const st = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingBottom: 0,
     marginBottom: 100,
     // @ts-ignore
     boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
