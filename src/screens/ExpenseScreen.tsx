@@ -721,7 +721,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 multiline />
               {/* 凭证上传 */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={st.catSectionTitle}>{t('uploadImage')}</Text>
+                <Text style={[st.catSectionTitle, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
                 <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7}
                   style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontSize: 11, fontWeight: '700', color: '#9CA3AF' }}>!</Text>
@@ -757,7 +757,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <View key={`img-${i}`} style={st.imgPreview}>
                     {React.createElement('img', {
                       src: URL.createObjectURL(file),
-                      style: { width: 90, height: 90, borderRadius: 16, objectFit: 'cover' },
+                      style: { width: 100, height: 100, borderRadius: 16, objectFit: 'cover' },
                       alt: file.name,
                     })}
                     <TouchableOpacity style={st.imgRemove}
@@ -1105,9 +1105,9 @@ const st = StyleSheet.create({
   },
 
   /* ── Image upload ── */
-  imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4 },
+  imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4, paddingHorizontal: 10 },
   imgAddBtn: {
-    width: 90, height: 90, borderRadius: 16,
+    width: 100, height: 100, borderRadius: 16,
     borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D1D5DB',
     backgroundColor: '#FAFAFA',
     alignItems: 'center', justifyContent: 'center',

@@ -14,7 +14,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
-  const [previewImg, setPreviewImg] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
   const loadingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const apiPageRef = useRef(1);
@@ -134,6 +134,14 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                 {currentUser ? (
                   <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
                 ) : null}
+                <View style={st.rowBottom}>
+                  <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
+                  {e.note ? (
+                    <Text style={st.note} numberOfLines={1}>{e.note}</Text>
+                  ) : (
+                    <View style={{ flex: 1 }} />
+                  )}
+                </View>
                 {/* Image thumbnails */}
                 {(() => {
                   const imgs = parseImages(e.images);
@@ -142,7 +150,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                     <View style={st.imgThumbs}>
                       {imgs.map((url: string, j: number) => (
                         <TouchableOpacity key={j}
-                          onPress={() => setPreviewImg(url)}
+                          onPress={() => setPreviewData({ images: imgs, idx: j })}
                           activeOpacity={0.8}>
                           {React.createElement('img', {
                             src: url,
@@ -154,14 +162,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                     </View>
                   );
                 })()}
-                <View style={st.rowBottom}>
-                  <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
-                  {e.note ? (
-                    <Text style={st.note} numberOfLines={1}>{e.note}</Text>
-                  ) : (
-                    <View style={{ flex: 1 }} />
-                  )}
-                </View>
               </View>
             ))}
             {loading && <Text style={st.loading}>...</Text>}
@@ -169,21 +169,38 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         )}
       </ScrollView>
 
-      {/* Fullscreen image preview */}
-      {previewImg && (
+      {/* Fullscreen image preview with left/right swipe */}
+      {previewData && (
         <View style={st.previewOverlay}>
           <TouchableOpacity style={st.previewClose}
-            onPress={() => setPreviewImg(null)}
+            onPress={() => setPreviewData(null)}
             activeOpacity={0.7}>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round">
               <Path d="M18 6L6 18M6 6l12 12" />
             </Svg>
           </TouchableOpacity>
+          {previewData.images.length > 1 && previewData.idx > 0 && (
+            <TouchableOpacity style={st.previewArrowLeft}
+              onPress={() => setPreviewData({ images: previewData.images, idx: previewData.idx - 1 })}
+              activeOpacity={0.7}>
+              <Text style={st.previewArrowText}>{'\u2039'}</Text>
+            </TouchableOpacity>
+          )}
+          {previewData.images.length > 1 && previewData.idx < previewData.images.length - 1 && (
+            <TouchableOpacity style={st.previewArrowRight}
+              onPress={() => setPreviewData({ images: previewData.images, idx: previewData.idx + 1 })}
+              activeOpacity={0.7}>
+              <Text style={st.previewArrowText}>{'\u203A'}</Text>
+            </TouchableOpacity>
+          )}
           {React.createElement('img', {
-            src: previewImg,
+            src: previewData.images[previewData.idx],
             style: { maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain' },
             alt: 'preview',
           })}
+          {previewData.images.length > 1 && (
+            <Text style={st.previewCounter}>{previewData.idx + 1} / {previewData.images.length}</Text>
+          )}
         </View>
       )}
 
@@ -264,5 +281,22 @@ const st = StyleSheet.create({
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
+  },
+  previewArrowLeft: {
+    position: 'absolute', left: 16, top: '50%', zIndex: 10,
+    width: 40, height: 40, borderRadius: 20, marginTop: -20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  previewArrowRight: {
+    position: 'absolute', right: 16, top: '50%', zIndex: 10,
+    width: 40, height: 40, borderRadius: 20, marginTop: -20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  previewArrowText: { fontSize: 28, fontWeight: '300', color: '#FFFFFF', marginTop: -2 },
+  previewCounter: {
+    position: 'absolute', bottom: 60, zIndex: 10,
+    fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.7)',
   },
 });
