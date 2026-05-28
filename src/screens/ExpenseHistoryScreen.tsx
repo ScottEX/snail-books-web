@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -13,6 +14,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
+  const [previewImg, setPreviewImg] = useState<string | null>(null);
   const loadingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const apiPageRef = useRef(1);
@@ -38,6 +40,13 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     const l = getLang();
     if (l.startsWith('en')) return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+  };
+
+  // Parse images field from API (stored as JSON string '["url1","url2"]')
+  const parseImages = (raw: any): string[] => {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    try { const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; } catch { return []; }
   };
 
   const fetchUntil = useCallback(async (minNeeded: number) => {
@@ -125,6 +134,26 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                 {currentUser ? (
                   <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
                 ) : null}
+                {/* Image thumbnails */}
+                {(() => {
+                  const imgs = parseImages(e.images);
+                  if (imgs.length === 0) return null;
+                  return (
+                    <View style={st.imgThumbs}>
+                      {imgs.map((url: string, j: number) => (
+                        <TouchableOpacity key={j}
+                          onPress={() => setPreviewImg(url)}
+                          activeOpacity={0.8}>
+                          {React.createElement('img', {
+                            src: url,
+                            style: { width: 48, height: 48, borderRadius: 6, objectFit: 'cover' },
+                            alt: 'receipt',
+                          })}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  );
+                })()}
                 <View style={st.rowBottom}>
                   <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
                   {e.note ? (
@@ -139,6 +168,24 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           </>
         )}
       </ScrollView>
+
+      {/* Fullscreen image preview */}
+      {previewImg && (
+        <View style={st.previewOverlay}>
+          <TouchableOpacity style={st.previewClose}
+            onPress={() => setPreviewImg(null)}
+            activeOpacity={0.7}>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round">
+              <Path d="M18 6L6 18M6 6l12 12" />
+            </Svg>
+          </TouchableOpacity>
+          {React.createElement('img', {
+            src: previewImg,
+            style: { maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain' },
+            alt: 'preview',
+          })}
+        </View>
+      )}
 
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
@@ -198,6 +245,7 @@ const st = StyleSheet.create({
   payBadgeText: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
   amount: { fontSize: 17, fontWeight: '700', color: '#DC2626' },
   filledBy: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
@@ -205,4 +253,16 @@ const st = StyleSheet.create({
   note: { fontSize: 13, color: '#6B7280', flex: 1, textAlign: 'right' },
   empty: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingVertical: 40 },
   loading: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingVertical: 16 },
+  /* Preview overlay */
+  previewOverlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  previewClose: {
+    position: 'absolute', top: 48, right: 20, zIndex: 10,
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center', justifyContent: 'center',
+  },
 });
