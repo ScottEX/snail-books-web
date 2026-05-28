@@ -10,11 +10,9 @@ import Toast from '../components/Toast';
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
 const fmtInt = (n: number) => n.toLocaleString();
-const yesterdayStr = () => {
-  const d = new Date(); d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
-};
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const cnNow = () => { const d = new Date(); return new Date(d.getTime() + 8 * 3600000); };
+const yesterdayStr = () => { const d = cnNow(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
+const todayStr = () => cnNow().toISOString().slice(0, 10);
 const fmtLocalDate = (s: string) => { const p = s.split('-'); return `${p[0]}年${p[1]}月${p[2]}日`; };
 const toNum = (s: string) => parseFloat(s) || 0;
 const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
@@ -438,7 +436,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   /* ── 卡片摘要数据 ── */
   const feeTotal = feeData
-    ? (feeData.meituan_cashier + feeData.meituan_waimai + feeData.eleme_waimai + feeData.meituan_tuan)
+    ? ((feeData.meituan_cashier || 0) + (feeData.meituan_waimai || 0) + (feeData.eleme_waimai || 0) + (feeData.meituan_tuan || 0))
     : 0;
   const tabCards = [
     { gradient: ['rgba(13,148,136,0.22)', 'rgba(101,163,13,0.22)'], gradientActive: ['rgba(13,148,136,0.48)', 'rgba(101,163,13,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
@@ -494,16 +492,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     <View style={st.cardFields}>
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('meituanWaimai')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(feeData?.meituan_waimai || 0)}</Text>
+                          <Text style={st.cardFieldLabel}>{t('cumulativeRevenue')}</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('meituanCashier')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(feeData?.meituan_cashier || 0)}</Text>
+                          <Text style={st.cardFieldLabel}>{t('cumulativeExpense')}</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('shangouWaimai')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(feeData?.eleme_waimai || 0)}</Text>
+                          <Text style={st.cardFieldLabel}>{t('cashOnHand')}</Text>
+                          <Text style={st.cardFieldVal}>¥{fmtInt(realTotal)}</Text>
                         </View>
                       </View>
                     </View>
@@ -1000,8 +998,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {/* Column headers */}
               <View style={{ flexDirection: 'row', marginBottom: 10, gap: 8, paddingHorizontal: 2 }}>
                 <Text style={{ flex: 1, maxWidth: '30%', fontSize: 10, color: '#9CA3AF', fontWeight: '600' }}></Text>
-                <Text style={{ width: 70, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 70, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 70, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'left' }}>{t('feePreview')}</Text>
+                <Text style={{ width: 70, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'left' }}>{t('feeCurrent')}</Text>
                 <Text style={{ width: 95, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
               </View>
 
@@ -1016,10 +1014,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
                     <Text style={{ flex: 1, maxWidth: '30%', fontSize: 13, color: '#374151', fontWeight: '500' }}>{t(row.k)}</Text>
-                    <Text style={{ width: 70, fontSize: 15, fontWeight: '700', color: '#1A1A1A', textAlign: 'right' }}>
+                    <Text style={{ width: 70, fontSize: 15, fontWeight: '700', color: '#1A1A1A', textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 70, fontSize: 12, color: '#9CA3AF', textAlign: 'right' }}>
+                    <Text style={{ width: 70, fontSize: 12, color: '#9CA3AF', textAlign: 'left' }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
