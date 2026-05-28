@@ -711,22 +711,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </TouchableOpacity>
                 {/* Image previews */}
                 {expImages.map((file, i) => (
-                  <View key={`img-${i}`} style={st.imgPreview}>
+                  <View key={`img-${i}`}>
                     {React.createElement('img', {
                       src: URL.createObjectURL(file),
-                      style: { width: 80, height: 80, borderRadius: 10, objectFit: 'cover' },
+                      style: { width: 110, height: 110, borderRadius: 20, objectFit: 'cover' },
                       alt: file.name,
                     })}
-                    <TouchableOpacity style={st.imgRemove}
-                      onPress={() => {
-                        URL.revokeObjectURL(URL.createObjectURL(file));
-                        removeImage(i);
-                      }}
-                      activeOpacity={0.7}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12" />
-                      </Svg>
-                    </TouchableOpacity>
                   </View>
                 ))}
               </View>
@@ -1065,22 +1055,15 @@ const st = StyleSheet.create({
   },
 
   /* ── Image upload ── */
-  imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 4 },
   imgAddBtn: {
-    width: 80, height: 80, borderRadius: 10,
+    width: 110, height: 110, borderRadius: 20,
     borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D1D5DB',
     backgroundColor: '#FAFAFA',
     alignItems: 'center', justifyContent: 'center',
-    gap: 4,
+    gap: 6,
   },
-  imgAddText: { fontSize: 10, color: '#9CA3AF', fontWeight: '500' },
-  imgPreview: { position: 'relative' as any },
-  imgRemove: {
-    position: 'absolute', top: 4, right: 4,
-    width: 18, height: 18, borderRadius: 9,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    alignItems: 'center', justifyContent: 'center',
-  },
+  imgAddText: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
 
   /* ── Expense form ── */
   expForm: { gap: 14 },
