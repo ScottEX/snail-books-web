@@ -35,7 +35,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   // First load
   useEffect(() => { loadPage(1); }, []);
 
-  // Scroll-to-bottom pagination via RN onScroll (matches ReconHistoryScreen pattern)
+  // Scroll-to-bottom pagination
   const handleScroll = useCallback((e: any) => {
     if (!hasMore || loadingRef.current) return;
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
@@ -51,7 +51,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
   return (
     <View style={st.overlay}>
-      {/* Header — absolute, floats above scroll content (matches 对账记录 style) */}
+      {/* Header — absolute, transparent (content shows through) */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
@@ -62,17 +62,16 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         <View style={{ width: 44 }} />
       </View>
 
-      {/* List — ScrollView with onScroll pagination */}
+      {/* List — absolute below header, guaranteed height for scrolling */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={200}
-        contentContainerStyle={{ paddingTop: 82, paddingHorizontal: 16, paddingBottom: 40 }}>
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
         {records.length === 0 && !loading ? (
           <Text style={st.empty}>{t('noData')}</Text>
         ) : (
           <>
             {records.map((e: any, i: number) => (
               <View key={i} style={st.row}>
-                {/* Row 1: badges + amount */}
                 <View style={st.rowTop}>
                   <View style={st.badges}>
                     <View style={st.catBadge}>
@@ -84,7 +83,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                   </View>
                   <Text style={st.amount}>-¥{e.amount.toLocaleString()}</Text>
                 </View>
-                {/* Row 2: date + note */}
                 <View style={st.rowBottom}>
                   <Text style={st.dateText}>{e.date || (e.created_at || '').slice(0, 10)}</Text>
                   {e.note ? (
@@ -109,14 +107,13 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
 const st = StyleSheet.create({
   overlay: {
-    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
-    zIndex: 150, backgroundColor: '#FAFAFA',
+    flex: 1, backgroundColor: '#FAFAFA',
   },
-  /* Header — absolute positioning, matches 对账记录 */
+  /* Header — absolute, fully transparent (content scrolls under it) */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: 24, paddingBottom: 14, paddingHorizontal: 16,
+    paddingVertical: 14, paddingHorizontal: 16,
     backgroundColor: 'transparent',
   },
   backBtn: {
@@ -129,11 +126,11 @@ const st = StyleSheet.create({
   },
   backArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
-  /* List — padded to clear absolute header */
+  /* List — absolute below header, fixed height guarantees ScrollView onScroll fires */
   list: {
-    flex: 1,
+    position: 'absolute', top: 72, left: 0, right: 0, bottom: 0,
   },
-  /* Row: two-line layout, all 5 fields clearly visible */
+  /* Row */
   row: {
     paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: '#F3F4F6',

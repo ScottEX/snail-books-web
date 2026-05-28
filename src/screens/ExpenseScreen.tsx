@@ -710,9 +710,11 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
         </View>
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
-      {/* 支出记录全屏 */}
+      {/* 支出记录全屏 — absolute 在 ExpenseScreen 容器内，自然避让 app header */}
       {showExpHistory && (
-        <ExpenseHistoryScreen onBack={() => setShowExpHistory(false)} />
+        <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 150 }}>
+          <ExpenseHistoryScreen onBack={() => setShowExpHistory(false)} />
+        </View>
       )}
     </View>
   );
