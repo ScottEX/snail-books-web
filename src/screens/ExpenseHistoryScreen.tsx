@@ -118,8 +118,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 }
 
 const st = StyleSheet.create({
-  /* Root — flex: 1, white bg (page-level background) */
-  root: { flex: 1, backgroundColor: '#FAFAFA' },
+  /* Root — flex: 1, no background (page bg from parent) */
+  root: { flex: 1 },
   /* Header — frosted glass, floats above scroll */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
@@ -144,8 +144,12 @@ const st = StyleSheet.create({
   list: { flex: 1 },
   /* Row */
   row: {
-    paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF', borderRadius: 12,
+    paddingVertical: 14, paddingHorizontal: 14,
+    marginBottom: 8,
+    borderWidth: 1, borderColor: '#EBEBEB',
+    // @ts-ignore
+    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 6,
   },
   rowTop: {
