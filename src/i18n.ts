@@ -216,7 +216,7 @@ const I18N: Record<string, Record<string, string>> = {
     discountAmount: '优惠减免',
     // Platform fees
     platformFee: '平台手续费',
-    feeDetail: '查看明细',
+    feeDetail: '更新手续费',
     addFeeEntry: '录入手续费',
     entryDate: '录入日期',
     noFutureDate: '不能选择未来日期',
@@ -440,7 +440,7 @@ const I18N: Record<string, Record<string, string>> = {
     discountAmount: '優惠減免',
     // Platform fees
     platformFee: '平台手續費',
-    feeDetail: '查看明細',
+    feeDetail: '更新手續費',
     addFeeEntry: '錄入手續費',
     entryDate: '錄入日期',
     noFutureDate: '不能選擇未來日期',
@@ -664,7 +664,7 @@ const I18N: Record<string, Record<string, string>> = {
     discountAmount: 'Discount',
     // Platform fees
     platformFee: 'Platform Fees',
-    feeDetail: 'Details',
+    feeDetail: 'Update Fees',
     addFeeEntry: 'Add Fee',
     entryDate: 'Entry Date',
     noFutureDate: 'Future date not allowed',

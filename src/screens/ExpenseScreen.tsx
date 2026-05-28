@@ -691,9 +691,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
 
-            <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5, marginBottom: 14 }}>
-              ¥{feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 }}>
+              <Text style={{ fontSize: 32, fontWeight: '700', color: '#FA855A', marginRight: 6 }}>¥</Text>
+              <Text style={{ fontSize: 42, fontWeight: '700', color: '#1A1A1A', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>
+                {feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </Text>
+            </View>
 
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {([
@@ -1021,7 +1024,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 16, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA', outline: 'none' } as any}
+                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA', outline: 'none' } as any}
                       value={row.val} onChangeText={row.set}
                       keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB"
                     />
