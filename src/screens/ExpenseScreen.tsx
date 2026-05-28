@@ -267,6 +267,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [expCategory, setExpCategory] = useState('日常');
   const [payMethod, setPayMethod] = useState('微信');
   const [expNote, setExpNote] = useState('');
+  const [expImages, setExpImages] = useState<File[]>([]);
+  const [uploadingImg, setUploadingImg] = useState(false);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
   const [loadingExp, setLoadingExp] = useState(false);
@@ -299,10 +301,52 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
   useEffect(() => { loadExpenses(); }, []);
 
+  // Image upload handlers
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const newFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      // Validate type
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) continue;
+      if (f.size > 10 * 1024 * 1024) continue; // 10MB
+      // Deduplicate by name+size
+      if (expImages.some(e => e.name === f.name && e.size === f.size)) continue;
+      newFiles.push(f);
+    }
+    setExpImages(prev => [...prev, ...newFiles]);
+    // Reset input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeImage = (idx: number) => {
+    setExpImages(prev => {
+      const cp = [...prev];
+      cp.splice(idx, 1);
+      return cp;
+    });
+  };
+
   const handleAddExpense = async () => {
     if (!expAmount) return;
     setLoadingExp(true);
     try {
+      // Upload images first if any
+      let imageUrls: string[] = [];
+      if (expImages.length > 0) {
+        setUploadingImg(true);
+        const result = await api.uploadExpenseImages(expImages);
+        setUploadingImg(false);
+        if (result.status !== 'ok') {
+          setToast(result.message || t('toastSubmitFailed'));
+          setLoadingExp(false);
+          return;
+        }
+        imageUrls = result.images || [];
+      }
       await api.createTransaction({
         type: 'expense',
         amount: parseFloat(expAmount),
@@ -310,11 +354,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         account: payMethod,
         note: expNote,
         date: expDate,
+        images: imageUrls,
       });
       setExpAmount('');
       setPayMethod('微信');
       setExpNote('');
       setExpDate(todayStr());
+      setExpImages([]);
+      // Revoke any remaining preview URLs
       await loadExpenses();
       onExpenseHistory?.();
     } catch { setToast(t('toastSubmitFailed')); }
@@ -640,6 +687,49 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 placeholder={t('notePlaceholder')}
                 placeholderTextColor="#D1D5DB"
                 multiline />
+              {/* 图片上传 */}
+              <Text style={st.catSectionTitle}>{t('uploadImage')}</Text>
+              <View style={st.imgRow}>
+                {/* Hidden file input */}
+                {React.createElement('input', {
+                  ref: fileInputRef,
+                  type: 'file',
+                  accept: 'image/jpeg,image/png,image/webp',
+                  multiple: true,
+                  onChange: handleImageSelect,
+                  style: { display: 'none' },
+                })}
+                {/* Add button */}
+                <TouchableOpacity style={st.imgAddBtn}
+                  onPress={() => fileInputRef.current?.click()}
+                  activeOpacity={0.7}>
+                  <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round">
+                    <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                    <Circle cx="12" cy="13" r="4" />
+                  </Svg>
+                  <Text style={st.imgAddText}>{t('addImage')}</Text>
+                </TouchableOpacity>
+                {/* Image previews */}
+                {expImages.map((file, i) => (
+                  <View key={`img-${i}`} style={st.imgPreview}>
+                    {React.createElement('img', {
+                      src: URL.createObjectURL(file),
+                      style: { width: 80, height: 80, borderRadius: 10, objectFit: 'cover' },
+                      alt: file.name,
+                    })}
+                    <TouchableOpacity style={st.imgRemove}
+                      onPress={() => {
+                        URL.revokeObjectURL(URL.createObjectURL(file));
+                        removeImage(i);
+                      }}
+                      activeOpacity={0.7}>
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round">
+                        <Path d="M18 6L6 18M6 6l12 12" />
+                      </Svg>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
               {/* 日期选择 */}
               <View style={st.expDateRow}>
                 <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.5}>
@@ -972,6 +1062,24 @@ const st = StyleSheet.create({
     borderWidth: 0, padding: 0, backgroundColor: 'transparent',
     // @ts-ignore
     outline: 'none',
+  },
+
+  /* ── Image upload ── */
+  imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  imgAddBtn: {
+    width: 80, height: 80, borderRadius: 10,
+    borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D1D5DB',
+    backgroundColor: '#FAFAFA',
+    alignItems: 'center', justifyContent: 'center',
+    gap: 4,
+  },
+  imgAddText: { fontSize: 10, color: '#9CA3AF', fontWeight: '500' },
+  imgPreview: { position: 'relative' as any },
+  imgRemove: {
+    position: 'absolute', top: 4, right: 4,
+    width: 18, height: 18, borderRadius: 9,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center', justifyContent: 'center',
   },
 
   /* ── Expense form ── */

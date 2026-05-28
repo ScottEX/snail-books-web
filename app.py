@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """🍜 蓝姐螺蛳粉 · 记账系统"""
 
-import sqlite3, os, secrets, functools, re
+import sqlite3, os, secrets, functools, re, json
 from datetime import datetime, date
 from contextlib import contextmanager
 from flask import Flask, request, jsonify, session, redirect, g, make_response, send_file
@@ -225,6 +225,7 @@ def init_db():
                 category TEXT NOT NULL,
                 account TEXT NOT NULL,
                 note TEXT DEFAULT '',
+                images TEXT DEFAULT '[]',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             CREATE TABLE IF NOT EXISTS dividends (
@@ -312,6 +313,11 @@ def init_db():
             pass
         try:
             db.execute('ALTER TABLE reconciliations ADD COLUMN reconciled_by TEXT')
+        except:
+            pass
+        # Migration: add images column to transactions
+        try:
+            db.execute('ALTER TABLE transactions ADD COLUMN images TEXT DEFAULT \'[]\'')
         except:
             pass
 
@@ -484,7 +490,8 @@ def api_transactions():
         if missing:
             return jsonify({'status':'error','message': _t('err_missing_fields', g.lang, fields=', '.join(missing))}), 400
         with get_db() as db:
-            db.execute('INSERT INTO transactions (type,amount,category,account,note) VALUES (?,?,?,?,?)', (data['type'], data['amount'], data['category'], data['account'], data.get('note','')))
+            images_json = json.dumps(data.get('images', []))
+            db.execute('INSERT INTO transactions (type,amount,category,account,note,images) VALUES (?,?,?,?,?,?)', (data['type'], data['amount'], data['category'], data['account'], data.get('note',''), images_json))
             db.commit()
         return jsonify({'status':'ok'})
     # GET with pagination
@@ -506,6 +513,51 @@ def api_delete_transaction(id):
         if cur.rowcount == 0:
             return jsonify({'status':'error','message': '记录不存在'}), 404
     return jsonify({'status':'ok'})
+
+# ========== 支出图片上传 ==========
+_EXPENSE_IMG_DIR = os.path.join(os.path.dirname(__file__), 'user-uploads', 'expenses')
+_EXPENSE_IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+
+@app.route('/expense-imgs/<int:user_id>/<filename>')
+def serve_expense_img(user_id, filename):
+    """Public route to serve expense images (no auth needed for browser display)."""
+    fp = os.path.join(_EXPENSE_IMG_DIR, f'user_{user_id}', filename)
+    if os.path.exists(fp):
+        return send_file(fp)
+    return '', 404
+
+@app.route('/api/expenses/upload-images', methods=['POST'])
+@login_required
+def api_upload_expense_images():
+    """Upload expense images. Accepts multipart 'files' (multiple). Returns list of image URLs."""
+    files = request.files.getlist('files')
+    if not files:
+        return jsonify({'status': 'error', 'message': '未选择文件'}), 400
+
+    user_dir = os.path.join(_EXPENSE_IMG_DIR, f'user_{g.user_id}')
+    os.makedirs(user_dir, exist_ok=True)
+
+    uploaded = []
+    for f in files:
+        if f.filename == '':
+            continue
+        ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+        if ext not in _EXPENSE_IMG_EXT:
+            return jsonify({'status': 'error', 'message': f'仅支持 {", ".join(_EXPENSE_IMG_EXT)} 格式'}), 400
+        f.seek(0, 2)
+        size = f.tell()
+        f.seek(0)
+        if size > 10 * 1024 * 1024:  # 10MB per image
+            return jsonify({'status': 'error', 'message': '单张图片最大 10MB'}), 400
+
+        # Generate unique filename to avoid collisions
+        import uuid as _uuid
+        ufname = f'{_uuid.uuid4().hex[:12]}.{ext}'
+        save_path = os.path.join(user_dir, ufname)
+        f.save(save_path)
+        uploaded.append(f'/expense-imgs/{g.user_id}/{ufname}')
+
+    return jsonify({'status': 'ok', 'images': uploaded})
 
 @app.route('/api/partners')
 @login_required

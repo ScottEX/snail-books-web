@@ -104,6 +104,19 @@ export const api = {
   createTransaction: (data: any) => authFetch('/api/transactions', { method: 'POST', body: JSON.stringify(data) }),
   deleteTransaction: (id: number) => authFetch(`/api/transactions/${id}`, { method: 'DELETE' }),
 
+  // Expense image upload — returns { images: ['/expense-imgs/4/abc.jpg', ...] }
+  uploadExpenseImages: async (files: File[]) => {
+    bumpActivity();
+    const form = new FormData();
+    files.forEach(f => form.append('files', f));
+    const resp = await fetch('/api/expenses/upload-images', {
+      method: 'POST',
+      headers: { 'X-Lang': getLang() },
+      body: form,
+    });
+    return resp.json();
+  },
+
   getPartners: () => authFetch('/api/partners'),
   getDividends: () => authFetch('/api/dividends'),
   createDividend: (data: any) => authFetch('/api/dividends', { method: 'POST', body: JSON.stringify(data) }),
