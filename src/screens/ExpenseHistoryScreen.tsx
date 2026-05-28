@@ -15,6 +15,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
+  const [previewOpacity, setPreviewOpacity] = useState(1);
   const touchStartX = useRef(0);
   const [showFilter, setShowFilter] = useState(false);
   const [filDateFrom, setFilDateFrom] = useState('');
@@ -119,6 +120,14 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     return result;
   })();
 
+  const navPreview = (newIdx: number) => {
+    setPreviewOpacity(0);
+    setTimeout(() => {
+      setPreviewData({ images: previewData!.images, idx: newIdx });
+      setPreviewOpacity(1);
+    }, 150);
+  };
+
   return (
     <View style={st.root}>
       {/* Header — absolute, transparent, floats above scroll (matches ReconHistoryScreen) */}
@@ -144,11 +153,25 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('filterDate')}</Text>
               <View style={st.filterDateRange}>
-                <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
-                  style={st.filterDateInput as any} />
+                <View style={st.filterDateWrap}>
+                  {filDateFrom ? (
+                    <Text style={st.filterDateText}>{fmtExpDate(filDateFrom)}</Text>
+                  ) : (
+                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
+                  )}
+                  <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
+                    style={st.filterDateHidden as any} />
+                </View>
                 <Text style={st.filterDateArrow}>→</Text>
-                <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
-                  style={st.filterDateInput as any} />
+                <View style={st.filterDateWrap}>
+                  {filDateTo ? (
+                    <Text style={st.filterDateText}>{fmtExpDate(filDateTo)}</Text>
+                  ) : (
+                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
+                  )}
+                  <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
+                    style={st.filterDateHidden as any} />
+                </View>
               </View>
             </View>
             {/* Category chips */}
@@ -250,9 +273,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             const dx = endX - touchStartX.current;
             if (Math.abs(dx) > 60) {
               if (dx < 0 && previewData.idx < previewData.images.length - 1) {
-                setPreviewData({ images: previewData.images, idx: previewData.idx + 1 });
+                navPreview(previewData.idx + 1);
               } else if (dx > 0 && previewData.idx > 0) {
-                setPreviewData({ images: previewData.images, idx: previewData.idx - 1 });
+                navPreview(previewData.idx - 1);
               }
             }
           }}>
@@ -265,21 +288,27 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           </TouchableOpacity>
           {previewData.images.length > 1 && previewData.idx > 0 && (
             <TouchableOpacity style={st.previewArrowLeft}
-              onPress={() => setPreviewData({ images: previewData.images, idx: previewData.idx - 1 })}
+              onPress={() => navPreview(previewData.idx - 1)}
               activeOpacity={0.7}>
               <Text style={st.previewArrowText}>{'\u2039'}</Text>
             </TouchableOpacity>
           )}
           {previewData.images.length > 1 && previewData.idx < previewData.images.length - 1 && (
             <TouchableOpacity style={st.previewArrowRight}
-              onPress={() => setPreviewData({ images: previewData.images, idx: previewData.idx + 1 })}
+              onPress={() => navPreview(previewData.idx + 1)}
               activeOpacity={0.7}>
               <Text style={st.previewArrowText}>{'\u203A'}</Text>
             </TouchableOpacity>
           )}
           {React.createElement('img', {
             src: previewData.images[previewData.idx],
-            style: { maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain' },
+            key: previewData.idx,
+            style: {
+              maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain',
+              opacity: previewOpacity,
+              // @ts-ignore
+              transition: 'opacity 0.2s ease',
+            },
             alt: 'preview',
           })}
           {previewData.images.length > 1 && (
@@ -409,6 +438,18 @@ const st = StyleSheet.create({
     borderWidth: 1, borderColor: '#EBEBEB',
     fontSize: 13, fontWeight: '400', color: '#374151',
     fontFamily: 'inherit', outline: 'none',
+  },
+  filterDateWrap: {
+    flex: 1, height: 34, position: 'relative' as any,
+    backgroundColor: '#FFFFFF', borderRadius: 6,
+    borderWidth: 1, borderColor: '#EBEBEB',
+    justifyContent: 'center', paddingHorizontal: 8,
+  },
+  filterDateText: { fontSize: 11, fontWeight: '500', color: '#374151' },
+  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: '#B0B0B0' },
+  filterDateHidden: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
   filterDateArrow: { fontSize: 11, color: '#CCC', fontWeight: '300', marginHorizontal: 2 },
   filterChipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },

@@ -276,21 +276,49 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('billDate')}</Text>
               <View style={st.filterDateRange}>
-                <input type="date" value={filBillFrom} onChange={(e: any) => setFilBillFrom(e.target.value)}
-                  style={st.filterDateInput as any} />
+                <View style={st.filterDateWrap}>
+                  {filBillFrom ? (
+                    <Text style={st.filterDateText}>{fmtDate(filBillFrom)}</Text>
+                  ) : (
+                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
+                  )}
+                  <input type="date" value={filBillFrom} onChange={(e: any) => setFilBillFrom(e.target.value)}
+                    style={st.filterDateHidden as any} />
+                </View>
                 <Text style={st.filterDateArrow}>→</Text>
-                <input type="date" value={filBillTo} onChange={(e: any) => setFilBillTo(e.target.value)}
-                  style={st.filterDateInput as any} />
+                <View style={st.filterDateWrap}>
+                  {filBillTo ? (
+                    <Text style={st.filterDateText}>{fmtDate(filBillTo)}</Text>
+                  ) : (
+                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
+                  )}
+                  <input type="date" value={filBillTo} onChange={(e: any) => setFilBillTo(e.target.value)}
+                    style={st.filterDateHidden as any} />
+                </View>
               </View>
             </View>
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('reconDate')}</Text>
               <View style={st.filterDateRange}>
-                <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
-                  style={st.filterDateInput as any} />
+                <View style={st.filterDateWrap}>
+                  {filDateFrom ? (
+                    <Text style={st.filterDateText}>{fmtDate(filDateFrom)}</Text>
+                  ) : (
+                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
+                  )}
+                  <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
+                    style={st.filterDateHidden as any} />
+                </View>
                 <Text style={st.filterDateArrow}>→</Text>
-                <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
-                  style={st.filterDateInput as any} />
+                <View style={st.filterDateWrap}>
+                  {filDateTo ? (
+                    <Text style={st.filterDateText}>{fmtDate(filDateTo)}</Text>
+                  ) : (
+                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
+                  )}
+                  <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
+                    style={st.filterDateHidden as any} />
+                </View>
               </View>
             </View>
             <View style={st.filterField}>
@@ -481,6 +509,18 @@ const st = StyleSheet.create({
     fontSize: 13, fontWeight: '400', color: '#374151',
     fontFamily: 'inherit',
     outline: 'none',
+  },
+  filterDateWrap: {
+    flex: 1, height: 34, position: 'relative' as any,
+    backgroundColor: '#FFFFFF', borderRadius: 6,
+    borderWidth: 1, borderColor: '#EBEBEB',
+    justifyContent: 'center', paddingHorizontal: 8,
+  },
+  filterDateText: { fontSize: 11, fontWeight: '500', color: '#374151' },
+  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: '#B0B0B0' },
+  filterDateHidden: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
   filterDateArrow: {
     fontSize: 11, color: '#CCC', fontWeight: '300',
