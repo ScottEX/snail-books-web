@@ -105,7 +105,16 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
    EXPENSE SCREEN
    ═══════════════════════════════════════════════════════════ */
 export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { onReconHistory?: () => void; onExpenseHistory?: () => void }) {
-  const [activeTab, setActiveTab] = useState(0); // 0=对账, 1=营业, 2=支出
+  const [activeTab, setActiveTabState] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('expense_active_tab');
+      return saved !== null ? parseInt(saved, 10) : 2; // default to 支出 (index 2)
+    } catch { return 2; }
+  });
+  const setActiveTab = (i: number) => {
+    setActiveTabState(i);
+    try { localStorage.setItem('expense_active_tab', String(i)); } catch {}
+  };
   const [showToast, setShowToast] = useState(false);
   const hideToast = () => setShowToast(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -307,6 +316,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       setExpNote('');
       setExpDate(todayStr());
       await loadExpenses();
+      onExpenseHistory?.();
     } catch { setToast(t('toastSubmitFailed')); }
     setLoadingExp(false);
   };

@@ -51,11 +51,10 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         scrollTimerRef.current = setTimeout(() => {
           scrollTimerRef.current = null;
           const next = displayCount + PAGE_SIZE;
-          if (next <= records.length) {
-            setDisplayCount(next);
-          } else if (!doneRef.current) {
+          if (next > records.length && !doneRef.current) {
             fetchUntil(next);
           }
+          setDisplayCount(next);
         }, 300);
       }
     }
@@ -79,7 +78,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={200}
-        contentContainerStyle={{ paddingTop: 64, paddingHorizontal: 16, paddingBottom: 80 }}>
+        contentContainerStyle={{ paddingTop: 76, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
           <Text style={st.empty}>{t('noData')}</Text>
         ) : (
