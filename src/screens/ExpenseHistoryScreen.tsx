@@ -50,7 +50,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
   return (
     <View style={st.overlay}>
-      {/* Header */}
+      {/* Header — absolute, floats above scroll content (matches 对账记录 style) */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
@@ -61,7 +61,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         <View style={{ width: 44 }} />
       </View>
 
-      {/* List */}
+      {/* List — scrolls underneath the absolute header */}
       <View style={st.listWrap} ref={scrollRef as any}>
         {records.length === 0 && !loading ? (
           <Text style={st.empty}>{t('noData')}</Text>
@@ -69,7 +69,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           <>
             {records.map((e: any, i: number) => (
               <View key={i} style={st.row}>
-                <View style={st.meta}>
+                {/* Row 1: badges + amount */}
+                <View style={st.rowTop}>
                   <View style={st.badges}>
                     <View style={st.catBadge}>
                       <Text style={st.catBadgeText}>{e.category || t('daily')}</Text>
@@ -77,13 +78,18 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                     <View style={st.payBadge}>
                       <Text style={st.payBadgeText}>{e.account || t('payWechat')}</Text>
                     </View>
-                    <Text style={st.dateText}>{e.date || (e.created_at || '').slice(0, 10)}</Text>
                   </View>
                   <Text style={st.amount}>-¥{e.amount.toLocaleString()}</Text>
                 </View>
-                {e.note ? (
-                  <Text style={st.note}>{e.note}</Text>
-                ) : null}
+                {/* Row 2: date + note */}
+                <View style={st.rowBottom}>
+                  <Text style={st.dateText}>{e.date || (e.created_at || '').slice(0, 10)}</Text>
+                  {e.note ? (
+                    <Text style={st.note} numberOfLines={1}>{e.note}</Text>
+                  ) : (
+                    <View style={{ flex: 1 }} />
+                  )}
+                </View>
               </View>
             ))}
             {loading && (
@@ -103,15 +109,12 @@ const st = StyleSheet.create({
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 150, backgroundColor: '#FAFAFA',
   },
-  /* Header — glass */
+  /* Header — absolute positioning, matches 对账记录 */
   header: {
-    paddingTop: 14, paddingBottom: 14, paddingHorizontal: 16,
+    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.30)',
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)',
-    zIndex: 10,
+    paddingVertical: 14, paddingHorizontal: 16,
+    backgroundColor: 'transparent',
   },
   backBtn: {
     width: 44, height: 44, borderRadius: 22,
@@ -122,36 +125,41 @@ const st = StyleSheet.create({
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
   },
   backArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
-  title: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
-  /* List */
+  title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
+  /* List — padded to clear absolute header (14 + 14 + 44) */
   listWrap: {
-    flex: 1, paddingHorizontal: 18, paddingTop: 12,
+    flex: 1, paddingTop: 72, paddingHorizontal: 16,
     // @ts-ignore
     overflowY: 'auto' as any,
   },
+  /* Row: two-line layout, all 5 fields clearly visible */
   row: {
-    paddingVertical: 12, gap: 4,
+    paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+    gap: 6,
   },
-  meta: {
+  rowTop: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   badges: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1,
+    flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1,
   },
   catBadge: {
     backgroundColor: '#FFF0EB', borderRadius: 4,
-    paddingHorizontal: 6, paddingVertical: 2,
+    paddingHorizontal: 8, paddingVertical: 3,
   },
-  catBadgeText: { fontSize: 11, fontWeight: '600', color: '#FA855A' },
+  catBadgeText: { fontSize: 13, fontWeight: '600', color: '#FA855A' },
   payBadge: {
     backgroundColor: '#F3F4F6', borderRadius: 4,
-    paddingHorizontal: 6, paddingVertical: 2,
+    paddingHorizontal: 8, paddingVertical: 3,
   },
-  payBadgeText: { fontSize: 11, fontWeight: '500', color: '#6B7280' },
-  dateText: { fontSize: 10, color: '#9CA3AF' },
-  amount: { fontSize: 15, fontWeight: '700', color: '#DC2626' },
-  note: { fontSize: 12, color: '#6B7280', paddingLeft: 2 },
-  empty: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', paddingVertical: 40 },
-  loading: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', paddingVertical: 16 },
+  payBadgeText: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
+  amount: { fontSize: 17, fontWeight: '700', color: '#DC2626' },
+  rowBottom: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
+  dateText: { fontSize: 13, color: '#9CA3AF' },
+  note: { fontSize: 13, color: '#6B7280', flex: 1, textAlign: 'right' },
+  empty: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingVertical: 40 },
+  loading: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingVertical: 16 },
 });
