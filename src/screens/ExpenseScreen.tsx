@@ -746,7 +746,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <TouchableOpacity style={st.imgAddBtn}
                   onPress={() => fileInputRef.current?.click()}
                   activeOpacity={0.7}>
-                  <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round">
+                  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round">
                     <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
                     <Circle cx="12" cy="13" r="4" />
                   </Svg>
@@ -757,7 +757,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <View key={`img-${i}`} style={st.imgPreview}>
                     {React.createElement('img', {
                       src: URL.createObjectURL(file),
-                      style: { width: 110, height: 110, borderRadius: 20, objectFit: 'cover' },
+                      style: { width: 90, height: 90, borderRadius: 16, objectFit: 'cover' },
                       alt: file.name,
                     })}
                     <TouchableOpacity style={st.imgRemove}
@@ -1105,19 +1105,19 @@ const st = StyleSheet.create({
   },
 
   /* ── Image upload ── */
-  imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 4 },
+  imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4 },
   imgAddBtn: {
-    width: 110, height: 110, borderRadius: 20,
+    width: 90, height: 90, borderRadius: 16,
     borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D1D5DB',
     backgroundColor: '#FAFAFA',
     alignItems: 'center', justifyContent: 'center',
-    gap: 6,
+    gap: 4,
   },
-  imgAddText: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
+  imgAddText: { fontSize: 10, color: '#9CA3AF', fontWeight: '500' },
   imgPreview: { position: 'relative' as any },
   imgRemove: {
-    position: 'absolute', top: 6, right: 6,
-    width: 22, height: 22, borderRadius: 11,
+    position: 'absolute', top: 4, right: 4,
+    width: 20, height: 20, borderRadius: 10,
     backgroundColor: 'rgba(0,0,0,0.50)',
     alignItems: 'center', justifyContent: 'center',
   },
