@@ -501,7 +501,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           <Text style={st.cardFieldVal}>¥{fmtInt(feeData?.meituan_cashier || 0)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('elemeWaimai')}</Text>
+                          <Text style={st.cardFieldLabel}>{t('shangouWaimai')}</Text>
                           <Text style={st.cardFieldVal}>¥{fmtInt(feeData?.eleme_waimai || 0)}</Text>
                         </View>
                       </View>
@@ -656,29 +656,50 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         {/* ── 模块二：平台手续费 ── */}
         {activeTab === 1 && (
         <FadeInView style={st.moduleWrap}>
+          {/* Revenue KPI cards */}
           <View style={st.card}>
-            {/* Header */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <View style={st.kpiRow}>
+              <View style={st.kpiCard}>
+                <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
+                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+              </View>
+              <View style={st.kpiCard}>
+                <Text style={st.kpiLabel}>{t('receivable')}</Text>
+                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+              </View>
+              <View style={st.kpiCard}>
+                <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
+                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Platform fees card */}
+          <View style={[st.card, { marginTop: 12 }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: '#1A1A1A' }}>{t('platformFee')}</Text>
                 <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500' }}>{thisYear}年{thisMonth}月</Text>
               </View>
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
+                onPress={() => { setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt(''); setShowFeeSheet(true); }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 13, color: '#8B1E22', fontWeight: '600' }}>{t('feeDetail')}</Text>
+                <Text style={{ fontSize: 16, color: '#8B1E22', fontWeight: '700' }}>→</Text>
+              </TouchableOpacity>
             </View>
 
-            {/* Total */}
-            <View style={{ marginBottom: 14 }}>
-              <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 2 }}>{t('cumulativeRevenue')}</Text>
-              <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5 }}>
-                ¥{feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </Text>
-            </View>
+            <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5, marginBottom: 14 }}>
+              ¥{feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </Text>
 
-            {/* Platform rows — 2x2 grid */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {([
                 { k: 'meituanCashier', v: feeData?.meituan_cashier || 0, color: '#3B82F6' },
                 { k: 'meituanWaimai', v: feeData?.meituan_waimai || 0, color: '#F59E0B' },
-                { k: 'elemeWaimai', v: feeData?.eleme_waimai || 0, color: '#06B6D4' },
+                { k: 'shangouWaimai', v: feeData?.eleme_waimai || 0, color: '#06B6D4' },
                 { k: 'meituanTuan', v: feeData?.meituan_tuan || 0, color: '#10B981' },
               ] as const).map((p) => (
                 <View key={p.k} style={{ flex: 1, minWidth: '45%', backgroundColor: '#F9FAFB', borderRadius: 10, padding: 10 }}>
@@ -691,24 +712,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   </Text>
                 </View>
               ))}
-            </View>
-
-            {/* Action buttons */}
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <TouchableOpacity
-                style={{ flex: 1, backgroundColor: '#8B1E22', borderRadius: 10, paddingVertical: 12, alignItems: 'center' }}
-                onPress={() => { setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt(''); setShowFeeSheet(true); }}
-                activeOpacity={0.8}
-              >
-                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>+ {t('addFeeEntry')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{ flex: 1, backgroundColor: '#F3F4F6', borderRadius: 10, paddingVertical: 12, alignItems: 'center' }}
-                onPress={() => setShowFeeHistory(true)}
-                activeOpacity={0.8}
-              >
-                <Text style={{ color: '#374151', fontSize: 14, fontWeight: '600' }}>{t('feeDetail')}</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </FadeInView>
@@ -998,7 +1001,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {([
                 { k: 'meituanCashier', cur: feeData?.meituan_cashier || 0, val: feeMc, set: setFeeMc },
                 { k: 'meituanWaimai', cur: feeData?.meituan_waimai || 0, val: feeMw, set: setFeeMw },
-                { k: 'elemeWaimai', cur: feeData?.eleme_waimai || 0, val: feeEw, set: setFeeEw },
+                { k: 'shangouWaimai', cur: feeData?.eleme_waimai || 0, val: feeEw, set: setFeeEw },
                 { k: 'meituanTuan', cur: feeData?.meituan_tuan || 0, val: feeMt, set: setFeeMt },
               ] as const).map((row) => {
                 const inputNum = toNum(row.val);
@@ -1049,7 +1052,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ flex: 1.5, fontSize: 10, color: '#9CA3AF', fontWeight: '600' }}>{t('reconDate')}</Text>
                 <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanCashier')}</Text>
                 <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanWaimai')}</Text>
-                <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('elemeWaimai')}</Text>
+                <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('shangouWaimai')}</Text>
                 <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('meituanTuan')}</Text>
               </View>
               {allFees.map((f: any) => (
