@@ -9,12 +9,15 @@ const PAGE_SIZE = 10;
 
 export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [toast, setToast] = useState('');
   const touchRef = useRef({ startX: 0, startY: 0 });
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadingRef = useRef(false);
 
   const [showFilter, setShowFilter] = useState(false);
   const [filBillFrom, setFilBillFrom] = useState('');
@@ -23,6 +26,12 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [filDateTo, setFilDateTo] = useState('');
   const [filBy, setFilBy] = useState('');
   const [users, setUsers] = useState<{id: number; username: string}[]>([]);
+  // Track applied filters (snapshot at last apply)
+  const [appliedBillFrom, setAppliedBillFrom] = useState('');
+  const [appliedBillTo, setAppliedBillTo] = useState('');
+  const [appliedFrom, setAppliedFrom] = useState('');
+  const [appliedTo, setAppliedTo] = useState('');
+  const [appliedBy, setAppliedBy] = useState('');
 
   // Fetch users when filter panel opens
   useEffect(() => {
@@ -31,48 +40,63 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     }
   }, [showFilter]);
 
-  const buildFilters = useCallback(() => {
+  // Build filter params from applied values
+  const getFilterParams = useCallback((): Record<string, string> => {
     const f: Record<string, string> = {};
-    if (filBillFrom) f.bill_date_from = filBillFrom;
-    if (filBillTo) f.bill_date_to = filBillTo;
-    if (filDateFrom) f.date_from = filDateFrom;
-    if (filDateTo) f.date_to = filDateTo;
-    if (filBy) f.reconciled_by = filBy;
+    if (appliedBillFrom) f.bill_date_from = appliedBillFrom;
+    if (appliedBillTo) f.bill_date_to = appliedBillTo;
+    if (appliedFrom) f.date_from = appliedFrom;
+    if (appliedTo) f.date_to = appliedTo;
+    if (appliedBy) f.reconciled_by = appliedBy;
     return f;
-  }, [filBillFrom, filBillTo, filDateFrom, filDateTo, filBy]);
+  }, [appliedBillFrom, appliedBillTo, appliedFrom, appliedTo, appliedBy]);
 
   const resetFilters = () => {
     setFilBillFrom(''); setFilBillTo('');
     setFilDateFrom(''); setFilDateTo('');
     setFilBy('');
+    setAppliedBillFrom(''); setAppliedBillTo('');
+    setAppliedFrom(''); setAppliedTo('');
+    setAppliedBy('');
   };
 
-  const loadData = useCallback(async () => {
+  // Fetch one page from server (with current filters)
+  const loadPage = useCallback(async (pg: number, reset: boolean) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    setLoading(true);
     try {
-      const filters = buildFilters();
-      const data = await api.getReconciliations(0, filters);
-      setRecords(data || []);
+      const data: any = await api.getReconciliationsPage(pg, PAGE_SIZE, getFilterParams());
+      const recs = data.records || [];
+      setRecords(prev => reset ? recs : [...prev, ...recs]);
+      setPage(pg);
+      setTotal(data.total || 0);
+      setHasMore(pg < (data.pages || 1));
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
-  }, [buildFilters]);
+    loadingRef.current = false;
+  }, [getFilterParams]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  // Trigger load when filter params change
+  const filterKey = `${appliedBillFrom}|${appliedBillTo}|${appliedFrom}|${appliedTo}|${appliedBy}`;
+  useEffect(() => {
+    setRecords([]);
+    loadPage(1, true);
+  }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const visible = records.slice(0, page * PAGE_SIZE);
-  const hasMore = page * PAGE_SIZE < records.length;
-
+  // Scroll pagination
   const handleScroll = useCallback((e: any) => {
-    if (!hasMore) return;
+    if (loadingRef.current || !hasMore) return;
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
     if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 120) {
       if (!scrollTimerRef.current) {
         scrollTimerRef.current = setTimeout(() => {
           scrollTimerRef.current = null;
-          setPage(p => p + 1);
+          loadPage(page + 1, false);
         }, 300);
       }
     }
-  }, [hasMore]);
+  }, [page, hasMore, loadPage]);
 
   const fmtDate = (d: string) => {
     const date = new Date(d + 'T00:00:00');
@@ -272,7 +296,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <Text style={st.backBtnArrow}>{'\u2039'}</Text>
           </View>
         </TouchableOpacity>
-        <Text style={st.title}>{t('reconHistory')} ({records.length})</Text>
+        <Text style={st.title}>{t('reconHistory')} ({total})</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#6B7280'} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
@@ -348,7 +372,16 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               <TouchableOpacity style={st.filterResetBtn} onPress={resetFilters} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.filterApplyBtn} onPress={() => { if (validateReconDates()) setShowFilter(false); }} activeOpacity={0.8}>
+              <TouchableOpacity style={st.filterApplyBtn} onPress={() => {
+                if (validateReconDates()) {
+                  setAppliedBillFrom(filBillFrom);
+                  setAppliedBillTo(filBillTo);
+                  setAppliedFrom(filDateFrom);
+                  setAppliedTo(filDateTo);
+                  setAppliedBy(filBy);
+                  setShowFilter(false);
+                }
+              }} activeOpacity={0.8}>
                 <Text style={st.filterApplyBtnText}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
@@ -365,7 +398,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           renderEmpty()
         ) : (
           <>
-            {visible.map(renderCard)}
+            {records.map(renderCard)}
             {hasMore && <Text style={st.loadingMore}>{t('loading')}...</Text>}
           </>
         )}

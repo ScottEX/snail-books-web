@@ -161,6 +161,17 @@ export const api = {
     return authFetch(`/api/reconciliations?${params}`);
   },
 
+  // Paginated reconciliation query — returns { records, total, pages, page, per_page }
+  getReconciliationsPage: (page = 1, perPage = 10, filters?: Record<string, string>) => {
+    const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('per_page', String(perPage));
+    if (filters) {
+      Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v); });
+    }
+    return authFetch(`/api/reconciliations?${params}`);
+  },
+
   getUsers: () => authFetch('/api/users'),
 
   getProcurements: () => authFetch('/api/procurements'),
