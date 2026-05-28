@@ -223,9 +223,9 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: '美团外卖',
     shangouWaimai: '闪购外卖',
     meituanTuan: '美团团购',
-    feePreview: '预览',
-    feeCurrent: '当前',
-    feeEntry: '录入',
+    feePreview: '累计手续费',
+    feeCurrent: '当前手续费',
+    feeEntry: '今日手续费',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -445,9 +445,9 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: '美團外賣',
     shangouWaimai: '閃購外賣',
     meituanTuan: '美團團購',
-    feePreview: '預覽',
-    feeCurrent: '當前',
-    feeEntry: '錄入',
+    feePreview: '累計手續費',
+    feeCurrent: '當期手續費',
+    feeEntry: '今日手續費',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -667,9 +667,9 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: 'Meituan Waimai',
     shangouWaimai: 'Flash Waimai',
     meituanTuan: 'Meituan Tuan',
-    feePreview: 'Preview',
-    feeCurrent: 'Current',
-    feeEntry: 'Add',
+    feePreview: 'Cumulative',
+    feeCurrent: 'Current Fee',
+    feeEntry: 'Today Fee',
   },
 };
 
