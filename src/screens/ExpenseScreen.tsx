@@ -303,22 +303,54 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   // Image upload handlers
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [showImgTip, setShowImgTip] = useState(false);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Compress image via Canvas: max 1920px, JPEG quality 0.8
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      // Only compress JPEG/PNG > 500KB
+      if (file.size < 500 * 1024) return resolve(file);
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const MAX = 1920;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+          else { width = Math.round(width * MAX / height); height = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file);
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (!blob) return resolve(file);
+          const compressed = new File([blob], file.name, { type: 'image/jpeg' });
+          resolve(compressed.size < file.size ? compressed : file);
+        }, 'image/jpeg', 0.8);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
     const newFiles: File[] = [];
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
-      // Validate type
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) continue;
-      if (f.size > 10 * 1024 * 1024) continue; // 10MB
-      // Deduplicate by name+size
+      if (f.size > 10 * 1024 * 1024) continue;
       if (expImages.some(e => e.name === f.name && e.size === f.size)) continue;
-      newFiles.push(f);
+      // Compress before adding
+      const compressed = await compressImage(f);
+      newFiles.push(compressed);
     }
     setExpImages(prev => [...prev, ...newFiles]);
-    // Reset input so same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -687,8 +719,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 placeholder={t('notePlaceholder')}
                 placeholderTextColor="#D1D5DB"
                 multiline />
-              {/* 图片上传 */}
-              <Text style={st.catSectionTitle}>{t('uploadImage')}</Text>
+              {/* 凭证上传 */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={st.catSectionTitle}>{t('uploadImage')}</Text>
+                <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7}
+                  style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#9CA3AF' }}>!</Text>
+                </TouchableOpacity>
+                {showImgTip && (
+                  <View style={st.imgTipBubble}>
+                    <Text style={st.imgTipText}>支持 jpg/png/webp，单张最大 10MB</Text>
+                  </View>
+                )}
+              </View>
               <View style={st.imgRow}>
                 {/* Hidden file input */}
                 {React.createElement('input', {
@@ -711,12 +754,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </TouchableOpacity>
                 {/* Image previews */}
                 {expImages.map((file, i) => (
-                  <View key={`img-${i}`}>
+                  <View key={`img-${i}`} style={st.imgPreview}>
                     {React.createElement('img', {
                       src: URL.createObjectURL(file),
                       style: { width: 110, height: 110, borderRadius: 20, objectFit: 'cover' },
                       alt: file.name,
                     })}
+                    <TouchableOpacity style={st.imgRemove}
+                      onPress={() => removeImage(i)}
+                      activeOpacity={0.7}>
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round">
+                        <Path d="M18 6L6 18M6 6l12 12" />
+                      </Svg>
+                    </TouchableOpacity>
                   </View>
                 ))}
               </View>
@@ -1064,6 +1114,18 @@ const st = StyleSheet.create({
     gap: 6,
   },
   imgAddText: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
+  imgPreview: { position: 'relative' as any },
+  imgRemove: {
+    position: 'absolute', top: 6, right: 6,
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: 'rgba(0,0,0,0.50)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  imgTipBubble: {
+    backgroundColor: '#374151', borderRadius: 6,
+    paddingHorizontal: 10, paddingVertical: 6,
+  },
+  imgTipText: { fontSize: 11, color: '#FFFFFF', fontWeight: '500' },
 
   /* ── Expense form ── */
   expForm: { gap: 14 },
