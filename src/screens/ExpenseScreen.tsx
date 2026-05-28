@@ -1465,6 +1465,7 @@ const st = StyleSheet.create({
   feeSheet: {
     backgroundColor: '#fff',
     borderRadius: 20,
+    overflow: 'hidden',
     paddingBottom: 0,
     marginBottom: 130,
     // @ts-ignore
