@@ -965,7 +965,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Platform fee entry bottom sheet */}
       {showFeeSheet && (
         <View style={[st.modalOverlay, { justifyContent: 'flex-end' }]}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowFeeSheet(false)} />
+          <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => setShowFeeSheet(false)} />
           <View style={st.feeSheet}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
@@ -1039,7 +1039,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Fee history bottom sheet */}
       {showFeeHistory && (
         <View style={[st.modalOverlay, { justifyContent: 'flex-end' }]}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowFeeHistory(false)} />
+          <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => setShowFeeHistory(false)} />
           <View style={[st.feeSheet, { maxHeight: '70%' }]}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
@@ -1464,10 +1464,11 @@ const st = StyleSheet.create({
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 20,
     paddingBottom: 0,
-    marginBottom: 100,
+    marginBottom: 130,
+    // @ts-ignore
+    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
     // @ts-ignore
     boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
   },
