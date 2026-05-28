@@ -1000,7 +1000,7 @@ const st = StyleSheet.create({
   catSectionTitle: { fontSize: 12, color: '#1A1A1A', fontWeight: '700', marginBottom: 10 },
   catGrid: { flexDirection: 'row', gap: 8 },
   catChip: {
-    flex: 1, flexDirection: 'row', paddingVertical: 12, borderRadius: 22,
+    flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
     backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
   },
   catChipActive: { backgroundColor: '#FA855A' },
@@ -1009,7 +1009,7 @@ const st = StyleSheet.create({
   /* Payment method chips */
   payGrid: { flexDirection: 'row', gap: 8 },
   payChip: {
-    flex: 1, flexDirection: 'row', paddingVertical: 12, borderRadius: 22,
+    flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
     backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
   },
   payChipActive: { backgroundColor: '#FA855A' },
