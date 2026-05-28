@@ -603,9 +603,10 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
                   return (['现金', '微信', '支付宝'] as const).map((m) => {
                     const active = payMethod === m;
                     const isWechat = m === '微信';
+                    const isAlipay = m === '支付宝';
                     return (
                       <TouchableOpacity key={m}
-                        style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : st.payChipActive)]}
+                        style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : isAlipay ? st.payChipActiveAlipay : st.payChipActive)]}
                         onPress={() => setPayMethod(m)} activeOpacity={0.7}>
                         <View style={{ marginRight: 5 }}>{payIcons[m]}</View>
                         <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(keyMap[m] as any)}</Text>
@@ -936,7 +937,7 @@ const st = StyleSheet.create({
   bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
   bigAmtLabel: { fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
   bigAmtRow: { flexDirection: 'row', alignItems: 'flex-end' },
-  bigAmtSymbol: { fontSize: 42, fontWeight: '300', color: '#FA855A', marginRight: 6 },
+  bigAmtSymbol: { fontSize: 42, fontWeight: '700', color: '#FA855A', marginRight: 6 },
   bigAmtInput: {
     fontSize: 42, fontWeight: '700', color: '#1A1A1A',
     borderWidth: 0, backgroundColor: 'transparent',
@@ -968,6 +969,7 @@ const st = StyleSheet.create({
   },
   payChipActive: { backgroundColor: '#FA855A' },
   payChipActiveWechat: { backgroundColor: '#07C160' },
+  payChipActiveAlipay: { backgroundColor: '#1677FF' },
   payChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   payChipTextActive: { color: '#FFFFFF' },
   /* Expense note */
