@@ -250,6 +250,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   /* ── 模块二：营业额 ── */
   const [revenueData, setRevenueData] = useState({ todayRevenue: 0, todayActual: 0 });
   const [revenueList, setRevenueList] = useState<any[]>([]);
+  const [statsData, setStatsData] = useState({ income: 0, expense: 0 });
 
   const loadRevenue = async () => {
     try {
@@ -257,6 +258,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       setRevenueData({ todayRevenue: s.income || 0, todayActual: s.income || 0 });
       const tx = await api.getTransactions(1);
       setRevenueList((tx.transactions || []).filter((t: any) => t.type === 'income').slice(0, 20));
+      const st = await api.getStats();
+      setStatsData({ income: st.income || 0, expense: st.expense || 0 });
     } catch { setToast(t('toastLoadFailed')); }
   };
   useEffect(() => { loadRevenue(); }, []);
@@ -602,38 +605,37 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         {activeTab === 1 && (
         <FadeInView style={st.moduleWrap}>
           <View style={st.card}>
-            {/* KPI 卡片 */}
+            {/* Cumulative card — 3 columns: 累计营收 | 累计支出 | 在手资金 */}
             <View style={st.kpiRow}>
               <View style={st.kpiCard}>
-                <Text style={st.kpiLabel}>{t('revenue')}</Text>
-                <NumberTicker value={revenueData.todayRevenue} style={st.kpiVal} />
+                <Text style={st.kpiLabel}>{t('cumulativeRevenue')}</Text>
+                <NumberTicker value={statsData.income} style={st.kpiVal} />
               </View>
               <View style={st.kpiCard}>
-                <Text style={st.kpiLabel}>{t('actualRevenue')}</Text>
-                <NumberTicker value={revenueData.todayActual} style={st.kpiVal} />
+                <Text style={st.kpiLabel}>{t('cumulativeExpense')}</Text>
+                <NumberTicker value={statsData.expense} style={st.kpiVal} />
+              </View>
+              <View style={st.kpiCard}>
+                <Text style={st.kpiLabel}>{t('cashOnHand')}</Text>
+                <NumberTicker value={statsData.income - statsData.expense} style={st.kpiVal} />
               </View>
             </View>
 
-            {/* 明细表 */}
-            <Text style={st.subLabel}>{t('revenueDetails')}</Text>
-            {revenueList.length === 0 ? (
-              <Text style={st.empty}>{t('noData')}</Text>
-            ) : (
-              <View style={st.tableWrap}>
-                <View style={[st.tableRow, st.tableHead]}>
-                  <Text style={[st.td, st.tdDate]}>{t('date')}</Text>
-                  <Text style={[st.td, st.tdCat]}>{t('category2')}</Text>
-                  <Text style={[st.td, st.tdAmt]}>{t('amount')}</Text>
-                </View>
-                {revenueList.map((r: any, i: number) => (
-                  <View style={st.tableRow} key={i}>
-                    <Text style={[st.td, st.tdDate]}>{(r.created_at || '').slice(0, 10)}</Text>
-                    <Text style={[st.td, st.tdCat]}>{r.category}</Text>
-                    <Text style={[st.td, st.tdAmt, { color: '#059669' }]}>+{fmt(r.amount)}</Text>
-                  </View>
-                ))}
+            {/* Detail card — 3 columns: 实收金额 | 应收金额 | 优惠减免 */}
+            <View style={st.kpiRow}>
+              <View style={st.kpiCard}>
+                <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
+                <Text style={st.kpiVal}>¥0.00</Text>
               </View>
-            )}
+              <View style={st.kpiCard}>
+                <Text style={st.kpiLabel}>{t('receivable')}</Text>
+                <Text style={st.kpiVal}>¥0.00</Text>
+              </View>
+              <View style={st.kpiCard}>
+                <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
+                <Text style={st.kpiVal}>¥0.00</Text>
+              </View>
+            </View>
           </View>
         </FadeInView>
         )}

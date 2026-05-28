@@ -207,6 +207,13 @@ const I18N: Record<string, Record<string, string>> = {
     toastSubmitFailed: '提交失败，请重试',
     errDateFuture: '不能选择未来的日期',
     errDateRange: '结束日期必须晚于开始日期',
+    // Revenue cards
+    cumulativeRevenue: '累计营收',
+    cumulativeExpense: '累计支出',
+    cashOnHand: '在手资金',
+    actualReceived: '实收金额',
+    receivable: '应收金额',
+    discountAmount: '优惠减免',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -410,6 +417,13 @@ const I18N: Record<string, Record<string, string>> = {
     toastSubmitFailed: '提交失敗，請重試',
     errDateFuture: '不能選擇未來的日期',
     errDateRange: '結束日期必須晚於開始日期',
+    // Revenue cards
+    cumulativeRevenue: '累計營收',
+    cumulativeExpense: '累計支出',
+    cashOnHand: '在手資金',
+    actualReceived: '實收金額',
+    receivable: '應收金額',
+    discountAmount: '優惠減免',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -613,6 +627,13 @@ const I18N: Record<string, Record<string, string>> = {
     toastSubmitFailed: 'Submit failed, please retry',
     errDateFuture: 'Cannot select a future date',
     errDateRange: 'End date must be after start date',
+    // Revenue cards
+    cumulativeRevenue: 'Cumulative Revenue',
+    cumulativeExpense: 'Cumulative Expense',
+    cashOnHand: 'Cash on Hand',
+    actualReceived: 'Actual Received',
+    receivable: 'Receivable',
+    discountAmount: 'Discount',
   },
 };
 
