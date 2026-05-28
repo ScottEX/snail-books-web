@@ -7,10 +7,11 @@ import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 30;
 
 export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
+  const [displayCount, setDisplayCount] = useState(30);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
@@ -73,6 +74,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         apiPageRef.current++;
       }
       setRecords(all);
+      setDisplayCount(all.length); // show all loaded data immediately
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
     loadingRef.current = false;
@@ -85,19 +87,23 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
   // Scroll pagination — load more API pages when near bottom
   const handleScroll = useCallback((e: any) => {
-    if (loadingRef.current || doneRef.current) return;
+    if (loadingRef.current) return;
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
     if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 120) {
       if (!scrollTimerRef.current) {
         scrollTimerRef.current = setTimeout(() => {
           scrollTimerRef.current = null;
-          fetchUntil(records.length + PAGE_SIZE);
+          const next = displayCount + PAGE_SIZE;
+          if (next > records.length && !doneRef.current) {
+            fetchUntil(next);
+          }
+          setDisplayCount(next);
         }, 300);
       }
     }
-  }, [records.length, fetchUntil]);
+  }, [displayCount, records.length, fetchUntil]);
 
-  const visible = records;
+  const visible = records.slice(0, Math.min(displayCount, records.length));
 
   // Category toggle
   const toggleCat = (cat: string) => {
