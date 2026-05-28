@@ -548,6 +548,7 @@ const I18N: Record<string, Record<string, string>> = {
     category2: 'Category',
     expDate: 'Date',
     amount: 'Amount',
+    amountLabel: 'Amount (¥)',
     expenseDetails: 'Expense Details',
     expenseNote: 'Description',
     confirmRecord: 'Record',

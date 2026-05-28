@@ -577,9 +577,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </View>
                 <View style={st.amtCursor} />
               </View>
-              {/* 分类胶囊 */}
+              {/* 分类胶囊 — 2×2 grid (accommodates long English words) */}
               <Text style={st.catSectionTitle}>{t('expenseCategory')}</Text>
-              <View style={st.catGrid}>
+              <View style={st.catGridWide}>
                 {(() => {
                   const icons: Record<string, React.ReactElement> = {
                     '日常': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><Path d="M9 22V12h6v10"/></Svg>,
@@ -588,16 +588,23 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     '采购': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><Line x1="3" y1="6" x2="21" y2="6"/><Path d="M16 10a4 4 0 01-8 0"/></Svg>,
                   };
                   const keys: Record<string, string> = { '日常': 'daily', '房租': 'rent', '薪资': 'salary', '采购': 'goods' };
-                  return (['日常', '房租', '薪资', '采购'] as const).map((cat) => {
+                  const cats = ['日常', '房租', '薪资', '采购'] as const;
+                  const mkChip = (cat: string) => {
                     const active = expCategory === cat;
                     return (
                       <TouchableOpacity key={cat} style={[st.catChip, active && st.catChipActive]}
                         onPress={() => setExpCategory(cat)} activeOpacity={0.7}>
                         <View style={[st.chipIconCircle, active && st.chipIconCircleActive]}>{icons[cat]}</View>
-                        <Text style={[st.catChipText, active && st.catChipTextActive]}>{t(keys[cat] as any)}</Text>
+                        <Text style={[st.catChipText, active && st.catChipTextActive]} numberOfLines={1}>{t(keys[cat] as any)}</Text>
                       </TouchableOpacity>
                     );
-                  });
+                  };
+                  return (
+                    <>
+                      <View style={st.catRow}>{cats.slice(0, 2).map(mkChip)}</View>
+                      <View style={st.catRow}>{cats.slice(2, 4).map(mkChip)}</View>
+                    </>
+                  );
                 })()}
               </View>
               {/* 支付方式 */}
@@ -990,6 +997,8 @@ const st = StyleSheet.create({
   /* Category chips */
   catSectionTitle: { fontSize: 12, color: '#1A1A1A', fontWeight: '700', marginBottom: 10 },
   catGrid: { flexDirection: 'row', gap: 8 },
+  catGridWide: { gap: 8 },
+  catRow: { flexDirection: 'row', width: '100%' as any, gap: 8, marginBottom: 6 },
   catChip: {
     flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
     backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
