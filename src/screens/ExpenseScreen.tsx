@@ -683,7 +683,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
-                onPress={() => { setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt(''); setShowFeeSheet(true); }}
+                onPress={() => { setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt(''); loadFeeData(); setShowFeeSheet(true); }}
                 activeOpacity={0.7}
               >
                 <Text style={{ fontSize: 13, color: '#8B1E22', fontWeight: '600' }}>{t('feeDetail')}</Text>
@@ -974,9 +974,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={st.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+            <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                 <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>{t('entryDate')}</Text>
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }} activeOpacity={1}>
                   <Text style={{ fontSize: 14, fontWeight: '600', color: '#1A1A1A' }}>
@@ -987,7 +987,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     type: 'date', value: feeEntryDate, max: todayStr(),
                     onChange: (e: any) => {
                       const v = e.target.value;
-                      if (v > todayStr()) { setToast(t('noFutureDate')); setShowToast(true); return; }
+                      if (v > todayStr()) { setToast(t('noFutureDate')); return; }
                       setFeeEntryDate(v);
                     },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
@@ -998,9 +998,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {/* Column headers */}
               <View style={{ flexDirection: 'row', marginBottom: 10, gap: 8, paddingHorizontal: 2 }}>
                 <Text style={{ flex: 1, maxWidth: '30%', fontSize: 10, color: '#9CA3AF', fontWeight: '600' }}></Text>
-                <Text style={{ width: 70, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'left' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 70, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'left' }}>{t('feeCurrent')}</Text>
-                <Text style={{ width: 95, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
+                <Text style={{ width: 80, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'left' }}>{t('feePreview')}</Text>
+                <Text style={{ width: 80, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'left' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 72, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
               </View>
 
               {/* Fee rows */}
@@ -1014,14 +1014,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
                     <Text style={{ flex: 1, maxWidth: '30%', fontSize: 13, color: '#374151', fontWeight: '500' }}>{t(row.k)}</Text>
-                    <Text style={{ width: 70, fontSize: 15, fontWeight: '700', color: '#1A1A1A', textAlign: 'left' }}>
+                    <Text style={{ width: 80, fontSize: 15, fontWeight: '700', color: '#1A1A1A', textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 70, fontSize: 12, color: '#9CA3AF', textAlign: 'left' }}>
+                    <Text style={{ width: 80, fontSize: 12, color: '#9CA3AF', textAlign: 'left' }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 95, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA', outline: 'none' } as any}
+                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 16, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA', outline: 'none' } as any}
                       value={row.val} onChangeText={row.set}
                       keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB"
                     />
