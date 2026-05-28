@@ -1466,6 +1466,7 @@ const st = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 16,
+    paddingBottom: 90,
     // @ts-ignore
     boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
   },
