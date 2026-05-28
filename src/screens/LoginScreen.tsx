@@ -63,6 +63,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         localStorage.setItem('user', r.username || username);
         localStorage.setItem('user_id', String(r.user_id || ''));
         localStorage.setItem('saved_login', username);
+        localStorage.removeItem('active_tab');
+        localStorage.removeItem('expense_active_tab');
       }
       onLogin();
     } else if (r.need_verify) {
