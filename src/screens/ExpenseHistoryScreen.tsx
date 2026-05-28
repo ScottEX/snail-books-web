@@ -98,12 +98,12 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const handleScroll = useCallback((e: any) => {
     if (loadingRef.current || !hasMore) return;
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 120) {
+    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 60) {
       if (!scrollTimerRef.current) {
         scrollTimerRef.current = setTimeout(() => {
           scrollTimerRef.current = null;
           loadPage(page + 1, false);
-        }, 300);
+        }, 150);
       }
     }
   }, [page, hasMore, loadPage]);
