@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet,
 } from 'react-native';
 import { t } from '../i18n';
 import { api } from '../api/client';
@@ -13,8 +13,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
-  const scrollRef = useRef<HTMLElement | null>(null);
   const loadingRef = useRef(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const apiPageRef = useRef(1);
   const doneRef = useRef(false);
 
@@ -42,69 +42,30 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
   useEffect(() => { fetchUntil(PAGE_SIZE); }, []);
 
-  // Scroll pagination on the overlay itself
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const onScroll = () => {
-      if (loadingRef.current) return;
-      if (el.scrollHeight - el.scrollTop - el.clientHeight < 120) {
-        const next = displayCount + PAGE_SIZE;
-        if (next <= records.length) {
-          setDisplayCount(next);
-        } else if (!doneRef.current) {
-          fetchUntil(next);
-          setDisplayCount(records.length + PAGE_SIZE);
-        }
+  // Scroll pagination — matches ReconHistoryScreen pattern
+  const handleScroll = useCallback((e: any) => {
+    if (loadingRef.current) return;
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 120) {
+      if (!scrollTimerRef.current) {
+        scrollTimerRef.current = setTimeout(() => {
+          scrollTimerRef.current = null;
+          const next = displayCount + PAGE_SIZE;
+          if (next <= records.length) {
+            setDisplayCount(next);
+          } else if (!doneRef.current) {
+            fetchUntil(next);
+          }
+        }, 300);
       }
-    };
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
+    }
   }, [displayCount, records.length, fetchUntil]);
 
   const visible = records.slice(0, Math.min(displayCount, records.length));
-  const hasMore = displayCount < records.length || !doneRef.current;
 
   return (
-    <View style={st.overlay} ref={scrollRef as any}>
-      {/* Spacer so content starts below the absolute header */}
-      <View style={{ height: 72 }} />
-
-      {visible.length === 0 && !loading ? (
-        <Text style={st.empty}>{t('noData')}</Text>
-      ) : (
-        <>
-          {visible.map((e: any, i: number) => (
-            <View key={i} style={st.row}>
-              <View style={st.rowTop}>
-                <View style={st.badges}>
-                  <View style={st.catBadge}>
-                    <Text style={st.catBadgeText}>{e.category || t('daily')}</Text>
-                  </View>
-                  <View style={st.payBadge}>
-                    <Text style={st.payBadgeText}>{e.account || t('payWechat')}</Text>
-                  </View>
-                </View>
-                <Text style={st.amount}>-¥{e.amount.toLocaleString()}</Text>
-              </View>
-              <View style={st.rowBottom}>
-                <Text style={st.dateText}>{e.date || (e.created_at || '').slice(0, 10)}</Text>
-                {e.note ? (
-                  <Text style={st.note} numberOfLines={1}>{e.note}</Text>
-                ) : (
-                  <View style={{ flex: 1 }} />
-                )}
-              </View>
-            </View>
-          ))}
-          {loading && <Text style={st.loading}>...</Text>}
-          {hasMore && !loading && <View style={{ height: 40 }} />}
-          {/* Bottom spacer for nav bar */}
-          <View style={{ height: 80 }} />
-        </>
-      )}
-
-      {/* Header — absolute, floats above scrolling overlay. Truly transparent. */}
+    <View style={st.root}>
+      {/* Header — absolute, transparent, floats above scroll (matches ReconHistoryScreen) */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
@@ -115,21 +76,51 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         <View style={{ width: 44 }} />
       </View>
 
+      {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
+      <ScrollView style={st.list} showsVerticalScrollIndicator={false}
+        onScroll={handleScroll} scrollEventThrottle={200}
+        contentContainerStyle={{ paddingTop: 64, paddingHorizontal: 16, paddingBottom: 80 }}>
+        {visible.length === 0 && !loading ? (
+          <Text style={st.empty}>{t('noData')}</Text>
+        ) : (
+          <>
+            {visible.map((e: any, i: number) => (
+              <View key={i} style={st.row}>
+                <View style={st.rowTop}>
+                  <View style={st.badges}>
+                    <View style={st.catBadge}>
+                      <Text style={st.catBadgeText}>{e.category || t('daily')}</Text>
+                    </View>
+                    <View style={st.payBadge}>
+                      <Text style={st.payBadgeText}>{e.account || t('payWechat')}</Text>
+                    </View>
+                  </View>
+                  <Text style={st.amount}>-¥{e.amount.toLocaleString()}</Text>
+                </View>
+                <View style={st.rowBottom}>
+                  <Text style={st.dateText}>{e.date || (e.created_at || '').slice(0, 10)}</Text>
+                  {e.note ? (
+                    <Text style={st.note} numberOfLines={1}>{e.note}</Text>
+                  ) : (
+                    <View style={{ flex: 1 }} />
+                  )}
+                </View>
+              </View>
+            ))}
+            {loading && <Text style={st.loading}>...</Text>}
+          </>
+        )}
+      </ScrollView>
+
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
   );
 }
 
 const st = StyleSheet.create({
-  /* Overlay — the scroll container itself */
-  overlay: {
-    flex: 1,
-    paddingHorizontal: 16,
-    backgroundColor: '#FAFAFA',
-    // @ts-ignore
-    overflowY: 'auto' as any,
-  },
-  /* Header — absolute on top, floating above scrolled content */
+  /* Root — flex: 1, no background (matches ReconHistoryScreen root) */
+  root: { flex: 1 },
+  /* Header — absolute, transparent (matches ReconHistoryScreen header) */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -146,6 +137,8 @@ const st = StyleSheet.create({
   },
   backArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
+  /* List — scrolls under absolute header (matches ReconHistoryScreen list) */
+  list: { flex: 1 },
   /* Row */
   row: {
     paddingVertical: 14,
