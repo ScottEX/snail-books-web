@@ -17,6 +17,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const apiPageRef = useRef(1);
   const doneRef = useRef(false);
+  const totalRef = useRef(0);
 
   // i18n mapping for category & payment from API raw strings
   const trCat = (s: string) => {
@@ -47,6 +48,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       let all = [...records];
       while (all.length < minNeeded && !doneRef.current) {
         const tx: any = await api.getTransactions(apiPageRef.current);
+        if (apiPageRef.current === 1) totalRef.current = tx.total || 0;
         const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
         all = [...all, ...exps];
         if (apiPageRef.current >= (tx.pages || 1)) {
@@ -95,7 +97,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             <Text style={st.backArrow}>{'\u2039'}</Text>
           </View>
         </TouchableOpacity>
-        <Text style={st.title}>{t('expenseHistory')}</Text>
+        <Text style={st.title}>{t('expenseHistory')} ({totalRef.current})</Text>
         <View style={{ width: 44 }} />
       </View>
 
