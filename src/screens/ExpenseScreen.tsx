@@ -991,10 +991,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
 
               {/* Column headers */}
-              <View style={{ flexDirection: 'row', marginBottom: 8, paddingHorizontal: 4 }}>
+              <View style={{ flexDirection: 'row', marginBottom: 10, paddingHorizontal: 4 }}>
                 <Text style={{ flex: 1, fontSize: 10, color: '#9CA3AF', fontWeight: '600' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 80, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeCurrent')}</Text>
-                <Text style={{ width: 80, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
+                <Text style={{ width: 75, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 85, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right', marginLeft: 10 }}>{t('feeEntry')}</Text>
               </View>
 
               {/* Fee rows */}
@@ -1006,16 +1006,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               ] as const).map((row) => {
                 const inputNum = toNum(row.val);
                 return (
-                  <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
                     <Text style={{ flex: 1, fontSize: 13, color: '#374151', fontWeight: '500' }}>{t(row.k)}</Text>
-                    <Text style={{ width: 80, fontSize: 14, fontWeight: '700', color: '#1A1A1A', textAlign: 'right' }}>
+                    <Text style={{ width: 75, fontSize: 15, fontWeight: '700', color: '#1A1A1A', textAlign: 'right' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 80, fontSize: 12, color: '#9CA3AF', textAlign: 'right' }}>
+                    <Text style={{ width: 75, fontSize: 13, color: '#9CA3AF', textAlign: 'right' }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 80, height: 36, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 8, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA' }}
+                      style={{ width: 85, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA', marginLeft: 2 }}
                       value={row.val} onChangeText={row.set}
                       keyboardType="decimal-pad" placeholder="0" placeholderTextColor="#D1D5DB"
                     />
