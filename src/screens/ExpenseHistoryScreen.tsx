@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
 } from 'react-native';
-import { t } from '../i18n';
+import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 
@@ -17,6 +17,27 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const apiPageRef = useRef(1);
   const doneRef = useRef(false);
+
+  // i18n mapping for category & payment from API raw strings
+  const trCat = (s: string) => {
+    if (s.includes('日常')) return t('daily');
+    if (s.includes('房租')) return t('rent');
+    if (s.includes('薪资')) return t('salary');
+    if (s.includes('采购')) return t('goods');
+    return s;
+  };
+  const trPay = (s: string) => {
+    if (s.includes('微信')) return t('payWechat');
+    if (s.includes('支付宝') || s.includes('Alipay')) return t('payAlipay');
+    if (s.includes('现金')) return t('payCash');
+    return s;
+  };
+  const fmtExpDate = (d: string) => {
+    const date = new Date(d + 'T00:00:00');
+    const l = getLang();
+    if (l.startsWith('en')) return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+  };
 
   const fetchUntil = useCallback(async (minNeeded: number) => {
     if (loadingRef.current || doneRef.current) return;
@@ -88,16 +109,16 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                 <View style={st.rowTop}>
                   <View style={st.badges}>
                     <View style={st.catBadge}>
-                      <Text style={st.catBadgeText}>{e.category || t('daily')}</Text>
+                      <Text style={st.catBadgeText}>{trCat(e.category || '')}</Text>
                     </View>
                     <View style={st.payBadge}>
-                      <Text style={st.payBadgeText}>{e.account || t('payWechat')}</Text>
+                      <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
                     </View>
                   </View>
                   <Text style={st.amount}>-¥{e.amount.toLocaleString()}</Text>
                 </View>
                 <View style={st.rowBottom}>
-                  <Text style={st.dateText}>{e.date || (e.created_at || '').slice(0, 10)}</Text>
+                  <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
                   {e.note ? (
                     <Text style={st.note} numberOfLines={1}>{e.note}</Text>
                   ) : (

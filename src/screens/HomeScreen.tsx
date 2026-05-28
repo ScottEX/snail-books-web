@@ -426,14 +426,14 @@ const styles = StyleSheet.create({
   bgLayer: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
-  // Header — match bottom nav glass (0.20 opacity)
+  // Header — frosted glass, same as sub-screen headers
   header: {
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(255,255,255,0.30)',
+    backgroundColor: 'rgba(250,250,250,0.55)',
     // @ts-ignore - web-only
-    backdropFilter: 'saturate(180%) blur(24px)',
-    borderBottomWidth: 0,
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
     zIndex: 50,
   },
   headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
