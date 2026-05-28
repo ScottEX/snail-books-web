@@ -11,7 +11,6 @@ const PAGE_SIZE = 10;
 
 export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
-  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
@@ -84,25 +83,21 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   // Current user for displaying who filled each record
   const currentUser = (() => { try { return localStorage.getItem('user') || ''; } catch { return ''; } })();
 
-  // Scroll pagination — matches ReconHistoryScreen pattern
+  // Scroll pagination — load more API pages when near bottom
   const handleScroll = useCallback((e: any) => {
-    if (loadingRef.current) return;
+    if (loadingRef.current || doneRef.current) return;
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
     if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 120) {
       if (!scrollTimerRef.current) {
         scrollTimerRef.current = setTimeout(() => {
           scrollTimerRef.current = null;
-          const next = displayCount + PAGE_SIZE;
-          if (next > records.length && !doneRef.current) {
-            fetchUntil(next);
-          }
-          setDisplayCount(next);
+          fetchUntil(records.length + PAGE_SIZE);
         }, 300);
       }
     }
-  }, [displayCount, records.length, fetchUntil]);
+  }, [records.length, fetchUntil]);
 
-  const visible = records.slice(0, Math.min(displayCount, records.length));
+  const visible = records;
 
   // Category toggle
   const toggleCat = (cat: string) => {
