@@ -113,7 +113,7 @@ const st = StyleSheet.create({
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 14, paddingHorizontal: 16,
+    paddingTop: 24, paddingBottom: 14, paddingHorizontal: 16,
     backgroundColor: 'transparent',
   },
   backBtn: {
@@ -128,7 +128,7 @@ const st = StyleSheet.create({
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
   /* List — padded to clear absolute header (14 + 14 + 44) */
   listWrap: {
-    flex: 1, paddingTop: 72, paddingHorizontal: 16,
+    flex: 1, paddingTop: 82, paddingHorizontal: 16,
     // @ts-ignore
     overflowY: 'auto' as any,
   },
