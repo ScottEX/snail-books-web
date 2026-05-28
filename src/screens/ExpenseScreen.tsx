@@ -969,7 +969,7 @@ const st = StyleSheet.create({
   bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
   bigAmtLabel: { fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
   bigAmtRow: { flexDirection: 'row', alignItems: 'flex-end' },
-  bigAmtSymbol: { fontSize: 42, fontWeight: '700', color: '#FA855A', marginRight: 6 },
+  bigAmtSymbol: { fontSize: 32, fontWeight: '700', color: '#FA855A', marginRight: 6 },
   bigAmtInput: {
     fontSize: 42, fontWeight: '700', color: '#1A1A1A',
     borderWidth: 0, backgroundColor: 'transparent',

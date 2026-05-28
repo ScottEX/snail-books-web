@@ -14,8 +14,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
-  const scrollRef = useRef<HTMLElement | null>(null);
   const loadingRef = useRef(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadPage = useCallback(async (p: number) => {
     if (loadingRef.current) return;
@@ -35,17 +35,18 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   // First load
   useEffect(() => { loadPage(1); }, []);
 
-  // Scroll-to-bottom pagination — native DOM listener
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const handleScroll = () => {
-      if (el.scrollHeight - el.scrollTop - el.clientHeight < 60 && hasMore && !loadingRef.current) {
-        loadPage(page + 1);
+  // Scroll-to-bottom pagination via RN onScroll (matches ReconHistoryScreen pattern)
+  const handleScroll = useCallback((e: any) => {
+    if (!hasMore || loadingRef.current) return;
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 120) {
+      if (!scrollTimerRef.current) {
+        scrollTimerRef.current = setTimeout(() => {
+          scrollTimerRef.current = null;
+          loadPage(page + 1);
+        }, 300);
       }
-    };
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
+    }
   }, [hasMore, page]);
 
   return (
@@ -61,8 +62,10 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         <View style={{ width: 44 }} />
       </View>
 
-      {/* List — scrolls underneath the absolute header */}
-      <View style={st.listWrap} ref={scrollRef as any}>
+      {/* List — ScrollView with onScroll pagination */}
+      <ScrollView style={st.list} showsVerticalScrollIndicator={false}
+        onScroll={handleScroll} scrollEventThrottle={200}
+        contentContainerStyle={{ paddingTop: 82, paddingHorizontal: 16, paddingBottom: 40 }}>
         {records.length === 0 && !loading ? (
           <Text style={st.empty}>{t('noData')}</Text>
         ) : (
@@ -97,7 +100,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             )}
           </>
         )}
-      </View>
+      </ScrollView>
 
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
@@ -126,11 +129,9 @@ const st = StyleSheet.create({
   },
   backArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
-  /* List — padded to clear absolute header (14 + 14 + 44) */
-  listWrap: {
-    flex: 1, paddingTop: 82, paddingHorizontal: 16,
-    // @ts-ignore
-    overflowY: 'auto' as any,
+  /* List — padded to clear absolute header */
+  list: {
+    flex: 1,
   },
   /* Row: two-line layout, all 5 fields clearly visible */
   row: {
