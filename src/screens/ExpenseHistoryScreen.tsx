@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet,
+  View, Text, TouchableOpacity, StyleSheet,
 } from 'react-native';
 import { t } from '../i18n';
 import { api } from '../api/client';
@@ -14,8 +14,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
+  const scrollRef = useRef<HTMLElement | null>(null);
   const loadingRef = useRef(false);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadPage = useCallback(async (p: number) => {
     if (loadingRef.current) return;
@@ -32,26 +32,24 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     loadingRef.current = false;
   }, []);
 
-  // First load
   useEffect(() => { loadPage(1); }, []);
 
-  // Scroll-to-bottom pagination
-  const handleScroll = useCallback((e: any) => {
-    if (!hasMore || loadingRef.current) return;
-    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 120) {
-      if (!scrollTimerRef.current) {
-        scrollTimerRef.current = setTimeout(() => {
-          scrollTimerRef.current = null;
-          loadPage(page + 1);
-        }, 300);
+  // DOM scroll listener — proven reliable
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      if (el.scrollHeight - el.scrollTop - el.clientHeight < 120 && hasMore && !loadingRef.current) {
+        loadPage(page + 1);
       }
-    }
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
   }, [hasMore, page]);
 
   return (
     <View style={st.overlay}>
-      {/* Header — absolute, transparent (content shows through) */}
+      {/* Header — absolute, transparent */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
@@ -62,10 +60,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         <View style={{ width: 44 }} />
       </View>
 
-      {/* List — absolute below header, guaranteed height for scrolling */}
-      <ScrollView style={st.list} showsVerticalScrollIndicator={false}
-        onScroll={handleScroll} scrollEventThrottle={200}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
+      {/* List — absolute below header, overflow scroll + DOM listener */}
+      <View style={st.listWrap} ref={scrollRef as any}>
         {records.length === 0 && !loading ? (
           <Text style={st.empty}>{t('noData')}</Text>
         ) : (
@@ -98,7 +94,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             )}
           </>
         )}
-      </ScrollView>
+      </View>
 
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
@@ -109,7 +105,7 @@ const st = StyleSheet.create({
   overlay: {
     flex: 1, backgroundColor: '#FAFAFA',
   },
-  /* Header — absolute, fully transparent (content scrolls under it) */
+  /* Header — absolute, fully transparent (no bg, content scrolls under) */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -126,9 +122,12 @@ const st = StyleSheet.create({
   },
   backArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
-  /* List — absolute below header, fixed height guarantees ScrollView onScroll fires */
-  list: {
+  /* List — absolute, overflow auto, DOM scroll listener */
+  listWrap: {
     position: 'absolute', top: 72, left: 0, right: 0, bottom: 0,
+    paddingHorizontal: 16,
+    // @ts-ignore
+    overflowY: 'auto' as any,
   },
   /* Row */
   row: {
