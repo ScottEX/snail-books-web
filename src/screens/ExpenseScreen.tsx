@@ -627,15 +627,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={st.kpiRow}>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 14, fontWeight: '600' }]}>¥12,345,678</Text>
+                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥12,345,678.00</Text>
               </View>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('receivable')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 14, fontWeight: '600' }]}>¥9,876,543</Text>
+                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥9,876,543.00</Text>
               </View>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 14, fontWeight: '600' }]}>¥2,469,135</Text>
+                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥2,469,135.00</Text>
               </View>
             </View>
           </View>
