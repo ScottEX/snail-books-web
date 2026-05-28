@@ -10,46 +10,70 @@ const PAGE_SIZE = 10;
 
 export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const scrollRef = useRef<HTMLElement | null>(null);
   const loadingRef = useRef(false);
+  const apiPageRef = useRef(1);
+  const doneRef = useRef(false);
 
-  const loadPage = useCallback(async (p: number) => {
-    if (loadingRef.current) return;
+  // Load expense records — fetch API pages until we have enough, buffer excess
+  const fetchUntil = useCallback(async (minNeeded: number) => {
+    if (loadingRef.current || doneRef.current) return;
     loadingRef.current = true;
     setLoading(true);
     try {
-      const tx: any = await api.getTransactions(p);
-      const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
-      setRecords(prev => p === 1 ? exps : [...prev, ...exps]);
-      setHasMore(p < (tx.pages || 1));
-      setPage(p);
+      let all = [...records];
+      while (all.length < minNeeded && !doneRef.current) {
+        const tx: any = await api.getTransactions(apiPageRef.current);
+        const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
+        all = [...all, ...exps];
+        if (apiPageRef.current >= (tx.pages || 1)) {
+          doneRef.current = true;
+          break;
+        }
+        apiPageRef.current++;
+      }
+      setRecords(all);
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
     loadingRef.current = false;
-  }, []);
+  }, [records]);
 
-  useEffect(() => { loadPage(1); }, []);
+  // First load — get at least PAGE_SIZE records
+  useEffect(() => { fetchUntil(PAGE_SIZE); }, []);
 
-  // DOM scroll listener — proven reliable
+  // Scroll-to-bottom: show 10 more from buffer, or fetch more
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     const onScroll = () => {
-      if (el.scrollHeight - el.scrollTop - el.clientHeight < 120 && hasMore && !loadingRef.current) {
-        loadPage(page + 1);
+      if (loadingRef.current) return;
+      // Near bottom?
+      if (el.scrollHeight - el.scrollTop - el.clientHeight < 120) {
+        const next = displayCount + PAGE_SIZE;
+        if (next <= records.length) {
+          // enough in buffer
+          setDisplayCount(next);
+        } else if (!doneRef.current) {
+          // need more from API
+          fetchUntil(next);
+          setDisplayCount(records.length + PAGE_SIZE); // will clamp in render
+        }
       }
     };
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => el.removeEventListener('scroll', onScroll);
-  }, [hasMore, page]);
+  }, [displayCount, records.length, fetchUntil]);
+
+  // Clamp display
+  const visible = records.slice(0, displayCount);
+  const hasMore = displayCount < records.length || !doneRef.current;
 
   return (
     <View style={st.overlay}>
-      {/* Header — absolute, transparent */}
+      {/* Header — absolute, transparent (no overlay bg to block it) */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
@@ -60,13 +84,13 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         <View style={{ width: 44 }} />
       </View>
 
-      {/* List — absolute below header, overflow scroll + DOM listener */}
+      {/* List — bg only here, scroll under transparent header */}
       <View style={st.listWrap} ref={scrollRef as any}>
-        {records.length === 0 && !loading ? (
+        {visible.length === 0 && !loading ? (
           <Text style={st.empty}>{t('noData')}</Text>
         ) : (
           <>
-            {records.map((e: any, i: number) => (
+            {visible.map((e: any, i: number) => (
               <View key={i} style={st.row}>
                 <View style={st.rowTop}>
                   <View style={st.badges}>
@@ -89,9 +113,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                 </View>
               </View>
             ))}
-            {loading && (
-              <Text style={st.loading}>...</Text>
-            )}
+            {loading && <Text style={st.loading}>...</Text>}
+            {hasMore && !loading && <View style={{ height: 40 }} />}
           </>
         )}
       </View>
@@ -103,9 +126,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
 const st = StyleSheet.create({
   overlay: {
-    flex: 1, backgroundColor: '#FAFAFA',
+    flex: 1,
   },
-  /* Header — absolute, fully transparent (no bg, content scrolls under) */
+  /* Header — absolute, truly transparent (overlay has no bg) */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -122,10 +145,11 @@ const st = StyleSheet.create({
   },
   backArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
-  /* List — absolute, overflow auto, DOM scroll listener */
+  /* List — bg here, starts below header, padded from bottom nav */
   listWrap: {
     position: 'absolute', top: 72, left: 0, right: 0, bottom: 0,
-    paddingHorizontal: 16,
+    paddingHorizontal: 16, paddingBottom: 80,
+    backgroundColor: '#FAFAFA',
     // @ts-ignore
     overflowY: 'auto' as any,
   },
