@@ -54,10 +54,10 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     return s;
   };
   const fmtExpDate = (d: string) => {
-    const date = new Date(d + 'T00:00:00');
+    const [y, m, day] = d.split('-');
     const l = getLang();
-    if (l.startsWith('en')) return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+    if (l.startsWith('en')) { const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${months[+m-1]} ${+day}, ${y}`; }
+    return `${y}年${m}月${day}日`;
   };
 
   // Parse images field from API (stored as JSON string '["url1","url2"]')

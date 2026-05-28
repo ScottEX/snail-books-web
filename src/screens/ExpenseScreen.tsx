@@ -15,6 +15,7 @@ const yesterdayStr = () => {
   return d.toISOString().slice(0, 10);
 };
 const todayStr = () => new Date().toISOString().slice(0, 10);
+const fmtLocalDate = (s: string) => { const p = s.split('-'); return `${p[0]}年${p[1]}月${p[2]}日`; };
 const toNum = (s: string) => parseFloat(s) || 0;
 const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
 
@@ -277,7 +278,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const handleAddFee = async () => {
     const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
-    if (mc + mw + ew + mt === 0) { setToast('至少输入一个平台的手续费'); setShowToast(true); return; }
+    if (mc + mw + ew + mt === 0) { setToast('至少输入一个平台的手续费'); return; }
     setSavingFee(true);
     try {
       const r = await api.addPlatformFeeEntry({
@@ -291,7 +292,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
         setShowFeeSheet(false);
       }
-    } catch { setToast(t('toastSubmitFailed')); setShowToast(true); }
+    } catch { setToast(t('toastSubmitFailed')); }
     setSavingFee(false);
   };
 
@@ -553,15 +554,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               >
                 <Text style={st.dateText}>
                   {(() => {
-                    const d = new Date(recDate + 'T00:00:00');
                     const l = getLang();
+                    const [y, m, d] = recDate.split('-');
                     if (l.startsWith('en')) {
-                      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                      return `${months[+m-1]} ${+d}, ${y}`;
                     }
                     if (l === 'zh-Hant' || l === 'zh-TW') {
-                      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+                      return `${y}年${m}月${d}日`;
                     }
-                    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+                    return `${y}年${m}月${d}日`;
                   })()}
                 </Text>
                 <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF' }}>›</Text>
@@ -864,12 +866,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 >
                   <Text style={st.dateText}>
                     {(() => {
-                      const d = new Date(expDate + 'T00:00:00');
                       const l = getLang();
+                      const [y, m, d] = expDate.split('-');
                       if (l.startsWith('en')) {
-                        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                        return `${months[+m-1]} ${+d}, ${y}`;
                       }
-                      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+                      return `${y}年${m}月${d}日`;
                     })()}
                   </Text>
                   <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF' }}>›</Text>
@@ -979,7 +982,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>{t('entryDate')}</Text>
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }} activeOpacity={1}>
                   <Text style={{ fontSize: 14, fontWeight: '600', color: '#1A1A1A' }}>
-                    {(() => { const d = new Date(feeEntryDate + 'T00:00:00'); return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; })()}
+                    {(() => { return fmtLocalDate(feeEntryDate); })()}
                   </Text>
                   <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF', marginLeft: 4 }}>›</Text>
                   {React.createElement('input', {

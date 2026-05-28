@@ -99,10 +99,10 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   }, [page, hasMore, loadPage]);
 
   const fmtDate = (d: string) => {
-    const date = new Date(d + 'T00:00:00');
+    const [y, m, day] = d.split('-');
     const l = getLang();
-    if (l.startsWith('en')) return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+    if (l.startsWith('en')) { const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${months[+m-1]} ${+day}, ${y}`; }
+    return `${y}/${m}/${day}`;
   };
 
   const fmtAmt = (n: number) => '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
