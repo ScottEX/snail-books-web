@@ -256,7 +256,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
   const [expDate, setExpDate] = useState(todayStr());
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('日常');
-  const [payMethod, setPayMethod] = useState('现金');
+  const [payMethod, setPayMethod] = useState('微信');
   const [expNote, setExpNote] = useState('');
   const [expenses, setExpenses] = useState<any[]>([]);
   const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
@@ -304,7 +304,7 @@ export default function ExpenseScreen({ onReconHistory }: { onReconHistory?: () 
         date: expDate,
       });
       setExpAmount('');
-      setPayMethod('现金');
+      setPayMethod('微信');
       setExpNote('');
       setExpDate(todayStr());
       await loadExpenses();
@@ -1031,6 +1031,8 @@ const st = StyleSheet.create({
     borderWidth: 0, backgroundColor: '#F9FAFB',
     borderRadius: 10, padding: 12, minHeight: 60,
     textAlignVertical: 'top',
+    // @ts-ignore
+    outline: 'none',
   },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   expCatLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
