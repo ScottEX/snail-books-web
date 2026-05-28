@@ -18,7 +18,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const apiPageRef = useRef(1);
   const doneRef = useRef(false);
 
-  // Load expense records — fetch API pages until we have enough, buffer excess
   const fetchUntil = useCallback(async (minNeeded: number) => {
     if (loadingRef.current || doneRef.current) return;
     loadingRef.current = true;
@@ -41,25 +40,21 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     loadingRef.current = false;
   }, [records]);
 
-  // First load — get at least PAGE_SIZE records
   useEffect(() => { fetchUntil(PAGE_SIZE); }, []);
 
-  // Scroll-to-bottom: show 10 more from buffer, or fetch more
+  // Scroll pagination on the overlay itself
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     const onScroll = () => {
       if (loadingRef.current) return;
-      // Near bottom?
       if (el.scrollHeight - el.scrollTop - el.clientHeight < 120) {
         const next = displayCount + PAGE_SIZE;
         if (next <= records.length) {
-          // enough in buffer
           setDisplayCount(next);
         } else if (!doneRef.current) {
-          // need more from API
           fetchUntil(next);
-          setDisplayCount(records.length + PAGE_SIZE); // will clamp in render
+          setDisplayCount(records.length + PAGE_SIZE);
         }
       }
     };
@@ -67,13 +62,49 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     return () => el.removeEventListener('scroll', onScroll);
   }, [displayCount, records.length, fetchUntil]);
 
-  // Clamp display
-  const visible = records.slice(0, displayCount);
+  const visible = records.slice(0, Math.min(displayCount, records.length));
   const hasMore = displayCount < records.length || !doneRef.current;
 
   return (
-    <View style={st.overlay}>
-      {/* Header — absolute, transparent (no overlay bg to block it) */}
+    <View style={st.overlay} ref={scrollRef as any}>
+      {/* Spacer so content starts below the absolute header */}
+      <View style={{ height: 72 }} />
+
+      {visible.length === 0 && !loading ? (
+        <Text style={st.empty}>{t('noData')}</Text>
+      ) : (
+        <>
+          {visible.map((e: any, i: number) => (
+            <View key={i} style={st.row}>
+              <View style={st.rowTop}>
+                <View style={st.badges}>
+                  <View style={st.catBadge}>
+                    <Text style={st.catBadgeText}>{e.category || t('daily')}</Text>
+                  </View>
+                  <View style={st.payBadge}>
+                    <Text style={st.payBadgeText}>{e.account || t('payWechat')}</Text>
+                  </View>
+                </View>
+                <Text style={st.amount}>-¥{e.amount.toLocaleString()}</Text>
+              </View>
+              <View style={st.rowBottom}>
+                <Text style={st.dateText}>{e.date || (e.created_at || '').slice(0, 10)}</Text>
+                {e.note ? (
+                  <Text style={st.note} numberOfLines={1}>{e.note}</Text>
+                ) : (
+                  <View style={{ flex: 1 }} />
+                )}
+              </View>
+            </View>
+          ))}
+          {loading && <Text style={st.loading}>...</Text>}
+          {hasMore && !loading && <View style={{ height: 40 }} />}
+          {/* Bottom spacer for nav bar */}
+          <View style={{ height: 80 }} />
+        </>
+      )}
+
+      {/* Header — absolute, floats above scrolling overlay. Truly transparent. */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
@@ -84,51 +115,21 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         <View style={{ width: 44 }} />
       </View>
 
-      {/* List — bg only here, scroll under transparent header */}
-      <View style={st.listWrap} ref={scrollRef as any}>
-        {visible.length === 0 && !loading ? (
-          <Text style={st.empty}>{t('noData')}</Text>
-        ) : (
-          <>
-            {visible.map((e: any, i: number) => (
-              <View key={i} style={st.row}>
-                <View style={st.rowTop}>
-                  <View style={st.badges}>
-                    <View style={st.catBadge}>
-                      <Text style={st.catBadgeText}>{e.category || t('daily')}</Text>
-                    </View>
-                    <View style={st.payBadge}>
-                      <Text style={st.payBadgeText}>{e.account || t('payWechat')}</Text>
-                    </View>
-                  </View>
-                  <Text style={st.amount}>-¥{e.amount.toLocaleString()}</Text>
-                </View>
-                <View style={st.rowBottom}>
-                  <Text style={st.dateText}>{e.date || (e.created_at || '').slice(0, 10)}</Text>
-                  {e.note ? (
-                    <Text style={st.note} numberOfLines={1}>{e.note}</Text>
-                  ) : (
-                    <View style={{ flex: 1 }} />
-                  )}
-                </View>
-              </View>
-            ))}
-            {loading && <Text style={st.loading}>...</Text>}
-            {hasMore && !loading && <View style={{ height: 40 }} />}
-          </>
-        )}
-      </View>
-
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
   );
 }
 
 const st = StyleSheet.create({
+  /* Overlay — the scroll container itself */
   overlay: {
     flex: 1,
+    paddingHorizontal: 16,
+    backgroundColor: '#FAFAFA',
+    // @ts-ignore
+    overflowY: 'auto' as any,
   },
-  /* Header — absolute, truly transparent (overlay has no bg) */
+  /* Header — absolute on top, floating above scrolled content */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -145,14 +146,6 @@ const st = StyleSheet.create({
   },
   backArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
   title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
-  /* List — bg here, starts below header, padded from bottom nav */
-  listWrap: {
-    position: 'absolute', top: 72, left: 0, right: 0, bottom: 0,
-    paddingHorizontal: 16, paddingBottom: 80,
-    backgroundColor: '#FAFAFA',
-    // @ts-ignore
-    overflowY: 'auto' as any,
-  },
   /* Row */
   row: {
     paddingVertical: 14,
