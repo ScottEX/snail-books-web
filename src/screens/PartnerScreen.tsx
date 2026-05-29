@@ -33,7 +33,7 @@ function IconBuilding({ color = '#8B1E22' }: { color?: string }) {
   );
 }
 
-function IconCoins({ color = '#FFF000' }: { color?: string }) {
+function IconCoins({ color = '#D97706' }: { color?: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8}>
       <Path strokeLinecap="round" strokeLinejoin="round"
@@ -179,12 +179,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
             <View style={s.statCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 }}>
-                <View style={[s.statIconBg, { backgroundColor: '#FFF000' }]}>
-                  <IconCoins color="#FFF000" />
+                <View style={[s.statIconBg, { backgroundColor: '#FFFBEB' }]}>
+                  <IconCoins color="#D97706" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.statLabel}>{t('distributedPool')}</Text>
-                  <Text style={[s.statValue, { color: '#FFF000' }]}>¥{totalDiv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={[s.statValue, { color: '#D97706' }]}>¥{totalDiv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                   <Text style={s.statSub}>{t('cumulativeByShare')}</Text>
                 </View>
               </View>
@@ -248,7 +248,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                       {isBack ? (
                         <Text style={{ fontSize: 10, color: '#0AA344', fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
                       ) : (
-                        <Text style={{ fontSize: 10, color: '#FFF000', fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                        <Text style={{ fontSize: 10, color: '#D97706', fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                       )}
                     </View>
                   </View>
@@ -407,9 +407,9 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <Text style={ds.cellLabel}>{t('totalInvest')}</Text>
                   <Text style={ds.cellNum}>¥{(showDetail.investment || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
-                <View style={[ds.cell, { backgroundColor: '#FFF000' }]}>
-                  <Text style={[ds.cellLabel, { color: '#FFF000' }]}>{t('totalDividends')}</Text>
-                  <Text style={[ds.cellNum, { color: '#FFF000' }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                <View style={[ds.cell, { backgroundColor: '#FFFBEB' }]}>
+                  <Text style={[ds.cellLabel, { color: '#D97706' }]}>{t('totalDividends')}</Text>
+                  <Text style={[ds.cellNum, { color: '#D97706' }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
@@ -431,14 +431,14 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <View style={ds.progressBar}>
                     <View style={[ds.progressFill, {
                       width: `${Math.min(100, ((showDetail.total_dividends || 0) / showDetail.investment * 100))}%` as any,
-                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? '#0AA344' : '#FFF000',
+                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? '#0AA344' : '#D97706',
                     }]} />
                   </View>
                   <View style={{ marginTop: 4 }}>
                     {(showDetail.total_dividends || 0) >= showDetail.investment ? (
                       <Text style={{ fontSize: 10, color: '#0AA344', fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
                     ) : (
-                      <Text style={{ fontSize: 10, color: '#FFF000' }}>
+                      <Text style={{ fontSize: 10, color: '#D97706' }}>
                         {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </Text>
                     )}
@@ -527,9 +527,9 @@ function TableGroup({ title, type, total, items, onDelete }: {
   onDelete?: () => void;
 }) {
   const colors: Record<string, { dot: string; headerBg: string; badge: string; amt: string }> = {
-    invest: { dot: '#003371', headerBg: '#003371', badge: '#003371', amt: '#111827' },
+    invest: { dot: '#3B82F6', headerBg: '#EFF6FF', badge: '#3B82F6', amt: '#111827' },
     mid: { dot: '#8B5CF6', headerBg: '#F5F3FF', badge: '#8B5CF6', amt: '#111827' },
-    dividend: { dot: '#FFF000', headerBg: '#FFF000', badge: '#FFF000', amt: '#FFF000' },
+    dividend: { dot: '#D97706', headerBg: '#FFFBEB', badge: '#D97706', amt: '#D97706' },
   };
   const c = colors[type] || colors.invest;
   return (
@@ -607,8 +607,8 @@ const s = StyleSheet.create({
   dataLabel: { fontSize: 9, color: '#9CA3AF' },
   dataValue: { fontSize: 10, fontWeight: '600', color: '#111827' },
   partnerFooter: { borderTopWidth: 1, borderTopColor: '#F9FAFB', paddingTop: 6 },
-  footerLabel: { fontSize: 11, color: '#FFF000', fontWeight: '500' },
-  footerAmt: { fontSize: 11, fontWeight: '700', color: '#FFF000' },
+  footerLabel: { fontSize: 11, color: '#D97706', fontWeight: '500' },
+  footerAmt: { fontSize: 11, fontWeight: '700', color: '#D97706' },
   footerSub: { fontSize: 10, color: '#9CA3AF' },
   ledgerCard: {
     backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#F3F4F6', marginTop: 16,
@@ -675,7 +675,7 @@ const ds = StyleSheet.create({
   historyTitle: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5, marginBottom: 8 },
   historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, backgroundColor: 'rgba(255,251,235,0.4)', borderRadius: 8, marginBottom: 4 },
   historyNote: { fontSize: 11, color: '#4B5563' },
-  historyAmt: { fontSize: 11, fontWeight: '700', color: '#FFF000' },
+  historyAmt: { fontSize: 11, fontWeight: '700', color: '#D97706' },
   historyEmpty: { fontSize: 10, color: '#9CA3AF', textAlign: 'center', paddingVertical: 12 },
 });
 
