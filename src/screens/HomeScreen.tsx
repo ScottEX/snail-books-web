@@ -338,8 +338,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           </TouchableOpacity>
                         )}
                         <TouchableOpacity onPress={() => { loadDailyRevs(1, revYear, revMonth); }} activeOpacity={0.7}
-                          style={{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8, backgroundColor: '#FFF', borderWidth: 0.5, borderColor: '#E5E7EB', marginLeft: 'auto' }}>
-                          <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '600' }}>📋 {t('revHistoryBtn')}</Text>
+                          style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: '#FFF', borderWidth: 0.5, borderColor: '#E5E7EB', marginLeft: 'auto' }}>
+                          <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '600' }}>📋 {t('revHistoryBtn')}</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -353,11 +353,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         ].map(pill => (
                           <TouchableOpacity key={pill.d} onPress={() => pickDate(pill.d)} activeOpacity={0.7}
                             style={{
-                              paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14,
-                              borderWidth: 1, borderColor: revDate === pill.d ? '#8B1E22' : '#E5E7EB',
-                              backgroundColor: revDate === pill.d ? '#FEF2F2' : '#FFFFFF',
+                              paddingHorizontal: 14, paddingVertical: 8, borderRadius: 22,
+                              backgroundColor: revDate === pill.d ? '#FA855A' : '#F3F4F6',
                             }}>
-                            <Text style={{ fontSize: 12, fontWeight: revDate === pill.d ? '700' : '500', color: revDate === pill.d ? '#8B1E22' : '#6B7280' }}>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: revDate === pill.d ? '#FFFFFF' : '#6B7280' }}>
                               {pill.label}
                             </Text>
                           </TouchableOpacity>
@@ -469,7 +468,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   {/* ── 历史记录 ── */}
                   <View style={{ marginTop: 20 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>⌚️{t('revHistory')}</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>📋 {t('revHistory')}</Text>
                     </View>
 
                     {/* Revenue history list */}
@@ -887,15 +886,15 @@ const styles = StyleSheet.create({
     marginBottom: 14, outline: 'none',
   },
   revSubmitBtn: {
-    backgroundColor: '#8B1E22', borderRadius: 12, paddingVertical: 14, alignItems: 'center',
+    backgroundColor: '#FA855A', borderRadius: 12, paddingVertical: 14, alignItems: 'center',
    },
   revSubmitText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   revArchiveBtn: {
-    backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 14,
+    backgroundColor: '#B3CFE5', borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', justifyContent: 'center', flex: 1,
   },
   revArchiveBtnDone: { backgroundColor: '#ECFDF5' },
-  revArchiveText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
+  revArchiveText: { fontSize: 15, fontWeight: '700', color: '#4B5563' },
   revArchiveTextDone: { color: '#059669' },
   revEmptyWrap: { paddingVertical: 40, alignItems: 'center', gap: 8 },
   revEmptyTitle: { fontSize: 15, fontWeight: '600', color: '#9CA3AF' },
