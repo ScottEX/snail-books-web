@@ -1097,20 +1097,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
       {/* Fee history bottom sheet — "全部" detail view */}
       {showFeeHistory && (
-        <View style={[st.modalOverlay, { justifyContent: 'flex-end', paddingTop: 180, paddingBottom: 95 }]}>
+        <View style={[st.modalOverlay, { justifyContent: 'center' }]}>
           <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }} />
-          <View style={[st.feeSheet, { maxHeight: 560 }]}>
+          <View style={[st.feeSheet, { maxHeight: '75%' }]}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
               <TouchableOpacity onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
                 <Text style={st.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            {/* Month filter — stylish pill */}
-            <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>{t('filterDate')}</Text>
+            {/* Month filter */}
+            <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F9F7F4', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#E8E4DD', position: 'relative' }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 8, position: 'relative' }}
                 onPress={() => setShowFeeHistoryFilterPicker(!showFeeHistoryFilterPicker)}
                 activeOpacity={0.7}
               >
