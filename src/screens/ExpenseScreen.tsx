@@ -13,7 +13,23 @@ const fmtInt = (n: number) => n.toLocaleString();
 const cnNow = () => { const d = new Date(); return new Date(d.getTime() + 8 * 3600000); };
 const yesterdayStr = () => { const d = cnNow(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
 const todayStr = () => cnNow().toISOString().slice(0, 10);
-const fmtLocalDate = (s: string) => { const p = s.split('-'); return `${p[0]}年${p[1]}月${p[2]}日`; };
+const fmtLocalDate = (s: string) => {
+  const [y, m, d] = s.split('-');
+  const l = getLang();
+  if (l.startsWith('en')) {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${months[+m-1]} ${+d}, ${y}`;
+  }
+  return `${y}年${m}月${d}日`;
+};
+const fmtMonth = (year: number, month: number) => {
+  const l = getLang();
+  if (l.startsWith('en')) {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${months[month-1]} ${year}`;
+  }
+  return `${year}年${month}月`;
+};
 const toNum = (s: string) => parseFloat(s) || 0;
 const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
 const toDec2 = (v: any) => String((parseFloat(String(v ?? 0)) || 0).toFixed(2));
@@ -726,7 +742,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   activeOpacity={0.7}
                 >
                   <Text style={{ fontSize: 12, color: '#8B1E22', fontWeight: '600' }}>
-                    {feeMonth === 'all' ? t('feeAllMonths') : `${feeMonth.year}年${feeMonth.month}月`}
+                    {feeMonth === 'all' ? t('feeAllMonths') : fmtMonth(feeMonth.year, feeMonth.month)}
                   </Text>
                   <Text style={{ fontSize: 10, color: '#8B1E22' }}>▼</Text>
                 </TouchableOpacity>
@@ -1145,7 +1161,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 activeOpacity={0.7}
               >
                 <Text style={{ fontSize: 13, color: '#8B1E22', fontWeight: '600' }}>
-                  {feeHistoryFilter === 'all' ? t('feeAllMonths') : `${feeHistoryFilter.year}年${feeHistoryFilter.month}月`}
+                  {feeHistoryFilter === 'all' ? t('feeAllMonths') : fmtMonth(feeHistoryFilter.year, feeHistoryFilter.month)}
                 </Text>
                 <Text style={{ fontSize: 10, color: '#8B1E22', marginLeft: 2 }}>▼</Text>
 
@@ -1155,16 +1171,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
-                  { label: '美团收银', value: f.meituan_cashier || 0, color: '#3B82F6' as const },
-                  { label: '美团外卖', value: f.meituan_waimai || 0, color: '#F59E0B' as const },
-                  { label: '闪购外卖', value: f.eleme_waimai || 0, color: '#06B6D4' as const },
-                  { label: '美团团购', value: f.meituan_tuan || 0, color: '#10B981' as const },
+                  { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: '#3B82F6' as const },
+                  { label: t('meituanWaimai'), value: f.meituan_waimai || 0, color: '#F59E0B' as const },
+                  { label: t('shangouWaimai'), value: f.eleme_waimai || 0, color: '#06B6D4' as const },
+                  { label: t('meituanTuan'), value: f.meituan_tuan || 0, color: '#10B981' as const },
                 ];
                 return (
                   <View key={f.id} style={{ backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#EEEBE6', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as any}>
                     {/* Header: date + total */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-                      <Text style={{ fontSize: 14, color: '#374151', fontWeight: '600' }}>{f.year}年{f.month}月</Text>
+                      <Text style={{ fontSize: 14, color: '#374151', fontWeight: '600' }}>{fmtMonth(f.year, f.month)}</Text>
                       <Text style={{ fontSize: 16, color: '#8B1E22', fontWeight: '700', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>¥{monthTotal.toFixed(2)}</Text>
                     </View>
                     {/* Sub items: 2x2 grid of platform fees */}
@@ -1236,7 +1252,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   }}
                   activeOpacity={0.6}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
+                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{fmtMonth(f.year, f.month)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -1293,7 +1309,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   }}
                   activeOpacity={0.6}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
+                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{fmtMonth(f.year, f.month)}</Text>
                 </TouchableOpacity>
               );
             })}
