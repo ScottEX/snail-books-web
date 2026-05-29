@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   },
   btnDarkText: { fontSize: 13, fontWeight: '500', color: '#fff', letterSpacing: 1 },
   btnRed: {
-    backgroundColor: 'rgba(139,30,34,0.7)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
+    backgroundColor: 'rgba(125,35,41,0.7)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
     // @ts-ignore
     backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },

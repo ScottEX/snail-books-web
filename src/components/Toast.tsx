@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   box: {
-    backgroundColor: 'rgba(26,26,26,0.88)',
+    backgroundColor: 'rgba(44,38,38,0.88)',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 20,

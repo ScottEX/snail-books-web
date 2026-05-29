@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
   addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EAE5E0', borderRadius: 8, fontSize: 14, backgroundColor: '#FFFFFF', color: '#2C2626', marginBottom: 8, fontFamily: undefined },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   catBtn: { fontSize: 11, color: '#999', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#EAE5E0' },
-  catBtnActive: { color: '#7D2329', borderColor: '#7D2329', backgroundColor: 'rgba(139,30,34,0.03)' },
+  catBtnActive: { color: '#7D2329', borderColor: '#7D2329', backgroundColor: 'rgba(125,35,41,0.03)' },
   saveBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#2C2626', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginTop: 8 },
   saveBtnText: { color: '#fff', fontSize: 20 },
   // Supply

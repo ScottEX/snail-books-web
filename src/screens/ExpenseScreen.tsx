@@ -474,9 +474,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     ? ((feeData.meituan_cashier || 0) + (feeData.meituan_waimai || 0) + (feeData.eleme_waimai || 0) + (feeData.meituan_tuan || 0))
     : 0;
   const tabCards = [
-    { gradient: ['rgba(13,148,136,0.22)', 'rgba(101,163,13,0.22)'], gradientActive: ['rgba(13,148,136,0.48)', 'rgba(101,163,13,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#4C7A5D' : '#B34149', prefix: diff >= 0 ? '+' : '' },
-    { gradient: ['rgba(236,72,153,0.22)', 'rgba(249,115,22,0.22)'], gradientActive: ['rgba(236,72,153,0.48)', 'rgba(249,115,22,0.48)'], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: '#2C2626', prefix: '' },
-    { gradient: ['rgba(220,38,38,0.22)', 'rgba(153,27,27,0.22)'], gradientActive: ['rgba(220,38,38,0.48)', 'rgba(153,27,27,0.48)'], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: '#2C2626', prefix: '' },
+    { gradient: ['rgba(76,122,93,0.22)', 'rgba(74,114,153,0.22)'], gradientActive: ['rgba(76,122,93,0.48)', 'rgba(74,114,153,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#4C7A5D' : '#B34149', prefix: diff >= 0 ? '+' : '' },
+    { gradient: ['rgba(125,35,41,0.22)', 'rgba(213,154,83,0.22)'], gradientActive: ['rgba(125,35,41,0.48)', 'rgba(213,154,83,0.48)'], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: '#2C2626', prefix: '' },
+    { gradient: ['rgba(179,65,73,0.22)', 'rgba(125,35,41,0.22)'], gradientActive: ['rgba(179,65,73,0.48)', 'rgba(125,35,41,0.48)'], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: '#2C2626', prefix: '' },
   ];
 
   /* ── Render ── */
@@ -1339,7 +1339,7 @@ const st = StyleSheet.create({
     // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
     width: 'calc(100vw - 61px)', height: 120,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
-    backgroundImage: 'linear-gradient(90deg, rgba(239,104,55,0.22) 0%, rgba(17,68,104,0.22) 100%)',
+    backgroundImage: 'linear-gradient(90deg, rgba(125,35,41,0.22) 0%, rgba(74,114,153,0.22) 100%)',
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
     paddingHorizontal: 16, paddingVertical: 14,
@@ -1681,7 +1681,7 @@ const st = StyleSheet.create({
   },
   modalBackdrop: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(26,26,26,0.4)',
+    backgroundColor: 'rgba(44,38,38,0.4)',
   },
   modalCard: {
     backgroundColor: '#fff', borderRadius: 20, width: 320, maxWidth: '100%',

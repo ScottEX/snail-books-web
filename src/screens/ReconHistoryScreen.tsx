@@ -473,7 +473,7 @@ const st = StyleSheet.create({
   },
   maskBg: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(26,26,26,0.4)',
+    backgroundColor: 'rgba(44,38,38,0.4)',
   },
   modal: {
     width: '88%', maxWidth: 380,

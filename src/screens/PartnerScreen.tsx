@@ -167,7 +167,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           {/* ====== 3 STAT CARDS (8600 exact) ====== */}
           <View style={s.statGrid}>
             <View style={s.statCard}>
-              <View style={[s.statIconBg, { backgroundColor: 'rgba(139,30,34,0.08)' }]}>
+              <View style={[s.statIconBg, { backgroundColor: 'rgba(125,35,41,0.08)' }]}>
                 <IconBuilding color="#7D2329" />
               </View>
               <View style={{ flex: 1 }}>
@@ -627,7 +627,7 @@ const s = StyleSheet.create({
 
 const mo = StyleSheet.create({
   overlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 },
-  backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(26,26,26,0.4)' },
+  backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(44,38,38,0.4)' },
   content: { alignItems: 'center', justifyContent: 'center' },
   modalCard: {
     backgroundColor: '#fff', borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
