@@ -586,7 +586,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 {React.createElement('input', {
                   type: 'date',
                   value: recDate,
-                  onChange: (e: any) => setRecDate(e.target.value),
+                  max: todayStr(),
+                  onChange: (e: any) => {
+                    const v = e.target.value;
+                    if (v > todayStr()) { setToast(t('errDateFuture')); return; }
+                    setRecDate(v);
+                  },
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
                 })}
               </TouchableOpacity>
@@ -933,7 +938,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   {React.createElement('input', {
                     type: 'date',
                     value: expDate,
-                    onChange: (e: any) => setExpDate(e.target.value),
+                    max: todayStr(),
+                    onChange: (e: any) => {
+                      const v = e.target.value;
+                      if (v > todayStr()) { setToast(t('errDateFuture')); return; }
+                      setExpDate(v);
+                    },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
                   })}
                 </TouchableOpacity>
