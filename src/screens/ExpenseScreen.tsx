@@ -1021,7 +1021,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       )}
       {/* Platform fee entry bottom sheet */}
       {showFeeSheet && (
-        <View style={[st.modalOverlay, { justifyContent: 'flex-end' }]}>
+        <View style={[st.modalOverlay, { justifyContent: 'center' }]}>
           <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => setShowFeeSheet(false)} />
           <View style={st.feeSheet}>
             <View style={st.modalHeader}>
