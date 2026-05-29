@@ -56,9 +56,98 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
+  // Daily revenue states
+  const todayDateStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  };
+  const [dailyRevs, setDailyRevs] = useState<any[]>([]);
+  const [revDate, setRevDate] = useState(todayDateStr());
+  const [revRevenue, setRevRevenue] = useState('');
+  const [revTurnover, setRevTurnover] = useState('');
+  const [revJD, setRevJD] = useState('');
+  const [revNote, setRevNote] = useState('');
+  const [revPage, setRevPage] = useState(1);
+  const [revPages, setRevPages] = useState(1);
+  const [revYear, setRevYear] = useState(new Date().getFullYear());
+  const [revMonth, setRevMonth] = useState(new Date().getMonth() + 1);
+  const [revLoading, setRevLoading] = useState(false);
+  const [revSaving, setRevSaving] = useState(false);
+  const [showRevMonthPicker, setShowRevMonthPicker] = useState(false);
+  const [editingRevId, setEditingRevId] = useState<number | null>(null);
+  const revPickerRef = useRef<any>(null);
+  const revPickerAnim = useRef(new Animated.Value(0)).current;
+  const [revPickerPos, setRevPickerPos] = useState({ top: 0, left: 0 });
+
   const INCOME_CATS = ['🍜 堂食','🛵 美团外卖','🛵 饿了吗外卖','🎫 美团团购','📦 京东','🔧 其他收入'];
   const EXPENSE_CATS = ['📦 原材料进货','🏠 房租','⚡ 水电煤气','👨‍🍳 人工工资','🔧 设备/工具','🏗️ 装修','📋 培训/证件','🧹 卫生/清洁','🧻 餐具/纸巾','📦 包装/打包','📢 广告/推广','💊 杂项/烟酒','📝 其他'];
   const cats = { income: INCOME_CATS, expense: EXPENSE_CATS };
+
+  // Daily revenue helpers
+  const loadDailyRevs = useCallback(async (p = 1, yr?: number, mo?: number) => {
+    setRevLoading(true);
+    try {
+      const r = await api.getDailyRevenue(p, 30, yr, mo);
+      setDailyRevs(r.records || []);
+      setRevPages(r.pages || 1);
+      setRevPage(r.page || 1);
+    } catch { setToast(t('toastLoadFailed')); }
+    setRevLoading(false);
+  }, []);
+
+  useEffect(() => { loadDailyRevs(1, revYear, revMonth); }, [revYear, revMonth]);
+
+  const submitDailyRev = async () => {
+    if (!revTurnover) { setToast(t('revTurnover') + ' 不能为空'); return; }
+    setRevSaving(true);
+    try {
+      if (editingRevId) {
+        await api.updateDailyRevenue(editingRevId, {
+          revenue: parseFloat(revRevenue) || 0,
+          turnover: parseFloat(revTurnover) || 0,
+          jd_revenue: parseFloat(revJD) || 0,
+          note: revNote,
+        });
+      } else {
+        const r = await api.createDailyRevenue({
+          date: revDate,
+          revenue: parseFloat(revRevenue) || 0,
+          turnover: parseFloat(revTurnover) || 0,
+          jd_revenue: parseFloat(revJD) || 0,
+          note: revNote,
+        });
+        if (r.status === 'error') { setToast(r.message); setRevSaving(false); return; }
+      }
+      setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
+      setEditingRevId(null); setRevDate(todayDateStr());
+      loadDailyRevs(1, revYear, revMonth);
+    } catch { setToast(t('toastSubmitFailed')); }
+    setRevSaving(false);
+  };
+
+  const startEdit = (rev: any) => {
+    setEditingRevId(rev.id);
+    setRevDate(rev.date);
+    setRevRevenue(String(rev.revenue || ''));
+    setRevTurnover(String(rev.turnover || ''));
+    setRevJD(String(rev.jd_revenue || ''));
+    setRevNote(rev.note || '');
+  };
+
+  const cancelEdit = () => {
+    setEditingRevId(null);
+    setRevDate(todayStr());
+    setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
+  };
+
+  const deleteDailyRev = async (id: number) => {
+    try { await api.deleteDailyRevenue(id); loadDailyRevs(1, revYear, revMonth); }
+    catch { setToast(t('toastSubmitFailed')); }
+  };
+
+  const toDec2 = (x: any) => String(parseFloat(x || 0).toFixed(2));
+
+  const MONTHS_SHORT = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 
   const loadData = useCallback(async () => {
     try {
@@ -208,7 +297,220 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             {/* Tab Content */}
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 120 }}>
+                <View style={{ paddingBottom: 120 }}>
+                  {/* ── 每日营收录入卡片 ── */}
+                  <View style={styles.revCard}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Text style={{ fontSize: 20 }}>📊</Text>
+                        <Text style={styles.revTitle}>{t('dailyRevenue')}</Text>
+                      </View>
+                      {editingRevId && (
+                        <TouchableOpacity onPress={cancelEdit} activeOpacity={0.7}
+                          style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#F3F4F6' }}>
+                          <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '600' }}>✕ 取消</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {/* Date + Amounts row */}
+                    <View style={styles.revDateRow}>
+                      <View style={{ position: 'relative' }}>
+                        <TouchableOpacity activeOpacity={1} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>
+                            {(() => { const [y,m,d] = revDate.split('-'); return `${y}-${m}-${d}`; })()}
+                          </Text>
+                          <Text style={{ fontSize: 16, color: '#9CA3AF' }}>📅</Text>
+                          {React.createElement('input', {
+                            type: 'date', value: revDate, max: todayDateStr(),
+                            onChange: (e: any) => { const v = e.target.value; if (v > todayDateStr()) { setToast(t('errDateFuture')); return; } setRevDate(v); },
+                            style: { position: 'absolute', top: -4, right: 0, bottom: -4, left: 0, opacity: 0.01, cursor: 'pointer' },
+                          })}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    <View style={styles.revAmountRow}>
+                      <View style={styles.revAmtField}>
+                        <Text style={styles.revAmtLabel}>{t('revRevenue')}</Text>
+                        <View style={styles.revAmtInputWrap}>
+                          <Text style={styles.revAmtSymbol}>¥</Text>
+                          <TextInput style={styles.revAmtInput}
+                            value={revRevenue} onChangeText={setRevRevenue}
+                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                        </View>
+                      </View>
+                      <View style={styles.revAmtField}>
+                        <Text style={styles.revAmtLabel}>{t('revTurnover')}*</Text>
+                        <View style={styles.revAmtInputWrap}>
+                          <Text style={styles.revAmtSymbol}>¥</Text>
+                          <TextInput style={styles.revAmtInput}
+                            value={revTurnover} onChangeText={setRevTurnover}
+                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                        </View>
+                      </View>
+                      <View style={styles.revAmtField}>
+                        <Text style={styles.revAmtLabel}>{t('revJD')}</Text>
+                        <View style={styles.revAmtInputWrap}>
+                          <Text style={[styles.revAmtSymbol, { color: '#9CA3AF' }]}>¥</Text>
+                          <TextInput style={[styles.revAmtInput, { color: revJD ? '#374151' : '#9CA3AF' }]}
+                            value={revJD} onChangeText={setRevJD}
+                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Note */}
+                    <TextInput style={styles.revNoteInput}
+                      value={revNote} onChangeText={setRevNote}
+                      placeholder={t('revNoteHint')} placeholderTextColor="#D1D5DB" />
+
+                    {/* Submit */}
+                    <TouchableOpacity
+                      style={[styles.revSubmitBtn, (!revTurnover || revSaving) && { opacity: 0.5 }]}
+                      onPress={submitDailyRev} disabled={!revTurnover || revSaving}
+                      activeOpacity={0.8}>
+                      <Text style={styles.revSubmitText}>
+                        {revSaving ? '...' : editingRevId ? t('revEdit') : t('revSubmit')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* ── 历史记录 ── */}
+                  <View style={{ marginTop: 20 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>{t('revHistory')}</Text>
+                      <TouchableOpacity ref={revPickerRef} activeOpacity={0.7}
+                        onPress={() => {
+                          if (!showRevMonthPicker) {
+                            if (revPickerRef.current && typeof revPickerRef.current.measure === 'function') {
+                              revPickerRef.current.measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
+                                setRevPickerPos({ top: py + 30, left: px });
+                              });
+                            }
+                            revPickerAnim.setValue(0);
+                            Animated.spring(revPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
+                            setShowRevMonthPicker(true);
+                          } else {
+                            Animated.timing(revPickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+                              setShowRevMonthPicker(false);
+                            });
+                          }
+                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#F3F4F6' }}>
+                        <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '600' }}>
+                          {MONTHS_SHORT[revMonth - 1]} {revYear}
+                        </Text>
+                        <Text style={{ fontSize: 10, color: '#9CA3AF' }}>▼</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Month picker dropdown */}
+                    {showRevMonthPicker && (
+                      <>
+                        <TouchableOpacity style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99 }}
+                          onPress={() => { setShowRevMonthPicker(false); }} activeOpacity={1} />
+                        <Animated.View style={{
+                          position: 'absolute', top: revPickerPos.top, left: revPickerPos.left, zIndex: 100,
+                          backgroundColor: '#FFFFFF', borderRadius: 10, borderWidth: 1, borderColor: '#EBEBEB',
+                          width: 140, maxHeight: 240, padding: 6,
+                          boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+                          opacity: revPickerAnim, transform: [{ translateY: revPickerAnim.interpolate({ inputRange: [0,1], outputRange: [-8,0] }) }],
+                        }}>
+                          <ScrollView showsVerticalScrollIndicator={false}>
+                            {(() => {
+                              const now = new Date();
+                              const items: { y: number; m: number; label: string }[] = [];
+                              for (let y = now.getFullYear(); y >= 2024; y--) {
+                                const endM = y === now.getFullYear() ? now.getMonth() + 1 : 12;
+                                const startM = y === 2024 ? 5 : 1;
+                                for (let m = endM; m >= startM; m--) {
+                                  items.push({ y, m, label: `${y}-${String(m).padStart(2,'0')}` });
+                                }
+                              }
+                              const currentLabel = `${revYear}-${String(revMonth).padStart(2,'0')}`;
+                              return items.map((item) => (
+                                <TouchableOpacity key={item.label}
+                                  onPress={() => { setRevYear(item.y); setRevMonth(item.m); setShowRevMonthPicker(false); }}
+                                  activeOpacity={0.6}
+                                  style={{
+                                    paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6,
+                                    backgroundColor: item.label === currentLabel ? '#F3F4F6' : 'transparent',
+                                  }}>
+                                  <Text style={{
+                                    fontSize: 13, fontWeight: item.label === currentLabel ? '700' : '500',
+                                    color: item.label === currentLabel ? '#1A1A1A' : '#6B7280',
+                                  }}>{item.label}</Text>
+                                </TouchableOpacity>
+                              ));
+                            })()}
+                          </ScrollView>
+                        </Animated.View>
+                      </>
+                    )}
+
+                    {/* Revenue history list */}
+                    {revLoading && dailyRevs.length === 0 ? (
+                      <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                        <Text style={{ color: '#9CA3AF', fontSize: 13 }}>...</Text>
+                      </View>
+                    ) : dailyRevs.length === 0 ? (
+                      <View style={styles.revEmptyWrap}>
+                        <Text style={{ fontSize: 32 }}>📋</Text>
+                        <Text style={styles.revEmptyTitle}>{t('revEmpty')}</Text>
+                        <Text style={styles.revEmptyHint}>{t('revEmptyHint')}</Text>
+                      </View>
+                    ) : (
+                      <View style={{ gap: 6 }}>
+                        {dailyRevs.map((rev: any) => (
+                          <View key={rev.id} style={styles.revHistoryItem}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: '#374151', marginBottom: 4 }}>
+                                {(() => { const [y,m,d] = rev.date.split('-'); return `${y}-${m}-${d}`; })()}
+                              </Text>
+                              <View style={{ flexDirection: 'row', gap: 12 }}>
+                                <Text style={styles.revHistAmt}>
+                                  <Text style={{ color: '#9CA3AF', fontWeight: '400' }}>{t('revRevenue')} </Text>
+                                  ¥{toDec2(rev.revenue)}
+                                </Text>
+                                <Text style={[styles.revHistAmt, { fontWeight: '700' }]}>
+                                  <Text style={{ color: '#9CA3AF', fontWeight: '400' }}>{t('revTurnover')} </Text>
+                                  ¥{toDec2(rev.turnover)}
+                                </Text>
+                                {rev.jd_revenue > 0 && (
+                                  <Text style={[styles.revHistAmt, { color: '#8B1E22' }]}>
+                                    <Text style={{ color: '#9CA3AF', fontWeight: '400' }}>{t('revJD')} </Text>
+                                    ¥{toDec2(rev.jd_revenue)}
+                                  </Text>
+                                )}
+                              </View>
+                              {rev.note ? <Text style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }} numberOfLines={1}>{rev.note}</Text> : null}
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 4 }}>
+                              <TouchableOpacity onPress={() => startEdit(rev)} activeOpacity={0.6}
+                                style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: '#F3F4F6' }}>
+                                <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '600' }}>{t('revEdit')}</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={() => deleteDailyRev(rev.id)} activeOpacity={0.6}
+                                style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: '#FEE2E2' }}>
+                                <Text style={{ fontSize: 11, color: '#EF4444', fontWeight: '600' }}>{t('revDelete')}</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        ))}
+                        {revPage < revPages && (
+                          <TouchableOpacity
+                            onPress={() => loadDailyRevs(revPage + 1, revYear, revMonth)}
+                            activeOpacity={0.7}
+                            style={{ paddingVertical: 12, alignItems: 'center', borderRadius: 10, backgroundColor: '#F9FAFB' }}>
+                            <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '600' }}>
+                              {revLoading ? '...' : '加载更多'}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
+                  </View>
                 </View>
               )}
 
@@ -535,4 +837,40 @@ const styles = StyleSheet.create({
   bgBtnOutlineText: { fontSize: 12, color: '#374151', fontWeight: '500' },
   bgBtnDanger: { borderWidth: 1, borderColor: '#FCA5A5' },
   bgBtnDangerText: { fontSize: 12, color: '#DC2626', fontWeight: '500' },
+
+  /* ── Daily Revenue (每日营收) ── */
+  revCard: {
+    backgroundColor: '#FAF7F2', borderRadius: 14,
+    borderWidth: 0.5, borderColor: '#E8E4DD',
+    padding: 18,
+    // @ts-ignore
+    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+  },
+  revTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
+  revDateRow: { marginBottom: 14, flexDirection: 'row', alignItems: 'center' },
+  revAmountRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  revAmtField: { flex: 1 },
+  revAmtLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '600', marginBottom: 6 },
+  revAmtInputWrap: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1.5, borderBottomColor: '#E5E7EB', paddingBottom: 4 },
+  revAmtSymbol: { fontSize: 16, fontWeight: '700', color: '#374151', marginRight: 4 },
+  revAmtInput: { flex: 1, fontSize: 18, fontWeight: '600', color: '#1A1A1A', padding: 0, outline: 'none' },
+  revNoteInput: {
+    fontSize: 13, color: '#374151', paddingVertical: 10, paddingHorizontal: 12,
+    backgroundColor: '#FFFFFF', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB',
+    marginBottom: 14, outline: 'none',
+  },
+  revSubmitBtn: {
+    backgroundColor: '#8B1E22', borderRadius: 12, paddingVertical: 14, alignItems: 'center',
+   },
+  revSubmitText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  revEmptyWrap: { paddingVertical: 40, alignItems: 'center', gap: 8 },
+  revEmptyTitle: { fontSize: 15, fontWeight: '600', color: '#9CA3AF' },
+  revEmptyHint: { fontSize: 12, color: '#B0B0B0' },
+  revHistoryItem: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#FFFFFF', borderRadius: 10,
+    padding: 12, gap: 10,
+    borderWidth: 0.5, borderColor: '#F3F4F6',
+  },
+  revHistAmt: { fontSize: 13, fontWeight: '600', color: '#374151' },
 });

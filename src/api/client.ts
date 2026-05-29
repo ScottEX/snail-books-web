@@ -194,6 +194,20 @@ export const api = {
   createProcurement: (data: any) => authFetch('/api/procurements', { method: 'POST', body: JSON.stringify(data) }),
   deleteProcurement: (id: number) => authFetch(`/api/procurements/${id}`, { method: 'DELETE' }),
 
+  // Daily revenue (每日营收)
+  getDailyRevenue: (page = 1, perPage = 30, year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('per_page', String(perPage));
+    if (year) params.append('year', String(year));
+    if (month) params.append('month', String(month));
+    const qs = params.toString();
+    return authFetch('/api/daily-revenue?' + qs);
+  },
+  createDailyRevenue: (data: any) => authFetch('/api/daily-revenue', { method: 'POST', body: JSON.stringify(data) }),
+  updateDailyRevenue: (id: number, data: any) => authFetch(`/api/daily-revenue/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteDailyRevenue: (id: number) => authFetch(`/api/daily-revenue/${id}`, { method: 'DELETE' }),
+
   getChart: () => authFetch('/api/chart'),
   getStats: () => authFetch('/api/stats'),
 
