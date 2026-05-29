@@ -315,7 +315,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         <View style={styles.headerInner}>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
-              <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('bgSettings')}</Text>
+              <Text style={{ fontSize: 11, color: '#8C8583', fontWeight: '500' }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={async () => { await api.logout(); localStorage.removeItem('active_tab'); onLogout(); }}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
@@ -353,15 +353,15 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   <View style={styles.revCard}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                        <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#2C2626" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
                           <Path d="M3 3v18h18M7 16l4-8 4 4 4-6" />
                         </Svg>
                         <Text style={styles.revTitle}>{t('dailyRevenue')}</Text>
                       </View>
                       {editingRevId && (
                         <TouchableOpacity onPress={cancelEdit} activeOpacity={0.7}
-                          style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#F3F4F6' }}>
-                          <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '600' }}>✕ 取消</Text>
+                          style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#F9F7F4' }}>
+                          <Text style={{ fontSize: 11, color: '#8C8583', fontWeight: '600' }}>✕ 取消</Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -376,9 +376,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <TouchableOpacity key={pill.d} onPress={() => pickDate(pill.d)} activeOpacity={0.7}
                             style={{
                               paddingHorizontal: 14, paddingVertical: 8, borderRadius: 22,
-                              backgroundColor: revDate === pill.d ? '#FA855A' : '#F3F4F6',
+                              backgroundColor: revDate === pill.d ? '#7D2329' : '#F9F7F4',
                             }}>
-                            <Text style={{ fontSize: 13, fontWeight: '600', color: revDate === pill.d ? '#FFFFFF' : '#6B7280' }}>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: revDate === pill.d ? '#FFFFFF' : '#8C8583' }}>
                               {pill.label}
                             </Text>
                           </TouchableOpacity>
@@ -386,10 +386,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       </View>
                       <View style={{ position: 'relative' }}>
                         <TouchableOpacity activeOpacity={1} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Text style={{ fontSize: 13, fontWeight: '700', color: '#374151' }}>
+                          <Text style={{ fontSize: 13, fontWeight: '700', color: '#2C2626' }}>
                             {revDate.replace(/-/g, '/')}
                           </Text>
-                          <Text style={{ fontSize: 14, color: '#9CA3AF' }}>📅</Text>
+                          <Text style={{ fontSize: 14, color: '#8C8583' }}>📅</Text>
                           {React.createElement('input', {
                             type: 'date', value: revDate, max: todayDateStr(),
                             onChange: (e: any) => { const v = e.target.value; if (v > todayDateStr()) { setToast(t('errDateFuture')); return; } setRevDate(v); },
@@ -402,7 +402,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Three input cards */}
                     <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
                       <View style={styles.revInputCard}>
-                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
+                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#8C8583" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
                           <Path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
                         </Svg>
                         <Text style={styles.revInputCardTitle}>{t('revRevenue')}</Text>
@@ -411,7 +411,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <Text style={styles.revInputCardSymbol}>¥</Text>
                           <TextInput style={styles.revInputCardInput}
                             value={revRevenue} onChangeText={setRevRevenue}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#EAE5E0" />
                         </View>
                         <Text style={styles.revInputCardFooter}>
                           {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.revenue)}` : t('revYesterdayNA')}
@@ -425,14 +425,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <Text style={styles.revInputCardSymbol}>¥</Text>
                           <TextInput style={[styles.revInputCardInput, { fontWeight: '700' }]}
                             value={revTurnover} onChangeText={setRevTurnover}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#EAE5E0" />
                         </View>
                         <Text style={styles.revInputCardFooter}>
                           {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.turnover)}` : t('revYesterdayNA')}
                         </Text>
                       </View>
                       <View style={styles.revInputCard}>
-                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
+                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#8C8583" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
                           <Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
                         </Svg>
                         <Text style={styles.revInputCardTitle}>{t('revJD')}</Text>
@@ -441,7 +441,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <Text style={styles.revInputCardSymbol}>¥</Text>
                           <TextInput style={styles.revInputCardInput}
                             value={revJD} onChangeText={setRevJD}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#EAE5E0" />
                         </View>
                         <Text style={styles.revInputCardFooter}>
                           {t('revYesterdayLabel')} {yesterdayRev && yesterdayRev.jd_revenue > 0 ? `¥${toDec2(yesterdayRev.jd_revenue)}` : t('revYesterdayNA')}
@@ -452,7 +452,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Note */}
                     <TextInput style={styles.revNoteInput}
                       value={revNote} onChangeText={setRevNote}
-                      placeholder={t('revNoteHint')} placeholderTextColor="#D1D5DB" />
+                      placeholder={t('revNoteHint')} placeholderTextColor="#EAE5E0" />
 
                     {/* Two action buttons */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -486,16 +486,16 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Last 7 days summary */}
                     <View style={{ marginTop: 14, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}>
                       <View style={{ alignItems: 'flex-start' }}>
-                        <Text style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 2 }}>{t('revWeekRevenue')}</Text>
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#374151' }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
+                        <Text style={{ fontSize: 10, color: '#8C8583', marginBottom: 2 }}>{t('revWeekRevenue')}</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#2C2626' }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
                       </View>
                       <View style={{ alignItems: 'center' }}>
-                        <Text style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 2 }}>{t('revWeekTurnover')}</Text>
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A1A1A' }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
+                        <Text style={{ fontSize: 10, color: '#8C8583', marginBottom: 2 }}>{t('revWeekTurnover')}</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#2C2626' }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
                       </View>
                       <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 2 }}>{t('revWeekJD')}</Text>
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A1A1A' }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
+                        <Text style={{ fontSize: 10, color: '#8C8583', marginBottom: 2 }}>{t('revWeekJD')}</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#2C2626' }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
                       </View>
                     </View>
                   </View>
@@ -504,23 +504,23 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   <View style={{ marginTop: 20 }}>
                     <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth={2} strokeLinecap="round">
+                        <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#2C2626" strokeWidth={2} strokeLinecap="round">
                           <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6" />
                         </Svg>
-                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>{t('revHistory')}</Text>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#2C2626' }}>{t('revHistory')}</Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => { setShowDailyHistory(true); }}
                         activeOpacity={0.7}
                         style={{ marginLeft: 'auto' }}
                       >
-                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#FA855A' }}>{t('revHistoryBtn')} →</Text>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#7D2329' }}>{t('revHistoryBtn')} →</Text>
                       </TouchableOpacity>
                     </View>
 
                     {last7Records.length === 0 ? (
                       <View style={{ paddingVertical: 30, alignItems: 'center' }}>
-                        <Text style={{ fontSize: 13, color: '#9CA3AF' }}>...</Text>
+                        <Text style={{ fontSize: 13, color: '#8C8583' }}>...</Text>
                       </View>
                     ) : (
                       last7Records.map((rec: any, i: number) => (
@@ -536,8 +536,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                               )}
                             </View>
                             <View style={[styles.rev7CardBadge, (rec.status === '未录入' || !rec.recorded_by) ? styles.rev7CardBadgeGap : styles.rev7CardBadgeOk]}>
-                              <View style={[styles.rev7CardDot, (rec.status === '未录入' || !rec.recorded_by) ? { backgroundColor: '#CB1B45' } : { backgroundColor: '#0AA344' }]} />
-                              <Text style={[styles.rev7CardStatus, (rec.status === '未录入' || !rec.recorded_by) ? { color: '#CB1B45' } : { color: '#0AA344' }]}>
+                              <View style={[styles.rev7CardDot, (rec.status === '未录入' || !rec.recorded_by) ? { backgroundColor: '#B34149' } : { backgroundColor: '#4C7A5D' }]} />
+                              <Text style={[styles.rev7CardStatus, (rec.status === '未录入' || !rec.recorded_by) ? { color: '#B34149' } : { color: '#4C7A5D' }]}>
                                 {rec.status === '未录入' || !rec.recorded_by ? t('revNotEntered') : t('revEntered')}
                               </Text>
                             </View>
@@ -554,9 +554,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <View style={styles.rev7CardAmounts}>
                             <View style={styles.rev7CardAmtCol}>
                               {rec.revenue > 0 ? (
-                                <Text style={[styles.rev7CardAmtVal, { color: '#1A1A1A' }]}>¥{toDec2(rec.revenue)}</Text>
+                                <Text style={[styles.rev7CardAmtVal, { color: '#2C2626' }]}>¥{toDec2(rec.revenue)}</Text>
                               ) : (
-                                <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#D1D5DB" strokeWidth={2} strokeLinecap="round">
+                                <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#EAE5E0" strokeWidth={2} strokeLinecap="round">
                                   <Path d="M4 6h16" />
                                 </Svg>
                               )}
@@ -564,9 +564,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                             </View>
                             <View style={styles.rev7CardAmtCol}>
                               {rec.turnover > 0 ? (
-                                <Text style={[styles.rev7CardAmtVal, { color: '#1A1A1A' }]}>¥{toDec2(rec.turnover)}</Text>
+                                <Text style={[styles.rev7CardAmtVal, { color: '#2C2626' }]}>¥{toDec2(rec.turnover)}</Text>
                               ) : (
-                                <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#D1D5DB" strokeWidth={2} strokeLinecap="round">
+                                <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#EAE5E0" strokeWidth={2} strokeLinecap="round">
                                   <Path d="M4 6h16" />
                                 </Svg>
                               )}
@@ -574,9 +574,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                             </View>
                             <View style={styles.rev7CardAmtCol}>
                               {rec.jd_revenue > 0 ? (
-                                <Text style={[styles.rev7CardAmtVal, { color: '#1A1A1A' }]}>¥{toDec2(rec.jd_revenue)}</Text>
+                                <Text style={[styles.rev7CardAmtVal, { color: '#2C2626' }]}>¥{toDec2(rec.jd_revenue)}</Text>
                               ) : (
-                                <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#D1D5DB" strokeWidth={2} strokeLinecap="round">
+                                <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#EAE5E0" strokeWidth={2} strokeLinecap="round">
                                   <Path d="M4 6h16" />
                                 </Svg>
                               )}
@@ -591,7 +591,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                               {rec.recorded_by ? (
                                 <Text style={styles.rev7CardFooterText}>{rec.recorded_by}</Text>
                               ) : (
-                                <Svg width={16} height={8} viewBox="0 0 16 8" fill="none" stroke="#D1D5DB" strokeWidth={1.5} strokeLinecap="round">
+                                <Svg width={16} height={8} viewBox="0 0 16 8" fill="none" stroke="#EAE5E0" strokeWidth={1.5} strokeLinecap="round">
                                   <Path d="M2 4h12" />
                                 </Svg>
                               )}
@@ -637,20 +637,20 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               {/* Opacity slider */}
               <View style={{ marginTop: 16 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ fontSize: 11, color: '#374151', fontWeight: '500' }}>{t('opacity')}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#8B1E22' }}>{Math.round(bgOpacity * 100)}%</Text>
+                  <Text style={{ fontSize: 11, color: '#2C2626', fontWeight: '500' }}>{t('opacity')}</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#7D2329' }}>{Math.round(bgOpacity * 100)}%</Text>
                 </View>
                 <View style={{ position: 'relative', height: 32, justifyContent: 'center' }}>
                   {/* track background */}
                   <View style={{
                     position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2,
-                    backgroundColor: '#E5E7EB',
+                    backgroundColor: '#EAE5E0',
                   }} />
                   {/* active track fill */}
                   <View style={{
                     position: 'absolute', left: 0, height: 4, borderRadius: 2,
                     width: `${bgOpacity * 100}%`,
-                    backgroundColor: '#8B1E22',
+                    backgroundColor: '#7D2329',
                   }} />
                   {/* range input (invisible, on top) */}
                   <input
@@ -677,9 +677,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 </View>
                 {/* tick labels */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
-                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>0</Text>
-                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>50</Text>
-                  <Text style={{ fontSize: 9, color: '#D1D5DB' }}>100</Text>
+                  <Text style={{ fontSize: 9, color: '#EAE5E0' }}>0</Text>
+                  <Text style={{ fontSize: 9, color: '#EAE5E0' }}>50</Text>
+                  <Text style={{ fontSize: 9, color: '#EAE5E0' }}>100</Text>
                 </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
@@ -748,7 +748,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 /* ===== NAV SVG ICONS ===== */
 
 function NavIconList({ active }: { active: boolean }) {
-  const c = active ? '#1A1A1A' : '#999';
+  const c = active ? '#2C2626' : '#999';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
       <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
@@ -759,7 +759,7 @@ function NavIconList({ active }: { active: boolean }) {
 }
 
 function NavIconAdd({ active }: { active: boolean }) {
-  const c = active ? '#1A1A1A' : '#999';
+  const c = active ? '#2C2626' : '#999';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
       <Path d="M12 5v14M5 12h14" />
@@ -768,7 +768,7 @@ function NavIconAdd({ active }: { active: boolean }) {
 }
 
 function NavIconSupply({ active }: { active: boolean }) {
-  const c = active ? '#1A1A1A' : '#999';
+  const c = active ? '#2C2626' : '#999';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
@@ -778,7 +778,7 @@ function NavIconSupply({ active }: { active: boolean }) {
 }
 
 function NavIconChart({ active }: { active: boolean }) {
-  const c = active ? '#1A1A1A' : '#999';
+  const c = active ? '#2C2626' : '#999';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M3 3v18h18" />
@@ -788,7 +788,7 @@ function NavIconChart({ active }: { active: boolean }) {
 }
 
 function NavIconPartner({ active }: { active: boolean }) {
-  const c = active ? '#1A1A1A' : '#999';
+  const c = active ? '#2C2626' : '#999';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
@@ -798,7 +798,7 @@ function NavIconPartner({ active }: { active: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9F0EB' },
+  container: { flex: 1, backgroundColor: 'rgba(213,154,83,0.1)' },
   bgLayer: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
@@ -814,13 +814,13 @@ const styles = StyleSheet.create({
   },
   headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  title: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
+  title: { fontSize: 18, fontWeight: '700', color: '#2C2626' },
   // 8600: color:#999 font-size:13px
   date: { color: '#999', fontSize: 13 },
-  logoutBtn: { fontSize: 11, color: '#CB1B45', fontWeight: '500' },
+  logoutBtn: { fontSize: 11, color: '#B34149', fontWeight: '500' },
   langRow: { flexDirection: 'row', gap: 4 },
-  langBtn: { fontSize: 10, color: '#6B7280', fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
-  langActive: { color: '#8B1E22', backgroundColor: '#FDF2F2', fontWeight: '700' },
+  langBtn: { fontSize: 10, color: '#8C8583', fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
+  langActive: { color: '#7D2329', backgroundColor: 'rgba(180,65,73,0.1)', fontWeight: '700' },
   // Page — 8600: padding:0 16px 110px, max-width:520px, margin:0 auto
   page: { flex: 1, paddingHorizontal: 16, paddingBottom: 12, maxWidth: 520, alignSelf: 'center', width: '100%' },
   // Stats — 8600: grid-cols-4
@@ -833,16 +833,16 @@ const styles = StyleSheet.create({
   // 8600: text-xs color:#bbb
   statSub: { fontSize: 10, color: '#bbb', marginTop: 2 },
   // Tab bar — 8600: display:flex border-bottom
-  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#EBEBEB', marginBottom: 16 },
+  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#EAE5E0', marginBottom: 16 },
   // 8600: tab padding:10px font-size:12px color:#999
   tabItem: { paddingVertical: 10, paddingHorizontal: 0, marginRight: 0, borderBottomWidth: 2, borderBottomColor: 'transparent', marginBottom: -1 },
-  tabActive: { borderBottomColor: '#1A1A1A' },
+  tabActive: { borderBottomColor: '#2C2626' },
   tabItemText: { fontSize: 12, fontWeight: '500', color: '#999' },
-  tabActiveText: { color: '#1A1A1A' },
+  tabActiveText: { color: '#2C2626' },
   // Content
   content: { flex: 1 },
   // Transaction row — 8600: tx-row
-  txRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
+  txRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F9F7F4' },
   txDot: { width: 7, height: 7, borderRadius: 4 },
   txCat: { fontSize: 13, fontWeight: '500' },
   txNote: { fontSize: 10, color: '#BBB' },
@@ -852,33 +852,33 @@ const styles = StyleSheet.create({
   // Pagination
   pageRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: 10 },
   pageBtn: { fontSize: 12, color: '#999', paddingHorizontal: 10, paddingVertical: 4 },
-  pageBtnActive: { color: '#1A1A1A', fontWeight: '600' },
+  pageBtnActive: { color: '#2C2626', fontWeight: '600' },
   // Add form — 8600 style
   addForm: { paddingTop: 4 },
   typeToggle: { flexDirection: 'row', gap: 6, marginBottom: 20 },
-  typeBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#EBEBEB', backgroundColor: '#fff', alignItems: 'center' },
-  typeBtnInc: { borderColor: '#0AA344', backgroundColor: '#ECFDF5' },
-  typeBtnExp: { borderColor: '#CB1B45', backgroundColor: '#FDF2F2' },
+  typeBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#EAE5E0', backgroundColor: '#fff', alignItems: 'center' },
+  typeBtnInc: { borderColor: '#4C7A5D', backgroundColor: 'rgba(76,122,93,0.1)' },
+  typeBtnExp: { borderColor: '#B34149', backgroundColor: 'rgba(180,65,73,0.1)' },
   typeBtnText: { fontSize: 14, fontWeight: '500', color: '#999' },
-  typeBtnIncText: { color: '#0AA344' },
-  typeBtnExpText: { color: '#CB1B45' },
-  addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EBEBEB', borderRadius: 8, fontSize: 14, backgroundColor: '#FFFFFF', color: '#1A1A1A', marginBottom: 8, fontFamily: undefined },
+  typeBtnIncText: { color: '#4C7A5D' },
+  typeBtnExpText: { color: '#B34149' },
+  addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EAE5E0', borderRadius: 8, fontSize: 14, backgroundColor: '#FFFFFF', color: '#2C2626', marginBottom: 8, fontFamily: undefined },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
-  catBtn: { fontSize: 11, color: '#999', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#EBEBEB' },
-  catBtnActive: { color: '#8B1E22', borderColor: '#8B1E22', backgroundColor: 'rgba(139,30,34,0.03)' },
-  saveBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A1A1A', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginTop: 8 },
+  catBtn: { fontSize: 11, color: '#999', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#EAE5E0' },
+  catBtnActive: { color: '#7D2329', borderColor: '#7D2329', backgroundColor: 'rgba(139,30,34,0.03)' },
+  saveBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#2C2626', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginTop: 8 },
   saveBtnText: { color: '#fff', fontSize: 20 },
   // Supply
   sectionTitle: { fontSize: 12, fontWeight: '600', color: '#999', paddingVertical: 10 },
-  supplyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  supplyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#EAE5E0' },
   supplyName: { fontSize: 13, fontWeight: '500', flex: 1 },
-  supplyPrice: { fontSize: 13, fontWeight: '600', color: '#1A1A1A' },
+  supplyPrice: { fontSize: 13, fontWeight: '600', color: '#2C2626' },
   // Chart
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   barLabel: { fontSize: 10, color: '#999', fontWeight: '500', width: 36, textAlign: 'right' },
-  barWrap: { flex: 1, height: 16, backgroundColor: '#F5F5F5', borderRadius: 3, overflow: 'hidden', flexDirection: 'row' },
-  barIncome: { backgroundColor: '#0AA344', height: '100%' },
-  barExpense: { backgroundColor: '#CB1B45', opacity: 0.7, height: '100%' },
+  barWrap: { flex: 1, height: 16, backgroundColor: '#F9F7F4', borderRadius: 3, overflow: 'hidden', flexDirection: 'row' },
+  barIncome: { backgroundColor: '#4C7A5D', height: '100%' },
+  barExpense: { backgroundColor: '#B34149', opacity: 0.7, height: '100%' },
   barVal: { fontSize: 9, color: '#999', width: 90 },
   // Bottom Nav — glass pill, icons only, 80% transparent
   bottomNav: {
@@ -910,7 +910,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.06)',
   },
   navLabel: { fontSize: 10, fontWeight: '600', color: '#999', letterSpacing: 0.3 },
-  navLabelActive: { color: '#1A1A1A' },
+  navLabelActive: { color: '#2C2626' },
   // Background settings modal
   modalOverlay: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
@@ -922,61 +922,61 @@ const styles = StyleSheet.create({
     overflow: 'hidden' as const,
   },
   modalHeader: {
-    backgroundColor: '#8B1E22', paddingHorizontal: 20, paddingVertical: 14,
+    backgroundColor: '#7D2329', paddingHorizontal: 20, paddingVertical: 14,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   modalTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
   modalClose: { fontSize: 18, color: 'rgba(255,255,255,0.7)', fontWeight: '300' },
   modalBodyBg: { padding: 24 },
-  modalHint: { fontSize: 12, color: '#6B7280', textAlign: 'center' },
+  modalHint: { fontSize: 12, color: '#8C8583', textAlign: 'center' },
   bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  bgBtnOutline: { borderWidth: 1, borderColor: '#D1D5DB' },
-  bgBtnOutlineText: { fontSize: 12, color: '#374151', fontWeight: '500' },
-  bgBtnDanger: { borderWidth: 1, borderColor: '#FDF2F2' },
-  bgBtnDangerText: { fontSize: 12, color: '#CB1B45', fontWeight: '500' },
+  bgBtnOutline: { borderWidth: 1, borderColor: '#EAE5E0' },
+  bgBtnOutlineText: { fontSize: 12, color: '#2C2626', fontWeight: '500' },
+  bgBtnDanger: { borderWidth: 1, borderColor: 'rgba(180,65,73,0.1)' },
+  bgBtnDangerText: { fontSize: 12, color: '#B34149', fontWeight: '500' },
 
   /* ── Daily Revenue (每日营收) ── */
   revCard: {
-    backgroundColor: '#FAF7F2', borderRadius: 14,
-    borderWidth: 0.5, borderColor: '#E8E4DD',
+    backgroundColor: '#F9F7F4', borderRadius: 14,
+    borderWidth: 0.5, borderColor: '#EAE5E0',
     padding: 18,
     // @ts-ignore
     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
   },
-  revTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
+  revTitle: { fontSize: 16, fontWeight: '700', color: '#2C2626' },
   // Three input cards
   revInputCard: {
     flex: 1, backgroundColor: '#FFFFFF', borderRadius: 10,
-    padding: 10, borderWidth: 0.5, borderColor: '#EBEBEB',
+    padding: 10, borderWidth: 0.5, borderColor: '#EAE5E0',
   },
-  revInputCardTitle: { fontSize: 11, fontWeight: '700', color: '#374151', marginBottom: 2 },
-  revInputCardSub: { fontSize: 9, color: '#9CA3AF', marginBottom: 8 },
+  revInputCardTitle: { fontSize: 11, fontWeight: '700', color: '#2C2626', marginBottom: 2 },
+  revInputCardSub: { fontSize: 9, color: '#8C8583', marginBottom: 8 },
   revInputCardInputWrap: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 6 },
-  revInputCardSymbol: { fontSize: 14, fontWeight: '700', color: '#374151', marginRight: 2, marginBottom: 1 },
-  revInputCardInput: { flex: 1, fontSize: 16, fontWeight: '600', color: '#1A1A1A', padding: 0, outline: 'none' },
-  revInputCardFooter: { fontSize: 9, color: '#B0B0B0' },
+  revInputCardSymbol: { fontSize: 14, fontWeight: '700', color: '#2C2626', marginRight: 2, marginBottom: 1 },
+  revInputCardInput: { flex: 1, fontSize: 16, fontWeight: '600', color: '#2C2626', padding: 0, outline: 'none' },
+  revInputCardFooter: { fontSize: 9, color: '#8C8583' },
   revNoteInput: {
-    fontSize: 13, color: '#374151', paddingVertical: 10, paddingHorizontal: 12,
-    backgroundColor: '#FFFFFF', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB',
+    fontSize: 13, color: '#2C2626', paddingVertical: 10, paddingHorizontal: 12,
+    backgroundColor: '#FFFFFF', borderRadius: 10, borderWidth: 1, borderColor: '#EAE5E0',
     marginBottom: 14, outline: 'none',
   },
   revSubmitBtn: {
-    backgroundColor: '#FA855A', borderRadius: 12, paddingVertical: 14, alignItems: 'center',
+    backgroundColor: '#7D2329', borderRadius: 12, paddingVertical: 14, alignItems: 'center',
    },
   revSubmitText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   revArchiveBtn: {
-    backgroundColor: '#003371', borderRadius: 12, paddingVertical: 14,
+    backgroundColor: '#4A7299', borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', justifyContent: 'center', flex: 1,
   },
-  revArchiveBtnDone: { backgroundColor: '#ECFDF5' },
+  revArchiveBtnDone: { backgroundColor: 'rgba(76,122,93,0.1)' },
   revArchiveText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
-  revArchiveTextDone: { color: '#0AA344' },
+  revArchiveTextDone: { color: '#4C7A5D' },
   // 7-day card items — same card style as history page
   rev7CardItem: {
     backgroundColor: '#FFFFFF', borderRadius: 12,
     paddingVertical: 16, paddingHorizontal: 16,
     marginBottom: 10,
-    borderWidth: 1, borderColor: '#EBEBEB',
+    borderWidth: 1, borderColor: '#EAE5E0',
     // @ts-ignore
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 12,
@@ -984,18 +984,18 @@ const styles = StyleSheet.create({
   rev7CardTop: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  rev7CardDate: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
+  rev7CardDate: { fontSize: 16, fontWeight: '600', color: '#2C2626' },
   rev7TodayTag: {
     paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: 'rgba(76,122,93,0.1)',
   },
-  rev7TodayTagText: { fontSize: 11, fontWeight: '600', color: '#0AA344' },
+  rev7TodayTagText: { fontSize: 11, fontWeight: '600', color: '#4C7A5D' },
   rev7CardBadge: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,
   },
-  rev7CardBadgeGap: { backgroundColor: '#FDF2F2' },
-  rev7CardBadgeOk: { backgroundColor: '#ECFDF5' },
+  rev7CardBadgeGap: { backgroundColor: 'rgba(180,65,73,0.1)' },
+  rev7CardBadgeOk: { backgroundColor: 'rgba(76,122,93,0.1)' },
   rev7CardDot: { width: 6, height: 6, borderRadius: 3 },
   rev7CardStatus: { fontSize: 12, fontWeight: '600' },
   rev7CardAmounts: {
@@ -1005,22 +1005,22 @@ const styles = StyleSheet.create({
   },
   rev7CardAmtCol: { alignItems: 'center', flex: 1, gap: 4 },
   rev7CardAmtVal: { fontSize: 17, fontWeight: '700' },
-  rev7CardAmtLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
+  rev7CardAmtLabel: { fontSize: 11, color: '#8C8583', fontWeight: '500' },
   rev7CardFooter: {
-    borderTopWidth: 0.5, borderTopColor: '#F0F0F0',
+    borderTopWidth: 0.5, borderTopColor: '#EAE5E0',
     paddingTop: 8,
   },
-  rev7CardFooterText: { fontSize: 11, color: '#9CA3AF' },
+  rev7CardFooterText: { fontSize: 11, color: '#8C8583' },
 
   /* Archived badge */
   rev7ArchivedBadge: {
     alignSelf: 'flex-start',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
-    backgroundColor: '#FDF2F2',
+    backgroundColor: 'rgba(180,65,73,0.1)',
   },
-  rev7ArchivedBadgeText: { fontSize: 11, fontWeight: '600', color: '#CB1B45' },
+  rev7ArchivedBadgeText: { fontSize: 11, fontWeight: '600', color: '#B34149' },
 
   /* Note display */
-  rev7CardNote: { borderTopWidth: 0.5, borderTopColor: '#F0F0F0', paddingTop: 8, marginTop: 4 },
-  rev7CardNoteText: { fontSize: 11, color: '#6B7280', lineHeight: 16 },
+  rev7CardNote: { borderTopWidth: 0.5, borderTopColor: '#EAE5E0', paddingTop: 8, marginTop: 4 },
+  rev7CardNoteText: { fontSize: 11, color: '#8C8583', lineHeight: 16 },
 });

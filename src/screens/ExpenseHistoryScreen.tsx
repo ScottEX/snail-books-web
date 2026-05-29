@@ -145,7 +145,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         </TouchableOpacity>
         <Text style={st.title}>{t('expenseHistory')} ({total})</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#6B7280'} strokeWidth={2} strokeLinecap="round">
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#8C8583'} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
           </Svg>
         </TouchableOpacity>
@@ -280,7 +280,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             ))}
             {loading && (
               <View style={st.loading}>
-                <ActivityIndicator size="small" color="#8B1E22" />
+                <ActivityIndicator size="small" color="#7D2329" />
                 <Text style={st.loadingText}>...</Text>
               </View>
             )}
@@ -367,8 +367,8 @@ const st = StyleSheet.create({
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
   },
-  backArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
-  title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
+  backArrow: { fontSize: 26, fontWeight: '300', color: '#7D2329', marginTop: -2, marginLeft: -1 },
+  title: { fontSize: 16, fontWeight: '400', color: '#2C2626' },
   /* List — scrolls under absolute header (matches ReconHistoryScreen list) */
   list: { flex: 1 },
   /* Row */
@@ -376,7 +376,7 @@ const st = StyleSheet.create({
     backgroundColor: '#FFFFFF', borderRadius: 12,
     paddingVertical: 14, paddingHorizontal: 14,
     marginBottom: 8,
-    borderWidth: 1, borderColor: '#EBEBEB',
+    borderWidth: 1, borderColor: '#EAE5E0',
     // @ts-ignore
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 6,
@@ -388,30 +388,30 @@ const st = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1,
   },
   catBadge: {
-    backgroundColor: '#FFF0EB', borderRadius: 4,
+    backgroundColor: 'rgba(213,154,83,0.1)', borderRadius: 4,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  catBadgeText: { fontSize: 13, fontWeight: '600', color: '#FA855A' },
+  catBadgeText: { fontSize: 13, fontWeight: '600', color: '#7D2329' },
   payBadge: {
-    backgroundColor: '#F3F4F6', borderRadius: 4,
+    backgroundColor: '#F9F7F4', borderRadius: 4,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  payBadgeText: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
-  amount: { fontSize: 17, fontWeight: '700', color: '#CB1B45' },
-  filledBy: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  payBadgeText: { fontSize: 13, fontWeight: '500', color: '#8C8583' },
+  amount: { fontSize: 17, fontWeight: '700', color: '#B34149' },
+  filledBy: { fontSize: 11, color: '#8C8583', marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  dateText: { fontSize: 13, color: '#9CA3AF' },
-  note: { fontSize: 13, color: '#6B7280', flex: 1, textAlign: 'right' },
+  dateText: { fontSize: 13, color: '#8C8583' },
+  note: { fontSize: 13, color: '#8C8583', flex: 1, textAlign: 'right' },
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#FAF7F2', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#EBEBEB' },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F9F7F4', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#EAE5E0' },
   emptyEmoji: { fontSize: 30 },
-  emptyTitle: { fontSize: 16, fontWeight: '500', color: '#6B7280' },
-  emptyHint: { fontSize: 13, color: '#B0B0B0', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+  emptyTitle: { fontSize: 16, fontWeight: '500', color: '#8C8583' },
+  emptyHint: { fontSize: 13, color: '#8C8583', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
-  loadingText: { fontSize: 13, color: '#8B1E22' },
+  loadingText: { fontSize: 13, color: '#7D2329' },
   /* Preview overlay */
   previewOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
@@ -450,11 +450,11 @@ const st = StyleSheet.create({
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
   },
-  filterBtnActive: { backgroundColor: '#FA855A', borderColor: '#FA855A' },
+  filterBtnActive: { backgroundColor: '#7D2329', borderColor: '#7D2329' },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: '#FFFFFF', borderRadius: 10,
-    borderWidth: 1, borderColor: '#EBEBEB',
+    borderWidth: 1, borderColor: '#EAE5E0',
     overflow: 'hidden',
   },
   filterContent: { padding: 12, gap: 8 },
@@ -464,18 +464,18 @@ const st = StyleSheet.create({
   filterDateInput: {
     flex: 1, height: 34, paddingHorizontal: 8,
     backgroundColor: '#FFFFFF', borderRadius: 6,
-    borderWidth: 1, borderColor: '#EBEBEB',
-    fontSize: 13, fontWeight: '400', color: '#374151',
+    borderWidth: 1, borderColor: '#EAE5E0',
+    fontSize: 13, fontWeight: '400', color: '#2C2626',
     fontFamily: 'inherit', outline: 'none',
   },
   filterDateWrap: {
     flex: 1, height: 34, position: 'relative' as any,
     backgroundColor: '#FFFFFF', borderRadius: 6,
-    borderWidth: 1, borderColor: '#EBEBEB',
+    borderWidth: 1, borderColor: '#EAE5E0',
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: 11, fontWeight: '500', color: '#374151' },
-  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: '#B0B0B0' },
+  filterDateText: { fontSize: 11, fontWeight: '500', color: '#2C2626' },
+  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: '#8C8583' },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
@@ -484,20 +484,20 @@ const st = StyleSheet.create({
   filterChipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   filterChip: {
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F9F7F4',
   },
-  filterChipActive: { backgroundColor: '#FA855A' },
-  filterChipText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
+  filterChipActive: { backgroundColor: '#7D2329' },
+  filterChipText: { fontSize: 12, fontWeight: '600', color: '#8C8583' },
   filterChipTextActive: { color: '#FFFFFF' },
   filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
-    backgroundColor: '#003371', borderRadius: 8,
+    backgroundColor: '#4A7299', borderRadius: 8,
   },
   filterResetBtnText: { fontSize: 13, fontWeight: '500', color: '#FFFFFF' },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
-    backgroundColor: '#FA855A', borderRadius: 8,
+    backgroundColor: '#7D2329', borderRadius: 8,
   },
   filterApplyBtnText: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
 });

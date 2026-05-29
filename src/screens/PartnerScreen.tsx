@@ -24,7 +24,7 @@ function translateDividendNote(note: string): string {
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
-function IconBuilding({ color = '#8B1E22' }: { color?: string }) {
+function IconBuilding({ color = '#7D2329' }: { color?: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8}>
       <Path strokeLinecap="round" strokeLinejoin="round"
@@ -33,7 +33,7 @@ function IconBuilding({ color = '#8B1E22' }: { color?: string }) {
   );
 }
 
-function IconCoins({ color = '#D97706' }: { color?: string }) {
+function IconCoins({ color = '#D59A53' }: { color?: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8}>
       <Path strokeLinecap="round" strokeLinejoin="round"
@@ -42,7 +42,7 @@ function IconCoins({ color = '#D97706' }: { color?: string }) {
   );
 }
 
-function IconPeople({ color = '#6B7280' }: { color?: string }) {
+function IconPeople({ color = '#8C8583' }: { color?: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8}>
       <Path strokeLinecap="round" strokeLinejoin="round"
@@ -168,7 +168,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           <View style={s.statGrid}>
             <View style={s.statCard}>
               <View style={[s.statIconBg, { backgroundColor: 'rgba(139,30,34,0.08)' }]}>
-                <IconBuilding color="#8B1E22" />
+                <IconBuilding color="#7D2329" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.statLabel}>{t('totalCapital')}</Text>
@@ -179,12 +179,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
             <View style={s.statCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 }}>
-                <View style={[s.statIconBg, { backgroundColor: '#FFFBEB' }]}>
-                  <IconCoins color="#D97706" />
+                <View style={[s.statIconBg, { backgroundColor: 'rgba(213,154,83,0.1)' }]}>
+                  <IconCoins color="#D59A53" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.statLabel}>{t('distributedPool')}</Text>
-                  <Text style={[s.statValue, { color: '#D97706' }]}>¥{totalDiv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={[s.statValue, { color: '#D59A53' }]}>¥{totalDiv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                   <Text style={s.statSub}>{t('cumulativeByShare')}</Text>
                 </View>
               </View>
@@ -194,12 +194,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             </View>
 
             <TouchableOpacity style={s.statCard} onPress={() => setShowOrg(true)}>
-              <View style={[s.statIconBg, { backgroundColor: '#F3F4F6' }]}>
-                <IconPeople color="#6B7280" />
+              <View style={[s.statIconBg, { backgroundColor: '#F9F7F4' }]}>
+                <IconPeople color="#8C8583" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.statLabel}>{t('partnerSeats')}</Text>
-                <Text style={[s.statValue, { color: '#1F2937' }]}>3 {t('shareholders')}</Text>
+                <Text style={[s.statValue, { color: '#2C2626' }]}>3 {t('shareholders')}</Text>
                 <Text style={s.statSub}>{t('lpStructure')}</Text>
               </View>
             </TouchableOpacity>
@@ -246,9 +246,9 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
                       <Text style={s.footerSub}>{t('paybackRate')} {pct}%</Text>
                       {isBack ? (
-                        <Text style={{ fontSize: 10, color: '#0AA344', fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
+                        <Text style={{ fontSize: 10, color: '#4C7A5D', fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
                       ) : (
-                        <Text style={{ fontSize: 10, color: '#D97706', fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                        <Text style={{ fontSize: 10, color: '#D59A53', fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                       )}
                     </View>
                   </View>
@@ -321,12 +321,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <Text style={moBody.label}>{t('totalToPool')}</Text>
                 <TextInput style={moBody.input} placeholder={t('enterAmount')} value={divAmount}
                   onChangeText={(v) => { setDivAmount(v); calcPreview(parseFloat(v) || 0); }}
-                  keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+                  keyboardType="decimal-pad" placeholderTextColor="#8C8583" />
               </View>
               <View>
                 <Text style={moBody.label}>{t('roundNote')}</Text>
                 <TextInput style={moBody.input} placeholder={t('roundNoteExample')} value={divNote}
-                  onChangeText={setDivNote} placeholderTextColor="#9CA3AF" />
+                  onChangeText={setDivNote} placeholderTextColor="#8C8583" />
               </View>
               <View style={moBody.preview}>
                 <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
@@ -370,7 +370,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             <View style={{ padding: 20, gap: 16 }}>
               <View style={moBody.deleteBox}>
                 <Text style={moBody.deleteText}>
-                  {t('willDelete')}<Text style={{ fontWeight: '600', color: '#1F2937' }}>{translateDividendNote(showDelete)}</Text>{t('allDividendRecords')}
+                  {t('willDelete')}<Text style={{ fontWeight: '600', color: '#2C2626' }}>{translateDividendNote(showDelete)}</Text>{t('allDividendRecords')}
                 </Text>
               </View>
               <View style={moBody.btnRow}>
@@ -403,19 +403,19 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             </View>
             <View style={moBody.body}>
               <View style={ds.grid}>
-                <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
+                <View style={[ds.cell, { backgroundColor: '#F9F7F4' }]}>
                   <Text style={ds.cellLabel}>{t('totalInvest')}</Text>
                   <Text style={ds.cellNum}>¥{(showDetail.investment || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
-                <View style={[ds.cell, { backgroundColor: '#FFFBEB' }]}>
-                  <Text style={[ds.cellLabel, { color: '#D97706' }]}>{t('totalDividends')}</Text>
-                  <Text style={[ds.cellNum, { color: '#D97706' }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                <View style={[ds.cell, { backgroundColor: 'rgba(213,154,83,0.1)' }]}>
+                  <Text style={[ds.cellLabel, { color: '#D59A53' }]}>{t('totalDividends')}</Text>
+                  <Text style={[ds.cellNum, { color: '#D59A53' }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
-                <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
+                <View style={[ds.cell, { backgroundColor: '#F9F7F4' }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
                   <Text style={ds.cellNumSmall}>¥{(initCapital[showDetail.name] ?? 42900).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
-                <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
+                <View style={[ds.cell, { backgroundColor: '#F9F7F4' }]}>
                   <Text style={ds.cellLabel}>{t('additional')}</Text>
                   <Text style={ds.cellNumSmall}>¥{((showDetail.investment || 0) - (initCapital[showDetail.name] || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
@@ -431,14 +431,14 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <View style={ds.progressBar}>
                     <View style={[ds.progressFill, {
                       width: `${Math.min(100, ((showDetail.total_dividends || 0) / showDetail.investment * 100))}%` as any,
-                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? '#0AA344' : '#D97706',
+                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? '#4C7A5D' : '#D59A53',
                     }]} />
                   </View>
                   <View style={{ marginTop: 4 }}>
                     {(showDetail.total_dividends || 0) >= showDetail.investment ? (
-                      <Text style={{ fontSize: 10, color: '#0AA344', fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
+                      <Text style={{ fontSize: 10, color: '#4C7A5D', fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
                     ) : (
-                      <Text style={{ fontSize: 10, color: '#D97706' }}>
+                      <Text style={{ fontSize: 10, color: '#D59A53' }}>
                         {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </Text>
                     )}
@@ -489,7 +489,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <View key={name} style={{ alignItems: 'center', width: '100%' }}>
                   {i > 0 && <View style={org.line} />}
                   <View style={org.node}>
-                    <Text style={[org.nodeName, isChairman && { color: '#8B1E22' }]}>{name}</Text>
+                    <Text style={[org.nodeName, isChairman && { color: '#7D2329' }]}>{name}</Text>
                     <Text style={org.nodeRole}>{role} · {pct}</Text>
                   </View>
                 </View>
@@ -527,9 +527,9 @@ function TableGroup({ title, type, total, items, onDelete }: {
   onDelete?: () => void;
 }) {
   const colors: Record<string, { dot: string; headerBg: string; badge: string; amt: string }> = {
-    invest: { dot: '#3B82F6', headerBg: '#EFF6FF', badge: '#3B82F6', amt: '#111827' },
-    mid: { dot: '#8B5CF6', headerBg: '#F5F3FF', badge: '#8B5CF6', amt: '#111827' },
-    dividend: { dot: '#D97706', headerBg: '#FFFBEB', badge: '#D97706', amt: '#D97706' },
+    invest: { dot: '#4A7299', headerBg: 'rgba(74,114,153,0.1)', badge: '#4A7299', amt: '#2C2626' },
+    mid: { dot: '#4A7299', headerBg: 'rgba(74,114,153,0.1)', badge: '#4A7299', amt: '#2C2626' },
+    dividend: { dot: '#D59A53', headerBg: 'rgba(213,154,83,0.1)', badge: '#D59A53', amt: '#D59A53' },
   };
   const c = colors[type] || colors.invest;
   return (
@@ -566,62 +566,62 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
   container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 },
-  header: { borderBottomWidth: 1, borderBottomColor: '#F3F4F6', paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  header: { borderBottomWidth: 1, borderBottomColor: '#F9F7F4', paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 8 },
-  backArrow: { fontSize: 22, color: '#9CA3AF', lineHeight: 22, fontWeight: '300' },
-  backText: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
+  backArrow: { fontSize: 22, color: '#8C8583', lineHeight: 22, fontWeight: '300' },
+  backText: { fontSize: 11, color: '#8C8583', fontWeight: '500' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  redBar: { width: 8, height: 36, backgroundColor: '#8B1E22', borderRadius: 100 },
-  mainTitle: { fontSize: 17, fontWeight: '600', color: '#1A1A1A', letterSpacing: -0.3 },
-  engSub: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', letterSpacing: 0.3, marginTop: 1 },
+  redBar: { width: 8, height: 36, backgroundColor: '#7D2329', borderRadius: 100 },
+  mainTitle: { fontSize: 17, fontWeight: '600', color: '#2C2626', letterSpacing: -0.3 },
+  engSub: { fontSize: 10, color: '#8C8583', fontWeight: '500', letterSpacing: 0.3, marginTop: 1 },
   langRow: { flexDirection: 'row', gap: 4, paddingTop: 4 },
-  langBtn: { fontSize: 10, color: '#9CA3AF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '500' as any },
-  langActive: { color: '#8B1E22', backgroundColor: '#FDF2F2', fontWeight: '700' as any },
+  langBtn: { fontSize: 10, color: '#8C8583', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '500' as any },
+  langActive: { color: '#7D2329', backgroundColor: 'rgba(180,65,73,0.1)', fontWeight: '700' as any },
   statGrid: { flexDirection: 'row', gap: 12, marginTop: 16, flexWrap: 'wrap' },
   statCard: {
-    flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F3F4F6',
+    flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F9F7F4',
     padding: 14, flexDirection: 'row', alignItems: 'center', gap: 14,
     // @ts-ignore
     boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
   },
   statIconBg: { width: 36, height: 36, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  statLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', letterSpacing: 0.3 },
-  statValue: { fontSize: 15, fontWeight: '700', color: '#111827', marginTop: 2 },
-  statGreen: { fontSize: 9, color: '#0AA344', fontWeight: '500', marginTop: 2 },
-  statSub: { fontSize: 9, color: '#9CA3AF', fontWeight: '500', marginTop: 2 },
-  dividendBtn: { backgroundColor: '#8B1E22', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12 },
+  statLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500', letterSpacing: 0.3 },
+  statValue: { fontSize: 15, fontWeight: '700', color: '#2C2626', marginTop: 2 },
+  statGreen: { fontSize: 9, color: '#4C7A5D', fontWeight: '500', marginTop: 2 },
+  statSub: { fontSize: 9, color: '#8C8583', fontWeight: '500', marginTop: 2 },
+  dividendBtn: { backgroundColor: '#7D2329', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12 },
   dividendBtnText: { color: '#fff', fontSize: 10, fontWeight: '500' },
   partnerGrid: { flexDirection: 'row', gap: 12, marginTop: 12, flexWrap: 'wrap' },
   partnerCard: {
-    flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F3F4F6',
+    flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F9F7F4',
     padding: 16, gap: 10, // @ts-ignore
     boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
   },
   partnerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  partnerName: { fontSize: 13, fontWeight: '700', color: '#1F2937' },
-  partnerPct: { fontSize: 10, color: '#9CA3AF' },
-  paidBadge: { backgroundColor: '#ECFDF5', borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
-  paidBadgeText: { fontSize: 9, fontWeight: '500', color: '#0AA344' },
+  partnerName: { fontSize: 13, fontWeight: '700', color: '#2C2626' },
+  partnerPct: { fontSize: 10, color: '#8C8583' },
+  paidBadge: { backgroundColor: 'rgba(76,122,93,0.1)', borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
+  paidBadgeText: { fontSize: 9, fontWeight: '500', color: '#4C7A5D' },
   partnerDataRow: { flexDirection: 'row', gap: 4 },
   partnerDataCell: { flex: 1, alignItems: 'center' },
-  dataLabel: { fontSize: 9, color: '#9CA3AF' },
-  dataValue: { fontSize: 10, fontWeight: '600', color: '#111827' },
-  partnerFooter: { borderTopWidth: 1, borderTopColor: '#F9FAFB', paddingTop: 6 },
-  footerLabel: { fontSize: 11, color: '#D97706', fontWeight: '500' },
-  footerAmt: { fontSize: 11, fontWeight: '700', color: '#D97706' },
-  footerSub: { fontSize: 10, color: '#9CA3AF' },
+  dataLabel: { fontSize: 9, color: '#8C8583' },
+  dataValue: { fontSize: 10, fontWeight: '600', color: '#2C2626' },
+  partnerFooter: { borderTopWidth: 1, borderTopColor: '#F9F7F4', paddingTop: 6 },
+  footerLabel: { fontSize: 11, color: '#D59A53', fontWeight: '500' },
+  footerAmt: { fontSize: 11, fontWeight: '700', color: '#D59A53' },
+  footerSub: { fontSize: 10, color: '#8C8583' },
   ledgerCard: {
-    backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#F3F4F6', marginTop: 16,
+    backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#F9F7F4', marginTop: 16,
     // @ts-ignore
     boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
   },
-  ledgerHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F9FAFB', gap: 12 },
-  ledgerTitle: { fontSize: 12, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5 },
-  ledgerSub: { fontSize: 10, color: '#9CA3AF' },
+  ledgerHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F9F7F4', gap: 12 },
+  ledgerTitle: { fontSize: 12, fontWeight: '700', color: '#8C8583', letterSpacing: 0.5 },
+  ledgerSub: { fontSize: 10, color: '#8C8583' },
   filterRow: { flexDirection: 'row', gap: 8 },
-  filterBtn: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, backgroundColor: '#F3F4F6' },
-  filterBtnActive: { backgroundColor: '#1F2937' },
-  filterBtnText: { fontSize: 10, fontWeight: '500' as any, color: '#6B7280' },
+  filterBtn: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, backgroundColor: '#F9F7F4' },
+  filterBtnActive: { backgroundColor: '#2C2626' },
+  filterBtnText: { fontSize: 10, fontWeight: '500' as any, color: '#8C8583' },
   filterBtnActiveText: { color: '#fff', fontWeight: '700' as any },
 });
 
@@ -636,73 +636,73 @@ const mo = StyleSheet.create({
     // @ts-ignore
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
   },
-  header: { backgroundColor: '#8B1E22', paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  header: { backgroundColor: '#7D2329', paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  sub: { fontSize: 10, color: '#FDF2F2', marginTop: 2 },
-  close: { color: '#FDF2F2', fontSize: 18 },
+  sub: { fontSize: 10, color: 'rgba(180,65,73,0.1)', marginTop: 2 },
+  close: { color: 'rgba(180,65,73,0.1)', fontSize: 18 },
 });
 
 const moBody = StyleSheet.create({
   body: { padding: 20, gap: 12 },
-  label: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', marginBottom: 4 },
-  input: { width: '100%', backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: 12, fontWeight: '700' as any, color: '#1A1A1A', fontFamily: undefined },
-  preview: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12, gap: 8 },
-  previewTitle: { fontSize: 9, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5 },
+  label: { fontSize: 10, fontWeight: '700', color: '#8C8583', marginBottom: 4 },
+  input: { width: '100%', backgroundColor: '#F9F7F4', borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: 12, fontWeight: '700' as any, color: '#2C2626', fontFamily: undefined },
+  preview: { backgroundColor: '#F9F7F4', borderRadius: 12, padding: 12, gap: 8 },
+  previewTitle: { fontSize: 9, fontWeight: '700', color: '#8C8583', letterSpacing: 0.5 },
   previewRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  previewName: { fontSize: 11, color: '#4B5563', fontWeight: '500' },
-  previewAmt: { fontSize: 11, fontWeight: '700', color: '#1F2937' },
+  previewName: { fontSize: 11, color: '#8C8583', fontWeight: '500' },
+  previewAmt: { fontSize: 11, fontWeight: '700', color: '#2C2626' },
   btnRow: { flexDirection: 'row', gap: 12, paddingTop: 4 },
-  cancelBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  cancelBtnText: { fontSize: 12, fontWeight: '500', color: '#4B5563' },
-  confirmBtn: { flex: 1, backgroundColor: '#8B1E22', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  cancelBtn: { flex: 1, backgroundColor: '#F9F7F4', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  cancelBtnText: { fontSize: 12, fontWeight: '500', color: '#8C8583' },
+  confirmBtn: { flex: 1, backgroundColor: '#7D2329', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   confirmBtnText: { fontSize: 12, fontWeight: '500', color: '#fff' },
-  deleteConfirmBtn: { flex: 1, backgroundColor: '#CB1B45', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  deleteBox: { backgroundColor: '#FDF2F2', borderRadius: 12, padding: 12, alignItems: 'center' },
-  deleteText: { fontSize: 12, color: '#6B7280', textAlign: 'center' },
+  deleteConfirmBtn: { flex: 1, backgroundColor: '#B34149', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  deleteBox: { backgroundColor: 'rgba(180,65,73,0.1)', borderRadius: 12, padding: 12, alignItems: 'center' },
+  deleteText: { fontSize: 12, color: '#8C8583', textAlign: 'center' },
 });
 
 const ds = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   cell: { flex: 1, flexBasis: '45%' as any, borderRadius: 12, padding: 12 },
-  cellLabel: { fontSize: 10, fontWeight: '500', color: '#9CA3AF' },
-  cellNum: { fontSize: 14, fontWeight: '700', color: '#111827', marginTop: 2 },
-  cellNumSmall: { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 2 },
-  progressWrap: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12 },
+  cellLabel: { fontSize: 10, fontWeight: '500', color: '#8C8583' },
+  cellNum: { fontSize: 14, fontWeight: '700', color: '#2C2626', marginTop: 2 },
+  cellNumSmall: { fontSize: 13, fontWeight: '600', color: '#2C2626', marginTop: 2 },
+  progressWrap: { backgroundColor: '#F9F7F4', borderRadius: 12, padding: 12 },
   progressLabel: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  progressLabelText: { fontSize: 11, color: '#9CA3AF' },
-  progressBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 100, overflow: 'hidden' },
+  progressLabelText: { fontSize: 11, color: '#8C8583' },
+  progressBar: { height: 6, backgroundColor: '#EAE5E0', borderRadius: 100, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 100 },
-  historyTitle: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5, marginBottom: 8 },
+  historyTitle: { fontSize: 10, fontWeight: '700', color: '#8C8583', letterSpacing: 0.5, marginBottom: 8 },
   historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, backgroundColor: 'rgba(255,251,235,0.4)', borderRadius: 8, marginBottom: 4 },
-  historyNote: { fontSize: 11, color: '#4B5563' },
-  historyAmt: { fontSize: 11, fontWeight: '700', color: '#D97706' },
-  historyEmpty: { fontSize: 10, color: '#9CA3AF', textAlign: 'center', paddingVertical: 12 },
+  historyNote: { fontSize: 11, color: '#8C8583' },
+  historyAmt: { fontSize: 11, fontWeight: '700', color: '#D59A53' },
+  historyEmpty: { fontSize: 10, color: '#8C8583', textAlign: 'center', paddingVertical: 12 },
 });
 
 const org = StyleSheet.create({
   body: { padding: 20, alignItems: 'center' },
-  node: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, width: '100%', alignItems: 'center' },
-  nodeName: { fontSize: 13, fontWeight: '700', color: '#1F2937' },
-  nodeRole: { fontSize: 10, color: '#6B7280', marginTop: 2, fontWeight: '500' },
-  line: { width: 2, height: 24, backgroundColor: '#D1D5DB' },
-  joke: { fontSize: 10, color: '#9CA3AF', textAlign: 'center', marginTop: 20, lineHeight: 16, fontWeight: '600' },
+  node: { backgroundColor: '#F9F7F4', borderWidth: 1, borderColor: '#EAE5E0', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, width: '100%', alignItems: 'center' },
+  nodeName: { fontSize: 13, fontWeight: '700', color: '#2C2626' },
+  nodeRole: { fontSize: 10, color: '#8C8583', marginTop: 2, fontWeight: '500' },
+  line: { width: 2, height: 24, backgroundColor: '#EAE5E0' },
+  joke: { fontSize: 10, color: '#8C8583', textAlign: 'center', marginTop: 20, lineHeight: 16, fontWeight: '600' },
 });
 
 const tg = StyleSheet.create({
-  card: { borderTopWidth: 1, borderTopColor: '#F9FAFB' },
-  theadRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  card: { borderTopWidth: 1, borderTopColor: '#F9F7F4' },
+  theadRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F9F7F4' },
   thLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 16, flex: 1 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  thTitle: { fontSize: 12, fontWeight: '600', color: '#1F2937' },
+  thTitle: { fontSize: 12, fontWeight: '600', color: '#2C2626' },
   thMid: { width: 40, alignItems: 'center' },
   thBadge: { fontSize: 11, fontWeight: '600' },
   thRight: { flexDirection: 'row', alignItems: 'center', paddingRight: 16 },
   thAmt: { fontSize: 12, fontWeight: '700' },
-  delBtn: { fontSize: 10, color: '#CB1B45', marginLeft: 8 },
+  delBtn: { fontSize: 10, color: '#B34149', marginLeft: 8 },
   tbodyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
-  rowBorder: { borderTopWidth: 1, borderTopColor: '#F9FAFB' },
-  tdName: { fontSize: 12, color: '#4B5563', flex: 1, paddingLeft: 16 },
-  tdSub: { fontSize: 10, color: '#9CA3AF' },
+  rowBorder: { borderTopWidth: 1, borderTopColor: '#F9F7F4' },
+  tdName: { fontSize: 12, color: '#8C8583', flex: 1, paddingLeft: 16 },
+  tdSub: { fontSize: 10, color: '#8C8583' },
   tdMid: { width: 40 },
   tdAmt: { fontSize: 12, fontWeight: '600', paddingRight: 16 },
 });

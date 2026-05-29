@@ -409,8 +409,8 @@ const styles = StyleSheet.create({
   msgOk: { backgroundColor: 'rgba(16,185,129,0.3)' },
   msgErr: { backgroundColor: 'rgba(254,242,242,0.9)' },
   msgText: { fontSize: 11, fontWeight: '500' },
-  msgOkText: { color: '#ECFDF5' },
-  msgErrText: { color: '#CB1B45' },
+  msgOkText: { color: 'rgba(76,122,93,0.1)' },
+  msgErrText: { color: '#B34149' },
   tabRow: {
     flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, padding: 4, marginBottom: 16,
     // @ts-ignore
