@@ -82,7 +82,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             <Text style={st.backArrow}>{'\u2039'}</Text>
           </View>
         </TouchableOpacity>
-        <Text style={st.title}>{t('dailyRevenue')} ({records.length})</Text>
+        <Text style={st.title}>{t('revHistoryBtn')} ({records.length})</Text>
         <TouchableOpacity
           style={[st.filterBtn, showFilter && st.filterBtnActive]}
           onPress={() => setShowFilter(!showFilter)}
@@ -207,6 +207,15 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
           ))
         )}
       </ScrollView>
+
+      {/* Bottom Nav — tap any tab → back to main */}
+      <View style={st.bottomNav}>
+        {['➕', '📋', '📦', '📊', '👤'].map((icon, i) => (
+          <TouchableOpacity key={i} style={st.navItem} onPress={onBack} activeOpacity={0.7}>
+            <Text style={st.navIcon}>{icon}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
@@ -347,4 +356,23 @@ const st = StyleSheet.create({
   /* Loading */
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 40, gap: 8 },
   loadingText: { fontSize: 13, color: '#8B1E22' },
+
+  /* Bottom Nav */
+  bottomNav: {
+    position: 'fixed' as any,
+    bottom: 16, left: '50%',
+    transform: 'translateX(-50%)' as any,
+    flexDirection: 'row', gap: 6,
+    backgroundColor: 'rgba(250,250,250,0.60)',
+    borderRadius: 28, paddingVertical: 6, paddingHorizontal: 8,
+    // @ts-ignore
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
+    zIndex: 100,
+  },
+  navItem: {
+    width: 44, height: 44, borderRadius: 22,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  navIcon: { fontSize: 20 },
 });

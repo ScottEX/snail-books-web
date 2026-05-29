@@ -342,18 +342,12 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <Text style={{ fontSize: 20 }}>📊</Text>
                         <Text style={styles.revTitle}>{t('dailyRevenue')}</Text>
                       </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        {editingRevId && (
-                          <TouchableOpacity onPress={cancelEdit} activeOpacity={0.7}
-                            style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#F3F4F6' }}>
-                            <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '600' }}>✕ 取消</Text>
-                          </TouchableOpacity>
-                        )}
-                        <TouchableOpacity onPress={() => setShowDailyHistory(true)} activeOpacity={0.7}
-                          style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: '#FA855A', marginLeft: 'auto' }}>
-                          <Text style={{ fontSize: 13, color: '#FFFFFF', fontWeight: '700' }}>📋 {t('revHistoryBtn')}</Text>
+                      {editingRevId && (
+                        <TouchableOpacity onPress={cancelEdit} activeOpacity={0.7}
+                          style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#F3F4F6' }}>
+                          <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '600' }}>✕ 取消</Text>
                         </TouchableOpacity>
-                      </View>
+                      )}
                     </View>
 
                     {/* Quick date pills + date picker */}
@@ -486,7 +480,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         activeOpacity={0.7}
                         style={{ marginLeft: 'auto' }}
                       >
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: '#FA855A' }}>{t('revHistoryBtn')} →</Text>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#FA855A' }}>{t('revHistoryBtn')} →</Text>
                       </TouchableOpacity>
                     </View>
 
@@ -495,47 +489,49 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <Text style={{ fontSize: 13, color: '#9CA3AF' }}>...</Text>
                       </View>
                     ) : (
-                      <View style={styles.rev7Card}>
-                        {last7Records.map((rec: any, i: number) => {
-                          const hasData = rec.revenue > 0 || rec.turnover > 0 || rec.jd_revenue > 0;
-                          const isGap = rec.status === '未录入' || !rec.recorded_by;
-                          return (
-                            <View key={i} style={[styles.rev7Item, i < last7Records.length - 1 && styles.rev7ItemBorder]}>
-                              {/* Row 1: date + amounts + status */}
-                              <View style={styles.rev7ItemRow}>
-                                <Text style={styles.rev7ItemDate}>{rec.date.slice(5)}</Text>
-                                <Text style={[styles.rev7ItemAmt, { color: rec.revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
-                                  {rec.revenue > 0 ? `¥${toDec2(rec.revenue)}` : '—'}
-                                </Text>
-                                <Text style={[styles.rev7ItemAmt, { color: rec.turnover > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
-                                  {rec.turnover > 0 ? `¥${toDec2(rec.turnover)}` : '—'}
-                                </Text>
-                                <Text style={[styles.rev7ItemAmt, { color: rec.jd_revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
-                                  {rec.jd_revenue > 0 ? `¥${toDec2(rec.jd_revenue)}` : '—'}
-                                </Text>
-                                <View style={[styles.rev7ItemBadge, isGap ? styles.rev7ItemBadgeGap : styles.rev7ItemBadgeOk]}>
-                                  <View style={[styles.rev7ItemDot, isGap ? { backgroundColor: '#D1D5DB' } : { backgroundColor: '#059669' }]} />
-                                  <Text style={[styles.rev7ItemStatus, isGap ? { color: '#9CA3AF' } : { color: '#059669' }]}>
-                                    {isGap ? t('revNotEntered') : t('revEntered')}
-                                  </Text>
-                                </View>
-                              </View>
-                              {/* Row 2: labels beneath amounts + recorded by */}
-                              <View style={styles.rev7ItemRow}>
-                                <Text style={styles.rev7ItemLabelSpacer}>{/* spacer */}</Text>
-                                <Text style={styles.rev7ItemLabel}>{t('revRevenue')}</Text>
-                                <Text style={styles.rev7ItemLabel}>{t('revTurnover')}</Text>
-                                <Text style={styles.rev7ItemLabel}>{t('revJD')}</Text>
-                                {rec.recorded_by ? (
-                                  <Text style={styles.rev7ItemRecorder}>{rec.recorded_by}</Text>
-                                ) : (
-                                  <Text style={styles.rev7ItemLabelSpacer}>{/* spacer */}</Text>
-                                )}
-                              </View>
+                      last7Records.map((rec: any, i: number) => (
+                        <View key={i} style={styles.rev7CardItem}>
+                          {/* Top row: date + status badge */}
+                          <View style={styles.rev7CardTop}>
+                            <Text style={styles.rev7CardDate}>{rec.date.slice(5)}</Text>
+                            <View style={[styles.rev7CardBadge, (rec.status === '未录入' || !rec.recorded_by) ? styles.rev7CardBadgeGap : styles.rev7CardBadgeOk]}>
+                              <View style={[styles.rev7CardDot, (rec.status === '未录入' || !rec.recorded_by) ? { backgroundColor: '#D1D5DB' } : { backgroundColor: '#059669' }]} />
+                              <Text style={[styles.rev7CardStatus, (rec.status === '未录入' || !rec.recorded_by) ? { color: '#9CA3AF' } : { color: '#059669' }]}>
+                                {rec.status === '未录入' || !rec.recorded_by ? t('revNotEntered') : t('revEntered')}
+                              </Text>
                             </View>
-                          );
-                        })}
-                      </View>
+                          </View>
+
+                          {/* Amount row: three columns */}
+                          <View style={styles.rev7CardAmounts}>
+                            <View style={styles.rev7CardAmtCol}>
+                              <Text style={[styles.rev7CardAmtVal, { color: rec.revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
+                                {rec.revenue > 0 ? `¥${toDec2(rec.revenue)}` : '—'}
+                              </Text>
+                              <Text style={styles.rev7CardAmtLabel}>{t('revRevenue')}</Text>
+                            </View>
+                            <View style={styles.rev7CardAmtCol}>
+                              <Text style={[styles.rev7CardAmtVal, { color: rec.turnover > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
+                                {rec.turnover > 0 ? `¥${toDec2(rec.turnover)}` : '—'}
+                              </Text>
+                              <Text style={styles.rev7CardAmtLabel}>{t('revTurnover')}</Text>
+                            </View>
+                            <View style={styles.rev7CardAmtCol}>
+                              <Text style={[styles.rev7CardAmtVal, { color: rec.jd_revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
+                                {rec.jd_revenue > 0 ? `¥${toDec2(rec.jd_revenue)}` : '—'}
+                              </Text>
+                              <Text style={styles.rev7CardAmtLabel}>{t('revJD')}</Text>
+                            </View>
+                          </View>
+
+                          {/* Footer: recorded by */}
+                          {rec.recorded_by ? (
+                            <View style={styles.rev7CardFooter}>
+                              <Text style={styles.rev7CardFooterText}>{t('recordedBy')}: {rec.recorded_by}</Text>
+                            </View>
+                          ) : null}
+                        </View>
+                      ))
                     )}
                   </View>
                 </View>
@@ -654,6 +650,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               setTab(id as Tab);
               setShowReconHistory(false);
               setShowExpenseHistory(false);
+              setShowDailyHistory(false);
             }}
           >
             <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>
@@ -901,49 +898,39 @@ const styles = StyleSheet.create({
   revArchiveBtnDone: { backgroundColor: '#ECFDF5' },
   revArchiveText: { fontSize: 15, fontWeight: '700', color: '#4B5563' },
   revArchiveTextDone: { color: '#059669' },
-  rev7Card: {
+  // 7-day card items — same card style as history page
+  rev7CardItem: {
     backgroundColor: '#FFFFFF', borderRadius: 12,
+    paddingVertical: 16, paddingHorizontal: 16,
+    marginBottom: 10,
     borderWidth: 1, borderColor: '#EBEBEB',
     // @ts-ignore
-    boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
-    overflow: 'hidden',
-    paddingVertical: 4, paddingHorizontal: 12,
+    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+    gap: 12,
   },
-  rev7Item: {
-    paddingVertical: 12,
+  rev7CardTop: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  rev7ItemBorder: {
-    borderBottomWidth: 0.5, borderBottomColor: '#F0F0F0',
-  },
-  rev7ItemRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-  },
-  rev7ItemDate: {
-    fontSize: 12, fontWeight: '700', color: '#374151',
-    width: 36, fontFamily: 'monospace',
-  },
-  rev7ItemAmt: {
-    flex: 1, fontSize: 12, fontWeight: '600',
-    textAlign: 'right',
-  },
-  rev7ItemBadge: {
+  rev7CardDate: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
+  rev7CardBadge: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 10,
-    gap: 4, marginLeft: 2, width: 64, justifyContent: 'center',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,
   },
-  rev7ItemBadgeGap: { backgroundColor: '#F3F4F6' },
-  rev7ItemBadgeOk: { backgroundColor: '#ECFDF5' },
-  rev7ItemDot: { width: 5, height: 5, borderRadius: 2.5 },
-  rev7ItemStatus: { fontSize: 10, fontWeight: '600' },
-  rev7ItemLabel: {
-    flex: 1, fontSize: 9, color: '#B0B0B0', fontWeight: '500',
-    textAlign: 'right',
+  rev7CardBadgeGap: { backgroundColor: '#F3F4F6' },
+  rev7CardBadgeOk: { backgroundColor: '#ECFDF5' },
+  rev7CardDot: { width: 6, height: 6, borderRadius: 3 },
+  rev7CardStatus: { fontSize: 12, fontWeight: '600' },
+  rev7CardAmounts: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    paddingVertical: 12, paddingHorizontal: 8,
+    backgroundColor: '#FAFAFA', borderRadius: 8,
   },
-  rev7ItemLabelSpacer: {
-    width: 36, // matches date column
+  rev7CardAmtCol: { alignItems: 'center', flex: 1, gap: 4 },
+  rev7CardAmtVal: { fontSize: 17, fontWeight: '700' },
+  rev7CardAmtLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
+  rev7CardFooter: {
+    borderTopWidth: 0.5, borderTopColor: '#F0F0F0',
+    paddingTop: 8,
   },
-  rev7ItemRecorder: {
-    fontSize: 10, color: '#9CA3AF', fontWeight: '500',
-    width: 64, textAlign: 'center',
-  },
+  rev7CardFooterText: { fontSize: 11, color: '#9CA3AF' },
 });
