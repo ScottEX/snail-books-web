@@ -175,6 +175,13 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                 </View>
               </View>
 
+              {/* Archived badge */}
+              {rec.archived ? (
+                <View style={st.archivedBadge}>
+                  <Text style={st.archivedBadgeText}>{t('revMarkArchive')}</Text>
+                </View>
+              ) : null}
+
               {/* Amount row: three columns */}
               <View style={st.cardAmounts}>
                 <View style={st.cardAmtCol}>
@@ -320,14 +327,14 @@ const st = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,
   },
-  statusBadgeEmpty: { backgroundColor: '#F3F4F6' },
+  statusBadgeEmpty: { backgroundColor: '#FDF2F2' },
   statusBadgeDone: { backgroundColor: '#ECFDF5' },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusDotEmpty: { backgroundColor: '#D1D5DB' },
-  statusDotDone: { backgroundColor: '#059669' },
+  statusDotEmpty: { backgroundColor: '#CB1B45' },
+  statusDotDone: { backgroundColor: '#0AA344' },
   statusText: { fontSize: 12, fontWeight: '600' },
-  statusTextEmpty: { color: '#9CA3AF' },
-  statusTextDone: { color: '#059669' },
+  statusTextEmpty: { color: '#CB1B45' },
+  statusTextDone: { color: '#0AA344' },
 
   /* Amount row */
   cardAmounts: {
@@ -345,6 +352,14 @@ const st = StyleSheet.create({
     paddingTop: 8,
   },
   cardFooterText: { fontSize: 11, color: '#9CA3AF' },
+
+  /* Archived badge */
+  archivedBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
+    backgroundColor: '#FDF2F2',
+  },
+  archivedBadgeText: { fontSize: 11, fontWeight: '600', color: '#CB1B45' },
 
   /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },

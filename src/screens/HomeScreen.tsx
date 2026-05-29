@@ -142,6 +142,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           turnover: parseFloat(revTurnover) || 0,
           jd_revenue: parseFloat(revJD) || 0,
           note: revNote,
+          archived: revMarkedClosed ? 1 : 0,
         });
       } else {
         const r = await api.createDailyRevenue({
@@ -150,6 +151,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           turnover: parseFloat(revTurnover) || 0,
           jd_revenue: parseFloat(revJD) || 0,
           note: revNote,
+          archived: revMarkedClosed ? 1 : 0,
         });
         if (r.status === 'error') { setToast(r.message); setRevSaving(false); return; }
       }
@@ -386,7 +388,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Three input cards */}
                     <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
                       <View style={styles.revInputCard}>
-                        <Text style={{ fontSize: 14, marginBottom: 6 }}>¥</Text>
+                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
+                          <Path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                        </Svg>
                         <Text style={styles.revInputCardTitle}>{t('revRevenue')}</Text>
                         <Text style={styles.revInputCardSub}>{t('revRevenueSub')}</Text>
                         <View style={styles.revInputCardInputWrap}>
@@ -414,7 +418,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         </Text>
                       </View>
                       <View style={styles.revInputCard}>
-                        <Text style={{ fontSize: 14, marginBottom: 6 }}>↪</Text>
+                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
+                          <Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
+                        </Svg>
                         <Text style={styles.revInputCardTitle}>{t('revJD')}</Text>
                         <Text style={styles.revInputCardSub}>{t('revJDSub')}</Text>
                         <View style={styles.revInputCardInputWrap}>
@@ -437,7 +443,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Two action buttons */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <TouchableOpacity
-                        style={[styles.revArchiveBtn, { flex: 1.5 }, revMarkedClosed && styles.revArchiveBtnDone]}
+                        style={[styles.revArchiveBtn, { flex: 2 }, revMarkedClosed && styles.revArchiveBtnDone]}
                         onPress={() => { if (!revMarkedClosed) setRevMarkedClosed(true); }}
                         activeOpacity={0.7}>
                         <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
@@ -493,14 +499,21 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <View key={i} style={styles.rev7CardItem}>
                           {/* Top row: date + status badge */}
                           <View style={styles.rev7CardTop}>
-                            <Text style={styles.rev7CardDate}>{rec.date.slice(5)}</Text>
+                            <Text style={styles.rev7CardDate}>{rec.date}</Text>
                             <View style={[styles.rev7CardBadge, (rec.status === '未录入' || !rec.recorded_by) ? styles.rev7CardBadgeGap : styles.rev7CardBadgeOk]}>
-                              <View style={[styles.rev7CardDot, (rec.status === '未录入' || !rec.recorded_by) ? { backgroundColor: '#D1D5DB' } : { backgroundColor: '#059669' }]} />
-                              <Text style={[styles.rev7CardStatus, (rec.status === '未录入' || !rec.recorded_by) ? { color: '#9CA3AF' } : { color: '#059669' }]}>
+                              <View style={[styles.rev7CardDot, (rec.status === '未录入' || !rec.recorded_by) ? { backgroundColor: '#CB1B45' } : { backgroundColor: '#0AA344' }]} />
+                              <Text style={[styles.rev7CardStatus, (rec.status === '未录入' || !rec.recorded_by) ? { color: '#CB1B45' } : { color: '#0AA344' }]}>
                                 {rec.status === '未录入' || !rec.recorded_by ? t('revNotEntered') : t('revEntered')}
                               </Text>
                             </View>
                           </View>
+
+                          {/* Archived badge */}
+                          {rec.archived ? (
+                            <View style={styles.rev7ArchivedBadge}>
+                              <Text style={styles.rev7ArchivedBadgeText}>{t('revMarkArchive')}</Text>
+                            </View>
+                          ) : null}
 
                           {/* Amount row: three columns */}
                           <View style={styles.rev7CardAmounts}>
@@ -916,7 +929,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,
   },
-  rev7CardBadgeGap: { backgroundColor: '#F3F4F6' },
+  rev7CardBadgeGap: { backgroundColor: '#FDF2F2' },
   rev7CardBadgeOk: { backgroundColor: '#ECFDF5' },
   rev7CardDot: { width: 6, height: 6, borderRadius: 3 },
   rev7CardStatus: { fontSize: 12, fontWeight: '600' },
@@ -933,4 +946,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   rev7CardFooterText: { fontSize: 11, color: '#9CA3AF' },
+
+  /* Archived badge */
+  rev7ArchivedBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
+    backgroundColor: '#FDF2F2',
+  },
+  rev7ArchivedBadgeText: { fontSize: 11, fontWeight: '600', color: '#CB1B45' },
 });
