@@ -225,7 +225,11 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 260 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
-          <Text style={st.empty}>{t('noData')}</Text>
+          <View style={st.emptyWrap}>
+            <View style={st.emptyIcon}><Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text></View>
+            <Text style={st.emptyTitle}>{t('noRecords')}</Text>
+            <Text style={st.emptyHint}>{t('emptyExpenseHint')}</Text>
+          </View>
         ) : (
           <>
             {visible.map((e: any, i: number) => (
@@ -239,7 +243,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                       <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
                     </View>
                   </View>
-                  <Text style={st.amount}>-¥{e.amount.toLocaleString()}</Text>
+                  <Text style={st.amount}>-¥{e.amount.toFixed(2)}</Text>
                 </View>
                 {currentUser ? (
                   <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
@@ -401,7 +405,11 @@ const st = StyleSheet.create({
   },
   dateText: { fontSize: 13, color: '#9CA3AF' },
   note: { fontSize: 13, color: '#6B7280', flex: 1, textAlign: 'right' },
-  empty: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingVertical: 40 },
+  emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#FAF7F2', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#EBEBEB' },
+  emptyEmoji: { fontSize: 30 },
+  emptyTitle: { fontSize: 16, fontWeight: '500', color: '#6B7280' },
+  emptyHint: { fontSize: 13, color: '#B0B0B0', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
   loadingText: { fontSize: 13, color: '#8B1E22' },
   /* Preview overlay */

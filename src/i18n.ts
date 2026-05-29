@@ -200,6 +200,7 @@ const I18N: Record<string, Record<string, string>> = {
     reconHistory: '对账记录',
     reconDate: '对账日期',
     emptyReconHint: '每完成一次对账，这里就多一张小卡片',
+    emptyExpenseHint: '每完成一次记账，这里就多一条记录',
     loadMore: '加载更多',
     tapForDetail: '点击卡片查看详情',
     // Toast messages
@@ -426,6 +427,7 @@ const I18N: Record<string, Record<string, string>> = {
     reconHistory: '對賬記錄',
     reconDate: '對賬日期',
     emptyReconHint: '每完成一次對賬，這裡就多一張小卡片',
+    emptyExpenseHint: '每完成一次記賬，這裡就多一條記錄',
     loadMore: '載入更多',
     tapForDetail: '點擊卡片檢視詳情',
     // Toast messages
@@ -652,6 +654,7 @@ const I18N: Record<string, Record<string, string>> = {
     reconHistory: 'Recon History',
     reconDate: 'Date',
     emptyReconHint: 'Each reconciliation adds a card here',
+    emptyExpenseHint: 'Each expense record will appear here',
     loadMore: 'Load More',
     tapForDetail: 'Tap card for details',
     // Toast messages

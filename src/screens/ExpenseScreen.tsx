@@ -493,15 +493,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookBalance')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
+                          <Text style={st.cardFieldVal}>{fmt(channelTotal)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('currentBalance')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(realTotal)}</Text>
+                          <Text style={st.cardFieldVal}>{fmt(realTotal)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
-                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FCA5A5' }]}>{diff >= 0 ? '+' : '-'}¥{fmtInt(Math.abs(diff))}</Text>
+                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FCA5A5' }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
                         </View>
                       </View>
                     </View>
@@ -511,15 +511,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('cumulativeRevenue')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
+                          <Text style={st.cardFieldVal}>{fmt(channelTotal)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('cumulativeExpense')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods)}</Text>
+                          <Text style={st.cardFieldVal}>{fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('cashOnHand')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(realTotal)}</Text>
+                          <Text style={st.cardFieldVal}>{fmt(realTotal)}</Text>
                         </View>
                       </View>
                     </View>
@@ -530,19 +530,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     <View style={st.cardFieldRow}>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('daily')}</Text>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.daily)}</Text>
+                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.daily)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('rent')}</Text>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.rent)}</Text>
+                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.rent)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('salary')}</Text>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.salary)}</Text>
+                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.salary)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('goods')}</Text>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.goods)}</Text>
+                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.goods)}</Text>
                       </View>
                     </View>
                   </View>
@@ -730,6 +730,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={{ fontSize: 10, color: '#8B1E22' }}>▼</Text>
                 </TouchableOpacity>
               </View>
+              {(feeMonth !== 'all' || allFees.length > 0) && (
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
                 onPress={() => {
@@ -747,6 +748,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </Text>
                 <Text style={{ fontSize: 16, color: '#8B1E22', fontWeight: '700' }}>→</Text>
               </TouchableOpacity>
+              )}
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 }}>

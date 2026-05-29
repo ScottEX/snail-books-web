@@ -184,7 +184,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.statLabel}>{t('distributedPool')}</Text>
-                  <Text style={[s.statValue, { color: '#D97706' }]}>¥{totalDiv.toLocaleString()}</Text>
+                  <Text style={[s.statValue, { color: '#D97706' }]}>¥{totalDiv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                   <Text style={s.statSub}>{t('cumulativeByShare')}</Text>
                 </View>
               </View>
@@ -227,28 +227,28 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <View style={s.partnerDataRow}>
                     <View style={s.partnerDataCell}>
                       <Text style={s.dataLabel}>{t('subscribedTotal')}</Text>
-                      <Text style={s.dataValue}>¥{p.investment.toLocaleString()}</Text>
+                      <Text style={s.dataValue}>¥{p.investment.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                     <View style={s.partnerDataCell}>
                       <Text style={s.dataLabel}>{t('initial')}</Text>
-                      <Text style={s.dataValue}>¥{initInv.toLocaleString()}</Text>
+                      <Text style={s.dataValue}>¥{initInv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                     <View style={s.partnerDataCell}>
                       <Text style={s.dataLabel}>{t('additional')}</Text>
-                      <Text style={s.dataValue}>¥{midInv.toLocaleString()}</Text>
+                      <Text style={s.dataValue}>¥{midInv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                   </View>
                   <View style={s.partnerFooter}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                       <Text style={s.footerLabel}>{t('totalDividendsPaid')}</Text>
-                      <Text style={s.footerAmt}>¥{p.total_dividends.toLocaleString()}</Text>
+                      <Text style={s.footerAmt}>¥{p.total_dividends.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
                       <Text style={s.footerSub}>{t('paybackRate')} {pct}%</Text>
                       {isBack ? (
                         <Text style={{ fontSize: 10, color: '#059669', fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
                       ) : (
-                        <Text style={{ fontSize: 10, color: '#D97706', fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString()}</Text>
+                        <Text style={{ fontSize: 10, color: '#D97706', fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                       )}
                     </View>
                   </View>
@@ -405,19 +405,19 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               <View style={ds.grid}>
                 <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
                   <Text style={ds.cellLabel}>{t('totalInvest')}</Text>
-                  <Text style={ds.cellNum}>¥{(showDetail.investment || 0).toLocaleString()}</Text>
+                  <Text style={ds.cellNum}>¥{(showDetail.investment || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: '#FFFBEB' }]}>
                   <Text style={[ds.cellLabel, { color: '#D97706' }]}>{t('totalDividends')}</Text>
-                  <Text style={[ds.cellNum, { color: '#D97706' }]}>¥{(showDetail.total_dividends || 0).toLocaleString()}</Text>
+                  <Text style={[ds.cellNum, { color: '#D97706' }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{(initCapital[showDetail.name] ?? 42900).toLocaleString()}</Text>
+                  <Text style={ds.cellNumSmall}>¥{(initCapital[showDetail.name] ?? 42900).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
                   <Text style={ds.cellLabel}>{t('additional')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{((showDetail.investment || 0) - (initCapital[showDetail.name] || 0)).toLocaleString()}</Text>
+                  <Text style={ds.cellNumSmall}>¥{((showDetail.investment || 0) - (initCapital[showDetail.name] || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
               </View>
               {showDetail.investment > 0 && (
@@ -439,7 +439,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                       <Text style={{ fontSize: 10, color: '#059669', fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
                     ) : (
                       <Text style={{ fontSize: 10, color: '#D97706' }}>
-                        {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString()}
+                        {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </Text>
                     )}
                   </View>
@@ -454,7 +454,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                     hist.map((h, i) => (
                       <View key={i} style={ds.historyRow}>
                         <Text style={ds.historyNote}>{h.note}</Text>
-                        <Text style={ds.historyAmt}>¥{h.amount.toLocaleString()}</Text>
+                        <Text style={ds.historyAmt}>¥{h.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                       </View>
                     ))
                   ) : (
@@ -540,7 +540,7 @@ function TableGroup({ title, type, total, items, onDelete }: {
           <Text style={tg.thTitle}>{title}</Text>
         </View>
         <View style={tg.thRight}>
-          <Text style={[tg.thAmt, { color: c.amt }]}>¥{total.toLocaleString()}</Text>
+          <Text style={[tg.thAmt, { color: c.amt }]}>¥{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
           {onDelete && (
             <TouchableOpacity onPress={onDelete}>
               <Text style={tg.delBtn}>{t('deleteRecord')}</Text>
@@ -553,7 +553,7 @@ function TableGroup({ title, type, total, items, onDelete }: {
           <Text style={tg.tdName}>{item.name}
             {item.sub ? <Text style={tg.tdSub}> · {item.sub}</Text> : null}
           </Text>
-          <Text style={[tg.tdAmt, { color: c.amt }]}>¥{item.amount.toLocaleString()}</Text>
+          <Text style={[tg.tdAmt, { color: c.amt }]}>¥{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
         </View>
       ))}
     </View>

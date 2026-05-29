@@ -213,26 +213,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               )}
 
               {tab === 'supply' && (
-                <View>
-                  <Text style={styles.sectionTitle}>{t('productCatalog') || '产品目录'}</Text>
-                  {products.map((p: any) => (
-                    <View key={p.id} style={styles.supplyRow}>
-                      <Text style={styles.supplyName}>{p.name} {p.spec}</Text>
-                      <Text style={styles.supplyPrice}>¥{p.price?.toFixed(2)}</Text>
-                    </View>
-                  ))}
-                  {procurements.length > 0 && (
-                    <>
-                      <Text style={[styles.sectionTitle, { marginTop: 16 }]}>{t('recentProcure') || '最近进货'}</Text>
-                      {procurements.map((pr: any) => (
-                        <View key={pr.id} style={styles.supplyRow}>
-                          <Text style={styles.supplyName}>{pr.product_name} x{pr.quantity}</Text>
-                          <Text style={styles.supplyPrice}>¥{pr.total?.toFixed(2)}</Text>
-                        </View>
-                      ))}
-                    </>
-                  )}
-                </View>
+                <View />
               )}
 
               {tab === 'chart' && (
@@ -245,7 +226,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <View style={[styles.barIncome, { flex: d.income || 0 } as any]} />
                         <View style={[styles.barExpense, { flex: d.expense || 0 } as any]} />
                       </View>
-                      <Text style={styles.barVal}>+{d.income?.toFixed(0)} -{d.expense?.toFixed(0)}</Text>
+                      <Text style={styles.barVal}>+{d.income?.toFixed(2)} -{d.expense?.toFixed(2)}</Text>
                     </View>
                   ))}
                 </View>
