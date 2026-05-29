@@ -541,6 +541,12 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <View style={styles.rev7CardFooter}>
                             <Text style={styles.rev7CardFooterText}>{t('recordedBy')}: {rec.recorded_by || '—'}</Text>
                           </View>
+                          {/* Note */}
+                          {rec.note ? (
+                            <View style={styles.rev7CardNote}>
+                              <Text style={styles.rev7CardNoteText}>{rec.note}</Text>
+                            </View>
+                          ) : null}
                         </View>
                       ))
                     )}
@@ -952,4 +958,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FDF2F2',
   },
   rev7ArchivedBadgeText: { fontSize: 11, fontWeight: '600', color: '#CB1B45' },
+
+  /* Note display */
+  rev7CardNote: { borderTopWidth: 0.5, borderTopColor: '#F0F0F0', paddingTop: 8, marginTop: 4 },
+  rev7CardNoteText: { fontSize: 11, color: '#6B7280', lineHeight: 16 },
 });

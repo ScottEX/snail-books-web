@@ -208,6 +208,12 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
               <View style={st.cardFooter}>
                 <Text style={st.cardFooterText}>{t('recordedBy')}: {rec.recorded_by || '—'}</Text>
               </View>
+              {/* Note */}
+              {rec.note ? (
+                <View style={st.cardNote}>
+                  <Text style={st.cardNoteText}>{rec.note}</Text>
+                </View>
+              ) : null}
             </View>
           ))
         )}
@@ -358,6 +364,10 @@ const st = StyleSheet.create({
     backgroundColor: '#FDF2F2',
   },
   archivedBadgeText: { fontSize: 11, fontWeight: '600', color: '#CB1B45' },
+
+  /* Note display */
+  cardNote: { borderTopWidth: 0.5, borderTopColor: '#F0F0F0', paddingTop: 8, marginTop: 4 },
+  cardNoteText: { fontSize: 11, color: '#6B7280', lineHeight: 16 },
 
   /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
