@@ -79,6 +79,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       if (r?.url) {
         setBgImage(r.url);
         try { localStorage.setItem('bg-image', r.url); } catch {}
+      } else {
+        // No custom background — use default
+        setBgImage('/img/bg.jpg');
+        try { localStorage.removeItem('bg-image'); } catch {}
       }
       // Load opacity from server (overrides localStorage default)
       if (r?.opacity !== null && r?.opacity !== undefined) {
@@ -141,9 +145,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     if (!file) return;
     setUploadingBg(true);
     try {
-      await api.uploadBackground(file);
-      const r = await api.getBackground();
-      if (r?.url) setBgImage(r.url);
+      const r = await api.uploadBackground(file);
+      if (r?.url) {
+        setBgImage(r.url);
+        try { localStorage.setItem('bg-image', r.url); } catch {}
+      }
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
@@ -153,8 +159,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setUploadingBg(true);
     try {
       await api.resetBackground();
-      const r = await api.getBackground();
-      if (r?.url) setBgImage(r.url);
+      setBgImage('/img/bg.jpg');
+      try { localStorage.removeItem('bg-image'); } catch {}
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
