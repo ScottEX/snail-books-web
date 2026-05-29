@@ -1097,9 +1097,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
       {/* Fee history bottom sheet — "全部" detail view */}
       {showFeeHistory && (
-        <View style={[st.modalOverlay, { justifyContent: 'flex-end' }]}>
+        <View style={[st.modalOverlay, { justifyContent: 'flex-end', paddingTop: 180, paddingBottom: 95 }]}>
           <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }} />
-          <View style={[st.feeSheet, { maxHeight: '80%' }]}>
+          <View style={[st.feeSheet, { maxHeight: 560 }]}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
               <TouchableOpacity onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
@@ -1640,7 +1640,6 @@ const st = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     paddingBottom: 0,
-    marginBottom: 130,
     // @ts-ignore
     animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
     // @ts-ignore
