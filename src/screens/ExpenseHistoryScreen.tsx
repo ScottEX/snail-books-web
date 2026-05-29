@@ -397,7 +397,7 @@ const st = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 3,
   },
   payBadgeText: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
-  amount: { fontSize: 17, fontWeight: '700', color: '#DC2626' },
+  amount: { fontSize: 17, fontWeight: '700', color: '#CB1B45' },
   filledBy: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {

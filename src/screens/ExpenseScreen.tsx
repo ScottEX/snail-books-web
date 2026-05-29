@@ -474,7 +474,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     ? ((feeData.meituan_cashier || 0) + (feeData.meituan_waimai || 0) + (feeData.eleme_waimai || 0) + (feeData.meituan_tuan || 0))
     : 0;
   const tabCards = [
-    { gradient: ['rgba(13,148,136,0.22)', 'rgba(101,163,13,0.22)'], gradientActive: ['rgba(13,148,136,0.48)', 'rgba(101,163,13,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
+    { gradient: ['rgba(13,148,136,0.22)', 'rgba(101,163,13,0.22)'], gradientActive: ['rgba(13,148,136,0.48)', 'rgba(101,163,13,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#0AA344' : '#CB1B45', prefix: diff >= 0 ? '+' : '' },
     { gradient: ['rgba(236,72,153,0.22)', 'rgba(249,115,22,0.22)'], gradientActive: ['rgba(236,72,153,0.48)', 'rgba(249,115,22,0.48)'], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: '#1A1A1A', prefix: '' },
     { gradient: ['rgba(220,38,38,0.22)', 'rgba(153,27,27,0.22)'], gradientActive: ['rgba(220,38,38,0.48)', 'rgba(153,27,27,0.48)'], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: '#1A1A1A', prefix: '' },
   ];
@@ -518,7 +518,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
-                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FCA5A5' }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
+                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#ECFDF5' : '#FDF2F2' }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
                         </View>
                       </View>
                     </View>
@@ -634,7 +634,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             {/* 在途资金 */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: 14, fontWeight: '500', color: '#6B7280' }}>{t('fundsInTransit')}</Text>
-              <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#C93638' }} />
+              <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#CB1B45' }} />
             </View>
             <View style={st.channelGrid}>
               {/* Row 1: 堂食 + 美团 + 闪购 */}
@@ -778,9 +778,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {([
                 { k: 'meituanCashier', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0) : (feeData?.meituan_cashier || 0), color: '#3B82F6' },
-                { k: 'meituanWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0) : (feeData?.meituan_waimai || 0), color: '#F59E0B' },
+                { k: 'meituanWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0) : (feeData?.meituan_waimai || 0), color: '#D97706' },
                 { k: 'shangouWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0) : (feeData?.eleme_waimai || 0), color: '#06B6D4' },
-                { k: 'meituanTuan', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0) : (feeData?.meituan_tuan || 0), color: '#10B981' },
+                { k: 'meituanTuan', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0) : (feeData?.meituan_tuan || 0), color: '#0AA344' },
               ] as const).map((p) => (
                 <View key={p.k} style={{ flex: 1, minWidth: '45%', backgroundColor: '#F9FAFB', borderRadius: 10, padding: 10 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -1172,9 +1172,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
                   { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: '#3B82F6' as const },
-                  { label: t('meituanWaimai'), value: f.meituan_waimai || 0, color: '#F59E0B' as const },
+                  { label: t('meituanWaimai'), value: f.meituan_waimai || 0, color: '#D97706' as const },
                   { label: t('shangouWaimai'), value: f.eleme_waimai || 0, color: '#06B6D4' as const },
-                  { label: t('meituanTuan'), value: f.meituan_tuan || 0, color: '#10B981' as const },
+                  { label: t('meituanTuan'), value: f.meituan_tuan || 0, color: '#0AA344' as const },
                 ];
                 return (
                   <View key={f.id} style={{ backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#EEEBE6', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as any}>
@@ -1230,7 +1230,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? '#FDF2F2' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeMonth('all');
                 Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
@@ -1245,7 +1245,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               return (
                 <TouchableOpacity
                   key={`${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? '#FDF2F2' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeMonth({ year: f.year, month: f.month });
                     Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
@@ -1287,7 +1287,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? '#FDF2F2' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeHistoryFilter('all');
                 Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
@@ -1302,7 +1302,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               return (
                 <TouchableOpacity
                   key={`hf-${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? '#FDF2F2' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeHistoryFilter({ year: f.year, month: f.month });
                     Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
@@ -1627,7 +1627,7 @@ const st = StyleSheet.create({
     backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
   },
   payChipActive: { backgroundColor: '#FA855A' },
-  payChipActiveWechat: { backgroundColor: '#07C160' },
+  payChipActiveWechat: { backgroundColor: '#0AA344' },
   payChipActiveAlipay: { backgroundColor: '#1677FF' },
   payChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   payChipTextActive: { color: '#FFFFFF' },
@@ -1667,7 +1667,7 @@ const st = StyleSheet.create({
   },
   expNote: { fontSize: 13, color: '#374151', fontWeight: '500' },
   expDateText: { fontSize: 10, color: '#9CA3AF', marginTop: 2 },
-  expAmt: { fontSize: 15, fontWeight: '700', color: '#DC2626' },
+  expAmt: { fontSize: 15, fontWeight: '700', color: '#CB1B45' },
 
   /* ── Empty ── */
   empty: {
@@ -1697,7 +1697,7 @@ const st = StyleSheet.create({
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
   modalTitle: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  modalClose: { color: '#FECACA', fontSize: 18 },
+  modalClose: { color: '#FDF2F2', fontSize: 18 },
   modalBtn: {
     flex: 1, backgroundColor: '#8B1E22', borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',

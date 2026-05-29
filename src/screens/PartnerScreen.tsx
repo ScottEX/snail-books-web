@@ -33,7 +33,7 @@ function IconBuilding({ color = '#8B1E22' }: { color?: string }) {
   );
 }
 
-function IconCoins({ color = '#F59E0B' }: { color?: string }) {
+function IconCoins({ color = '#D97706' }: { color?: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8}>
       <Path strokeLinecap="round" strokeLinejoin="round"
@@ -180,7 +180,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             <View style={s.statCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 }}>
                 <View style={[s.statIconBg, { backgroundColor: '#FFFBEB' }]}>
-                  <IconCoins color="#F59E0B" />
+                  <IconCoins color="#D97706" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.statLabel}>{t('distributedPool')}</Text>
@@ -246,7 +246,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
                       <Text style={s.footerSub}>{t('paybackRate')} {pct}%</Text>
                       {isBack ? (
-                        <Text style={{ fontSize: 10, color: '#059669', fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
+                        <Text style={{ fontSize: 10, color: '#0AA344', fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
                       ) : (
                         <Text style={{ fontSize: 10, color: '#D97706', fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                       )}
@@ -431,12 +431,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <View style={ds.progressBar}>
                     <View style={[ds.progressFill, {
                       width: `${Math.min(100, ((showDetail.total_dividends || 0) / showDetail.investment * 100))}%` as any,
-                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? '#059669' : '#D97706',
+                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? '#0AA344' : '#D97706',
                     }]} />
                   </View>
                   <View style={{ marginTop: 4 }}>
                     {(showDetail.total_dividends || 0) >= showDetail.investment ? (
-                      <Text style={{ fontSize: 10, color: '#059669', fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
+                      <Text style={{ fontSize: 10, color: '#0AA344', fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
                     ) : (
                       <Text style={{ fontSize: 10, color: '#D97706' }}>
                         {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -529,7 +529,7 @@ function TableGroup({ title, type, total, items, onDelete }: {
   const colors: Record<string, { dot: string; headerBg: string; badge: string; amt: string }> = {
     invest: { dot: '#3B82F6', headerBg: '#EFF6FF', badge: '#3B82F6', amt: '#111827' },
     mid: { dot: '#8B5CF6', headerBg: '#F5F3FF', badge: '#8B5CF6', amt: '#111827' },
-    dividend: { dot: '#F59E0B', headerBg: '#FFFBEB', badge: '#F59E0B', amt: '#D97706' },
+    dividend: { dot: '#D97706', headerBg: '#FFFBEB', badge: '#D97706', amt: '#D97706' },
   };
   const c = colors[type] || colors.invest;
   return (
@@ -576,7 +576,7 @@ const s = StyleSheet.create({
   engSub: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', letterSpacing: 0.3, marginTop: 1 },
   langRow: { flexDirection: 'row', gap: 4, paddingTop: 4 },
   langBtn: { fontSize: 10, color: '#9CA3AF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '500' as any },
-  langActive: { color: '#8B1E22', backgroundColor: '#FEE2E2', fontWeight: '700' as any },
+  langActive: { color: '#8B1E22', backgroundColor: '#FDF2F2', fontWeight: '700' as any },
   statGrid: { flexDirection: 'row', gap: 12, marginTop: 16, flexWrap: 'wrap' },
   statCard: {
     flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F3F4F6',
@@ -587,7 +587,7 @@ const s = StyleSheet.create({
   statIconBg: { width: 36, height: 36, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   statLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', letterSpacing: 0.3 },
   statValue: { fontSize: 15, fontWeight: '700', color: '#111827', marginTop: 2 },
-  statGreen: { fontSize: 9, color: '#059669', fontWeight: '500', marginTop: 2 },
+  statGreen: { fontSize: 9, color: '#0AA344', fontWeight: '500', marginTop: 2 },
   statSub: { fontSize: 9, color: '#9CA3AF', fontWeight: '500', marginTop: 2 },
   dividendBtn: { backgroundColor: '#8B1E22', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12 },
   dividendBtnText: { color: '#fff', fontSize: 10, fontWeight: '500' },
@@ -601,7 +601,7 @@ const s = StyleSheet.create({
   partnerName: { fontSize: 13, fontWeight: '700', color: '#1F2937' },
   partnerPct: { fontSize: 10, color: '#9CA3AF' },
   paidBadge: { backgroundColor: '#ECFDF5', borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
-  paidBadgeText: { fontSize: 9, fontWeight: '500', color: '#059669' },
+  paidBadgeText: { fontSize: 9, fontWeight: '500', color: '#0AA344' },
   partnerDataRow: { flexDirection: 'row', gap: 4 },
   partnerDataCell: { flex: 1, alignItems: 'center' },
   dataLabel: { fontSize: 9, color: '#9CA3AF' },
@@ -638,8 +638,8 @@ const mo = StyleSheet.create({
   },
   header: { backgroundColor: '#8B1E22', paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  sub: { fontSize: 10, color: '#FECACA', marginTop: 2 },
-  close: { color: '#FECACA', fontSize: 18 },
+  sub: { fontSize: 10, color: '#FDF2F2', marginTop: 2 },
+  close: { color: '#FDF2F2', fontSize: 18 },
 });
 
 const moBody = StyleSheet.create({
@@ -656,8 +656,8 @@ const moBody = StyleSheet.create({
   cancelBtnText: { fontSize: 12, fontWeight: '500', color: '#4B5563' },
   confirmBtn: { flex: 1, backgroundColor: '#8B1E22', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   confirmBtnText: { fontSize: 12, fontWeight: '500', color: '#fff' },
-  deleteConfirmBtn: { flex: 1, backgroundColor: '#EF4444', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  deleteBox: { backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12, alignItems: 'center' },
+  deleteConfirmBtn: { flex: 1, backgroundColor: '#CB1B45', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  deleteBox: { backgroundColor: '#FDF2F2', borderRadius: 12, padding: 12, alignItems: 'center' },
   deleteText: { fontSize: 12, color: '#6B7280', textAlign: 'center' },
 });
 
@@ -698,7 +698,7 @@ const tg = StyleSheet.create({
   thBadge: { fontSize: 11, fontWeight: '600' },
   thRight: { flexDirection: 'row', alignItems: 'center', paddingRight: 16 },
   thAmt: { fontSize: 12, fontWeight: '700' },
-  delBtn: { fontSize: 10, color: '#EF4444', marginLeft: 8 },
+  delBtn: { fontSize: 10, color: '#CB1B45', marginLeft: 8 },
   tbodyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   rowBorder: { borderTopWidth: 1, borderTopColor: '#F9FAFB' },
   tdName: { fontSize: 12, color: '#4B5563', flex: 1, paddingLeft: 16 },

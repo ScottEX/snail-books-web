@@ -807,10 +807,10 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
   // 8600: color:#999 font-size:13px
   date: { color: '#999', fontSize: 13 },
-  logoutBtn: { fontSize: 11, color: '#DC2626', fontWeight: '500' },
+  logoutBtn: { fontSize: 11, color: '#CB1B45', fontWeight: '500' },
   langRow: { flexDirection: 'row', gap: 4 },
   langBtn: { fontSize: 10, color: '#6B7280', fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
-  langActive: { color: '#8B1E22', backgroundColor: '#FEE2E2', fontWeight: '700' },
+  langActive: { color: '#8B1E22', backgroundColor: '#FDF2F2', fontWeight: '700' },
   // Page — 8600: padding:0 16px 110px, max-width:520px, margin:0 auto
   page: { flex: 1, paddingHorizontal: 16, paddingBottom: 12, maxWidth: 520, alignSelf: 'center', width: '100%' },
   // Stats — 8600: grid-cols-4
@@ -847,11 +847,11 @@ const styles = StyleSheet.create({
   addForm: { paddingTop: 4 },
   typeToggle: { flexDirection: 'row', gap: 6, marginBottom: 20 },
   typeBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#EBEBEB', backgroundColor: '#fff', alignItems: 'center' },
-  typeBtnInc: { borderColor: '#059669', backgroundColor: '#F0FDF4' },
-  typeBtnExp: { borderColor: '#DC2626', backgroundColor: '#FEF2F2' },
+  typeBtnInc: { borderColor: '#0AA344', backgroundColor: '#ECFDF5' },
+  typeBtnExp: { borderColor: '#CB1B45', backgroundColor: '#FDF2F2' },
   typeBtnText: { fontSize: 14, fontWeight: '500', color: '#999' },
-  typeBtnIncText: { color: '#059669' },
-  typeBtnExpText: { color: '#DC2626' },
+  typeBtnIncText: { color: '#0AA344' },
+  typeBtnExpText: { color: '#CB1B45' },
   addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EBEBEB', borderRadius: 8, fontSize: 14, backgroundColor: '#FAFAFA', color: '#1A1A1A', marginBottom: 8, fontFamily: undefined },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   catBtn: { fontSize: 11, color: '#999', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#EBEBEB' },
@@ -867,8 +867,8 @@ const styles = StyleSheet.create({
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   barLabel: { fontSize: 10, color: '#999', fontWeight: '500', width: 36, textAlign: 'right' },
   barWrap: { flex: 1, height: 16, backgroundColor: '#F5F5F5', borderRadius: 3, overflow: 'hidden', flexDirection: 'row' },
-  barIncome: { backgroundColor: '#059669', height: '100%' },
-  barExpense: { backgroundColor: '#EF4444', opacity: 0.7, height: '100%' },
+  barIncome: { backgroundColor: '#0AA344', height: '100%' },
+  barExpense: { backgroundColor: '#CB1B45', opacity: 0.7, height: '100%' },
   barVal: { fontSize: 9, color: '#999', width: 90 },
   // Bottom Nav — glass pill, icons only, 80% transparent
   bottomNav: {
@@ -922,8 +922,8 @@ const styles = StyleSheet.create({
   bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   bgBtnOutline: { borderWidth: 1, borderColor: '#D1D5DB' },
   bgBtnOutlineText: { fontSize: 12, color: '#374151', fontWeight: '500' },
-  bgBtnDanger: { borderWidth: 1, borderColor: '#FCA5A5' },
-  bgBtnDangerText: { fontSize: 12, color: '#DC2626', fontWeight: '500' },
+  bgBtnDanger: { borderWidth: 1, borderColor: '#FDF2F2' },
+  bgBtnDangerText: { fontSize: 12, color: '#CB1B45', fontWeight: '500' },
 
   /* ── Daily Revenue (每日营收) ── */
   revCard: {
@@ -960,7 +960,7 @@ const styles = StyleSheet.create({
   },
   revArchiveBtnDone: { backgroundColor: '#ECFDF5' },
   revArchiveText: { fontSize: 15, fontWeight: '700', color: '#4B5563' },
-  revArchiveTextDone: { color: '#059669' },
+  revArchiveTextDone: { color: '#0AA344' },
   // 7-day card items — same card style as history page
   rev7CardItem: {
     backgroundColor: '#FFFFFF', borderRadius: 12,
