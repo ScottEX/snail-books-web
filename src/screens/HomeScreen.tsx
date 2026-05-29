@@ -136,7 +136,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   const cancelEdit = () => {
     setEditingRevId(null);
-    setRevDate(todayStr());
+    setRevDate(todayDateStr());
     setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
   };
 
@@ -408,7 +408,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Month picker dropdown */}
                     {showRevMonthPicker && (
                       <>
-                        <TouchableOpacity style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99 }}
+                        <TouchableOpacity style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 99 }}
                           onPress={() => { setShowRevMonthPicker(false); }} activeOpacity={1} />
                         <Animated.View style={{
                           position: 'absolute', top: revPickerPos.top, left: revPickerPos.left, zIndex: 100,
