@@ -157,7 +157,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       }
       setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
       setEditingRevId(null); setRevDate(todayDateStr());
+      setRevMarkedClosed(false);
       loadDailyRevs(1, revYear, revMonth);
+      api.getLast7Days().then((r: any) => setLast7Records(r.records || [])).catch(() => {});
     } catch { setToast(t('toastSubmitFailed')); }
     setRevSaving(false);
   };
@@ -341,7 +343,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   <View style={styles.revCard}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Text style={{ fontSize: 20 }}>📊</Text>
+                        <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                          <Path d="M3 3v18h18M7 16l4-8 4 4 4-6" />
+                        </Svg>
                         <Text style={styles.revTitle}>{t('dailyRevenue')}</Text>
                       </View>
                       {editingRevId && (
@@ -454,9 +458,18 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         style={[styles.revSubmitBtn, { flex: 4 }, (!revTurnover || revSaving) && { opacity: 0.5 }]}
                         onPress={submitDailyRev} disabled={!revTurnover || revSaving}
                         activeOpacity={0.8}>
-                        <Text style={styles.revSubmitText}>
-                          {revSaving ? '...' : `💾 ${editingRevId ? t('revEdit') : t('revSaveToday')}`}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                          {revSaving ? (
+                            <Text style={styles.revSubmitText}>...</Text>
+                          ) : (
+                            <>
+                              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <Path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8" />
+                              </Svg>
+                              <Text style={styles.revSubmitText}>{editingRevId ? t('revEdit') : t('revSaveToday')}</Text>
+                            </>
+                          )}
+                        </View>
                       </TouchableOpacity>
                     </View>
 
@@ -480,7 +493,12 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   {/* ── 近7天记录 ── */}
                   <View style={{ marginTop: 20 }}>
                     <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>📋 {t('revHistory')}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth={2} strokeLinecap="round">
+                          <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6" />
+                        </Svg>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>{t('revHistory')}</Text>
+                      </View>
                       <TouchableOpacity
                         onPress={() => { setShowDailyHistory(true); }}
                         activeOpacity={0.7}
@@ -497,9 +515,16 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     ) : (
                       last7Records.map((rec: any, i: number) => (
                         <View key={i} style={styles.rev7CardItem}>
-                          {/* Top row: date + status badge */}
+                          {/* Top row: date + today tag + status badge */}
                           <View style={styles.rev7CardTop}>
-                            <Text style={styles.rev7CardDate}>{rec.date}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Text style={styles.rev7CardDate}>{rec.date}</Text>
+                              {rec.date === todayDateStr() && (
+                                <View style={styles.rev7TodayTag}>
+                                  <Text style={styles.rev7TodayTagText}>{t('today')}</Text>
+                                </View>
+                              )}
+                            </View>
                             <View style={[styles.rev7CardBadge, (rec.status === '未录入' || !rec.recorded_by) ? styles.rev7CardBadgeGap : styles.rev7CardBadgeOk]}>
                               <View style={[styles.rev7CardDot, (rec.status === '未录入' || !rec.recorded_by) ? { backgroundColor: '#CB1B45' } : { backgroundColor: '#0AA344' }]} />
                               <Text style={[styles.rev7CardStatus, (rec.status === '未录入' || !rec.recorded_by) ? { color: '#CB1B45' } : { color: '#0AA344' }]}>
@@ -518,28 +543,49 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           {/* Amount row: three columns */}
                           <View style={styles.rev7CardAmounts}>
                             <View style={styles.rev7CardAmtCol}>
-                              <Text style={[styles.rev7CardAmtVal, { color: rec.revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
-                                {rec.revenue > 0 ? `¥${toDec2(rec.revenue)}` : '—'}
-                              </Text>
+                              {rec.revenue > 0 ? (
+                                <Text style={[styles.rev7CardAmtVal, { color: '#1A1A1A' }]}>¥{toDec2(rec.revenue)}</Text>
+                              ) : (
+                                <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#D1D5DB" strokeWidth={2} strokeLinecap="round">
+                                  <Path d="M4 6h16" />
+                                </Svg>
+                              )}
                               <Text style={styles.rev7CardAmtLabel}>{t('revRevenue')}</Text>
                             </View>
                             <View style={styles.rev7CardAmtCol}>
-                              <Text style={[styles.rev7CardAmtVal, { color: rec.turnover > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
-                                {rec.turnover > 0 ? `¥${toDec2(rec.turnover)}` : '—'}
-                              </Text>
+                              {rec.turnover > 0 ? (
+                                <Text style={[styles.rev7CardAmtVal, { color: '#1A1A1A' }]}>¥{toDec2(rec.turnover)}</Text>
+                              ) : (
+                                <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#D1D5DB" strokeWidth={2} strokeLinecap="round">
+                                  <Path d="M4 6h16" />
+                                </Svg>
+                              )}
                               <Text style={styles.rev7CardAmtLabel}>{t('revTurnover')}</Text>
                             </View>
                             <View style={styles.rev7CardAmtCol}>
-                              <Text style={[styles.rev7CardAmtVal, { color: rec.jd_revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
-                                {rec.jd_revenue > 0 ? `¥${toDec2(rec.jd_revenue)}` : '—'}
-                              </Text>
+                              {rec.jd_revenue > 0 ? (
+                                <Text style={[styles.rev7CardAmtVal, { color: '#1A1A1A' }]}>¥{toDec2(rec.jd_revenue)}</Text>
+                              ) : (
+                                <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#D1D5DB" strokeWidth={2} strokeLinecap="round">
+                                  <Path d="M4 6h16" />
+                                </Svg>
+                              )}
                               <Text style={styles.rev7CardAmtLabel}>{t('revJD')}</Text>
                             </View>
                           </View>
 
                           {/* Footer: recorded by */}
                           <View style={styles.rev7CardFooter}>
-                            <Text style={styles.rev7CardFooterText}>{t('recordedBy')}: {rec.recorded_by || '—'}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                              <Text style={styles.rev7CardFooterText}>{t('recordedBy')}:</Text>
+                              {rec.recorded_by ? (
+                                <Text style={styles.rev7CardFooterText}>{rec.recorded_by}</Text>
+                              ) : (
+                                <Svg width={16} height={8} viewBox="0 0 16 8" fill="none" stroke="#D1D5DB" strokeWidth={1.5} strokeLinecap="round">
+                                  <Path d="M2 4h12" />
+                                </Svg>
+                              )}
+                            </View>
                           </View>
                           {/* Note */}
                           {rec.note ? (
@@ -929,6 +975,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   rev7CardDate: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
+  rev7TodayTag: {
+    paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8,
+    backgroundColor: '#ECFDF5',
+  },
+  rev7TodayTagText: { fontSize: 11, fontWeight: '600', color: '#0AA344' },
   rev7CardBadge: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,

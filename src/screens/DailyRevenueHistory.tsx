@@ -185,28 +185,49 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
               {/* Amount row: three columns */}
               <View style={st.cardAmounts}>
                 <View style={st.cardAmtCol}>
-                  <Text style={[st.cardAmtVal, { color: rec.revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
-                    {rec.revenue > 0 ? `¥${toDec2(rec.revenue)}` : '—'}
-                  </Text>
+                  {rec.revenue > 0 ? (
+                    <Text style={[st.cardAmtVal, { color: '#1A1A1A' }]}>¥{toDec2(rec.revenue)}</Text>
+                  ) : (
+                    <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#D1D5DB" strokeWidth={2} strokeLinecap="round">
+                      <Path d="M4 6h16" />
+                    </Svg>
+                  )}
                   <Text style={st.cardAmtLabel}>{t('revRevenue')}</Text>
                 </View>
                 <View style={st.cardAmtCol}>
-                  <Text style={[st.cardAmtVal, { color: rec.turnover > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
-                    {rec.turnover > 0 ? `¥${toDec2(rec.turnover)}` : '—'}
-                  </Text>
+                  {rec.turnover > 0 ? (
+                    <Text style={[st.cardAmtVal, { color: '#1A1A1A' }]}>¥{toDec2(rec.turnover)}</Text>
+                  ) : (
+                    <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#D1D5DB" strokeWidth={2} strokeLinecap="round">
+                      <Path d="M4 6h16" />
+                    </Svg>
+                  )}
                   <Text style={st.cardAmtLabel}>{t('revTurnover')}</Text>
                 </View>
                 <View style={st.cardAmtCol}>
-                  <Text style={[st.cardAmtVal, { color: rec.jd_revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
-                    {rec.jd_revenue > 0 ? `¥${toDec2(rec.jd_revenue)}` : '—'}
-                  </Text>
+                  {rec.jd_revenue > 0 ? (
+                    <Text style={[st.cardAmtVal, { color: '#1A1A1A' }]}>¥{toDec2(rec.jd_revenue)}</Text>
+                  ) : (
+                    <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#D1D5DB" strokeWidth={2} strokeLinecap="round">
+                      <Path d="M4 6h16" />
+                    </Svg>
+                  )}
                   <Text style={st.cardAmtLabel}>{t('revJD')}</Text>
                 </View>
               </View>
 
               {/* Footer: recorded by */}
               <View style={st.cardFooter}>
-                <Text style={st.cardFooterText}>{t('recordedBy')}: {rec.recorded_by || '—'}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Text style={st.cardFooterText}>{t('recordedBy')}:</Text>
+                  {rec.recorded_by ? (
+                    <Text style={st.cardFooterText}>{rec.recorded_by}</Text>
+                  ) : (
+                    <Svg width={16} height={8} viewBox="0 0 16 8" fill="none" stroke="#D1D5DB" strokeWidth={1.5} strokeLinecap="round">
+                      <Path d="M2 4h12" />
+                    </Svg>
+                  )}
+                </View>
               </View>
               {/* Note */}
               {rec.note ? (
