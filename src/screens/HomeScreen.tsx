@@ -308,8 +308,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       {/* Bottom Nav */}
       <View style={styles.bottomNav}>
         {([
-          { id: 'list', icon: NavIconList },
           { id: 'expense', icon: NavIconAdd },
+          { id: 'list', icon: NavIconList },
           { id: 'supply', icon: NavIconSupply },
           { id: 'chart', icon: NavIconChart },
           { id: 'partner', icon: NavIconPartner },
