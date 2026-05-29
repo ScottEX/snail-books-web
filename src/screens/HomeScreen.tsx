@@ -8,6 +8,7 @@ import PartnerScreen from './PartnerScreen';
 import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
+import DailyRevenueHistory from './DailyRevenueHistory';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
@@ -38,6 +39,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [showBgModal, setShowBgModal] = useState(false);
   const [showReconHistory, setShowReconHistory] = useState(false);
   const [showExpenseHistory, setShowExpenseHistory] = useState(false);
+  const [showDailyHistory, setShowDailyHistory] = useState(false);
+  const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
@@ -115,10 +118,17 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     }).catch(() => {});
   }, []);
 
-  // Load last 7 days aggregated
+  // Load last 30 days aggregated
   useEffect(() => {
     api.getDailyRevenue(1, 1, undefined, undefined, undefined, 30).then((r: any) => {
       setWeekRev(r.totals || null);
+    }).catch(() => {});
+  }, []);
+
+  // Load last 7 days table
+  useEffect(() => {
+    api.getLast7Days().then((r: any) => {
+      setLast7Records(r.records || []);
     }).catch(() => {});
   }, []);
 
@@ -313,6 +323,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           <PartnerScreen onBack={() => setTab('list')} />
         ) : showExpenseHistory ? (
           <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />
+        ) : showDailyHistory ? (
+          <DailyRevenueHistory onBack={() => setShowDailyHistory(false)} />
         ) : showReconHistory ? (
           <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />
         ) : tab === 'expense' ? (
@@ -337,9 +349,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                             <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '600' }}>✕ 取消</Text>
                           </TouchableOpacity>
                         )}
-                        <TouchableOpacity onPress={() => { loadDailyRevs(1, revYear, revMonth); }} activeOpacity={0.7}
-                          style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: '#FFF', borderWidth: 0.5, borderColor: '#E5E7EB', marginLeft: 'auto' }}>
-                          <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '600' }}>📋 {t('revHistoryBtn')}</Text>
+                        <TouchableOpacity onPress={() => setShowDailyHistory(true)} activeOpacity={0.7}
+                          style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: '#FA855A', marginLeft: 'auto' }}>
+                          <Text style={{ fontSize: 13, color: '#FFFFFF', fontWeight: '700' }}>📋 {t('revHistoryBtn')}</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -435,7 +447,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         onPress={() => { if (!revMarkedClosed) setRevMarkedClosed(true); }}
                         activeOpacity={0.7}>
                         <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
-                          {revMarkedClosed ? '✓' : `🌙 ${t('revMarkArchive')}`}
+                          {revMarkedClosed ? '✓' : t('revMarkArchive')}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -460,77 +472,44 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       </View>
                       <View style={{ alignItems: 'flex-end' }}>
                         <Text style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 2 }}>{t('revWeekJD')}</Text>
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: weekRev && weekRev.jd_revenue > 0 ? '#8B1E22' : '#9CA3AF' }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A1A1A' }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
                       </View>
                     </View>
                   </View>
 
-                  {/* ── 历史记录 ── */}
+                  {/* ── 近7天记录 ── */}
                   <View style={{ marginTop: 20 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <View style={{ marginBottom: 10 }}>
                       <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>📋 {t('revHistory')}</Text>
                     </View>
 
-                    {/* Revenue history list */}
-                    {revLoading && dailyRevs.length === 0 ? (
-                      <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-                        <Text style={{ color: '#9CA3AF', fontSize: 13 }}>...</Text>
-                      </View>
-                    ) : dailyRevs.length === 0 ? (
-                      <View style={styles.revEmptyWrap}>
-                        <Text style={{ fontSize: 32 }}>📋</Text>
-                        <Text style={styles.revEmptyTitle}>{t('revEmpty')}</Text>
-                        <Text style={styles.revEmptyHint}>{t('revEmptyHint')}</Text>
+                    {/* 7-day table header */}
+                    <View style={styles.rev7HeaderRow}>
+                      <Text style={[styles.rev7Th, { flex: 2.3 }]}>{t('date')}</Text>
+                      <Text style={[styles.rev7Th, { flex: 2 }]}>{t('revRevenue')}</Text>
+                      <Text style={[styles.rev7Th, { flex: 1.8 }]}>{t('revTurnover')}</Text>
+                      <Text style={[styles.rev7Th, { flex: 2 }]}>{t('revJD')}</Text>
+                      <Text style={[styles.rev7Th, { flex: 1.4 }]}>{t('status')}</Text>
+                      <Text style={[styles.rev7Th, { flex: 1.6 }]}>{t('recordedBy')}</Text>
+                    </View>
+
+                    {last7Records.length === 0 ? (
+                      <View style={{ paddingVertical: 30, alignItems: 'center' }}>
+                        <Text style={{ fontSize: 13, color: '#9CA3AF' }}>...</Text>
                       </View>
                     ) : (
-                      <View style={{ gap: 6 }}>
-                        {dailyRevs.map((rev: any) => (
-                          <View key={rev.id} style={styles.revHistoryItem}>
-                            <View style={{ flex: 1 }}>
-                              <Text style={{ fontSize: 12, fontWeight: '700', color: '#374151', marginBottom: 4 }}>
-                                {(() => { const [y,m,d] = rev.date.split('-'); return `${y}-${m}-${d}`; })()}
-                              </Text>
-                              <View style={{ flexDirection: 'row', gap: 12 }}>
-                                <Text style={styles.revHistAmt}>
-                                  <Text style={{ color: '#9CA3AF', fontWeight: '400' }}>{t('revRevenue')} </Text>
-                                  ¥{toDec2(rev.revenue)}
-                                </Text>
-                                <Text style={[styles.revHistAmt, { fontWeight: '700' }]}>
-                                  <Text style={{ color: '#9CA3AF', fontWeight: '400' }}>{t('revTurnover')} </Text>
-                                  ¥{toDec2(rev.turnover)}
-                                </Text>
-                                {rev.jd_revenue > 0 && (
-                                  <Text style={[styles.revHistAmt, { color: '#8B1E22' }]}>
-                                    <Text style={{ color: '#9CA3AF', fontWeight: '400' }}>{t('revJD')} </Text>
-                                    ¥{toDec2(rev.jd_revenue)}
-                                  </Text>
-                                )}
-                              </View>
-                              {rev.note ? <Text style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }} numberOfLines={1}>{rev.note}</Text> : null}
-                            </View>
-                            <View style={{ flexDirection: 'row', gap: 4 }}>
-                              <TouchableOpacity onPress={() => startEdit(rev)} activeOpacity={0.6}
-                                style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: '#F3F4F6' }}>
-                                <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '600' }}>{t('revEdit')}</Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity onPress={() => deleteDailyRev(rev.id)} activeOpacity={0.6}
-                                style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: '#FEE2E2' }}>
-                                <Text style={{ fontSize: 11, color: '#EF4444', fontWeight: '600' }}>{t('revDelete')}</Text>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        ))}
-                        {revPage < revPages && (
-                          <TouchableOpacity
-                            onPress={() => loadDailyRevs(revPage + 1, revYear, revMonth)}
-                            activeOpacity={0.7}
-                            style={{ paddingVertical: 12, alignItems: 'center', borderRadius: 10, backgroundColor: '#F9FAFB' }}>
-                            <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '600' }}>
-                              {revLoading ? '...' : '加载更多'}
-                            </Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
+                      last7Records.map((rec: any, i: number) => (
+                        <View key={i} style={[styles.rev7Row, { backgroundColor: i % 2 === 0 ? '#FAFAFA' : '#FFF' }]}>
+                          <Text style={[styles.rev7Td, { flex: 2.3, fontWeight: '600' }]}>{rec.date}</Text>
+                          <Text style={[styles.rev7Td, { flex: 2 }]}>{rec.revenue > 0 ? `¥${toDec2(rec.revenue)}` : '—'}</Text>
+                          <Text style={[styles.rev7Td, { flex: 1.8 }]}>{rec.turnover > 0 ? `¥${toDec2(rec.turnover)}` : '—'}</Text>
+                          <Text style={[styles.rev7Td, { flex: 2 }]}>{rec.jd_revenue > 0 ? `¥${toDec2(rec.jd_revenue)}` : '—'}</Text>
+                          <Text style={[styles.rev7Td, { flex: 1.4, color: rec.status === '未录入' || !rec.recorded_by ? '#9CA3AF' : '#059669', fontSize: 10 }]}>
+                            {rec.status === '未录入' ? t('revNotEntered') : t('revEntered')}
+                          </Text>
+                          <Text style={[styles.rev7Td, { flex: 1.6, fontSize: 10 }]}>{rec.recorded_by || '—'}</Text>
+                        </View>
+                      ))
                     )}
                   </View>
                 </View>
@@ -896,14 +875,17 @@ const styles = StyleSheet.create({
   revArchiveBtnDone: { backgroundColor: '#ECFDF5' },
   revArchiveText: { fontSize: 15, fontWeight: '700', color: '#4B5563' },
   revArchiveTextDone: { color: '#059669' },
-  revEmptyWrap: { paddingVertical: 40, alignItems: 'center', gap: 8 },
-  revEmptyTitle: { fontSize: 15, fontWeight: '600', color: '#9CA3AF' },
-  revEmptyHint: { fontSize: 12, color: '#B0B0B0' },
-  revHistoryItem: {
+  rev7HeaderRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FFFFFF', borderRadius: 10,
-    padding: 12, gap: 10,
-    borderWidth: 0.5, borderColor: '#F3F4F6',
+    paddingVertical: 8, paddingHorizontal: 8,
+    borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB', borderRadius: 8,
   },
-  revHistAmt: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  rev7Th: { fontSize: 10, fontWeight: '600', color: '#9CA3AF' },
+  rev7Row: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: 9, paddingHorizontal: 8,
+    borderBottomWidth: 0.5, borderBottomColor: '#F0F0F0',
+  },
+  rev7Td: { fontSize: 11, fontWeight: '500', color: '#374151' },
 });

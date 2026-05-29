@@ -209,6 +209,7 @@ export const api = {
   createDailyRevenue: (data: any) => authFetch('/api/daily-revenue', { method: 'POST', body: JSON.stringify(data) }),
   updateDailyRevenue: (id: number, data: any) => authFetch(`/api/daily-revenue/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteDailyRevenue: (id: number) => authFetch(`/api/daily-revenue/${id}`, { method: 'DELETE' }),
+  getLast7Days: () => authFetch('/api/daily-revenue/last-7'),
 
   getChart: () => authFetch('/api/chart'),
   getStats: () => authFetch('/api/stats'),
