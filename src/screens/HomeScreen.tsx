@@ -78,6 +78,15 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const revPickerRef = useRef<any>(null);
   const revPickerAnim = useRef(new Animated.Value(0)).current;
   const [revPickerPos, setRevPickerPos] = useState({ top: 0, left: 0 });
+  const [yesterdayRev, setYesterdayRev] = useState<any>(null);
+  const [revMarkedClosed, setRevMarkedClosed] = useState(false);
+
+  // Quick date helpers
+  const td = todayDateStr();
+  const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate()-1); return fmtDate(d); };
+  const db4Str = () => { const d = new Date(); d.setDate(d.getDate()-2); return fmtDate(d); };
+  const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const pickDate = (d: string) => { if (d <= td) setRevDate(d); };
 
   const INCOME_CATS = ['🍜 堂食','🛵 美团外卖','🛵 饿了吗外卖','🎫 美团团购','📦 京东','🔧 其他收入'];
   const EXPENSE_CATS = ['📦 原材料进货','🏠 房租','⚡ 水电煤气','👨‍🍳 人工工资','🔧 设备/工具','🏗️ 装修','📋 培训/证件','🧹 卫生/清洁','🧻 餐具/纸巾','📦 包装/打包','📢 广告/推广','💊 杂项/烟酒','📝 其他'];
@@ -96,6 +105,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   useEffect(() => { loadDailyRevs(1, revYear, revMonth); }, [revYear, revMonth]);
+
+  // Load yesterday's revenue for card footers
+  useEffect(() => {
+    const yd = yesterdayStr();
+    api.getDailyRevenue(1, 1, undefined, undefined, yd).then((r: any) => {
+      setYesterdayRev(r.records?.[0] || null);
+    }).catch(() => {});
+  }, []);
 
   const submitDailyRev = async () => {
     if (!revTurnover) { setToast(t('revTurnover') + ' 不能为空'); return; }
@@ -313,14 +330,31 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       )}
                     </View>
 
-                    {/* Date + Amounts row */}
-                    <View style={styles.revDateRow}>
+                    {/* Quick date pills + date picker */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                      <View style={{ flexDirection: 'row', gap: 6 }}>
+                        {[{ label: t('revQuickToday'), d: td },
+                          { label: t('revQuickYesterday'), d: yesterdayStr() },
+                          { label: t('revQuickDB4'), d: db4Str() },
+                        ].map(pill => (
+                          <TouchableOpacity key={pill.d} onPress={() => pickDate(pill.d)} activeOpacity={0.7}
+                            style={{
+                              paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14,
+                              borderWidth: 1, borderColor: revDate === pill.d ? '#8B1E22' : '#E5E7EB',
+                              backgroundColor: revDate === pill.d ? '#FEF2F2' : '#FFFFFF',
+                            }}>
+                            <Text style={{ fontSize: 12, fontWeight: revDate === pill.d ? '700' : '500', color: revDate === pill.d ? '#8B1E22' : '#6B7280' }}>
+                              {pill.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
                       <View style={{ position: 'relative' }}>
                         <TouchableOpacity activeOpacity={1} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>
-                            {(() => { const [y,m,d] = revDate.split('-'); return `${y}-${m}-${d}`; })()}
+                          <Text style={{ fontSize: 13, fontWeight: '700', color: '#374151' }}>
+                            {revDate.replace(/-/g, '/')}
                           </Text>
-                          <Text style={{ fontSize: 16, color: '#9CA3AF' }}>📅</Text>
+                          <Text style={{ fontSize: 14, color: '#9CA3AF' }}>📅</Text>
                           {React.createElement('input', {
                             type: 'date', value: revDate, max: todayDateStr(),
                             onChange: (e: any) => { const v = e.target.value; if (v > todayDateStr()) { setToast(t('errDateFuture')); return; } setRevDate(v); },
@@ -330,33 +364,49 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       </View>
                     </View>
 
-                    <View style={styles.revAmountRow}>
-                      <View style={styles.revAmtField}>
-                        <Text style={styles.revAmtLabel}>{t('revRevenue')}</Text>
-                        <View style={styles.revAmtInputWrap}>
-                          <Text style={styles.revAmtSymbol}>¥</Text>
-                          <TextInput style={styles.revAmtInput}
+                    {/* Three input cards */}
+                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
+                      <View style={styles.revInputCard}>
+                        <Text style={{ fontSize: 14, marginBottom: 6 }}>Ⓨ</Text>
+                        <Text style={styles.revInputCardTitle}>{t('revRevenue')}</Text>
+                        <Text style={styles.revInputCardSub}>{t('revRevenueSub')}</Text>
+                        <View style={styles.revInputCardInputWrap}>
+                          <Text style={styles.revInputCardSymbol}>¥</Text>
+                          <TextInput style={styles.revInputCardInput}
                             value={revRevenue} onChangeText={setRevRevenue}
                             keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
                         </View>
+                        <Text style={styles.revInputCardFooter}>
+                          {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.revenue)}` : t('revYesterdayNA')}
+                        </Text>
                       </View>
-                      <View style={styles.revAmtField}>
-                        <Text style={styles.revAmtLabel}>{t('revTurnover')}*</Text>
-                        <View style={styles.revAmtInputWrap}>
-                          <Text style={styles.revAmtSymbol}>¥</Text>
-                          <TextInput style={styles.revAmtInput}
+                      <View style={styles.revInputCard}>
+                        <Text style={{ fontSize: 14, marginBottom: 6 }}>🛒</Text>
+                        <Text style={styles.revInputCardTitle}>{t('revTurnover')}*</Text>
+                        <Text style={styles.revInputCardSub}>{t('revTurnoverSub')}</Text>
+                        <View style={styles.revInputCardInputWrap}>
+                          <Text style={styles.revInputCardSymbol}>¥</Text>
+                          <TextInput style={[styles.revInputCardInput, { fontWeight: '700' }]}
                             value={revTurnover} onChangeText={setRevTurnover}
                             keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
                         </View>
+                        <Text style={styles.revInputCardFooter}>
+                          {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.turnover)}` : t('revYesterdayNA')}
+                        </Text>
                       </View>
-                      <View style={styles.revAmtField}>
-                        <Text style={styles.revAmtLabel}>{t('revJD')}</Text>
-                        <View style={styles.revAmtInputWrap}>
-                          <Text style={[styles.revAmtSymbol, { color: '#9CA3AF' }]}>¥</Text>
-                          <TextInput style={[styles.revAmtInput, { color: revJD ? '#374151' : '#9CA3AF' }]}
+                      <View style={[styles.revInputCard, { opacity: revJD ? 1 : 0.7 }]}>
+                        <Text style={{ fontSize: 14, marginBottom: 6 }}>↪</Text>
+                        <Text style={styles.revInputCardTitle}>{t('revJD')}</Text>
+                        <Text style={styles.revInputCardSub}>{t('revJDSub')}</Text>
+                        <View style={styles.revInputCardInputWrap}>
+                          <Text style={[styles.revInputCardSymbol, { color: revJD ? '#374151' : '#9CA3AF' }]}>¥</Text>
+                          <TextInput style={[styles.revInputCardInput, { color: revJD ? '#374151' : '#9CA3AF' }]}
                             value={revJD} onChangeText={setRevJD}
                             keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
                         </View>
+                        <Text style={styles.revInputCardFooter}>
+                          {t('revYesterdayLabel')} {yesterdayRev && yesterdayRev.jd_revenue > 0 ? `¥${toDec2(yesterdayRev.jd_revenue)}` : t('revYesterdayNA')}
+                        </Text>
                       </View>
                     </View>
 
@@ -365,15 +415,25 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       value={revNote} onChangeText={setRevNote}
                       placeholder={t('revNoteHint')} placeholderTextColor="#D1D5DB" />
 
-                    {/* Submit */}
-                    <TouchableOpacity
-                      style={[styles.revSubmitBtn, (!revTurnover || revSaving) && { opacity: 0.5 }]}
-                      onPress={submitDailyRev} disabled={!revTurnover || revSaving}
-                      activeOpacity={0.8}>
-                      <Text style={styles.revSubmitText}>
-                        {revSaving ? '...' : editingRevId ? t('revEdit') : t('revSubmit')}
-                      </Text>
-                    </TouchableOpacity>
+                    {/* Two action buttons */}
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TouchableOpacity
+                        style={[styles.revSubmitBtn, { flex: 4 }, (!revTurnover || revSaving) && { opacity: 0.5 }]}
+                        onPress={submitDailyRev} disabled={!revTurnover || revSaving}
+                        activeOpacity={0.8}>
+                        <Text style={styles.revSubmitText}>
+                          {revSaving ? '...' : `💾 ${editingRevId ? t('revEdit') : t('revSaveToday')}`}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.revArchiveBtn, revMarkedClosed && styles.revArchiveBtnDone]}
+                        onPress={() => { if (!revMarkedClosed) setRevMarkedClosed(true); }}
+                        activeOpacity={0.7}>
+                        <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
+                          {revMarkedClosed ? '✓' : t('revMarkArchive')}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
 
                   {/* ── 历史记录 ── */}
@@ -847,13 +907,17 @@ const styles = StyleSheet.create({
     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
   },
   revTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
-  revDateRow: { marginBottom: 14, flexDirection: 'row', alignItems: 'center' },
-  revAmountRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  revAmtField: { flex: 1 },
-  revAmtLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '600', marginBottom: 6 },
-  revAmtInputWrap: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1.5, borderBottomColor: '#E5E7EB', paddingBottom: 4 },
-  revAmtSymbol: { fontSize: 16, fontWeight: '700', color: '#374151', marginRight: 4 },
-  revAmtInput: { flex: 1, fontSize: 18, fontWeight: '600', color: '#1A1A1A', padding: 0, outline: 'none' },
+  // Three input cards
+  revInputCard: {
+    flex: 1, backgroundColor: '#FFFFFF', borderRadius: 10,
+    padding: 10, borderWidth: 0.5, borderColor: '#EBEBEB',
+  },
+  revInputCardTitle: { fontSize: 11, fontWeight: '700', color: '#374151', marginBottom: 2 },
+  revInputCardSub: { fontSize: 9, color: '#9CA3AF', marginBottom: 8 },
+  revInputCardInputWrap: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 6 },
+  revInputCardSymbol: { fontSize: 14, fontWeight: '700', color: '#374151', marginRight: 2, marginBottom: 1 },
+  revInputCardInput: { flex: 1, fontSize: 16, fontWeight: '600', color: '#1A1A1A', padding: 0, outline: 'none' },
+  revInputCardFooter: { fontSize: 9, color: '#B0B0B0' },
   revNoteInput: {
     fontSize: 13, color: '#374151', paddingVertical: 10, paddingHorizontal: 12,
     backgroundColor: '#FFFFFF', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB',
@@ -863,6 +927,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B1E22', borderRadius: 12, paddingVertical: 14, alignItems: 'center',
    },
   revSubmitText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  revArchiveBtn: {
+    backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 14,
+    alignItems: 'center', justifyContent: 'center', flex: 1,
+  },
+  revArchiveBtnDone: { backgroundColor: '#ECFDF5' },
+  revArchiveText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
+  revArchiveTextDone: { color: '#059669' },
   revEmptyWrap: { paddingVertical: 40, alignItems: 'center', gap: 8 },
   revEmptyTitle: { fontSize: 15, fontWeight: '600', color: '#9CA3AF' },
   revEmptyHint: { fontSize: 12, color: '#B0B0B0' },
