@@ -587,7 +587,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </Text>
                 <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF' }}>›</Text>
                 {recDateError ? (
-                  <Text style={{ position: 'absolute', top: -22, right: 0, fontSize: 11, color: '#DC2626', fontWeight: '500', whiteSpace: 'nowrap' as any }}>{recDateError}</Text>
+                  <Text style={{ position: 'absolute', top: -22, right: 0, fontSize: 11, color: '#DC2626', fontWeight: '500' } as any} numberOfLines={1}>{recDateError}</Text>
                 ) : null}
                 {React.createElement('input', {
                   type: 'date',
