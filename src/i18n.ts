@@ -191,7 +191,7 @@ const I18N: Record<string, Record<string, string>> = {
     fundsInTransit: '在途资金',
     // Modal
     friendlyReminder: '温馨提示',
-    jokeRecon: '对账不认真，董事长打你屁屁',
+    jokeRecon: '已为您载入最近一次对账数据，请核对账单日期是否正确。',
     expConfirmTitle: '确认记录',
     expConfirmMsg: '提交后将无法修改，确定要记录吗？',
     confirm: '确认',
@@ -417,7 +417,7 @@ const I18N: Record<string, Record<string, string>> = {
     fundsInTransit: '在途資金',
     // Modal
     friendlyReminder: '溫馨提示',
-    jokeRecon: '對賬不認真，董事長打你屁屁',
+    jokeRecon: '已為您載入最近一次對賬數據，請核對賬單日期是否正確。',
     expConfirmTitle: '確認記錄',
     expConfirmMsg: '提交後將無法修改，確定要記錄嗎？',
     confirm: '確認',
@@ -643,7 +643,7 @@ const I18N: Record<string, Record<string, string>> = {
     fundsInTransit: 'Funds in Transit',
     // Modal
     friendlyReminder: 'Friendly Reminder',
-    jokeRecon: 'Sloppy reconciliation? The Chairman will spank you!',
+    jokeRecon: 'The latest reconciliation data has been loaded. Please verify the bill date is correct.',
     expConfirmTitle: 'Confirm Record',
     expConfirmMsg: 'This cannot be edited after submission. Proceed?',
     confirm: 'Confirm',
