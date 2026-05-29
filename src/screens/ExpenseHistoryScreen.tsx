@@ -222,7 +222,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
       {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
-        onScroll={handleScroll} scrollEventThrottle={200}
+        onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 260 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
           <Text style={st.empty}>{t('noData')}</Text>
