@@ -777,8 +777,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {([
-                { k: 'meituanCashier', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0) : (feeData?.meituan_cashier || 0), color: '#3B82F6' },
-                { k: 'meituanWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0) : (feeData?.meituan_waimai || 0), color: '#D97706' },
+                { k: 'meituanCashier', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0) : (feeData?.meituan_cashier || 0), color: '#003371' },
+                { k: 'meituanWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0) : (feeData?.meituan_waimai || 0), color: '#FFF000' },
                 { k: 'shangouWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0) : (feeData?.eleme_waimai || 0), color: '#06B6D4' },
                 { k: 'meituanTuan', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0) : (feeData?.meituan_tuan || 0), color: '#0AA344' },
               ] as const).map((p) => (
@@ -1106,7 +1106,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA', outline: 'none' } as any}
+                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FFFFFF', outline: 'none' } as any}
                       value={row.val} onChangeText={row.set}
                       keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB"
                     />
@@ -1171,8 +1171,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
-                  { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: '#3B82F6' as const },
-                  { label: t('meituanWaimai'), value: f.meituan_waimai || 0, color: '#D97706' as const },
+                  { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: '#003371' as const },
+                  { label: t('meituanWaimai'), value: f.meituan_waimai || 0, color: '#FFF000' as const },
                   { label: t('shangouWaimai'), value: f.eleme_waimai || 0, color: '#06B6D4' as const },
                   { label: t('meituanTuan'), value: f.meituan_tuan || 0, color: '#0AA344' as const },
                 ];
@@ -1522,12 +1522,12 @@ const st = StyleSheet.create({
     fontSize: 15, fontWeight: '700', color: '#FFFFFF',
   },
   reconRecordBtn: {
-    flex: 1, backgroundColor: '#B3CFE5', borderRadius: 12,
+    flex: 1, backgroundColor: '#003371', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
     borderWidth: 1, borderColor: '#E5E7EB',
   },
   reconRecordBtnText: {
-    fontSize: 14, fontWeight: '600', color: '#4B5563',
+    fontSize: 14, fontWeight: '600', color: '#FFFFFF',
   },
 
   /* ── KPI ── */
@@ -1570,7 +1570,7 @@ const st = StyleSheet.create({
   imgAddBtn: {
     width: 80, height: 80, borderRadius: 12,
     borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D1D5DB',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center', justifyContent: 'center',
     gap: 4,
   },
@@ -1628,7 +1628,7 @@ const st = StyleSheet.create({
   },
   payChipActive: { backgroundColor: '#FA855A' },
   payChipActiveWechat: { backgroundColor: '#0AA344' },
-  payChipActiveAlipay: { backgroundColor: '#1677FF' },
+  payChipActiveAlipay: { backgroundColor: '#003371' },
   payChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   payChipTextActive: { color: '#FFFFFF' },
   /* Chip icon circle */

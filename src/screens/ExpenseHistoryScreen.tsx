@@ -453,7 +453,7 @@ const st = StyleSheet.create({
   filterBtnActive: { backgroundColor: '#FA855A', borderColor: '#FA855A' },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
-    backgroundColor: '#FAFAFA', borderRadius: 10,
+    backgroundColor: '#FFFFFF', borderRadius: 10,
     borderWidth: 1, borderColor: '#EBEBEB',
     overflow: 'hidden',
   },
@@ -492,9 +492,9 @@ const st = StyleSheet.create({
   filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
-    backgroundColor: '#B3CFE5', borderRadius: 8,
+    backgroundColor: '#003371', borderRadius: 8,
   },
-  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
+  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: '#FFFFFF' },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: '#FA855A', borderRadius: 8,

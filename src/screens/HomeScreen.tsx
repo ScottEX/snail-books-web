@@ -852,7 +852,7 @@ const styles = StyleSheet.create({
   typeBtnText: { fontSize: 14, fontWeight: '500', color: '#999' },
   typeBtnIncText: { color: '#0AA344' },
   typeBtnExpText: { color: '#CB1B45' },
-  addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EBEBEB', borderRadius: 8, fontSize: 14, backgroundColor: '#FAFAFA', color: '#1A1A1A', marginBottom: 8, fontFamily: undefined },
+  addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EBEBEB', borderRadius: 8, fontSize: 14, backgroundColor: '#FFFFFF', color: '#1A1A1A', marginBottom: 8, fontFamily: undefined },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   catBtn: { fontSize: 11, color: '#999', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#EBEBEB' },
   catBtnActive: { color: '#8B1E22', borderColor: '#8B1E22', backgroundColor: 'rgba(139,30,34,0.03)' },
@@ -955,11 +955,11 @@ const styles = StyleSheet.create({
    },
   revSubmitText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   revArchiveBtn: {
-    backgroundColor: '#B3CFE5', borderRadius: 12, paddingVertical: 14,
+    backgroundColor: '#003371', borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', justifyContent: 'center', flex: 1,
   },
   revArchiveBtnDone: { backgroundColor: '#ECFDF5' },
-  revArchiveText: { fontSize: 15, fontWeight: '700', color: '#4B5563' },
+  revArchiveText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   revArchiveTextDone: { color: '#0AA344' },
   // 7-day card items — same card style as history page
   rev7CardItem: {
@@ -991,7 +991,7 @@ const styles = StyleSheet.create({
   rev7CardAmounts: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingVertical: 12, paddingHorizontal: 8,
-    backgroundColor: '#FAFAFA', borderRadius: 8,
+    backgroundColor: '#FFFFFF', borderRadius: 8,
   },
   rev7CardAmtCol: { alignItems: 'center', flex: 1, gap: 4 },
   rev7CardAmtVal: { fontSize: 17, fontWeight: '700' },
