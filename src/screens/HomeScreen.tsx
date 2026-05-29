@@ -965,11 +965,11 @@ const styles = StyleSheet.create({
    },
   revSubmitText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   revArchiveBtn: {
-    backgroundColor: '#4A7299', borderRadius: 12, paddingVertical: 14,
+    backgroundColor: '#EAE5E0', borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', justifyContent: 'center', flex: 1,
   },
   revArchiveBtnDone: { backgroundColor: 'rgba(76,122,93,0.1)' },
-  revArchiveText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  revArchiveText: { fontSize: 15, fontWeight: '700', color: '#2C2626' },
   revArchiveTextDone: { color: '#4C7A5D' },
   // 7-day card items — same card style as history page
   rev7CardItem: {

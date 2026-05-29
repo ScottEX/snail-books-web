@@ -618,9 +618,9 @@ const st = StyleSheet.create({
   filterResetBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#4A7299',
+    backgroundColor: '#EAE5E0',
   },
-  filterResetBtnText: { fontSize: 12, fontWeight: '500', color: '#FFFFFF' },
+  filterResetBtnText: { fontSize: 12, fontWeight: '500', color: '#2C2626' },
   filterApplyBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',

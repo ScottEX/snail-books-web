@@ -321,9 +321,9 @@ const st = StyleSheet.create({
   filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
-    backgroundColor: '#4A7299', borderRadius: 8,
+    backgroundColor: '#EAE5E0', borderRadius: 8,
   },
-  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: '#FFFFFF' },
+  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: '#2C2626' },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: '#7D2329', borderRadius: 8,

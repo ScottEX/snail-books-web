@@ -1522,12 +1522,12 @@ const st = StyleSheet.create({
     fontSize: 15, fontWeight: '700', color: '#FFFFFF',
   },
   reconRecordBtn: {
-    flex: 1, backgroundColor: '#4A7299', borderRadius: 12,
+    flex: 1, backgroundColor: '#EAE5E0', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
     borderWidth: 1, borderColor: '#EAE5E0',
   },
   reconRecordBtnText: {
-    fontSize: 14, fontWeight: '600', color: '#FFFFFF',
+    fontSize: 14, fontWeight: '600', color: '#2C2626',
   },
 
   /* ── KPI ── */
