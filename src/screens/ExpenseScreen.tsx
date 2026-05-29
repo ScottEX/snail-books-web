@@ -690,10 +690,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           {/* Platform fees card */}
           <View style={[st.card, { marginTop: 12 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: '#1A1A1A' }}>{t('platformFee')}</Text>
                 <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 3, position: 'relative' }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 2, position: 'relative', paddingTop: 2 }}
                   onPress={() => setShowFeeMonthPicker(!showFeeMonthPicker)}
                   activeOpacity={0.7}
                 >
