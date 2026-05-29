@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
 } from 'react-native';
@@ -6,6 +6,7 @@ import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -98,6 +99,7 @@ function FadeInView({ children, style }: {
    ═══════════════════════════════════════════════════════════ */
 function InputWithFocus({ style, inputStyle, ...props }: any) {
   const [focused, setFocused] = useState(false);
+  const { colors } = useTheme();
 
   return (
     <TextInput
@@ -107,7 +109,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
       style={[
         inputStyle,
         {
-          borderColor: focused ? '#7D2329' : '#EAE5E0',
+          borderColor: focused ? colors.primary : colors.secondary,
           // @ts-ignore — web-only transition
           transition: 'border-color 200ms ease',
         },
@@ -121,6 +123,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
    EXPENSE SCREEN
    ═══════════════════════════════════════════════════════════ */
 export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { onReconHistory?: () => void; onExpenseHistory?: () => void }) {
+  const { colors } = useTheme();
   const [activeTab, setActiveTabState] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('expense_active_tab');
@@ -473,11 +476,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     : feeData
     ? ((feeData.meituan_cashier || 0) + (feeData.meituan_waimai || 0) + (feeData.eleme_waimai || 0) + (feeData.meituan_tuan || 0))
     : 0;
-  const tabCards = [
-    { gradient: ['rgba(76,122,93,0.22)', 'rgba(74,114,153,0.22)'], gradientActive: ['rgba(76,122,93,0.48)', 'rgba(74,114,153,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#4C7A5D' : '#B34149', prefix: diff >= 0 ? '+' : '' },
-    { gradient: ['rgba(125,35,41,0.22)', 'rgba(213,154,83,0.22)'], gradientActive: ['rgba(125,35,41,0.48)', 'rgba(213,154,83,0.48)'], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: '#2C2626', prefix: '' },
-    { gradient: ['rgba(179,65,73,0.22)', 'rgba(125,35,41,0.22)'], gradientActive: ['rgba(179,65,73,0.48)', 'rgba(125,35,41,0.48)'], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: '#2C2626', prefix: '' },
-  ];
+  const tabCards = useMemo(() => [
+    { gradient: [withAlpha(colors.success, 0.22), withAlpha(colors.info, 0.22)], gradientActive: [withAlpha(colors.success, 0.48), withAlpha(colors.info, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
+    { gradient: [withAlpha(colors.primary, 0.22), withAlpha(colors.warning, 0.22)], gradientActive: [withAlpha(colors.primary, 0.48), withAlpha(colors.warning, 0.48)], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: colors.textMain, prefix: '' },
+    { gradient: [withAlpha(colors.danger, 0.22), withAlpha(colors.primary, 0.22)], gradientActive: [withAlpha(colors.danger, 0.48), withAlpha(colors.primary, 0.48)], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: colors.textMain, prefix: '' },
+  ], [diff, feeTotal, expCatTotals.daily, expCatTotals.rent, expCatTotals.salary, expCatTotals.goods, colors]);
+
+  const st = useMemo(() => getSt(colors), [colors]);
 
   /* ── Render ── */
   return (
@@ -518,7 +523,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
-                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? 'rgba(76,122,93,0.1)' : 'rgba(179,65,73,0.1)' }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
+                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? withAlpha(colors.success, 0.1) : withAlpha(colors.danger, 0.1) }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
                         </View>
                       </View>
                     </View>
@@ -580,7 +585,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={st.card}>
             {/* 日期行 */}
             <View style={st.dateRow}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: '#8C8583' }}>{t('billDate')}</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textSub }}>{t('billDate')}</Text>
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
                 activeOpacity={1}
@@ -599,7 +604,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     return `${y}年${m}月${d}日`;
                   })()}
                 </Text>
-                <Text style={{ fontSize: 22, fontWeight: '700', color: '#8C8583' }}>›</Text>
+                <Text style={{ fontSize: 22, fontWeight: '700', color: colors.textSub }}>›</Text>
                 {React.createElement('input', {
                   type: 'date',
                   value: recDate,
@@ -620,21 +625,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <InputWithFocus inputStyle={st.input}
                   value={cardBalance} onChangeText={(v: string) => setCardBalance(blockNeg(v))}
                   keyboardType="decimal-pad"
-                  placeholder="0.00" placeholderTextColor="#EAE5E0" />
+                  placeholder="0.00" placeholderTextColor={colors.secondary} />
               </View>
               <View style={st.inputGroup}>
                 <Text style={st.inputLabel}>{t('cashBalance')} 💴</Text>
                 <InputWithFocus inputStyle={st.input}
                   value={cashBalance} onChangeText={(v: string) => setCashBalance(blockNeg(v))}
                   keyboardType="decimal-pad"
-                  placeholder="0.00" placeholderTextColor="#EAE5E0" />
+                  placeholder="0.00" placeholderTextColor={colors.secondary} />
               </View>
             </View>
 
             {/* 在途资金 */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: '#8C8583' }}>{t('fundsInTransit')}</Text>
-              <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#B34149' }} />
+              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textSub }}>{t('fundsInTransit')}</Text>
+              <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: colors.danger }} />
             </View>
             <View style={st.channelGrid}>
               {/* Row 1: 堂食 + 美团 + 闪购 */}
@@ -644,21 +649,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <InputWithFocus inputStyle={st.chipInput}
                     value={dineIn} onChangeText={(v: string) => setDineIn(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#EAE5E0" />
+                    placeholder="0.00" placeholderTextColor={colors.secondary} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('meituan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={meituan} onChangeText={(v: string) => setMeituan(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#EAE5E0" />
+                    placeholder="0.00" placeholderTextColor={colors.secondary} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('flashSale')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={flashSale} onChangeText={(v: string) => setFlashSale(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#EAE5E0" />
+                    placeholder="0.00" placeholderTextColor={colors.secondary} />
                 </TouchableOpacity>
               </View>
               {/* Row 2: 京东 + 团购 */}
@@ -668,14 +673,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <InputWithFocus inputStyle={st.chipInput}
                     value={jd} onChangeText={(v: string) => setJd(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#EAE5E0" />
+                    placeholder="0.00" placeholderTextColor={colors.secondary} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('tuan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={tuan} onChangeText={(v: string) => setTuan(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#EAE5E0" />
+                    placeholder="0.00" placeholderTextColor={colors.secondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -718,7 +723,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={[st.card, { marginTop: 12 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#2C2626' }}>{t('platformFee')}</Text>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textMain }}>{t('platformFee')}</Text>
                 <TouchableOpacity
                   ref={pickerTriggerRef}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 2, position: 'relative', paddingTop: 2 }}
@@ -741,10 +746,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={{ fontSize: 12, color: '#7D2329', fontWeight: '600' }}>
+                  <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600' }}>
                     {feeMonth === 'all' ? t('feeAllMonths') : fmtMonth(feeMonth.year, feeMonth.month)}
                   </Text>
-                  <Text style={{ fontSize: 10, color: '#7D2329' }}>▼</Text>
+                  <Text style={{ fontSize: 10, color: colors.primary }}>▼</Text>
                 </TouchableOpacity>
               </View>
               {(feeMonth !== 'all' || allFees.length > 0) && (
@@ -760,34 +765,34 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 13, color: '#7D2329', fontWeight: '600' }}>
+                <Text style={{ fontSize: 13, color: colors.primary, fontWeight: '600' }}>
                   {feeMonth === 'all' ? t('feeViewDetail') : t('feeDetail')}
                 </Text>
-                <Text style={{ fontSize: 16, color: '#7D2329', fontWeight: '700' }}>→</Text>
+                <Text style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>→</Text>
               </TouchableOpacity>
               )}
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 }}>
-              <Text style={{ fontSize: 32, fontWeight: '700', color: '#7D2329', marginRight: 6 }}>¥</Text>
-              <Text style={{ fontSize: 42, fontWeight: '700', color: '#2C2626', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>
+              <Text style={{ fontSize: 32, fontWeight: '700', color: colors.primary, marginRight: 6 }}>¥</Text>
+              <Text style={{ fontSize: 42, fontWeight: '700', color: colors.textMain, fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>
                 {feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </Text>
             </View>
 
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {([
-                { k: 'meituanCashier', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0) : (feeData?.meituan_cashier || 0), color: '#4A7299' },
-                { k: 'meituanWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0) : (feeData?.meituan_waimai || 0), color: '#D59A53' },
-                { k: 'shangouWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0) : (feeData?.eleme_waimai || 0), color: '#4A7299' },
-                { k: 'meituanTuan', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0) : (feeData?.meituan_tuan || 0), color: '#4C7A5D' },
+                { k: 'meituanCashier', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0) : (feeData?.meituan_cashier || 0), color: colors.info },
+                { k: 'meituanWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0) : (feeData?.meituan_waimai || 0), color: colors.warning },
+                { k: 'shangouWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0) : (feeData?.eleme_waimai || 0), color: colors.info },
+                { k: 'meituanTuan', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0) : (feeData?.meituan_tuan || 0), color: colors.success },
               ] as const).map((p) => (
-                <View key={p.k} style={{ flex: 1, minWidth: '45%', backgroundColor: '#F9F7F4', borderRadius: 10, padding: 10 }}>
+                <View key={p.k} style={{ flex: 1, minWidth: '45%', backgroundColor: colors.bg, borderRadius: 10, padding: 10 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: p.color }} />
-                    <Text style={{ fontSize: 11, color: '#8C8583', fontWeight: '500' }}>{t(p.k)}</Text>
+                    <Text style={{ fontSize: 11, color: colors.textSub, fontWeight: '500' }}>{t(p.k)}</Text>
                   </View>
-                  <Text style={{ fontSize: 17, fontWeight: '700', color: '#2C2626' }}>
+                  <Text style={{ fontSize: 17, fontWeight: '700', color: colors.textMain }}>
                     ¥{p.v.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </Text>
                 </View>
@@ -811,7 +816,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <TextInput style={st.bigAmtInput}
                     value={expAmount} onChangeText={(v: string) => setExpAmount(blockNeg(v))}
                     keyboardType="decimal-pad" placeholder="0.00"
-                    placeholderTextColor="#EAE5E0"
+                    placeholderTextColor={colors.secondary}
                     autoFocus={false} />
                 </View>
                 <View style={st.amtCursor} />
@@ -877,14 +882,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 value={expNote}
                 onChangeText={setExpNote}
                 placeholder={t('notePlaceholder')}
-                placeholderTextColor="#EAE5E0"
+                placeholderTextColor={colors.secondary}
                 multiline />
               {/* 凭证上传 */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={[st.catSectionTitle, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
                 <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7}
-                  style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#EAE5E0', alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#8C8583' }}>!</Text>
+                  style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: colors.secondary, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textSub }}>!</Text>
                 </TouchableOpacity>
                 {showImgTip && (
                   <View style={st.imgTipBubble}>
@@ -906,7 +911,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <TouchableOpacity style={st.imgAddBtn}
                   onPress={() => fileInputRef.current?.click()}
                   activeOpacity={0.7}>
-                  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#8C8583" strokeWidth={1.5} strokeLinecap="round">
+                  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5} strokeLinecap="round">
                     <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
                     <Circle cx="12" cy="13" r="4" />
                   </Svg>
@@ -923,7 +928,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     <TouchableOpacity style={st.imgRemove}
                       onPress={() => removeImage(i)}
                       activeOpacity={0.7}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round">
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth={2.5} strokeLinecap="round">
                         <Path d="M18 6L6 18M6 6l12 12" />
                       </Svg>
                     </TouchableOpacity>
@@ -932,7 +937,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
               {/* 日期选择 */}
               <View style={st.expDateRow}>
-                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#8C8583" strokeWidth={1.5}>
+                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5}>
                   <Rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                   <Line x1="16" y1="2" x2="16" y2="6"/>
                   <Line x1="8" y1="2" x2="8" y2="6"/>
@@ -953,7 +958,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       return `${y}年${m}月${d}日`;
                     })()}
                   </Text>
-                  <Text style={{ fontSize: 22, fontWeight: '700', color: '#8C8583' }}>›</Text>
+                  <Text style={{ fontSize: 22, fontWeight: '700', color: colors.textSub }}>›</Text>
                   {React.createElement('input', {
                     type: 'date',
                     value: expDate,
@@ -1005,7 +1010,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
             <View style={{ padding: 20, gap: 16 }}>
-              <Text style={{ fontSize: 14, color: '#8C8583', textAlign: 'center' }}>
+              <Text style={{ fontSize: 14, color: colors.textSub, textAlign: 'center' }}>
                 {t('expConfirmMsg')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -1033,7 +1038,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
             <View style={{ padding: 20, gap: 16 }}>
-              <Text style={{ fontSize: 14, color: '#8C8583', textAlign: 'center' }}>
+              <Text style={{ fontSize: 14, color: colors.textSub, textAlign: 'center' }}>
                 {t('jokeRecon')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -1062,12 +1067,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <Text style={{ fontSize: 13, color: '#8C8583', fontWeight: '500' }}>{t('entryDate')}</Text>
+                <Text style={{ fontSize: 13, color: colors.textSub, fontWeight: '500' }}>{t('entryDate')}</Text>
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }} activeOpacity={1}>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#2C2626' }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textMain }}>
                     {(() => { return fmtLocalDate(feeEntryDate); })()}
                   </Text>
-                  <Text style={{ fontSize: 22, fontWeight: '700', color: '#8C8583', marginLeft: 4 }}>›</Text>
+                  <Text style={{ fontSize: 22, fontWeight: '700', color: colors.textSub, marginLeft: 4 }}>›</Text>
                   {React.createElement('input', {
                     type: 'date', value: feeEntryDate, max: todayStr(),
                     onChange: (e: any) => {
@@ -1082,10 +1087,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
               {/* Column headers */}
               <View style={{ flexDirection: 'row', marginBottom: 10, gap: 8, paddingHorizontal: 2 }}>
-                <Text style={{ flex: 1, maxWidth: '30%', fontSize: 10, color: '#8C8583', fontWeight: '600' }}></Text>
-                <Text style={{ width: 80, fontSize: 10, color: '#8C8583', fontWeight: '600', textAlign: 'left' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 80, fontSize: 10, color: '#8C8583', fontWeight: '600', textAlign: 'left' }}>{t('feeCurrent')}</Text>
-                <Text style={{ width: 72, fontSize: 10, color: '#8C8583', fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
+                <Text style={{ flex: 1, maxWidth: '30%', fontSize: 10, color: colors.textSub, fontWeight: '600' }}></Text>
+                <Text style={{ width: 80, fontSize: 10, color: colors.textSub, fontWeight: '600', textAlign: 'left' }}>{t('feePreview')}</Text>
+                <Text style={{ width: 80, fontSize: 10, color: colors.textSub, fontWeight: '600', textAlign: 'left' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 72, fontSize: 10, color: colors.textSub, fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
               </View>
 
               {/* Fee rows */}
@@ -1098,17 +1103,17 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 const inputNum = toNum(row.val);
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
-                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: 13, color: '#2C2626', fontWeight: '500' }}>{t(row.k)}</Text>
-                    <Text style={{ width: 80, fontSize: 15, fontWeight: '700', color: '#2C2626', textAlign: 'left' }}>
+                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: 13, color: colors.textMain, fontWeight: '500' }}>{t(row.k)}</Text>
+                    <Text style={{ width: 80, fontSize: 15, fontWeight: '700', color: colors.textMain, textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 80, fontSize: 12, color: '#8C8583', textAlign: 'left' }}>
+                    <Text style={{ width: 80, fontSize: 12, color: colors.textSub, textAlign: 'left' }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: '#EAE5E0', borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: '#2C2626', textAlign: 'right', backgroundColor: '#FFFFFF', outline: 'none' } as any}
+                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: colors.textMain, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
                       value={row.val} onChangeText={row.set}
-                      keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#EAE5E0"
+                      keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.secondary}
                     />
                   </View>
                 );
@@ -1116,10 +1121,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
               {/* Confirm */}
               <TouchableOpacity
-                style={{ backgroundColor: '#7D2329', borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: savingFee ? 0.6 : 1 }}
+                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: savingFee ? 0.6 : 1 }}
                 onPress={handleAddFee} disabled={savingFee} activeOpacity={0.8}
               >
-                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{savingFee ? '...' : t('confirm')}</Text>
+                <Text style={{ color: colors.surface, fontSize: 15, fontWeight: '700' }}>{savingFee ? '...' : t('confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1160,10 +1165,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 13, color: '#7D2329', fontWeight: '600' }}>
+                <Text style={{ fontSize: 13, color: colors.primary, fontWeight: '600' }}>
                   {feeHistoryFilter === 'all' ? t('feeAllMonths') : fmtMonth(feeHistoryFilter.year, feeHistoryFilter.month)}
                 </Text>
-                <Text style={{ fontSize: 10, color: '#7D2329', marginLeft: 2 }}>▼</Text>
+                <Text style={{ fontSize: 10, color: colors.primary, marginLeft: 2 }}>▼</Text>
 
               </TouchableOpacity>
             </View>
@@ -1321,7 +1326,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 }
 
 /* ═══════════════════════════════════════ STYLES ═══════════════════════════════════ */
-const st = StyleSheet.create({
+const getSt = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
 
   /* ── Tab Bar ── */

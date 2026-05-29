@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 
 const PAGE_SIZE = 30;
 
@@ -21,6 +22,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const [dateTo, setDateTo] = useState(() => fmtISO(new Date()));
   const [appliedFrom, setAppliedFrom] = useState(dateFrom);
   const [appliedTo, setAppliedTo] = useState(dateTo);
+
+  const { colors } = useTheme();
 
   const todayISO = fmtISO(new Date());
 
@@ -73,6 +76,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
     return true;
   };
 
+  const st = useMemo(() => getSt(colors), [colors]);
+
   return (
     <View style={st.root}>
       {/* Header — absolute frosted glass, matches ExpenseHistoryScreen */}
@@ -89,7 +94,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
           activeOpacity={0.7}
         >
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none"
-            stroke={showFilter ? '#FFFFFF' : '#8C8583'} strokeWidth={2} strokeLinecap="round">
+            stroke={showFilter ? colors.surface : colors.textSub} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
           </Svg>
         </TouchableOpacity>
@@ -152,7 +157,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         contentContainerStyle={{ paddingTop: showFilter ? 150 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
         {loading ? (
           <View style={st.loading}>
-            <ActivityIndicator size="large" color="#7D2329" />
+            <ActivityIndicator size="large" color={colors.primary} />
             <Text style={st.loadingText}>{t('loading')}</Text>
           </View>
         ) : records.length === 0 ? (
@@ -186,9 +191,9 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
               <View style={st.cardAmounts}>
                 <View style={st.cardAmtCol}>
                   {rec.revenue > 0 ? (
-                    <Text style={[st.cardAmtVal, { color: '#2C2626' }]}>¥{toDec2(rec.revenue)}</Text>
+                    <Text style={[st.cardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.revenue)}</Text>
                   ) : (
-                    <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#EAE5E0" strokeWidth={2} strokeLinecap="round">
+                    <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
                       <Path d="M4 6h16" />
                     </Svg>
                   )}
@@ -196,9 +201,9 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                 </View>
                 <View style={st.cardAmtCol}>
                   {rec.turnover > 0 ? (
-                    <Text style={[st.cardAmtVal, { color: '#2C2626' }]}>¥{toDec2(rec.turnover)}</Text>
+                    <Text style={[st.cardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.turnover)}</Text>
                   ) : (
-                    <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#EAE5E0" strokeWidth={2} strokeLinecap="round">
+                    <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
                       <Path d="M4 6h16" />
                     </Svg>
                   )}
@@ -206,9 +211,9 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                 </View>
                 <View style={st.cardAmtCol}>
                   {rec.jd_revenue > 0 ? (
-                    <Text style={[st.cardAmtVal, { color: '#2C2626' }]}>¥{toDec2(rec.jd_revenue)}</Text>
+                    <Text style={[st.cardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.jd_revenue)}</Text>
                   ) : (
-                    <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke="#EAE5E0" strokeWidth={2} strokeLinecap="round">
+                    <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
                       <Path d="M4 6h16" />
                     </Svg>
                   )}
@@ -223,7 +228,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                   {rec.recorded_by ? (
                     <Text style={st.cardFooterText}>{rec.recorded_by}</Text>
                   ) : (
-                    <Svg width={16} height={8} viewBox="0 0 16 8" fill="none" stroke="#EAE5E0" strokeWidth={1.5} strokeLinecap="round">
+                    <Svg width={16} height={8} viewBox="0 0 16 8" fill="none" stroke={colors.secondary} strokeWidth={1.5} strokeLinecap="round">
                       <Path d="M2 4h12" />
                     </Svg>
                   )}
@@ -258,7 +263,7 @@ function fmtISO(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-const st = StyleSheet.create({
+const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Root */
   root: { flex: 1 },
 
@@ -267,78 +272,78 @@ const st = StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: 'rgba(249,247,244,0.55)',
+    backgroundColor: withAlpha(colors.bg, 0.55),
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   backBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(249,247,244,0.30)',
+    backgroundColor: withAlpha(colors.bg, 0.30),
     justifyContent: 'center', alignItems: 'center',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
   },
-  backArrow: { fontSize: 26, fontWeight: '300', color: '#7D2329', marginTop: -2, marginLeft: -1 },
-  title: { fontSize: 16, fontWeight: '400', color: '#2C2626' },
+  backArrow: { fontSize: 26, fontWeight: '300', color: colors.primary, marginTop: -2, marginLeft: -1 },
+  title: { fontSize: 16, fontWeight: '400', color: colors.textMain },
 
   /* Filter button */
   filterBtn: {
     width: 44, height: 44, borderRadius: 22,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(249,247,244,0.30)',
+    backgroundColor: withAlpha(colors.bg, 0.30),
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
   },
-  filterBtnActive: { backgroundColor: '#7D2329', borderColor: '#7D2329' },
+  filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
 
   /* Filter panel — matches ReconHistoryScreen */
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
-    backgroundColor: '#FFFFFF', borderRadius: 10,
-    borderWidth: 1, borderColor: '#EAE5E0',
+    backgroundColor: colors.surface, borderRadius: 10,
+    borderWidth: 1, borderColor: colors.secondary,
     overflow: 'hidden',
   },
   filterContent: { padding: 12, gap: 8 },
   filterField: { gap: 3 },
-  filterLabel: { fontSize: 11, fontWeight: '500', color: '#8C8583', paddingLeft: 2 },
+  filterLabel: { fontSize: 11, fontWeight: '500', color: colors.textSub, paddingLeft: 2 },
   filterDateRange: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterDateWrap: {
     flex: 1, height: 34, position: 'relative' as any,
-    backgroundColor: '#FFFFFF', borderRadius: 6,
-    borderWidth: 1, borderColor: '#EAE5E0',
+    backgroundColor: colors.surface, borderRadius: 6,
+    borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: 11, fontWeight: '500', color: '#2C2626' },
-  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: '#8C8583' },
+  filterDateText: { fontSize: 11, fontWeight: '500', color: colors.textMain },
+  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
-  filterDateArrow: { fontSize: 11, color: '#EAE5E0', fontWeight: '300', marginHorizontal: 2 },
+  filterDateArrow: { fontSize: 11, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
   filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
-    backgroundColor: '#EAE5E0', borderRadius: 8,
+    backgroundColor: colors.secondary, borderRadius: 8,
   },
-  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: '#2C2626' },
+  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: colors.textMain },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
-    backgroundColor: '#7D2329', borderRadius: 8,
+    backgroundColor: colors.primary, borderRadius: 8,
   },
-  filterApplyBtnText: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
+  filterApplyBtnText: { fontSize: 13, fontWeight: '700', color: colors.surface },
 
   /* List */
   list: { flex: 1 },
 
   /* Card */
   card: {
-    backgroundColor: '#FFFFFF', borderRadius: 12,
+    backgroundColor: colors.surface, borderRadius: 12,
     paddingVertical: 16, paddingHorizontal: 16,
     marginBottom: 10,
-    borderWidth: 1, borderColor: '#EAE5E0',
+    borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 12,
@@ -347,59 +352,59 @@ const st = StyleSheet.create({
   cardTop: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  cardDate: { fontSize: 16, fontWeight: '600', color: '#2C2626' },
+  cardDate: { fontSize: 16, fontWeight: '600', color: colors.textMain },
   statusBadge: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,
   },
-  statusBadgeEmpty: { backgroundColor: 'rgba(179,65,73,0.1)' },
-  statusBadgeDone: { backgroundColor: 'rgba(76,122,93,0.1)' },
+  statusBadgeEmpty: { backgroundColor: withAlpha(colors.danger, 0.1) },
+  statusBadgeDone: { backgroundColor: withAlpha(colors.success, 0.1) },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusDotEmpty: { backgroundColor: '#B34149' },
-  statusDotDone: { backgroundColor: '#4C7A5D' },
+  statusDotEmpty: { backgroundColor: colors.danger },
+  statusDotDone: { backgroundColor: colors.success },
   statusText: { fontSize: 12, fontWeight: '600' },
-  statusTextEmpty: { color: '#B34149' },
-  statusTextDone: { color: '#4C7A5D' },
+  statusTextEmpty: { color: colors.danger },
+  statusTextDone: { color: colors.success },
 
   /* Amount row */
   cardAmounts: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingVertical: 12, paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF', borderRadius: 8,
+    backgroundColor: colors.surface, borderRadius: 8,
   },
   cardAmtCol: { alignItems: 'center', flex: 1, gap: 4 },
   cardAmtVal: { fontSize: 17, fontWeight: '700' },
-  cardAmtLabel: { fontSize: 11, color: '#8C8583', fontWeight: '500' },
+  cardAmtLabel: { fontSize: 11, color: colors.textSub, fontWeight: '500' },
 
   /* Footer */
   cardFooter: {
-    borderTopWidth: 0.5, borderTopColor: '#EAE5E0',
+    borderTopWidth: 0.5, borderTopColor: colors.secondary,
     paddingTop: 8,
   },
-  cardFooterText: { fontSize: 11, color: '#8C8583' },
+  cardFooterText: { fontSize: 11, color: colors.textSub },
 
   /* Archived badge */
   archivedBadge: {
     alignSelf: 'flex-start',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
-    backgroundColor: 'rgba(179,65,73,0.1)',
+    backgroundColor: withAlpha(colors.danger, 0.1),
   },
-  archivedBadgeText: { fontSize: 11, fontWeight: '600', color: '#B34149' },
+  archivedBadgeText: { fontSize: 11, fontWeight: '600', color: colors.danger },
 
   /* Note display */
-  cardNote: { borderTopWidth: 0.5, borderTopColor: '#EAE5E0', paddingTop: 8, marginTop: 4 },
-  cardNoteText: { fontSize: 11, color: '#8C8583', lineHeight: 16 },
+  cardNote: { borderTopWidth: 0.5, borderTopColor: colors.secondary, paddingTop: 8, marginTop: 4 },
+  cardNoteText: { fontSize: 11, color: colors.textSub, lineHeight: 16 },
 
   /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F9F7F4', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#EAE5E0' },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
   emptyEmoji: { fontSize: 30 },
-  emptyTitle: { fontSize: 16, fontWeight: '500', color: '#8C8583' },
-  emptyHint: { fontSize: 13, color: '#8C8583', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+  emptyTitle: { fontSize: 16, fontWeight: '500', color: colors.textSub },
+  emptyHint: { fontSize: 13, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
 
   /* Loading */
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 40, gap: 8 },
-  loadingText: { fontSize: 13, color: '#7D2329' },
+  loadingText: { fontSize: 13, color: colors.primary },
 
   /* Bottom Nav */
   bottomNav: {
@@ -407,7 +412,7 @@ const st = StyleSheet.create({
     bottom: 16, left: '50%',
     transform: 'translateX(-50%)' as any,
     flexDirection: 'row', gap: 6,
-    backgroundColor: 'rgba(249,247,244,0.60)',
+    backgroundColor: withAlpha(colors.bg, 0.60),
     borderRadius: 28, paddingVertical: 6, paddingHorizontal: 8,
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',

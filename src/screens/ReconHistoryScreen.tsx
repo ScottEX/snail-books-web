@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 
 const PAGE_SIZE = 10;
 
@@ -18,6 +19,9 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const touchRef = useRef({ startX: 0, startY: 0 });
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadingRef = useRef(false);
+
+  const { colors } = useTheme();
+  const st = useMemo(() => getSt(colors), [colors]);
 
   const [showFilter, setShowFilter] = useState(false);
   const [filBillFrom, setFilBillFrom] = useState('');
@@ -169,7 +173,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookDiff')}</Text>
-            <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? '#4C7A5D' : '#B34149' }]}>
+            <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? colors.success : colors.danger }]}>
               {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
             </Text>
           </View>
@@ -236,7 +240,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View style={st.pairCol}>
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('bookDiff')}</Text>
-                <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? '#4C7A5D' : '#B34149' }]}>
+                <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? colors.success : colors.danger }]}>
                   {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
                 </Text>
               </View>
@@ -298,7 +302,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')} ({total})</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#8C8583'} strokeWidth={2} strokeLinecap="round">
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? colors.surface : colors.textSub} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
           </Svg>
         </TouchableOpacity>
@@ -394,7 +398,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         contentContainerStyle={{ paddingTop: showFilter ? 300 : 76 }}>
         {loading ? (
           <View style={st.loading}>
-            <ActivityIndicator size="large" color="#7D2329" />
+            <ActivityIndicator size="large" color={colors.primary} />
             <Text style={st.loadingText}>{t('loading')}</Text>
           </View>
         ) : records.length === 0 ? (
@@ -404,7 +408,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             {records.map(renderCard)}
             {hasMore && (
               <View style={st.loadingMore}>
-                <ActivityIndicator size="small" color="#7D2329" />
+                <ActivityIndicator size="small" color={colors.primary} />
                 <Text style={st.loadingMoreText}>{t('loading')}...</Text>
               </View>
             )}
@@ -418,54 +422,54 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-const st = StyleSheet.create({
+const getSt = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
   backBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(249,247,244,0.30)',
+    backgroundColor: withAlpha(colors.bg, 0.30),
     justifyContent: 'center', alignItems: 'center',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
   },
-  backBtnArrow: { fontSize: 26, fontWeight: '300', color: '#7D2329', marginTop: -2, marginLeft: -1 },
+  backBtnArrow: { fontSize: 26, fontWeight: '300', color: colors.primary, marginTop: -2, marginLeft: -1 },
   /* Frosted glass header — iOS 26 style */
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: 'rgba(249,247,244,0.55)',
+    backgroundColor: withAlpha(colors.bg, 0.55),
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  title: { fontSize: 16, fontWeight: '400', color: '#2C2626' },
+  title: { fontSize: 16, fontWeight: '400', color: colors.textMain },
   list: { flex: 1, paddingHorizontal: 12 },
   loading: { marginTop: 80, alignItems: 'center' },
-  loadingText: { marginTop: 12, fontSize: 14, color: '#7D2329' },
+  loadingText: { marginTop: 12, fontSize: 14, color: colors.primary },
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
-  loadingMoreText: { fontSize: 13, color: '#7D2329' },
+  loadingMoreText: { fontSize: 13, color: colors.primary },
   /* Card */
   card: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
-    marginBottom: 12, borderWidth: 1, borderColor: '#EAE5E0',
+    backgroundColor: colors.surface, borderRadius: 14, padding: 14,
+    marginBottom: 12, borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 10,
   },
   dateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 8 },
   dateItem: { flex: 1, alignItems: 'center' },
-  dateLabel: { fontSize: 9, color: '#8C8583', fontWeight: '500', marginBottom: 2 },
-  dateVal: { fontSize: 13, fontWeight: '600', color: '#2C2626' },
-  dateSep: { width: 1, height: 24, backgroundColor: '#EAE5E0' },
+  dateLabel: { fontSize: 9, color: colors.textSub, fontWeight: '500', marginBottom: 2 },
+  dateVal: { fontSize: 13, fontWeight: '600', color: colors.textMain },
+  dateSep: { width: 1, height: 24, backgroundColor: colors.secondary },
   /* Card vertical pairs — plain, no background */
   cardPairRow: { flexDirection: 'row', gap: 4 },
   cardPairCol: { flex: 1, alignItems: 'center' },
   cardPairItem: { alignItems: 'center', gap: 2, paddingVertical: 4 },
-  cardPairLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500' },
-  cardPairVal: { fontSize: 14, fontWeight: '700', color: '#2C2626' },
-  cardPairDiv: { height: 1, backgroundColor: '#F9F7F4', width: '60%', marginVertical: 2 },
-  tapHint: { fontSize: 10, color: '#EAE5E0', textAlign: 'center', marginTop: 2 },
+  cardPairLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500' },
+  cardPairVal: { fontSize: 14, fontWeight: '700', color: colors.textMain },
+  cardPairDiv: { height: 1, backgroundColor: colors.bg, width: '60%', marginVertical: 2 },
+  tapHint: { fontSize: 10, color: colors.secondary, textAlign: 'center', marginTop: 2 },
   /* Modal */
   mask: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -473,11 +477,11 @@ const st = StyleSheet.create({
   },
   maskBg: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(44,38,38,0.4)',
+    backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modal: {
     width: '88%', maxWidth: 380,
-    backgroundColor: '#FFFFFF', borderRadius: 20,
+    backgroundColor: colors.surface, borderRadius: 20,
     overflow: 'hidden',
     // @ts-ignore
     boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
@@ -485,13 +489,13 @@ const st = StyleSheet.create({
     animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
   },
   modalHeader: {
-    backgroundColor: '#7D2329',
+    backgroundColor: colors.primary,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 12, paddingHorizontal: 18,
   },
-  modalDate: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
-  modalDateSub: { fontSize: 12, fontWeight: '400', color: 'rgba(255,255,255,0.75)', marginTop: 2 },
-  modalClose: { fontSize: 18, fontWeight: '400', color: '#FFFFFF', paddingLeft: 8 },
+  modalDate: { fontSize: 15, fontWeight: '600', color: colors.surface },
+  modalDateSub: { fontSize: 12, fontWeight: '400', color: withAlpha(colors.surface, 0.75), marginTop: 2 },
+  modalClose: { fontSize: 18, fontWeight: '400', color: colors.surface, paddingLeft: 8 },
   /* Three vertical pairs */
   pairRow: {
     flexDirection: 'row', paddingVertical: 16, paddingHorizontal: 10,
@@ -499,44 +503,44 @@ const st = StyleSheet.create({
   },
   pairCol: {
     flex: 1, alignItems: 'center',
-    backgroundColor: '#F9F7F4', borderRadius: 12,
+    backgroundColor: colors.bg, borderRadius: 12,
     paddingVertical: 10, paddingHorizontal: 4,
   },
   pairItem: { alignItems: 'center', gap: 4, paddingVertical: 6 },
-  pairLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500' },
-  pairVal: { fontSize: 15, fontWeight: '700', color: '#2C2626' },
-  pairDivider: { height: 1, backgroundColor: '#EAE5E0', width: '70%' },
+  pairLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500' },
+  pairVal: { fontSize: 15, fontWeight: '700', color: colors.textMain },
+  pairDivider: { height: 1, backgroundColor: colors.secondary, width: '70%' },
   /* Channel section */
   chanSection: {
     marginHorizontal: 14, marginBottom: 18, marginTop: 4,
-    borderTopWidth: 1, borderTopColor: '#F9F7F4',
+    borderTopWidth: 1, borderTopColor: colors.bg,
     paddingTop: 12,
   },
   chanRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 7, paddingHorizontal: 4 },
-  chanLabel: { fontSize: 13, color: '#8C8583', fontWeight: '500' },
-  chanVal: { fontSize: 14, fontWeight: '600', color: '#2C2626' },
+  chanLabel: { fontSize: 13, color: colors.textSub, fontWeight: '500' },
+  chanVal: { fontSize: 14, fontWeight: '600', color: colors.textMain },
   /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F9F7F4', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#EAE5E0' },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
   emptyEmoji: { fontSize: 30 },
-  emptyTitle: { fontSize: 16, fontWeight: '500', color: '#8C8583' },
-  emptyHint: { fontSize: 13, color: '#8C8583', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+  emptyTitle: { fontSize: 16, fontWeight: '500', color: colors.textSub },
+  emptyHint: { fontSize: 13, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   /* Filter — ultra-minimal */
   filterBtn: {
     width: 44, height: 44, borderRadius: 22,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(249,247,244,0.30)',
+    backgroundColor: withAlpha(colors.bg, 0.30),
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
   },
-  filterBtnActive: { backgroundColor: '#7D2329', borderColor: '#7D2329' },
-  filterBtnText: { fontSize: 12, fontWeight: '600', color: '#8C8583' },
-  filterBtnTextActive: { color: '#FFFFFF' },
+  filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  filterBtnText: { fontSize: 12, fontWeight: '600', color: colors.textSub },
+  filterBtnTextActive: { color: colors.surface },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
-    backgroundColor: '#FFFFFF', borderRadius: 10,
-    borderWidth: 1, borderColor: '#EAE5E0',
+    backgroundColor: colors.surface, borderRadius: 10,
+    borderWidth: 1, borderColor: colors.secondary,
     overflow: 'hidden',
   },
   filterContent: {
@@ -546,7 +550,7 @@ const st = StyleSheet.create({
     gap: 3,
   },
   filterLabel: {
-    fontSize: 11, fontWeight: '500', color: '#8C8583',
+    fontSize: 11, fontWeight: '500', color: colors.textSub,
     paddingLeft: 2,
   },
   filterDateRange: {
@@ -556,36 +560,36 @@ const st = StyleSheet.create({
     flex: 1,
     height: 34,
     paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 6,
-    borderWidth: 1, borderColor: '#EAE5E0',
-    fontSize: 13, fontWeight: '400', color: '#2C2626',
+    borderWidth: 1, borderColor: colors.secondary,
+    fontSize: 13, fontWeight: '400', color: colors.textMain,
     fontFamily: 'inherit',
     outline: 'none',
   },
   filterDateWrap: {
     flex: 1, height: 34, position: 'relative' as any,
-    backgroundColor: '#FFFFFF', borderRadius: 6,
-    borderWidth: 1, borderColor: '#EAE5E0',
+    backgroundColor: colors.surface, borderRadius: 6,
+    borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: 11, fontWeight: '500', color: '#2C2626' },
-  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: '#8C8583' },
+  filterDateText: { fontSize: 11, fontWeight: '500', color: colors.textMain },
+  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
   filterDateArrow: {
-    fontSize: 11, color: '#EAE5E0', fontWeight: '300',
+    fontSize: 11, color: colors.secondary, fontWeight: '300',
     marginHorizontal: 2,
   },
   filterInput: {
     height: 34,
     paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 6,
-    borderWidth: 1, borderColor: '#EAE5E0',
-    fontSize: 13, fontWeight: '400', color: '#2C2626',
+    borderWidth: 1, borderColor: colors.secondary,
+    fontSize: 13, fontWeight: '400', color: colors.textMain,
   },
   filterSelectWrap: {
     position: 'relative',
@@ -595,10 +599,10 @@ const st = StyleSheet.create({
     height: 34,
     paddingLeft: 8,
     paddingRight: 30,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 6,
-    borderWidth: 1, borderColor: '#EAE5E0',
-    fontSize: 13, fontWeight: '400', color: '#2C2626',
+    borderWidth: 1, borderColor: colors.secondary,
+    fontSize: 13, fontWeight: '400', color: colors.textMain,
     fontFamily: 'inherit',
     outline: 'none',
     WebkitAppearance: 'none',
@@ -609,7 +613,7 @@ const st = StyleSheet.create({
   filterSelectArrow: {
     position: 'absolute',
     right: 8, top: 9,
-    fontSize: 10, color: '#8C8583', fontWeight: '600',
+    fontSize: 10, color: colors.textSub, fontWeight: '600',
     pointerEvents: 'none',
   },
   filterActions: {
@@ -618,16 +622,16 @@ const st = StyleSheet.create({
   filterResetBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#EAE5E0',
+    backgroundColor: colors.secondary,
   },
-  filterResetBtnText: { fontSize: 12, fontWeight: '500', color: '#2C2626' },
+  filterResetBtnText: { fontSize: 12, fontWeight: '500', color: colors.textMain },
   filterApplyBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#7D2329',
+    backgroundColor: colors.primary,
   },
-  filterApplyBtnText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
+  filterApplyBtnText: { fontSize: 12, fontWeight: '600', color: colors.surface },
   /* Reconciler in card */
   reconByRow: { alignItems: 'center', paddingBottom: 2 },
-  reconByText: { fontSize: 10, color: '#8C8583', fontWeight: '500' },
+  reconByText: { fontSize: 10, color: colors.textSub, fontWeight: '500' },
 });

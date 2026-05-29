@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
@@ -19,6 +20,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const { colors } = useTheme();
 
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
@@ -122,6 +124,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   };
 
   const switchLang = (l: string) => { setLang(l); setLangState(l); };
+
+  const styles = useMemo(() => getStyles(colors), [colors]);
 
   return (
     <View style={styles.container}>
@@ -379,7 +383,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, padding: 20, paddingTop: 24 },
   bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only background image
@@ -398,7 +402,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
   langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
   langBtn: { fontSize: 11, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  langActive: { color: '#fff', backgroundColor: 'rgba(255,255,255,0.15)' },
+  langActive: { color: colors.surface, backgroundColor: 'rgba(255,255,255,0.15)' },
   glassCard: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 16, padding: 28,
     // @ts-ignore - web-only
@@ -406,11 +410,11 @@ const styles = StyleSheet.create({
   },
   shake: {}, // animation handled by CSS class
   msgBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
-  msgOk: { backgroundColor: 'rgba(76,122,93,0.3)' },
-  msgErr: { backgroundColor: 'rgba(179,65,73,0.12)' },
+  msgOk: { backgroundColor: withAlpha(colors.success, 0.3) },
+  msgErr: { backgroundColor: withAlpha(colors.danger, 0.12) },
   msgText: { fontSize: 11, fontWeight: '500' },
-  msgOkText: { color: 'rgba(76,122,93,0.1)' },
-  msgErrText: { color: '#B34149' },
+  msgOkText: { color: withAlpha(colors.success, 0.1) },
+  msgErrText: { color: colors.danger },
   tabRow: {
     flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, padding: 4, marginBottom: 16,
     // @ts-ignore
@@ -419,7 +423,7 @@ const styles = StyleSheet.create({
   tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
   tabText: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.65)' },
-  tabActiveText: { color: '#fff' },
+  tabActiveText: { color: colors.surface },
   formSection: { gap: 16 },
   fieldWrap: { gap: 6 },
   fieldLabel: { fontSize: 11, fontWeight: '500', color: 'rgba(255,255,255,0.6)' },
@@ -427,7 +431,7 @@ const styles = StyleSheet.create({
   pwWrap: { position: 'relative' as any },
   pwInput: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
-    paddingRight: 44, fontSize: 16, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    paddingRight: 44, fontSize: 16, color: colors.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
     // @ts-ignore - web-only style
     backdropFilter: 'blur(8px)', outlineStyle: 'none' as any,
   },
@@ -438,7 +442,7 @@ const styles = StyleSheet.create({
   pwEyeText: { fontSize: 11, color: 'rgba(255,255,255,0.45)' },
   textInput: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
-    fontSize: 16, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    fontSize: 16, color: colors.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
     // @ts-ignore - web-only style
     backdropFilter: 'blur(8px)', outlineStyle: 'none' as any,
   },
@@ -448,16 +452,16 @@ const styles = StyleSheet.create({
     // @ts-ignore
     backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  btnDarkText: { fontSize: 13, fontWeight: '500', color: '#fff', letterSpacing: 1 },
+  btnDarkText: { fontSize: 13, fontWeight: '500', color: colors.surface, letterSpacing: 1 },
   btnRed: {
-    backgroundColor: 'rgba(125,35,41,0.7)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
+    backgroundColor: withAlpha(colors.primary, 0.7), borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
     // @ts-ignore
     backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  btnRedText: { fontSize: 13, fontWeight: '500', color: '#fff', letterSpacing: 1 },
+  btnRedText: { fontSize: 13, fontWeight: '500', color: colors.surface, letterSpacing: 1 },
   forgotText: { fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
   disabledText: { opacity: 0.3 },
   infoText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
-  infoStrong: { fontWeight: '600', color: '#fff' },
+  infoStrong: { fontWeight: '600', color: colors.surface },
   copyright: { fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });

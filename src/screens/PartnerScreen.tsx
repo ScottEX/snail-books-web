@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 
 // NOTE: 合伙人持股/初始投资/姓名映射硬编码。若后端合伙人变更（增减/改名），
 // 默认值（33%、42900）可能不准确。理想方案是从后端返回并缓存这些映射。
@@ -68,6 +69,15 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [lang, setLangState] = useState(getLang());
 
   const [toast, setToast] = useState('');
+
+  const { colors } = useTheme();
+
+  const s = useMemo(() => getS(colors), [colors]);
+  const mo = useMemo(() => getMo(colors), [colors]);
+  const moBody = useMemo(() => getMoBody(colors), [colors]);
+  const ds = useMemo(() => getDs(colors), [colors]);
+  const org = useMemo(() => getOrg(colors), [colors]);
+  const tg = useMemo(() => getTg(colors), [colors]);
 
   const loadData = async () => {
     try {
@@ -167,8 +177,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           {/* ====== 3 STAT CARDS (8600 exact) ====== */}
           <View style={s.statGrid}>
             <View style={s.statCard}>
-              <View style={[s.statIconBg, { backgroundColor: 'rgba(125,35,41,0.08)' }]}>
-                <IconBuilding color="#7D2329" />
+              <View style={[s.statIconBg, { backgroundColor: withAlpha(colors.primary, 0.08) }]}>
+                <IconBuilding color={colors.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.statLabel}>{t('totalCapital')}</Text>
@@ -179,12 +189,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
             <View style={s.statCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 }}>
-                <View style={[s.statIconBg, { backgroundColor: 'rgba(213,154,83,0.1)' }]}>
-                  <IconCoins color="#D59A53" />
+                <View style={[s.statIconBg, { backgroundColor: withAlpha(colors.warning, 0.1) }]}>
+                  <IconCoins color={colors.warning} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.statLabel}>{t('distributedPool')}</Text>
-                  <Text style={[s.statValue, { color: '#D59A53' }]}>¥{totalDiv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={[s.statValue, { color: colors.warning }]}>¥{totalDiv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                   <Text style={s.statSub}>{t('cumulativeByShare')}</Text>
                 </View>
               </View>
@@ -194,12 +204,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             </View>
 
             <TouchableOpacity style={s.statCard} onPress={() => setShowOrg(true)}>
-              <View style={[s.statIconBg, { backgroundColor: '#F9F7F4' }]}>
-                <IconPeople color="#8C8583" />
+              <View style={[s.statIconBg, { backgroundColor: colors.bg }]}>
+                <IconPeople color={colors.textSub} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.statLabel}>{t('partnerSeats')}</Text>
-                <Text style={[s.statValue, { color: '#2C2626' }]}>3 {t('shareholders')}</Text>
+                <Text style={[s.statValue, { color: colors.textMain }]}>3 {t('shareholders')}</Text>
                 <Text style={s.statSub}>{t('lpStructure')}</Text>
               </View>
             </TouchableOpacity>
@@ -246,9 +256,9 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
                       <Text style={s.footerSub}>{t('paybackRate')} {pct}%</Text>
                       {isBack ? (
-                        <Text style={{ fontSize: 10, color: '#4C7A5D', fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
+                        <Text style={{ fontSize: 10, color: colors.success, fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
                       ) : (
-                        <Text style={{ fontSize: 10, color: '#D59A53', fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                        <Text style={{ fontSize: 10, color: colors.warning, fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                       )}
                     </View>
                   </View>
@@ -276,6 +286,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
             {(filter === 'all' || filter === 'invest') && (
               <TableGroup title={t('initialApr2024')} type="invest" total={130000}
+                themeColors={colors} styles={tg}
                 items={[
                   { name: translateName('张安武'), sub: '34%', amount: 44200 },
                   { name: translateName('江宽'), sub: '33%', amount: 42900 },
@@ -284,6 +295,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             )}
             {(filter === 'all' || filter === 'mid') && (
               <TableGroup title={t('midJan2025')} type="mid" total={30162}
+                themeColors={colors} styles={tg}
                 items={[
                   { name: translateName('张安武'), sub: '34%', amount: 10255.08 },
                   { name: translateName('江宽'), sub: '33%', amount: 9953.46 },
@@ -295,6 +307,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               const total = items.reduce((s: number, d: any) => s + d.amount, 0);
               return (
                 <TableGroup key={note} title={translateDividendNote(note)} type="dividend" total={total}
+                  themeColors={colors} styles={tg}
                   items={items.map((d: any) => ({ name: translateName(d.partner), sub: '', amount: d.amount }))}
                   onDelete={() => setShowDelete(note)} />
               );
@@ -305,7 +318,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
       {/* ====== DIVIDEND MODAL ====== */}
       {showDividend && (
-        <ModalOverlay onClose={() => setShowDividend(false)}>
+        <ModalOverlay styles={mo} onClose={() => setShowDividend(false)}>
           <View style={mo.modalCard} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -321,12 +334,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <Text style={moBody.label}>{t('totalToPool')}</Text>
                 <TextInput style={moBody.input} placeholder={t('enterAmount')} value={divAmount}
                   onChangeText={(v) => { setDivAmount(v); calcPreview(parseFloat(v) || 0); }}
-                  keyboardType="decimal-pad" placeholderTextColor="#8C8583" />
+                  keyboardType="decimal-pad" placeholderTextColor={colors.textSub} />
               </View>
               <View>
                 <Text style={moBody.label}>{t('roundNote')}</Text>
                 <TextInput style={moBody.input} placeholder={t('roundNoteExample')} value={divNote}
-                  onChangeText={setDivNote} placeholderTextColor="#8C8583" />
+                  onChangeText={setDivNote} placeholderTextColor={colors.textSub} />
               </View>
               <View style={moBody.preview}>
                 <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
@@ -356,7 +369,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
       {/* ====== DELETE MODAL ====== */}
       {showDelete !== null && (
-        <ModalOverlay onClose={() => setShowDelete(null)}>
+        <ModalOverlay styles={mo} onClose={() => setShowDelete(null)}>
           <View style={[mo.modalCard, { maxWidth: 320 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -370,7 +383,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             <View style={{ padding: 20, gap: 16 }}>
               <View style={moBody.deleteBox}>
                 <Text style={moBody.deleteText}>
-                  {t('willDelete')}<Text style={{ fontWeight: '600', color: '#2C2626' }}>{translateDividendNote(showDelete)}</Text>{t('allDividendRecords')}
+                  {t('willDelete')}<Text style={{ fontWeight: '600', color: colors.textMain }}>{translateDividendNote(showDelete)}</Text>{t('allDividendRecords')}
                 </Text>
               </View>
               <View style={moBody.btnRow}>
@@ -388,7 +401,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
       {showDetail && (
-        <ModalOverlay onClose={() => setShowDetail(null)}>
+        <ModalOverlay styles={mo} onClose={() => setShowDetail(null)}>
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -403,19 +416,19 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             </View>
             <View style={moBody.body}>
               <View style={ds.grid}>
-                <View style={[ds.cell, { backgroundColor: '#F9F7F4' }]}>
+                <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('totalInvest')}</Text>
                   <Text style={ds.cellNum}>¥{(showDetail.investment || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
-                <View style={[ds.cell, { backgroundColor: 'rgba(213,154,83,0.1)' }]}>
-                  <Text style={[ds.cellLabel, { color: '#D59A53' }]}>{t('totalDividends')}</Text>
-                  <Text style={[ds.cellNum, { color: '#D59A53' }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                <View style={[ds.cell, { backgroundColor: withAlpha(colors.warning, 0.1) }]}>
+                  <Text style={[ds.cellLabel, { color: colors.warning }]}>{t('totalDividends')}</Text>
+                  <Text style={[ds.cellNum, { color: colors.warning }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
-                <View style={[ds.cell, { backgroundColor: '#F9F7F4' }]}>
+                <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
                   <Text style={ds.cellNumSmall}>¥{(initCapital[showDetail.name] ?? 42900).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
-                <View style={[ds.cell, { backgroundColor: '#F9F7F4' }]}>
+                <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('additional')}</Text>
                   <Text style={ds.cellNumSmall}>¥{((showDetail.investment || 0) - (initCapital[showDetail.name] || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
@@ -431,14 +444,14 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <View style={ds.progressBar}>
                     <View style={[ds.progressFill, {
                       width: `${Math.min(100, ((showDetail.total_dividends || 0) / showDetail.investment * 100))}%` as any,
-                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? '#4C7A5D' : '#D59A53',
+                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? colors.success : colors.warning,
                     }]} />
                   </View>
                   <View style={{ marginTop: 4 }}>
                     {(showDetail.total_dividends || 0) >= showDetail.investment ? (
-                      <Text style={{ fontSize: 10, color: '#4C7A5D', fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
+                      <Text style={{ fontSize: 10, color: colors.success, fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
                     ) : (
-                      <Text style={{ fontSize: 10, color: '#D59A53' }}>
+                      <Text style={{ fontSize: 10, color: colors.warning }}>
                         {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </Text>
                     )}
@@ -469,7 +482,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
       {showOrg && (
-        <ModalOverlay onClose={() => setShowOrg(false)}>
+        <ModalOverlay styles={mo} onClose={() => setShowOrg(false)}>
           <View style={[mo.modalCard, { maxWidth: 300 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -489,7 +502,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <View key={name} style={{ alignItems: 'center', width: '100%' }}>
                   {i > 0 && <View style={org.line} />}
                   <View style={org.node}>
-                    <Text style={[org.nodeName, isChairman && { color: '#7D2329' }]}>{name}</Text>
+                    <Text style={[org.nodeName, isChairman && { color: colors.primary }]}>{name}</Text>
                     <Text style={org.nodeRole}>{role} · {pct}</Text>
                   </View>
                 </View>
@@ -511,198 +524,204 @@ function getRoleKey(name: string): string {
 
 /* ========== MODAL OVERLAY ========== */
 
-function ModalOverlay({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+function ModalOverlay({ children, styles, onClose }: {
+  children: React.ReactNode;
+  styles: ReturnType<typeof getMo>;
+  onClose: () => void;
+}) {
   return (
-    <View style={mo.overlay}>
-      <TouchableOpacity style={mo.backdrop} onPress={onClose} activeOpacity={1} />
-      <View style={mo.content}>{children}</View>
+    <View style={styles.overlay}>
+      <TouchableOpacity style={styles.backdrop} onPress={onClose} activeOpacity={1} />
+      <View style={styles.content}>{children}</View>
     </View>
   );
 }
 
 /* ========== TABLE GROUP ========== */
 
-function TableGroup({ title, type, total, items, onDelete }: {
+function TableGroup({ title, type, total, items, themeColors, styles, onDelete }: {
   title: string; type: string; total: number; items: { name: string; sub: string; amount: number }[];
+  themeColors: ThemeColors;
+  styles: ReturnType<typeof getTg>;
   onDelete?: () => void;
 }) {
-  const colors: Record<string, { dot: string; headerBg: string; badge: string; amt: string }> = {
-    invest: { dot: '#4A7299', headerBg: 'rgba(74,114,153,0.1)', badge: '#4A7299', amt: '#2C2626' },
-    mid: { dot: '#4A7299', headerBg: 'rgba(74,114,153,0.1)', badge: '#4A7299', amt: '#2C2626' },
-    dividend: { dot: '#D59A53', headerBg: 'rgba(213,154,83,0.1)', badge: '#D59A53', amt: '#D59A53' },
+  const typeColors: Record<string, { dot: string; headerBg: string; badge: string; amt: string }> = {
+    invest: { dot: themeColors.info, headerBg: withAlpha(themeColors.info, 0.1), badge: themeColors.info, amt: themeColors.textMain },
+    mid: { dot: themeColors.info, headerBg: withAlpha(themeColors.info, 0.1), badge: themeColors.info, amt: themeColors.textMain },
+    dividend: { dot: themeColors.warning, headerBg: withAlpha(themeColors.warning, 0.1), badge: themeColors.warning, amt: themeColors.warning },
   };
-  const c = colors[type] || colors.invest;
+  const c = typeColors[type] || typeColors.invest;
   return (
-    <View style={tg.card}>
-      <View style={[tg.theadRow, { backgroundColor: c.headerBg }]}>
-        <View style={tg.thLeft}>
-          <View style={[tg.dot, { backgroundColor: c.dot }]} />
-          <Text style={tg.thTitle}>{title}</Text>
+    <View style={styles.card}>
+      <View style={[styles.theadRow, { backgroundColor: c.headerBg }]}>
+        <View style={styles.thLeft}>
+          <View style={[styles.dot, { backgroundColor: c.dot }]} />
+          <Text style={styles.thTitle}>{title}</Text>
         </View>
-        <View style={tg.thRight}>
-          <Text style={[tg.thAmt, { color: c.amt }]}>¥{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+        <View style={styles.thRight}>
+          <Text style={[styles.thAmt, { color: c.amt }]}>¥{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
           {onDelete && (
             <TouchableOpacity onPress={onDelete}>
-              <Text style={tg.delBtn}>{t('deleteRecord')}</Text>
+              <Text style={styles.delBtn}>{t('deleteRecord')}</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
       {items.map((item, i) => (
-        <View key={i} style={[tg.tbodyRow, i > 0 && tg.rowBorder]}>
-          <Text style={tg.tdName}>{item.name}
-            {item.sub ? <Text style={tg.tdSub}> · {item.sub}</Text> : null}
+        <View key={i} style={[styles.tbodyRow, i > 0 && styles.rowBorder]}>
+          <Text style={styles.tdName}>{item.name}
+            {item.sub ? <Text style={styles.tdSub}> · {item.sub}</Text> : null}
           </Text>
-          <Text style={[tg.tdAmt, { color: c.amt }]}>¥{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+          <Text style={[styles.tdAmt, { color: c.amt }]}>¥{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-/* ========== STYLES ========== */
+/* ========== STYLES (theme-aware get functions) ========== */
 
-const s = StyleSheet.create({
+const getS = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
   container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 },
-  header: { borderBottomWidth: 1, borderBottomColor: '#F9F7F4', paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  header: { borderBottomWidth: 1, borderBottomColor: colors.bg, paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 8 },
-  backArrow: { fontSize: 22, color: '#8C8583', lineHeight: 22, fontWeight: '300' },
-  backText: { fontSize: 11, color: '#8C8583', fontWeight: '500' },
+  backArrow: { fontSize: 22, color: colors.textSub, lineHeight: 22, fontWeight: '300' },
+  backText: { fontSize: 11, color: colors.textSub, fontWeight: '500' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  redBar: { width: 8, height: 36, backgroundColor: '#7D2329', borderRadius: 100 },
-  mainTitle: { fontSize: 17, fontWeight: '600', color: '#2C2626', letterSpacing: -0.3 },
-  engSub: { fontSize: 10, color: '#8C8583', fontWeight: '500', letterSpacing: 0.3, marginTop: 1 },
+  redBar: { width: 8, height: 36, backgroundColor: colors.primary, borderRadius: 100 },
+  mainTitle: { fontSize: 17, fontWeight: '600', color: colors.textMain, letterSpacing: -0.3 },
+  engSub: { fontSize: 10, color: colors.textSub, fontWeight: '500', letterSpacing: 0.3, marginTop: 1 },
   langRow: { flexDirection: 'row', gap: 4, paddingTop: 4 },
-  langBtn: { fontSize: 10, color: '#8C8583', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '500' as any },
-  langActive: { color: '#7D2329', backgroundColor: 'rgba(179,65,73,0.1)', fontWeight: '700' as any },
+  langBtn: { fontSize: 10, color: colors.textSub, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '500' as any },
+  langActive: { color: colors.primary, backgroundColor: withAlpha(colors.danger, 0.1), fontWeight: '700' as any },
   statGrid: { flexDirection: 'row', gap: 12, marginTop: 16, flexWrap: 'wrap' },
   statCard: {
-    flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F9F7F4',
+    flex: 1, minWidth: 200, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.bg,
     padding: 14, flexDirection: 'row', alignItems: 'center', gap: 14,
     // @ts-ignore
     boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
   },
   statIconBg: { width: 36, height: 36, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  statLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500', letterSpacing: 0.3 },
-  statValue: { fontSize: 15, fontWeight: '700', color: '#2C2626', marginTop: 2 },
-  statGreen: { fontSize: 9, color: '#4C7A5D', fontWeight: '500', marginTop: 2 },
-  statSub: { fontSize: 9, color: '#8C8583', fontWeight: '500', marginTop: 2 },
-  dividendBtn: { backgroundColor: '#7D2329', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12 },
-  dividendBtnText: { color: '#fff', fontSize: 10, fontWeight: '500' },
+  statLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500', letterSpacing: 0.3 },
+  statValue: { fontSize: 15, fontWeight: '700', color: colors.textMain, marginTop: 2 },
+  statGreen: { fontSize: 9, color: colors.success, fontWeight: '500', marginTop: 2 },
+  statSub: { fontSize: 9, color: colors.textSub, fontWeight: '500', marginTop: 2 },
+  dividendBtn: { backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12 },
+  dividendBtnText: { color: colors.surface, fontSize: 10, fontWeight: '500' },
   partnerGrid: { flexDirection: 'row', gap: 12, marginTop: 12, flexWrap: 'wrap' },
   partnerCard: {
-    flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F9F7F4',
+    flex: 1, minWidth: 200, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.bg,
     padding: 16, gap: 10, // @ts-ignore
     boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
   },
   partnerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  partnerName: { fontSize: 13, fontWeight: '700', color: '#2C2626' },
-  partnerPct: { fontSize: 10, color: '#8C8583' },
-  paidBadge: { backgroundColor: 'rgba(76,122,93,0.1)', borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
-  paidBadgeText: { fontSize: 9, fontWeight: '500', color: '#4C7A5D' },
+  partnerName: { fontSize: 13, fontWeight: '700', color: colors.textMain },
+  partnerPct: { fontSize: 10, color: colors.textSub },
+  paidBadge: { backgroundColor: withAlpha(colors.success, 0.1), borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
+  paidBadgeText: { fontSize: 9, fontWeight: '500', color: colors.success },
   partnerDataRow: { flexDirection: 'row', gap: 4 },
   partnerDataCell: { flex: 1, alignItems: 'center' },
-  dataLabel: { fontSize: 9, color: '#8C8583' },
-  dataValue: { fontSize: 10, fontWeight: '600', color: '#2C2626' },
-  partnerFooter: { borderTopWidth: 1, borderTopColor: '#F9F7F4', paddingTop: 6 },
-  footerLabel: { fontSize: 11, color: '#D59A53', fontWeight: '500' },
-  footerAmt: { fontSize: 11, fontWeight: '700', color: '#D59A53' },
-  footerSub: { fontSize: 10, color: '#8C8583' },
+  dataLabel: { fontSize: 9, color: colors.textSub },
+  dataValue: { fontSize: 10, fontWeight: '600', color: colors.textMain },
+  partnerFooter: { borderTopWidth: 1, borderTopColor: colors.bg, paddingTop: 6 },
+  footerLabel: { fontSize: 11, color: colors.warning, fontWeight: '500' },
+  footerAmt: { fontSize: 11, fontWeight: '700', color: colors.warning },
+  footerSub: { fontSize: 10, color: colors.textSub },
   ledgerCard: {
-    backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#F9F7F4', marginTop: 16,
+    backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.bg, marginTop: 16,
     // @ts-ignore
     boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
   },
-  ledgerHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F9F7F4', gap: 12 },
-  ledgerTitle: { fontSize: 12, fontWeight: '700', color: '#8C8583', letterSpacing: 0.5 },
-  ledgerSub: { fontSize: 10, color: '#8C8583' },
+  ledgerHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: colors.bg, gap: 12 },
+  ledgerTitle: { fontSize: 12, fontWeight: '700', color: colors.textSub, letterSpacing: 0.5 },
+  ledgerSub: { fontSize: 10, color: colors.textSub },
   filterRow: { flexDirection: 'row', gap: 8 },
-  filterBtn: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, backgroundColor: '#F9F7F4' },
-  filterBtnActive: { backgroundColor: '#2C2626' },
-  filterBtnText: { fontSize: 10, fontWeight: '500' as any, color: '#8C8583' },
-  filterBtnActiveText: { color: '#fff', fontWeight: '700' as any },
+  filterBtn: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, backgroundColor: colors.bg },
+  filterBtnActive: { backgroundColor: colors.textMain },
+  filterBtnText: { fontSize: 10, fontWeight: '500' as any, color: colors.textSub },
+  filterBtnActiveText: { color: colors.surface, fontWeight: '700' as any },
 });
 
-const mo = StyleSheet.create({
+const getMo = (colors: ThemeColors) => StyleSheet.create({
   overlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 },
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(44,38,38,0.4)' },
   content: { alignItems: 'center', justifyContent: 'center' },
   modalCard: {
-    backgroundColor: '#fff', borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
+    backgroundColor: colors.surface, borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
     animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
     // @ts-ignore
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
   },
-  header: { backgroundColor: '#7D2329', paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  sub: { fontSize: 10, color: 'rgba(179,65,73,0.1)', marginTop: 2 },
-  close: { color: 'rgba(179,65,73,0.1)', fontSize: 18 },
+  header: { backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 14, fontWeight: '700', color: colors.surface },
+  sub: { fontSize: 10, color: withAlpha(colors.danger, 0.1), marginTop: 2 },
+  close: { color: withAlpha(colors.danger, 0.1), fontSize: 18 },
 });
 
-const moBody = StyleSheet.create({
+const getMoBody = (colors: ThemeColors) => StyleSheet.create({
   body: { padding: 20, gap: 12 },
-  label: { fontSize: 10, fontWeight: '700', color: '#8C8583', marginBottom: 4 },
-  input: { width: '100%', backgroundColor: '#F9F7F4', borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: 12, fontWeight: '700' as any, color: '#2C2626', fontFamily: undefined },
-  preview: { backgroundColor: '#F9F7F4', borderRadius: 12, padding: 12, gap: 8 },
-  previewTitle: { fontSize: 9, fontWeight: '700', color: '#8C8583', letterSpacing: 0.5 },
+  label: { fontSize: 10, fontWeight: '700', color: colors.textSub, marginBottom: 4 },
+  input: { width: '100%', backgroundColor: colors.bg, borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: 12, fontWeight: '700' as any, color: colors.textMain, fontFamily: undefined },
+  preview: { backgroundColor: colors.bg, borderRadius: 12, padding: 12, gap: 8 },
+  previewTitle: { fontSize: 9, fontWeight: '700', color: colors.textSub, letterSpacing: 0.5 },
   previewRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  previewName: { fontSize: 11, color: '#8C8583', fontWeight: '500' },
-  previewAmt: { fontSize: 11, fontWeight: '700', color: '#2C2626' },
+  previewName: { fontSize: 11, color: colors.textSub, fontWeight: '500' },
+  previewAmt: { fontSize: 11, fontWeight: '700', color: colors.textMain },
   btnRow: { flexDirection: 'row', gap: 12, paddingTop: 4 },
-  cancelBtn: { flex: 1, backgroundColor: '#F9F7F4', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  cancelBtnText: { fontSize: 12, fontWeight: '500', color: '#8C8583' },
-  confirmBtn: { flex: 1, backgroundColor: '#7D2329', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  confirmBtnText: { fontSize: 12, fontWeight: '500', color: '#fff' },
-  deleteConfirmBtn: { flex: 1, backgroundColor: '#B34149', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  deleteBox: { backgroundColor: 'rgba(179,65,73,0.1)', borderRadius: 12, padding: 12, alignItems: 'center' },
-  deleteText: { fontSize: 12, color: '#8C8583', textAlign: 'center' },
+  cancelBtn: { flex: 1, backgroundColor: colors.bg, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  cancelBtnText: { fontSize: 12, fontWeight: '500', color: colors.textSub },
+  confirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  confirmBtnText: { fontSize: 12, fontWeight: '500', color: colors.surface },
+  deleteConfirmBtn: { flex: 1, backgroundColor: colors.danger, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  deleteBox: { backgroundColor: withAlpha(colors.danger, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' },
+  deleteText: { fontSize: 12, color: colors.textSub, textAlign: 'center' },
 });
 
-const ds = StyleSheet.create({
+const getDs = (colors: ThemeColors) => StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   cell: { flex: 1, flexBasis: '45%' as any, borderRadius: 12, padding: 12 },
-  cellLabel: { fontSize: 10, fontWeight: '500', color: '#8C8583' },
-  cellNum: { fontSize: 14, fontWeight: '700', color: '#2C2626', marginTop: 2 },
-  cellNumSmall: { fontSize: 13, fontWeight: '600', color: '#2C2626', marginTop: 2 },
-  progressWrap: { backgroundColor: '#F9F7F4', borderRadius: 12, padding: 12 },
+  cellLabel: { fontSize: 10, fontWeight: '500', color: colors.textSub },
+  cellNum: { fontSize: 14, fontWeight: '700', color: colors.textMain, marginTop: 2 },
+  cellNumSmall: { fontSize: 13, fontWeight: '600', color: colors.textMain, marginTop: 2 },
+  progressWrap: { backgroundColor: colors.bg, borderRadius: 12, padding: 12 },
   progressLabel: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  progressLabelText: { fontSize: 11, color: '#8C8583' },
-  progressBar: { height: 6, backgroundColor: '#EAE5E0', borderRadius: 100, overflow: 'hidden' },
+  progressLabelText: { fontSize: 11, color: colors.textSub },
+  progressBar: { height: 6, backgroundColor: colors.secondary, borderRadius: 100, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 100 },
-  historyTitle: { fontSize: 10, fontWeight: '700', color: '#8C8583', letterSpacing: 0.5, marginBottom: 8 },
-  historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, backgroundColor: 'rgba(213,154,83,0.1)', borderRadius: 8, marginBottom: 4 },
-  historyNote: { fontSize: 11, color: '#8C8583' },
-  historyAmt: { fontSize: 11, fontWeight: '700', color: '#D59A53' },
-  historyEmpty: { fontSize: 10, color: '#8C8583', textAlign: 'center', paddingVertical: 12 },
+  historyTitle: { fontSize: 10, fontWeight: '700', color: colors.textSub, letterSpacing: 0.5, marginBottom: 8 },
+  historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, backgroundColor: withAlpha(colors.warning, 0.1), borderRadius: 8, marginBottom: 4 },
+  historyNote: { fontSize: 11, color: colors.textSub },
+  historyAmt: { fontSize: 11, fontWeight: '700', color: colors.warning },
+  historyEmpty: { fontSize: 10, color: colors.textSub, textAlign: 'center', paddingVertical: 12 },
 });
 
-const org = StyleSheet.create({
+const getOrg = (colors: ThemeColors) => StyleSheet.create({
   body: { padding: 20, alignItems: 'center' },
-  node: { backgroundColor: '#F9F7F4', borderWidth: 1, borderColor: '#EAE5E0', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, width: '100%', alignItems: 'center' },
-  nodeName: { fontSize: 13, fontWeight: '700', color: '#2C2626' },
-  nodeRole: { fontSize: 10, color: '#8C8583', marginTop: 2, fontWeight: '500' },
-  line: { width: 2, height: 24, backgroundColor: '#EAE5E0' },
-  joke: { fontSize: 10, color: '#8C8583', textAlign: 'center', marginTop: 20, lineHeight: 16, fontWeight: '600' },
+  node: { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, width: '100%', alignItems: 'center' },
+  nodeName: { fontSize: 13, fontWeight: '700', color: colors.textMain },
+  nodeRole: { fontSize: 10, color: colors.textSub, marginTop: 2, fontWeight: '500' },
+  line: { width: 2, height: 24, backgroundColor: colors.secondary },
+  joke: { fontSize: 10, color: colors.textSub, textAlign: 'center', marginTop: 20, lineHeight: 16, fontWeight: '600' },
 });
 
-const tg = StyleSheet.create({
-  card: { borderTopWidth: 1, borderTopColor: '#F9F7F4' },
-  theadRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F9F7F4' },
+const getTg = (colors: ThemeColors) => StyleSheet.create({
+  card: { borderTopWidth: 1, borderTopColor: colors.bg },
+  theadRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.bg },
   thLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 16, flex: 1 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  thTitle: { fontSize: 12, fontWeight: '600', color: '#2C2626' },
+  thTitle: { fontSize: 12, fontWeight: '600', color: colors.textMain },
   thMid: { width: 40, alignItems: 'center' },
   thBadge: { fontSize: 11, fontWeight: '600' },
   thRight: { flexDirection: 'row', alignItems: 'center', paddingRight: 16 },
   thAmt: { fontSize: 12, fontWeight: '700' },
-  delBtn: { fontSize: 10, color: '#B34149', marginLeft: 8 },
+  delBtn: { fontSize: 10, color: colors.danger, marginLeft: 8 },
   tbodyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
-  rowBorder: { borderTopWidth: 1, borderTopColor: '#F9F7F4' },
-  tdName: { fontSize: 12, color: '#8C8583', flex: 1, paddingLeft: 16 },
-  tdSub: { fontSize: 10, color: '#8C8583' },
+  rowBorder: { borderTopWidth: 1, borderTopColor: colors.bg },
+  tdName: { fontSize: 12, color: colors.textSub, flex: 1, paddingLeft: 16 },
+  tdSub: { fontSize: 10, color: colors.textSub },
   tdMid: { width: 40 },
   tdAmt: { fontSize: 12, fontWeight: '600', paddingRight: 16 },
 });

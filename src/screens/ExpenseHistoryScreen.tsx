@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator,
 } from 'react-native';
@@ -6,6 +6,7 @@ import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 
 const PAGE_SIZE = 10;
 
@@ -29,6 +30,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [appliedCats, setAppliedCats] = useState('');
   const loadingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { colors } = useTheme();
+  const st = useMemo(() => getSt(colors), [colors]);
 
   // Build filter params from applied values
   const getFilterParams = useCallback((): Record<string, string> => {
@@ -145,7 +149,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         </TouchableOpacity>
         <Text style={st.title}>{t('expenseHistory')} ({total})</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#8C8583'} strokeWidth={2} strokeLinecap="round">
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? colors.surface : colors.textSub} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
           </Svg>
         </TouchableOpacity>
@@ -280,7 +284,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             ))}
             {loading && (
               <View style={st.loading}>
-                <ActivityIndicator size="small" color="#7D2329" />
+                <ActivityIndicator size="small" color={colors.primary} />
                 <Text style={st.loadingText}>...</Text>
               </View>
             )}
@@ -306,7 +310,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           <TouchableOpacity style={st.previewClose}
             onPress={() => setPreviewData(null)}
             activeOpacity={0.7}>
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round">
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth={2} strokeLinecap="round">
               <Path d="M18 6L6 18M6 6l12 12" />
             </Svg>
           </TouchableOpacity>
@@ -346,7 +350,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   );
 }
 
-const st = StyleSheet.create({
+const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Root — flex: 1, no background (page bg from parent) */
   root: { flex: 1 },
   /* Header — frosted glass, floats above scroll */
@@ -354,29 +358,29 @@ const st = StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: 'rgba(249,247,244,0.55)',
+    backgroundColor: withAlpha(colors.bg, 0.55),
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   backBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(249,247,244,0.30)',
+    backgroundColor: withAlpha(colors.bg, 0.30),
     justifyContent: 'center', alignItems: 'center',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
   },
-  backArrow: { fontSize: 26, fontWeight: '300', color: '#7D2329', marginTop: -2, marginLeft: -1 },
-  title: { fontSize: 16, fontWeight: '400', color: '#2C2626' },
+  backArrow: { fontSize: 26, fontWeight: '300', color: colors.primary, marginTop: -2, marginLeft: -1 },
+  title: { fontSize: 16, fontWeight: '400', color: colors.textMain },
   /* List — scrolls under absolute header (matches ReconHistoryScreen list) */
   list: { flex: 1 },
   /* Row */
   row: {
-    backgroundColor: '#FFFFFF', borderRadius: 12,
+    backgroundColor: colors.surface, borderRadius: 12,
     paddingVertical: 14, paddingHorizontal: 14,
     marginBottom: 8,
-    borderWidth: 1, borderColor: '#EAE5E0',
+    borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 6,
@@ -388,30 +392,30 @@ const st = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1,
   },
   catBadge: {
-    backgroundColor: 'rgba(213,154,83,0.1)', borderRadius: 4,
+    backgroundColor: withAlpha(colors.warning, 0.1), borderRadius: 4,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  catBadgeText: { fontSize: 13, fontWeight: '600', color: '#7D2329' },
+  catBadgeText: { fontSize: 13, fontWeight: '600', color: colors.primary },
   payBadge: {
-    backgroundColor: '#F9F7F4', borderRadius: 4,
+    backgroundColor: colors.bg, borderRadius: 4,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  payBadgeText: { fontSize: 13, fontWeight: '500', color: '#8C8583' },
-  amount: { fontSize: 17, fontWeight: '700', color: '#B34149' },
-  filledBy: { fontSize: 11, color: '#8C8583', marginTop: 2 },
+  payBadgeText: { fontSize: 13, fontWeight: '500', color: colors.textSub },
+  amount: { fontSize: 17, fontWeight: '700', color: colors.danger },
+  filledBy: { fontSize: 11, color: colors.textSub, marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  dateText: { fontSize: 13, color: '#8C8583' },
-  note: { fontSize: 13, color: '#8C8583', flex: 1, textAlign: 'right' },
+  dateText: { fontSize: 13, color: colors.textSub },
+  note: { fontSize: 13, color: colors.textSub, flex: 1, textAlign: 'right' },
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F9F7F4', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#EAE5E0' },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
   emptyEmoji: { fontSize: 30 },
-  emptyTitle: { fontSize: 16, fontWeight: '500', color: '#8C8583' },
-  emptyHint: { fontSize: 13, color: '#8C8583', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+  emptyTitle: { fontSize: 16, fontWeight: '500', color: colors.textSub },
+  emptyHint: { fontSize: 13, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
-  loadingText: { fontSize: 13, color: '#7D2329' },
+  loadingText: { fontSize: 13, color: colors.primary },
   /* Preview overlay */
   previewOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
@@ -445,59 +449,59 @@ const st = StyleSheet.create({
   filterBtn: {
     width: 44, height: 44, borderRadius: 22,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(249,247,244,0.30)',
+    backgroundColor: withAlpha(colors.bg, 0.30),
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
   },
-  filterBtnActive: { backgroundColor: '#7D2329', borderColor: '#7D2329' },
+  filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
-    backgroundColor: '#FFFFFF', borderRadius: 10,
-    borderWidth: 1, borderColor: '#EAE5E0',
+    backgroundColor: colors.surface, borderRadius: 10,
+    borderWidth: 1, borderColor: colors.secondary,
     overflow: 'hidden',
   },
   filterContent: { padding: 12, gap: 8 },
   filterField: { gap: 3 },
-  filterLabel: { fontSize: 11, fontWeight: '500', color: '#8C8583', paddingLeft: 2 },
+  filterLabel: { fontSize: 11, fontWeight: '500', color: colors.textSub, paddingLeft: 2 },
   filterDateRange: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterDateInput: {
     flex: 1, height: 34, paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF', borderRadius: 6,
-    borderWidth: 1, borderColor: '#EAE5E0',
-    fontSize: 13, fontWeight: '400', color: '#2C2626',
+    backgroundColor: colors.surface, borderRadius: 6,
+    borderWidth: 1, borderColor: colors.secondary,
+    fontSize: 13, fontWeight: '400', color: colors.textMain,
     fontFamily: 'inherit', outline: 'none',
   },
   filterDateWrap: {
     flex: 1, height: 34, position: 'relative' as any,
-    backgroundColor: '#FFFFFF', borderRadius: 6,
-    borderWidth: 1, borderColor: '#EAE5E0',
+    backgroundColor: colors.surface, borderRadius: 6,
+    borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: 11, fontWeight: '500', color: '#2C2626' },
-  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: '#8C8583' },
+  filterDateText: { fontSize: 11, fontWeight: '500', color: colors.textMain },
+  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
-  filterDateArrow: { fontSize: 11, color: '#EAE5E0', fontWeight: '300', marginHorizontal: 2 },
+  filterDateArrow: { fontSize: 11, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
   filterChipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   filterChip: {
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
-    backgroundColor: '#F9F7F4',
+    backgroundColor: colors.bg,
   },
-  filterChipActive: { backgroundColor: '#7D2329' },
-  filterChipText: { fontSize: 12, fontWeight: '600', color: '#8C8583' },
-  filterChipTextActive: { color: '#FFFFFF' },
+  filterChipActive: { backgroundColor: colors.primary },
+  filterChipText: { fontSize: 12, fontWeight: '600', color: colors.textSub },
+  filterChipTextActive: { color: colors.surface },
   filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
-    backgroundColor: '#EAE5E0', borderRadius: 8,
+    backgroundColor: colors.secondary, borderRadius: 8,
   },
-  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: '#2C2626' },
+  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: colors.textMain },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
-    backgroundColor: '#7D2329', borderRadius: 8,
+    backgroundColor: colors.primary, borderRadius: 8,
   },
-  filterApplyBtnText: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
+  filterApplyBtnText: { fontSize: 13, fontWeight: '600', color: colors.surface },
 });
