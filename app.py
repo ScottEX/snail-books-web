@@ -15,8 +15,8 @@ from i18n_backend import get_lang, t as _t
 app = Flask(__name__)
 # Persistent secret key (survives restarts)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'snail-books-lanxu-2026-secret-key-v1')
-# Session timeout: 3 hours idle
-app.permanent_session_lifetime = timedelta(hours=3)
+# Session timeout: 24 hours
+app.permanent_session_lifetime = timedelta(hours=24)
 
 # ── CORS (for iOS App cross-origin requests) ──
 @ app.after_request
@@ -35,6 +35,31 @@ def handle_options():
 FRONTEND_VERSION = '2'
 FRONTEND_DIR = os.environ.get('FRONTEND_DIR', os.path.join(os.path.dirname(__file__), '..', 'snail-books-web', 'dist'))
 IMG_DIR = os.path.join(FRONTEND_DIR, 'img')
+EXPENSE_IMG_DIR = os.environ.get('EXPENSE_IMG_DIR', os.path.join(os.path.dirname(__file__), 'expense-imgs'))
+
+# ── Expense image serving (with permanent cache) ──
+# Registered before the catch-all so /expense-imgs/ doesn't hit SPA fallback.
+
+@app.route('/expense-imgs/<path:subpath>')
+def serve_expense_image(subpath):
+    """Serve expense receipt images with permanent cache headers.
+    subpath format: <user_id>/<filename>
+    Receipt images are immutable once uploaded — they never change.
+    """
+    # Path traversal guard: extract user_id/filename from subpath
+    parts = subpath.split('/', 1)
+    if len(parts) != 2:
+        return jsonify({'status': 'error', 'message': 'Not found'}), 404
+    user_id, filename = parts
+    user_dir = os.path.join(EXPENSE_IMG_DIR, user_id)
+    file_path = os.path.normpath(os.path.join(user_dir, filename))
+    if not file_path.startswith(user_dir) or not os.path.isfile(file_path):
+        return jsonify({'status': 'error', 'message': 'Not found'}), 404
+    mime, _ = mimetypes.guess_type(file_path)
+    resp = make_response(send_file(file_path, mimetype=mime or 'image/jpeg'))
+    resp.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    return resp
+
 
 @ app.before_request
 def detect_lang():
@@ -54,7 +79,13 @@ def serve_spa_static(path):
     file_path = os.path.join(FRONTEND_DIR, path)
     if os.path.isfile(file_path):
         mime, _ = mimetypes.guess_type(file_path)
-        return send_file(file_path, mimetype=mime or 'application/octet-stream')
+        # Static assets with content-hash → cache forever
+        no_cache = mime and mime.startswith('text/html')
+        max_age = 0 if no_cache else 31536000
+        resp = make_response(send_file(file_path, mimetype=mime or 'application/octet-stream'))
+        if not no_cache:
+            resp.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        return resp
     # SPA fallback: serve index.html
     index_path = os.path.join(FRONTEND_DIR, 'index.html')
     if os.path.isfile(index_path):
@@ -140,8 +171,8 @@ ACCOUNTS = ['💚 微信收款', '💙 支付宝收款', '💵 现金', '🏦 �
 # 实际合伙人数据
 PARTNER_DATA = [
     ('张安武', 0.34, 44200, '完结'),
-    ('江宽',   0.33, 42900, '完结'),
     ('蓝柳富', 0.33, 42900, '完结'),
+    ('江宽',   0.33, 42900, '完结'),
 ]
 
 DEFAULT_PRODUCTS = [
@@ -225,7 +256,6 @@ def init_db():
                 category TEXT NOT NULL,
                 account TEXT NOT NULL,
                 note TEXT DEFAULT '',
-                images TEXT DEFAULT '[]',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             CREATE TABLE IF NOT EXISTS dividends (
@@ -284,6 +314,26 @@ def init_db():
                 reconciled_by TEXT
             );
             CREATE INDEX IF NOT EXISTS idx_recon_date ON reconciliations(date);
+            CREATE TABLE IF NOT EXISTS platform_fees (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                year INTEGER NOT NULL,
+                month INTEGER NOT NULL,
+                meituan_cashier REAL DEFAULT 0,
+                meituan_waimai REAL DEFAULT 0,
+                eleme_waimai REAL DEFAULT 0,
+                meituan_tuan REAL DEFAULT 0,
+                UNIQUE(year, month)
+            );
+            CREATE TABLE IF NOT EXISTS platform_fee_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fee_id INTEGER REFERENCES platform_fees(id),
+                entry_date TEXT NOT NULL,
+                meituan_cashier REAL DEFAULT 0,
+                meituan_waimai REAL DEFAULT 0,
+                eleme_waimai REAL DEFAULT 0,
+                meituan_tuan REAL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         ''')
         # Migrations (safe to re-run)
         for col, col_type in [
@@ -315,9 +365,8 @@ def init_db():
             db.execute('ALTER TABLE reconciliations ADD COLUMN reconciled_by TEXT')
         except:
             pass
-        # Migration: add images column to transactions
         try:
-            db.execute('ALTER TABLE transactions ADD COLUMN images TEXT DEFAULT \'[]\'')
+            db.execute('ALTER TABLE transactions ADD COLUMN images TEXT DEFAULT \'\'')
         except:
             pass
 
@@ -329,8 +378,8 @@ with get_db() as db:
 
 # ── Validation helper ──
 def validate_required(data, *fields):
-    """Return list of missing field names; empty if all present. (0 is valid.)"""
-    return [f for f in fields if data.get(f) is None]
+    """Return list of missing field names; empty if all present."""
+    return [f for f in fields if not data.get(f)]
 
 # ====== Auth ======
 
@@ -490,8 +539,9 @@ def api_transactions():
         if missing:
             return jsonify({'status':'error','message': _t('err_missing_fields', g.lang, fields=', '.join(missing))}), 400
         with get_db() as db:
-            images_json = json.dumps(data.get('images', []))
-            db.execute('INSERT INTO transactions (type,amount,category,account,note,images) VALUES (?,?,?,?,?,?)', (data['type'], data['amount'], data['category'], data['account'], data.get('note',''), images_json))
+            db.execute('INSERT INTO transactions (type,amount,category,account,note,images) VALUES (?,?,?,?,?,?)',
+                       (data['type'], data['amount'], data['category'], data['account'],
+                        data.get('note',''), json.dumps(data.get('images', []))))
             db.commit()
         return jsonify({'status':'ok'})
     # GET with pagination & filtering
@@ -539,62 +589,41 @@ def api_transactions():
 @login_required
 def api_delete_transaction(id):
     with get_db() as db:
-        cur = db.execute('DELETE FROM transactions WHERE id=?', (id,))
+        db.execute('DELETE FROM transactions WHERE id=?', (id,))
         db.commit()
-        if cur.rowcount == 0:
-            return jsonify({'status':'error','message': '记录不存在'}), 404
     return jsonify({'status':'ok'})
 
-# ========== 支出图片上传 ==========
-_EXPENSE_IMG_DIR = os.path.join(os.path.dirname(__file__), 'financial-records', 'expenses')
-_EXPENSE_IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
-
-@app.route('/expense-imgs/<int:user_id>/<filename>')
-def serve_expense_img(user_id, filename):
-    """Public route to serve expense images (no auth needed for browser display)."""
-    fp = os.path.join(_EXPENSE_IMG_DIR, f'user_{user_id}', filename)
-    if os.path.exists(fp):
-        return send_file(fp)
-    return '', 404
+# ── Expense image upload ──
 
 @app.route('/api/expenses/upload-images', methods=['POST'])
 @login_required
 def api_upload_expense_images():
-    """Upload expense images. Accepts multipart 'files' (multiple). Returns list of image URLs."""
+    """Upload receipt images. Returns { images: ['/expense-imgs/<user_id>/<file>', ...] }."""
+    if 'files' not in request.files:
+        return jsonify({'status': 'error', 'message': 'No files'}), 400
     files = request.files.getlist('files')
     if not files:
-        return jsonify({'status': 'error', 'message': '未选择文件'}), 400
-
-    user_dir = os.path.join(_EXPENSE_IMG_DIR, f'user_{g.user_id}')
+        return jsonify({'status': 'error', 'message': 'No files'}), 400
+    user_id = str(g.user['id'])
+    user_dir = os.path.join(EXPENSE_IMG_DIR, user_id)
     os.makedirs(user_dir, exist_ok=True)
-
-    uploaded = []
+    urls = []
+    import uuid
     for f in files:
         if f.filename == '':
             continue
-        ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
-        if ext not in _EXPENSE_IMG_EXT:
-            return jsonify({'status': 'error', 'message': f'仅支持 {", ".join(_EXPENSE_IMG_EXT)} 格式'}), 400
-        f.seek(0, 2)
-        size = f.tell()
-        f.seek(0)
-        if size > 10 * 1024 * 1024:  # 10MB per image
-            return jsonify({'status': 'error', 'message': '单张图片最大 10MB'}), 400
-
-        # Generate unique filename to avoid collisions
-        import uuid as _uuid
-        ufname = f'{_uuid.uuid4().hex[:12]}.{ext}'
-        save_path = os.path.join(user_dir, ufname)
-        f.save(save_path)
-        uploaded.append(f'/expense-imgs/{g.user_id}/{ufname}')
-
-    return jsonify({'status': 'ok', 'images': uploaded})
+        # Keep original extension, generate unique name
+        ext = os.path.splitext(f.filename or 'img.jpg')[1] or '.jpg'
+        safe_name = f"{uuid.uuid4().hex}{ext}"
+        f.save(os.path.join(user_dir, safe_name))
+        urls.append(f'/expense-imgs/{user_id}/{safe_name}')
+    return jsonify({'status': 'ok', 'images': urls})
 
 @app.route('/api/partners')
 @login_required
 def api_partners():
     with get_db() as db:
-        rows = db.execute("""SELECT p.*, COALESCE(SUM(d.amount),0) as total_dividends FROM partners p LEFT JOIN dividends d ON d.partner = p.name GROUP BY p.id ORDER BY p.share DESC, p.name""").fetchall()
+        rows = db.execute("""SELECT p.*, COALESCE(SUM(d.amount),0) as total_dividends FROM partners p LEFT JOIN dividends d ON d.partner = p.name GROUP BY p.id""").fetchall()
     return jsonify([dict(r) for r in rows])
 
 @app.route('/api/dividends', methods=['GET','POST'])
@@ -607,8 +636,6 @@ def api_dividends():
             missing = validate_required(item, 'partner', 'amount')
             if missing:
                 return jsonify({'status':'error','message': _t('err_missing_fields', g.lang, fields=', '.join(missing))}), 400
-            if float(item['amount']) <= 0:
-                return jsonify({'status':'error','message': '分红金额必须大于0'}), 400
         with get_db() as db:
             for item in items:
                 db.execute('INSERT INTO dividends (partner,amount,note) VALUES (?,?,?)', (item['partner'], item['amount'], item.get('note','')))
@@ -622,35 +649,13 @@ def api_dividends():
 @login_required
 def api_delete_dividend(id):
     with get_db() as db:
-        cur = db.execute('DELETE FROM dividends WHERE id=?', (id,))
+        db.execute('DELETE FROM dividends WHERE id=?', (id,))
         db.commit()
-        if cur.rowcount == 0:
-            return jsonify({'status':'error','message': '记录不存在'}), 404
     return jsonify({'status':'ok'})
 
 # ========== 设置 - 首页背景图 ==========
 ALLOWED_BG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_BG_SIZE = 5 * 1024 * 1024  # 5MB
-_BG_DIR = os.environ.get('UPLOAD_DIR', os.path.join(os.path.dirname(__file__), 'user-uploads'))
-
-def _bg_path():
-    return os.path.join(_BG_DIR, f'home-bg-{g.user_id}.jpg') if hasattr(g, 'user_id') else os.path.join(_BG_DIR, 'home-bg.jpg')
-
-# Public image serving (no auth needed for browser image loads)
-@app.route('/bg/<int:user_id>.jpg')
-def serve_bg(user_id):
-    bp = os.path.join(_BG_DIR, f'home-bg-{user_id}.jpg')
-    if os.path.exists(bp):
-        return send_file(bp, mimetype='image/jpeg')
-    return '', 404
-
-@app.route('/api/settings/background', methods=['GET'])
-@login_required
-def api_get_background():
-    bp = _bg_path()
-    if os.path.exists(bp):
-        return jsonify({'url': f'/bg/{g.user_id}.jpg'})
-    return jsonify({'url': None})
 
 @app.route('/api/settings/background', methods=['POST'])
 @login_required
@@ -663,22 +668,29 @@ def api_upload_background():
     ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
     if ext not in ALLOWED_BG_EXT:
         return jsonify({'status': 'error', 'message': f'仅支持 {", ".join(ALLOWED_BG_EXT)} 格式'}), 400
+    # check size
     f.seek(0, 2)
     size = f.tell()
     f.seek(0)
     if size > MAX_BG_SIZE:
-        return jsonify({'status': 'error', 'message': '文件最大 5MB'}), 400
-    os.makedirs(_BG_DIR, exist_ok=True)
-    save_path = _bg_path()
+        return jsonify({'status': 'error', 'message': f'文件最大 5MB'}), 400
+    os.makedirs(IMG_DIR, exist_ok=True)
+    save_path = os.path.join(IMG_DIR, 'home-bg.jpg')
     f.save(save_path)
-    return jsonify({'status': 'ok', 'url': f'/bg/{g.user_id}.jpg'})
+    return jsonify({'status': 'ok'})
 
 @app.route('/api/settings/background', methods=['DELETE'])
 @login_required
 def api_reset_background():
-    save_path = _bg_path()
+    save_path = os.path.join(IMG_DIR, 'home-bg.jpg')
+    # Remove uploaded image
     if os.path.exists(save_path):
         os.remove(save_path)
+    # Restore default bg
+    default_bg = os.path.join(IMG_DIR, 'bg.jpg')
+    if os.path.exists(default_bg):
+        import shutil
+        shutil.copy(default_bg, save_path)
     return jsonify({'status': 'ok'})
 
 @app.route('/api/partners/<int:id>', methods=['PUT'])
@@ -719,10 +731,8 @@ def api_products():
     if request.method == 'DELETE':
         pid = request.args.get('id')
         with get_db() as db:
-            cur = db.execute('DELETE FROM products WHERE id=?', (pid,))
+            db.execute('DELETE FROM products WHERE id=?', (pid,))
             db.commit()
-            if cur.rowcount == 0:
-                return jsonify({'status':'error','message': '记录不存在'}), 404
         return jsonify({'status':'ok'})
     # GET
     with get_db() as db:
@@ -749,10 +759,8 @@ def api_procurements():
 @login_required
 def api_delete_procurement(id):
     with get_db() as db:
-        cur = db.execute('DELETE FROM procurements WHERE id=?', (id,))
+        db.execute('DELETE FROM procurements WHERE id=?', (id,))
         db.commit()
-        if cur.rowcount == 0:
-            return jsonify({'status':'error','message': '记录不存在'}), 404
     return jsonify({'status':'ok'})
 
 @app.route('/api/stats')
@@ -897,24 +905,31 @@ def api_create_reconciliation():
     diff = real_total - channel_total
 
     with get_db() as db:
-        db.execute('''INSERT INTO reconciliations
-            (date, bill_date, card_balance, cash_balance, dine_in, meituan, flash_sale, jd, tuan,
-             channel_total, real_total, diff, user_id, reconciled_by)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
-            (date, bill_date, card_balance, cash_balance, dine_in, meituan, flash_sale, jd, tuan,
-             channel_total, real_total, diff, g.user_id, reconciled_by))
+        # Upsert: same user + same bill_date updates existing, otherwise inserts
+        existing = db.execute(
+            'SELECT id FROM reconciliations WHERE user_id=? AND bill_date=?',
+            (g.user_id, bill_date)
+        ).fetchone()
+        if existing:
+            db.execute('''UPDATE reconciliations SET
+                date=?, card_balance=?, cash_balance=?, dine_in=?, meituan=?, flash_sale=?,
+                jd=?, tuan=?, channel_total=?, real_total=?, diff=?, reconciled_by=?
+                WHERE id=?''',
+                (date, card_balance, cash_balance, dine_in, meituan, flash_sale, jd, tuan,
+                 channel_total, real_total, diff, reconciled_by, existing['id']))
+        else:
+            db.execute('''INSERT INTO reconciliations
+                (date, bill_date, card_balance, cash_balance, dine_in, meituan, flash_sale, jd, tuan,
+                 channel_total, real_total, diff, user_id, reconciled_by)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+                (date, bill_date, card_balance, cash_balance, dine_in, meituan, flash_sale, jd, tuan,
+                 channel_total, real_total, diff, g.user_id, reconciled_by))
     return jsonify({'ok': True}), 201
 
 @app.route('/api/reconciliations', methods=['GET'])
 @login_required
 def api_get_reconciliations():
-    # New: page-based pagination (returns { records, total, pages, ... })
-    page = request.args.get('page', 0, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-
-    # Old: limit-based (0=all, returns plain array)
-    limit = request.args.get('limit', page > 0 and 0 or 30, type=int)
-
+    limit = request.args.get('limit', 30, type=int)
     bill_date_from = request.args.get('bill_date_from', '')
     bill_date_to = request.args.get('bill_date_to', '')
     date_from = request.args.get('date_from', '')
@@ -940,32 +955,76 @@ def api_get_reconciliations():
         params.append(reconciled_by)
 
     with get_db() as db:
-        if page > 0:
-            # New pagination mode
-            count = db.execute(f'SELECT COUNT(*) FROM reconciliations {where}', params).fetchone()[0]
-            pages = max(1, (count + per_page - 1) // per_page)
-            offset = (page - 1) * per_page
+        if limit <= 0:
             rows = db.execute(
-                f'SELECT * FROM reconciliations {where} ORDER BY bill_date DESC, date DESC LIMIT ? OFFSET ?',
-                params + [per_page, offset]
+                f'SELECT * FROM reconciliations {where} ORDER BY bill_date DESC, date DESC',
+                params
             ).fetchall()
-            return jsonify({
-                'records': [dict(r) for r in rows],
-                'page': page, 'pages': pages, 'total': count, 'per_page': per_page,
-            })
         else:
-            # Old mode: limit-based (0=all)
-            if limit <= 0:
-                rows = db.execute(
-                    f'SELECT * FROM reconciliations {where} ORDER BY bill_date DESC, date DESC',
-                    params
-                ).fetchall()
-            else:
-                rows = db.execute(
-                    f'SELECT * FROM reconciliations {where} ORDER BY bill_date DESC, date DESC LIMIT ?',
-                    params + [limit]
-                ).fetchall()
-            return jsonify([dict(r) for r in rows])
+            rows = db.execute(
+                f'SELECT * FROM reconciliations {where} ORDER BY bill_date DESC, date DESC LIMIT ?',
+                params + [limit]
+            ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+# ── Platform Fees ──
+
+@app.route('/api/platform-fees', methods=['GET'])
+@login_required
+def api_get_platform_fees():
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    with get_db() as db:
+        if year and month:
+            row = db.execute(
+                'SELECT * FROM platform_fees WHERE year=? AND month=?',
+                (year, month)
+            ).fetchone()
+            return jsonify(dict(row) if row else {})
+        rows = db.execute(
+            'SELECT * FROM platform_fees ORDER BY year DESC, month DESC'
+        ).fetchall()
+        return jsonify([dict(r) for r in rows])
+
+@app.route('/api/platform-fees/entry', methods=['POST'])
+@login_required
+def api_add_platform_fee_entry():
+    data = request.get_json()
+    year = data.get('year')
+    month = data.get('month')
+    entry_date = data.get('entry_date')
+    mc = data.get('meituan_cashier', 0)
+    mw = data.get('meituan_waimai', 0)
+    ew = data.get('eleme_waimai', 0)
+    mt = data.get('meituan_tuan', 0)
+    with get_db() as db:
+        # Upsert monthly row
+        db.execute('''INSERT INTO platform_fees (year, month, meituan_cashier, meituan_waimai, eleme_waimai, meituan_tuan)
+                      VALUES (?,?,?,?,?,?)
+                      ON CONFLICT(year, month) DO UPDATE SET
+                      meituan_cashier=meituan_cashier+excluded.meituan_cashier,
+                      meituan_waimai=meituan_waimai+excluded.meituan_waimai,
+                      eleme_waimai=eleme_waimai+excluded.eleme_waimai,
+                      meituan_tuan=meituan_tuan+excluded.meituan_tuan''',
+                   (year, month, mc, mw, ew, mt))
+        fee_id = db.execute('SELECT id FROM platform_fees WHERE year=? AND month=?', (year, month)).fetchone()['id']
+        # Record the daily entry
+        db.execute('''INSERT INTO platform_fee_entries (fee_id, entry_date, meituan_cashier, meituan_waimai, eleme_waimai, meituan_tuan)
+                      VALUES (?,?,?,?,?,?)''',
+                   (fee_id, entry_date, mc, mw, ew, mt))
+        updated = db.execute('SELECT * FROM platform_fees WHERE year=? AND month=?', (year, month)).fetchone()
+        return jsonify({'status': 'ok', 'data': dict(updated)})
+
+@app.route('/api/platform-fees/<int:id>', methods=['PUT'])
+@login_required
+def api_update_platform_fee(id):
+    data = request.get_json()
+    with get_db() as db:
+        db.execute('''UPDATE platform_fees SET meituan_cashier=?, meituan_waimai=?, eleme_waimai=?, meituan_tuan=?
+                      WHERE id=?''',
+                   (data.get('meituan_cashier', 0), data.get('meituan_waimai', 0),
+                    data.get('eleme_waimai', 0), data.get('meituan_tuan', 0), id))
+        return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8600, debug=True)
