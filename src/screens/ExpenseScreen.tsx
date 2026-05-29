@@ -703,7 +703,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       // Measure trigger position for dropdown placement
                       if (pickerTriggerRef.current && typeof (pickerTriggerRef.current as any).measure === 'function') {
                         (pickerTriggerRef.current as any).measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
-                          setPickerPos({ top: py + 32, left: px - 80 });
+                          setPickerPos({ top: py + 30, left: px });
                         });
                       }
                       pickerAnim.setValue(0);
