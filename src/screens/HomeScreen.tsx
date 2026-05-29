@@ -79,6 +79,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const revPickerAnim = useRef(new Animated.Value(0)).current;
   const [revPickerPos, setRevPickerPos] = useState({ top: 0, left: 0 });
   const [yesterdayRev, setYesterdayRev] = useState<any>(null);
+  const [weekRev, setWeekRev] = useState<any>(null);
   const [revMarkedClosed, setRevMarkedClosed] = useState(false);
 
   // Quick date helpers
@@ -111,6 +112,13 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     const yd = yesterdayStr();
     api.getDailyRevenue(1, 1, undefined, undefined, yd).then((r: any) => {
       setYesterdayRev(r.records?.[0] || null);
+    }).catch(() => {});
+  }, []);
+
+  // Load last 7 days aggregated
+  useEffect(() => {
+    api.getDailyRevenue(1, 1, undefined, undefined, undefined, 7).then((r: any) => {
+      setWeekRev(r.totals || null);
     }).catch(() => {});
   }, []);
 
@@ -314,7 +322,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             {/* Tab Content */}
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
-                <View style={{ paddingBottom: 120 }}>
+                <View style={{ paddingBottom: 120, paddingTop: 14 }}>
                   {/* ── 每日营收录入卡片 ── */}
                   <View style={styles.revCard}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -418,6 +426,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Two action buttons */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <TouchableOpacity
+                        style={[styles.revArchiveBtn, revMarkedClosed && styles.revArchiveBtnDone]}
+                        onPress={() => { if (!revMarkedClosed) setRevMarkedClosed(true); }}
+                        activeOpacity={0.7}>
+                        <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
+                          {revMarkedClosed ? '✓' : `🌙 ${t('revMarkArchive')}`}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
                         style={[styles.revSubmitBtn, { flex: 4 }, (!revTurnover || revSaving) && { opacity: 0.5 }]}
                         onPress={submitDailyRev} disabled={!revTurnover || revSaving}
                         activeOpacity={0.8}>
@@ -425,14 +441,22 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           {revSaving ? '...' : `💾 ${editingRevId ? t('revEdit') : t('revSaveToday')}`}
                         </Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.revArchiveBtn, revMarkedClosed && styles.revArchiveBtnDone]}
-                        onPress={() => { if (!revMarkedClosed) setRevMarkedClosed(true); }}
-                        activeOpacity={0.7}>
-                        <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
-                          {revMarkedClosed ? '✓' : t('revMarkArchive')}
-                        </Text>
-                      </TouchableOpacity>
+                    </View>
+
+                    {/* Last 7 days summary */}
+                    <View style={{ marginTop: 14, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+                      <View style={{ alignItems: 'flex-start' }}>
+                        <Text style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 2 }}>{t('revWeekRevenue')}</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#374151' }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
+                      </View>
+                      <View style={{ alignItems: 'center' }}>
+                        <Text style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 2 }}>{t('revWeekTurnover')}</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A1A1A' }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
+                      </View>
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 2 }}>{t('revWeekJD')}</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: weekRev && weekRev.jd_revenue > 0 ? '#8B1E22' : '#9CA3AF' }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
+                      </View>
                     </View>
                   </View>
 

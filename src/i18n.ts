@@ -258,6 +258,9 @@ const I18N: Record<string, Record<string, string>> = {
     revYesterdayNA: '—',
     revSaveToday: '保存今日数据',
     revMarkArchive: '标记收档',
+    revWeekRevenue: '近7日营业额收入',
+    revWeekTurnover: '7日营业额',
+    revWeekJD: '近7日京东收入',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -512,6 +515,9 @@ const I18N: Record<string, Record<string, string>> = {
     revYesterdayNA: '—',
     revSaveToday: '儲存今日數據',
     revMarkArchive: '標記收檔',
+    revWeekRevenue: '近7日營業額收入',
+    revWeekTurnover: '7日營業額',
+    revWeekJD: '近7日京東收入',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -766,6 +772,9 @@ const I18N: Record<string, Record<string, string>> = {
     revYesterdayNA: '—',
     revSaveToday: 'Save Today',
     revMarkArchive: 'Mark Closed',
+    revWeekRevenue: '7-Day Revenue',
+    revWeekTurnover: '7-Day Turnover',
+    revWeekJD: '7-Day JD Income',
   },
 };
 
