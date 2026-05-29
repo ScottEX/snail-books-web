@@ -466,7 +466,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                               <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                 <Path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8" />
                               </Svg>
-                              <Text style={styles.revSubmitText}>{editingRevId ? t('revEdit') : t('revSaveToday')}</Text>
+                              <Text style={styles.revSubmitText}>{editingRevId ? t('revEdit') : revDate === todayDateStr() ? t('revSaveToday') : `储存${revDate.slice(5).replace('-', '')}数据`}</Text>
                             </>
                           )}
                         </View>
