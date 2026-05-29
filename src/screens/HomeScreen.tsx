@@ -479,18 +479,15 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
                   {/* ── 近7天记录 ── */}
                   <View style={{ marginTop: 20 }}>
-                    <View style={{ marginBottom: 10 }}>
+                    <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
                       <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>📋 {t('revHistory')}</Text>
-                    </View>
-
-                    {/* 7-day table header */}
-                    <View style={styles.rev7HeaderRow}>
-                      <Text style={[styles.rev7Th, { flex: 2.3 }]}>{t('date')}</Text>
-                      <Text style={[styles.rev7Th, { flex: 2 }]}>{t('revRevenue')}</Text>
-                      <Text style={[styles.rev7Th, { flex: 1.8 }]}>{t('revTurnover')}</Text>
-                      <Text style={[styles.rev7Th, { flex: 2 }]}>{t('revJD')}</Text>
-                      <Text style={[styles.rev7Th, { flex: 1.4 }]}>{t('status')}</Text>
-                      <Text style={[styles.rev7Th, { flex: 1.6 }]}>{t('recordedBy')}</Text>
+                      <TouchableOpacity
+                        onPress={() => { setShowDailyHistory(true); }}
+                        activeOpacity={0.7}
+                        style={{ marginLeft: 'auto' }}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: '#FA855A' }}>{t('revHistoryBtn')} →</Text>
+                      </TouchableOpacity>
                     </View>
 
                     {last7Records.length === 0 ? (
@@ -498,18 +495,47 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <Text style={{ fontSize: 13, color: '#9CA3AF' }}>...</Text>
                       </View>
                     ) : (
-                      last7Records.map((rec: any, i: number) => (
-                        <View key={i} style={[styles.rev7Row, { backgroundColor: i % 2 === 0 ? '#FAFAFA' : '#FFF' }]}>
-                          <Text style={[styles.rev7Td, { flex: 2.3, fontWeight: '600' }]}>{rec.date}</Text>
-                          <Text style={[styles.rev7Td, { flex: 2 }]}>{rec.revenue > 0 ? `¥${toDec2(rec.revenue)}` : '—'}</Text>
-                          <Text style={[styles.rev7Td, { flex: 1.8 }]}>{rec.turnover > 0 ? `¥${toDec2(rec.turnover)}` : '—'}</Text>
-                          <Text style={[styles.rev7Td, { flex: 2 }]}>{rec.jd_revenue > 0 ? `¥${toDec2(rec.jd_revenue)}` : '—'}</Text>
-                          <Text style={[styles.rev7Td, { flex: 1.4, color: rec.status === '未录入' || !rec.recorded_by ? '#9CA3AF' : '#059669', fontSize: 10 }]}>
-                            {rec.status === '未录入' ? t('revNotEntered') : t('revEntered')}
-                          </Text>
-                          <Text style={[styles.rev7Td, { flex: 1.6, fontSize: 10 }]}>{rec.recorded_by || '—'}</Text>
-                        </View>
-                      ))
+                      <View style={styles.rev7Card}>
+                        {last7Records.map((rec: any, i: number) => {
+                          const hasData = rec.revenue > 0 || rec.turnover > 0 || rec.jd_revenue > 0;
+                          const isGap = rec.status === '未录入' || !rec.recorded_by;
+                          return (
+                            <View key={i} style={[styles.rev7Item, i < last7Records.length - 1 && styles.rev7ItemBorder]}>
+                              {/* Row 1: date + amounts + status */}
+                              <View style={styles.rev7ItemRow}>
+                                <Text style={styles.rev7ItemDate}>{rec.date.slice(5)}</Text>
+                                <Text style={[styles.rev7ItemAmt, { color: rec.revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
+                                  {rec.revenue > 0 ? `¥${toDec2(rec.revenue)}` : '—'}
+                                </Text>
+                                <Text style={[styles.rev7ItemAmt, { color: rec.turnover > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
+                                  {rec.turnover > 0 ? `¥${toDec2(rec.turnover)}` : '—'}
+                                </Text>
+                                <Text style={[styles.rev7ItemAmt, { color: rec.jd_revenue > 0 ? '#1A1A1A' : '#D1D5DB' }]}>
+                                  {rec.jd_revenue > 0 ? `¥${toDec2(rec.jd_revenue)}` : '—'}
+                                </Text>
+                                <View style={[styles.rev7ItemBadge, isGap ? styles.rev7ItemBadgeGap : styles.rev7ItemBadgeOk]}>
+                                  <View style={[styles.rev7ItemDot, isGap ? { backgroundColor: '#D1D5DB' } : { backgroundColor: '#059669' }]} />
+                                  <Text style={[styles.rev7ItemStatus, isGap ? { color: '#9CA3AF' } : { color: '#059669' }]}>
+                                    {isGap ? t('revNotEntered') : t('revEntered')}
+                                  </Text>
+                                </View>
+                              </View>
+                              {/* Row 2: labels beneath amounts + recorded by */}
+                              <View style={styles.rev7ItemRow}>
+                                <Text style={styles.rev7ItemLabelSpacer}>{/* spacer */}</Text>
+                                <Text style={styles.rev7ItemLabel}>{t('revRevenue')}</Text>
+                                <Text style={styles.rev7ItemLabel}>{t('revTurnover')}</Text>
+                                <Text style={styles.rev7ItemLabel}>{t('revJD')}</Text>
+                                {rec.recorded_by ? (
+                                  <Text style={styles.rev7ItemRecorder}>{rec.recorded_by}</Text>
+                                ) : (
+                                  <Text style={styles.rev7ItemLabelSpacer}>{/* spacer */}</Text>
+                                )}
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </View>
                     )}
                   </View>
                 </View>
@@ -875,17 +901,49 @@ const styles = StyleSheet.create({
   revArchiveBtnDone: { backgroundColor: '#ECFDF5' },
   revArchiveText: { fontSize: 15, fontWeight: '700', color: '#4B5563' },
   revArchiveTextDone: { color: '#059669' },
-  rev7HeaderRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 8, paddingHorizontal: 8,
-    borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
-    backgroundColor: '#F9FAFB', borderRadius: 8,
+  rev7Card: {
+    backgroundColor: '#FFFFFF', borderRadius: 12,
+    borderWidth: 1, borderColor: '#EBEBEB',
+    // @ts-ignore
+    boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+    overflow: 'hidden',
+    paddingVertical: 4, paddingHorizontal: 12,
   },
-  rev7Th: { fontSize: 10, fontWeight: '600', color: '#9CA3AF' },
-  rev7Row: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 9, paddingHorizontal: 8,
+  rev7Item: {
+    paddingVertical: 12,
+  },
+  rev7ItemBorder: {
     borderBottomWidth: 0.5, borderBottomColor: '#F0F0F0',
   },
-  rev7Td: { fontSize: 11, fontWeight: '500', color: '#374151' },
+  rev7ItemRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+  },
+  rev7ItemDate: {
+    fontSize: 12, fontWeight: '700', color: '#374151',
+    width: 36, fontFamily: 'monospace',
+  },
+  rev7ItemAmt: {
+    flex: 1, fontSize: 12, fontWeight: '600',
+    textAlign: 'right',
+  },
+  rev7ItemBadge: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 10,
+    gap: 4, marginLeft: 2, width: 64, justifyContent: 'center',
+  },
+  rev7ItemBadgeGap: { backgroundColor: '#F3F4F6' },
+  rev7ItemBadgeOk: { backgroundColor: '#ECFDF5' },
+  rev7ItemDot: { width: 5, height: 5, borderRadius: 2.5 },
+  rev7ItemStatus: { fontSize: 10, fontWeight: '600' },
+  rev7ItemLabel: {
+    flex: 1, fontSize: 9, color: '#B0B0B0', fontWeight: '500',
+    textAlign: 'right',
+  },
+  rev7ItemLabelSpacer: {
+    width: 36, // matches date column
+  },
+  rev7ItemRecorder: {
+    fontSize: 10, color: '#9CA3AF', fontWeight: '500',
+    width: 64, textAlign: 'center',
+  },
 });
