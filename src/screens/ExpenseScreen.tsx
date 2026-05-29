@@ -16,6 +16,7 @@ const todayStr = () => cnNow().toISOString().slice(0, 10);
 const fmtLocalDate = (s: string) => { const p = s.split('-'); return `${p[0]}年${p[1]}月${p[2]}日`; };
 const toNum = (s: string) => parseFloat(s) || 0;
 const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
+const toDec2 = (v: any) => String((parseFloat(String(v ?? 0)) || 0).toFixed(2));
 
 /* ═══════════════════════════════════════════════════════════
    NumberTicker — 数字从 0 平滑滚动到目标值
@@ -182,13 +183,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             const last = data[0];
             const d = last.bill_date || last.date || yesterdayStr();
             setRecDate(d);
-            setCardBalance(String(last.card_balance || ''));
-            setCashBalance(String(last.cash_balance || ''));
-            setDineIn(String(last.dine_in || ''));
-            setMeituan(String(last.meituan || ''));
-            setFlashSale(String(last.flash_sale || ''));
-            setTuan(String(last.tuan || ''));
-            setJd(String(last.jd || ''));
+            setCardBalance(toDec2(last.card_balance));
+            setCashBalance(toDec2(last.cash_balance));
+            setDineIn(toDec2(last.dine_in));
+            setMeituan(toDec2(last.meituan));
+            setFlashSale(toDec2(last.flash_sale));
+            setTuan(toDec2(last.tuan));
+            setJd(toDec2(last.jd));
           }
         } catch { /* ignore */ }
       })();
@@ -200,13 +201,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         const data = await api.getReconciliations(365);
         const match = (data || []).find((r: any) => r.bill_date === recDate);
         if (match) {
-          setCardBalance(String(match.card_balance || ''));
-          setCashBalance(String(match.cash_balance || ''));
-          setDineIn(String(match.dine_in || ''));
-          setMeituan(String(match.meituan || ''));
-          setFlashSale(String(match.flash_sale || ''));
-          setTuan(String(match.tuan || ''));
-          setJd(String(match.jd || ''));
+          setCardBalance(toDec2(match.card_balance));
+          setCashBalance(toDec2(match.cash_balance));
+          setDineIn(toDec2(match.dine_in));
+          setMeituan(toDec2(match.meituan));
+          setFlashSale(toDec2(match.flash_sale));
+          setTuan(toDec2(match.tuan));
+          setJd(toDec2(match.jd));
         } else {
           setCardBalance('');
           setCashBalance('');
