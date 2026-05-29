@@ -108,8 +108,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [activeTab, setActiveTabState] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('expense_active_tab');
-      return saved !== null ? parseInt(saved, 10) : 2; // default to 支出 (index 2)
-    } catch { return 2; }
+      return saved !== null ? parseInt(saved, 10) : 1; // default to 营业 (index 1)
+    } catch { return 1; }
   });
   const setActiveTab = (i: number) => {
     setActiveTabState(i);

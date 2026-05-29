@@ -66,10 +66,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         localStorage.removeItem('active_tab');
         localStorage.removeItem('expense_active_tab');
       }
-      // Fetch user's language preference from backend
+      // Save user's current language preference to backend
       try {
-        const langResp = await api.getLang();
-        if (langResp?.lang) setLang(langResp.lang);
+        await api.saveLang(getLang());
       } catch {}
       onLogin();
     } else if (r.need_verify) {
