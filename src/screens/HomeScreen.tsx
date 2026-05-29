@@ -1,14 +1,25 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
+import Toast from '../components/Toast';
 import PartnerScreen from './PartnerScreen';
+import ExpenseScreen from './ExpenseScreen';
+import ReconHistoryScreen from './ReconHistoryScreen';
+import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 
-type Tab = 'list' | 'add' | 'supply' | 'chart' | 'partner';
+type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<Tab>('list');
+  const [tab, setTabState] = useState<Tab>(() => {
+    try { return (localStorage.getItem('active_tab') as Tab) || 'list'; }
+    catch { return 'list'; }
+  });
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    try { localStorage.setItem('active_tab', t); } catch {}
+  };
   const [summary, setSummary] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -25,11 +36,23 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [account, setAccount] = useState('');
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
+  const [showReconHistory, setShowReconHistory] = useState(false);
+  const [showExpenseHistory, setShowExpenseHistory] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
+  const [toast, setToast] = useState('');
+  const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
-  const [bgImage, setBgImage] = useState('/static/home-bg.jpg');
+  const [bgImage, setBgImage] = useState(() => {
+    try {
+      const saved = localStorage.getItem('bg-image');
+      return saved || '/img/bg.jpg';
+    } catch { return '/img/bg.jpg'; }
+  });
   const [bgOpacity, setBgOpacity] = useState(() => {
-    try { return parseFloat(localStorage.getItem('bg-opacity') || '') || 0.5; } catch { return 0.5; }
+    try {
+      const saved = localStorage.getItem('bg-opacity');
+      return saved !== null ? parseFloat(saved) : 0.5;
+    } catch { return 0.5; }
   });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -41,25 +64,53 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     try {
       const s = await api.getSummary();
       setSummary(s);
-      const tx = await api.getTransactions(1);
+      const tx = await api.getTransactions(1, 20);
       setTransactions(tx.transactions || []);
       setPages(tx.pages || 1);
       setPage(1);
-    } catch {}
+    } catch { setToast(t('toastLoadFailed')); }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Load background image — user-specific
+  useEffect(() => {
+    api.getBackground().then((r: any) => {
+      if (r?.url) {
+        setBgImage(r.url);
+        try { localStorage.setItem('bg-image', r.url); } catch {}
+      } else {
+        // No custom background — use default
+        setBgImage('/img/bg.jpg');
+        try { localStorage.removeItem('bg-image'); } catch {}
+      }
+      // Load opacity from server (overrides localStorage default)
+      if (r?.opacity !== null && r?.opacity !== undefined) {
+        setBgOpacity(r.opacity);
+        try { localStorage.setItem('bg-opacity', String(r.opacity)); } catch {}
+      } else {
+        // Migration: push localStorage opacity to server if not saved yet
+        try {
+          const local = localStorage.getItem('bg-opacity');
+          if (local !== null) {
+            const v = parseFloat(local);
+            api.saveBackgroundSettings({ opacity: v }).catch(() => {});
+          }
+        } catch {}
+      }
+    }).catch(() => {});
+  }, []);
+
   const loadChart = async () => {
-    try { const d = await api.getChart(); setChart(d || []); } catch {}
+    try { const d = await api.getChart(); setChart(d || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
   const loadProducts = async () => {
-    try { const p = await api.getProducts(); setProducts(p || []); } catch {}
+    try { const p = await api.getProducts(); setProducts(p || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
   const loadProcurements = async () => {
-    try { const p = await api.getProcurements(); setProcurements(p || []); } catch {}
+    try { const p = await api.getProcurements(); setProcurements(p || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
   useEffect(() => {
@@ -75,7 +126,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   };
 
   const handlePage = async (p: number) => {
-    const tx = await api.getTransactions(p);
+    const tx = await api.getTransactions(p, 20);
     setTransactions(tx.transactions || []);
     setPage(p);
   };
@@ -94,8 +145,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     if (!file) return;
     setUploadingBg(true);
     try {
-      await api.uploadBackground(file);
-      setBgImage('/static/home-bg.jpg');
+      const r = await api.uploadBackground(file);
+      if (r?.url) {
+        setBgImage(r.url);
+        try { localStorage.setItem('bg-image', r.url); } catch {}
+      }
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
@@ -105,7 +159,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setUploadingBg(true);
     try {
       await api.resetBackground();
-      setBgImage('/static/bg.jpg');
+      setBgImage('/img/bg.jpg');
+      try { localStorage.removeItem('bg-image'); } catch {}
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
@@ -124,7 +179,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
               <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={async () => { await api.logout(); onLogout(); }}>
+            <TouchableOpacity onPress={async () => { await api.logout(); localStorage.removeItem('active_tab'); onLogout(); }}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
             </TouchableOpacity>
             <View style={styles.langRow}>
@@ -142,64 +197,18 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={styles.page}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} />
+        ) : showExpenseHistory ? (
+          <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />
+        ) : showReconHistory ? (
+          <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />
+        ) : tab === 'expense' ? (
+          <ExpenseScreen onReconHistory={() => setShowReconHistory(true)} onExpenseHistory={() => setShowExpenseHistory(true)} />
         ) : (
           <>
             {/* Tab Content */}
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
-                <>
-                  {transactions.map((tx: any) => (
-                    <View key={tx.id} style={styles.txRow}>
-                      <View style={[styles.txDot, { backgroundColor: tx.type === 'income' ? '#059669' : '#DC2626' }]} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.txCat}>{tx.category}</Text>
-                        {tx.note ? <Text style={styles.txNote}>{tx.note}</Text> : null}
-                      </View>
-                      <Text style={[styles.txAmt, { color: tx.type === 'income' ? '#059669' : '#DC2626' }]}>
-                        {tx.type === 'income' ? '+' : '-'}¥{tx.amount?.toFixed(2)}
-                      </Text>
-                      <Text style={styles.txDate}>{formatDate(tx.created_at)}</Text>
-                      <TouchableOpacity onPress={() => handleDeleteTx(tx.id)}>
-                        <Text style={styles.txDel}>✕</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                  {pages > 1 && (
-                    <View style={styles.pageRow}>
-                      {Array.from({ length: pages }, (_, i) => (
-                        <TouchableOpacity key={i} onPress={() => handlePage(i + 1)}>
-                          <Text style={[styles.pageBtn, page === i + 1 && styles.pageBtnActive]}>{i + 1}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </>
-              )}
-
-              {tab === 'add' && (
-                <View style={styles.addForm}>
-                  <View style={styles.typeToggle}>
-                    <TouchableOpacity onPress={() => setTxType('income')} style={[styles.typeBtn, txType === 'income' && styles.typeBtnInc]}>
-                      <Text style={[styles.typeBtnText, txType === 'income' && styles.typeBtnIncText]}>{t('income')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setTxType('expense')} style={[styles.typeBtn, txType === 'expense' && styles.typeBtnExp]}>
-                      <Text style={[styles.typeBtnText, txType === 'expense' && styles.typeBtnExpText]}>{t('expense')}</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <TextInput style={styles.addInput} placeholder="¥" value={amount} onChangeText={setAmount}
-                    keyboardType="decimal-pad" placeholderTextColor="#999" />
-                  <View style={styles.catGrid}>
-                    {(cats[txType as keyof typeof cats] || []).map((c: string) => (
-                      <TouchableOpacity key={c} onPress={() => setCategory(c)}>
-                        <Text style={[styles.catBtn, category === c && styles.catBtnActive]}>{c}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  <TextInput style={styles.addInput} placeholder="账户" value={account} onChangeText={setAccount} placeholderTextColor="#999" />
-                  <TextInput style={styles.addInput} placeholder={t('notePlaceholder') || '备注'} value={note} onChangeText={setNote} placeholderTextColor="#999" />
-                  <TouchableOpacity style={styles.saveBtn} onPress={handleAddTx}>
-                    <Text style={styles.saveBtnText}>✓</Text>
-                  </TouchableOpacity>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 120 }}>
                 </View>
               )}
 
@@ -287,6 +296,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       const v = parseFloat(e.target.value);
                       setBgOpacity(v);
                       try { localStorage.setItem('bg-opacity', String(v)); } catch {}
+                      // Debounced save to server
+                      clearTimeout((window as any).__bgOpacityTimer);
+                      (window as any).__bgOpacityTimer = setTimeout(() => {
+                        api.saveBackgroundSettings({ opacity: v }).catch(() => {});
+                      }, 500);
                     }}
                     style={{
                       width: '100%', height: 32, opacity: 0, cursor: 'pointer',
@@ -326,17 +340,27 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={styles.bottomNav}>
         {([
           { id: 'list', icon: NavIconList },
-          { id: 'add', icon: NavIconAdd },
+          { id: 'expense', icon: NavIconAdd },
           { id: 'supply', icon: NavIconSupply },
           { id: 'chart', icon: NavIconChart },
           { id: 'partner', icon: NavIconPartner },
-        ] as const).map(({ id, icon: Icon }) => (
+        ] as const).map(({ id, icon: Icon }, i) => (
           <TouchableOpacity
             key={id}
             style={[styles.navItem, (id === 'partner' ? tab === 'partner' : tab === id) && styles.navItemActive]}
-            onPress={() => setTab(id as Tab)}
+            onPress={() => {
+              Animated.sequence([
+                Animated.spring(navScaleAnims[i], { toValue: 0.85, useNativeDriver: false, speed: 30, bounciness: 6 }),
+                Animated.spring(navScaleAnims[i], { toValue: 1, useNativeDriver: false, speed: 20, bounciness: 14 }),
+              ]).start();
+              setTab(id as Tab);
+              setShowReconHistory(false);
+              setShowExpenseHistory(false);
+            }}
           >
-            <Icon active={id === 'partner' ? tab === 'partner' : tab === id} />
+            <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>
+              <Icon active={id === 'partner' ? tab === 'partner' : tab === id} />
+            </Animated.View>
           </TouchableOpacity>
         ))}
       </View>
@@ -348,6 +372,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         style={{ display: 'none' }}
         onChange={handleBgUpload}
       />
+      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
   );
 }
@@ -405,18 +430,18 @@ function NavIconPartner({ active }: { active: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
+  container: { flex: 1, backgroundColor: '#F9F0EB' },
   bgLayer: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
-  // Header — match bottom nav glass (0.20 opacity)
+  // Header — frosted glass, same as sub-screen headers
   header: {
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(255,255,255,0.20)',
+    backgroundColor: 'rgba(250,250,250,0.55)',
     // @ts-ignore - web-only
-    backdropFilter: 'saturate(180%) blur(24px)',
-    borderBottomWidth: 0,
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
     zIndex: 50,
   },
   headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
@@ -496,7 +521,7 @@ const styles = StyleSheet.create({
     transform: 'translateX(-50%)',
     width: '80%',
     maxWidth: 420,
-    backgroundColor: 'rgba(255,255,255,0.20)',
+    backgroundColor: 'rgba(255,255,255,0.30)',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(180%) blur(24px)',
     borderRadius: 28,

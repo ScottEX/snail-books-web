@@ -61,8 +61,16 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       if (r.token && typeof localStorage !== 'undefined') localStorage.setItem('token', r.token);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('user', r.username || username);
+        localStorage.setItem('user_id', String(r.user_id || ''));
         localStorage.setItem('saved_login', username);
+        localStorage.removeItem('active_tab');
+        localStorage.removeItem('expense_active_tab');
       }
+      // Fetch user's language preference from backend
+      try {
+        const langResp = await api.getLang();
+        if (langResp?.lang) setLang(langResp.lang);
+      } catch {}
       onLogin();
     } else if (r.need_verify) {
       setEmail(r.email); setStep('verify'); setMsg('');
@@ -125,7 +133,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         {/* Brand */}
         <View style={styles.brand}>
           <View style={styles.logoWrap}>
-            <Image source={{ uri: '/static/logo.jpg' }} style={styles.logo} />
+            <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
           </View>
           <Text style={styles.subtitle}>{t('subtitle')}</Text>
           <View style={styles.langRow}>
@@ -376,7 +384,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, paddingTop: 24 },
   bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only background image
-    backgroundImage: 'url(/static/bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
+    backgroundImage: 'url(/img/bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
   bgOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
   content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },

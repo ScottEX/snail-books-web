@@ -29,7 +29,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:web
-      - name: 部署到测试服务器
+      - name: 部署前端静态文件到测试服务器
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -38,13 +38,8 @@ jobs:
           source: dist/
           target: /opt/snail-books-web-staging/
           strip_components: 0
-      - name: 重启测试服务
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: systemctl restart snail-books-staging
+      - name: 部署完成
+        run: echo "✅ 前端静态文件已部署到测试服务器"
 
   deploy-production:
     needs: test
@@ -58,7 +53,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:web
-      - name: 部署到生产服务器
+      - name: 部署前端静态文件到生产服务器
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -67,10 +62,5 @@ jobs:
           source: dist/
           target: /opt/snail-books-web/
           strip_components: 0
-      - name: 重启生产服务
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: systemctl restart snail-books
+      - name: 部署完成
+        run: echo "✅ 前端静态文件已部署到生产服务器"

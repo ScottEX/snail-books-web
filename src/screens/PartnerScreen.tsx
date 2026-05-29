@@ -3,7 +3,10 @@ import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 
 import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
+import Toast from '../components/Toast';
 
+// NOTE: 合伙人持股/初始投资/姓名映射硬编码。若后端合伙人变更（增减/改名），
+// 默认值（33%、42900）可能不准确。理想方案是从后端返回并缓存这些映射。
 const partnerShare: Record<string, number> = { '张安武': 0.34, '江宽': 0.33, '蓝柳富': 0.33 };
 const initCapital: Record<string, number> = { '张安武': 44200, '江宽': 42900, '蓝柳富': 42900 };
 const nameMap: Record<string, string> = { '张安武': 'nameZhang', '江宽': 'nameJiang', '蓝柳富': 'nameLan' };
@@ -64,6 +67,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [filter, setFilter] = useState('all');
   const [lang, setLangState] = useState(getLang());
 
+  const [toast, setToast] = useState('');
+
   const loadData = async () => {
     try {
       const p = await api.getPartners();
@@ -71,7 +76,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       const d = await api.getDividends();
       setDividends(d || []);
       setTotalDiv((d || []).reduce((s: number, x: any) => s + x.amount, 0));
-    } catch {}
+    } catch { setToast(t('toastLoadFailed')); }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -87,8 +92,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const calcPreview = (total: number) => {
     setDivPreview(partners.map((p: any) => ({
       name: p.name,
-      share: (partnerShare[p.name] || 0.33) * 100,
-      amount: parseFloat((total * (partnerShare[p.name] || 0.33)).toFixed(2)),
+      share: (partnerShare[p.name] ?? 0.33) * 100,
+      amount: parseFloat((total * (partnerShare[p.name] ?? 0.33)).toFixed(2)),
     })));
   };
 
@@ -97,23 +102,29 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const amt = parseFloat(divAmount);
     const items = partners.map((p: any) => ({
       partner: p.name,
-      amount: parseFloat((amt * (partnerShare[p.name] || 0.33)).toFixed(2)),
+      amount: parseFloat((amt * (partnerShare[p.name] ?? 0.33)).toFixed(2)),
       note: divNote || `第${groupKeys.length + 1}次分红`,
     }));
-    await api.createDividend({ items });
-    setShowDividend(false);
-    setDivAmount(''); setDivNote(''); setDivPreview([]);
-    loadData();
+    try {
+      await api.createDividend({ items });
+      setShowDividend(false);
+      setDivAmount(''); setDivNote(''); setDivPreview([]);
+      loadData();
+    } catch {
+      setToast(t('toastSubmitFailed'));
+    }
   };
 
   const handleDelete = async () => {
     if (showDelete === null) return;
-    // find all dividends matching this note and delete by ID
     const toDelete = dividends.filter((d: any) => d.note === showDelete);
+    let failed = 0;
     for (const d of toDelete) {
-      await api.deleteDividend(d.id);
+      try { await api.deleteDividend(d.id); }
+      catch { failed++; }
     }
     setShowDelete(null);
+    if (failed > 0) setToast(t('toastSubmitFailed'));
     loadData();
   };
 
@@ -129,7 +140,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     Object.entries(grouped).forEach(([note, items]) => {
       items.forEach((d: any) => {
         if (d.partner === name && d.amount > 0)
-          history.push({ note: translateDividendNote(note || d.note), amount: d.amount });
+          history.push({ note: translateDividendNote(note), amount: d.amount });
       });
     });
     return history;
@@ -197,10 +208,10 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           {/* ====== PARTNER CARDS ====== */}
           <View style={s.partnerGrid}>
             {partners.map((p: any) => {
-              const initInv = initCapital[p.name] || 42900;
+              const initInv = initCapital[p.name] ?? 42900;
               const midInv = p.investment - initInv;
-              const pct = p.investment > 0 ? (p.total_dividends / p.investment * 100).toFixed(0) : 0;
-              const rem = p.investment - p.total_dividends;
+              const pct = p.investment > 0 ? Number((p.total_dividends / p.investment * 100).toFixed(0)) : 0;
+              const rem = Math.max(0, p.investment - p.total_dividends);
               const isBack = p.total_dividends >= p.investment;
               return (
                 <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => setShowDetail(p)}>
@@ -267,16 +278,16 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               <TableGroup title={t('initialApr2024')} type="invest" total={130000}
                 items={[
                   { name: translateName('张安武'), sub: '34%', amount: 44200 },
-                  { name: translateName('蓝柳富'), sub: '33%', amount: 42900 },
                   { name: translateName('江宽'), sub: '33%', amount: 42900 },
+                  { name: translateName('蓝柳富'), sub: '33%', amount: 42900 },
                 ]} />
             )}
             {(filter === 'all' || filter === 'mid') && (
               <TableGroup title={t('midJan2025')} type="mid" total={30162}
                 items={[
                   { name: translateName('张安武'), sub: '34%', amount: 10255.08 },
-                  { name: translateName('蓝柳富'), sub: '33%', amount: 9953.46 },
                   { name: translateName('江宽'), sub: '33%', amount: 9953.46 },
+                  { name: translateName('蓝柳富'), sub: '33%', amount: 9953.46 },
                 ]} />
             )}
             {(filter === 'all' || filter === 'dividend') && groupKeys.map(note => {
@@ -321,7 +332,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
                 {(divPreview.length > 0 ? divPreview : partners.map((p: any) => ({
                   name: p.name,
-                  share: (partnerShare[p.name] || 0.33) * 100,
+                  share: (partnerShare[p.name] ?? 0.33) * 100,
                   amount: 0,
                 }))).map((item: any) => (
                   <View key={item.name} style={moBody.previewRow}>
@@ -402,7 +413,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 </View>
                 <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{(initCapital[showDetail.name] || 0).toLocaleString()}</Text>
+                  <Text style={ds.cellNumSmall}>¥{(initCapital[showDetail.name] ?? 42900).toLocaleString()}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: '#F9FAFB' }]}>
                   <Text style={ds.cellLabel}>{t('additional')}</Text>
@@ -488,6 +499,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           </View>
         </ModalOverlay>
       )}
+      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
   );
 }
@@ -651,7 +663,7 @@ const moBody = StyleSheet.create({
 
 const ds = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  cell: { width: '47%' as any, borderRadius: 12, padding: 12 },
+  cell: { flex: 1, flexBasis: '45%' as any, borderRadius: 12, padding: 12 },
   cellLabel: { fontSize: 10, fontWeight: '500', color: '#9CA3AF' },
   cellNum: { fontSize: 14, fontWeight: '700', color: '#111827', marginTop: 2 },
   cellNumSmall: { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 2 },
