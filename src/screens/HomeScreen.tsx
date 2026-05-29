@@ -13,8 +13,8 @@ type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [tab, setTabState] = useState<Tab>(() => {
-    try { return (localStorage.getItem('active_tab') as Tab) || 'list'; }
-    catch { return 'list'; }
+    try { return (localStorage.getItem('active_tab') as Tab) || 'expense'; }
+    catch { return 'expense'; }
   });
   const setTab = (t: Tab) => {
     setTabState(t);
