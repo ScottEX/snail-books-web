@@ -13,8 +13,8 @@ type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [tab, setTabState] = useState<Tab>(() => {
-    try { return (localStorage.getItem('active_tab') as Tab) || 'partner'; }
-    catch { return 'partner'; }
+    try { return (localStorage.getItem('active_tab') as Tab) || 'list'; }
+    catch { return 'list'; }
   });
   const setTab = (t: Tab) => {
     setTabState(t);
@@ -208,33 +208,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             {/* Tab Content */}
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
-                <>
-                  {transactions.map((tx: any) => (
-                    <View key={tx.id} style={styles.txRow}>
-                      <View style={[styles.txDot, { backgroundColor: tx.type === 'income' ? '#059669' : '#DC2626' }]} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.txCat}>{tx.category}</Text>
-                        {tx.note ? <Text style={styles.txNote}>{tx.note}</Text> : null}
-                      </View>
-                      <Text style={[styles.txAmt, { color: tx.type === 'income' ? '#059669' : '#DC2626' }]}>
-                        {tx.type === 'income' ? '+' : '-'}¥{tx.amount?.toFixed(2)}
-                      </Text>
-                      <Text style={styles.txDate}>{formatDate(tx.created_at)}</Text>
-                      <TouchableOpacity onPress={() => handleDeleteTx(tx.id)}>
-                        <Text style={styles.txDel}>✕</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                  {pages > 1 && (
-                    <View style={styles.pageRow}>
-                      {Array.from({ length: pages }, (_, i) => (
-                        <TouchableOpacity key={i} onPress={() => handlePage(i + 1)}>
-                          <Text style={[styles.pageBtn, page === i + 1 && styles.pageBtnActive]}>{i + 1}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 120 }}>
+                </View>
               )}
 
               {tab === 'supply' && (
