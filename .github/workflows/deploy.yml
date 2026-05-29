@@ -29,10 +29,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:web
-      # Bundle app.py into dist so SCP deploys it with frontend
-      - name: Bundle app.py into dist
-        run: cp app.py dist/app.py
-      - name: 部署到测试服务器
+      - name: 部署前端静态文件到测试服务器
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -41,23 +38,8 @@ jobs:
           source: dist/
           target: /opt/snail-books-web-staging/
           strip_components: 0
-      - name: 移动 app.py 到正确位置
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            cp /opt/snail-books-web-staging/dist/app.py /opt/snail-books-backend-staging/app.py
-            rm /opt/snail-books-web-staging/dist/app.py
-            echo "✅ app.py → /opt/snail-books-backend-staging/ ($(wc -c < /opt/snail-books-backend-staging/app.py) bytes)"
-      - name: 重启测试服务
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: systemctl restart snail-books-staging
+      - name: 部署完成
+        run: echo "✅ 前端静态文件已部署到测试服务器"
 
   deploy-production:
     needs: test
@@ -71,9 +53,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:web
-      - name: Bundle app.py into dist
-        run: cp app.py dist/app.py
-      - name: 部署到生产服务器
+      - name: 部署前端静态文件到生产服务器
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -82,20 +62,5 @@ jobs:
           source: dist/
           target: /opt/snail-books-web/
           strip_components: 0
-      - name: 移动 app.py 到正确位置
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            cp /opt/snail-books-web/dist/app.py /opt/snail-books-backend/app.py
-            rm /opt/snail-books-web/dist/app.py
-            echo "✅ app.py → /opt/snail-books-backend/"
-      - name: 重启生产服务
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: systemctl restart snail-books
+      - name: 部署完成
+        run: echo "✅ 前端静态文件已部署到生产服务器"
