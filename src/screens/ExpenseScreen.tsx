@@ -160,6 +160,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   /* ── 模块一：对账 ── */
   const [recDate, setRecDate] = useState(yesterdayStr());
   const [toast, setToast] = useState('');
+  const [recDateError, setRecDateError] = useState('');
+  const [expDateError, setExpDateError] = useState('');
+  const [feeDateError, setFeeDateError] = useState('');
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
   const [dineIn, setDineIn] = useState('');
@@ -583,13 +586,17 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   })()}
                 </Text>
                 <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF' }}>›</Text>
+                {recDateError ? (
+                  <Text style={{ position: 'absolute', top: -22, right: 0, fontSize: 11, color: '#DC2626', fontWeight: '500', whiteSpace: 'nowrap' as any }}>{recDateError}</Text>
+                ) : null}
                 {React.createElement('input', {
                   type: 'date',
                   value: recDate,
                   max: todayStr(),
                   onChange: (e: any) => {
                     const v = e.target.value;
-                    if (v > todayStr()) { setToast(t('errDateFuture')); return; }
+                    if (v > todayStr()) { setRecDateError(t('errDateFuture')); return; }
+                    setRecDateError('');
                     setRecDate(v);
                   },
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
@@ -912,6 +919,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 ))}
               </View>
               {/* 日期选择 */}
+              {expDateError ? (
+                <Text style={{ fontSize: 11, color: '#DC2626', fontWeight: '500', marginBottom: 4, textAlign: 'right' }}>{expDateError}</Text>
+              ) : null}
               <View style={st.expDateRow}>
                 <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.5}>
                   <Rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -941,7 +951,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     max: todayStr(),
                     onChange: (e: any) => {
                       const v = e.target.value;
-                      if (v > todayStr()) { setToast(t('errDateFuture')); return; }
+                      if (v > todayStr()) { setExpDateError(t('errDateFuture')); return; }
+                      setExpDateError('');
                       setExpDate(v);
                     },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
@@ -1042,6 +1053,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
+              {feeDateError ? (
+                <Text style={{ fontSize: 11, color: '#DC2626', fontWeight: '500', marginBottom: 4, textAlign: 'right' }}>{feeDateError}</Text>
+              ) : null}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                 <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>{t('entryDate')}</Text>
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }} activeOpacity={1}>
@@ -1053,7 +1067,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     type: 'date', value: feeEntryDate, max: todayStr(),
                     onChange: (e: any) => {
                       const v = e.target.value;
-                      if (v > todayStr()) { setToast(t('noFutureDate')); return; }
+                      if (v > todayStr()) { setFeeDateError(t('noFutureDate')); return; }
+                      setFeeDateError('');
                       setFeeEntryDate(v);
                     },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
