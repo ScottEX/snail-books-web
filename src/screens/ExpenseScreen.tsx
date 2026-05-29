@@ -266,8 +266,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [feeMt, setFeeMt] = useState('');
   const [savingFee, setSavingFee] = useState(false);
   const pickerTriggerRef = useRef<any>(null);
+  const feeHistoryFilterTriggerRef = useRef<any>(null);
   const [pickerAnim] = useState(new Animated.Value(0));
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
+  const [feeHistoryPickerPos, setFeeHistoryPickerPos] = useState({ top: 0, left: 0 });
 
   const loadFeeData = async () => {
     try {
@@ -1109,8 +1111,24 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             {/* Month filter */}
             <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 8, position: 'relative' }}
-                onPress={() => setShowFeeHistoryFilterPicker(!showFeeHistoryFilterPicker)}
+                ref={feeHistoryFilterTriggerRef}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, position: 'relative' }}
+                onPress={() => {
+                  if (!showFeeHistoryFilterPicker) {
+                    if (feeHistoryFilterTriggerRef.current && typeof (feeHistoryFilterTriggerRef.current as any).measure === 'function') {
+                      (feeHistoryFilterTriggerRef.current as any).measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
+                        setFeeHistoryPickerPos({ top: py + 30, left: px });
+                      });
+                    }
+                    pickerAnim.setValue(0);
+                    Animated.spring(pickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
+                    setShowFeeHistoryFilterPicker(true);
+                  } else {
+                    Animated.timing(pickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+                      setShowFeeHistoryFilterPicker(false);
+                    });
+                  }
+                }}
                 activeOpacity={0.7}
               >
                 <Text style={{ fontSize: 13, color: '#8B1E22', fontWeight: '600' }}>
@@ -1212,34 +1230,62 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           </Animated.View>
         </>
       )}
-      {/* Fee history filter dropdown — rendered at root for correct z-index */}
+      {/* Fee history filter dropdown — animated to match platform fee picker */}
       {showFeeHistoryFilterPicker && (
-        // @ts-ignore — RN types don't include position:'fixed' but it works in RN Web
-        <View style={{ position: 'fixed' as any, top: '38%', left: '50%', marginLeft: -70, zIndex: 9999, backgroundColor: '#fff', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', paddingVertical: 6, width: 140, maxHeight: 240, overflow: 'scroll' as any }}>
-          {/* Backdrop to close */}
-          <TouchableOpacity style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: -1 }} activeOpacity={1} onPress={() => setShowFeeHistoryFilterPicker(false)} />
-          <TouchableOpacity
-            style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
-            onPress={() => { setFeeHistoryFilter('all'); setShowFeeHistoryFilterPicker(false); }}
-            activeOpacity={0.6}
-          >
-            <Text style={{ fontSize: 13, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
-          </TouchableOpacity>
-          <View style={{ height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 12, marginVertical: 4 }} />
-          {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
-            const isSel = feeHistoryFilter !== 'all' && feeHistoryFilter.year === f.year && feeHistoryFilter.month === f.month;
-            return (
-              <TouchableOpacity
-                key={`hf-${f.year}-${f.month}`}
-                style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
-                onPress={() => { setFeeHistoryFilter({ year: f.year, month: f.month }); setShowFeeHistoryFilterPicker(false); }}
-                activeOpacity={0.6}
-              >
-                <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <>
+          <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: pickerAnim }}>
+            <TouchableOpacity
+              style={{ flex: 1 }}
+              activeOpacity={1}
+              onPress={() => {
+                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+              }}
+            />
+          </Animated.View>
+          <Animated.View style={{
+            position: 'fixed' as any,
+            top: feeHistoryPickerPos.top || '38%',
+            left: feeHistoryPickerPos.left || 10,
+            zIndex: 9999,
+            backgroundColor: '#fff',
+            borderRadius: 14,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+            paddingVertical: 6,
+            width: 140,
+            maxHeight: 240,
+            overflow: 'scroll' as any,
+            opacity: pickerAnim,
+            transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
+          }}>
+            <TouchableOpacity
+              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              onPress={() => {
+                setFeeHistoryFilter('all');
+                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+              }}
+              activeOpacity={0.6}
+            >
+              <Text style={{ fontSize: 13, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
+            </TouchableOpacity>
+            <View style={{ height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 12, marginVertical: 4 }} />
+            {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
+              const isSel = feeHistoryFilter !== 'all' && feeHistoryFilter.year === f.year && feeHistoryFilter.month === f.month;
+              return (
+                <TouchableOpacity
+                  key={`hf-${f.year}-${f.month}`}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  onPress={() => {
+                    setFeeHistoryFilter({ year: f.year, month: f.month });
+                    Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                  }}
+                  activeOpacity={0.6}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </Animated.View>
+        </>
       )}
     </View>
   );
