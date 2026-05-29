@@ -576,7 +576,7 @@ const s = StyleSheet.create({
   engSub: { fontSize: 10, color: '#8C8583', fontWeight: '500', letterSpacing: 0.3, marginTop: 1 },
   langRow: { flexDirection: 'row', gap: 4, paddingTop: 4 },
   langBtn: { fontSize: 10, color: '#8C8583', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '500' as any },
-  langActive: { color: '#7D2329', backgroundColor: 'rgba(180,65,73,0.1)', fontWeight: '700' as any },
+  langActive: { color: '#7D2329', backgroundColor: 'rgba(179,65,73,0.1)', fontWeight: '700' as any },
   statGrid: { flexDirection: 'row', gap: 12, marginTop: 16, flexWrap: 'wrap' },
   statCard: {
     flex: 1, minWidth: 200, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F9F7F4',
@@ -638,8 +638,8 @@ const mo = StyleSheet.create({
   },
   header: { backgroundColor: '#7D2329', paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  sub: { fontSize: 10, color: 'rgba(180,65,73,0.1)', marginTop: 2 },
-  close: { color: 'rgba(180,65,73,0.1)', fontSize: 18 },
+  sub: { fontSize: 10, color: 'rgba(179,65,73,0.1)', marginTop: 2 },
+  close: { color: 'rgba(179,65,73,0.1)', fontSize: 18 },
 });
 
 const moBody = StyleSheet.create({
@@ -657,7 +657,7 @@ const moBody = StyleSheet.create({
   confirmBtn: { flex: 1, backgroundColor: '#7D2329', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   confirmBtnText: { fontSize: 12, fontWeight: '500', color: '#fff' },
   deleteConfirmBtn: { flex: 1, backgroundColor: '#B34149', borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  deleteBox: { backgroundColor: 'rgba(180,65,73,0.1)', borderRadius: 12, padding: 12, alignItems: 'center' },
+  deleteBox: { backgroundColor: 'rgba(179,65,73,0.1)', borderRadius: 12, padding: 12, alignItems: 'center' },
   deleteText: { fontSize: 12, color: '#8C8583', textAlign: 'center' },
 });
 
@@ -673,7 +673,7 @@ const ds = StyleSheet.create({
   progressBar: { height: 6, backgroundColor: '#EAE5E0', borderRadius: 100, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 100 },
   historyTitle: { fontSize: 10, fontWeight: '700', color: '#8C8583', letterSpacing: 0.5, marginBottom: 8 },
-  historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, backgroundColor: 'rgba(255,251,235,0.4)', borderRadius: 8, marginBottom: 4 },
+  historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, backgroundColor: 'rgba(213,154,83,0.1)', borderRadius: 8, marginBottom: 4 },
   historyNote: { fontSize: 11, color: '#8C8583' },
   historyAmt: { fontSize: 11, fontWeight: '700', color: '#D59A53' },
   historyEmpty: { fontSize: 10, color: '#8C8583', textAlign: 'center', paddingVertical: 12 },

@@ -422,7 +422,7 @@ const st = StyleSheet.create({
   root: { flex: 1 },
   backBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(250,250,250,0.30)',
+    backgroundColor: 'rgba(249,247,244,0.30)',
     justifyContent: 'center', alignItems: 'center',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
@@ -434,7 +434,7 @@ const st = StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: 'rgba(250,250,250,0.55)',
+    backgroundColor: 'rgba(249,247,244,0.55)',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
@@ -462,7 +462,7 @@ const st = StyleSheet.create({
   cardPairRow: { flexDirection: 'row', gap: 4 },
   cardPairCol: { flex: 1, alignItems: 'center' },
   cardPairItem: { alignItems: 'center', gap: 2, paddingVertical: 4 },
-  cardPairLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
+  cardPairLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500' },
   cardPairVal: { fontSize: 14, fontWeight: '700', color: '#2C2626' },
   cardPairDiv: { height: 1, backgroundColor: '#F9F7F4', width: '60%', marginVertical: 2 },
   tapHint: { fontSize: 10, color: '#EAE5E0', textAlign: 'center', marginTop: 2 },
@@ -503,7 +503,7 @@ const st = StyleSheet.create({
     paddingVertical: 10, paddingHorizontal: 4,
   },
   pairItem: { alignItems: 'center', gap: 4, paddingVertical: 6 },
-  pairLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
+  pairLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500' },
   pairVal: { fontSize: 15, fontWeight: '700', color: '#2C2626' },
   pairDivider: { height: 1, backgroundColor: '#EAE5E0', width: '70%' },
   /* Channel section */
@@ -525,7 +525,7 @@ const st = StyleSheet.create({
   filterBtn: {
     width: 44, height: 44, borderRadius: 22,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(250,250,250,0.30)',
+    backgroundColor: 'rgba(249,247,244,0.30)',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
@@ -546,7 +546,7 @@ const st = StyleSheet.create({
     gap: 3,
   },
   filterLabel: {
-    fontSize: 11, fontWeight: '500', color: '#999',
+    fontSize: 11, fontWeight: '500', color: '#8C8583',
     paddingLeft: 2,
   },
   filterDateRange: {
@@ -576,7 +576,7 @@ const st = StyleSheet.create({
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
   filterDateArrow: {
-    fontSize: 11, color: '#CCC', fontWeight: '300',
+    fontSize: 11, color: '#EAE5E0', fontWeight: '300',
     marginHorizontal: 2,
   },
   filterInput: {

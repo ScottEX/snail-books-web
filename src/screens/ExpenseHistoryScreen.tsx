@@ -354,14 +354,14 @@ const st = StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: 'rgba(250,250,250,0.55)',
+    backgroundColor: 'rgba(249,247,244,0.55)',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   backBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(250,250,250,0.30)',
+    backgroundColor: 'rgba(249,247,244,0.30)',
     justifyContent: 'center', alignItems: 'center',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
@@ -445,7 +445,7 @@ const st = StyleSheet.create({
   filterBtn: {
     width: 44, height: 44, borderRadius: 22,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(250,250,250,0.30)',
+    backgroundColor: 'rgba(249,247,244,0.30)',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
@@ -459,7 +459,7 @@ const st = StyleSheet.create({
   },
   filterContent: { padding: 12, gap: 8 },
   filterField: { gap: 3 },
-  filterLabel: { fontSize: 11, fontWeight: '500', color: '#999', paddingLeft: 2 },
+  filterLabel: { fontSize: 11, fontWeight: '500', color: '#8C8583', paddingLeft: 2 },
   filterDateRange: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterDateInput: {
     flex: 1, height: 34, paddingHorizontal: 8,
@@ -480,7 +480,7 @@ const st = StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
-  filterDateArrow: { fontSize: 11, color: '#CCC', fontWeight: '300', marginHorizontal: 2 },
+  filterDateArrow: { fontSize: 11, color: '#EAE5E0', fontWeight: '300', marginHorizontal: 2 },
   filterChipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   filterChip: {
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,

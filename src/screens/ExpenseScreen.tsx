@@ -518,7 +518,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
-                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? 'rgba(76,122,93,0.1)' : 'rgba(180,65,73,0.1)' }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
+                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? 'rgba(76,122,93,0.1)' : 'rgba(179,65,73,0.1)' }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
                         </View>
                       </View>
                     </View>
@@ -1230,7 +1230,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? 'rgba(180,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? 'rgba(179,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeMonth('all');
                 Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
@@ -1245,7 +1245,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               return (
                 <TouchableOpacity
                   key={`${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? 'rgba(180,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? 'rgba(179,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeMonth({ year: f.year, month: f.month });
                     Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
@@ -1287,7 +1287,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? 'rgba(180,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? 'rgba(179,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeHistoryFilter('all');
                 Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
@@ -1302,7 +1302,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               return (
                 <TouchableOpacity
                   key={`hf-${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? 'rgba(180,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? 'rgba(179,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeHistoryFilter({ year: f.year, month: f.month });
                     Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
@@ -1697,7 +1697,7 @@ const st = StyleSheet.create({
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
   modalTitle: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  modalClose: { color: 'rgba(180,65,73,0.1)', fontSize: 18 },
+  modalClose: { color: 'rgba(179,65,73,0.1)', fontSize: 18 },
   modalBtn: {
     flex: 1, backgroundColor: '#7D2329', borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',

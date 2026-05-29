@@ -748,7 +748,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 /* ===== NAV SVG ICONS ===== */
 
 function NavIconList({ active }: { active: boolean }) {
-  const c = active ? '#2C2626' : '#999';
+  const c = active ? '#2C2626' : '#8C8583';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
       <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
@@ -759,7 +759,7 @@ function NavIconList({ active }: { active: boolean }) {
 }
 
 function NavIconAdd({ active }: { active: boolean }) {
-  const c = active ? '#2C2626' : '#999';
+  const c = active ? '#2C2626' : '#8C8583';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
       <Path d="M12 5v14M5 12h14" />
@@ -768,7 +768,7 @@ function NavIconAdd({ active }: { active: boolean }) {
 }
 
 function NavIconSupply({ active }: { active: boolean }) {
-  const c = active ? '#2C2626' : '#999';
+  const c = active ? '#2C2626' : '#8C8583';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
@@ -778,7 +778,7 @@ function NavIconSupply({ active }: { active: boolean }) {
 }
 
 function NavIconChart({ active }: { active: boolean }) {
-  const c = active ? '#2C2626' : '#999';
+  const c = active ? '#2C2626' : '#8C8583';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M3 3v18h18" />
@@ -788,7 +788,7 @@ function NavIconChart({ active }: { active: boolean }) {
 }
 
 function NavIconPartner({ active }: { active: boolean }) {
-  const c = active ? '#2C2626' : '#999';
+  const c = active ? '#2C2626' : '#8C8583';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(250,250,250,0.55)',
+    backgroundColor: 'rgba(249,247,244,0.55)',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
@@ -815,29 +815,29 @@ const styles = StyleSheet.create({
   headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   title: { fontSize: 18, fontWeight: '700', color: '#2C2626' },
-  // 8600: color:#999 font-size:13px
-  date: { color: '#999', fontSize: 13 },
+  // 8600: color:#8C8583 font-size:13px
+  date: { color: '#8C8583', fontSize: 13 },
   logoutBtn: { fontSize: 11, color: '#B34149', fontWeight: '500' },
   langRow: { flexDirection: 'row', gap: 4 },
   langBtn: { fontSize: 10, color: '#8C8583', fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
-  langActive: { color: '#7D2329', backgroundColor: 'rgba(180,65,73,0.1)', fontWeight: '700' },
+  langActive: { color: '#7D2329', backgroundColor: 'rgba(179,65,73,0.1)', fontWeight: '700' },
   // Page — 8600: padding:0 16px 110px, max-width:520px, margin:0 auto
   page: { flex: 1, paddingHorizontal: 16, paddingBottom: 12, maxWidth: 520, alignSelf: 'center', width: '100%' },
   // Stats — 8600: grid-cols-4
   statsRow: { flexDirection: 'row', marginBottom: 20 },
   statItem: { flex: 1 },
-  // 8600: stat-label font-size:11px color:#999 font-weight:500
-  statLabel: { fontSize: 11, color: '#999', fontWeight: '500', marginBottom: 4 },
+  // 8600: stat-label font-size:11px color:#8C8583 font-weight:500
+  statLabel: { fontSize: 11, color: '#8C8583', fontWeight: '500', marginBottom: 4 },
   // 8600: stat-num font-size:28px font-weight:700
   statNum: { fontSize: 28, fontWeight: '700', lineHeight: 28 },
-  // 8600: text-xs color:#bbb
-  statSub: { fontSize: 10, color: '#bbb', marginTop: 2 },
+  // 8600: text-xs color:#EAE5E0
+  statSub: { fontSize: 10, color: '#EAE5E0', marginTop: 2 },
   // Tab bar — 8600: display:flex border-bottom
   tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#EAE5E0', marginBottom: 16 },
-  // 8600: tab padding:10px font-size:12px color:#999
+  // 8600: tab padding:10px font-size:12px color:#8C8583
   tabItem: { paddingVertical: 10, paddingHorizontal: 0, marginRight: 0, borderBottomWidth: 2, borderBottomColor: 'transparent', marginBottom: -1 },
   tabActive: { borderBottomColor: '#2C2626' },
-  tabItemText: { fontSize: 12, fontWeight: '500', color: '#999' },
+  tabItemText: { fontSize: 12, fontWeight: '500', color: '#8C8583' },
   tabActiveText: { color: '#2C2626' },
   // Content
   content: { flex: 1 },
@@ -845,41 +845,41 @@ const styles = StyleSheet.create({
   txRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F9F7F4' },
   txDot: { width: 7, height: 7, borderRadius: 4 },
   txCat: { fontSize: 13, fontWeight: '500' },
-  txNote: { fontSize: 10, color: '#BBB' },
+  txNote: { fontSize: 10, color: '#EAE5E0' },
   txAmt: { fontSize: 13, fontWeight: '600' },
-  txDate: { fontSize: 10, color: '#CCC', width: 70 },
-  txDel: { fontSize: 14, color: '#CCC', padding: 4 },
+  txDate: { fontSize: 10, color: '#EAE5E0', width: 70 },
+  txDel: { fontSize: 14, color: '#EAE5E0', padding: 4 },
   // Pagination
   pageRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: 10 },
-  pageBtn: { fontSize: 12, color: '#999', paddingHorizontal: 10, paddingVertical: 4 },
+  pageBtn: { fontSize: 12, color: '#8C8583', paddingHorizontal: 10, paddingVertical: 4 },
   pageBtnActive: { color: '#2C2626', fontWeight: '600' },
   // Add form — 8600 style
   addForm: { paddingTop: 4 },
   typeToggle: { flexDirection: 'row', gap: 6, marginBottom: 20 },
   typeBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#EAE5E0', backgroundColor: '#fff', alignItems: 'center' },
   typeBtnInc: { borderColor: '#4C7A5D', backgroundColor: 'rgba(76,122,93,0.1)' },
-  typeBtnExp: { borderColor: '#B34149', backgroundColor: 'rgba(180,65,73,0.1)' },
-  typeBtnText: { fontSize: 14, fontWeight: '500', color: '#999' },
+  typeBtnExp: { borderColor: '#B34149', backgroundColor: 'rgba(179,65,73,0.1)' },
+  typeBtnText: { fontSize: 14, fontWeight: '500', color: '#8C8583' },
   typeBtnIncText: { color: '#4C7A5D' },
   typeBtnExpText: { color: '#B34149' },
   addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EAE5E0', borderRadius: 8, fontSize: 14, backgroundColor: '#FFFFFF', color: '#2C2626', marginBottom: 8, fontFamily: undefined },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
-  catBtn: { fontSize: 11, color: '#999', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#EAE5E0' },
+  catBtn: { fontSize: 11, color: '#8C8583', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#EAE5E0' },
   catBtnActive: { color: '#7D2329', borderColor: '#7D2329', backgroundColor: 'rgba(125,35,41,0.03)' },
   saveBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#2C2626', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginTop: 8 },
   saveBtnText: { color: '#fff', fontSize: 20 },
   // Supply
-  sectionTitle: { fontSize: 12, fontWeight: '600', color: '#999', paddingVertical: 10 },
+  sectionTitle: { fontSize: 12, fontWeight: '600', color: '#8C8583', paddingVertical: 10 },
   supplyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#EAE5E0' },
   supplyName: { fontSize: 13, fontWeight: '500', flex: 1 },
   supplyPrice: { fontSize: 13, fontWeight: '600', color: '#2C2626' },
   // Chart
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  barLabel: { fontSize: 10, color: '#999', fontWeight: '500', width: 36, textAlign: 'right' },
+  barLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500', width: 36, textAlign: 'right' },
   barWrap: { flex: 1, height: 16, backgroundColor: '#F9F7F4', borderRadius: 3, overflow: 'hidden', flexDirection: 'row' },
   barIncome: { backgroundColor: '#4C7A5D', height: '100%' },
   barExpense: { backgroundColor: '#B34149', opacity: 0.7, height: '100%' },
-  barVal: { fontSize: 9, color: '#999', width: 90 },
+  barVal: { fontSize: 9, color: '#8C8583', width: 90 },
   // Bottom Nav — glass pill, icons only, 80% transparent
   bottomNav: {
     position: 'fixed' as any,
@@ -909,7 +909,7 @@ const styles = StyleSheet.create({
   navItemActive: {
     backgroundColor: 'rgba(0,0,0,0.06)',
   },
-  navLabel: { fontSize: 10, fontWeight: '600', color: '#999', letterSpacing: 0.3 },
+  navLabel: { fontSize: 10, fontWeight: '600', color: '#8C8583', letterSpacing: 0.3 },
   navLabelActive: { color: '#2C2626' },
   // Background settings modal
   modalOverlay: {
@@ -932,7 +932,7 @@ const styles = StyleSheet.create({
   bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   bgBtnOutline: { borderWidth: 1, borderColor: '#EAE5E0' },
   bgBtnOutlineText: { fontSize: 12, color: '#2C2626', fontWeight: '500' },
-  bgBtnDanger: { borderWidth: 1, borderColor: 'rgba(180,65,73,0.1)' },
+  bgBtnDanger: { borderWidth: 1, borderColor: 'rgba(179,65,73,0.1)' },
   bgBtnDangerText: { fontSize: 12, color: '#B34149', fontWeight: '500' },
 
   /* ── Daily Revenue (每日营收) ── */
@@ -994,7 +994,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,
   },
-  rev7CardBadgeGap: { backgroundColor: 'rgba(180,65,73,0.1)' },
+  rev7CardBadgeGap: { backgroundColor: 'rgba(179,65,73,0.1)' },
   rev7CardBadgeOk: { backgroundColor: 'rgba(76,122,93,0.1)' },
   rev7CardDot: { width: 6, height: 6, borderRadius: 3 },
   rev7CardStatus: { fontSize: 12, fontWeight: '600' },
@@ -1016,7 +1016,7 @@ const styles = StyleSheet.create({
   rev7ArchivedBadge: {
     alignSelf: 'flex-start',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
-    backgroundColor: 'rgba(180,65,73,0.1)',
+    backgroundColor: 'rgba(179,65,73,0.1)',
   },
   rev7ArchivedBadgeText: { fontSize: 11, fontWeight: '600', color: '#B34149' },
 

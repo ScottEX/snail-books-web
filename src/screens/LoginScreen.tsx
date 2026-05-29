@@ -406,8 +406,8 @@ const styles = StyleSheet.create({
   },
   shake: {}, // animation handled by CSS class
   msgBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
-  msgOk: { backgroundColor: 'rgba(16,185,129,0.3)' },
-  msgErr: { backgroundColor: 'rgba(254,242,242,0.9)' },
+  msgOk: { backgroundColor: 'rgba(76,122,93,0.3)' },
+  msgErr: { backgroundColor: 'rgba(179,65,73,0.12)' },
   msgText: { fontSize: 11, fontWeight: '500' },
   msgOkText: { color: 'rgba(76,122,93,0.1)' },
   msgErrText: { color: '#B34149' },
