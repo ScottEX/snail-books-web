@@ -117,7 +117,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   // Load last 7 days aggregated
   useEffect(() => {
-    api.getDailyRevenue(1, 1, undefined, undefined, undefined, 7).then((r: any) => {
+    api.getDailyRevenue(1, 1, undefined, undefined, undefined, 30).then((r: any) => {
       setWeekRev(r.totals || null);
     }).catch(() => {});
   }, []);
@@ -330,12 +330,18 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <Text style={{ fontSize: 20 }}>📊</Text>
                         <Text style={styles.revTitle}>{t('dailyRevenue')}</Text>
                       </View>
-                      {editingRevId && (
-                        <TouchableOpacity onPress={cancelEdit} activeOpacity={0.7}
-                          style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#F3F4F6' }}>
-                          <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '600' }}>✕ 取消</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        {editingRevId && (
+                          <TouchableOpacity onPress={cancelEdit} activeOpacity={0.7}
+                            style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#F3F4F6' }}>
+                            <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '600' }}>✕ 取消</Text>
+                          </TouchableOpacity>
+                        )}
+                        <TouchableOpacity onPress={() => { loadDailyRevs(1, revYear, revMonth); }} activeOpacity={0.7}
+                          style={{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8, backgroundColor: '#FFF', borderWidth: 0.5, borderColor: '#E5E7EB', marginLeft: 'auto' }}>
+                          <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '600' }}>📋 {t('revHistoryBtn')}</Text>
                         </TouchableOpacity>
-                      )}
+                      </View>
                     </View>
 
                     {/* Quick date pills + date picker */}
@@ -375,7 +381,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Three input cards */}
                     <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
                       <View style={styles.revInputCard}>
-                        <Text style={{ fontSize: 14, marginBottom: 6 }}>Ⓨ</Text>
+                        <Text style={{ fontSize: 14, marginBottom: 6 }}>¥</Text>
                         <Text style={styles.revInputCardTitle}>{t('revRevenue')}</Text>
                         <Text style={styles.revInputCardSub}>{t('revRevenueSub')}</Text>
                         <View style={styles.revInputCardInputWrap}>
@@ -390,7 +396,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       </View>
                       <View style={styles.revInputCard}>
                         <Text style={{ fontSize: 14, marginBottom: 6 }}>🛒</Text>
-                        <Text style={styles.revInputCardTitle}>{t('revTurnover')}*</Text>
+                        <Text style={styles.revInputCardTitle}>{t('revTurnover')}</Text>
                         <Text style={styles.revInputCardSub}>{t('revTurnoverSub')}</Text>
                         <View style={styles.revInputCardInputWrap}>
                           <Text style={styles.revInputCardSymbol}>¥</Text>
@@ -402,13 +408,13 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.turnover)}` : t('revYesterdayNA')}
                         </Text>
                       </View>
-                      <View style={[styles.revInputCard, { opacity: revJD ? 1 : 0.7 }]}>
+                      <View style={styles.revInputCard}>
                         <Text style={{ fontSize: 14, marginBottom: 6 }}>↪</Text>
                         <Text style={styles.revInputCardTitle}>{t('revJD')}</Text>
                         <Text style={styles.revInputCardSub}>{t('revJDSub')}</Text>
                         <View style={styles.revInputCardInputWrap}>
-                          <Text style={[styles.revInputCardSymbol, { color: revJD ? '#374151' : '#9CA3AF' }]}>¥</Text>
-                          <TextInput style={[styles.revInputCardInput, { color: revJD ? '#374151' : '#9CA3AF' }]}
+                          <Text style={styles.revInputCardSymbol}>¥</Text>
+                          <TextInput style={styles.revInputCardInput}
                             value={revJD} onChangeText={setRevJD}
                             keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB" />
                         </View>
@@ -426,7 +432,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Two action buttons */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <TouchableOpacity
-                        style={[styles.revArchiveBtn, revMarkedClosed && styles.revArchiveBtnDone]}
+                        style={[styles.revArchiveBtn, { flex: 1.5 }, revMarkedClosed && styles.revArchiveBtnDone]}
                         onPress={() => { if (!revMarkedClosed) setRevMarkedClosed(true); }}
                         activeOpacity={0.7}>
                         <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
@@ -463,75 +469,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   {/* ── 历史记录 ── */}
                   <View style={{ marginTop: 20 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>{t('revHistory')}</Text>
-                      <TouchableOpacity ref={revPickerRef} activeOpacity={0.7}
-                        onPress={() => {
-                          if (!showRevMonthPicker) {
-                            if (revPickerRef.current && typeof revPickerRef.current.measure === 'function') {
-                              revPickerRef.current.measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
-                                setRevPickerPos({ top: py + 30, left: px });
-                              });
-                            }
-                            revPickerAnim.setValue(0);
-                            Animated.spring(revPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                            setShowRevMonthPicker(true);
-                          } else {
-                            Animated.timing(revPickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-                              setShowRevMonthPicker(false);
-                            });
-                          }
-                        }}
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#F3F4F6' }}>
-                        <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '600' }}>
-                          {MONTHS_SHORT[revMonth - 1]} {revYear}
-                        </Text>
-                        <Text style={{ fontSize: 10, color: '#9CA3AF' }}>▼</Text>
-                      </TouchableOpacity>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>⌚️{t('revHistory')}</Text>
                     </View>
-
-                    {/* Month picker dropdown */}
-                    {showRevMonthPicker && (
-                      <>
-                        <TouchableOpacity style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 99 }}
-                          onPress={() => { setShowRevMonthPicker(false); }} activeOpacity={1} />
-                        <Animated.View style={{
-                          position: 'absolute', top: revPickerPos.top, left: revPickerPos.left, zIndex: 100,
-                          backgroundColor: '#FFFFFF', borderRadius: 10, borderWidth: 1, borderColor: '#EBEBEB',
-                          width: 140, maxHeight: 240, padding: 6,
-                          boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
-                          opacity: revPickerAnim, transform: [{ translateY: revPickerAnim.interpolate({ inputRange: [0,1], outputRange: [-8,0] }) }],
-                        }}>
-                          <ScrollView showsVerticalScrollIndicator={false}>
-                            {(() => {
-                              const now = new Date();
-                              const items: { y: number; m: number; label: string }[] = [];
-                              for (let y = now.getFullYear(); y >= 2024; y--) {
-                                const endM = y === now.getFullYear() ? now.getMonth() + 1 : 12;
-                                const startM = y === 2024 ? 5 : 1;
-                                for (let m = endM; m >= startM; m--) {
-                                  items.push({ y, m, label: `${y}-${String(m).padStart(2,'0')}` });
-                                }
-                              }
-                              const currentLabel = `${revYear}-${String(revMonth).padStart(2,'0')}`;
-                              return items.map((item) => (
-                                <TouchableOpacity key={item.label}
-                                  onPress={() => { setRevYear(item.y); setRevMonth(item.m); setShowRevMonthPicker(false); }}
-                                  activeOpacity={0.6}
-                                  style={{
-                                    paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6,
-                                    backgroundColor: item.label === currentLabel ? '#F3F4F6' : 'transparent',
-                                  }}>
-                                  <Text style={{
-                                    fontSize: 13, fontWeight: item.label === currentLabel ? '700' : '500',
-                                    color: item.label === currentLabel ? '#1A1A1A' : '#6B7280',
-                                  }}>{item.label}</Text>
-                                </TouchableOpacity>
-                              ));
-                            })()}
-                          </ScrollView>
-                        </Animated.View>
-                      </>
-                    )}
 
                     {/* Revenue history list */}
                     {revLoading && dailyRevs.length === 0 ? (
