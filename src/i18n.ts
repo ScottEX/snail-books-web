@@ -707,6 +707,11 @@ export function setLang(lang: string, callback?: () => void) {
   if (!I18N[lang]) return;
   curLang = lang;
   if (typeof localStorage !== 'undefined') localStorage.setItem('lang', lang);
+  // Save to backend so language follows the user across devices
+  try {
+    const { api } = require('../api/client');
+    api.saveLang(lang).catch(() => {});
+  } catch {}
   callback?.();
 }
 

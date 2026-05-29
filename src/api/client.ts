@@ -147,6 +147,10 @@ export const api = {
   resetBackground: () => authFetch('/api/settings/background', { method: 'DELETE' }),
   saveBackgroundSettings: (data: any) => authFetch('/api/settings/background', { method: 'PUT', body: JSON.stringify(data) }),
 
+  // Language preference (stored per-user in user_settings)
+  getLang: () => authFetch('/api/settings/lang'),
+  saveLang: (lang: string) => authFetch('/api/settings/lang', { method: 'PUT', body: JSON.stringify({ lang }) }),
+
   getProducts: () => authFetch('/api/products'),
   createProduct: (data: any) => authFetch('/api/products', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (data: any) => authFetch('/api/products', { method: 'PUT', body: JSON.stringify(data) }),

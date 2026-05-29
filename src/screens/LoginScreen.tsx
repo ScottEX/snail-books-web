@@ -66,6 +66,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         localStorage.removeItem('active_tab');
         localStorage.removeItem('expense_active_tab');
       }
+      // Fetch user's language preference from backend
+      try {
+        const langResp = await api.getLang();
+        if (langResp?.lang) setLang(langResp.lang);
+      } catch {}
       onLogin();
     } else if (r.need_verify) {
       setEmail(r.email); setStep('verify'); setMsg('');
