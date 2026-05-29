@@ -205,11 +205,9 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
               </View>
 
               {/* Footer: recorded by */}
-              {rec.recorded_by ? (
-                <View style={st.cardFooter}>
-                  <Text style={st.cardFooterText}>{t('recordedBy')}: {rec.recorded_by}</Text>
-                </View>
-              ) : null}
+              <View style={st.cardFooter}>
+                <Text style={st.cardFooterText}>{t('recordedBy')}: {rec.recorded_by || '—'}</Text>
+              </View>
             </View>
           ))
         )}

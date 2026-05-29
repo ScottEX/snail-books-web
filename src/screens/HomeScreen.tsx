@@ -538,11 +538,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           </View>
 
                           {/* Footer: recorded by */}
-                          {rec.recorded_by ? (
-                            <View style={styles.rev7CardFooter}>
-                              <Text style={styles.rev7CardFooterText}>{t('recordedBy')}: {rec.recorded_by}</Text>
-                            </View>
-                          ) : null}
+                          <View style={styles.rev7CardFooter}>
+                            <Text style={styles.rev7CardFooterText}>{t('recordedBy')}: {rec.recorded_by || '—'}</Text>
+                          </View>
                         </View>
                       ))
                     )}
