@@ -217,19 +217,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               )}
 
               {tab === 'chart' && (
-                <View>
-                  <Text style={styles.sectionTitle}>{t('trend12Month') || '近12月收支趋势'}</Text>
-                  {chart.map((d: any) => (
-                    <View key={d.month} style={styles.barRow}>
-                      <Text style={styles.barLabel}>{d.month?.slice(5)}</Text>
-                      <View style={styles.barWrap}>
-                        <View style={[styles.barIncome, { flex: d.income || 0 } as any]} />
-                        <View style={[styles.barExpense, { flex: d.expense || 0 } as any]} />
-                      </View>
-                      <Text style={styles.barVal}>+{d.income?.toFixed(2)} -{d.expense?.toFixed(2)}</Text>
-                    </View>
-                  ))}
-                </View>
+                <View />
               )}
             </ScrollView>
           </>
