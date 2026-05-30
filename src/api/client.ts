@@ -55,12 +55,12 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
 }
 
 export const api = {
-  login: (username: string, password: string) => {
+  login: (username: string, password: string, remember = false) => {
     bumpActivity(); // login also counts as activity
     return fetch(API_BASE + '/login', {
       method: 'POST',
       headers: headers(),
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, remember }),
     }).then((r) => r.json());
   },
 

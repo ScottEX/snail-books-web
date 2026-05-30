@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
@@ -6,6 +6,8 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
@@ -20,6 +22,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [remember, setRemember] = useState(false);
+  const codeRef = useRef<any>(null);
   const { colors } = useTheme();
 
   useEffect(() => {
@@ -52,13 +57,21 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     return '';
   };
 
+  const validateEmail = (em: string): string => {
+    if (!EMAIL_RE.test(em)) return t('errEmailInvalid') || 'Invalid email';
+    return '';
+  };
+
   const triggerShake = () => {
     setShake(true); setTimeout(() => setShake(false), 400);
   };
 
   const handleLogin = async () => {
+    if (loading) return;
     if (!username || !password) { setMsg(t('errEmptyFields')); triggerShake(); return; }
-    const r = await api.login(username, password);
+    setLoading(true);
+    const r = await api.login(username, password, remember);
+    setLoading(false);
     if (r.status === 'ok') {
       if (r.token && typeof localStorage !== 'undefined') localStorage.setItem('token', r.token);
       if (typeof localStorage !== 'undefined') {
@@ -68,13 +81,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         localStorage.removeItem('active_tab');
         localStorage.removeItem('expense_active_tab');
       }
-      // Save user's current language preference to backend
-      try {
-        await api.saveLang(getLang());
-      } catch {}
+      try { await api.saveLang(getLang()); } catch {}
       onLogin();
     } else if (r.need_verify) {
       setEmail(r.email); setStep('verify'); setMsg('');
+      setTimeout(() => codeRef.current?.focus(), 100);
     } else {
       setMsg(r.message || t('errWrongCredentials'));
       triggerShake();
@@ -82,34 +93,50 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   };
 
   const handleRegister = async () => {
+    if (loading) return;
     if (!username || !password || !email) { setMsg(t('errEmptyFields')); triggerShake(); return; }
     if (password !== password2) { setMsg(t('errPwMismatch') || 'Passwords mismatch'); triggerShake(); return; }
     const pwErr = validatePassword(password);
     if (pwErr) { setMsg(pwErr); triggerShake(); return; }
+    const emailErr = validateEmail(email);
+    if (emailErr) { setMsg(emailErr); triggerShake(); return; }
+    setLoading(true);
     const r = await api.register(username, password, email);
-    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('verify'); }
+    setLoading(false);
+    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('verify'); setTimeout(() => codeRef.current?.focus(), 100); }
     else { setMsg(r.message); triggerShake(); }
   };
 
   const handleVerify = async () => {
+    if (loading) return;
     if (!code) return;
+    setLoading(true);
     const r = await api.verify(email, code);
+    setLoading(false);
     if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgVerifyOk')); setStep('login'); }
     else { setMsg(r.message); triggerShake(); }
   };
 
   const handleForgot = async () => {
+    if (loading) return;
     if (!email) { setMsg(t('errEmptyFields')); return; }
+    const emailErr = validateEmail(email);
+    if (emailErr) { setMsg(emailErr); return; }
+    setLoading(true);
     const r = await api.forgotPassword(email);
-    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('reset'); }
+    setLoading(false);
+    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('reset'); setTimeout(() => codeRef.current?.focus(), 100); }
     else setMsg(r.message);
   };
 
   const handleReset = async () => {
+    if (loading) return;
     if (!code || !password) { setMsg(t('errEmptyFields')); triggerShake(); return; }
     const pwErr = validatePassword(password);
     if (pwErr) { setMsg(pwErr); triggerShake(); return; }
+    setLoading(true);
     const r = await api.resetPassword(email, code, password);
+    setLoading(false);
     if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgResetOk')); setStep('login'); }
     else { setMsg(r.message); triggerShake(); }
   };
@@ -203,12 +230,20 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleLogin} style={styles.btnDark}>
-                <Text style={styles.btnDarkText}>{t('loginBtn')}</Text>
+              <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
+                <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
-                <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <TouchableOpacity onPress={() => setRemember(!remember)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
+                    {remember && <Text style={{ fontSize: 10, color: colors.surface }}>✓</Text>}
+                  </View>
+                  <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{t('rememberMe') || '记住我'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
+                  <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
@@ -277,8 +312,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleRegister} style={styles.btnDark}>
-                <Text style={styles.btnDarkText}>{t('registerBtn')}</Text>
+              <TouchableOpacity onPress={handleRegister} style={styles.btnDark} disabled={loading}>
+                <Text style={styles.btnDarkText}>{loading ? '...' : t('registerBtn')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
@@ -294,12 +329,12 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               </Text>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('verifyCode')}</Text>
-                <TextInput style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
+                <TextInput ref={codeRef} style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
                   placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)"
-                  keyboardType="number-pad" onSubmitEditing={handleVerify} />
+                  keyboardType="number-pad" onSubmitEditing={handleVerify} autoFocus />
               </View>
-              <TouchableOpacity onPress={handleVerify} style={styles.btnRed}>
-                <Text style={styles.btnRedText}>{t('verifyBtn')}</Text>
+              <TouchableOpacity onPress={handleVerify} style={styles.btnRed} disabled={loading}>
+                <Text style={styles.btnRedText}>{loading ? '...' : t('verifyBtn')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleResend} disabled={resendCooldown > 0}>
                 <Text style={[styles.forgotText, resendCooldown > 0 && styles.disabledText]}>
@@ -322,8 +357,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder="Email" placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="email-address" onSubmitEditing={handleForgot} />
               </View>
-              <TouchableOpacity onPress={handleForgot} style={styles.btnDark}>
-                <Text style={styles.btnDarkText}>{t('forgotSendBtn') || 'Send Code'}</Text>
+              <TouchableOpacity onPress={handleForgot} style={styles.btnDark} disabled={loading}>
+                <Text style={styles.btnDarkText}>{loading ? '...' : t('forgotSendBtn') || 'Send Code'}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
@@ -339,8 +374,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               </Text>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('verifyCode')}</Text>
-                <TextInput style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
-                  placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)}" keyboardType="number-pad" />
+                <TextInput ref={codeRef} style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
+                  placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)" keyboardType="number-pad" autoFocus />
               </View>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('newPassword')}</Text>
@@ -366,8 +401,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleReset} style={styles.btnRed}>
-                <Text style={styles.btnRedText}>{t('resetBtn')}</Text>
+              <TouchableOpacity onPress={handleReset} style={styles.btnRed} disabled={loading}>
+                <Text style={styles.btnRedText}>{loading ? '...' : t('resetBtn')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
