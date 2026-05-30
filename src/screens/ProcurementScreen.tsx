@@ -50,27 +50,8 @@ function CheckIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-function CashIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x="2" y="6" width="20" height="12" rx="2" /><Circle cx="12" cy="12" r="2" /><Path d="M2 10h20" />
-    </Svg>
-  );
-}
-function WechatIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-    </Svg>
-  );
-}
-function AlipayIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M18 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z" /><Path d="M10 14l2 2 4-4" />
-    </Svg>
-  );
-}
+// Payment emoji icons restored from original design
+const PAY_EMOJI: Record<string, string> = { '现金': '💵', '微信': '', '支付宝': '' };
 function TrashIcon({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -98,7 +79,6 @@ const sortByOrder = (a: string, b: string) => {
   return ai - bi;
 };
 
-const PAY_ICONS: Record<string, React.FC<{ color: string }>> = { '现金': CashIcon, '微信': WechatIcon, '支付宝': AlipayIcon };
 const PAY_KEYS = ['现金', '微信', '支付宝'] as const;
 const CHIP_ICON_BG: Record<string, string> = { '微信': '#07C160', '支付宝': '#1677FF', '现金': '#333' };
 
@@ -353,7 +333,7 @@ export default function ProcurementScreen() {
   const [orderDate, setOrderDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [payMethod, setPayMethod] = useState<PayMethod>('微信');
   const [orderNote, setOrderNote] = useState('');
-  const [receipts, setReceipts] = useState<string[]>([]);
+  const [receipts, setReceipts] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -461,6 +441,36 @@ export default function ProcurementScreen() {
 
   const todayStr = () => new Date().toISOString().slice(0, 10);
 
+  // ── Image compression (matching ExpenseScreen) ──
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      if (file.size < 500 * 1024) return resolve(file);
+      const img = document.createElement('img');
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const MAX = 1920;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+          else { width = Math.round(width * MAX / height); height = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file);
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (!blob) return resolve(file);
+          const compressed = new File([blob], file.name, { type: 'image/jpeg' });
+          resolve(compressed.size < file.size ? compressed : file);
+        }, 'image/jpeg', 0.8);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  };
+
   // ── Suppliers ──
   const suppliers = useMemo(() => {
     const set = new Set(products.map(p => p.supplier).filter(Boolean));
@@ -553,31 +563,49 @@ export default function ProcurementScreen() {
     setEditingPrice(null);
   };
 
-  // ── File upload (expense page style) ──
+  // ── File upload (matching ExpenseScreen pattern) ──
   const handleFileSelect = async (e: any) => {
     const files = e.target?.files || e.nativeEvent?.target?.files;
     if (!files || files.length === 0) return;
-    setUploading(true);
-    try {
-      const result = await api.uploadExpenseImages(Array.from(files) as File[]);
-      if (result.images) setReceipts(prev => [...prev, ...result.images]);
-    } catch {}
-    setUploading(false);
+    const newFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) continue;
+      if (f.size > 10 * 1024 * 1024) continue;
+      if (receipts.some(r => r.name === f.name && r.size === f.size)) continue;
+      const compressed = await compressImage(f);
+      newFiles.push(compressed);
+    }
+    setReceipts(prev => [...prev, ...newFiles]);
     if (fileRef.current) fileRef.current.value = '';
   };
 
   const removeReceipt = (i: number) => {
-    setReceipts(prev => prev.filter((_, idx) => idx !== i));
+    setReceipts(prev => {
+      const removed = prev[i];
+      // Revoke any object URLs for the removed file's preview
+      const cp = prev.filter((_, idx) => idx !== i);
+      return cp;
+    });
   };
 
   const submitOrder = async () => {
     if (cartItems.length === 0) return;
     setSubmitting(true);
     try {
+      // Upload images first (matching ExpenseScreen pattern)
+      let imageUrls: string[] = [];
+      if (receipts.length > 0) {
+        setUploading(true);
+        const result = await api.uploadExpenseImages(receipts);
+        setUploading(false);
+        if (result.status !== 'ok') return;
+        imageUrls = result.images || [];
+      }
       const r = await api.createProcurementBatch({
         date: orderDate, payment_method: payMethod, category: t('procPurchase'),
         items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
-        images: receipts, note: orderNote,
+        images: imageUrls, note: orderNote,
       });
       if (r.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setShowSuccess(true);
@@ -585,7 +613,7 @@ export default function ProcurementScreen() {
         loadStats();
       }
     } catch {}
-    setSubmitting(false);
+    setSubmitting(false); setUploading(false);
   };
 
   const resetOrder = () => {
@@ -897,7 +925,6 @@ export default function ProcurementScreen() {
               <Text style={styles.sectionLabel}>{t('procPaymentMethod')}</Text>
               <View style={styles.payRow}>
                 {PAY_KEYS.map(pm => {
-                  const Icon = PAY_ICONS[pm];
                   const active = payMethod === pm;
                   const isWechat = pm === '微信';
                   const isAlipay = pm === '支付宝';
@@ -906,7 +933,7 @@ export default function ProcurementScreen() {
                       style={[styles.payChip, active && (isWechat ? styles.payChipOnWechat : isAlipay ? styles.payChipOnAlipay : styles.payChipOn)]}
                       onPress={() => setPayMethod(pm)} activeOpacity={0.7}>
                       <View style={[styles.chipIconCircle, active && { backgroundColor: CHIP_ICON_BG[pm] }]}>
-                        <Icon color={active ? '#fff' : c.textSub} />
+                        <Text style={{ fontSize: 16 }}>{PAY_EMOJI[pm]}</Text>
                       </View>
                       <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{pm}</Text>
                     </TouchableOpacity>
@@ -935,10 +962,10 @@ export default function ProcurementScreen() {
                   <CameraIcon color={c.textSub} />
                   <Text style={styles.imgAddText}>{t('addImage')}</Text>
                 </TouchableOpacity>
-                {receipts.map((img, i) => (
+                {receipts.map((file, i) => (
                   <View key={`rec-${i}`} style={styles.imgPreview}>
                     {React.createElement('img', {
-                      src: img, style: { width: 80, height: 80, borderRadius: 12, objectFit: 'cover' } as any,
+                      src: URL.createObjectURL(file), style: { width: 80, height: 80, borderRadius: 12, objectFit: 'cover' } as any,
                     })}
                     <TouchableOpacity style={styles.imgRemove} onPress={() => removeReceipt(i)} activeOpacity={0.7}>
                       <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
