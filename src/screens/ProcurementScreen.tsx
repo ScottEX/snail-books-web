@@ -203,9 +203,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   sectionLabel: { fontSize: 11, fontWeight: '500' as const, color: c.textSub, marginBottom: 6 },
   payRow: { flexDirection: 'row' as const, gap: 6, marginBottom: 12 },
   payChip: {
-    flex: 1, paddingVertical: 8, borderRadius: 22,
-    backgroundColor: withAlpha(c.textMain, 0.04),
-    alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4,
+    flex: 1, flexDirection: 'row' as const, paddingVertical: 8, borderRadius: 22,
+    backgroundColor: c.bg,
+    alignItems: 'center' as const, justifyContent: 'center' as const,
   },
   payChipOn: { backgroundColor: c.primary },
   payChipOnWechat: { backgroundColor: '#07C160' },
@@ -213,7 +213,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   payChipText: { fontSize: 13, fontWeight: '600' as const, color: c.textSub },
   payChipTextOn: { color: c.surface },
 
-  chipIconCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const, justifyContent: 'center' as const },
+  chipIconCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const, justifyContent: 'center' as const, marginRight: 4 },
   chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
 
   // Upload (expense page style)
@@ -240,7 +240,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   // Items button
   itemsBtn: {
     paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8,
-    borderWidth: 1, borderColor: withAlpha(c.textMain, 0.1),
     backgroundColor: withAlpha(c.textMain, 0.03),
     flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
     marginBottom: 12,
@@ -1000,7 +999,7 @@ export default function ProcurementScreen() {
               </TouchableOpacity>
 
               <Text style={styles.sectionLabel}>{t('procNoteOptional')}</Text>
-              <TextInput style={{ paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12), borderRadius: 8, fontSize: 13, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' } as any}
+              <TextInput style={{ paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: 13, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' } as any}
                 value={orderNote} onChangeText={setOrderNote} placeholder={t('procNowBatch').replace('{n}', String(stats.batch_count + 1))} placeholderTextColor={c.textSub} />
 
               {/* Total + Submit inline */}
