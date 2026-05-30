@@ -3,6 +3,10 @@
 // Import these instead of copying animation/sizing properties per-screen.
 // ═══════════════════════════════════════════
 
+import { ThemeColors, withAlpha, FONTS } from './theme';
+
+// ─── Modal / Popup ──────────────────────────
+
 /** Modal card enter animation (scale+fade). Include via spread in modalCard StyleSheet. */
 export const modalCardAnimation = {
   // @ts-ignore — CSS animation properties not typed in RN StyleSheet
@@ -17,3 +21,50 @@ export const modalClose = {
   color: 'rgba(255,255,255,0.7)',
   fontWeight: '300' as const,
 };
+
+// ─── History Page Header (‹ back + title + 🔍 filter) ──
+
+/** Shared header / back-button / title styles for all history sub-pages.
+ *  Pass your `colors` from useTheme(). Spread into StyleSheet.create().
+ *
+ *  Usage:
+ *    const st = StyleSheet.create({
+ *      ...historyHeader(colors),
+ *      // page-specific styles ...
+ *    });
+ */
+export const historyHeader = (colors: ThemeColors) => ({
+  header: {
+    position: 'absolute' as const, top: 0, left: 0, right: 0, zIndex: 90,
+    flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
+    paddingVertical: 14, paddingHorizontal: 16,
+    backgroundColor: withAlpha(colors.bg, 0.55),
+    // @ts-ignore
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
+  },
+  backBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: withAlpha(colors.bg, 0.30),
+    justifyContent: 'center' as const, alignItems: 'center' as const,
+    // @ts-ignore
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
+  },
+  backArrow: {
+    fontSize: FONTS.h1.size, fontWeight: '300' as const, color: colors.primary,
+    marginTop: -2, marginLeft: -1,
+  },
+  title: {
+    fontSize: FONTS.body.size, fontWeight: '400' as const, color: colors.textMain,
+  },
+  filterBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    justifyContent: 'center' as const, alignItems: 'center' as const,
+    backgroundColor: withAlpha(colors.bg, 0.30),
+    // @ts-ignore
+    backdropFilter: 'saturate(200%) blur(30px)',
+    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
+  },
+  filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+});

@@ -7,7 +7,7 @@ import { FilterBackdrop } from '../components/FilterBackdrop';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
 
 const PAGE_SIZE = 10;
 
@@ -302,7 +302,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <Text style={st.backBtnArrow}>{'\u2039'}</Text>
+            <Text style={st.backArrow}>{'\u2039'}</Text>
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')} ({total})</Text>
@@ -432,26 +432,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
 const getSt = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
-  backBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: withAlpha(colors.bg, 0.30),
-    justifyContent: 'center', alignItems: 'center',
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
-  },
-  backBtnArrow: { fontSize: FONTS.h1.size, fontWeight: '300', color: colors.primary, marginTop: -2, marginLeft: -1 },
-  /* Frosted glass header — iOS 26 style */
-  header: {
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: withAlpha(colors.bg, 0.55),
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
-  },
-  title: { fontSize: FONTS.body.size, fontWeight: '400', color: colors.textMain },
+  ...historyHeader(colors),
   list: { flex: 1, paddingHorizontal: 12 },
   loading: { marginTop: 80, alignItems: 'center' },
   loadingText: { marginTop: 12, fontSize: FONTS.sub.size, color: colors.primary },
@@ -534,15 +515,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
   emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   /* Filter — ultra-minimal */
-  filterBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    justifyContent: 'center', alignItems: 'center',
-    backgroundColor: withAlpha(colors.bg, 0.30),
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
-  },
-  filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   filterBtnText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub },
   filterBtnTextActive: { color: colors.surface },
   filterPanel: {
@@ -589,7 +561,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
   filterDateArrow: {
-    fontSize: FONTS.micro.size, color: colors.secondary, fontWeight: '300',
+    fontSize: 14, color: colors.secondary, fontWeight: '300',
     marginHorizontal: 2,
   },
   filterInput: {

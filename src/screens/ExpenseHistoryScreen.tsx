@@ -9,7 +9,7 @@ import { FilterBackdrop } from '../components/FilterBackdrop';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation } from '../sharedStyles';
+import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
 
 const PAGE_SIZE = 10;
 
@@ -359,26 +359,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Root — flex: 1, no background (page bg from parent) */
   root: { flex: 1 },
-  /* Header — frosted glass, floats above scroll */
-  header: {
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: withAlpha(colors.bg, 0.55),
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
-  },
-  backBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: withAlpha(colors.bg, 0.30),
-    justifyContent: 'center', alignItems: 'center',
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
-  },
-  backArrow: { fontSize: FONTS.h1.size, fontWeight: '300', color: colors.primary, marginTop: -2, marginLeft: -1 },
-  title: { fontSize: FONTS.body.size, fontWeight: '400', color: colors.textMain },
+  ...historyHeader(colors),
   /* List — scrolls under absolute header (matches ReconHistoryScreen list) */
   list: { flex: 1 },
   /* Row */
@@ -452,15 +433,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     fontSize: FONTS.sub.size, fontWeight: '500', color: 'rgba(255,255,255,0.7)',
   },
   /* Filter panel — matches ReconHistoryScreen */
-  filterBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    justifyContent: 'center', alignItems: 'center',
-    backgroundColor: withAlpha(colors.bg, 0.30),
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
-  },
-  filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  filterBtnTextActive: { color: colors.surface },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: colors.surface, borderRadius: 10,
@@ -491,7 +464,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
-  filterDateArrow: { fontSize: FONTS.micro.size, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
+  filterDateArrow: { fontSize: 14, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
   filterChipRow: { flex: 1, flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   filterChip: {
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
