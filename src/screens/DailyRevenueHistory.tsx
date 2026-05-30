@@ -122,7 +122,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                     onChange={(e: any) => { const v = e.target.value; if (v <= todayISO) setDateFrom(v); }}
                     style={st.filterDateHidden as any} />
                 </View>
-                <Text style={st.filterDateArrow}>→</Text>
+                <Text style={[st.filterDateArrow, { transform: [{ translateY: -3 }] }]}>→</Text>
                 <View style={st.filterDateWrap}>
                   {dateTo ? (
                     <Text style={st.filterDateText}>{fmtDate(dateTo)}</Text>
