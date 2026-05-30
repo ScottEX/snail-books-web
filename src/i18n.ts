@@ -2,6 +2,8 @@ const I18N: Record<string, Record<string, string>> = {
   'zh-CN': {
     appTitle: '蓝姐螺蛳粉',
     logout: '退出登录',
+    logoutConfirm: '确定要退出登录吗？',
+    confirmLogout: '确定退出',
     login: '登录',
     register: '注册',
     username: '账号',
@@ -317,6 +319,8 @@ const I18N: Record<string, Record<string, string>> = {
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
     logout: '登出',
+    logoutConfirm: '確定要登出嗎？',
+    confirmLogout: '確定登出',
     login: '登錄',
     register: '註冊',
     username: '帳號',
@@ -626,6 +630,8 @@ const I18N: Record<string, Record<string, string>> = {
   en: {
     appTitle: "Lan's Luosifen",
     logout: 'Logout',
+    logoutConfirm: 'Are you sure you want to log out?',
+    confirmLogout: 'Confirm Logout',
     login: 'Login',
     register: 'Register',
     username: 'Account',

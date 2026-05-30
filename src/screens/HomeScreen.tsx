@@ -41,6 +41,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [account, setAccount] = useState('');
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showReconHistory, setShowReconHistory] = useState(false);
   const [showExpenseHistory, setShowExpenseHistory] = useState(false);
   const [showDailyHistory, setShowDailyHistory] = useState(false);
@@ -323,7 +324,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
               <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={async () => { await api.logout(); localStorage.removeItem('active_tab'); onLogout(); }}>
+            <TouchableOpacity onPress={() => setShowLogoutModal(true)}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
             </TouchableOpacity>
             <View style={styles.langRow}>
@@ -749,6 +750,39 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </View>
       )}
 
+      {/* Logout confirmation modal */}
+      {showLogoutModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('logout')}</Text>
+              <TouchableOpacity onPress={() => setShowLogoutModal(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ padding: 24, alignItems: 'center', gap: 18 }}>
+              <Text style={{ fontSize: FONTS.body.size, color: colors.textMain, textAlign: 'center' }}>
+                {t('logoutConfirm') || '确定要退出登录吗？'}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                <TouchableOpacity
+                  style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: colors.secondary }}
+                  onPress={() => setShowLogoutModal(false)}
+                >
+                  <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: '500' }}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', backgroundColor: colors.primary }}
+                  onPress={async () => { await api.logout(); localStorage.removeItem('active_tab'); onLogout(); }}
+                >
+                  <Text style={{ fontSize: FONTS.sub.size, color: colors.surface, fontWeight: '600' }}>{t('confirmLogout') || '确定退出'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Bottom Nav */}
       <View style={styles.bottomNav}>
         {([
@@ -976,10 +1010,10 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   modalBodyBg: { padding: 24 },
   modalHint: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
   bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  bgBtnOutline: { borderWidth: 1, borderColor: colors.secondary },
+  bgBtnOutline: { borderWidth: 1, borderColor: colors.primary },
   bgBtnOutlineText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
-  bgBtnDanger: { borderWidth: 1, borderColor: withAlpha(colors.danger, 0.1) },
-  bgBtnDangerText: { fontSize: FONTS.micro.size, color: colors.danger, fontWeight: '500' },
+  bgBtnDanger: { borderWidth: 1, borderColor: withAlpha(colors.primary, 0.2), backgroundColor: withAlpha(colors.primary, 0.06) },
+  bgBtnDangerText: { fontSize: FONTS.micro.size, color: colors.primary, fontWeight: '500' },
 
   /* ── Daily Revenue (每日营收) ── */
   revCard: {
