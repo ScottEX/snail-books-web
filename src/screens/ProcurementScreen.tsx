@@ -685,7 +685,7 @@ export default function ProcurementScreen() {
               <Text style={styles.statLbl}>{t('procBatchCount')}</Text>
             </View>
             <View style={styles.statPill}>
-              <Text style={styles.statNum}>¥{stats.total_spent.toFixed(0)}</Text>
+              <Text style={styles.statNum}>¥{stats.total_spent.toFixed(2)}</Text>
               <Text style={styles.statLbl}>{t('procCumulative')}</Text>
             </View>
             <View style={styles.statPill}>
@@ -752,7 +752,7 @@ export default function ProcurementScreen() {
                             />
                           ) : (
                             <>
-                              <Text style={styles.prodPrice}>¥{p.price}</Text>
+                              <Text style={styles.prodPrice}>¥{p.price.toFixed(2)}</Text>
                               <TouchableOpacity onPress={() => startEditPrice(p.id)} style={{ padding: 2 }}>
                                 <PencilIcon color={c.textSub} />
                               </TouchableOpacity>
@@ -861,7 +861,7 @@ export default function ProcurementScreen() {
               <View key={p.id} style={styles.mgmtRow}>
                 <View style={styles.mgmtInfo}>
                   <Text style={styles.mgmtName}>{p.name}</Text>
-                  <Text style={styles.mgmtMeta}>{p.supplier} · {p.spec} · ¥{p.price}</Text>
+                  <Text style={styles.mgmtMeta}>{p.supplier} · {p.spec} · ¥{p.price.toFixed(2)}</Text>
                 </View>
                 <View style={styles.mgmtActions}>
                   <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openEditProduct(p)}>
