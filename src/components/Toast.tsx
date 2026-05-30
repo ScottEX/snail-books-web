@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
 
 interface ToastProps {
   message: string;
@@ -57,7 +58,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   text: {
     color: colors.surface,
-    fontSize: 14,
+    fontSize: FONTS.sub.size,
     fontWeight: '500',
     textAlign: 'center',
   },

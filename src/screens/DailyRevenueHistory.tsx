@@ -5,6 +5,7 @@ import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
 
 const PAGE_SIZE = 30;
 
@@ -285,8 +286,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
   },
-  backArrow: { fontSize: 26, fontWeight: '300', color: colors.primary, marginTop: -2, marginLeft: -1 },
-  title: { fontSize: 16, fontWeight: '400', color: colors.textMain },
+  backArrow: { fontSize: FONTS.h1.size, fontWeight: '300', color: colors.primary, marginTop: -2, marginLeft: -1 },
+  title: { fontSize: FONTS.body.size, fontWeight: '400', color: colors.textMain },
 
   /* Filter button */
   filterBtn: {
@@ -308,7 +309,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   filterContent: { padding: 12, gap: 8 },
   filterField: { gap: 3 },
-  filterLabel: { fontSize: 11, fontWeight: '500', color: colors.textSub, paddingLeft: 2 },
+  filterLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub, paddingLeft: 2 },
   filterDateRange: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterDateWrap: {
     flex: 1, height: 34, position: 'relative' as any,
@@ -316,24 +317,24 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: 11, fontWeight: '500', color: colors.textMain },
-  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: colors.textSub },
+  filterDateText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textMain },
+  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: '400', color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
-  filterDateArrow: { fontSize: 11, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
+  filterDateArrow: { fontSize: FONTS.micro.size, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
   filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.secondary, borderRadius: 8,
   },
-  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: colors.textMain },
+  filterResetBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textMain },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.primary, borderRadius: 8,
   },
-  filterApplyBtnText: { fontSize: 13, fontWeight: '700', color: colors.surface },
+  filterApplyBtnText: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.surface },
 
   /* List */
   list: { flex: 1 },
@@ -352,7 +353,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   cardTop: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  cardDate: { fontSize: 16, fontWeight: '600', color: colors.textMain },
+  cardDate: { fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain },
   statusBadge: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,
@@ -362,7 +363,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   statusDotEmpty: { backgroundColor: colors.danger },
   statusDotDone: { backgroundColor: colors.success },
-  statusText: { fontSize: 12, fontWeight: '600' },
+  statusText: { fontSize: FONTS.micro.size, fontWeight: '600' },
   statusTextEmpty: { color: colors.danger },
   statusTextDone: { color: colors.success },
 
@@ -373,15 +374,15 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 8,
   },
   cardAmtCol: { alignItems: 'center', flex: 1, gap: 4 },
-  cardAmtVal: { fontSize: 17, fontWeight: '700' },
-  cardAmtLabel: { fontSize: 11, color: colors.textSub, fontWeight: '500' },
+  cardAmtVal: { fontSize: FONTS.h2.size, fontWeight: '700' },
+  cardAmtLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
 
   /* Footer */
   cardFooter: {
     borderTopWidth: 0.5, borderTopColor: colors.secondary,
     paddingTop: 8,
   },
-  cardFooterText: { fontSize: 11, color: colors.textSub },
+  cardFooterText: { fontSize: FONTS.micro.size, color: colors.textSub },
 
   /* Archived badge */
   archivedBadge: {
@@ -389,22 +390,22 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
     backgroundColor: withAlpha(colors.danger, 0.1),
   },
-  archivedBadgeText: { fontSize: 11, fontWeight: '600', color: colors.danger },
+  archivedBadgeText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.danger },
 
   /* Note display */
   cardNote: { borderTopWidth: 0.5, borderTopColor: colors.secondary, paddingTop: 8, marginTop: 4 },
-  cardNoteText: { fontSize: 11, color: colors.textSub, lineHeight: 16 },
+  cardNoteText: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 16 },
 
   /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
-  emptyEmoji: { fontSize: 30 },
-  emptyTitle: { fontSize: 16, fontWeight: '500', color: colors.textSub },
-  emptyHint: { fontSize: 13, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+  emptyEmoji: { fontSize: FONTS.h1.size },
+  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
+  emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
 
   /* Loading */
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 40, gap: 8 },
-  loadingText: { fontSize: 13, color: colors.primary },
+  loadingText: { fontSize: FONTS.sub.size, color: colors.primary },
 
   /* Bottom Nav */
   bottomNav: {
@@ -423,5 +424,5 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     width: 44, height: 44, borderRadius: 22,
     justifyContent: 'center', alignItems: 'center',
   },
-  navIcon: { fontSize: 20 },
+  navIcon: { fontSize: FONTS.amount.size },
 });

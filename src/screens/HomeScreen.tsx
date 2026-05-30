@@ -4,6 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 import PartnerScreen from './PartnerScreen';
 import ProcurementScreen from './ProcurementScreen';
@@ -320,7 +321,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         <View style={styles.headerInner}>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
-              <Text style={{ fontSize: 11, color: colors.textSub, fontWeight: '500' }}>{t('bgSettings')}</Text>
+              <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={async () => { await api.logout(); localStorage.removeItem('active_tab'); onLogout(); }}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
@@ -368,7 +369,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       {editingRevId && (
                         <TouchableOpacity onPress={cancelEdit} activeOpacity={0.7}
                           style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: colors.bg }}>
-                          <Text style={{ fontSize: 11, color: colors.textSub, fontWeight: '600' }}>✕ 取消</Text>
+                          <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '600' }}>✕ 取消</Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -385,7 +386,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                               paddingHorizontal: 14, paddingVertical: 8, borderRadius: 22,
                               backgroundColor: revDate === pill.d ? colors.primary : colors.bg,
                             }}>
-                            <Text style={{ fontSize: 13, fontWeight: '600', color: revDate === pill.d ? colors.surface : colors.textSub }}>
+                            <Text style={{ fontSize: FONTS.sub.size, fontWeight: '600', color: revDate === pill.d ? colors.surface : colors.textSub }}>
                               {pill.label}
                             </Text>
                           </TouchableOpacity>
@@ -393,10 +394,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       </View>
                       <View style={{ position: 'relative' }}>
                         <TouchableOpacity activeOpacity={1} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textMain }}>
+                          <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>
                             {revDate.replace(/-/g, '/')}
                           </Text>
-                          <Text style={{ fontSize: 14, color: colors.textSub }}>📅</Text>
+                          <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>📅</Text>
                           {React.createElement('input', {
                             type: 'date', value: revDate, max: todayDateStr(),
                             onChange: (e: any) => { const v = e.target.value; if (v > todayDateStr()) { setToast(t('errDateFuture')); return; } setRevDate(v); },
@@ -425,7 +426,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         </Text>
                       </View>
                       <View style={styles.revInputCard}>
-                        <Text style={{ fontSize: 14, marginBottom: 6 }}>🛒</Text>
+                        <Text style={{ fontSize: FONTS.sub.size, marginBottom: 6 }}>🛒</Text>
                         <Text style={styles.revInputCardTitle}>{t('revTurnover')}</Text>
                         <Text style={styles.revInputCardSub}>{t('revTurnoverSub')}</Text>
                         <View style={styles.revInputCardInputWrap}>
@@ -493,16 +494,16 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Last 7 days summary */}
                     <View style={{ marginTop: 14, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}>
                       <View style={{ alignItems: 'flex-start' }}>
-                        <Text style={{ fontSize: 10, color: colors.textSub, marginBottom: 2 }}>{t('revWeekRevenue')}</Text>
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
+                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekRevenue')}</Text>
+                        <Text style={{ fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
                       </View>
                       <View style={{ alignItems: 'center' }}>
-                        <Text style={{ fontSize: 10, color: colors.textSub, marginBottom: 2 }}>{t('revWeekTurnover')}</Text>
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
+                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekTurnover')}</Text>
+                        <Text style={{ fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
                       </View>
                       <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={{ fontSize: 10, color: colors.textSub, marginBottom: 2 }}>{t('revWeekJD')}</Text>
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
+                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekJD')}</Text>
+                        <Text style={{ fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
                       </View>
                     </View>
                   </View>
@@ -514,20 +515,20 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textMain} strokeWidth={2} strokeLinecap="round">
                           <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6" />
                         </Svg>
-                        <Text style={{ fontSize: 14, fontWeight: '700', color: colors.textMain }}>{t('revHistory')}</Text>
+                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>{t('revHistory')}</Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => { setShowDailyHistory(true); }}
                         activeOpacity={0.7}
                         style={{ marginLeft: 'auto' }}
                       >
-                        <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>{t('revHistoryBtn')} →</Text>
+                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.primary }}>{t('revHistoryBtn')} →</Text>
                       </TouchableOpacity>
                     </View>
 
                     {last7Records.length === 0 ? (
                       <View style={{ paddingVertical: 30, alignItems: 'center' }}>
-                        <Text style={{ fontSize: 13, color: colors.textSub }}>...</Text>
+                        <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>...</Text>
                       </View>
                     ) : (
                       last7Records.map((rec: any, i: number) => (
@@ -640,7 +641,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
               {/* ── Theme Picker ── */}
               <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: 11, color: colors.textMain, fontWeight: '500', marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
+                <Text style={{ fontSize: FONTS.micro.size, color: colors.textMain, fontWeight: '500', marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
                 {allThemes.map((theme) => {
                   const isActive = theme.colors.primary === colors.primary;
                   const previewBg = theme.colors.bg;
@@ -663,15 +664,15 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.accent }} />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 12, fontWeight: isActive ? '700' : '500', color: colors.textMain }}>
+                        <Text style={{ fontSize: FONTS.micro.size, fontWeight: isActive ? '700' : '500', color: colors.textMain }}>
                           {theme.nameZh}
                         </Text>
-                        <Text style={{ fontSize: 10, color: colors.textSub, marginTop: 1 }}>
+                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 1 }}>
                           {theme.description}
                         </Text>
                       </View>
                       {isActive && (
-                        <Text style={{ fontSize: 13, color: colors.primary }}>✓</Text>
+                        <Text style={{ fontSize: FONTS.sub.size, color: colors.primary }}>✓</Text>
                       )}
                     </TouchableOpacity>
                   );
@@ -681,8 +682,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               {/* Opacity slider */}
               <View style={{ marginTop: 20 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ fontSize: 11, color: colors.textMain, fontWeight: '500' }}>{t('opacity')}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary }}>{Math.round(bgOpacity * 100)}%</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textMain, fontWeight: '500' }}>{t('opacity')}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.primary }}>{Math.round(bgOpacity * 100)}%</Text>
                 </View>
                 <View style={{ position: 'relative', height: 32, justifyContent: 'center' }}>
                   {/* track background */}
@@ -721,9 +722,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 </View>
                 {/* tick labels */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
-                  <Text style={{ fontSize: 9, color: colors.textSub }}>0</Text>
-                  <Text style={{ fontSize: 9, color: colors.textSub }}>50</Text>
-                  <Text style={{ fontSize: 9, color: colors.textSub }}>100</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>0</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>50</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>100</Text>
                 </View>
               </View>
 
@@ -859,12 +860,12 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  title: { fontSize: 18, fontWeight: '700', color: colors.textMain },
+  title: { fontSize: FONTS.h2.size, fontWeight: '700', color: colors.textMain },
   // 8600: color:#8C8583 font-size:13px
-  date: { color: colors.textSub, fontSize: 13 },
-  logoutBtn: { fontSize: 11, color: colors.danger, fontWeight: '500' },
+  date: { color: colors.textSub, fontSize: FONTS.sub.size },
+  logoutBtn: { fontSize: FONTS.micro.size, color: colors.danger, fontWeight: '500' },
   langRow: { flexDirection: 'row', gap: 4 },
-  langBtn: { fontSize: 10, color: colors.textSub, fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
+  langBtn: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
   langActive: { color: colors.primary, backgroundColor: withAlpha(colors.danger, 0.1), fontWeight: '700' },
   // Page — 8600: padding:0 16px 110px, max-width:520px, margin:0 auto
   page: { flex: 1, paddingHorizontal: 16, paddingBottom: 12, maxWidth: 520, alignSelf: 'center', width: '100%' },
@@ -872,31 +873,31 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   statsRow: { flexDirection: 'row', marginBottom: 20 },
   statItem: { flex: 1 },
   // 8600: stat-label font-size:11px color:#8C8583 font-weight:500
-  statLabel: { fontSize: 11, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
+  statLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
   // 8600: stat-num font-size:28px font-weight:700
-  statNum: { fontSize: 28, fontWeight: '700', lineHeight: 28 },
+  statNum: { fontSize: FONTS.amount.size, fontWeight: '700', lineHeight: 28 },
   // 8600: text-xs color:#EAE5E0
-  statSub: { fontSize: 10, color: colors.secondary, marginTop: 2 },
+  statSub: { fontSize: FONTS.micro.size, color: colors.secondary, marginTop: 2 },
   // Tab bar — 8600: display:flex border-bottom
   tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.secondary, marginBottom: 16 },
   // 8600: tab padding:10px font-size:12px color:#8C8583
   tabItem: { paddingVertical: 10, paddingHorizontal: 0, marginRight: 0, borderBottomWidth: 2, borderBottomColor: 'transparent', marginBottom: -1 },
   tabActive: { borderBottomColor: colors.textMain },
-  tabItemText: { fontSize: 12, fontWeight: '500', color: colors.textSub },
+  tabItemText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
   tabActiveText: { color: colors.textMain },
   // Content
   content: { flex: 1 },
   // Transaction row — 8600: tx-row
   txRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.bg },
   txDot: { width: 7, height: 7, borderRadius: 4 },
-  txCat: { fontSize: 13, fontWeight: '500' },
-  txNote: { fontSize: 10, color: colors.secondary },
-  txAmt: { fontSize: 13, fontWeight: '600' },
-  txDate: { fontSize: 10, color: colors.secondary, width: 70 },
-  txDel: { fontSize: 14, color: colors.secondary, padding: 4 },
+  txCat: { fontSize: FONTS.sub.size, fontWeight: '500' },
+  txNote: { fontSize: FONTS.micro.size, color: colors.secondary },
+  txAmt: { fontSize: FONTS.sub.size, fontWeight: '600' },
+  txDate: { fontSize: FONTS.micro.size, color: colors.secondary, width: 70 },
+  txDel: { fontSize: FONTS.sub.size, color: colors.secondary, padding: 4 },
   // Pagination
   pageRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: 10 },
-  pageBtn: { fontSize: 12, color: colors.textSub, paddingHorizontal: 10, paddingVertical: 4 },
+  pageBtn: { fontSize: FONTS.micro.size, color: colors.textSub, paddingHorizontal: 10, paddingVertical: 4 },
   pageBtnActive: { color: colors.textMain, fontWeight: '600' },
   // Add form — 8600 style
   addForm: { paddingTop: 4 },
@@ -904,27 +905,27 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   typeBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.secondary, backgroundColor: colors.surface, alignItems: 'center' },
   typeBtnInc: { borderColor: colors.success, backgroundColor: withAlpha(colors.success, 0.1) },
   typeBtnExp: { borderColor: colors.danger, backgroundColor: withAlpha(colors.danger, 0.1) },
-  typeBtnText: { fontSize: 14, fontWeight: '500', color: colors.textSub },
+  typeBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
   typeBtnIncText: { color: colors.success },
   typeBtnExpText: { color: colors.danger },
-  addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, fontSize: 14, backgroundColor: colors.surface, color: colors.textMain, marginBottom: 8, fontFamily: undefined },
+  addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, fontSize: FONTS.sub.size, backgroundColor: colors.surface, color: colors.textMain, marginBottom: 8, fontFamily: undefined },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
-  catBtn: { fontSize: 11, color: colors.textSub, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.secondary },
+  catBtn: { fontSize: FONTS.micro.size, color: colors.textSub, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.secondary },
   catBtnActive: { color: colors.primary, borderColor: colors.primary, backgroundColor: withAlpha(colors.primary, 0.03) },
   saveBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.textMain, justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginTop: 8 },
-  saveBtnText: { color: colors.surface, fontSize: 20 },
+  saveBtnText: { color: colors.surface, fontSize: FONTS.amount.size },
   // Supply
-  sectionTitle: { fontSize: 12, fontWeight: '600', color: colors.textSub, paddingVertical: 10 },
+  sectionTitle: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub, paddingVertical: 10 },
   supplyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.secondary },
-  supplyName: { fontSize: 13, fontWeight: '500', flex: 1 },
-  supplyPrice: { fontSize: 13, fontWeight: '600', color: colors.textMain },
+  supplyName: { fontSize: FONTS.sub.size, fontWeight: '500', flex: 1 },
+  supplyPrice: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain },
   // Chart
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  barLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500', width: 36, textAlign: 'right' },
+  barLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', width: 36, textAlign: 'right' },
   barWrap: { flex: 1, height: 16, backgroundColor: colors.bg, borderRadius: 3, overflow: 'hidden', flexDirection: 'row' },
   barIncome: { backgroundColor: colors.success, height: '100%' },
   barExpense: { backgroundColor: colors.danger, opacity: 0.7, height: '100%' },
-  barVal: { fontSize: 9, color: colors.textSub, width: 90 },
+  barVal: { fontSize: FONTS.micro.size, color: colors.textSub, width: 90 },
   // Bottom Nav — glass pill, icons only, 80% transparent
   bottomNav: {
     position: 'fixed' as any,
@@ -954,7 +955,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   navItemActive: {
     backgroundColor: 'rgba(0,0,0,0.06)',
   },
-  navLabel: { fontSize: 10, fontWeight: '600', color: colors.textSub, letterSpacing: 0.3 },
+  navLabel: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub, letterSpacing: 0.3 },
   navLabelActive: { color: colors.textMain },
   // Background settings modal
   modalOverlay: {
@@ -970,15 +971,15 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 14,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  modalTitle: { fontSize: 14, fontWeight: '700', color: colors.surface },
-  modalClose: { fontSize: 18, color: withAlpha(colors.surface, 0.7), fontWeight: '300' },
+  modalTitle: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.surface },
+  modalClose: { fontSize: FONTS.h2.size, color: withAlpha(colors.surface, 0.7), fontWeight: '300' },
   modalBodyBg: { padding: 24 },
-  modalHint: { fontSize: 12, color: colors.textSub, textAlign: 'center' },
+  modalHint: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
   bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   bgBtnOutline: { borderWidth: 1, borderColor: colors.secondary },
-  bgBtnOutlineText: { fontSize: 12, color: colors.textMain, fontWeight: '500' },
+  bgBtnOutlineText: { fontSize: FONTS.micro.size, color: colors.textMain, fontWeight: '500' },
   bgBtnDanger: { borderWidth: 1, borderColor: withAlpha(colors.danger, 0.1) },
-  bgBtnDangerText: { fontSize: 12, color: colors.danger, fontWeight: '500' },
+  bgBtnDangerText: { fontSize: FONTS.micro.size, color: colors.danger, fontWeight: '500' },
 
   /* ── Daily Revenue (每日营收) ── */
   revCard: {
@@ -988,33 +989,33 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
   },
-  revTitle: { fontSize: 16, fontWeight: '700', color: colors.textMain },
+  revTitle: { fontSize: FONTS.body.size, fontWeight: '700', color: colors.textMain },
   // Three input cards
   revInputCard: {
     flex: 1, backgroundColor: colors.surface, borderRadius: 10,
     padding: 10, borderWidth: 0.5, borderColor: colors.secondary,
   },
-  revInputCardTitle: { fontSize: 11, fontWeight: '700', color: colors.textMain, marginBottom: 2 },
-  revInputCardSub: { fontSize: 9, color: colors.textSub, marginBottom: 8 },
+  revInputCardTitle: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.textMain, marginBottom: 2 },
+  revInputCardSub: { fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 8 },
   revInputCardInputWrap: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 6 },
-  revInputCardSymbol: { fontSize: 14, fontWeight: '700', color: colors.textMain, marginRight: 2, marginBottom: 1 },
-  revInputCardInput: { flex: 1, fontSize: 16, fontWeight: '600', color: colors.textMain, padding: 0, outline: 'none' },
-  revInputCardFooter: { fontSize: 9, color: colors.textSub },
+  revInputCardSymbol: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain, marginRight: 2, marginBottom: 1 },
+  revInputCardInput: { flex: 1, fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain, padding: 0, outline: 'none' },
+  revInputCardFooter: { fontSize: FONTS.micro.size, color: colors.textSub },
   revNoteInput: {
-    fontSize: 13, color: colors.textMain, paddingVertical: 10, paddingHorizontal: 12,
+    fontSize: FONTS.sub.size, color: colors.textMain, paddingVertical: 10, paddingHorizontal: 12,
     backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
     marginBottom: 14, outline: 'none',
   },
   revSubmitBtn: {
     backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center',
    },
-  revSubmitText: { fontSize: 15, fontWeight: '700', color: colors.surface },
+  revSubmitText: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.surface },
   revArchiveBtn: {
     backgroundColor: colors.secondary, borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', justifyContent: 'center', flex: 1,
   },
   revArchiveBtnDone: { backgroundColor: withAlpha(colors.success, 0.1) },
-  revArchiveText: { fontSize: 15, fontWeight: '700', color: colors.textMain },
+  revArchiveText: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain },
   revArchiveTextDone: { color: colors.success },
   // 7-day card items — same card style as history page
   rev7CardItem: {
@@ -1029,12 +1030,12 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   rev7CardTop: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  rev7CardDate: { fontSize: 16, fontWeight: '600', color: colors.textMain },
+  rev7CardDate: { fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain },
   rev7TodayTag: {
     paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8,
     backgroundColor: withAlpha(colors.success, 0.1),
   },
-  rev7TodayTagText: { fontSize: 11, fontWeight: '600', color: colors.success },
+  rev7TodayTagText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.success },
   rev7CardBadge: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,
@@ -1042,20 +1043,20 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   rev7CardBadgeGap: { backgroundColor: withAlpha(colors.danger, 0.1) },
   rev7CardBadgeOk: { backgroundColor: withAlpha(colors.success, 0.1) },
   rev7CardDot: { width: 6, height: 6, borderRadius: 3 },
-  rev7CardStatus: { fontSize: 12, fontWeight: '600' },
+  rev7CardStatus: { fontSize: FONTS.micro.size, fontWeight: '600' },
   rev7CardAmounts: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingVertical: 12, paddingHorizontal: 8,
     backgroundColor: colors.surface, borderRadius: 8,
   },
   rev7CardAmtCol: { alignItems: 'center', flex: 1, gap: 4 },
-  rev7CardAmtVal: { fontSize: 17, fontWeight: '700' },
-  rev7CardAmtLabel: { fontSize: 11, color: colors.textSub, fontWeight: '500' },
+  rev7CardAmtVal: { fontSize: FONTS.h2.size, fontWeight: '700' },
+  rev7CardAmtLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
   rev7CardFooter: {
     borderTopWidth: 0.5, borderTopColor: colors.secondary,
     paddingTop: 8,
   },
-  rev7CardFooterText: { fontSize: 11, color: colors.textSub },
+  rev7CardFooterText: { fontSize: FONTS.micro.size, color: colors.textSub },
 
   /* Archived badge */
   rev7ArchivedBadge: {
@@ -1063,9 +1064,9 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
     backgroundColor: withAlpha(colors.danger, 0.1),
   },
-  rev7ArchivedBadgeText: { fontSize: 11, fontWeight: '600', color: colors.danger },
+  rev7ArchivedBadgeText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.danger },
 
   /* Note display */
   rev7CardNote: { borderTopWidth: 0.5, borderTopColor: colors.secondary, paddingTop: 8, marginTop: 4 },
-  rev7CardNoteText: { fontSize: 11, color: colors.textSub, lineHeight: 16 },
+  rev7CardNoteText: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 16 },
 });

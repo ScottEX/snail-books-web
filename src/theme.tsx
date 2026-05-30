@@ -123,6 +123,25 @@ export function withAlpha(hex: string, alpha: number): string {
 }
 
 // ═══════════════════════════════════════════
+// 排版变量（所有主题通用，不随主题切换）
+// ═══════════════════════════════════════════
+
+export interface FontToken {
+  size: number;
+  weight: '400' | '500' | '600';
+  lineHeight: number;
+}
+
+export const FONTS = {
+  h1:     { size: 24, weight: '600' as const, lineHeight: 1.4 },
+  h2:     { size: 18, weight: '600' as const, lineHeight: 1.4 },
+  body:   { size: 16, weight: '500' as const, lineHeight: 1.5 },
+  sub:    { size: 14, weight: '400' as const, lineHeight: 1.5 },
+  micro:  { size: 12, weight: '400' as const, lineHeight: 1.5 },
+  amount: { size: 24, weight: '600' as const, lineHeight: 1.2 },
+} as const;
+
+// ═══════════════════════════════════════════
 // ThemeContext
 // ═══════════════════════════════════════════
 

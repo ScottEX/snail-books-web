@@ -7,6 +7,7 @@ import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
 
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -585,7 +586,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={st.card}>
             {/* 日期行 */}
             <View style={st.dateRow}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textSub }}>{t('billDate')}</Text>
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub }}>{t('billDate')}</Text>
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
                 activeOpacity={1}
@@ -604,7 +605,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     return `${y}年${m}月${d}日`;
                   })()}
                 </Text>
-                <Text style={{ fontSize: 22, fontWeight: '700', color: colors.textSub }}>›</Text>
+                <Text style={{ fontSize: FONTS.h1.size, fontWeight: '700', color: colors.textSub }}>›</Text>
                 {React.createElement('input', {
                   type: 'date',
                   value: recDate,
@@ -614,7 +615,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     if (v > todayStr()) { setToast(t('errDateFuture')); return; }
                     setRecDate(v);
                   },
-                  style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
+                  style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
               </TouchableOpacity>
             </View>
@@ -638,8 +639,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
             {/* 在途资金 */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textSub }}>{t('fundsInTransit')}</Text>
-              <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: colors.danger }} />
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub }}>{t('fundsInTransit')}</Text>
+              <NumberTicker value={channelTotal} style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.danger }} />
             </View>
             <View style={st.channelGrid}>
               {/* Row 1: 堂食 + 美团 + 闪购 */}
@@ -706,15 +707,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={st.kpiRow}>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+                <Text style={[st.kpiVal, { fontSize: FONTS.sub.size, fontWeight: '600' }]}>¥0.00</Text>
               </View>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('receivable')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+                <Text style={[st.kpiVal, { fontSize: FONTS.sub.size, fontWeight: '600' }]}>¥0.00</Text>
               </View>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+                <Text style={[st.kpiVal, { fontSize: FONTS.sub.size, fontWeight: '600' }]}>¥0.00</Text>
               </View>
             </View>
           </View>
@@ -723,7 +724,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={[st.card, { marginTop: 12 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textMain }}>{t('platformFee')}</Text>
+                <Text style={{ fontSize: FONTS.body.size, fontWeight: '700', color: colors.textMain }}>{t('platformFee')}</Text>
                 <TouchableOpacity
                   ref={pickerTriggerRef}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 2, position: 'relative', paddingTop: 2 }}
@@ -746,10 +747,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600' }}>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.primary, fontWeight: '600' }}>
                     {feeMonth === 'all' ? t('feeAllMonths') : fmtMonth(feeMonth.year, feeMonth.month)}
                   </Text>
-                  <Text style={{ fontSize: 10, color: colors.primary }}>▼</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>▼</Text>
                 </TouchableOpacity>
               </View>
               {(feeMonth !== 'all' || allFees.length > 0) && (
@@ -765,17 +766,17 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 13, color: colors.primary, fontWeight: '600' }}>
+                <Text style={{ fontSize: FONTS.sub.size, color: colors.primary, fontWeight: '600' }}>
                   {feeMonth === 'all' ? t('feeViewDetail') : t('feeDetail')}
                 </Text>
-                <Text style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>→</Text>
+                <Text style={{ fontSize: FONTS.body.size, color: colors.primary, fontWeight: '700' }}>→</Text>
               </TouchableOpacity>
               )}
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 }}>
-              <Text style={{ fontSize: 32, fontWeight: '700', color: colors.primary, marginRight: 6 }}>¥</Text>
-              <Text style={{ fontSize: 42, fontWeight: '700', color: colors.textMain, fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>
+              <Text style={{ fontSize: FONTS.amount.size, fontWeight: '700', color: colors.primary, marginRight: 6 }}>¥</Text>
+              <Text style={{ fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain, fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>
                 {feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </Text>
             </View>
@@ -790,9 +791,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <View key={p.k} style={{ flex: 1, minWidth: '45%', backgroundColor: colors.bg, borderRadius: 10, padding: 10 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: p.color }} />
-                    <Text style={{ fontSize: 11, color: colors.textSub, fontWeight: '500' }}>{t(p.k)}</Text>
+                    <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' }}>{t(p.k)}</Text>
                   </View>
-                  <Text style={{ fontSize: 17, fontWeight: '700', color: colors.textMain }}>
+                  <Text style={{ fontSize: FONTS.h2.size, fontWeight: '700', color: colors.textMain }}>
                     ¥{p.v.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </Text>
                 </View>
@@ -889,7 +890,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={[st.catSectionTitle, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
                 <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7}
                   style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: colors.secondary, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textSub }}>!</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, fontWeight: '700', color: colors.textSub }}>!</Text>
                 </TouchableOpacity>
                 {showImgTip && (
                   <View style={st.imgTipBubble}>
@@ -958,7 +959,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       return `${y}年${m}月${d}日`;
                     })()}
                   </Text>
-                  <Text style={{ fontSize: 22, fontWeight: '700', color: colors.textSub }}>›</Text>
+                  <Text style={{ fontSize: FONTS.h1.size, fontWeight: '700', color: colors.textSub }}>›</Text>
                   {React.createElement('input', {
                     type: 'date',
                     value: expDate,
@@ -968,7 +969,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       if (v > todayStr()) { setToast(t('errDateFuture')); return; }
                       setExpDate(v);
                     },
-                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
+                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </TouchableOpacity>
               </View>
@@ -1010,7 +1011,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
             <View style={{ padding: 20, gap: 16 }}>
-              <Text style={{ fontSize: 14, color: colors.textSub, textAlign: 'center' }}>
+              <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
                 {t('expConfirmMsg')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -1038,7 +1039,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
             <View style={{ padding: 20, gap: 16 }}>
-              <Text style={{ fontSize: 14, color: colors.textSub, textAlign: 'center' }}>
+              <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
                 {t('jokeRecon')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -1067,12 +1068,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <Text style={{ fontSize: 13, color: colors.textSub, fontWeight: '500' }}>{t('entryDate')}</Text>
+                <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: '500' }}>{t('entryDate')}</Text>
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }} activeOpacity={1}>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textMain }}>
+                  <Text style={{ fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain }}>
                     {(() => { return fmtLocalDate(feeEntryDate); })()}
                   </Text>
-                  <Text style={{ fontSize: 22, fontWeight: '700', color: colors.textSub, marginLeft: 4 }}>›</Text>
+                  <Text style={{ fontSize: FONTS.h1.size, fontWeight: '700', color: colors.textSub, marginLeft: 4 }}>›</Text>
                   {React.createElement('input', {
                     type: 'date', value: feeEntryDate, max: todayStr(),
                     onChange: (e: any) => {
@@ -1080,17 +1081,17 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       if (v > todayStr()) { setToast(t('noFutureDate')); return; }
                       setFeeEntryDate(v);
                     },
-                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
+                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </TouchableOpacity>
               </View>
 
               {/* Column headers */}
               <View style={{ flexDirection: 'row', marginBottom: 10, gap: 8, paddingHorizontal: 2 }}>
-                <Text style={{ flex: 1, maxWidth: '30%', fontSize: 10, color: colors.textSub, fontWeight: '600' }}></Text>
-                <Text style={{ width: 80, fontSize: 10, color: colors.textSub, fontWeight: '600', textAlign: 'left' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 80, fontSize: 10, color: colors.textSub, fontWeight: '600', textAlign: 'left' }}>{t('feeCurrent')}</Text>
-                <Text style={{ width: 72, fontSize: 10, color: colors.textSub, fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
+                <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '600' }}></Text>
+                <Text style={{ width: 80, fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '600', textAlign: 'left' }}>{t('feePreview')}</Text>
+                <Text style={{ width: 80, fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '600', textAlign: 'left' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 72, fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
               </View>
 
               {/* Fee rows */}
@@ -1103,15 +1104,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 const inputNum = toNum(row.val);
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
-                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: 13, color: colors.textMain, fontWeight: '500' }}>{t(row.k)}</Text>
-                    <Text style={{ width: 80, fontSize: 15, fontWeight: '700', color: colors.textMain, textAlign: 'left' }}>
+                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.sub.size, color: colors.textMain, fontWeight: '500' }}>{t(row.k)}</Text>
+                    <Text style={{ width: 80, fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain, textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 80, fontSize: 12, color: colors.textSub, textAlign: 'left' }}>
+                    <Text style={{ width: 80, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left' }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: colors.textMain, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
+                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
                       value={row.val} onChangeText={row.set}
                       keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.secondary}
                     />
@@ -1124,7 +1125,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: savingFee ? 0.6 : 1 }}
                 onPress={handleAddFee} disabled={savingFee} activeOpacity={0.8}
               >
-                <Text style={{ color: colors.surface, fontSize: 15, fontWeight: '700' }}>{savingFee ? '...' : t('confirm')}</Text>
+                <Text style={{ color: colors.surface, fontSize: FONTS.amount.size, fontWeight: '700' }}>{savingFee ? '...' : t('confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1165,10 +1166,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 13, color: colors.primary, fontWeight: '600' }}>
+                <Text style={{ fontSize: FONTS.sub.size, color: colors.primary, fontWeight: '600' }}>
                   {feeHistoryFilter === 'all' ? t('feeAllMonths') : fmtMonth(feeHistoryFilter.year, feeHistoryFilter.month)}
                 </Text>
-                <Text style={{ fontSize: 10, color: colors.primary, marginLeft: 2 }}>▼</Text>
+                <Text style={{ fontSize: FONTS.micro.size, color: colors.primary, marginLeft: 2 }}>▼</Text>
 
               </TouchableOpacity>
             </View>
@@ -1185,16 +1186,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <View key={f.id} style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: colors.secondary, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as any}>
                     {/* Header: date + total */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-                      <Text style={{ fontSize: 14, color: colors.textMain, fontWeight: '600' }}>{fmtMonth(f.year, f.month)}</Text>
-                      <Text style={{ fontSize: 16, color: colors.primary, fontWeight: '700', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>¥{monthTotal.toFixed(2)}</Text>
+                      <Text style={{ fontSize: FONTS.sub.size, color: colors.textMain, fontWeight: '600' }}>{fmtMonth(f.year, f.month)}</Text>
+                      <Text style={{ fontSize: FONTS.body.size, color: colors.primary, fontWeight: '700', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>¥{monthTotal.toFixed(2)}</Text>
                     </View>
                     {/* Sub items: 2x2 grid of platform fees */}
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                       {platforms.map((p) => (
                         <View key={p.label} style={{ flex: 1, minWidth: '46%', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg, borderRadius: 6, paddingVertical: 6, paddingHorizontal: 8, gap: 6 }}>
                           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: p.color }} />
-                          <Text style={{ fontSize: 11, color: colors.textSub, fontWeight: '500', flex: 1 }}>{p.label}</Text>
-                          <Text style={{ fontSize: 12, color: colors.textMain, fontWeight: '600' }}>¥{p.value.toFixed(2)}</Text>
+                          <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', flex: 1 }}>{p.label}</Text>
+                          <Text style={{ fontSize: FONTS.micro.size, color: colors.textMain, fontWeight: '600' }}>¥{p.value.toFixed(2)}</Text>
                         </View>
                       ))}
                     </View>
@@ -1242,7 +1243,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               }}
               activeOpacity={0.6}
             >
-              <Text style={{ fontSize: 13, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
             </TouchableOpacity>
             <View style={{ height: 1, backgroundColor: colors.secondary, marginHorizontal: 12, marginVertical: 4 }} />
             {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
@@ -1257,7 +1258,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   }}
                   activeOpacity={0.6}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? colors.primary : colors.textMain }}>{fmtMonth(f.year, f.month)}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, fontWeight: isSel ? '700' : '400', color: isSel ? colors.primary : colors.textMain }}>{fmtMonth(f.year, f.month)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -1299,7 +1300,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               }}
               activeOpacity={0.6}
             >
-              <Text style={{ fontSize: 13, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
             </TouchableOpacity>
             <View style={{ height: 1, backgroundColor: colors.secondary, marginHorizontal: 12, marginVertical: 4 }} />
             {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
@@ -1314,7 +1315,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   }}
                   activeOpacity={0.6}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? colors.primary : colors.textMain }}>{fmtMonth(f.year, f.month)}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, fontWeight: isSel ? '700' : '400', color: isSel ? colors.primary : colors.textMain }}>{fmtMonth(f.year, f.month)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -1368,7 +1369,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flex: 1, alignItems: 'stretch',
   },
   tabTitle: {
-    fontSize: 20, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
+    fontSize: FONTS.amount.size, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     alignSelf: 'flex-start',
     // @ts-ignore
@@ -1390,26 +1391,26 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flex: 1, alignItems: 'center', gap: 2,
   },
   cardFieldLabel: {
-    fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.70)',
+    fontSize: FONTS.micro.size, fontWeight: '600', color: 'rgba(255,255,255,0.70)',
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     // @ts-ignore
     textShadow: '0 1px 2px rgba(0,0,0,0.1)',
   },
   cardFieldVal: {
-    fontSize: 18, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
+    fontSize: FONTS.h2.size, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     // @ts-ignore
     textShadow: '0 1px 2px rgba(0,0,0,0.1)',
   },
   totalExpLabel: {
-    fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.70)',
+    fontSize: FONTS.micro.size, fontWeight: '600', color: 'rgba(255,255,255,0.70)',
     textAlign: 'center', marginBottom: 6,
   },
   totalExpVal: {
-    fontSize: 22, fontWeight: '800', color: 'rgba(255,255,255,0.95)',
+    fontSize: FONTS.h1.size, fontWeight: '800', color: 'rgba(255,255,255,0.95)',
   },
   tabStat: {
-    fontSize: 28, fontWeight: '600', letterSpacing: -0.5,
+    fontSize: FONTS.amount.size, fontWeight: '600', letterSpacing: -0.5,
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
     color: colors.surface,
     // @ts-ignore
@@ -1441,11 +1442,11 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   dateText: {
-    fontSize: 14, fontWeight: '700', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain,
     fontFamily: undefined,
   },
   dateInput: {
-    fontSize: 14, fontWeight: '600', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain,
     borderWidth: 0, padding: 0, margin: 0,
     backgroundColor: 'transparent', fontFamily: 'inherit',
     // @ts-ignore
@@ -1455,17 +1456,17 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   } as any,
 
   /* ── Labels ── */
-  sectionLabel: { fontSize: 15, fontWeight: '700', color: colors.textMain },
-  subLabel: { fontSize: 10, fontWeight: '700', color: colors.textSub, letterSpacing: 0.5, textTransform: 'uppercase' },
+  sectionLabel: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain },
+  subLabel: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.textSub, letterSpacing: 0.5, textTransform: 'uppercase' },
 
   /* ── Inputs ── */
   row2: { flexDirection: 'row', gap: 12 },
   inputGroup: { flex: 1 },
-  inputLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
+  inputLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
   input: {
     backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary,
     borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12,
-    fontSize: 15, fontWeight: '600', color: colors.textMain, fontFamily: undefined,
+    fontSize: FONTS.amount.size, fontWeight: '600', color: colors.textMain, fontFamily: undefined,
     // @ts-ignore
     outline: 'none',
   },
@@ -1483,10 +1484,10 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     gap: 2,
   },
   chipLabel: {
-    fontSize: 9, color: colors.textSub, fontWeight: '600',
+    fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '600',
   },
   chipInput: {
-    fontSize: 14, fontWeight: '700', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain,
     textAlign: 'center', paddingVertical: 2,
     fontFamily: undefined,
     width: '100%',
@@ -1501,8 +1502,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.bg, borderRadius: 10,
     paddingVertical: 10, paddingHorizontal: 14,
   },
-  sumLabel: { fontSize: 11, color: colors.textSub, fontWeight: '500' },
-  sumVal: { fontSize: 16, fontWeight: '800', color: colors.textMain },
+  sumLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
+  sumVal: { fontSize: FONTS.body.size, fontWeight: '800', color: colors.textMain },
 
   /* ── Result bar ── */
   resultBar: {
@@ -1512,9 +1513,9 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   resultItem: { flex: 1, alignItems: 'center' },
   resultDivider: { width: 1, height: 32, backgroundColor: colors.secondary },
-  resultLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
-  resultVal: { fontSize: 17, fontWeight: '700', color: colors.textMain },
-  resultDiff: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  resultLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
+  resultVal: { fontSize: FONTS.h2.size, fontWeight: '700', color: colors.textMain },
+  resultDiff: { fontSize: FONTS.h1.size, fontWeight: '800', letterSpacing: -0.5 },
   /* ── Recon buttons ── */
   btnRow: {
     flexDirection: 'row', gap: 10, marginTop: 4,
@@ -1524,7 +1525,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingVertical: 14, alignItems: 'center',
   },
   reconBtnText: {
-    fontSize: 15, fontWeight: '700', color: colors.surface,
+    fontSize: FONTS.amount.size, fontWeight: '700', color: colors.surface,
   },
   reconRecordBtn: {
     flex: 1, backgroundColor: colors.secondary, borderRadius: 12,
@@ -1532,7 +1533,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
   },
   reconRecordBtnText: {
-    fontSize: 14, fontWeight: '600', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain,
   },
 
   /* ── KPI ── */
@@ -1542,8 +1543,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 14, padding: 16, alignItems: 'center',
     borderWidth: 1, borderColor: colors.secondary,
   },
-  kpiLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
-  kpiVal: { fontSize: 20, fontWeight: '800', color: colors.textMain },
+  kpiLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
+  kpiVal: { fontSize: FONTS.amount.size, fontWeight: '800', color: colors.textMain },
 
   /* ── Table ── */
   tableWrap: {
@@ -1553,8 +1554,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   tableRow: {
     flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.secondary,
   },
-  td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: 12, color: colors.textMain },
-  tdDate: { width: 90, color: colors.textSub, fontSize: 11 },
+  td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: FONTS.micro.size, color: colors.textMain },
+  tdDate: { width: 90, color: colors.textSub, fontSize: FONTS.micro.size },
   tdCat: { flex: 1 },
   tdAmt: { width: 100, textAlign: 'right', fontWeight: '600' },
 
@@ -1564,7 +1565,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.bg, borderRadius: 10, padding: 12,
   },
   expDateInput: {
-    fontSize: 14, fontWeight: '500', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textMain,
     borderWidth: 0, padding: 0, backgroundColor: 'transparent',
     // @ts-ignore
     outline: 'none',
@@ -1579,7 +1580,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     gap: 4,
   },
-  imgAddText: { fontSize: 10, color: colors.textSub, fontWeight: '500' },
+  imgAddText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
   imgPreview: { position: 'relative' as any },
   imgRemove: {
     position: 'absolute', top: 4, right: 4,
@@ -1591,17 +1592,17 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.textMain, borderRadius: 6,
     paddingHorizontal: 10, paddingVertical: 6,
   },
-  imgTipText: { fontSize: 11, color: colors.surface, fontWeight: '500' },
+  imgTipText: { fontSize: FONTS.micro.size, color: colors.surface, fontWeight: '500' },
 
   /* ── Expense form ── */
   expForm: { gap: 14 },
   /* Big amount input */
   bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
-  bigAmtLabel: { fontSize: 12, color: colors.textSub, fontWeight: '500', marginBottom: 8 },
+  bigAmtLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 8 },
   bigAmtRow: { flexDirection: 'row', alignItems: 'flex-end' },
-  bigAmtSymbol: { fontSize: 32, fontWeight: '700', color: colors.primary, marginRight: 6 },
+  bigAmtSymbol: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.primary, marginRight: 6 },
   bigAmtInput: {
-    fontSize: 42, fontWeight: '700', color: colors.textMain,
+    fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain,
     borderWidth: 0, backgroundColor: 'transparent',
     textAlign: 'left', padding: 0,
     fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif',
@@ -1614,7 +1615,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     marginTop: 10, borderRadius: 1,
   },
   /* Category chips */
-  catSectionTitle: { fontSize: 12, color: colors.textMain, fontWeight: '700', marginBottom: 10 },
+  catSectionTitle: { fontSize: FONTS.micro.size, color: colors.textMain, fontWeight: '700', marginBottom: 10 },
   catGrid: { flexDirection: 'row', gap: 8 },
   catGridWide: { gap: 8 },
   catRow: { flexDirection: 'row', width: '100%' as any, gap: 8, marginBottom: 6 },
@@ -1623,7 +1624,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
   },
   catChipActive: { backgroundColor: colors.primary },
-  catChipText: { fontSize: 13, fontWeight: '600', color: colors.textSub },
+  catChipText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub },
   catChipTextActive: { color: colors.surface },
   /* Payment method chips */
   payGrid: { flexDirection: 'row', gap: 8 },
@@ -1634,7 +1635,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   payChipActive: { backgroundColor: colors.primary },
   payChipActiveWechat: { backgroundColor: colors.success },
   payChipActiveAlipay: { backgroundColor: colors.info },
-  payChipText: { fontSize: 13, fontWeight: '600', color: colors.textSub },
+  payChipText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub },
   payChipTextActive: { color: colors.surface },
   /* Chip icon circle */
   chipIconCircle: {
@@ -1646,7 +1647,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
   /* Expense records */
   noteInput: {
-    fontSize: 14, color: colors.textMain,
+    fontSize: FONTS.sub.size, color: colors.textMain,
     borderWidth: 0, backgroundColor: colors.bg,
     borderRadius: 10, padding: 12, minHeight: 60,
     textAlignVertical: 'top',
@@ -1654,7 +1655,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     outline: 'none',
   },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  expCatLabel: { fontSize: 11, color: colors.textSub, fontWeight: '500' },
+  expCatLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
   expBtn: {
     backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', position: 'relative', overflow: 'hidden',
@@ -1663,20 +1664,20 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 12,
   },
-  expBtnText: { color: colors.surface, fontSize: 14, fontWeight: '700' },
+  expBtnText: { color: colors.surface, fontSize: FONTS.sub.size, fontWeight: '700' },
 
   /* ── Expense list ── */
   expRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 10,
     borderBottomWidth: 1, borderBottomColor: colors.secondary,
   },
-  expNote: { fontSize: 13, color: colors.textMain, fontWeight: '500' },
-  expDateText: { fontSize: 10, color: colors.textSub, marginTop: 2 },
-  expAmt: { fontSize: 15, fontWeight: '700', color: colors.danger },
+  expNote: { fontSize: FONTS.sub.size, color: colors.textMain, fontWeight: '500' },
+  expDateText: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
+  expAmt: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.danger },
 
   /* ── Empty ── */
   empty: {
-    fontSize: 12, color: colors.textSub, textAlign: 'center', paddingVertical: 24,
+    fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center', paddingVertical: 24,
   },
 
   /* ── Modal ── */
@@ -1701,18 +1702,18 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
-  modalTitle: { fontSize: 14, fontWeight: '600', color: colors.surface },
-  modalClose: { color: withAlpha(colors.danger, 0.1), fontSize: 18 },
+  modalTitle: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
+  modalClose: { color: withAlpha(colors.danger, 0.1), fontSize: FONTS.h2.size },
   modalBtn: {
     flex: 1, backgroundColor: colors.primary, borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',
   },
-  modalBtnText: { fontSize: 13, fontWeight: '500', color: colors.surface },
+  modalBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.surface },
   modalCancelBtn: {
     flex: 1, backgroundColor: colors.bg, borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',
   },
-  modalCancelText: { fontSize: 13, fontWeight: '500', color: colors.textSub },
+  modalCancelText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
     backgroundColor: colors.surface,

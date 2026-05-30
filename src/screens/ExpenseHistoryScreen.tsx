@@ -7,6 +7,7 @@ import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
 
 const PAGE_SIZE = 10;
 
@@ -371,8 +372,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
   },
-  backArrow: { fontSize: 26, fontWeight: '300', color: colors.primary, marginTop: -2, marginLeft: -1 },
-  title: { fontSize: 16, fontWeight: '400', color: colors.textMain },
+  backArrow: { fontSize: FONTS.h1.size, fontWeight: '300', color: colors.primary, marginTop: -2, marginLeft: -1 },
+  title: { fontSize: FONTS.body.size, fontWeight: '400', color: colors.textMain },
   /* List — scrolls under absolute header (matches ReconHistoryScreen list) */
   list: { flex: 1 },
   /* Row */
@@ -395,27 +396,27 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.warning, 0.1), borderRadius: 4,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  catBadgeText: { fontSize: 13, fontWeight: '600', color: colors.primary },
+  catBadgeText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.primary },
   payBadge: {
     backgroundColor: colors.bg, borderRadius: 4,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  payBadgeText: { fontSize: 13, fontWeight: '500', color: colors.textSub },
-  amount: { fontSize: 17, fontWeight: '700', color: colors.danger },
-  filledBy: { fontSize: 11, color: colors.textSub, marginTop: 2 },
+  payBadgeText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
+  amount: { fontSize: FONTS.h2.size, fontWeight: '700', color: colors.danger },
+  filledBy: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  dateText: { fontSize: 13, color: colors.textSub },
-  note: { fontSize: 13, color: colors.textSub, flex: 1, textAlign: 'right' },
+  dateText: { fontSize: FONTS.sub.size, color: colors.textSub },
+  note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right' },
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
-  emptyEmoji: { fontSize: 30 },
-  emptyTitle: { fontSize: 16, fontWeight: '500', color: colors.textSub },
-  emptyHint: { fontSize: 13, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+  emptyEmoji: { fontSize: FONTS.h1.size },
+  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
+  emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
-  loadingText: { fontSize: 13, color: colors.primary },
+  loadingText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Preview overlay */
   previewOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
@@ -440,10 +441,10 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
-  previewArrowText: { fontSize: 28, fontWeight: '300', color: colors.surface, marginTop: -2 },
+  previewArrowText: { fontSize: FONTS.amount.size, fontWeight: '300', color: colors.surface, marginTop: -2 },
   previewCounter: {
     position: 'absolute', bottom: 60, zIndex: 10,
-    fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.7)',
+    fontSize: FONTS.sub.size, fontWeight: '500', color: 'rgba(255,255,255,0.7)',
   },
   /* Filter panel — matches ReconHistoryScreen */
   filterBtn: {
@@ -463,13 +464,13 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   filterContent: { padding: 12, gap: 8 },
   filterField: { gap: 3 },
-  filterLabel: { fontSize: 11, fontWeight: '500', color: colors.textSub, paddingLeft: 2 },
+  filterLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub, paddingLeft: 2 },
   filterDateRange: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterDateInput: {
     flex: 1, height: 34, paddingHorizontal: 8,
     backgroundColor: colors.surface, borderRadius: 6,
     borderWidth: 1, borderColor: colors.secondary,
-    fontSize: 13, fontWeight: '400', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textMain,
     fontFamily: 'inherit', outline: 'none',
   },
   filterDateWrap: {
@@ -478,30 +479,30 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: 11, fontWeight: '500', color: colors.textMain },
-  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: colors.textSub },
+  filterDateText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textMain },
+  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: '400', color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
-  filterDateArrow: { fontSize: 11, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
+  filterDateArrow: { fontSize: FONTS.micro.size, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
   filterChipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   filterChip: {
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
     backgroundColor: colors.bg,
   },
   filterChipActive: { backgroundColor: colors.primary },
-  filterChipText: { fontSize: 12, fontWeight: '600', color: colors.textSub },
+  filterChipText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub },
   filterChipTextActive: { color: colors.surface },
   filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.secondary, borderRadius: 8,
   },
-  filterResetBtnText: { fontSize: 13, fontWeight: '500', color: colors.textMain },
+  filterResetBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textMain },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.primary, borderRadius: 8,
   },
-  filterApplyBtnText: { fontSize: 13, fontWeight: '600', color: colors.surface },
+  filterApplyBtnText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
 });

@@ -4,6 +4,7 @@ import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
 
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
@@ -238,9 +239,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => setRemember(!remember)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
-                    {remember && <Text style={{ fontSize: 10, color: colors.surface }}>✓</Text>}
+                    {remember && <Text style={{ fontSize: FONTS.micro.size, color: colors.surface }}>✓</Text>}
                   </View>
-                  <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{t('rememberMe') || '记住我'}</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)' }}>{t('rememberMe') || '记住我'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
                   <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
@@ -448,9 +449,9 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)',
   },
   logo: { width: 56, height: 56 },
-  subtitle: { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
+  subtitle: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
   langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
-  langBtn: { fontSize: 11, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  langBtn: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   langActive: { color: colors.surface, backgroundColor: 'rgba(255,255,255,0.15)' },
   glassCard: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 16, padding: 28,
@@ -461,7 +462,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   msgBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
   msgOk: { backgroundColor: withAlpha(colors.success, 0.3) },
   msgErr: { backgroundColor: withAlpha(colors.danger, 0.12) },
-  msgText: { fontSize: 11, fontWeight: '500' },
+  msgText: { fontSize: FONTS.micro.size, fontWeight: '500' },
   msgOkText: { color: withAlpha(colors.success, 0.1) },
   msgErrText: { color: colors.danger },
   tabRow: {
@@ -471,16 +472,16 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
-  tabText: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.65)' },
+  tabText: { fontSize: FONTS.micro.size, fontWeight: '500', color: 'rgba(255,255,255,0.65)' },
   tabActiveText: { color: colors.surface },
   formSection: { gap: 16 },
   fieldWrap: { gap: 6 },
-  fieldLabel: { fontSize: 11, fontWeight: '500', color: 'rgba(255,255,255,0.6)' },
-  hintText: { fontSize: 10, fontWeight: '400', color: 'rgba(255,255,255,0.3)' },
+  fieldLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: 'rgba(255,255,255,0.6)' },
+  hintText: { fontSize: FONTS.micro.size, fontWeight: '400', color: 'rgba(255,255,255,0.3)' },
   pwWrap: { position: 'relative' as any },
   pwInput: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
-    paddingRight: 44, fontSize: 16, color: colors.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    paddingRight: 44, fontSize: FONTS.body.size, color: colors.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
     // @ts-ignore - web-only style
     backdropFilter: 'blur(8px)', outlineStyle: 'none' as any,
   },
@@ -488,10 +489,10 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     position: 'absolute' as any, right: 0, top: 0, bottom: 0,
     paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center',
   },
-  pwEyeText: { fontSize: 11, color: 'rgba(255,255,255,0.45)' },
+  pwEyeText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.45)' },
   textInput: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
-    fontSize: 16, color: colors.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    fontSize: FONTS.body.size, color: colors.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
     // @ts-ignore - web-only style
     backdropFilter: 'blur(8px)', outlineStyle: 'none' as any,
   },
@@ -501,16 +502,16 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  btnDarkText: { fontSize: 13, fontWeight: '500', color: colors.surface, letterSpacing: 1 },
+  btnDarkText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.surface, letterSpacing: 1 },
   btnRed: {
     backgroundColor: withAlpha(colors.primary, 0.7), borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
     // @ts-ignore
     backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  btnRedText: { fontSize: 13, fontWeight: '500', color: colors.surface, letterSpacing: 1 },
-  forgotText: { fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
+  btnRedText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.surface, letterSpacing: 1 },
+  forgotText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
   disabledText: { opacity: 0.3 },
-  infoText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
+  infoText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
   infoStrong: { fontWeight: '600', color: colors.surface },
   devCodeCard: {
     backgroundColor: withAlpha(colors.warning, 0.15), borderRadius: 12, padding: 16,
@@ -518,7 +519,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     backdropFilter: 'blur(8px)',
   },
-  devCodeLabel: { fontSize: 11, color: colors.warning, fontWeight: '500', marginBottom: 8 },
-  devCodeValue: { fontSize: 28, fontWeight: '700', color: colors.surface, letterSpacing: 8 },
-  copyright: { fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
+  devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: '500', marginBottom: 8 },
+  devCodeValue: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.surface, letterSpacing: 8 },
+  copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });
