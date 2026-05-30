@@ -9,6 +9,7 @@ import { FilterBackdrop } from '../components/FilterBackdrop';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { modalCardAnimation } from '../sharedStyles';
 
 const PAGE_SIZE = 10;
 
@@ -465,6 +466,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 10,
     borderWidth: 1, borderColor: colors.secondary,
     overflow: 'hidden',
+    ...modalCardAnimation,
   },
   filterContent: { padding: 12, gap: 8 },
   filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },

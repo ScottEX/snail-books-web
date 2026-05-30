@@ -550,6 +550,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 10,
     borderWidth: 1, borderColor: colors.secondary,
     overflow: 'hidden',
+    ...modalCardAnimation,
   },
   filterContent: {
     padding: 12, gap: 8,
