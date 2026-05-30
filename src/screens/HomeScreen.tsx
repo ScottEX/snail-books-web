@@ -524,10 +524,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         activeOpacity={0.7}
                         style={{ marginLeft: 'auto' }}
                       >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.primary }}>{t('revHistoryBtn')}</Text>
-                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
-                      </View>
+                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.primary }}>{t('revHistoryBtn')} →</Text>
                       </TouchableOpacity>
                     </View>
 

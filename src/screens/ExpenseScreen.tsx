@@ -608,7 +608,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     return `${y}年${m}月${d}日`;
                   })()}
                 </Text>
-                <Text style={{ fontSize: FONTS.h1.size, fontWeight: '700', color: colors.textSub }}>›</Text>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                 {React.createElement('input', {
                   type: 'date',
                   value: recDate,
@@ -772,7 +772,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.primary, fontWeight: '600' }}>
                   {feeMonth === 'all' ? t('feeViewDetail') : t('feeDetail')}
                 </Text>
-                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
+                <Text style={{ fontSize: FONTS.body.size, color: colors.primary, fontWeight: '700' }}>→</Text>
               </TouchableOpacity>
               )}
             </View>
@@ -962,7 +962,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       return `${y}年${m}月${d}日`;
                     })()}
                   </Text>
-                  <Text style={{ fontSize: FONTS.h1.size, fontWeight: '700', color: colors.textSub }}>›</Text>
+                  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                   {React.createElement('input', {
                     type: 'date',
                     value: expDate,
@@ -1076,7 +1076,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={{ fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub }}>
                     {(() => { return fmtLocalDate(feeEntryDate); })()}
                   </Text>
-                  <Text style={{ fontSize: FONTS.h1.size, fontWeight: '700', color: colors.textSub, marginLeft: 4 }}>›</Text>
+                  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                   {React.createElement('input', {
                     type: 'date', value: feeEntryDate, max: todayStr(),
                     onChange: (e: any) => {
