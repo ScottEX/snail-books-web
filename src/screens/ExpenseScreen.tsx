@@ -8,6 +8,7 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { modalCardAnimation } from '../sharedStyles';
 
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -1695,7 +1696,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 20, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
-    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    ...modalCardAnimation,
     // @ts-ignore
     boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
   },
@@ -1723,7 +1724,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     overflow: 'hidden',
     paddingBottom: 0,
     // @ts-ignore
-    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    ...modalCardAnimation,
     // @ts-ignore
     boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
   },

@@ -12,6 +12,7 @@ import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
+import { modalCardAnimation } from '../sharedStyles';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
@@ -1001,7 +1002,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 16, width: 340, maxWidth: '90%',
     overflow: 'hidden' as const,
     // @ts-ignore
-    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    ...modalCardAnimation,
   },
   modalHeader: {
     backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 14,

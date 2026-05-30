@@ -6,6 +6,7 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { modalCardAnimation } from '../sharedStyles';
 
 // NOTE: 合伙人持股/初始投资/姓名映射硬编码。若后端合伙人变更（增减/改名），
 // 默认值（33%、42900）可能不准确。理想方案是从后端返回并缓存这些映射。
@@ -652,7 +653,7 @@ const getMo = (colors: ThemeColors) => StyleSheet.create({
   modalCard: {
     backgroundColor: colors.surface, borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
-    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    ...modalCardAnimation,
     // @ts-ignore
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
   },

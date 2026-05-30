@@ -7,6 +7,7 @@ import { FilterBackdrop } from '../components/FilterBackdrop';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { modalCardAnimation } from '../sharedStyles';
 
 const PAGE_SIZE = 10;
 
@@ -493,7 +494,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
     // @ts-ignore
-    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    ...modalCardAnimation,
   },
   modalHeader: {
     backgroundColor: colors.primary,
