@@ -103,7 +103,9 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
 
       {/* Filter panel — matches ReconHistoryScreen */}
       {showFilter && (
-        <View style={st.filterPanel}>
+        <>
+          <TouchableOpacity style={st.filterOverlay} onPress={() => setShowFilter(false)} activeOpacity={1} />
+          <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('filterDate')}</Text>
@@ -151,11 +153,12 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             </View>
           </View>
         </View>
+        </>
       )}
 
       {/* List — card-based layout */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: showFilter ? 150 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 130 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
         {loading ? (
           <View style={st.loading}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -301,6 +304,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
 
   /* Filter panel — matches ReconHistoryScreen */
+  filterOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', zIndex: 88 },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: colors.surface, borderRadius: 10,

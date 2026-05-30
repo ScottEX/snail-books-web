@@ -158,7 +158,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
       {/* Filter panel */}
       {showFilter && (
-        <View style={st.filterPanel}>
+        <>
+          <TouchableOpacity style={st.filterOverlay} onPress={() => setShowFilter(false)} activeOpacity={1} />
+          <View style={st.filterPanel}>
           <View style={st.filterContent}>
             {/* Date range */}
             <View style={st.filterField}>
@@ -223,12 +225,13 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             </View>
           </View>
         </View>
+        </>
       )}
 
       {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 260 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 210 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
           <View style={st.emptyWrap}>
             <View style={st.emptyIcon}><Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text></View>
@@ -456,6 +459,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
   },
   filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  filterOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', zIndex: 88 },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: colors.surface, borderRadius: 10,

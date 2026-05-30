@@ -312,7 +312,9 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </View>
       {/* Filter bar */}
       {showFilter && (
-        <View style={st.filterPanel}>
+        <>
+          <TouchableOpacity style={st.filterOverlay} onPress={() => setShowFilter(false)} activeOpacity={1} />
+          <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('billDate')}</Text>
@@ -394,11 +396,12 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             </View>
           </View>
         </View>
+        </>
       )}
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 300 : 76 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 230 : 76 }}>
         {loading ? (
           <View style={st.loading}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -540,6 +543,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   filterBtnText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub },
   filterBtnTextActive: { color: colors.surface },
+  filterOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', zIndex: 88 },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: colors.surface, borderRadius: 10,
