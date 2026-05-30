@@ -8,7 +8,7 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -861,8 +861,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 {(() => {
                   const payIcons: Record<string, React.ReactElement> = {
                     '现金': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
-                    '微信': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M8 10.5C8 8 10.5 6 13.5 6c2.5 0 4.5 2 4.5 4 0 1.5-.8 3-2 4l-1 2-2.5-1.5c-3.5 0-6-2.5-6-5.5"/><Path d="M9.5 11a.5.5 0 100-1 .5.5 0 000 1zM13.5 11a.5.5 0 100-1 .5.5 0 000 1z"/></Svg>,
-                    '支付宝': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="2" y="4" width="20" height="16" rx="2"/><Path d="M2 9h20"/><Path d="M7 16l3-3 3 3 4-5"/></Svg>,
+                    '微信': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M8 11c-2.5 0-4.5 1.6-4.5 3.5S5.5 18 8 18c.5 0 1-.08 1.4-.22l2.1 1.3-.6-2.2c1-.6 1.6-1.5 1.6-2.4 0-1.9-2-3.5-4.5-3.5z"/><Path d="M14 6c-2 0-3.5 1.3-3.5 2.8S12 11.6 14 11.6c.35 0 .7-.05 1-.16l1.5.9-.4-1.6c.7-.5 1.4-1.1 1.4-1.7 0-1.5-1.5-2.8-3.5-2.8z"/></Svg>,
+                    '支付宝': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="3" y="3" width="18" height="18" rx="4"/><Path d="M7 12h10M12 8v10M8 16l4-4 4 4"/></Svg>,
                   };
                   const keyMap: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
                   return (['现金', '微信', '支付宝'] as const).map((m) => {
@@ -926,7 +926,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <View key={`img-${i}`} style={st.imgPreview}>
                     {React.createElement('img', {
                       src: URL.createObjectURL(file),
-                      style: { width: 80, height: 80, borderRadius: 12, objectFit: 'cover' },
+                      style: { width: 95, height: 95, borderRadius: 12, objectFit: 'cover' },
                       alt: file.name,
                     })}
                     <TouchableOpacity style={st.imgRemove}
@@ -1331,6 +1331,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
 /* ═══════════════════════════════════════ STYLES ═══════════════════════════════════ */
 const getSt = (colors: ThemeColors) => StyleSheet.create({
+  ...uploadReceiptStyles(colors),
   root: { flex: 1 },
 
   /* ── Tab Bar ── */
@@ -1573,29 +1574,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     outline: 'none',
   },
-
-  /* ── Image upload ── */
-  imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4, paddingHorizontal: 10 },
-  imgAddBtn: {
-    width: 80, height: 80, borderRadius: 12,
-    borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.secondary,
-    backgroundColor: colors.surface,
-    alignItems: 'center', justifyContent: 'center',
-    gap: 4,
-  },
-  imgAddText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
-  imgPreview: { position: 'relative' as any },
-  imgRemove: {
-    position: 'absolute', top: 4, right: 4,
-    width: 20, height: 20, borderRadius: 10,
-    backgroundColor: 'rgba(0,0,0,0.50)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  imgTipBubble: {
-    backgroundColor: colors.textMain, borderRadius: 6,
-    paddingHorizontal: 10, paddingVertical: 6,
-  },
-  imgTipText: { fontSize: FONTS.micro.size, color: colors.surface, fontWeight: '500' },
 
   /* ── Expense form ── */
   expForm: { gap: 14 },

@@ -8,7 +8,7 @@ import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = '现金' | '微信' | '支付宝';
@@ -108,6 +108,7 @@ const CHIP_ICON_BG: Record<string, string> = { '微信': '#07C160', '支付宝':
 // Styles
 // ═══════════════════════════════════════════════
 const getStyles = (c: ThemeColors) => StyleSheet.create({
+  ...uploadReceiptStyles(c),
   container: { flex: 1 },
 
   frostedBlock: {
@@ -219,25 +220,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
 
   // Upload (expense page style)
-  imgRow: { flexDirection: 'row' as const, gap: 8, marginBottom: 12 },
-  imgAddBtn: {
-    width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: withAlpha(c.textMain, 0.12),
-    borderStyle: 'dashed' as any, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4,
-  },
-  imgAddText: { fontSize: FONTS.micro.size, color: c.textSub },
-  imgPreview: { position: 'relative' as const, width: 80, height: 80, borderRadius: 12, overflow: 'hidden' as const },
-  imgRemove: {
-    position: 'absolute' as const, top: -4, right: -4, width: 22, height: 22, borderRadius: 11,
-    backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center' as const, justifyContent: 'center' as const,
-  },
-  imgTipIcon: {
-    width: 18, height: 18, borderRadius: 9, backgroundColor: c.secondary, alignItems: 'center' as const, justifyContent: 'center' as const,
-  },
-  imgTipBubble: {
-    position: 'absolute' as any, top: -34, left: 24, backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: 6,
-    paddingHorizontal: 8, paddingVertical: 4, zIndex: 10,
-  },
-  imgTipText: { fontSize: FONTS.micro.size, color: '#fff' },
+  // Image upload — now in sharedStyles
 
   // Items button
   itemsBtn: {
@@ -963,7 +946,7 @@ export default function ProcurementScreen() {
               {/* Upload receipts (expense page style) */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                 <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
-                <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7} style={styles.imgTipIcon}>
+                <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: c.secondary, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontSize: FONTS.micro.size, fontWeight: '700', color: c.textSub }}>!</Text>
                   {showImgTip && (
                     <View style={styles.imgTipBubble}>
@@ -984,7 +967,7 @@ export default function ProcurementScreen() {
                 {receipts.map((file, i) => (
                   <View key={`rec-${i}`} style={styles.imgPreview}>
                     {React.createElement('img', {
-                      src: URL.createObjectURL(file), style: { width: 80, height: 80, borderRadius: 12, objectFit: 'cover' } as any,
+                      src: URL.createObjectURL(file), style: { width: 95, height: 95, borderRadius: 12, objectFit: 'cover' } as any,
                     })}
                     <TouchableOpacity style={styles.imgRemove} onPress={() => removeReceipt(i)} activeOpacity={0.7}>
                       <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">

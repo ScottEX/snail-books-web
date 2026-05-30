@@ -68,3 +68,33 @@ export const historyHeader = (colors: ThemeColors) => ({
   },
   filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
 });
+
+// ─── Image Upload (receipts / 凭证上传) ──
+
+/** Shared upload-area styles for ExpenseScreen + ProcurementScreen.
+ *  Pass your `colors` from useTheme(). Spread into StyleSheet.create(). */
+export const uploadReceiptStyles = (colors: ThemeColors) => ({
+  imgRow: {
+    flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 8,
+    marginBottom: 4, paddingHorizontal: 10,
+  },
+  imgAddBtn: {
+    width: 95, height: 95, borderRadius: 12,
+    borderWidth: 1.5, borderStyle: 'dashed' as any, borderColor: colors.secondary,
+    backgroundColor: colors.surface,
+    alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4,
+  },
+  imgAddText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' as const },
+  imgPreview: { position: 'relative' as any },
+  imgRemove: {
+    position: 'absolute' as const, top: 4, right: 4,
+    width: 20, height: 20, borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.50)',
+    alignItems: 'center' as const, justifyContent: 'center' as const,
+  },
+  imgTipBubble: {
+    backgroundColor: colors.textMain, borderRadius: 6,
+    paddingHorizontal: 10, paddingVertical: 6,
+  },
+  imgTipText: { fontSize: FONTS.micro.size, color: colors.surface, fontWeight: '500' as const },
+});
