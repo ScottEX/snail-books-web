@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  FlatList, Image, ActivityIndicator, StyleSheet, Animated
+  FlatList, Image, ActivityIndicator, StyleSheet, Animated, PanResponder
 } from 'react-native';
 import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -118,7 +118,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   statLbl: { fontSize: 10, color: c.textSub, marginTop: 3 },
 
   searchSection: { paddingHorizontal: 16, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
-  searchInput: { paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.1), borderRadius: 10, fontSize: 14, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
+  searchInput: { paddingHorizontal: 12, paddingVertical: 9, borderWidth: 0, borderRadius: 10, fontSize: 14, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
   filterRow: { flexDirection: 'row' as const, gap: 6, marginTop: 8 },
   filterChip: { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12) },
   filterChipOn: { backgroundColor: c.primary, borderColor: c.primary },
@@ -126,9 +126,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   filterChipTextOn: { color: c.surface },
 
   // Sub-tabs inside frosted block
-  subTabRow: { flexDirection: 'row' as const, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06), marginHorizontal: 4, paddingTop: 2 },
+  subTabRow: { flexDirection: 'row' as const, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06), marginHorizontal: 4, paddingTop: 2, marginBottom: 6 },
   subTab: { flex: 1, paddingVertical: 10, alignItems: 'center' as const },
-  subTabOn: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 0 },
+  subTabOn: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 10 },
   subTabText: { fontSize: 12, fontWeight: '500' as const, color: c.textSub },
   subTabTextOn: { color: c.primary, fontWeight: '600' as const },
 
@@ -181,34 +181,27 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   drawerHeadTitle: { fontSize: 16, fontWeight: '600' as const, color: c.textMain },
   drawerClose: { width: 30, height: 30, borderRadius: 15, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const, justifyContent: 'center' as const },
   drawerCloseText: { fontSize: 18, color: c.textSub },
-  drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1, paddingBottom: 30 } as any,
+  drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1, paddingBottom: 90 } as any,
 
-  // Date row (inline date + category)
-  dateCatRow: { flexDirection: 'row' as const, gap: 10, marginBottom: 12 },
-  dateCatField: { flex: 1 },
-  dateCatLabel: { fontSize: 11, fontWeight: '500' as const, color: c.textSub, marginBottom: 5 },
-  dateDisplay: {
-    paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12),
-    borderRadius: 8, fontSize: 13, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03),
-    flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
-  },
-  dateText: { fontSize: 13, color: c.textMain },
-  catReadonly: {
-    paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12),
-    borderRadius: 8, fontSize: 13, color: c.textSub, backgroundColor: withAlpha(c.textMain, 0.03), opacity: 0.6,
-  },
+  // Date row (inline: label + value on same line)
+  dateCatRow: { marginBottom: 12 },
+  dateCatLine: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.06) },
+  dateCatLabel: { fontSize: 13, fontWeight: '500' as const, color: c.textMain },
+  dateCatValue: { fontSize: 13, color: c.textSub, flexDirection: 'row' as const, alignItems: 'center' as const },
 
   // Payment capsules (matching ExpenseScreen)
   sectionLabel: { fontSize: 11, fontWeight: '500' as const, color: c.textSub, marginBottom: 6 },
   payRow: { flexDirection: 'row' as const, gap: 6, marginBottom: 12 },
   payChip: {
-    flex: 1, paddingVertical: 8, borderRadius: 10,
-    borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12),
-    alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4,
+    flex: 1, flexDirection: 'row' as const, paddingVertical: 8, borderRadius: 22,
+    backgroundColor: withAlpha(c.textMain, 0.04),
+    alignItems: 'center' as const, justifyContent: 'center' as const,
   },
-  payChipOn: { borderColor: c.primary, backgroundColor: withAlpha(c.primary, 0.06) },
-  payChipText: { fontSize: 11, fontWeight: '500' as const, color: c.textSub },
-  payChipTextOn: { color: c.primary, fontWeight: '600' as const },
+  payChipOn: { backgroundColor: c.primary },
+  payChipOnWechat: { backgroundColor: '#07C160' },
+  payChipOnAlipay: { backgroundColor: '#1677FF' },
+  payChipText: { fontSize: 13, fontWeight: '600' as const, color: c.textSub },
+  payChipTextOn: { color: c.surface },
 
   chipIconCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const, justifyContent: 'center' as const },
   chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
@@ -252,7 +245,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsModalTitle: { fontSize: 14, fontWeight: '700' as const, color: c.surface },
   itemsModalClose: { fontSize: 18, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
   itemsModalBody: { padding: 16 },
-  itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
+  itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10 },
   itemsRowName: { flex: 1, fontSize: 13, color: c.textMain },
   itemsRowQty: { fontSize: 12, color: c.textSub, marginRight: 12 },
   itemsRowAmt: { fontSize: 13, fontWeight: '600' as const, color: c.primary },
@@ -333,7 +326,12 @@ export default function ProcurementScreen() {
 
   const [subTab, setSubTab] = useState<SubTab>('new');
   const [products, setProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<Record<number, number>>({});
+  const [cart, setCart] = useState<Record<number, number>>(() => {
+    try {
+      const saved = localStorage.getItem('snail_proc_cart');
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
   const [search, setSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('全部');
   const [editingPrice, setEditingPrice] = useState<number | null>(null);
@@ -368,9 +366,29 @@ export default function ProcurementScreen() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '' });
 
+  // ── Items modal animation (slide from top) ──
+  const itemsModalAnim = useRef(new Animated.Value(0)).current;
+  const itemsModalOverlayAnim = useRef(new Animated.Value(0)).current;
+  const openItemsModal = () => {
+    setShowItemsModal(true);
+    itemsModalAnim.setValue(-300);
+    itemsModalOverlayAnim.setValue(0);
+    Animated.parallel([
+      Animated.spring(itemsModalAnim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(itemsModalOverlayAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+    ]).start();
+  };
+  const closeItemsModal = () => {
+    Animated.parallel([
+      Animated.timing(itemsModalAnim, { toValue: -300, duration: 180, useNativeDriver: true }),
+      Animated.timing(itemsModalOverlayAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+    ]).start(() => setShowItemsModal(false));
+  };
+
   // ── Drawer animation ──
   const openDrawer = () => {
     setShowDrawer(true);
+    if (!orderNote) setOrderNote(t('procNowBatch').replace('{n}', String(stats.batch_count + 1)));
     Animated.parallel([
       Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
       Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
@@ -385,6 +403,21 @@ export default function ProcurementScreen() {
 
   const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
   const overlayOpacity = overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.45] });
+
+  // ── Swipe down to close drawer ──
+  const dragY = useRef(new Animated.Value(0)).current;
+  const panResponder = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (_: any, gs: any) => gs.dy > 8 && Math.abs(gs.dy) > Math.abs(gs.dx),
+    onPanResponderMove: (_: any, gs: any) => { if (gs.dy > 0) dragY.setValue(gs.dy); },
+    onPanResponderRelease: (_: any, gs: any) => {
+      if (gs.dy > 120 || gs.vy > 0.6) {
+        closeDrawer();
+        dragY.setValue(0);
+      } else {
+        Animated.spring(dragY, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+      }
+    },
+  })).current;
 
   // ── Date formatting ──
   const formatDateLocale = useCallback((d: string) => {
@@ -413,6 +446,11 @@ export default function ProcurementScreen() {
   }, []);
 
   useEffect(() => { loadProducts(); loadStats(); }, [loadProducts, loadStats]);
+
+  // Persist cart to localStorage
+  useEffect(() => {
+    try { localStorage.setItem('snail_proc_cart', JSON.stringify(cart)); } catch {}
+  }, [cart]);
 
   useEffect(() => {
     if (subTab !== 'history') return;
@@ -513,7 +551,7 @@ export default function ProcurementScreen() {
       });
       if (r.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setShowSuccess(true);
-        setCart({}); setReceipts([]); setOrderNote(''); closeDrawer();
+        setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote(''); closeDrawer();
         loadStats();
       }
     } catch {}
@@ -795,9 +833,9 @@ export default function ProcurementScreen() {
           <Animated.View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: overlayOpacity }]}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
           </Animated.View>
-          <Animated.View style={[styles.drawer, { transform: [{ translateY: drawerTranslateY }] }]}>
-            <View style={styles.drawerHandle} />
-            <View style={styles.drawerHead}>
+          <Animated.View style={[styles.drawer, { transform: [{ translateY: Animated.add(drawerTranslateY, dragY) }] }]}>
+            <View style={styles.drawerHandle} {...panResponder.panHandlers} />
+            <View style={styles.drawerHead} {...panResponder.panHandlers}>
               <Text style={styles.drawerHeadTitle}>{t('procConfirmOrder')}</Text>
               <TouchableOpacity style={styles.drawerClose} onPress={closeDrawer}>
                 <Text style={styles.drawerCloseText}>×</Text>
@@ -806,20 +844,20 @@ export default function ProcurementScreen() {
             <ScrollView style={styles.drawerBody}>
               {/* Date + Category inline */}
               <View style={styles.dateCatRow}>
-                <View style={styles.dateCatField}>
+                <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
-                  <TouchableOpacity style={styles.dateDisplay} activeOpacity={1}>
-                    <Text style={styles.dateText}>{formatDateLocale(orderDate)}</Text>
+                  <View style={styles.dateCatValue}>
+                    <Text style={{ fontSize: 13, color: c.textSub }}>{formatDateLocale(orderDate)}</Text>
                     {React.createElement('input', {
                       type: 'date', value: orderDate, max: todayStr(),
                       onChange: (e: any) => { const v = e.target.value; if (v > todayStr()) return; setOrderDate(v); },
                       style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
                     })}
-                  </TouchableOpacity>
+                  </View>
                 </View>
-                <View style={styles.dateCatField}>
+                <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                  <Text style={styles.catReadonly}>{t('procPurchase')}</Text>
+                  <Text style={{ fontSize: 13, color: c.textSub }}>{t('procPurchase')}</Text>
                 </View>
               </View>
 
@@ -829,12 +867,14 @@ export default function ProcurementScreen() {
                 {PAY_KEYS.map(pm => {
                   const Icon = PAY_ICONS[pm];
                   const active = payMethod === pm;
-                  const chipBg = active ? CHIP_ACTIVE[pm] : 'rgba(0,0,0,0.04)';
-                  const iconColor = active ? '#fff' : c.textSub;
+                  const isWechat = pm === '微信';
+                  const isAlipay = pm === '支付宝';
                   return (
-                    <TouchableOpacity key={pm} style={[styles.payChip, active && styles.payChipOn]} onPress={() => setPayMethod(pm)} activeOpacity={0.7}>
-                      <View style={[styles.chipIconCircle, { backgroundColor: chipBg }]}>
-                        <Icon color={iconColor} />
+                    <TouchableOpacity key={pm}
+                      style={[styles.payChip, active && (isWechat ? styles.payChipOnWechat : isAlipay ? styles.payChipOnAlipay : styles.payChipOn)]}
+                      onPress={() => setPayMethod(pm)} activeOpacity={0.7}>
+                      <View style={[styles.chipIconCircle, active && styles.chipIconCircleActive]}>
+                        <Icon color={active ? '#fff' : c.textSub} />
                       </View>
                       <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{pm}</Text>
                     </TouchableOpacity>
@@ -865,9 +905,7 @@ export default function ProcurementScreen() {
                 </TouchableOpacity>
                 {receipts.map((img, i) => (
                   <View key={`rec-${i}`} style={styles.imgPreview}>
-                    {React.createElement('img', {
-                      src: img, style: { width: 80, height: 80, borderRadius: 12, objectFit: 'cover' } as any,
-                    })}
+                    <Image source={{ uri: img }} style={{ width: 80, height: 80, borderRadius: 12 }} />
                     <TouchableOpacity style={styles.imgRemove} onPress={() => removeReceipt(i)} activeOpacity={0.7}>
                       <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
                         <Path d="M18 6L6 18M6 6l12 12" />
@@ -879,7 +917,7 @@ export default function ProcurementScreen() {
               </View>
 
               {/* Items button (not inline) */}
-              <TouchableOpacity style={styles.itemsBtn} onPress={() => setShowItemsModal(true)} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.itemsBtn} onPress={openItemsModal} activeOpacity={0.7}>
                 <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
                 <Text style={styles.itemsBtnArrow}>{t('procViewDetail')} ›</Text>
               </TouchableOpacity>
@@ -899,13 +937,13 @@ export default function ProcurementScreen() {
         </>
       )}
 
-      {/* ── Items Modal ── */}
+      {/* ── Items Modal (slides from top) ── */}
       {showItemsModal && (
-        <View style={styles.itemsModalOverlay}>
-          <View style={styles.itemsModalCard}>
+        <Animated.View style={[styles.itemsModalOverlay, { opacity: itemsModalOverlayAnim }]}>
+          <Animated.View style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}>
             <View style={styles.itemsModalHeader}>
               <Text style={styles.itemsModalTitle}>{t('procOrderItems')}</Text>
-              <TouchableOpacity onPress={() => setShowItemsModal(false)}>
+              <TouchableOpacity onPress={closeItemsModal}>
                 <Text style={styles.itemsModalClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -922,8 +960,8 @@ export default function ProcurementScreen() {
                 <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
               </View>
             </ScrollView>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       )}
 
       {/* ── Success ── */}
