@@ -100,6 +100,7 @@ const sortByOrder = (a: string, b: string) => {
 
 const PAY_ICONS: Record<string, React.FC<{ color: string }>> = { '现金': CashIcon, '微信': WechatIcon, '支付宝': AlipayIcon };
 const PAY_KEYS = ['现金', '微信', '支付宝'] as const;
+const CHIP_ICON_BG: Record<string, string> = { '微信': '#07C160', '支付宝': '#1677FF', '现金': '#333' };
 
 // ═══════════════════════════════════════════════
 // Styles
@@ -904,7 +905,7 @@ export default function ProcurementScreen() {
                     <TouchableOpacity key={pm}
                       style={[styles.payChip, active && (isWechat ? styles.payChipOnWechat : isAlipay ? styles.payChipOnAlipay : styles.payChipOn)]}
                       onPress={() => setPayMethod(pm)} activeOpacity={0.7}>
-                      <View style={[styles.chipIconCircle, active && styles.chipIconCircleActive]}>
+                      <View style={[styles.chipIconCircle, active && { backgroundColor: CHIP_ICON_BG[pm] }]}>
                         <Icon color={active ? '#fff' : c.textSub} />
                       </View>
                       <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{pm}</Text>
