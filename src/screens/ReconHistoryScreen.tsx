@@ -330,7 +330,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   <input type="date" value={filBillFrom} onChange={(e: any) => setFilBillFrom(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
-                <Text style={[st.filterDateArrow, { transform: [{ translateY: -3 }] }]}>→</Text>
+                <View style={{ marginTop: -4 }}><Text style={st.filterDateArrow}>→</Text></View>
                 <View style={st.filterDateWrap}>
                   {filBillTo ? (
                     <Text style={st.filterDateText}>{fmtDate(filBillTo)}</Text>
@@ -354,7 +354,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
-                <Text style={[st.filterDateArrow, { transform: [{ translateY: -3 }] }]}>→</Text>
+                <View style={{ marginTop: -4 }}><Text style={st.filterDateArrow}>→</Text></View>
                 <View style={st.filterDateWrap}>
                   {filDateTo ? (
                     <Text style={st.filterDateText}>{fmtDate(filDateTo)}</Text>
