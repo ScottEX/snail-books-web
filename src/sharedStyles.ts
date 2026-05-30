@@ -79,7 +79,7 @@ export const uploadReceiptStyles = (colors: ThemeColors) => ({
     marginBottom: 4, paddingHorizontal: 10,
   },
   imgAddBtn: {
-    width: 90, height: 90, borderRadius: 12,
+    width: 92, height: 92, borderRadius: 12,
     borderWidth: 1.5, borderStyle: 'dashed' as any, borderColor: colors.secondary,
     backgroundColor: colors.surface,
     alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4,
