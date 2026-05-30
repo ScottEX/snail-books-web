@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { api } from './api/client';
 
 // ═══════════════════════════════════════════
 // 三方案主题色值定义
@@ -153,16 +154,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
     if (!t) return;
     setThemeState(t);
     try { localStorage.setItem(THEME_STORAGE_KEY, themeId); } catch {}
+    // Fire-and-forget sync to server (don't block UI)
+    api.saveTheme(themeId).catch(() => {});
   }, []);
 
-  // Clean up legacy theme if set (for future migration)
+  // On mount, pull theme from server (per-user). If not logged in yet, keep localStorage value.
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(THEME_STORAGE_KEY);
-      if (!stored || !THEMES[stored]) {
-        localStorage.setItem(THEME_STORAGE_KEY, DEFAULT_THEME_ID);
+    let cancelled = false;
+    api.getTheme().then(resp => {
+      if (cancelled) return;
+      const serverThemeId = (resp as any)?.theme;
+      if (serverThemeId && THEMES[serverThemeId]) {
+        setThemeState(THEMES[serverThemeId]);
+        try { localStorage.setItem(THEME_STORAGE_KEY, serverThemeId); } catch {}
       }
-    } catch {}
+    }).catch(() => {
+      // Not logged in or network error — keep current (localStorage) theme
+    });
+    return () => { cancelled = true; };
   }, []);
 
   return (

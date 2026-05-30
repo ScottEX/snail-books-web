@@ -151,6 +151,10 @@ export const api = {
   getLang: () => authFetch('/api/settings/lang'),
   saveLang: (lang: string) => authFetch('/api/settings/lang', { method: 'PUT', body: JSON.stringify({ lang }) }),
 
+  // Theme preference (stored per-user in user_settings)
+  getTheme: () => authFetch('/api/settings/theme'),
+  saveTheme: (theme: string) => authFetch('/api/settings/theme', { method: 'PUT', body: JSON.stringify({ theme }) }),
+
   getProducts: () => authFetch('/api/products'),
   createProduct: (data: any) => authFetch('/api/products', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (data: any) => authFetch('/api/products', { method: 'PUT', body: JSON.stringify(data) }),
