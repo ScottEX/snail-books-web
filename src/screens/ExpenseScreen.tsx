@@ -772,7 +772,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.primary, fontWeight: '600' }}>
                   {feeMonth === 'all' ? t('feeViewDetail') : t('feeDetail')}
                 </Text>
-                <Text style={{ fontSize: FONTS.body.size, color: colors.primary, fontWeight: '700' }}>→</Text>
+                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
               </TouchableOpacity>
               )}
             </View>
