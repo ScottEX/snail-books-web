@@ -6,6 +6,7 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import Toast from '../components/Toast';
 import PartnerScreen from './PartnerScreen';
+import ProcurementScreen from './ProcurementScreen';
 import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
@@ -339,6 +340,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={styles.page}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} />
+        ) : tab === 'supply' ? (
+          <ProcurementScreen onBack={() => setTab('list')} />
         ) : showExpenseHistory ? (
           <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />
         ) : showDailyHistory ? (
@@ -612,10 +615,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     )}
                   </View>
                 </View>
-              )}
-
-              {tab === 'supply' && (
-                <View />
               )}
 
               {tab === 'chart' && (

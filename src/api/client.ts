@@ -198,6 +198,11 @@ export const api = {
   createProcurement: (data: any) => authFetch('/api/procurements', { method: 'POST', body: JSON.stringify(data) }),
   deleteProcurement: (id: number) => authFetch(`/api/procurements/${id}`, { method: 'DELETE' }),
 
+  // Procurement batches (进货批次)
+  getProcurementBatches: (page = 1, perPage = 10) => authFetch(`/api/procurement-batches?page=${page}&per_page=${perPage}`),
+  createProcurementBatch: (data: any) => authFetch('/api/procurement-batches', { method: 'POST', body: JSON.stringify(data) }),
+  getProcurementBatchDetail: (id: number) => authFetch(`/api/procurement-batches/${id}`),
+
   // Daily revenue (每日营收)
   getDailyRevenue: (page = 1, perPage = 30, year?: number, month?: number, date?: string, days?: number) => {
     const params = new URLSearchParams();
