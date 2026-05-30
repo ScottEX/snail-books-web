@@ -87,10 +87,19 @@ function BoxIcon({ color }: { color: string }) {
   );
 }
 
+const SUPPLIER_DISPLAY: Record<string, string> = { '蓝姐螺蛳粉': '蓝姐', '鲜禾配送': '鲜禾', '桂螺帮': '桂螺' };
+const SUPPLIER_ORDER = ['蓝姐螺蛳粉', '蒙方', '鲜禾配送', '桂螺帮', '粉仔'];
+const displaySupplier = (s: string) => SUPPLIER_DISPLAY[s] || s;
+const sortByOrder = (a: string, b: string) => {
+  const ai = SUPPLIER_ORDER.indexOf(a), bi = SUPPLIER_ORDER.indexOf(b);
+  if (ai === -1 && bi === -1) return a.localeCompare(b);
+  if (ai === -1) return 1;
+  if (bi === -1) return -1;
+  return ai - bi;
+};
+
 const PAY_ICONS: Record<string, React.FC<{ color: string }>> = { '现金': CashIcon, '微信': WechatIcon, '支付宝': AlipayIcon };
 const PAY_KEYS = ['现金', '微信', '支付宝'] as const;
-
-const CHIP_ACTIVE: Record<string, string> = { '微信': '#07C160', '支付宝': '#1677FF', '现金': '#333' };
 
 // ═══════════════════════════════════════════════
 // Styles
@@ -183,9 +192,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   drawerCloseText: { fontSize: 18, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1, paddingBottom: 90 } as any,
 
-  // Date row (inline: label + value on same line)
+  // Date row (all 4 elements inline)
   dateCatRow: { marginBottom: 12 },
-  dateCatLine: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.06) },
+  dateCatLine: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.06), gap: 8 },
   dateCatLabel: { fontSize: 13, fontWeight: '500' as const, color: c.textMain },
   dateCatValue: { fontSize: 13, color: c.textSub, flexDirection: 'row' as const, alignItems: 'center' as const },
 
@@ -351,6 +360,8 @@ export default function ProcurementScreen() {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
+  const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
+  const [detailTotal, setDetailTotal] = useState(0);
 
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
@@ -370,6 +381,8 @@ export default function ProcurementScreen() {
   const itemsModalAnim = useRef(new Animated.Value(0)).current;
   const itemsModalOverlayAnim = useRef(new Animated.Value(0)).current;
   const openItemsModal = () => {
+    setDetailItems(cartItems.map(i => ({ name: i.product.name, quantity: i.quantity, subtotal: i.subtotal })));
+    setDetailTotal(cartTotal);
     setShowItemsModal(true);
     itemsModalAnim.setValue(-300);
     itemsModalOverlayAnim.setValue(0);
@@ -383,6 +396,21 @@ export default function ProcurementScreen() {
       Animated.timing(itemsModalAnim, { toValue: -300, duration: 180, useNativeDriver: true }),
       Animated.timing(itemsModalOverlayAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
     ]).start(() => setShowItemsModal(false));
+  };
+  const openHistoryDetail = (batch: BatchRecord) => {
+    setDetailItems(batch.items.map((item: any) => ({
+      name: item.name || item.product_name || `商品#${item.product_id}`,
+      quantity: item.quantity,
+      subtotal: item.subtotal || item.unit_price * item.quantity || 0,
+    })));
+    setDetailTotal(batch.total);
+    setShowItemsModal(true);
+    itemsModalAnim.setValue(-300);
+    itemsModalOverlayAnim.setValue(0);
+    Animated.parallel([
+      Animated.spring(itemsModalAnim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(itemsModalOverlayAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+    ]).start();
   };
 
   // ── Drawer animation ──
@@ -435,7 +463,8 @@ export default function ProcurementScreen() {
   // ── Suppliers ──
   const suppliers = useMemo(() => {
     const set = new Set(products.map(p => p.supplier).filter(Boolean));
-    return ['全部', ...Array.from(set)];
+    const sorted = Array.from(set).sort(sortByOrder);
+    return ['全部', ...sorted];
   }, [products]);
 
   const loadProducts = useCallback(() => {
@@ -479,12 +508,17 @@ export default function ProcurementScreen() {
   const groupedProducts = useMemo(() => {
     const map: Record<string, Product[]> = {};
     filteredProducts.forEach(p => {
-      const sup = p.supplier || t('procAll');
+      const sup = p.supplier || '';
       if (!map[sup]) map[sup] = [];
       map[sup].push(p);
     });
-    return map;
+    // Sort section heads by SUPPLIER_ORDER, unknown suppliers at end
+    const sortedMap: [string, Product[]][] = Object.entries(map).sort(([a], [b]) => sortByOrder(a, b));
+    return sortedMap;
   }, [filteredProducts]);
+
+  // section head display name
+  const supplierLabel = (sup: string) => displaySupplier(sup) || t('procAll');
 
   const cartItems: CartItem[] = useMemo(() => {
     return Object.entries(cart)
@@ -523,16 +557,11 @@ export default function ProcurementScreen() {
     const files = e.target?.files || e.nativeEvent?.target?.files;
     if (!files || files.length === 0) return;
     setUploading(true);
-    for (const file of Array.from(files) as File[]) {
-      const form = new FormData(); form.append('files', file);
-      try {
-        const resp = await fetch('/api/expenses/upload-images', { method: 'POST', body: form, headers: { 'X-Lang': getLang() } });
-        const j = await resp.json();
-        if (j.images) setReceipts(prev => [...prev, ...j.images]);
-      } catch {}
-    }
+    try {
+      const result = await api.uploadExpenseImages(Array.from(files) as File[]);
+      if (result.images) setReceipts(prev => [...prev, ...result.images]);
+    } catch {}
     setUploading(false);
-    // Reset file input so same file can be selected again
     if (fileRef.current) fileRef.current.value = '';
   };
 
@@ -628,7 +657,7 @@ export default function ProcurementScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ gap: 6 }}>
             {suppliers.map(sup => (
               <TouchableOpacity key={sup} style={[styles.filterChip, supplierFilter === sup && styles.filterChipOn]} onPress={() => setSupplierFilter(sup)}>
-                <Text style={[styles.filterChipText, supplierFilter === sup && styles.filterChipTextOn]}>{sup}</Text>
+                <Text style={[styles.filterChipText, supplierFilter === sup && styles.filterChipTextOn]}>{sup === '全部' ? t('procAll') : displaySupplier(sup)}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -652,9 +681,9 @@ export default function ProcurementScreen() {
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 110 }}>
-            {Object.entries(groupedProducts).map(([sup, items]) => (
+            {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
-                <Text style={styles.sectionHead}>{sup}</Text>
+                <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>
                 {items.map(p => {
                   const qty = cart[p.id] || 0;
                   const isEditing = editingPrice === p.id;
@@ -749,6 +778,10 @@ export default function ProcurementScreen() {
                   <Text style={{ fontSize: 12, color: c.textSub }}>{t('procThisBatch')}</Text>
                   <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
                 </View>
+                <TouchableOpacity style={styles.itemsBtn} onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
+                  <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{batch.items?.length || 0} 项）</Text>
+                  <Text style={styles.itemsBtnArrow}>{t('procViewDetail')} ›</Text>
+                </TouchableOpacity>
                 {batch.images?.length > 0 && (
                   <View style={styles.histImages}>
                     {batch.images.map((img, i) => <Image key={i} source={{ uri: img }} style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />)}
@@ -842,7 +875,7 @@ export default function ProcurementScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.drawerBody}>
-              {/* Date + Category inline */}
+              {/* Date + Category — single line */}
               <View style={styles.dateCatRow}>
                 <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
@@ -854,8 +887,6 @@ export default function ProcurementScreen() {
                       style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
                     })}
                   </View>
-                </View>
-                <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
                   <Text style={{ fontSize: 13, color: c.textSub }}>{t('procPurchase')}</Text>
                 </View>
@@ -922,16 +953,17 @@ export default function ProcurementScreen() {
                 <Text style={styles.itemsBtnArrow}>{t('procViewDetail')} ›</Text>
               </TouchableOpacity>
 
-              {/* Total + Note + Submit */}
-              <Text style={{ fontSize: 13, fontWeight: '600', color: c.textMain, marginBottom: 6 }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
-
               <Text style={styles.sectionLabel}>{t('procNoteOptional')}</Text>
               <TextInput style={{ paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12), borderRadius: 8, fontSize: 13, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' } as any}
-                value={orderNote} onChangeText={setOrderNote} placeholder={t('procNoteOptional')} placeholderTextColor={c.textSub} />
+                value={orderNote} onChangeText={setOrderNote} placeholder={t('procNowBatch').replace('{n}', String(stats.batch_count + 1))} placeholderTextColor={c.textSub} />
 
-              <TouchableOpacity style={[styles.submitBtn, cartCount === 0 && styles.submitBtnDisabled]} onPress={submitOrder} disabled={cartCount === 0 || submitting}>
-                {submitting ? <ActivityIndicator color={c.surface} /> : <Text style={styles.submitBtnText}>{t('procSubmit')}</Text>}
-              </TouchableOpacity>
+              {/* Total + Submit inline */}
+              <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginTop: 8 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700' as const, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
+                <TouchableOpacity style={[styles.submitBtn, cartCount === 0 && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]} onPress={submitOrder} disabled={cartCount === 0 || submitting}>
+                  {submitting ? <ActivityIndicator color={c.surface} /> : <Text style={[styles.submitBtnText, { fontSize: 14 }]}>{t('procSubmit')}</Text>}
+                </TouchableOpacity>
+              </View>
             </ScrollView>
           </Animated.View>
         </>
@@ -948,16 +980,16 @@ export default function ProcurementScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.itemsModalBody}>
-              {cartItems.map(item => (
-                <View key={item.product.id} style={styles.itemsRow}>
-                  <Text style={styles.itemsRowName}>{item.product.name}</Text>
+              {detailItems.map((item, idx) => (
+                <View key={idx} style={styles.itemsRow}>
+                  <Text style={styles.itemsRowName}>{item.name}</Text>
                   <Text style={styles.itemsRowQty}>×{item.quantity}</Text>
                   <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
                 </View>
               ))}
               <View style={styles.itemsTotalRow}>
                 <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
-                <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
+                <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
               </View>
             </ScrollView>
           </Animated.View>
