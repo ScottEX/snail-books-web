@@ -844,7 +844,7 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 }
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: withAlpha(colors.warning, 0.1) },
+  container: { flex: 1, backgroundColor: colors.bg },
   bgLayer: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
