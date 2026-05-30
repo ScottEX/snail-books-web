@@ -212,6 +212,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             </TouchableOpacity>
           </View>
           {/* Three vertical pair groups */}
+          <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false}>
           <View style={st.pairRow}>
             {/* Group 1: 账面余额 / 卡余额 */}
             <View style={st.pairCol}>
@@ -267,6 +268,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               </View>
             ))}
           </View>
+          </ScrollView>
         </View>
       </View>
     );
