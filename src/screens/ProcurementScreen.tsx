@@ -203,9 +203,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   sectionLabel: { fontSize: 11, fontWeight: '500' as const, color: c.textSub, marginBottom: 6 },
   payRow: { flexDirection: 'row' as const, gap: 6, marginBottom: 12 },
   payChip: {
-    flex: 1, flexDirection: 'row' as const, paddingVertical: 8, borderRadius: 22,
+    flex: 1, paddingVertical: 8, borderRadius: 22,
     backgroundColor: withAlpha(c.textMain, 0.04),
-    alignItems: 'center' as const, justifyContent: 'center' as const,
+    alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4,
   },
   payChipOn: { backgroundColor: c.primary },
   payChipOnWechat: { backgroundColor: '#07C160' },
@@ -937,7 +937,9 @@ export default function ProcurementScreen() {
                 </TouchableOpacity>
                 {receipts.map((img, i) => (
                   <View key={`rec-${i}`} style={styles.imgPreview}>
-                    <Image source={{ uri: img }} style={{ width: 80, height: 80, borderRadius: 12 }} />
+                    {React.createElement('img', {
+                      src: img, style: { width: 80, height: 80, borderRadius: 12, objectFit: 'cover' } as any,
+                    })}
                     <TouchableOpacity style={styles.imgRemove} onPress={() => removeReceipt(i)} activeOpacity={0.7}>
                       <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
                         <Path d="M18 6L6 18M6 6l12 12" />
