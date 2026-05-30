@@ -156,7 +156,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 2 }}><Rect x="2" y="4" width="20" height="16" rx="2"/><Path d="M2 10h20"/><Rect x="5" y="14" width="3" height="2" rx="0.5"/></Svg><Text style={st.cardPairLabel}>{t('cardBalance')}</Text></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><Rect x="2" y="4" width="20" height="16" rx="2"/><Path d="M2 10h20"/><Rect x="5" y="14" width="3" height="2" rx="0.5"/></Svg><Text style={st.cardPairLabel}>{t('cardBalance')}</Text></View>
             <Text style={st.cardPairVal}>{fmtAmt(r.card_balance)}</Text>
           </View>
         </View>
@@ -168,7 +168,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 2 }}><Rect x="2" y="5" width="20" height="14" rx="2"/><Circle cx="12" cy="12" r="2.5"/><Path d="M18.5 9l-1 0M18.5 15l-1 0M5.5 9l1 0M5.5 15l1 0"/></Svg><Text style={st.cardPairLabel}>{t('cashBalance')}</Text></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><Rect x="2" y="5" width="20" height="14" rx="2"/><Circle cx="12" cy="12" r="2.5"/><Path d="M18.5 9l-1 0M18.5 15l-1 0M5.5 9l1 0M5.5 15l1 0"/></Svg><Text style={st.cardPairLabel}>{t('cashBalance')}</Text></View>
             <Text style={st.cardPairVal}>{fmtAmt(r.cash_balance)}</Text>
           </View>
         </View>
@@ -224,7 +224,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               </View>
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 2 }}><Rect x="2" y="4" width="20" height="16" rx="2"/><Path d="M2 10h20"/><Rect x="5" y="14" width="3" height="2" rx="0.5"/></Svg><Text style={st.pairLabel}>{t('cardBalance')}</Text></View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><Rect x="2" y="4" width="20" height="16" rx="2"/><Path d="M2 10h20"/><Rect x="5" y="14" width="3" height="2" rx="0.5"/></Svg><Text style={st.pairLabel}>{t('cardBalance')}</Text></View>
                 <Text style={st.pairVal}>{fmtAmt(r.card_balance)}</Text>
               </View>
             </View>
@@ -236,7 +236,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               </View>
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 2 }}><Rect x="2" y="5" width="20" height="14" rx="2"/><Circle cx="12" cy="12" r="2.5"/><Path d="M18.5 9l-1 0M18.5 15l-1 0M5.5 9l1 0M5.5 15l1 0"/></Svg><Text style={st.pairLabel}>{t('cashBalance')}</Text></View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><Rect x="2" y="5" width="20" height="14" rx="2"/><Circle cx="12" cy="12" r="2.5"/><Path d="M18.5 9l-1 0M18.5 15l-1 0M5.5 9l1 0M5.5 15l1 0"/></Svg><Text style={st.pairLabel}>{t('cashBalance')}</Text></View>
                 <Text style={st.pairVal}>{fmtAmt(r.cash_balance)}</Text>
               </View>
             </View>
