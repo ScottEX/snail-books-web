@@ -472,7 +472,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   cardPairLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
   cardPairVal: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain },
   cardPairDiv: { height: 1, backgroundColor: colors.bg, width: '60%', marginVertical: 2 },
-  tapHint: { fontSize: FONTS.micro.size, color: colors.secondary, textAlign: 'center', marginTop: 2 },
+  tapHint: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center', marginTop: 2 },
   /* Modal */
   mask: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
