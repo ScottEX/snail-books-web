@@ -202,6 +202,7 @@ export const api = {
   getProcurementBatches: (page = 1, perPage = 10) => authFetch(`/api/procurement-batches?page=${page}&per_page=${perPage}`),
   createProcurementBatch: (data: any) => authFetch('/api/procurement-batches', { method: 'POST', body: JSON.stringify(data) }),
   getProcurementBatchDetail: (id: number) => authFetch(`/api/procurement-batches/${id}`),
+  getProcurementStats: () => authFetch('/api/procurement-stats'),
 
   // Daily revenue (每日营收)
   getDailyRevenue: (page = 1, perPage = 30, year?: number, month?: number, date?: string, days?: number) => {

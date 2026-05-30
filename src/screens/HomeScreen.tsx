@@ -748,7 +748,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </View>
       )}
 
-      {/* Bottom Nav */}
+      {/* Bottom Nav — hidden on supply tab, shown everywhere else */}
+      {tab !== 'supply' && (
       <View style={styles.bottomNav}>
         {([
           { id: 'expense', icon: NavIconAdd },
@@ -777,6 +778,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           </TouchableOpacity>
         ))}
       </View>
+      )}
       {/* Hidden file input for background upload */}
       <input
         ref={fileRef}
@@ -816,8 +818,10 @@ function NavIconSupply({ active, colors }: { active: boolean; colors: ThemeColor
   const c = active ? colors.textMain : colors.textSub;
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
-      <Path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
+      <Path d="M9 2a2 2 0 012-2h2a2 2 0 012 2v0a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      <Path d="M2 9l1.34 9.34A2 2 0 005.32 20h13.36a2 2 0 001.98-1.66L22 9" />
+      <Path d="M14 12a2 2 0 11-4 0" />
+      <Path d="M3 9h18" />
     </Svg>
   );
 }
