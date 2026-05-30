@@ -12,6 +12,7 @@ import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
+import SlideScreen from '../components/SlideScreen';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
@@ -345,18 +346,15 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           <PartnerScreen onBack={() => setTab('list')} />
         ) : tab === 'supply' ? (
           <ProcurementScreen />
-        ) : showExpenseHistory ? (
-          <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />
-        ) : showDailyHistory ? (
-          <DailyRevenueHistory onBack={() => setShowDailyHistory(false)} />
-        ) : showReconHistory ? (
-          <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />
-        ) : tab === 'expense' ? (
-          <ExpenseScreen onReconHistory={() => setShowReconHistory(true)} onExpenseHistory={() => setShowExpenseHistory(true)} />
         ) : (
           <>
-            {/* Tab Content */}
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {/* Underlying tab content */}
+            {tab === 'expense' ? (
+              <ExpenseScreen onReconHistory={() => setShowReconHistory(true)} onExpenseHistory={() => setShowExpenseHistory(true)} />
+            ) : (
+              <>
+                {/* Tab Content */}
+                <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
                 <View style={{ paddingBottom: 120, paddingTop: 14 }}>
                   {/* ── 每日营收录入卡片 ── */}
@@ -626,7 +624,20 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             </ScrollView>
           </>
         )}
-      </View>
+
+          {/* Slide-screen overlays */}
+          <SlideScreen visible={showExpenseHistory} onClose={() => setShowExpenseHistory(false)}>
+            {(onBack) => <ExpenseHistoryScreen onBack={onBack} />}
+          </SlideScreen>
+          <SlideScreen visible={showDailyHistory} onClose={() => setShowDailyHistory(false)}>
+            {(onBack) => <DailyRevenueHistory onBack={onBack} />}
+          </SlideScreen>
+          <SlideScreen visible={showReconHistory} onClose={() => setShowReconHistory(false)}>
+            {(onBack) => <ReconHistoryScreen onBack={onBack} />}
+          </SlideScreen>
+        </>
+      )}
+    </View>
 
       {/* Background settings modal */}
       {showBgModal && (
