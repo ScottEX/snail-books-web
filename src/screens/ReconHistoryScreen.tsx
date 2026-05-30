@@ -550,14 +550,14 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     padding: 12, gap: 8,
   },
   filterField: {
-    gap: 3,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
   },
   filterLabel: {
     fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub,
-    paddingLeft: 2,
+    width: 64, flexShrink: 0,
   },
   filterDateRange: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
+    flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6,
   },
   filterDateInput: {
     flex: 1,
@@ -595,7 +595,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textSub,
   },
   filterSelectWrap: {
-    position: 'relative',
+    flex: 1, position: 'relative',
   },
   filterSelect: {
     width: '100%',
