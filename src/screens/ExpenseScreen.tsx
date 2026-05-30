@@ -926,7 +926,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <View key={`img-${i}`} style={st.imgPreview}>
                     {React.createElement('img', {
                       src: URL.createObjectURL(file),
-                      style: { width: 95, height: 95, borderRadius: 12, objectFit: 'cover' },
+                      style: { width: 90, height: 90, borderRadius: 12, objectFit: 'cover' },
                       alt: file.name,
                     })}
                     <TouchableOpacity style={st.imgRemove}

@@ -967,7 +967,7 @@ export default function ProcurementScreen() {
                 {receipts.map((file, i) => (
                   <View key={`rec-${i}`} style={styles.imgPreview}>
                     {React.createElement('img', {
-                      src: URL.createObjectURL(file), style: { width: 95, height: 95, borderRadius: 12, objectFit: 'cover' } as any,
+                      src: URL.createObjectURL(file), style: { width: 90, height: 90, borderRadius: 12, objectFit: 'cover' } as any,
                     })}
                     <TouchableOpacity style={styles.imgRemove} onPress={() => removeReceipt(i)} activeOpacity={0.7}>
                       <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
