@@ -78,5 +78,5 @@ export const filterDateArrow = (colors: ThemeColors) => ({
   fontWeight: '300' as const,
   marginHorizontal: 2,
   position: 'relative' as const,
-  top: -1,
+  top: -3,
 });
