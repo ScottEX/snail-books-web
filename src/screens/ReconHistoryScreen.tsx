@@ -615,4 +615,4 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Reconciler in card */
   reconByRow: { alignItems: 'center', paddingBottom: 2 },
   reconByText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
-});
+} as any);

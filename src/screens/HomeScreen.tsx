@@ -1106,4 +1106,4 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   /* Note display */
   rev7CardNote: { borderTopWidth: 0.5, borderTopColor: colors.secondary, paddingTop: 8, marginTop: 4 },
   rev7CardNoteText: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 16 },
-});
+} as any);

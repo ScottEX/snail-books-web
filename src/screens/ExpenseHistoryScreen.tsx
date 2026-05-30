@@ -356,7 +356,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   );
 }
 
-const getSt = (colors: ThemeColors) => StyleSheet.create({
+const getSt = (colors: ThemeColors): any => StyleSheet.create({
   /* Root — flex: 1, no background (page bg from parent) */
   root: { flex: 1 },
   ...historyHeader(colors),
@@ -445,6 +445,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   filterLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub, width: 64, flexShrink: 0 },
   filterDateRange: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  // @ts-ignore outline is web-only CSS, not in RN types
   filterDateInput: {
     flex: 1, height: 34, paddingHorizontal: 8,
     backgroundColor: colors.surface, borderRadius: 6,
@@ -484,4 +485,4 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.primary, borderRadius: 8,
   },
   filterApplyBtnText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
-});
+} as any);
