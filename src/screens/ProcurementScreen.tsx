@@ -8,7 +8,7 @@ import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation } from '../sharedStyles';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = '现金' | '微信' | '支付宝';
@@ -286,7 +286,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     ...modalCardAnimation, },
   modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   modalTitle: { fontSize: FONTS.sub.size, fontWeight: '700' as const, color: c.surface },
-  modalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
+  modalClose: { ...modalClose, },
   modalBody: { padding: 24 },
   modalInput: { paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12), borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 10, outline: 'none' },
   modalBtnRow: { flexDirection: 'row' as const, gap: 8, marginTop: 10 },

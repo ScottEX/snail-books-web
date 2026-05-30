@@ -7,7 +7,7 @@ import { FilterBackdrop } from '../components/FilterBackdrop';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation } from '../sharedStyles';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 const PAGE_SIZE = 10;
 
@@ -503,7 +503,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   modalDate: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
   modalDateSub: { fontSize: FONTS.micro.size, fontWeight: '400', color: withAlpha(colors.surface, 0.75), marginTop: 2 },
-  modalClose: { fontSize: FONTS.h2.size, fontWeight: '400', color: colors.surface, paddingLeft: 8 },
+  modalClose: { ...modalClose, paddingLeft: 8 },
   /* Three vertical pairs */
   pairRow: {
     flexDirection: 'row', paddingVertical: 16, paddingHorizontal: 10,

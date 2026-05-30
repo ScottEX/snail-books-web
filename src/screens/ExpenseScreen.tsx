@@ -8,7 +8,7 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation } from '../sharedStyles';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 /* ── helpers ── */
 const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -1706,7 +1706,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
   modalTitle: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
-  modalClose: { color: withAlpha(colors.danger, 0.1), fontSize: FONTS.h2.size },
+  modalClose: { ...modalClose, },
   modalBtn: {
     flex: 1, backgroundColor: colors.primary, borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',

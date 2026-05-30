@@ -10,3 +10,10 @@ export const modalCardAnimation = {
   animationDuration: '0.2s',
   animationTimingFunction: 'ease',
 };
+
+/** Modal close button (✕) — white at 70% opacity, light weight. Used on dark primary headers. */
+export const modalClose = {
+  fontSize: 18,
+  color: 'rgba(255,255,255,0.7)',
+  fontWeight: '300' as const,
+};

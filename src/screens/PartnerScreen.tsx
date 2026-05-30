@@ -6,7 +6,7 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation } from '../sharedStyles';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 // NOTE: 合伙人持股/初始投资/姓名映射硬编码。若后端合伙人变更（增减/改名），
 // 默认值（33%、42900）可能不准确。理想方案是从后端返回并缓存这些映射。
@@ -660,7 +660,7 @@ const getMo = (colors: ThemeColors) => StyleSheet.create({
   header: { backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.surface },
   sub: { fontSize: FONTS.micro.size, color: withAlpha(colors.danger, 0.1), marginTop: 2 },
-  close: { color: withAlpha(colors.danger, 0.1), fontSize: FONTS.h2.size },
+  close: { ...modalClose, },
 });
 
 const getMoBody = (colors: ThemeColors) => StyleSheet.create({

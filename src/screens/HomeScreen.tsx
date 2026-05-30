@@ -12,7 +12,7 @@ import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
-import { modalCardAnimation } from '../sharedStyles';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
@@ -1009,7 +1009,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   modalTitle: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.surface },
-  modalClose: { fontSize: FONTS.h2.size, color: withAlpha(colors.surface, 0.7), fontWeight: '300' },
+  modalClose: { ...modalClose, },
   modalBodyBg: { padding: 24 },
   modalHint: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
   bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
