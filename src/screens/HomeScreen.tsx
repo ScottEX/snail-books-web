@@ -638,8 +638,49 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             </View>
             <View style={styles.modalBodyBg}>
               <Text style={styles.modalHint}>{t('bgHint')}</Text>
+
+              {/* ── Theme Picker ── */}
+              <View style={{ marginTop: 20 }}>
+                <Text style={{ fontSize: 11, color: colors.textMain, fontWeight: '500', marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
+                {allThemes.map((theme) => {
+                  const isActive = theme.colors.primary === colors.primary;
+                  const previewBg = theme.colors.bg;
+                  return (
+                    <TouchableOpacity
+                      key={theme.id}
+                      onPress={() => setTheme(theme.id)}
+                      style={{
+                        flexDirection: 'row', alignItems: 'center',
+                        padding: 12, borderRadius: 12, marginBottom: 8,
+                        backgroundColor: isActive ? withAlpha(colors.primary, 0.06) : colors.surface,
+                        borderWidth: 1.5,
+                        borderColor: isActive ? colors.primary : colors.secondary,
+                      }}
+                    >
+                      {/* Color preview dots */}
+                      <View style={{ flexDirection: 'row', gap: 4, marginRight: 12 }}>
+                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.primary }} />
+                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.bg, borderWidth: 1, borderColor: colors.secondary }} />
+                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.accent }} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 12, fontWeight: isActive ? '700' : '500', color: colors.textMain }}>
+                          {theme.nameZh}
+                        </Text>
+                        <Text style={{ fontSize: 10, color: colors.textSub, marginTop: 1 }}>
+                          {theme.description}
+                        </Text>
+                      </View>
+                      {isActive && (
+                        <Text style={{ fontSize: 13, color: colors.primary }}>✓</Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
               {/* Opacity slider */}
-              <View style={{ marginTop: 16 }}>
+              <View style={{ marginTop: 20 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <Text style={{ fontSize: 11, color: colors.textMain, fontWeight: '500' }}>{t('opacity')}</Text>
                   <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary }}>{Math.round(bgOpacity * 100)}%</Text>
@@ -681,50 +722,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 </View>
                 {/* tick labels */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
-                  <Text style={{ fontSize: 9, color: colors.secondary }}>0</Text>
-                  <Text style={{ fontSize: 9, color: colors.secondary }}>50</Text>
-                  <Text style={{ fontSize: 9, color: colors.secondary }}>100</Text>
+                  <Text style={{ fontSize: 9, color: colors.textSub }}>0</Text>
+                  <Text style={{ fontSize: 9, color: colors.textSub }}>50</Text>
+                  <Text style={{ fontSize: 9, color: colors.textSub }}>100</Text>
                 </View>
-              </View>
-
-              {/* ── Theme Picker ── */}
-              <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: 11, color: colors.textMain, fontWeight: '500', marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
-                {allThemes.map((theme) => {
-                  const isActive = theme.colors.primary === colors.primary;
-                  const previewBg = theme.colors.bg;
-                  return (
-                    <TouchableOpacity
-                      key={theme.id}
-                      onPress={() => setTheme(theme.id)}
-                      style={{
-                        flexDirection: 'row', alignItems: 'center',
-                        padding: 12, borderRadius: 12, marginBottom: 8,
-                        backgroundColor: isActive ? withAlpha(colors.primary, 0.06) : colors.surface,
-                        borderWidth: 1.5,
-                        borderColor: isActive ? colors.primary : colors.secondary,
-                      }}
-                    >
-                      {/* Color preview dots */}
-                      <View style={{ flexDirection: 'row', gap: 4, marginRight: 12 }}>
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.primary }} />
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.bg, borderWidth: 1, borderColor: colors.secondary }} />
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.accent }} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 12, fontWeight: isActive ? '700' : '500', color: colors.textMain }}>
-                          {theme.nameZh}
-                        </Text>
-                        <Text style={{ fontSize: 10, color: colors.textSub, marginTop: 1 }}>
-                          {theme.description}
-                        </Text>
-                      </View>
-                      {isActive && (
-                        <Text style={{ fontSize: 13, color: colors.primary }}>✓</Text>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
               </View>
 
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
