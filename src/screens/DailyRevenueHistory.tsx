@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
+import { FilterBackdrop } from '../components/FilterBackdrop';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -104,7 +105,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       {/* Filter panel — matches ReconHistoryScreen */}
       {showFilter && (
         <>
-          <TouchableOpacity style={st.filterOverlay} onPress={() => setShowFilter(false)} activeOpacity={1} />
+          <FilterBackdrop onPress={() => setShowFilter(false)} />
           <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <View style={st.filterField}>
@@ -304,7 +305,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
 
   /* Filter panel — matches ReconHistoryScreen */
-  filterOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', zIndex: 88 },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: colors.surface, borderRadius: 10,
