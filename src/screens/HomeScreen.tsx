@@ -263,6 +263,50 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     if (tab === 'supply') { loadProducts(); loadProcurements(); }
   }, [tab]);
 
+  // ── Inject glass-slider CSS ──
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const id = 'glass-slider-css';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+      .glass-slider {
+        -webkit-appearance: none; appearance: none;
+        width: 100%; height: 32px; background: transparent; cursor: pointer;
+        position: relative; z-index: 2;
+      }
+      .glass-slider:focus { outline: none; }
+      .glass-slider::-webkit-slider-thumb {
+        -webkit-appearance: none; appearance: none;
+        width: 22px; height: 22px; border-radius: 50%;
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(12px) saturate(180%);
+        -webkit-backdrop-filter: blur(12px) saturate(180%);
+        border: 1px solid rgba(255,255,255,0.55);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.04);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .glass-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
+        box-shadow: 0 3px 14px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.04);
+      }
+      .glass-slider::-webkit-slider-thumb:active {
+        transform: scale(1.05);
+        background: rgba(255,255,255,0.85);
+      }
+      .glass-slider::-moz-range-thumb {
+        width: 22px; height: 22px; border-radius: 50%;
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(12px) saturate(180%);
+        border: 1px solid rgba(255,255,255,0.55);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+        cursor: pointer;
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
+
   const handleAddTx = async () => {
     if (!amount || !category || !account) return;
     await api.createTransaction({ type: txType, amount: parseFloat(amount), category, account, note });
@@ -710,41 +754,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     width: `${bgOpacity * 100}%`,
                     backgroundColor: colors.primary,
                   }} />
-                  {/* Glass slider */}
-                  <style>{`
-                    .glass-slider {
-                      -webkit-appearance: none; appearance: none;
-                      width: 100%; height: 32px; background: transparent; cursor: pointer;
-                      position: relative; z-index: 2;
-                    }
-                    .glass-slider:focus { outline: none; }
-                    .glass-slider::-webkit-slider-thumb {
-                      -webkit-appearance: none; appearance: none;
-                      width: 22px; height: 22px; border-radius: 50%;
-                      background: rgba(255,255,255,0.72);
-                      backdrop-filter: blur(12px) saturate(180%);
-                      -webkit-backdrop-filter: blur(12px) saturate(180%);
-                      border: 1px solid rgba(255,255,255,0.55);
-                      box-shadow: 0 2px 10px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.04);
-                      transition: transform 0.15s ease, box-shadow 0.15s ease;
-                    }
-                    .glass-slider::-webkit-slider-thumb:hover {
-                      transform: scale(1.15);
-                      box-shadow: 0 3px 14px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.04);
-                    }
-                    .glass-slider::-webkit-slider-thumb:active {
-                      transform: scale(1.05);
-                      background: rgba(255,255,255,0.85);
-                    }
-                    .glass-slider::-moz-range-thumb {
-                      width: 22px; height: 22px; border-radius: 50%;
-                      background: rgba(255,255,255,0.72);
-                      backdrop-filter: blur(12px) saturate(180%);
-                      border: 1px solid rgba(255,255,255,0.55);
-                      box-shadow: 0 2px 10px rgba(0,0,0,0.10);
-                      cursor: pointer;
-                    }
-                  `}</style>
                   <input
                     type="range"
                     className="glass-slider"
