@@ -569,7 +569,7 @@ function TableGroup({ title, type, total, items, themeColors, styles, onDelete }
         </View>
       </View>
       {items.map((item, i) => (
-        <View key={i} style={[styles.tbodyRow, i > 0 && styles.rowBorder]}>
+        <View key={i} style={styles.tbodyRow}>
           <Text style={styles.tdName}>{item.name}
             {item.sub ? <Text style={styles.tdSub}> · {item.sub}</Text> : null}
           </Text>
