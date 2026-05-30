@@ -24,6 +24,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [devCode, setDevCode] = useState('');  // dev mode: verification code
   const codeRef = useRef<any>(null);
   const { colors } = useTheme();
 
@@ -35,7 +36,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     }
   }, []);
 
-  const reset = () => { setMsg(''); setMsgOk(false); };
+  const reset = () => { setMsg(''); setMsgOk(false); setDevCode(''); };
   const goLogin = () => {
     setStep('login'); reset();
     // restore saved login username
@@ -103,7 +104,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setLoading(true);
     const r = await api.register(username, password, email);
     setLoading(false);
-    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('verify'); setTimeout(() => codeRef.current?.focus(), 100); }
+    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setDevCode(r.dev_code || ''); setStep('verify'); setTimeout(() => codeRef.current?.focus(), 100); }
     else { setMsg(r.message); triggerShake(); }
   };
 
@@ -125,7 +126,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setLoading(true);
     const r = await api.forgotPassword(email);
     setLoading(false);
-    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('reset'); setTimeout(() => codeRef.current?.focus(), 100); }
+    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setDevCode(r.dev_code || ''); setStep('reset'); setTimeout(() => codeRef.current?.focus(), 100); }
     else setMsg(r.message);
   };
 
@@ -141,9 +142,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     else { setMsg(r.message); triggerShake(); }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (resendCooldown > 0) return;
-    api.resendCode(email);
+    const r = await api.resendCode(email);
+    if (r.dev_code) setDevCode(r.dev_code);
     setResendCooldown(30);
     const iv = setInterval(() => {
       setResendCooldown(c => { if (c <= 1) { clearInterval(iv); return 0; } return c - 1; });
@@ -327,6 +329,12 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <Text style={styles.infoText}>
                 {t('verifySent') || 'Code sent to'} <Text style={styles.infoStrong}>{email}</Text>
               </Text>
+              {devCode !== '' && (
+                <View style={styles.devCodeCard}>
+                  <Text style={styles.devCodeLabel}>{t('devCodeLabel') || '🔧 Dev Mode — Verification Code'}</Text>
+                  <Text style={styles.devCodeValue}>{devCode}</Text>
+                </View>
+              )}
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('verifyCode')}</Text>
                 <TextInput ref={codeRef} style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
@@ -372,6 +380,12 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <Text style={styles.infoText}>
                 {t('resetHint') || 'Code sent to'} <Text style={styles.infoStrong}>{email}</Text>
               </Text>
+              {devCode !== '' && (
+                <View style={styles.devCodeCard}>
+                  <Text style={styles.devCodeLabel}>{t('devCodeLabel') || '🔧 Dev Mode — Verification Code'}</Text>
+                  <Text style={styles.devCodeValue}>{devCode}</Text>
+                </View>
+              )}
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('verifyCode')}</Text>
                 <TextInput ref={codeRef} style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
@@ -498,5 +512,13 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   disabledText: { opacity: 0.3 },
   infoText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
   infoStrong: { fontWeight: '600', color: colors.surface },
+  devCodeCard: {
+    backgroundColor: withAlpha(colors.warning, 0.15), borderRadius: 12, padding: 16,
+    alignItems: 'center', borderWidth: 1, borderColor: withAlpha(colors.warning, 0.3),
+    // @ts-ignore
+    backdropFilter: 'blur(8px)',
+  },
+  devCodeLabel: { fontSize: 11, color: colors.warning, fontWeight: '500', marginBottom: 8 },
+  devCodeValue: { fontSize: 28, fontWeight: '700', color: colors.surface, letterSpacing: 8 },
   copyright: { fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });
