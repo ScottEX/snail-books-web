@@ -676,8 +676,8 @@ const getMoBody = (colors: ThemeColors) => StyleSheet.create({
   cancelBtnText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
   confirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   confirmBtnText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.surface },
-  deleteConfirmBtn: { flex: 1, backgroundColor: colors.danger, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  deleteBox: { backgroundColor: withAlpha(colors.danger, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' },
+  deleteConfirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  deleteBox: { backgroundColor: withAlpha(colors.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' },
   deleteText: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
 });
 
