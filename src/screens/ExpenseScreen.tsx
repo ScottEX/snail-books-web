@@ -1176,25 +1176,25 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
-                  { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: '#4A7299' as const },
-                  { label: t('meituanWaimai'), value: f.meituan_waimai || 0, color: '#D59A53' as const },
-                  { label: t('shangouWaimai'), value: f.eleme_waimai || 0, color: '#4A7299' as const },
-                  { label: t('meituanTuan'), value: f.meituan_tuan || 0, color: '#4C7A5D' as const },
+                  { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: colors.info },
+                  { label: t('meituanWaimai'), value: f.meituan_waimai || 0, color: colors.warning },
+                  { label: t('shangouWaimai'), value: f.eleme_waimai || 0, color: colors.info },
+                  { label: t('meituanTuan'), value: f.meituan_tuan || 0, color: colors.success },
                 ];
                 return (
-                  <View key={f.id} style={{ backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#EAE5E0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as any}>
+                  <View key={f.id} style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: colors.secondary, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as any}>
                     {/* Header: date + total */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-                      <Text style={{ fontSize: 14, color: '#2C2626', fontWeight: '600' }}>{fmtMonth(f.year, f.month)}</Text>
-                      <Text style={{ fontSize: 16, color: '#7D2329', fontWeight: '700', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>¥{monthTotal.toFixed(2)}</Text>
+                      <Text style={{ fontSize: 14, color: colors.textMain, fontWeight: '600' }}>{fmtMonth(f.year, f.month)}</Text>
+                      <Text style={{ fontSize: 16, color: colors.primary, fontWeight: '700', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>¥{monthTotal.toFixed(2)}</Text>
                     </View>
                     {/* Sub items: 2x2 grid of platform fees */}
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                       {platforms.map((p) => (
-                        <View key={p.label} style={{ flex: 1, minWidth: '46%', flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9F7F4', borderRadius: 6, paddingVertical: 6, paddingHorizontal: 8, gap: 6 }}>
+                        <View key={p.label} style={{ flex: 1, minWidth: '46%', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg, borderRadius: 6, paddingVertical: 6, paddingHorizontal: 8, gap: 6 }}>
                           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: p.color }} />
-                          <Text style={{ fontSize: 11, color: '#8C8583', fontWeight: '500', flex: 1 }}>{p.label}</Text>
-                          <Text style={{ fontSize: 12, color: '#2C2626', fontWeight: '600' }}>¥{p.value.toFixed(2)}</Text>
+                          <Text style={{ fontSize: 11, color: colors.textSub, fontWeight: '500', flex: 1 }}>{p.label}</Text>
+                          <Text style={{ fontSize: 12, color: colors.textMain, fontWeight: '600' }}>¥{p.value.toFixed(2)}</Text>
                         </View>
                       ))}
                     </View>
@@ -1224,7 +1224,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             top: pickerPos.top || '38%',
             left: pickerPos.left || 10,
             zIndex: 9999,
-            backgroundColor: '#fff',
+            backgroundColor: colors.surface,
             borderRadius: 14,
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
             paddingVertical: 6,
@@ -1235,29 +1235,29 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? 'rgba(179,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeMonth('all');
                 Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
               }}
               activeOpacity={0.6}
             >
-              <Text style={{ fontSize: 13, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? '#7D2329' : '#2C2626' }}>{t('feeAllMonths')}</Text>
+              <Text style={{ fontSize: 13, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
             </TouchableOpacity>
-            <View style={{ height: 1, backgroundColor: '#EAE5E0', marginHorizontal: 12, marginVertical: 4 }} />
+            <View style={{ height: 1, backgroundColor: colors.secondary, marginHorizontal: 12, marginVertical: 4 }} />
             {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
               const isSel = feeMonth !== 'all' && feeMonth.year === f.year && feeMonth.month === f.month;
               return (
                 <TouchableOpacity
                   key={`${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? 'rgba(179,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeMonth({ year: f.year, month: f.month });
                     Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
                   }}
                   activeOpacity={0.6}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#7D2329' : '#2C2626' }}>{fmtMonth(f.year, f.month)}</Text>
+                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? colors.primary : colors.textMain }}>{fmtMonth(f.year, f.month)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -1281,7 +1281,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             top: feeHistoryPickerPos.top || '38%',
             left: feeHistoryPickerPos.left || 10,
             zIndex: 9999,
-            backgroundColor: '#fff',
+            backgroundColor: colors.surface,
             borderRadius: 14,
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
             paddingVertical: 6,
@@ -1292,29 +1292,29 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? 'rgba(179,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeHistoryFilter('all');
                 Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
               }}
               activeOpacity={0.6}
             >
-              <Text style={{ fontSize: 13, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? '#7D2329' : '#2C2626' }}>{t('feeAllMonths')}</Text>
+              <Text style={{ fontSize: 13, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
             </TouchableOpacity>
-            <View style={{ height: 1, backgroundColor: '#EAE5E0', marginHorizontal: 12, marginVertical: 4 }} />
+            <View style={{ height: 1, backgroundColor: colors.secondary, marginHorizontal: 12, marginVertical: 4 }} />
             {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
               const isSel = feeHistoryFilter !== 'all' && feeHistoryFilter.year === f.year && feeHistoryFilter.month === f.month;
               return (
                 <TouchableOpacity
                   key={`hf-${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? 'rgba(179,65,73,0.1)' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeHistoryFilter({ year: f.year, month: f.month });
                     Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
                   }}
                   activeOpacity={0.6}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#7D2329' : '#2C2626' }}>{fmtMonth(f.year, f.month)}</Text>
+                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? colors.primary : colors.textMain }}>{fmtMonth(f.year, f.month)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -1344,7 +1344,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
     width: 'calc(100vw - 61px)', height: 120,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
-    backgroundImage: 'linear-gradient(90deg, rgba(125,35,41,0.22) 0%, rgba(74,114,153,0.22) 100%)',
+    backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
     paddingHorizontal: 16, paddingVertical: 14,
@@ -1375,7 +1375,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     textShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   tabTitleActive: {
-    color: '#FFFFFF', fontWeight: '700',
+    color: colors.surface, fontWeight: '700',
     // @ts-ignore
     textShadow: '0 1px 4px rgba(0,0,0,0.15)',
   },
@@ -1411,7 +1411,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   tabStat: {
     fontSize: 28, fontWeight: '600', letterSpacing: -0.5,
     fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
-    color: '#FFFFFF',
+    color: colors.surface,
     // @ts-ignore
     textShadow: '0 1px 4px rgba(0,0,0,0.15)',
   },
@@ -1430,8 +1430,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 14,
     paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12,
     gap: 14,
-    backgroundColor: '#F9F7F4',
-    borderWidth: 0.5, borderColor: '#EAE5E0',
+    backgroundColor: colors.bg,
+    borderWidth: 0.5, borderColor: colors.secondary,
     // @ts-ignore
     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
   },
@@ -1441,11 +1441,11 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   dateText: {
-    fontSize: 14, fontWeight: '700', color: '#2C2626',
+    fontSize: 14, fontWeight: '700', color: colors.textMain,
     fontFamily: undefined,
   },
   dateInput: {
-    fontSize: 14, fontWeight: '600', color: '#2C2626',
+    fontSize: 14, fontWeight: '600', color: colors.textMain,
     borderWidth: 0, padding: 0, margin: 0,
     backgroundColor: 'transparent', fontFamily: 'inherit',
     // @ts-ignore
@@ -1455,17 +1455,17 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   } as any,
 
   /* ── Labels ── */
-  sectionLabel: { fontSize: 15, fontWeight: '700', color: '#2C2626' },
-  subLabel: { fontSize: 10, fontWeight: '700', color: '#8C8583', letterSpacing: 0.5, textTransform: 'uppercase' },
+  sectionLabel: { fontSize: 15, fontWeight: '700', color: colors.textMain },
+  subLabel: { fontSize: 10, fontWeight: '700', color: colors.textSub, letterSpacing: 0.5, textTransform: 'uppercase' },
 
   /* ── Inputs ── */
   row2: { flexDirection: 'row', gap: 12 },
   inputGroup: { flex: 1 },
-  inputLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500', marginBottom: 4 },
+  inputLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
   input: {
-    backgroundColor: '#F9F7F4', borderWidth: 1, borderColor: '#EAE5E0',
+    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary,
     borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12,
-    fontSize: 15, fontWeight: '600', color: '#2C2626', fontFamily: undefined,
+    fontSize: 15, fontWeight: '600', color: colors.textMain, fontFamily: undefined,
     // @ts-ignore
     outline: 'none',
   },
@@ -1476,17 +1476,17 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   channelChip: {
     flex: 1, minWidth: 60,
-    backgroundColor: '#F9F7F4',
-    borderRadius: 10, borderWidth: 1, borderColor: '#EAE5E0',
+    backgroundColor: colors.bg,
+    borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
     paddingVertical: 4, paddingHorizontal: 4,
     alignItems: 'center',
     gap: 2,
   },
   chipLabel: {
-    fontSize: 9, color: '#8C8583', fontWeight: '600',
+    fontSize: 9, color: colors.textSub, fontWeight: '600',
   },
   chipInput: {
-    fontSize: 14, fontWeight: '700', color: '#2C2626',
+    fontSize: 14, fontWeight: '700', color: colors.textMain,
     textAlign: 'center', paddingVertical: 2,
     fontFamily: undefined,
     width: '100%',
@@ -1498,73 +1498,73 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* ── Sum row ── */
   sumRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#F9F7F4', borderRadius: 10,
+    backgroundColor: colors.bg, borderRadius: 10,
     paddingVertical: 10, paddingHorizontal: 14,
   },
-  sumLabel: { fontSize: 11, color: '#8C8583', fontWeight: '500' },
-  sumVal: { fontSize: 16, fontWeight: '800', color: '#2C2626' },
+  sumLabel: { fontSize: 11, color: colors.textSub, fontWeight: '500' },
+  sumVal: { fontSize: 16, fontWeight: '800', color: colors.textMain },
 
   /* ── Result bar ── */
   resultBar: {
-    flexDirection: 'row', backgroundColor: '#F9F7F4',
+    flexDirection: 'row', backgroundColor: colors.bg,
     borderRadius: 14, padding: 16,
     alignItems: 'center',
   },
   resultItem: { flex: 1, alignItems: 'center' },
-  resultDivider: { width: 1, height: 32, backgroundColor: '#EAE5E0' },
-  resultLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500', marginBottom: 4 },
-  resultVal: { fontSize: 17, fontWeight: '700', color: '#2C2626' },
+  resultDivider: { width: 1, height: 32, backgroundColor: colors.secondary },
+  resultLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
+  resultVal: { fontSize: 17, fontWeight: '700', color: colors.textMain },
   resultDiff: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
   /* ── Recon buttons ── */
   btnRow: {
     flexDirection: 'row', gap: 10, marginTop: 4,
   },
   reconBtn: {
-    flex: 1, backgroundColor: '#7D2329', borderRadius: 12,
+    flex: 1, backgroundColor: colors.primary, borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
   },
   reconBtnText: {
-    fontSize: 15, fontWeight: '700', color: '#FFFFFF',
+    fontSize: 15, fontWeight: '700', color: colors.surface,
   },
   reconRecordBtn: {
-    flex: 1, backgroundColor: '#EAE5E0', borderRadius: 12,
+    flex: 1, backgroundColor: colors.secondary, borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
-    borderWidth: 1, borderColor: '#EAE5E0',
+    borderWidth: 1, borderColor: colors.secondary,
   },
   reconRecordBtnText: {
-    fontSize: 14, fontWeight: '600', color: '#2C2626',
+    fontSize: 14, fontWeight: '600', color: colors.textMain,
   },
 
   /* ── KPI ── */
   kpiRow: { flexDirection: 'row', gap: 12 },
   kpiCard: {
-    flex: 1, backgroundColor: '#F9F7F4',
+    flex: 1, backgroundColor: colors.bg,
     borderRadius: 14, padding: 16, alignItems: 'center',
-    borderWidth: 1, borderColor: '#EAE5E0',
+    borderWidth: 1, borderColor: colors.secondary,
   },
-  kpiLabel: { fontSize: 10, color: '#8C8583', fontWeight: '500', marginBottom: 4 },
-  kpiVal: { fontSize: 20, fontWeight: '800', color: '#2C2626' },
+  kpiLabel: { fontSize: 10, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
+  kpiVal: { fontSize: 20, fontWeight: '800', color: colors.textMain },
 
   /* ── Table ── */
   tableWrap: {
-    borderWidth: 1, borderColor: '#EAE5E0', borderRadius: 12, overflow: 'hidden',
+    borderWidth: 1, borderColor: colors.secondary, borderRadius: 12, overflow: 'hidden',
   },
-  tableHead: { backgroundColor: '#F9F7F4' },
+  tableHead: { backgroundColor: colors.bg },
   tableRow: {
-    flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#EAE5E0',
+    flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.secondary,
   },
-  td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: 12, color: '#2C2626' },
-  tdDate: { width: 90, color: '#8C8583', fontSize: 11 },
+  td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: 12, color: colors.textMain },
+  tdDate: { width: 90, color: colors.textSub, fontSize: 11 },
   tdCat: { flex: 1 },
   tdAmt: { width: 100, textAlign: 'right', fontWeight: '600' },
 
   /* ── Date row ── */
   expDateRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#F9F7F4', borderRadius: 10, padding: 12,
+    backgroundColor: colors.bg, borderRadius: 10, padding: 12,
   },
   expDateInput: {
-    fontSize: 14, fontWeight: '500', color: '#2C2626',
+    fontSize: 14, fontWeight: '500', color: colors.textMain,
     borderWidth: 0, padding: 0, backgroundColor: 'transparent',
     // @ts-ignore
     outline: 'none',
@@ -1574,12 +1574,12 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4, paddingHorizontal: 10 },
   imgAddBtn: {
     width: 80, height: 80, borderRadius: 12,
-    borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#EAE5E0',
-    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.secondary,
+    backgroundColor: colors.surface,
     alignItems: 'center', justifyContent: 'center',
     gap: 4,
   },
-  imgAddText: { fontSize: 10, color: '#8C8583', fontWeight: '500' },
+  imgAddText: { fontSize: 10, color: colors.textSub, fontWeight: '500' },
   imgPreview: { position: 'relative' as any },
   imgRemove: {
     position: 'absolute', top: 4, right: 4,
@@ -1588,20 +1588,20 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   imgTipBubble: {
-    backgroundColor: '#2C2626', borderRadius: 6,
+    backgroundColor: colors.textMain, borderRadius: 6,
     paddingHorizontal: 10, paddingVertical: 6,
   },
-  imgTipText: { fontSize: 11, color: '#FFFFFF', fontWeight: '500' },
+  imgTipText: { fontSize: 11, color: colors.surface, fontWeight: '500' },
 
   /* ── Expense form ── */
   expForm: { gap: 14 },
   /* Big amount input */
   bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
-  bigAmtLabel: { fontSize: 12, color: '#8C8583', fontWeight: '500', marginBottom: 8 },
+  bigAmtLabel: { fontSize: 12, color: colors.textSub, fontWeight: '500', marginBottom: 8 },
   bigAmtRow: { flexDirection: 'row', alignItems: 'flex-end' },
-  bigAmtSymbol: { fontSize: 32, fontWeight: '700', color: '#7D2329', marginRight: 6 },
+  bigAmtSymbol: { fontSize: 32, fontWeight: '700', color: colors.primary, marginRight: 6 },
   bigAmtInput: {
-    fontSize: 42, fontWeight: '700', color: '#2C2626',
+    fontSize: 42, fontWeight: '700', color: colors.textMain,
     borderWidth: 0, backgroundColor: 'transparent',
     textAlign: 'left', padding: 0,
     fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif',
@@ -1610,32 +1610,32 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     outline: 'none',
   },
   amtCursor: {
-    width: 40, height: 2, backgroundColor: '#7D2329',
+    width: 40, height: 2, backgroundColor: colors.primary,
     marginTop: 10, borderRadius: 1,
   },
   /* Category chips */
-  catSectionTitle: { fontSize: 12, color: '#2C2626', fontWeight: '700', marginBottom: 10 },
+  catSectionTitle: { fontSize: 12, color: colors.textMain, fontWeight: '700', marginBottom: 10 },
   catGrid: { flexDirection: 'row', gap: 8 },
   catGridWide: { gap: 8 },
   catRow: { flexDirection: 'row', width: '100%' as any, gap: 8, marginBottom: 6 },
   catChip: {
     flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
-    backgroundColor: '#F9F7F4', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
   },
-  catChipActive: { backgroundColor: '#7D2329' },
-  catChipText: { fontSize: 13, fontWeight: '600', color: '#8C8583' },
-  catChipTextActive: { color: '#FFFFFF' },
+  catChipActive: { backgroundColor: colors.primary },
+  catChipText: { fontSize: 13, fontWeight: '600', color: colors.textSub },
+  catChipTextActive: { color: colors.surface },
   /* Payment method chips */
   payGrid: { flexDirection: 'row', gap: 8 },
   payChip: {
     flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
-    backgroundColor: '#F9F7F4', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
   },
-  payChipActive: { backgroundColor: '#7D2329' },
-  payChipActiveWechat: { backgroundColor: '#4C7A5D' },
-  payChipActiveAlipay: { backgroundColor: '#4A7299' },
-  payChipText: { fontSize: 13, fontWeight: '600', color: '#8C8583' },
-  payChipTextActive: { color: '#FFFFFF' },
+  payChipActive: { backgroundColor: colors.primary },
+  payChipActiveWechat: { backgroundColor: colors.success },
+  payChipActiveAlipay: { backgroundColor: colors.info },
+  payChipText: { fontSize: 13, fontWeight: '600', color: colors.textSub },
+  payChipTextActive: { color: colors.surface },
   /* Chip icon circle */
   chipIconCircle: {
     width: 26, height: 26, borderRadius: 13,
@@ -1646,37 +1646,37 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
   /* Expense records */
   noteInput: {
-    fontSize: 14, color: '#2C2626',
-    borderWidth: 0, backgroundColor: '#F9F7F4',
+    fontSize: 14, color: colors.textMain,
+    borderWidth: 0, backgroundColor: colors.bg,
     borderRadius: 10, padding: 12, minHeight: 60,
     textAlignVertical: 'top',
     // @ts-ignore
     outline: 'none',
   },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  expCatLabel: { fontSize: 11, color: '#8C8583', fontWeight: '500' },
+  expCatLabel: { fontSize: 11, color: colors.textSub, fontWeight: '500' },
   expBtn: {
-    backgroundColor: '#7D2329', borderRadius: 12, paddingVertical: 14,
+    backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', position: 'relative', overflow: 'hidden',
   },
   expBtnMask: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 12,
   },
-  expBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  expBtnText: { color: colors.surface, fontSize: 14, fontWeight: '700' },
 
   /* ── Expense list ── */
   expRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: '#EAE5E0',
+    borderBottomWidth: 1, borderBottomColor: colors.secondary,
   },
-  expNote: { fontSize: 13, color: '#2C2626', fontWeight: '500' },
-  expDateText: { fontSize: 10, color: '#8C8583', marginTop: 2 },
-  expAmt: { fontSize: 15, fontWeight: '700', color: '#B34149' },
+  expNote: { fontSize: 13, color: colors.textMain, fontWeight: '500' },
+  expDateText: { fontSize: 10, color: colors.textSub, marginTop: 2 },
+  expAmt: { fontSize: 15, fontWeight: '700', color: colors.danger },
 
   /* ── Empty ── */
   empty: {
-    fontSize: 12, color: '#8C8583', textAlign: 'center', paddingVertical: 24,
+    fontSize: 12, color: colors.textSub, textAlign: 'center', paddingVertical: 24,
   },
 
   /* ── Modal ── */
@@ -1686,10 +1686,10 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   modalBackdrop: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(44,38,38,0.4)',
+    backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modalCard: {
-    backgroundColor: '#fff', borderRadius: 20, width: 320, maxWidth: '100%',
+    backgroundColor: colors.surface, borderRadius: 20, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
     animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
@@ -1697,25 +1697,25 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
   },
   modalHeader: {
-    backgroundColor: '#7D2329', paddingVertical: 14, paddingHorizontal: 20,
+    backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
-  modalTitle: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  modalClose: { color: 'rgba(179,65,73,0.1)', fontSize: 18 },
+  modalTitle: { fontSize: 14, fontWeight: '600', color: colors.surface },
+  modalClose: { color: withAlpha(colors.danger, 0.1), fontSize: 18 },
   modalBtn: {
-    flex: 1, backgroundColor: '#7D2329', borderRadius: 14,
+    flex: 1, backgroundColor: colors.primary, borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',
   },
-  modalBtnText: { fontSize: 13, fontWeight: '500', color: '#fff' },
+  modalBtnText: { fontSize: 13, fontWeight: '500', color: colors.surface },
   modalCancelBtn: {
-    flex: 1, backgroundColor: '#F9F7F4', borderRadius: 14,
+    flex: 1, backgroundColor: colors.bg, borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',
   },
-  modalCancelText: { fontSize: 13, fontWeight: '500', color: '#8C8583' },
+  modalCancelText: { fontSize: 13, fontWeight: '500', color: colors.textSub },
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     overflow: 'hidden',
     paddingBottom: 0,

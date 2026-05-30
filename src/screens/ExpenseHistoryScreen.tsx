@@ -440,7 +440,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
-  previewArrowText: { fontSize: 28, fontWeight: '300', color: '#FFFFFF', marginTop: -2 },
+  previewArrowText: { fontSize: 28, fontWeight: '300', color: colors.surface, marginTop: -2 },
   previewCounter: {
     position: 'absolute', bottom: 60, zIndex: 10,
     fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.7)',
