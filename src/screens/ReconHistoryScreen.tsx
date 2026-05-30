@@ -461,7 +461,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   dateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 8 },
   dateItem: { flex: 1, alignItems: 'center' },
   dateLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 2 },
-  dateVal: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain },
+  dateVal: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub },
   dateSep: { width: 1, height: 24, backgroundColor: colors.secondary },
   /* Card vertical pairs — plain, no background */
   cardPairRow: { flexDirection: 'row', gap: 4 },
@@ -564,7 +564,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 6,
     borderWidth: 1, borderColor: colors.secondary,
-    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textSub,
     fontFamily: 'inherit',
     outline: 'none',
   },
@@ -574,7 +574,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textMain },
+  filterDateText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
   filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: '400', color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -590,7 +590,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 6,
     borderWidth: 1, borderColor: colors.secondary,
-    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textSub,
   },
   filterSelectWrap: {
     position: 'relative',
@@ -603,7 +603,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 6,
     borderWidth: 1, borderColor: colors.secondary,
-    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textSub,
     fontFamily: 'inherit',
     outline: 'none',
     WebkitAppearance: 'none',
@@ -625,7 +625,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     backgroundColor: colors.secondary,
   },
-  filterResetBtnText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textMain },
+  filterResetBtnText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
   filterApplyBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',

@@ -394,7 +394,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       </View>
                       <View style={{ position: 'relative' }}>
                         <TouchableOpacity activeOpacity={1} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>
+                          <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub }}>
                             {revDate.replace(/-/g, '/')}
                           </Text>
                           <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>📅</Text>
@@ -515,7 +515,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textMain} strokeWidth={2} strokeLinecap="round">
                           <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6" />
                         </Svg>
-                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>{t('revHistory')}</Text>
+                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub }}>{t('revHistory')}</Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => { setShowDailyHistory(true); }}
@@ -641,7 +641,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
               {/* ── Theme Picker ── */}
               <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: FONTS.micro.size, color: colors.textMain, fontWeight: '500', marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
+                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
                 {allThemes.map((theme) => {
                   const isActive = theme.colors.primary === colors.primary;
                   const previewBg = theme.colors.bg;
@@ -664,7 +664,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.accent }} />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: FONTS.micro.size, fontWeight: isActive ? '700' : '500', color: colors.textMain }}>
+                        <Text style={{ fontSize: FONTS.micro.size, fontWeight: isActive ? '700' : '500', color: colors.textSub }}>
                           {theme.nameZh}
                         </Text>
                         <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 1 }}>
@@ -682,7 +682,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               {/* Opacity slider */}
               <View style={{ marginTop: 20 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textMain, fontWeight: '500' }}>{t('opacity')}</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' }}>{t('opacity')}</Text>
                   <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.primary }}>{Math.round(bgOpacity * 100)}%</Text>
                 </View>
                 <View style={{ position: 'relative', height: 32, justifyContent: 'center' }}>
@@ -908,7 +908,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   typeBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
   typeBtnIncText: { color: colors.success },
   typeBtnExpText: { color: colors.danger },
-  addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, fontSize: FONTS.sub.size, backgroundColor: colors.surface, color: colors.textMain, marginBottom: 8, fontFamily: undefined },
+  addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, fontSize: FONTS.sub.size, backgroundColor: colors.surface, color: colors.textSub, marginBottom: 8, fontFamily: undefined },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   catBtn: { fontSize: FONTS.micro.size, color: colors.textSub, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.secondary },
   catBtnActive: { color: colors.primary, borderColor: colors.primary, backgroundColor: withAlpha(colors.primary, 0.03) },
@@ -918,7 +918,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   sectionTitle: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub, paddingVertical: 10 },
   supplyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.secondary },
   supplyName: { fontSize: FONTS.sub.size, fontWeight: '500', flex: 1 },
-  supplyPrice: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain },
+  supplyPrice: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub },
   // Chart
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   barLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', width: 36, textAlign: 'right' },
@@ -977,7 +977,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   modalHint: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
   bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   bgBtnOutline: { borderWidth: 1, borderColor: colors.secondary },
-  bgBtnOutlineText: { fontSize: FONTS.micro.size, color: colors.textMain, fontWeight: '500' },
+  bgBtnOutlineText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
   bgBtnDanger: { borderWidth: 1, borderColor: withAlpha(colors.danger, 0.1) },
   bgBtnDangerText: { fontSize: FONTS.micro.size, color: colors.danger, fontWeight: '500' },
 
@@ -995,14 +995,14 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     flex: 1, backgroundColor: colors.surface, borderRadius: 10,
     padding: 10, borderWidth: 0.5, borderColor: colors.secondary,
   },
-  revInputCardTitle: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.textMain, marginBottom: 2 },
+  revInputCardTitle: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.textSub, marginBottom: 2 },
   revInputCardSub: { fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 8 },
   revInputCardInputWrap: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 6 },
-  revInputCardSymbol: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain, marginRight: 2, marginBottom: 1 },
+  revInputCardSymbol: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub, marginRight: 2, marginBottom: 1 },
   revInputCardInput: { flex: 1, fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain, padding: 0, outline: 'none' },
   revInputCardFooter: { fontSize: FONTS.micro.size, color: colors.textSub },
   revNoteInput: {
-    fontSize: FONTS.sub.size, color: colors.textMain, paddingVertical: 10, paddingHorizontal: 12,
+    fontSize: FONTS.sub.size, color: colors.textSub, paddingVertical: 10, paddingHorizontal: 12,
     backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
     marginBottom: 14, outline: 'none',
   },
@@ -1015,7 +1015,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', flex: 1,
   },
   revArchiveBtnDone: { backgroundColor: withAlpha(colors.success, 0.1) },
-  revArchiveText: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain },
+  revArchiveText: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub },
   revArchiveTextDone: { color: colors.success },
   // 7-day card items — same card style as history page
   rev7CardItem: {

@@ -317,7 +317,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textMain },
+  filterDateText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
   filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: '400', color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -329,7 +329,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.secondary, borderRadius: 8,
   },
-  filterResetBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textMain },
+  filterResetBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.primary, borderRadius: 8,

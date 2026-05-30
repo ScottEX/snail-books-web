@@ -45,7 +45,7 @@ const theme1: Theme = {
   nameZh: '勃艮第红与暖沙白',
   description: '温润、沉稳、经典',
   colors: {
-    bg: '#F9F7F4',
+    bg: '#FDFBF8',
     surface: '#FFFFFF',
     primary: '#7D2329',
     accent: '#7D2329',
@@ -128,17 +128,18 @@ export function withAlpha(hex: string, alpha: number): string {
 
 export interface FontToken {
   size: number;
-  weight: '400' | '500' | '600';
+  weight: '300' | '400' | '500' | '600' | '700' | '800';
+  color: 'textMain' | 'textSub';
   lineHeight: number;
 }
 
 export const FONTS = {
-  h1:     { size: 24, weight: '600' as const, lineHeight: 1.4 },
-  h2:     { size: 18, weight: '600' as const, lineHeight: 1.4 },
-  body:   { size: 16, weight: '500' as const, lineHeight: 1.5 },
-  sub:    { size: 14, weight: '400' as const, lineHeight: 1.5 },
-  micro:  { size: 12, weight: '400' as const, lineHeight: 1.5 },
-  amount: { size: 24, weight: '600' as const, lineHeight: 1.2 },
+  h1:     { size: 24, weight: '600' as const, color: 'textMain' as const, lineHeight: 1.4 },
+  h2:     { size: 18, weight: '600' as const, color: 'textMain' as const, lineHeight: 1.4 },
+  body:   { size: 16, weight: '500' as const, color: 'textMain' as const, lineHeight: 1.5 },
+  sub:    { size: 14, weight: '400' as const, color: 'textSub'  as const, lineHeight: 1.5 },
+  micro:  { size: 12, weight: '400' as const, color: 'textSub'  as const, lineHeight: 1.5 },
+  amount: { size: 24, weight: '600' as const, color: 'textMain' as const, lineHeight: 1.2 },
 } as const;
 
 // ═══════════════════════════════════════════

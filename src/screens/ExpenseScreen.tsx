@@ -1070,7 +1070,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: '500' }}>{t('entryDate')}</Text>
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }} activeOpacity={1}>
-                  <Text style={{ fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain }}>
+                  <Text style={{ fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub }}>
                     {(() => { return fmtLocalDate(feeEntryDate); })()}
                   </Text>
                   <Text style={{ fontSize: FONTS.h1.size, fontWeight: '700', color: colors.textSub, marginLeft: 4 }}>›</Text>
@@ -1104,7 +1104,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 const inputNum = toNum(row.val);
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
-                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.sub.size, color: colors.textMain, fontWeight: '500' }}>{t(row.k)}</Text>
+                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: '500' }}>{t(row.k)}</Text>
                     <Text style={{ width: 80, fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain, textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
@@ -1112,7 +1112,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
+                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
                       value={row.val} onChangeText={row.set}
                       keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.secondary}
                     />
@@ -1186,7 +1186,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <View key={f.id} style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: colors.secondary, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as any}>
                     {/* Header: date + total */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-                      <Text style={{ fontSize: FONTS.sub.size, color: colors.textMain, fontWeight: '600' }}>{fmtMonth(f.year, f.month)}</Text>
+                      <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: '600' }}>{fmtMonth(f.year, f.month)}</Text>
                       <Text style={{ fontSize: FONTS.body.size, color: colors.primary, fontWeight: '700', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>¥{monthTotal.toFixed(2)}</Text>
                     </View>
                     {/* Sub items: 2x2 grid of platform fees */}
@@ -1442,11 +1442,11 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   dateText: {
-    fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub,
     fontFamily: undefined,
   },
   dateInput: {
-    fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub,
     borderWidth: 0, padding: 0, margin: 0,
     backgroundColor: 'transparent', fontFamily: 'inherit',
     // @ts-ignore
@@ -1456,7 +1456,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   } as any,
 
   /* ── Labels ── */
-  sectionLabel: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain },
+  sectionLabel: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub },
   subLabel: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.textSub, letterSpacing: 0.5, textTransform: 'uppercase' },
 
   /* ── Inputs ── */
@@ -1466,7 +1466,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   input: {
     backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary,
     borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12,
-    fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain, fontFamily: undefined,
+    fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub, fontFamily: undefined,
     // @ts-ignore
     outline: 'none',
   },
@@ -1487,7 +1487,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '600',
   },
   chipInput: {
-    fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub,
     textAlign: 'center', paddingVertical: 2,
     fontFamily: undefined,
     width: '100%',
@@ -1533,7 +1533,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
   },
   reconRecordBtnText: {
-    fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub,
   },
 
   /* ── KPI ── */
@@ -1554,7 +1554,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   tableRow: {
     flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.secondary,
   },
-  td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: FONTS.micro.size, color: colors.textMain },
+  td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: FONTS.micro.size, color: colors.textSub },
   tdDate: { width: 90, color: colors.textSub, fontSize: FONTS.micro.size },
   tdCat: { flex: 1 },
   tdAmt: { width: 100, textAlign: 'right', fontWeight: '600' },
@@ -1565,7 +1565,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.bg, borderRadius: 10, padding: 12,
   },
   expDateInput: {
-    fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textMain,
+    fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub,
     borderWidth: 0, padding: 0, backgroundColor: 'transparent',
     // @ts-ignore
     outline: 'none',
@@ -1615,7 +1615,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     marginTop: 10, borderRadius: 1,
   },
   /* Category chips */
-  catSectionTitle: { fontSize: FONTS.micro.size, color: colors.textMain, fontWeight: '700', marginBottom: 10 },
+  catSectionTitle: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '700', marginBottom: 10 },
   catGrid: { flexDirection: 'row', gap: 8 },
   catGridWide: { gap: 8 },
   catRow: { flexDirection: 'row', width: '100%' as any, gap: 8, marginBottom: 6 },
@@ -1647,7 +1647,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
   /* Expense records */
   noteInput: {
-    fontSize: FONTS.sub.size, color: colors.textMain,
+    fontSize: FONTS.sub.size, color: colors.textSub,
     borderWidth: 0, backgroundColor: colors.bg,
     borderRadius: 10, padding: 12, minHeight: 60,
     textAlignVertical: 'top',
@@ -1671,7 +1671,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', paddingVertical: 10,
     borderBottomWidth: 1, borderBottomColor: colors.secondary,
   },
-  expNote: { fontSize: FONTS.sub.size, color: colors.textMain, fontWeight: '500' },
+  expNote: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: '500' },
   expDateText: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   expAmt: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.danger },
 
