@@ -50,8 +50,28 @@ function CheckIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-// Payment emoji icons restored from original design
-const PAY_EMOJI: Record<string, string> = { '现金': '💵', '微信': '💚', '支付宝': '🔵' };
+// Payment SVG icons — clean, modern design
+const PAY_ICONS: Record<string, (color: string) => React.ReactNode> = {
+  '现金': (color: string) => (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x="1" y="5" width="22" height="14" rx="2" />
+      <Line x1="12" y1="9" x2="12" y2="15" />
+      <Circle cx="8" cy="12" r="1.5" />
+      <Circle cx="16" cy="12" r="1.5" />
+    </Svg>
+  ),
+  '微信': (color: string) => (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z" />
+    </Svg>
+  ),
+  '支付宝': (color: string) => (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <Path d="M9 12l2 2 4-4" />
+    </Svg>
+  ),
+};
 function TrashIcon({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -807,10 +827,6 @@ export default function ProcurementScreen() {
                   <Text style={{ fontSize: 12, color: c.textSub }}>{t('procThisBatch')}</Text>
                   <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
                 </View>
-                <TouchableOpacity style={styles.itemsBtn} onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
-                  <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{batch.items?.length || 0} 项）</Text>
-                  <Text style={styles.itemsBtnArrow}>{t('procViewDetail')} ›</Text>
-                </TouchableOpacity>
                 {batch.images?.length > 0 && (
                   <View style={styles.histImages}>
                     {batch.images.map((img, i) => <Image key={i} source={{ uri: img }} style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />)}
@@ -933,7 +949,7 @@ export default function ProcurementScreen() {
                       style={[styles.payChip, active && (isWechat ? styles.payChipOnWechat : isAlipay ? styles.payChipOnAlipay : styles.payChipOn)]}
                       onPress={() => setPayMethod(pm)} activeOpacity={0.7}>
                       <View style={[styles.chipIconCircle, active && { backgroundColor: CHIP_ICON_BG[pm] }]}>
-                        <Text style={{ fontSize: 16 }}>{PAY_EMOJI[pm]}</Text>
+                        {PAY_ICONS[pm](active ? c.surface : c.textSub)}
                       </View>
                       <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{pm}</Text>
                     </TouchableOpacity>
