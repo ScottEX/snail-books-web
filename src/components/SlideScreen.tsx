@@ -36,7 +36,7 @@ export default function SlideScreen({ visible, onClose, children }: Props) {
   // Out
   const close = useCallback(() => {
     Animated.timing(translateX, {
-      toValue: -screenWidth,
+      toValue: screenWidth,
       duration: 250,
       easing: Easing.in(Easing.cubic),
       useNativeDriver: true,
