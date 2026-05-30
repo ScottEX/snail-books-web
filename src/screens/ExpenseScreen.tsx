@@ -516,11 +516,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookBalance')}</Text>
-                          <Text style={st.cardFieldVal}>{fmt(channelTotal)}</Text>
+                          <Text style={[st.cardFieldVal, { color: colors.textMain }]}>{fmt(channelTotal)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('currentBalance')}</Text>
-                          <Text style={st.cardFieldVal}>{fmt(realTotal)}</Text>
+                          <Text style={[st.cardFieldVal, { color: Math.abs(realTotal) < 0.005 ? colors.textMain : colors.primary }]}>{fmt(realTotal)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
