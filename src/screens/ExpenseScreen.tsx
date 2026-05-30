@@ -608,7 +608,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     return `${y}年${m}月${d}日`;
                   })()}
                 </Text>
-                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                 {React.createElement('input', {
                   type: 'date',
                   value: recDate,
@@ -962,7 +962,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       return `${y}年${m}月${d}日`;
                     })()}
                   </Text>
-                  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
+                  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                   {React.createElement('input', {
                     type: 'date',
                     value: expDate,
