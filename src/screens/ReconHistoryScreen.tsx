@@ -181,7 +181,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('fundsInTransit')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmt(r.channel_total)}</Text>
+            <Text style={[st.cardPairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmt(r.channel_total)}</Text>
           </View>
         </View>
       </View>
@@ -249,7 +249,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('fundsInTransit')}</Text>
-                <Text style={st.pairVal}>{fmtAmt(r.channel_total)}</Text>
+                <Text style={[st.pairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmt(r.channel_total)}</Text>
               </View>
             </View>
           </View>
