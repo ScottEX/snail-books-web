@@ -859,11 +859,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
               <View style={st.payGrid}>
                 {(() => {
-                  const payIcons: Record<string, React.ReactElement> = {
-                    '现金': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
-                    '微信': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
-                    '支付宝': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
+                  const payIcons: Record<string, (color: string) => React.ReactNode> = {
+                    '现金': (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
+                    '微信': (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
+                    '支付宝': (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
                   };
+                  const chipIconBg: Record<string, string> = { '微信': '#07C160', '支付宝': '#1677FF', '现金': '#333' };
                   const keyMap: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
                   return (['现金', '微信', '支付宝'] as const).map((m) => {
                     const active = payMethod === m;
@@ -873,7 +874,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       <TouchableOpacity key={m}
                         style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : isAlipay ? st.payChipActiveAlipay : st.payChipActive)]}
                         onPress={() => setPayMethod(m)} activeOpacity={0.7}>
-                        <View style={[st.chipIconCircle, active && st.chipIconCircleActive]}>{payIcons[m]}</View>
+                        <View style={[st.chipIconCircle, active && { backgroundColor: chipIconBg[m] }]}>
+                          {payIcons[m](active ? colors.surface : colors.textSub)}
+                        </View>
                         <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(keyMap[m] as any)}</Text>
                       </TouchableOpacity>
                     );
@@ -1614,8 +1617,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
   },
   payChipActive: { backgroundColor: colors.primary },
-  payChipActiveWechat: { backgroundColor: colors.success },
-  payChipActiveAlipay: { backgroundColor: colors.info },
+  payChipActiveWechat: { backgroundColor: '#07C160' },
+  payChipActiveAlipay: { backgroundColor: '#1677FF' },
   payChipText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub },
   payChipTextActive: { color: colors.surface },
   /* Chip icon circle */

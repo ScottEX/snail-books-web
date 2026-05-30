@@ -163,7 +163,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   prodSubtotal: { paddingHorizontal: 12, paddingBottom: 8, fontSize: FONTS.micro.size, color: c.primary, fontWeight: '500' as const },
 
   cartBar: {
-    position: 'absolute' as const, bottom: 88, left: 0, right: 0, zIndex: 100,
+    position: 'absolute' as const, bottom: 90, left: 0, right: 0, zIndex: 100,
     marginHorizontal: 12, backgroundColor: withAlpha(c.surface, 0.95), borderRadius: 14,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     // @ts-ignore
@@ -719,7 +719,7 @@ export default function ProcurementScreen() {
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 130 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
             {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
                 <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>
