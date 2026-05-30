@@ -51,7 +51,7 @@ function CheckIcon({ color }: { color: string }) {
   );
 }
 // Payment emoji icons restored from original design
-const PAY_EMOJI: Record<string, string> = { '现金': '💵', '微信': '', '支付宝': '' };
+const PAY_EMOJI: Record<string, string> = { '现金': '💵', '微信': '💚', '支付宝': '🔵' };
 function TrashIcon({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
