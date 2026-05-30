@@ -311,7 +311,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
     const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
-    if (mc + mw + ew + mt === 0) { setToast('至少输入一个平台的手续费'); return; }
+    if (mc + mw + ew + mt === 0) { setToast(t('atLeastOneFee')); return; }
     setSavingFee(true);
     try {
       const r = await api.addPlatformFeeEntry({
@@ -326,6 +326,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         setShowFeeSheet(false);
         // Reload all months to keep totals accurate
         api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : []));
+      } else {
+        setToast(r?.message || t('toastSubmitFailed'));
       }
     } catch { setToast(t('toastSubmitFailed')); }
     setSavingFee(false);
