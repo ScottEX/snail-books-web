@@ -7,7 +7,7 @@ import { FilterBackdrop } from '../components/FilterBackdrop';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose, historyHeader, filterDateArrow } from '../sharedStyles';
+import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
 
 const PAGE_SIZE = 10;
 
@@ -330,7 +330,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   <input type="date" value={filBillFrom} onChange={(e: any) => setFilBillFrom(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
-                <View style={{ marginTop: -4 }}><Text style={st.filterDateArrow}>→</Text></View>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
                 <View style={st.filterDateWrap}>
                   {filBillTo ? (
                     <Text style={st.filterDateText}>{fmtDate(filBillTo)}</Text>
@@ -354,7 +354,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
-                <View style={{ marginTop: -4 }}><Text style={st.filterDateArrow}>→</Text></View>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
                 <View style={st.filterDateWrap}>
                   {filDateTo ? (
                     <Text style={st.filterDateText}>{fmtDate(filDateTo)}</Text>
@@ -560,7 +560,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
-  filterDateArrow: filterDateArrow(colors),
   filterInput: {
     height: 34,
     paddingHorizontal: 8,
