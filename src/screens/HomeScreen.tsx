@@ -341,7 +341,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen onBack={() => setTab('list')} />
+          <ProcurementScreen />
         ) : showExpenseHistory ? (
           <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />
         ) : showDailyHistory ? (
@@ -748,8 +748,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </View>
       )}
 
-      {/* Bottom Nav — hidden on supply tab, shown everywhere else */}
-      {tab !== 'supply' && (
+      {/* Bottom Nav */}
       <View style={styles.bottomNav}>
         {([
           { id: 'expense', icon: NavIconAdd },
@@ -778,7 +777,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           </TouchableOpacity>
         ))}
       </View>
-      )}
       {/* Hidden file input for background upload */}
       <input
         ref={fileRef}
