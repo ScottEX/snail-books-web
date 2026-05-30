@@ -73,10 +73,10 @@ const theme2: Theme = {
     secondary: '#E5E7EB',
     textMain: '#111827',
     textSub: '#6B7280',
-    success: '#4C7A5D',
-    warning: '#D59A53',
-    danger: '#B34149',
-    info: '#4A7299',
+    success: '#4B7A5E',
+    warning: '#C49852',
+    danger: '#BC4850',
+    info: '#4A7096',
   },
 };
 
@@ -94,10 +94,10 @@ const theme3: Theme = {
     secondary: '#E1E5E4',
     textMain: '#1B2626',
     textSub: '#738080',
-    success: '#4C7A5D',
-    warning: '#D59A53',
-    danger: '#B34149',
-    info: '#4A7299',
+    success: '#408060',
+    warning: '#CE9652',
+    danger: '#BE6066',
+    info: '#4A789A',
   },
 };
 
