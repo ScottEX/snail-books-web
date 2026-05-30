@@ -419,7 +419,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <Text style={styles.revInputCardSymbol}>¥</Text>
                           <TextInput style={styles.revInputCardInput}
                             value={revRevenue} onChangeText={setRevRevenue}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.secondary} />
+                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
                         </View>
                         <Text style={styles.revInputCardFooter}>
                           {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.revenue)}` : t('revYesterdayNA')}
@@ -433,7 +433,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <Text style={styles.revInputCardSymbol}>¥</Text>
                           <TextInput style={[styles.revInputCardInput, { fontWeight: '700' }]}
                             value={revTurnover} onChangeText={setRevTurnover}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.secondary} />
+                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
                         </View>
                         <Text style={styles.revInputCardFooter}>
                           {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.turnover)}` : t('revYesterdayNA')}
@@ -449,7 +449,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <Text style={styles.revInputCardSymbol}>¥</Text>
                           <TextInput style={styles.revInputCardInput}
                             value={revJD} onChangeText={setRevJD}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.secondary} />
+                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
                         </View>
                         <Text style={styles.revInputCardFooter}>
                           {t('revYesterdayLabel')} {yesterdayRev && yesterdayRev.jd_revenue > 0 ? `¥${toDec2(yesterdayRev.jd_revenue)}` : t('revYesterdayNA')}
@@ -460,7 +460,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     {/* Note */}
                     <TextInput style={styles.revNoteInput}
                       value={revNote} onChangeText={setRevNote}
-                      placeholder={t('revNoteHint')} placeholderTextColor={colors.secondary} />
+                      placeholder={t('revNoteHint')} placeholderTextColor={colors.textSub} />
 
                     {/* Two action buttons */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>

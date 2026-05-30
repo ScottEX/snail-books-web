@@ -628,14 +628,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <InputWithFocus inputStyle={st.input}
                   value={cardBalance} onChangeText={(v: string) => setCardBalance(blockNeg(v))}
                   keyboardType="decimal-pad"
-                  placeholder="0.00" placeholderTextColor={colors.secondary} />
+                  placeholder="0.00" placeholderTextColor={colors.textSub} />
               </View>
               <View style={st.inputGroup}>
                 <Text style={st.inputLabel}>{t('cashBalance')} 💴</Text>
                 <InputWithFocus inputStyle={st.input}
                   value={cashBalance} onChangeText={(v: string) => setCashBalance(blockNeg(v))}
                   keyboardType="decimal-pad"
-                  placeholder="0.00" placeholderTextColor={colors.secondary} />
+                  placeholder="0.00" placeholderTextColor={colors.textSub} />
               </View>
             </View>
 
@@ -652,21 +652,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <InputWithFocus inputStyle={st.chipInput}
                     value={dineIn} onChangeText={(v: string) => setDineIn(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor={colors.secondary} />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('meituan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={meituan} onChangeText={(v: string) => setMeituan(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor={colors.secondary} />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('flashSale')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={flashSale} onChangeText={(v: string) => setFlashSale(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor={colors.secondary} />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
               </View>
               {/* Row 2: 京东 + 团购 */}
@@ -676,14 +676,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <InputWithFocus inputStyle={st.chipInput}
                     value={jd} onChangeText={(v: string) => setJd(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor={colors.secondary} />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('tuan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={tuan} onChangeText={(v: string) => setTuan(blockNeg(v))}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor={colors.secondary} />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -819,7 +819,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <TextInput style={st.bigAmtInput}
                     value={expAmount} onChangeText={(v: string) => setExpAmount(blockNeg(v))}
                     keyboardType="decimal-pad" placeholder="0.00"
-                    placeholderTextColor={colors.secondary}
+                    placeholderTextColor={colors.textSub}
                     autoFocus={false} />
                 </View>
                 <View style={st.amtCursor} />
@@ -885,7 +885,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 value={expNote}
                 onChangeText={setExpNote}
                 placeholder={t('notePlaceholder')}
-                placeholderTextColor={colors.secondary}
+                placeholderTextColor={colors.textSub}
                 multiline />
               {/* 凭证上传 */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -1116,7 +1116,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     <TextInput
                       style={{ width: 72, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
                       value={row.val} onChangeText={row.set}
-                      keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.secondary}
+                      keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub}
                     />
                   </View>
                 );
