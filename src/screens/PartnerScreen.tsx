@@ -606,7 +606,7 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   },
   statIconBg: { width: 36, height: 36, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   statLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', letterSpacing: 0.3 },
-  statValue: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain, marginTop: 2 },
+  statValue: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain, marginTop: 2 },
   statGreen: { fontSize: FONTS.micro.size, color: colors.success, fontWeight: '500', marginTop: 2 },
   statSub: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginTop: 2 },
   dividendBtn: { backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12 },

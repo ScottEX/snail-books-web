@@ -494,7 +494,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 12, paddingHorizontal: 18,
   },
-  modalDate: { fontSize: FONTS.amount.size, fontWeight: '600', color: colors.surface },
+  modalDate: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
   modalDateSub: { fontSize: FONTS.micro.size, fontWeight: '400', color: withAlpha(colors.surface, 0.75), marginTop: 2 },
   modalClose: { fontSize: FONTS.h2.size, fontWeight: '400', color: colors.surface, paddingLeft: 8 },
   /* Three vertical pairs */
@@ -509,7 +509,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   pairItem: { alignItems: 'center', gap: 4, paddingVertical: 6 },
   pairLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
-  pairVal: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain },
+  pairVal: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain },
   pairDivider: { height: 1, backgroundColor: colors.secondary, width: '70%' },
   /* Channel section */
   chanSection: {

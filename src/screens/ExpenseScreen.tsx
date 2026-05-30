@@ -1105,7 +1105,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
                     <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.sub.size, color: colors.textMain, fontWeight: '500' }}>{t(row.k)}</Text>
-                    <Text style={{ width: 80, fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain, textAlign: 'left' }}>
+                    <Text style={{ width: 80, fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain, textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
                     <Text style={{ width: 80, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left' }}>
@@ -1125,7 +1125,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: savingFee ? 0.6 : 1 }}
                 onPress={handleAddFee} disabled={savingFee} activeOpacity={0.8}
               >
-                <Text style={{ color: colors.surface, fontSize: FONTS.amount.size, fontWeight: '700' }}>{savingFee ? '...' : t('confirm')}</Text>
+                <Text style={{ color: colors.surface, fontSize: FONTS.sub.size, fontWeight: '700' }}>{savingFee ? '...' : t('confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1456,7 +1456,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   } as any,
 
   /* ── Labels ── */
-  sectionLabel: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain },
+  sectionLabel: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain },
   subLabel: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.textSub, letterSpacing: 0.5, textTransform: 'uppercase' },
 
   /* ── Inputs ── */
@@ -1466,7 +1466,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   input: {
     backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary,
     borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12,
-    fontSize: FONTS.amount.size, fontWeight: '600', color: colors.textMain, fontFamily: undefined,
+    fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain, fontFamily: undefined,
     // @ts-ignore
     outline: 'none',
   },
@@ -1525,7 +1525,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingVertical: 14, alignItems: 'center',
   },
   reconBtnText: {
-    fontSize: FONTS.amount.size, fontWeight: '700', color: colors.surface,
+    fontSize: FONTS.sub.size, fontWeight: '700', color: colors.surface,
   },
   reconRecordBtn: {
     flex: 1, backgroundColor: colors.secondary, borderRadius: 12,
@@ -1673,7 +1673,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   expNote: { fontSize: FONTS.sub.size, color: colors.textMain, fontWeight: '500' },
   expDateText: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
-  expAmt: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.danger },
+  expAmt: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.danger },
 
   /* ── Empty ── */
   empty: {

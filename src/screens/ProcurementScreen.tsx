@@ -125,7 +125,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   headerBadgeText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: '600' as const },
   statRow: { flexDirection: 'row' as const, gap: 6 },
   statPill: { flex: 1, backgroundColor: withAlpha(c.textMain, 0.04), borderRadius: 10, padding: 10, alignItems: 'center' as const },
-  statNum: { fontSize: FONTS.amount.size, fontWeight: '600' as const, color: c.textMain },
+  statNum: { fontSize: FONTS.sub.size, fontWeight: '600' as const, color: c.textMain },
   statLbl: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 3 },
 
   searchSection: { paddingHorizontal: 16, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
@@ -266,7 +266,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   // Submit
   submitBtn: { backgroundColor: c.primary, borderRadius: 12, paddingVertical: 15, alignItems: 'center' as const, marginTop: 16 },
   submitBtnDisabled: { opacity: 0.45 },
-  submitBtnText: { color: c.surface, fontSize: FONTS.amount.size, fontWeight: '600' as const },
+  submitBtnText: { color: c.surface, fontSize: FONTS.sub.size, fontWeight: '600' as const },
 
   // Product mgmt
   mgmtRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 12, marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06) },

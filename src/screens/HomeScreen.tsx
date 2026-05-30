@@ -495,15 +495,15 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     <View style={{ marginTop: 14, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}>
                       <View style={{ alignItems: 'flex-start' }}>
                         <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekRevenue')}</Text>
-                        <Text style={{ fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
+                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
                       </View>
                       <View style={{ alignItems: 'center' }}>
                         <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekTurnover')}</Text>
-                        <Text style={{ fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
+                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
                       </View>
                       <View style={{ alignItems: 'flex-end' }}>
                         <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekJD')}</Text>
-                        <Text style={{ fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
+                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
                       </View>
                     </View>
                   </View>
@@ -1009,13 +1009,13 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   revSubmitBtn: {
     backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center',
    },
-  revSubmitText: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.surface },
+  revSubmitText: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.surface },
   revArchiveBtn: {
     backgroundColor: colors.secondary, borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', justifyContent: 'center', flex: 1,
   },
   revArchiveBtnDone: { backgroundColor: withAlpha(colors.success, 0.1) },
-  revArchiveText: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.textMain },
+  revArchiveText: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain },
   revArchiveTextDone: { color: colors.success },
   // 7-day card items — same card style as history page
   rev7CardItem: {
