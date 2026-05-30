@@ -1000,6 +1000,8 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   modalCard: {
     backgroundColor: colors.surface, borderRadius: 16, width: 340, maxWidth: '90%',
     overflow: 'hidden' as const,
+    // @ts-ignore
+    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
   },
   modalHeader: {
     backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 14,
