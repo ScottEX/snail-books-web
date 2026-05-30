@@ -1465,7 +1465,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* ── Inputs ── */
   row2: { flexDirection: 'row', gap: 12 },
   inputGroup: { flex: 1 },
-  inputLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
+  inputLabel: { fontSize: FONTS.micro.size, lineHeight: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
   input: {
     backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary,
     borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12,

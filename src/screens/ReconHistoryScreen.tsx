@@ -561,7 +561,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
   filterDateArrow: {
-    fontSize: 14, color: colors.secondary, fontWeight: '300',
+    fontSize: FONTS.micro.size, lineHeight: FONTS.micro.size, color: colors.secondary, fontWeight: '300',
     marginHorizontal: 2,
   },
   filterInput: {

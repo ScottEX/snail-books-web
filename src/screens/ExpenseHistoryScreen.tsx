@@ -465,7 +465,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
-  filterDateArrow: { fontSize: 14, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
+  filterDateArrow: { fontSize: FONTS.micro.size, lineHeight: FONTS.micro.size, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
   filterChipRow: { flex: 1, flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   filterChip: {
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
