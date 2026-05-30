@@ -463,9 +463,9 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     overflow: 'hidden',
   },
   filterContent: { padding: 12, gap: 8 },
-  filterField: { gap: 3 },
-  filterLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub, paddingLeft: 2 },
-  filterDateRange: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  filterLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub, width: 64, flexShrink: 0 },
+  filterDateRange: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterDateInput: {
     flex: 1, height: 34, paddingHorizontal: 8,
     backgroundColor: colors.surface, borderRadius: 6,
@@ -486,7 +486,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
   filterDateArrow: { fontSize: FONTS.micro.size, color: colors.secondary, fontWeight: '300', marginHorizontal: 2 },
-  filterChipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
+  filterChipRow: { flex: 1, flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   filterChip: {
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
     backgroundColor: colors.bg,

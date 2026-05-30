@@ -308,9 +308,9 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     overflow: 'hidden',
   },
   filterContent: { padding: 12, gap: 8 },
-  filterField: { gap: 3 },
-  filterLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub, paddingLeft: 2 },
-  filterDateRange: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  filterLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub, width: 64, flexShrink: 0 },
+  filterDateRange: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterDateWrap: {
     flex: 1, height: 34, position: 'relative' as any,
     backgroundColor: colors.surface, borderRadius: 6,
