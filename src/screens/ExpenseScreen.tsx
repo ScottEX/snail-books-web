@@ -524,7 +524,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
-                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? withAlpha(colors.success, 0.1) : withAlpha(colors.danger, 0.1) }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
+                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? colors.success : colors.danger }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
                         </View>
                       </View>
                     </View>
