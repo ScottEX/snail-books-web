@@ -549,7 +549,7 @@ function TableGroup({ title, type, total, items, themeColors, styles, onDelete }
   const typeColors: Record<string, { dot: string; headerBg: string; badge: string; amt: string }> = {
     invest: { dot: themeColors.info, headerBg: withAlpha(themeColors.info, 0.1), badge: themeColors.info, amt: themeColors.textMain },
     mid: { dot: themeColors.info, headerBg: withAlpha(themeColors.info, 0.1), badge: themeColors.info, amt: themeColors.textMain },
-    dividend: { dot: themeColors.warning, headerBg: withAlpha(themeColors.warning, 0.1), badge: themeColors.warning, amt: themeColors.warning },
+    dividend: { dot: themeColors.primary, headerBg: withAlpha(themeColors.primary, 0.1), badge: themeColors.primary, amt: themeColors.primary },
   };
   const c = typeColors[type] || typeColors.invest;
   return (
