@@ -401,4 +401,3 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   navIcon: { fontSize: FONTS.amount.size },
 });
-});
