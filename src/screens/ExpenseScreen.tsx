@@ -1124,8 +1124,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
               {/* Confirm */}
               <TouchableOpacity
-                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: savingFee ? 0.6 : 1 }}
-                onPress={handleAddFee} disabled={savingFee} activeOpacity={0.8}
+                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: (savingFee || (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0)) ? 0.35 : 1 }}
+                onPress={handleAddFee} disabled={savingFee || (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0)} activeOpacity={0.8}
               >
                 <Text style={{ color: colors.surface, fontSize: FONTS.sub.size, fontWeight: '700' }}>{savingFee ? '...' : t('confirm')}</Text>
               </TouchableOpacity>
