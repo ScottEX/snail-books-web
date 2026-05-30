@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   FlatList, Image, ActivityIndicator, StyleSheet, Animated, PanResponder
 } from 'react-native';
-import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
+import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -56,10 +56,9 @@ function CheckIcon({ color }: { color: string }) {
 const PAY_ICONS: Record<string, (color: string) => React.ReactNode> = {
   '现金': (color: string) => (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x="1" y="5" width="22" height="14" rx="2" />
-      <Line x1="12" y1="9" x2="12" y2="15" />
-      <Circle cx="8" cy="12" r="1.5" />
-      <Circle cx="16" cy="12" r="1.5" />
+      <Rect x="1" y="4" width="22" height="16" rx="2" />
+      <Path d="M1 10h22" />
+      <Circle cx="12" cy="12" r="3" />
     </Svg>
   ),
   '微信': (color: string) => (
@@ -164,7 +163,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   prodSubtotal: { paddingHorizontal: 12, paddingBottom: 8, fontSize: FONTS.micro.size, color: c.primary, fontWeight: '500' as const },
 
   cartBar: {
-    position: 'absolute' as const, bottom: 82, left: 0, right: 0, zIndex: 100,
+    position: 'absolute' as const, bottom: 88, left: 0, right: 0, zIndex: 100,
     marginHorizontal: 12, backgroundColor: withAlpha(c.surface, 0.95), borderRadius: 14,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     // @ts-ignore
@@ -554,6 +553,11 @@ export default function ProcurementScreen() {
     setCart(prev => ({ ...prev, [pid]: Math.max(0, (prev[pid] || 0) + delta) }));
   };
 
+  const clearCart = () => {
+    setCart({});
+    try { localStorage.removeItem('snail_proc_cart'); } catch {}
+  };
+
   const startEditPrice = (pid: number) => {
     const p = products.find(x => x.id === pid);
     if (p) { setEditingPrice(pid); setEditPriceVal(String(p.price)); }
@@ -715,7 +719,7 @@ export default function ProcurementScreen() {
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 110 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 130 }}>
             {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
                 <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>
@@ -774,6 +778,10 @@ export default function ProcurementScreen() {
                   <Text style={styles.cartInfoText}>{t('procCartCount').replace('{n}', String(cartCount))}</Text>
                 </View>
                 <Text style={styles.cartTotal}>¥{cartTotal.toFixed(2)}</Text>
+                <TouchableOpacity onPress={clearCart} activeOpacity={0.6}
+                  style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.08) }}>
+                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, fontWeight: '500' }}>{t('clear')}</Text>
+                </TouchableOpacity>
               </TouchableOpacity>
             </View>
           )}

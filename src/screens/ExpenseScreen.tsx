@@ -861,8 +861,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 {(() => {
                   const payIcons: Record<string, React.ReactElement> = {
                     '现金': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
-                    '微信': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M8 11c-2.5 0-4.5 1.6-4.5 3.5S5.5 18 8 18c.5 0 1-.08 1.4-.22l2.1 1.3-.6-2.2c1-.6 1.6-1.5 1.6-2.4 0-1.9-2-3.5-4.5-3.5z"/><Path d="M14 6c-2 0-3.5 1.3-3.5 2.8S12 11.6 14 11.6c.35 0 .7-.05 1-.16l1.5.9-.4-1.6c.7-.5 1.4-1.1 1.4-1.7 0-1.5-1.5-2.8-3.5-2.8z"/></Svg>,
-                    '支付宝': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="3" y="3" width="18" height="18" rx="4"/><Path d="M7 12h10M12 8v10M8 16l4-4 4 4"/></Svg>,
+                    '微信': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
+                    '支付宝': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
                   };
                   const keyMap: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
                   return (['现金', '微信', '支付宝'] as const).map((m) => {
