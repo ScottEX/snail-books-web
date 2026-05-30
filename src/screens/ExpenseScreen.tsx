@@ -524,7 +524,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
-                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? colors.success : colors.danger }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
+                          <Text style={[st.cardFieldVal, { color: Math.abs(diff) < 0.005 ? colors.textMain : colors.primary }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
                         </View>
                       </View>
                     </View>
@@ -640,7 +640,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             {/* 在途资金 */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub }}>{t('fundsInTransit')}</Text>
-              <NumberTicker value={channelTotal} style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.danger }} />
+              <NumberTicker value={channelTotal} style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.primary }} />
             </View>
             <View style={st.channelGrid}>
               {/* Row 1: 堂食 + 美团 + 闪购 */}
