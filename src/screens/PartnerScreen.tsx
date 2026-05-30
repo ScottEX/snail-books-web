@@ -190,12 +190,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
 
             <View style={s.statCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 }}>
-                <View style={[s.statIconBg, { backgroundColor: withAlpha(colors.warning, 0.1) }]}>
-                  <IconCoins color={colors.warning} />
+                <View style={[s.statIconBg, { backgroundColor: withAlpha(colors.primary, 0.1) }]}>
+                  <IconCoins color={colors.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.statLabel}>{t('distributedPool')}</Text>
-                  <Text style={[s.statValue, { color: colors.warning }]}>¥{totalDiv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={[s.statValue, { color: colors.primary }]}>¥{totalDiv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                   <Text style={s.statSub}>{t('cumulativeByShare')}</Text>
                 </View>
               </View>
@@ -259,7 +259,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                       {isBack ? (
                         <Text style={{ fontSize: FONTS.micro.size, color: colors.success, fontWeight: '500' }}>{t('fullyPaidBack')}</Text>
                       ) : (
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.warning, fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                        <Text style={{ fontSize: FONTS.micro.size, color: colors.primary, fontWeight: '500' }}>{t('pendingPayback')} ¥{rem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                       )}
                     </View>
                   </View>
@@ -421,9 +421,9 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <Text style={ds.cellLabel}>{t('totalInvest')}</Text>
                   <Text style={ds.cellNum}>¥{(showDetail.investment || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
-                <View style={[ds.cell, { backgroundColor: withAlpha(colors.warning, 0.1) }]}>
-                  <Text style={[ds.cellLabel, { color: colors.warning }]}>{t('totalDividends')}</Text>
-                  <Text style={[ds.cellNum, { color: colors.warning }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                <View style={[ds.cell, { backgroundColor: withAlpha(colors.primary, 0.1) }]}>
+                  <Text style={[ds.cellLabel, { color: colors.primary }]}>{t('totalDividends')}</Text>
+                  <Text style={[ds.cellNum, { color: colors.primary }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
@@ -445,14 +445,14 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <View style={ds.progressBar}>
                     <View style={[ds.progressFill, {
                       width: `${Math.min(100, ((showDetail.total_dividends || 0) / showDetail.investment * 100))}%` as any,
-                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? colors.success : colors.warning,
+                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? colors.success : colors.primary,
                     }]} />
                   </View>
                   <View style={{ marginTop: 4 }}>
                     {(showDetail.total_dividends || 0) >= showDetail.investment ? (
                       <Text style={{ fontSize: FONTS.micro.size, color: colors.success, fontWeight: '500' }}>{t('fullyPaidBackDetail')}</Text>
                     ) : (
-                      <Text style={{ fontSize: FONTS.micro.size, color: colors.warning }}>
+                      <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>
                         {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </Text>
                     )}
@@ -627,8 +627,8 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   dataLabel: { fontSize: FONTS.micro.size, color: colors.textSub },
   dataValue: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub },
   partnerFooter: { borderTopWidth: 1, borderTopColor: colors.bg, paddingTop: 6 },
-  footerLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: '500' },
-  footerAmt: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.warning },
+  footerLabel: { fontSize: FONTS.micro.size, color: colors.primary, fontWeight: '500' },
+  footerAmt: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.primary },
   footerSub: { fontSize: FONTS.micro.size, color: colors.textSub },
   ledgerCard: {
     backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.bg, marginTop: 16,
@@ -693,9 +693,9 @@ const getDs = (colors: ThemeColors) => StyleSheet.create({
   progressBar: { height: 6, backgroundColor: colors.secondary, borderRadius: 100, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 100 },
   historyTitle: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.textSub, letterSpacing: 0.5, marginBottom: 8 },
-  historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, backgroundColor: withAlpha(colors.warning, 0.1), borderRadius: 8, marginBottom: 4 },
+  historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, backgroundColor: withAlpha(colors.primary, 0.1), borderRadius: 8, marginBottom: 4 },
   historyNote: { fontSize: FONTS.micro.size, color: colors.textSub },
-  historyAmt: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.warning },
+  historyAmt: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.primary },
   historyEmpty: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center', paddingVertical: 12 },
 });
 
