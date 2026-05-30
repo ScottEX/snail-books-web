@@ -68,3 +68,13 @@ export const historyHeader = (colors: ThemeColors) => ({
   },
   filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
 });
+
+// ─── Filter Panel Date Arrow (→) ──
+
+/** Date-range arrow between From/To inputs. Shared across all history filter panels. */
+export const filterDateArrow = (colors: ThemeColors) => ({
+  fontSize: FONTS.micro.size,
+  color: colors.secondary,
+  fontWeight: '300' as const,
+  marginHorizontal: 2,
+});
