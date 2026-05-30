@@ -718,7 +718,7 @@ const getTg = (colors: ThemeColors) => StyleSheet.create({
   thBadge: { fontSize: FONTS.micro.size, fontWeight: '600' },
   thRight: { flexDirection: 'row', alignItems: 'center', paddingRight: 16 },
   thAmt: { fontSize: FONTS.micro.size, fontWeight: '700' },
-  delBtn: { fontSize: FONTS.micro.size, color: colors.danger, marginLeft: 8 },
+  delBtn: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.danger, marginLeft: 8 },
   tbodyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   rowBorder: { borderTopWidth: 1, borderTopColor: colors.bg },
   tdName: { fontSize: FONTS.micro.size, color: colors.textSub, flex: 1, paddingLeft: 16 },
