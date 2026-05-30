@@ -174,7 +174,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookDiff')}</Text>
-            <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.accent }]}>
+            <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
               {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
             </Text>
           </View>
@@ -242,7 +242,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View style={st.pairCol}>
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('bookDiff')}</Text>
-                <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.accent }]}>
+                <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
                   {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
                 </Text>
               </View>
