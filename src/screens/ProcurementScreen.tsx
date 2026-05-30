@@ -1,34 +1,24 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  FlatList, Image, ActivityIndicator, StyleSheet
+  FlatList, Image, ActivityIndicator, StyleSheet, Animated
 } from 'react-native';
 import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
-import { t } from '../i18n';
+import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 
 type SubTab = 'new' | 'history' | 'products';
+type PayMethod = '现金' | '微信' | '支付宝';
 
-interface Product {
-  id: number; name: string; spec: string; price: number; supplier: string;
-}
-interface CartItem {
-  product: Product; quantity: number; subtotal: number;
-}
-interface BatchRecord {
-  id: number; batch_number: number; date: string;
-  payment_method: string; category: string; total: number;
-  images: string[]; note: string; items: any[];
-}
-interface ProcStats {
-  total_spent: number; total_income: number; batch_count: number; margin_pct: number;
-}
+interface Product { id: number; name: string; spec: string; price: number; supplier: string; }
+interface CartItem { product: Product; quantity: number; subtotal: number; }
+interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; note: string; items: any[]; }
+interface ProcStats { total_spent: number; total_income: number; batch_count: number; margin_pct: number; }
 
 // ═══════════════════════════════════════════════
-// SVG Icons (18px, 1.5 stroke — matching ExpenseScreen)
+// SVG Icons
 // ═══════════════════════════════════════════════
-
 function CartIcon({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -45,27 +35,25 @@ function PencilIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-function ClipIcon({ color }: { color: string }) {
+function CameraIcon({ color }: { color: string }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round">
+      <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+      <Circle cx="12" cy="13" r="4" />
     </Svg>
   );
 }
 function CheckIcon({ color }: { color: string }) {
   return (
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-      <Path d="M22 4L12 14.01l-3-3" />
+      <Path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><Path d="M22 4L12 14.01l-3-3" />
     </Svg>
   );
 }
 function CashIcon({ color }: { color: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x="2" y="6" width="20" height="12" rx="2" />
-      <Circle cx="12" cy="12" r="2" />
-      <Path d="M2 10h20" />
+      <Rect x="2" y="6" width="20" height="12" rx="2" /><Circle cx="12" cy="12" r="2" /><Path d="M2 10h20" />
     </Svg>
   );
 }
@@ -79,8 +67,7 @@ function WechatIcon({ color }: { color: string }) {
 function AlipayIcon({ color }: { color: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M18 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z" />
-      <Path d="M10 14l2 2 4-4" />
+      <Path d="M18 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z" /><Path d="M10 14l2 2 4-4" />
     </Svg>
   );
 }
@@ -91,24 +78,28 @@ function TrashIcon({ color }: { color: string }) {
     </Svg>
   );
 }
+function BoxIcon({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+      <Path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
+    </Svg>
+  );
+}
 
-const PAY_ICONS: Record<string, React.FC<{ color: string }>> = {
-  '现金': CashIcon, '微信': WechatIcon, '支付宝': AlipayIcon,
-};
+const PAY_ICONS: Record<string, React.FC<{ color: string }>> = { '现金': CashIcon, '微信': WechatIcon, '支付宝': AlipayIcon };
 const PAY_KEYS = ['现金', '微信', '支付宝'] as const;
-type PayMethod = typeof PAY_KEYS[number];
+
+const CHIP_ACTIVE: Record<string, string> = { '微信': '#07C160', '支付宝': '#1677FF', '现金': '#333' };
 
 // ═══════════════════════════════════════════════
 // Styles
 // ═══════════════════════════════════════════════
-
 const getStyles = (c: ThemeColors) => StyleSheet.create({
   container: { flex: 1 },
 
-  // ── Merged Frosted Glass Block (header + search + filters) ──
   frostedBlock: {
-    marginHorizontal: 12, marginTop: 4,
-    borderRadius: 16, overflow: 'hidden' as const,
+    marginHorizontal: 12, marginTop: 4, borderRadius: 16, overflow: 'hidden' as const,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     backgroundColor: withAlpha(c.surface, 0.65),
     // @ts-ignore
@@ -116,7 +107,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
   },
-  // Header section inside block
   headerSection: { padding: 16, paddingBottom: 8 },
   headerTop: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginBottom: 12 },
   headerTitle: { fontSize: 17, fontWeight: '700' as const, color: c.textMain },
@@ -127,8 +117,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   statNum: { fontSize: 15, fontWeight: '600' as const, color: c.textMain },
   statLbl: { fontSize: 10, color: c.textSub, marginTop: 3 },
 
-  // Search + filters section inside block
-  searchSection: { paddingHorizontal: 16, paddingBottom: 12, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
+  searchSection: { paddingHorizontal: 16, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
   searchInput: { paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.1), borderRadius: 10, fontSize: 14, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
   filterRow: { flexDirection: 'row' as const, gap: 6, marginTop: 8 },
   filterChip: { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12) },
@@ -136,14 +125,13 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   filterChipText: { fontSize: 12, color: c.textSub },
   filterChipTextOn: { color: c.surface },
 
-  // ── Sub tabs ──
-  subTabRow: { flexDirection: 'row' as const, marginTop: 10, marginHorizontal: 12, gap: 2 },
-  subTab: { flex: 1, paddingVertical: 9, alignItems: 'center' as const, borderRadius: 10 },
-  subTabOn: { backgroundColor: c.primary },
+  // Sub-tabs inside frosted block
+  subTabRow: { flexDirection: 'row' as const, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06), marginHorizontal: 4, paddingTop: 2 },
+  subTab: { flex: 1, paddingVertical: 10, alignItems: 'center' as const },
+  subTabOn: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 0 },
   subTabText: { fontSize: 12, fontWeight: '500' as const, color: c.textSub },
-  subTabTextOn: { color: c.surface, fontWeight: '600' as const },
+  subTabTextOn: { color: c.primary, fontWeight: '600' as const },
 
-  // ── Product list ──
   sectionHead: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4, fontSize: 11, fontWeight: '600' as const, color: c.textSub, textTransform: 'uppercase' as const, letterSpacing: 1 },
   productCard: { marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), overflow: 'hidden' as const },
   productCardSel: { borderColor: c.primary, borderWidth: 1.5 },
@@ -162,12 +150,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   qtyNum: { width: 36, textAlign: 'center' as const, fontSize: 14, fontWeight: '600' as const, color: c.textMain },
   prodSubtotal: { paddingHorizontal: 12, paddingBottom: 8, fontSize: 11, color: c.primary, fontWeight: '500' as const },
 
-  // ── Cart bar ──
   cartBar: {
     position: 'absolute' as const, bottom: 82, left: 0, right: 0, zIndex: 100,
-    marginHorizontal: 12,
-    backgroundColor: withAlpha(c.surface, 0.95),
-    borderRadius: 14,
+    marginHorizontal: 12, backgroundColor: withAlpha(c.surface, 0.95), borderRadius: 14,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     // @ts-ignore
     backdropFilter: 'saturate(180%) blur(20px)',
@@ -181,45 +166,106 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartInfoBold: { fontWeight: '600' as const, color: c.textMain },
   cartTotal: { fontSize: 18, fontWeight: '700' as const, color: c.primary },
 
-  // ── Drawer ──
-  overlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 200 },
-  drawer: { position: 'fixed' as any, bottom: 0, left: 0, right: 0, backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '92%' as any, zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any },
+  // Drawer overlay
+  overlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200 },
+  // Animated drawer — slides up
+  drawer: {
+    position: 'fixed' as any, bottom: 0, left: 0, right: 0,
+    backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    maxHeight: '88%' as any, zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any,
+    // @ts-ignore
+    boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+  },
   drawerHandle: { width: 36, height: 4, backgroundColor: withAlpha(c.textMain, 0.15), borderRadius: 2, alignSelf: 'center' as const, marginTop: 10 },
   drawerHead: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 12, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.08) },
   drawerHeadTitle: { fontSize: 16, fontWeight: '600' as const, color: c.textMain },
   drawerClose: { width: 30, height: 30, borderRadius: 15, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const, justifyContent: 'center' as const },
   drawerCloseText: { fontSize: 18, color: c.textSub },
-  drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
+  drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1, paddingBottom: 30 } as any,
 
-  fieldGrid: { flexDirection: 'row' as const, gap: 10, flexWrap: 'wrap' as const },
-  field: { flex: 1, minWidth: 100, marginBottom: 12 },
-  fieldLabel: { fontSize: 11, fontWeight: '500' as const, color: c.textSub, marginBottom: 5 },
-  fieldInput: { paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12), borderRadius: 8, fontSize: 13, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
+  // Date row (inline date + category)
+  dateCatRow: { flexDirection: 'row' as const, gap: 10, marginBottom: 12 },
+  dateCatField: { flex: 1 },
+  dateCatLabel: { fontSize: 11, fontWeight: '500' as const, color: c.textSub, marginBottom: 5 },
+  dateDisplay: {
+    paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12),
+    borderRadius: 8, fontSize: 13, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03),
+    flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
+  },
+  dateText: { fontSize: 13, color: c.textMain },
+  catReadonly: {
+    paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12),
+    borderRadius: 8, fontSize: 13, color: c.textSub, backgroundColor: withAlpha(c.textMain, 0.03), opacity: 0.6,
+  },
 
-  payChips: { flexDirection: 'row' as const, gap: 6 },
-  payChip: { flex: 1, paddingVertical: 8, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12), borderRadius: 8, alignItems: 'center' as const },
-  payChipOn: { borderColor: c.primary, backgroundColor: withAlpha(c.primary, 0.08) },
-  payChipText: { fontSize: 12, fontWeight: '500' as const, color: c.textSub },
+  // Payment capsules (matching ExpenseScreen)
+  sectionLabel: { fontSize: 11, fontWeight: '500' as const, color: c.textSub, marginBottom: 6 },
+  payRow: { flexDirection: 'row' as const, gap: 6, marginBottom: 12 },
+  payChip: {
+    flex: 1, paddingVertical: 8, borderRadius: 10,
+    borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12),
+    alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4,
+  },
+  payChipOn: { borderColor: c.primary, backgroundColor: withAlpha(c.primary, 0.06) },
+  payChipText: { fontSize: 11, fontWeight: '500' as const, color: c.textSub },
   payChipTextOn: { color: c.primary, fontWeight: '600' as const },
 
-  uploadArea: { borderWidth: 1.5, borderColor: withAlpha(c.textMain, 0.12), borderStyle: 'dashed' as any, borderRadius: 12, padding: 16, alignItems: 'center' as const, cursor: 'pointer' as any },
-  receiptPreview: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 6, marginTop: 8 },
-  receiptThumb: { width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) },
+  chipIconCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const, justifyContent: 'center' as const },
+  chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
 
-  drawerItemsTitle: { fontSize: 11, fontWeight: '600' as const, color: c.textSub, paddingVertical: 10 },
-  drawerItemRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
-  drawerItemName: { flex: 1, fontSize: 13, color: c.textMain },
-  drawerItemQty: { fontSize: 12, color: c.textSub },
-  drawerItemAmount: { fontSize: 13, fontWeight: '600' as const, color: c.primary },
-  drawerTotalRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, paddingTop: 12, marginTop: 8, borderTopWidth: 2, borderTopColor: withAlpha(c.textMain, 0.12) },
-  drawerTotalLabel: { fontSize: 13, color: c.textSub },
-  drawerTotal: { fontSize: 20, fontWeight: '700' as const, color: c.primary },
+  // Upload (expense page style)
+  imgRow: { flexDirection: 'row' as const, gap: 8, marginBottom: 12 },
+  imgAddBtn: {
+    width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: withAlpha(c.textMain, 0.12),
+    borderStyle: 'dashed' as any, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4,
+  },
+  imgAddText: { fontSize: 11, color: c.textSub },
+  imgPreview: { position: 'relative' as const, width: 80, height: 80, borderRadius: 12, overflow: 'hidden' as const },
+  imgRemove: {
+    position: 'absolute' as const, top: -4, right: -4, width: 22, height: 22, borderRadius: 11,
+    backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center' as const, justifyContent: 'center' as const,
+  },
+  imgTipIcon: {
+    width: 18, height: 18, borderRadius: 9, backgroundColor: c.secondary, alignItems: 'center' as const, justifyContent: 'center' as const,
+  },
+  imgTipBubble: {
+    position: 'absolute' as any, top: -34, left: 24, backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: 6,
+    paddingHorizontal: 8, paddingVertical: 4, zIndex: 10,
+  },
+  imgTipText: { fontSize: 10, color: '#fff' },
 
+  // Items button
+  itemsBtn: {
+    paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8,
+    borderWidth: 1, borderColor: withAlpha(c.textMain, 0.1),
+    backgroundColor: withAlpha(c.textMain, 0.03),
+    flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
+    marginBottom: 12,
+  },
+  itemsBtnText: { fontSize: 13, color: c.textMain, fontWeight: '500' as const },
+  itemsBtnArrow: { fontSize: 14, color: c.textSub },
+
+  // Items modal
+  itemsModalOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
+  itemsModalCard: { backgroundColor: c.surface, borderRadius: 16, width: 'calc(100% - 40px)' as any, maxWidth: 360, maxHeight: '75%' as any, overflow: 'hidden' as const },
+  itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
+  itemsModalTitle: { fontSize: 14, fontWeight: '700' as const, color: c.surface },
+  itemsModalClose: { fontSize: 18, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
+  itemsModalBody: { padding: 16 },
+  itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
+  itemsRowName: { flex: 1, fontSize: 13, color: c.textMain },
+  itemsRowQty: { fontSize: 12, color: c.textSub, marginRight: 12 },
+  itemsRowAmt: { fontSize: 13, fontWeight: '600' as const, color: c.primary },
+  itemsTotalRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, paddingTop: 14, marginTop: 8, borderTopWidth: 2, borderTopColor: withAlpha(c.textMain, 0.12) },
+  itemsTotalLabel: { fontSize: 14, fontWeight: '600' as const, color: c.textMain },
+  itemsTotal: { fontSize: 20, fontWeight: '700' as const, color: c.primary },
+
+  // Submit
   submitBtn: { backgroundColor: c.primary, borderRadius: 12, paddingVertical: 15, alignItems: 'center' as const, marginTop: 16 },
   submitBtnDisabled: { opacity: 0.45 },
   submitBtnText: { color: c.surface, fontSize: 15, fontWeight: '600' as const },
 
-  // ── Product mgmt ──
+  // Product mgmt
   mgmtRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 12, marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06) },
   mgmtInfo: { flex: 1 },
   mgmtName: { fontSize: 13, fontWeight: '500' as const, color: c.textMain },
@@ -229,7 +275,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtAddBtn: { marginHorizontal: 12, marginTop: 8, marginBottom: 16, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.primary, 0.2), paddingVertical: 12, alignItems: 'center' as const },
   mgmtAddBtnText: { fontSize: 13, fontWeight: '600' as const, color: c.primary },
 
-  // ── Modal (matching HomeScreen bg settings modal) ──
+  // Modal (product add/edit)
   modalOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 400, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center' as const, alignItems: 'center' as const },
   modalCard: { backgroundColor: c.surface, borderRadius: 16, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const },
   modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
@@ -243,7 +289,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   modalBtnConfirm: { flex: 1, paddingVertical: 11, borderRadius: 10, backgroundColor: c.primary, alignItems: 'center' as const },
   modalBtnConfirmText: { fontSize: 13, color: c.surface, fontWeight: '600' as const },
 
-  // ── History ──
+  // History
   historyList: { padding: 12, paddingBottom: 100 },
   historyCard: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), marginBottom: 10, overflow: 'hidden' as const },
   histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
@@ -258,7 +304,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histAmount: { fontSize: 18, fontWeight: '700' as const, color: c.primary, marginTop: 8 },
   histImages: { flexDirection: 'row' as const, gap: 4, marginTop: 6 },
 
-  // ── Success ──
+  // Success
   successOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
   successCard: { backgroundColor: c.surface, borderRadius: 20, padding: 28, width: 'calc(100% - 40px)' as any, maxWidth: 320, alignItems: 'center' as const },
   successTitle: { fontSize: 18, fontWeight: '700' as const, color: c.textMain, marginBottom: 6, marginTop: 8 },
@@ -270,16 +316,12 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   successBtnView: { flex: 1, paddingVertical: 12, backgroundColor: withAlpha(c.textMain, 0.06), borderRadius: 12, alignItems: 'center' as const },
   successBtnViewText: { color: c.textSub, fontSize: 14, fontWeight: '500' as const },
 
-  // ── Empty state (matching app pattern: title + hint) ──
+  // Empty state
   emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
   emptyTitle: { fontSize: 16, fontWeight: '500' as const, color: c.textSub, marginBottom: 6 },
   emptyHint: { fontSize: 13, color: c.textSub, textAlign: 'center' as const, paddingHorizontal: 40, lineHeight: 20 },
-
   loadingWrap: { paddingVertical: 20, alignItems: 'center' as const },
   contentArea: { flex: 1, paddingBottom: 100 },
-
-  // Chip icon circle (matching ExpenseScreen)
-  chipIconCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const, justifyContent: 'center' as const },
 });
 
 // ═══════════════════════════════════════════════
@@ -298,6 +340,8 @@ export default function ProcurementScreen() {
   const [editPriceVal, setEditPriceVal] = useState('');
 
   const [showDrawer, setShowDrawer] = useState(false);
+  const drawerAnim = useRef(new Animated.Value(0)).current;
+  const overlayAnim = useRef(new Animated.Value(0)).current;
   const [orderDate, setOrderDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [payMethod, setPayMethod] = useState<PayMethod>('微信');
   const [orderNote, setOrderNote] = useState('');
@@ -305,12 +349,16 @@ export default function ProcurementScreen() {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const [showImgTip, setShowImgTip] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const [showItemsModal, setShowItemsModal] = useState(false);
+
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const [stats, setStats] = useState<ProcStats>({ total_spent: 0, total_income: 0, batch_count: 0, margin_pct: 0 });
-
   const [batches, setBatches] = useState<BatchRecord[]>([]);
   const [histPage, setHistPage] = useState(1);
   const [histTotal, setHistTotal] = useState(0);
@@ -320,6 +368,38 @@ export default function ProcurementScreen() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '' });
 
+  // ── Drawer animation ──
+  const openDrawer = () => {
+    setShowDrawer(true);
+    Animated.parallel([
+      Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+    ]).start();
+  };
+  const closeDrawer = () => {
+    Animated.parallel([
+      Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+      Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+    ]).start(() => setShowDrawer(false));
+  };
+
+  const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
+  const overlayOpacity = overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.45] });
+
+  // ── Date formatting ──
+  const formatDateLocale = useCallback((d: string) => {
+    const l = getLang();
+    const [y, m, day] = d.split('-');
+    if (l.startsWith('en')) {
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${months[+m - 1]} ${+day}, ${y}`;
+    }
+    return `${y}年${+m}月${+day}日`;
+  }, []);
+
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+
+  // ── Suppliers ──
   const suppliers = useMemo(() => {
     const set = new Set(products.map(p => p.supplier).filter(Boolean));
     return ['全部', ...Array.from(set)];
@@ -400,19 +480,26 @@ export default function ProcurementScreen() {
     setEditingPrice(null);
   };
 
-  const handleFileUpload = async (e: any) => {
+  // ── File upload (expense page style) ──
+  const handleFileSelect = async (e: any) => {
     const files = e.target?.files || e.nativeEvent?.target?.files;
     if (!files || files.length === 0) return;
     setUploading(true);
     for (const file of Array.from(files) as File[]) {
       const form = new FormData(); form.append('files', file);
       try {
-        const resp = await fetch('/api/expenses/upload-images', { method: 'POST', body: form, headers: { 'X-Lang': 'zh-CN' } });
+        const resp = await fetch('/api/expenses/upload-images', { method: 'POST', body: form, headers: { 'X-Lang': getLang() } });
         const j = await resp.json();
         if (j.images) setReceipts(prev => [...prev, ...j.images]);
       } catch {}
     }
     setUploading(false);
+    // Reset file input so same file can be selected again
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const removeReceipt = (i: number) => {
+    setReceipts(prev => prev.filter((_, idx) => idx !== i));
   };
 
   const submitOrder = async () => {
@@ -426,7 +513,7 @@ export default function ProcurementScreen() {
       });
       if (r.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setShowSuccess(true);
-        setCart({}); setReceipts([]); setOrderNote(''); setShowDrawer(false);
+        setCart({}); setReceipts([]); setOrderNote(''); closeDrawer();
         loadStats();
       }
     } catch {}
@@ -435,7 +522,7 @@ export default function ProcurementScreen() {
 
   const resetOrder = () => {
     setShowSuccess(false);
-    setOrderDate(new Date().toISOString().slice(0, 10));
+    setOrderDate(todayStr());
     setPayMethod('微信'); setOrderNote(''); setReceipts([]);
   };
 
@@ -461,17 +548,16 @@ export default function ProcurementScreen() {
     loadProducts();
   };
 
-  const ChipIcon = PAY_ICONS[payMethod] || CashIcon;
-
   return (
     <View style={styles.container}>
-      {/* ── Merged Frosted Glass Block (header + search + filters) ── */}
+      {/* ── Frosted Glass Block (everything merged) ── */}
       <View style={styles.frostedBlock}>
-        {/* Header stats */}
+        {/* Header */}
         <View style={styles.headerSection}>
           <View style={styles.headerTop}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={styles.headerTitle}>{t('procurement')}</Text>
+              <BoxIcon color={c.primary} />
+              <Text style={styles.headerTitle}>{t('procTitle')}</Text>
             </View>
             <View style={styles.headerBadge}>
               <Text style={styles.headerBadgeText}>{t('procNowBatch').replace('{n}', String(stats.batch_count + 1))}</Text>
@@ -499,8 +585,7 @@ export default function ProcurementScreen() {
             style={styles.searchInput}
             placeholder={t('procSearchPlaceholder')}
             placeholderTextColor={c.textSub}
-            value={search}
-            onChangeText={setSearch}
+            value={search} onChangeText={setSearch}
           />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ gap: 6 }}>
             {suppliers.map(sup => (
@@ -510,19 +595,19 @@ export default function ProcurementScreen() {
             ))}
           </ScrollView>
         </View>
-      </View>
 
-      {/* Sub Tabs */}
-      <View style={styles.subTabRow}>
-        <TouchableOpacity style={[styles.subTab, subTab === 'new' && styles.subTabOn]} onPress={() => setSubTab('new')}>
-          <Text style={[styles.subTabText, subTab === 'new' && styles.subTabTextOn]}>{t('procNewOrder')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.subTab, subTab === 'history' && styles.subTabOn]} onPress={() => setSubTab('history')}>
-          <Text style={[styles.subTabText, subTab === 'history' && styles.subTabTextOn]}>{t('procHistory')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.subTab, subTab === 'products' && styles.subTabOn]} onPress={() => setSubTab('products')}>
-          <Text style={[styles.subTabText, subTab === 'products' && styles.subTabTextOn]}>{t('procProductMgmt')}</Text>
-        </TouchableOpacity>
+        {/* Sub-tabs inside frosted block */}
+        <View style={styles.subTabRow}>
+          <TouchableOpacity style={[styles.subTab, subTab === 'new' && styles.subTabOn]} onPress={() => setSubTab('new')}>
+            <Text style={[styles.subTabText, subTab === 'new' && styles.subTabTextOn]}>{t('procNewOrder')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.subTab, subTab === 'history' && styles.subTabOn]} onPress={() => setSubTab('history')}>
+            <Text style={[styles.subTabText, subTab === 'history' && styles.subTabTextOn]}>{t('procHistory')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.subTab, subTab === 'products' && styles.subTabOn]} onPress={() => setSubTab('products')}>
+            <Text style={[styles.subTabText, subTab === 'products' && styles.subTabTextOn]}>{t('procProductMgmt')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ── New Order ── */}
@@ -578,12 +663,10 @@ export default function ProcurementScreen() {
 
           {cartCount > 0 && (
             <View style={styles.cartBar}>
-              <TouchableOpacity style={styles.cartPreview} onPress={() => setShowDrawer(true)} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.cartPreview} onPress={openDrawer} activeOpacity={0.8}>
                 <View style={[styles.cartIconWrap, { backgroundColor: c.primary }]}>
                   <CartIcon color={c.surface} />
-                  <View style={styles.cartBadge}>
-                    <Text style={styles.cartBadgeText}>{cartCount}</Text>
-                  </View>
+                  <View style={styles.cartBadge}><Text style={styles.cartBadgeText}>{cartCount}</Text></View>
                 </View>
                 <View style={styles.cartInfo}>
                   <Text style={styles.cartInfoText}>{t('procCartCount').replace('{n}', String(cartCount))}</Text>
@@ -630,7 +713,7 @@ export default function ProcurementScreen() {
                 </View>
                 {batch.images?.length > 0 && (
                   <View style={styles.histImages}>
-                    {batch.images.map((img, i) => <Image key={i} source={{ uri: img }} style={styles.receiptThumb} />)}
+                    {batch.images.map((img, i) => <Image key={i} source={{ uri: img }} style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />)}
                   </View>
                 )}
               </View>
@@ -678,7 +761,7 @@ export default function ProcurementScreen() {
         </ScrollView>
       )}
 
-      {/* ── Product Modal (matching app standard: primary header) ── */}
+      {/* ── Product Modal ── */}
       {showProductModal && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -706,93 +789,141 @@ export default function ProcurementScreen() {
         </View>
       )}
 
-      {/* ── Order Drawer ── */}
+      {/* ── Order Drawer (slides up) ── */}
       {showDrawer && (
         <>
-          <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowDrawer(false)} />
-          <View style={styles.drawer}>
+          <Animated.View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: overlayOpacity }]}>
+            <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
+          </Animated.View>
+          <Animated.View style={[styles.drawer, { transform: [{ translateY: drawerTranslateY }] }]}>
             <View style={styles.drawerHandle} />
             <View style={styles.drawerHead}>
               <Text style={styles.drawerHeadTitle}>{t('procConfirmOrder')}</Text>
-              <TouchableOpacity style={styles.drawerClose} onPress={() => setShowDrawer(false)}>
+              <TouchableOpacity style={styles.drawerClose} onPress={closeDrawer}>
                 <Text style={styles.drawerCloseText}>×</Text>
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.drawerBody}>
-              <View style={styles.fieldGrid}>
-                <View style={styles.field}>
-                  <Text style={styles.fieldLabel}>{t('procOrderDate')}</Text>
-                  <input type="date" value={orderDate} onChange={e => setOrderDate((e.target as HTMLInputElement).value)}
-                    style={{ ...styles.fieldInput, width: '100%', boxSizing: 'border-box' } as any} />
+              {/* Date + Category inline */}
+              <View style={styles.dateCatRow}>
+                <View style={styles.dateCatField}>
+                  <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
+                  <TouchableOpacity style={styles.dateDisplay} activeOpacity={1}>
+                    <Text style={styles.dateText}>{formatDateLocale(orderDate)}</Text>
+                    {React.createElement('input', {
+                      type: 'date', value: orderDate, max: todayStr(),
+                      onChange: (e: any) => { const v = e.target.value; if (v > todayStr()) return; setOrderDate(v); },
+                      style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
+                    })}
+                  </TouchableOpacity>
                 </View>
-                <View style={styles.field}>
-                  <Text style={styles.fieldLabel}>{t('expenseCategory')}</Text>
-                  <input type="text" value={t('procPurchase')} readOnly
-                    style={{ ...styles.fieldInput, width: '100%', boxSizing: 'border-box', opacity: 0.6 } as any} />
-                </View>
-              </View>
-
-              <View style={[styles.field, { marginBottom: 12 }]}>
-                <Text style={styles.fieldLabel}>{t('procPaymentMethod')}</Text>
-                <View style={styles.payChips}>
-                  {PAY_KEYS.map(pm => {
-                    const Icon = PAY_ICONS[pm];
-                    const active = payMethod === pm;
-                    const chipColor = active ? c.surface : c.textSub;
-                    return (
-                      <TouchableOpacity key={pm} style={[styles.payChip, active && styles.payChipOn]} onPress={() => setPayMethod(pm)}>
-                        <View style={[styles.chipIconCircle, active && { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-                          <Icon color={chipColor} />
-                        </View>
-                        <Text style={[styles.payChipText, active && styles.payChipTextOn, { marginTop: 4 }]}>{pm}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                <View style={styles.dateCatField}>
+                  <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
+                  <Text style={styles.catReadonly}>{t('procPurchase')}</Text>
                 </View>
               </View>
 
-              <View style={[styles.field, { marginBottom: 12 }]}>
-                <Text style={styles.fieldLabel}>{t('procUploadReceipt')}</Text>
-                <label style={styles.uploadArea as any}>
-                  <input type="file" accept="image/*" multiple onChange={handleFileUpload}
-                    style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }} />
-                  <ClipIcon color={c.textSub} />
-                  <Text style={{ fontSize: 12, color: c.textSub, marginTop: 6 }}>{t('procUploadHint')}</Text>
-                </label>
-                {receipts.length > 0 && (
-                  <View style={styles.receiptPreview}>
-                    {receipts.map((r, i) => <Image key={i} source={{ uri: r }} style={styles.receiptThumb} />)}
+              {/* Payment method capsules */}
+              <Text style={styles.sectionLabel}>{t('procPaymentMethod')}</Text>
+              <View style={styles.payRow}>
+                {PAY_KEYS.map(pm => {
+                  const Icon = PAY_ICONS[pm];
+                  const active = payMethod === pm;
+                  const chipBg = active ? CHIP_ACTIVE[pm] : 'rgba(0,0,0,0.04)';
+                  const iconColor = active ? '#fff' : c.textSub;
+                  return (
+                    <TouchableOpacity key={pm} style={[styles.payChip, active && styles.payChipOn]} onPress={() => setPayMethod(pm)} activeOpacity={0.7}>
+                      <View style={[styles.chipIconCircle, { backgroundColor: chipBg }]}>
+                        <Icon color={iconColor} />
+                      </View>
+                      <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{pm}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Upload receipts (expense page style) */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
+                <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7} style={styles.imgTipIcon}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: c.textSub }}>!</Text>
+                  {showImgTip && (
+                    <View style={styles.imgTipBubble}>
+                      <Text style={styles.imgTipText}>支持 jpg/png/webp，单张最大 10MB</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+              <View style={styles.imgRow}>
+                {React.createElement('input', {
+                  ref: fileRef, type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true,
+                  onChange: handleFileSelect, style: { display: 'none' },
+                })}
+                <TouchableOpacity style={styles.imgAddBtn} onPress={() => fileRef.current?.click()} activeOpacity={0.7}>
+                  <CameraIcon color={c.textSub} />
+                  <Text style={styles.imgAddText}>{t('addImage')}</Text>
+                </TouchableOpacity>
+                {receipts.map((img, i) => (
+                  <View key={`rec-${i}`} style={styles.imgPreview}>
+                    {React.createElement('img', {
+                      src: img, style: { width: 80, height: 80, borderRadius: 12, objectFit: 'cover' } as any,
+                    })}
+                    <TouchableOpacity style={styles.imgRemove} onPress={() => removeReceipt(i)} activeOpacity={0.7}>
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
+                        <Path d="M18 6L6 18M6 6l12 12" />
+                      </Svg>
+                    </TouchableOpacity>
                   </View>
-                )}
-                {uploading && <ActivityIndicator color={c.primary} style={{ marginTop: 8 }} />}
+                ))}
+                {uploading && <ActivityIndicator color={c.primary} style={{ marginLeft: 8 }} />}
               </View>
 
-              <Text style={styles.drawerItemsTitle}>{t('procOrderItems')}</Text>
-              {cartItems.map(item => (
-                <View key={item.product.id} style={styles.drawerItemRow}>
-                  <Text style={styles.drawerItemName}>{item.product.name}</Text>
-                  <Text style={styles.drawerItemQty}>×{item.quantity}</Text>
-                  <Text style={styles.drawerItemAmount}>¥{item.subtotal.toFixed(2)}</Text>
-                </View>
-              ))}
-              <View style={styles.drawerTotalRow}>
-                <Text style={styles.drawerTotalLabel}>{t('procTotal')}</Text>
-                <Text style={styles.drawerTotal}>¥{cartTotal.toFixed(2)}</Text>
-              </View>
+              {/* Items button (not inline) */}
+              <TouchableOpacity style={styles.itemsBtn} onPress={() => setShowItemsModal(true)} activeOpacity={0.7}>
+                <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
+                <Text style={styles.itemsBtnArrow}>{t('procViewDetail')} ›</Text>
+              </TouchableOpacity>
 
-              <View style={[styles.field, { marginTop: 12 }]}>
-                <Text style={styles.fieldLabel}>{t('procNoteOptional')}</Text>
-                <TextInput style={styles.fieldInput} value={orderNote} onChangeText={setOrderNote} placeholder={t('procNoteOptional')} placeholderTextColor={c.textSub} />
-              </View>
+              {/* Total + Note + Submit */}
+              <Text style={{ fontSize: 13, fontWeight: '600', color: c.textMain, marginBottom: 6 }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
 
-              <TouchableOpacity
-                style={[styles.submitBtn, cartCount === 0 && styles.submitBtnDisabled]}
-                onPress={submitOrder} disabled={cartCount === 0 || submitting}>
+              <Text style={styles.sectionLabel}>{t('procNoteOptional')}</Text>
+              <TextInput style={{ paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12), borderRadius: 8, fontSize: 13, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' } as any}
+                value={orderNote} onChangeText={setOrderNote} placeholder={t('procNoteOptional')} placeholderTextColor={c.textSub} />
+
+              <TouchableOpacity style={[styles.submitBtn, cartCount === 0 && styles.submitBtnDisabled]} onPress={submitOrder} disabled={cartCount === 0 || submitting}>
                 {submitting ? <ActivityIndicator color={c.surface} /> : <Text style={styles.submitBtnText}>{t('procSubmit')}</Text>}
               </TouchableOpacity>
             </ScrollView>
-          </View>
+          </Animated.View>
         </>
+      )}
+
+      {/* ── Items Modal ── */}
+      {showItemsModal && (
+        <View style={styles.itemsModalOverlay}>
+          <View style={styles.itemsModalCard}>
+            <View style={styles.itemsModalHeader}>
+              <Text style={styles.itemsModalTitle}>{t('procOrderItems')}</Text>
+              <TouchableOpacity onPress={() => setShowItemsModal(false)}>
+                <Text style={styles.itemsModalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.itemsModalBody}>
+              {cartItems.map(item => (
+                <View key={item.product.id} style={styles.itemsRow}>
+                  <Text style={styles.itemsRowName}>{item.product.name}</Text>
+                  <Text style={styles.itemsRowQty}>×{item.quantity}</Text>
+                  <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
+                </View>
+              ))}
+              <View style={styles.itemsTotalRow}>
+                <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
+                <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
       )}
 
       {/* ── Success ── */}

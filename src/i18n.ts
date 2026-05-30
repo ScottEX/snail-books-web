@@ -310,6 +310,8 @@ const I18N: Record<string, Record<string, string>> = {
     procDeleteProductConfirm: '确定删除「{name}」？',
     procManageProducts: '管理产品',
     procPurchase: '采购',
+    procTitle: '进货管理',
+    procViewDetail: '查看明细',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -616,6 +618,8 @@ const I18N: Record<string, Record<string, string>> = {
     procDeleteProductConfirm: '確定刪除「{name}」？',
     procManageProducts: '管理產品',
     procPurchase: '採購',
+    procTitle: '進貨管理',
+    procViewDetail: '檢視明細',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -922,6 +926,8 @@ const I18N: Record<string, Record<string, string>> = {
     procDeleteProductConfirm: 'Delete "{name}"?',
     procManageProducts: 'Manage Products',
     procPurchase: 'Procurement',
+    procTitle: 'Procurement',
+    procViewDetail: 'View Details',
   },
 };
 
