@@ -44,6 +44,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  // ── Modal slide-from-top animation ──
+  const modalAnim = useRef(new Animated.Value(0)).current;
+  const modalFade = useRef(new Animated.Value(0)).current;
+  const openModal = (show: () => void) => { show(); modalAnim.setValue(-300); modalFade.setValue(0); Animated.parallel([Animated.spring(modalAnim,{toValue:0,useNativeDriver:true,bounciness:4,speed:14}),Animated.timing(modalFade,{toValue:1,duration:200,useNativeDriver:true})]).start(); };
+  const closeModal = (hide: () => void) => { Animated.parallel([Animated.timing(modalAnim,{toValue:-300,duration:180,useNativeDriver:true}),Animated.timing(modalFade,{toValue:0,duration:180,useNativeDriver:true})]).start(()=>hide()); };
   const [showReconHistory, setShowReconHistory] = useState(false);
   const [showExpenseHistory, setShowExpenseHistory] = useState(false);
   const [showDailyHistory, setShowDailyHistory] = useState(false);
@@ -360,7 +365,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
-    setShowBgModal(false);
+    closeModal(() => setShowBgModal(false));
   };
   const handleBgReset = async () => {
     setUploadingBg(true);
@@ -371,7 +376,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
-    setShowBgModal(false);
+    closeModal(() => setShowBgModal(false));
   };
 
   const styles = useMemo(() => getStyles(colors), [colors]);
@@ -396,10 +401,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={styles.header}>
         <View style={styles.headerInner}>
           <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
+            <TouchableOpacity onPress={() => openModal(() => setShowBgModal(true))} style={{ marginRight: 8 }}>
               <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowLogoutModal(true)}>
+            <TouchableOpacity onPress={() => openModal(() => setShowLogoutModal(true))}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
             </TouchableOpacity>
             <View style={styles.langRow}>
@@ -706,11 +711,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
       {/* Background settings modal */}
       {showBgModal && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+        <Animated.View style={[styles.modalOverlay, { opacity: modalFade }]}>
+          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalAnim }] }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t('bgSettings')}</Text>
-              <TouchableOpacity onPress={() => setShowBgModal(false)}>
+              <TouchableOpacity onPress={() => closeModal(() => setShowBgModal(false))}>
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -823,17 +828,17 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       )}
 
       {/* Logout confirmation modal */}
       {showLogoutModal && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+        <Animated.View style={[styles.modalOverlay, { opacity: modalFade }]}>
+          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalAnim }] }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t('logout')}</Text>
-              <TouchableOpacity onPress={() => setShowLogoutModal(false)}>
+              <TouchableOpacity onPress={() => closeModal(() => setShowLogoutModal(false))}>
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -844,7 +849,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
                 <TouchableOpacity
                   style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: colors.secondary }}
-                  onPress={() => setShowLogoutModal(false)}
+                  onPress={() => closeModal(() => setShowLogoutModal(false))}
                 >
                   <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t('cancel')}</Text>
                 </TouchableOpacity>
@@ -856,8 +861,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       )}
 
       {/* Bottom Nav */}
