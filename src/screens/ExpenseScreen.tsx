@@ -1078,7 +1078,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={st.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
+            <View style={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t('entryDate')}</Text>
@@ -1100,11 +1100,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
 
               {/* Column headers */}
-              <View style={{ flexDirection: 'row', marginBottom: 10, gap: 8, paddingHorizontal: 2 }}>
+              <View style={{ flexDirection: 'row', marginBottom: 10, gap: 6, paddingHorizontal: 2 }}>
                 <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight }}></Text>
-                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feeCurrent')}</Text>
-                <Text style={{ width: 72, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeEntry')}</Text>
+                <Text style={{ width: 72, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feePreview')}</Text>
+                <Text style={{ width: 72, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 64, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeEntry')}</Text>
               </View>
 
               {/* Fee rows */}
@@ -1116,16 +1116,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               ] as const).map((row) => {
                 const inputNum = toNum(row.val);
                 return (
-                  <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
+                  <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 6 }}>
                     <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t(row.k)}</Text>
-                    <Text style={{ width: 80, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left' }}>
+                    <Text style={{ width: 72, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 80, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left' }}>
+                    <Text style={{ width: 72, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left' }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
+                      style={{ width: 64, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
                       value={row.val} onChangeText={row.set}
                       keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub}
                     />
@@ -1735,7 +1735,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingBottom: 0,
     // @ts-ignore
     display: 'flex', flexDirection: 'column',
-    width: '90%', maxWidth: 500,
+    width: '94%', maxWidth: 500,
     // @ts-ignore
     ...modalCardAnimation,
     // @ts-ignore
