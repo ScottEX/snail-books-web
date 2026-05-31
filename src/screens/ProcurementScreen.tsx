@@ -176,7 +176,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartBadgeText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.surface },
   cartInfo: { flex: 1 },
   cartInfoText: { fontSize: FONTS.micro.size, color: c.textSub },
-  // (removed unused style cartInfoBold)
+  cartInfoCount: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary },
   cartTotal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary },
 
   // Drawer overlay
@@ -831,7 +831,7 @@ export default function ProcurementScreen() {
                   <View style={styles.cartBadge}><Text style={styles.cartBadgeText}>{cartCount}</Text></View>
                 </View>
                 <View style={styles.cartInfo}>
-                  <Text style={styles.cartInfoText}>{t('procCartCount').replace('{n}', String(cartCount))}</Text>
+                  <Text style={styles.cartInfoText}>{t('procSelected')} <Text style={styles.cartInfoCount}>{cartCount}</Text> {t('procUnit')}</Text>
                 </View>
                 <Text style={styles.cartTotal}>¥{cartTotal.toFixed(2)}</Text>
                 <TouchableOpacity onPress={clearCart} activeOpacity={0.6}
