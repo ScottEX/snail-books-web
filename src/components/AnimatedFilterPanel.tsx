@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Animated, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TouchableOpacity } from 'react-native';
 
 interface Props {
   visible: boolean;
@@ -8,65 +8,62 @@ interface Props {
 }
 
 /**
- * Reusable animated filter panel — mirrors ExpenseScreen picker exactly.
- * Pattern: start spring → mount views → Animated.Value already in motion.
- * Uses useLayoutEffect so the spring fires before browser paint.
+ * Animated filter panel — pure CSS transitions, no RN Animated.
+ * Mounts hidden → double-RAF → transitions visible. Close reverses → unmounts.
  */
 export const AnimatedFilterPanel: React.FC<Props> = ({ visible, onClose, children }) => {
-  const anim = useRef(new Animated.Value(0)).current;
+  const [mounted, setMounted] = useState(false);
   const [show, setShow] = useState(false);
-  const closingRef = useRef(false);
 
-  // Open: start spring → then mount (matches expense page pattern)
+  // Open: mount → wait for paint → transition in
   useEffect(() => {
-    if (visible && !show && !closingRef.current) {
-      anim.setValue(0);
-      Animated.spring(anim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-      setShow(true);
+    if (visible) {
+      setMounted(true);
+      // Double rAF ensures the browser paints the initial hidden state before we transition
+      const id = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setShow(true));
+      });
+      return () => cancelAnimationFrame(id);
     }
-  }, [visible, show]);
+  }, [visible]);
 
-  // Close: reverse animation → unmount → notify parent
+  // Close: transition out → wait for transition → unmount
   const close = () => {
-    if (closingRef.current) return;
-    closingRef.current = true;
-    Animated.timing(anim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-      setShow(false);
-      closingRef.current = false;
+    setShow(false);
+    setTimeout(() => {
+      setMounted(false);
       onClose();
-    });
+    }, 200); // match CSS transition duration
   };
 
-  if (!show) return null;
+  if (!mounted) return null;
+
+  const backdropStyle: any = {
+    position: 'fixed',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.08)',
+    zIndex: 9998,
+    opacity: show ? 1 : 0,
+    transition: 'opacity 0.2s ease-out',
+  };
+
+  const panelStyle: any = {
+    position: 'fixed',
+    top: 72, left: 12, right: 12,
+    zIndex: 9999,
+    opacity: show ? 1 : 0,
+    transform: show ? 'scale(1) translateY(0)' : 'scale(0.9) translateY(-8px)',
+    transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
+  };
 
   return (
     <>
-      {/* Backdrop — matches expense page line 1226 exactly */}
-      <Animated.View
-        style={{
-          position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998,
-          opacity: anim,
-        }}
-      >
+      <View style={backdropStyle}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={close} />
-      </Animated.View>
-
-      {/* Panel — position:fixed (matches expense page) + transform */}
-      <Animated.View
-        style={{
-          position: 'fixed' as any,
-          top: 72, left: 12, right: 12,
-          zIndex: 9999,
-          opacity: anim,
-          transform: [
-            { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) },
-            { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) },
-          ],
-        }}
-      >
+      </View>
+      <View style={panelStyle}>
         {children}
-      </Animated.View>
+      </View>
     </>
   );
 };
