@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
@@ -534,11 +534,25 @@ function ModalOverlay({ children, styles, onClose }: {
   styles: ReturnType<typeof getMo>;
   onClose: () => void;
 }) {
+  const anim = useRef(new Animated.Value(-300)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(anim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+    ]).start();
+  }, []);
+  const close = () => {
+    Animated.parallel([
+      Animated.timing(anim, { toValue: -300, duration: 180, useNativeDriver: true }),
+      Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
+    ]).start(onClose);
+  };
   return (
-    <View style={styles.overlay}>
-      <TouchableOpacity style={styles.backdrop} onPress={onClose} activeOpacity={1} />
-      <View style={styles.content}>{children}</View>
-    </View>
+    <Animated.View style={[styles.overlay, { opacity: fade }]}>
+      <TouchableOpacity style={styles.backdrop} onPress={close} activeOpacity={1} />
+      <Animated.View style={[styles.content, { transform: [{ translateY: anim }] }]}>{children}</Animated.View>
+    </Animated.View>
   );
 }
 
