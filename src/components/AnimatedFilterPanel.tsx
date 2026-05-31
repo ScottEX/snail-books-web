@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Animated, TouchableOpacity } from 'react-native';
 
 interface Props {
@@ -8,49 +8,59 @@ interface Props {
 }
 
 /**
- * Reusable animated filter panel — matches ExpenseScreen picker animation exactly.
- * Backdrop and panel are siblings (not nested), both driven by same anim value.
- * Always mounted so the Animated.Value stays connected to the views.
+ * Reusable animated filter panel — mirrors ExpenseScreen picker exactly.
+ * Pattern: start spring → mount views → Animated.Value already in motion.
+ * Uses useLayoutEffect so the spring fires before browser paint.
  */
 export const AnimatedFilterPanel: React.FC<Props> = ({ visible, onClose, children }) => {
   const anim = useRef(new Animated.Value(0)).current;
+  const [show, setShow] = useState(false);
+  const closingRef = useRef(false);
 
+  // Open: start spring → then mount (matches expense page pattern)
   useEffect(() => {
-    if (visible) {
+    if (visible && !show && !closingRef.current) {
       anim.setValue(0);
       Animated.spring(anim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
+      setShow(true);
     }
-  }, [visible]);
+  }, [visible, show]);
 
+  // Close: reverse animation → unmount → notify parent
   const close = () => {
-    Animated.timing(anim, { toValue: 0, duration: 150, useNativeDriver: true }).start(onClose);
+    if (closingRef.current) return;
+    closingRef.current = true;
+    Animated.timing(anim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+      setShow(false);
+      closingRef.current = false;
+      onClose();
+    });
   };
+
+  if (!show) return null;
 
   return (
     <>
-      {/* Backdrop — sibling, not parent of panel */}
+      {/* Backdrop — matches expense page line 1226 exactly */}
       <Animated.View
-        pointerEvents={visible ? 'auto' : 'none'}
         style={{
           position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.08)',
-          zIndex: visible ? 9998 : -1,
+          backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998,
           opacity: anim,
         }}
       >
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={close} />
       </Animated.View>
 
-      {/* Panel — sibling, matches expense page pattern */}
+      {/* Panel — position:fixed (matches expense page) + transform */}
       <Animated.View
-        pointerEvents={visible ? 'auto' : 'none'}
         style={{
-          position: 'absolute' as any,
+          position: 'fixed' as any,
           top: 72, left: 12, right: 12,
-          zIndex: visible ? 9999 : -1,
-          opacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: 'clamp' }),
+          zIndex: 9999,
+          opacity: anim,
           transform: [
-            { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1], extrapolate: 'clamp' }) },
+            { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) },
             { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) },
           ],
         }}
