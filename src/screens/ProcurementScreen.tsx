@@ -846,7 +846,7 @@ export default function ProcurementScreen() {
           onEndReached={batches.length < histTotal ? loadMoreHistory : undefined}
           onEndReachedThreshold={0.4}
           renderItem={({ item: batch }) => (
-            <View style={styles.historyCard}>
+            <TouchableOpacity style={styles.historyCard} onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
               <View style={styles.histHead}>
                 <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
                 <Text style={styles.histDate}>{batch.date}</Text>
@@ -876,7 +876,7 @@ export default function ProcurementScreen() {
                   </View>
                 )}
               </View>
-            </View>
+            </TouchableOpacity>
           )}
           ListEmptyComponent={
             <View style={styles.emptyWrap}>

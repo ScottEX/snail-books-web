@@ -93,8 +93,10 @@ export const uploadReceiptStyles = (colors: ThemeColors) => ({
     alignItems: 'center' as const, justifyContent: 'center' as const,
   },
   imgTipBubble: {
+    position: 'absolute' as const, top: 24, left: -50,
     backgroundColor: colors.textMain, borderRadius: 6,
     paddingHorizontal: 10, paddingVertical: 6,
+    zIndex: 10,
   },
   imgTipText: { fontSize: FONTS.micro.size, color: colors.surface, fontWeight: '500' as const },
 });
