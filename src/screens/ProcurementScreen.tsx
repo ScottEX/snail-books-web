@@ -650,8 +650,10 @@ export default function ProcurementScreen() {
       let imageUrls: string[] = [];
       if (receipts.length > 0) {
         setUploading(true);
+        console.log('[procurement] uploading', receipts.length, 'images');
         const result = await api.uploadExpenseImages(receipts);
         setUploading(false);
+        console.log('[procurement] upload result:', result);
         if (result.status !== 'ok') {
           setSubmitting(false);
           setToastMsg(t('toastSubmitFailed'));
@@ -660,11 +662,13 @@ export default function ProcurementScreen() {
         }
         imageUrls = result.images || [];
       }
+      console.log('[procurement] creating batch with images:', imageUrls);
       const r = await api.createProcurementBatch({
         date: orderDate, payment_method: payMethod, category: t('procPurchase'),
         items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
         images: imageUrls, note: orderNote,
       });
+      console.log('[procurement] createBatch result:', r);
       if (r.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number);
         // Close drawer first, then clear cart/receipts and show success to avoid overlay conflict
@@ -672,16 +676,19 @@ export default function ProcurementScreen() {
           Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
           Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
         ]).start(() => {
+          console.log('[procurement] drawer closed, showing success');
           setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote('');
           setShowDrawer(false);
           openSlideModal(() => setShowSuccess(true));
         });
         loadStats();
       } else {
+        console.log('[procurement] batch creation failed:', r);
         setToastMsg(t('toastSubmitFailed'));
         setShowToast(true);
       }
-    } catch {
+    } catch (err) {
+      console.error('[procurement] submit error:', err);
       setToastMsg(t('toastSubmitFailed'));
       setShowToast(true);
     }
