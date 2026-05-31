@@ -93,9 +93,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         setMsg(r.message || t('errWrongCredentials'));
         triggerShake();
       }
-    } catch {
+    } catch (e: any) {
       setLoading(false);
-      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
+      setMsg(e?.message || t('errNetworkError') || '网络错误，请检查网络后重试');
     }
   };
 
@@ -113,9 +113,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       setLoading(false);
       if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setDevCode(r.dev_code || ''); setStep('verify'); setTimeout(() => codeRef.current?.focus(), 100); }
       else { setMsg(r.message); triggerShake(); }
-    } catch {
+    } catch (e: any) {
       setLoading(false);
-      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
+      setMsg(e?.message || t('errNetworkError') || '网络错误，请检查网络后重试');
     }
   };
 
@@ -128,9 +128,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       setLoading(false);
       if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgVerifyOk')); setStep('login'); }
       else { setMsg(r.message); triggerShake(); }
-    } catch {
+    } catch (e: any) {
       setLoading(false);
-      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
+      setMsg(e?.message || t('errNetworkError') || '网络错误，请检查网络后重试');
     }
   };
 
@@ -145,9 +145,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       setLoading(false);
       if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setDevCode(r.dev_code || ''); setStep('reset'); setTimeout(() => codeRef.current?.focus(), 100); }
       else setMsg(r.message);
-    } catch {
+    } catch (e: any) {
       setLoading(false);
-      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
+      setMsg(e?.message || t('errNetworkError') || '网络错误，请检查网络后重试');
     }
   };
 
@@ -162,9 +162,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       setLoading(false);
       if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgResetOk')); setStep('login'); }
       else { setMsg(r.message); triggerShake(); }
-    } catch {
+    } catch (e: any) {
       setLoading(false);
-      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
+      setMsg(e?.message || t('errNetworkError') || '网络错误，请检查网络后重试');
     }
   };
 
