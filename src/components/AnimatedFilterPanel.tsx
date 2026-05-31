@@ -11,6 +11,7 @@ interface Props {
  * Reusable animated filter panel — matches ExpenseScreen picker animation.
  * Opens with spring (tension:300, friction:24): backdrop fade-in + panel scale 0.95→1 + translateY -8→0.
  * Closes with timing (150ms) reverse → calls onClose to unmount.
+ * Positioning (absolute, top:72, left:12, right:12) lives here so `transform` doesn't break the CSS containing block.
  */
 export const AnimatedFilterPanel: React.FC<Props> = ({ visible, onClose, children }) => {
   const anim = useRef(new Animated.Value(0)).current;
@@ -41,9 +42,12 @@ export const AnimatedFilterPanel: React.FC<Props> = ({ visible, onClose, childre
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={close} />
       </Animated.View>
 
-      {/* Panel */}
+      {/* Panel — carries positioning so transform doesn't break children's layout */}
       <Animated.View
         style={{
+          position: 'absolute' as any,
+          top: 72, left: 12, right: 12,
+          zIndex: 89,
           opacity: anim,
           transform: [
             { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1], extrapolate: 'clamp' }) },

@@ -9,7 +9,7 @@ import { AnimatedFilterPanel } from '../components/AnimatedFilterPanel';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
+import { modalClose, historyHeader } from '../sharedStyles';
 
 const PAGE_SIZE = 10;
 
@@ -432,11 +432,9 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   /* Filter panel — matches ReconHistoryScreen */
   filterBtnTextActive: { color: colors.surface },
   filterPanel: {
-    position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: colors.surface, borderRadius: 10,
     borderWidth: 1, borderColor: colors.secondary,
     overflow: 'hidden',
-    ...modalCardAnimation,
   },
   filterContent: { padding: 12, gap: 8 },
   filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },

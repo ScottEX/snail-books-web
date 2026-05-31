@@ -515,11 +515,9 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   filterBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub },
   filterBtnTextActive: { color: colors.surface },
   filterPanel: {
-    position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
     backgroundColor: colors.surface, borderRadius: 10,
     borderWidth: 1, borderColor: colors.secondary,
     overflow: 'hidden',
-    ...modalCardAnimation,
   },
   filterContent: {
     padding: 12, gap: 8,
