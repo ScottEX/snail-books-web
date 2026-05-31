@@ -991,7 +991,7 @@ export default function ProcurementScreen() {
                 <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setDeleteTarget(null))}>
                   <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.danger }]} onPress={confirmDelete}>
+                <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.primary }]} onPress={confirmDelete}>
                   <Text style={styles.modalBtnConfirmText}>{t('delete') || '删除'}</Text>
                 </TouchableOpacity>
               </View>
@@ -1145,7 +1145,7 @@ export default function ProcurementScreen() {
       {showSuccess && (
         <Animated.View style={[styles.successOverlay, { opacity: modalOverlayFade }]}>
           <Animated.View style={[styles.successCard, { transform: [{ translateY: modalSlide }] }]}>
-            <CheckIcon color={c.success} />
+            <CheckIcon color={c.primary} />
             <Text style={styles.successTitle}>{t('procSubmitted')}</Text>
             <Text style={styles.successSub}>{t('procSubmittedMsg')}</Text>
             <Text style={styles.successAmount}>¥{successTotal.toFixed(2)}</Text>
