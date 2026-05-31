@@ -224,7 +224,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Items button
   itemsBtn: {
-    paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8,
+    paddingVertical: 10, paddingLeft: 0, paddingRight: 12, borderRadius: 8,
     backgroundColor: withAlpha(c.textMain, 0.03),
     flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
     marginBottom: 12,
