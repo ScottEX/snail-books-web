@@ -222,16 +222,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   // Upload (expense page style)
   // Image upload — now in sharedStyles
 
-  // Items button
-  itemsBtn: {
-    paddingVertical: 10, paddingLeft: 0, paddingRight: 12, borderRadius: 8,
-    backgroundColor: withAlpha(c.textMain, 0.03),
-    flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
-    marginTop: 8,
-    marginBottom: 12,
-  },
+  // Items row
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
-  itemsBtnArrow: { fontSize: FONTS.sub.size, color: c.textSub },
 
   // Items modal
   itemsModalOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
@@ -1071,11 +1063,13 @@ export default function ProcurementScreen() {
                 {uploading && <ActivityIndicator color={c.primary} style={{ marginLeft: 8 }} />}
               </View>
 
-              {/* Items button (not inline) */}
-              <TouchableOpacity style={styles.itemsBtn} onPress={openItemsModal} activeOpacity={0.7}>
+              {/* Items row — matching 近7天 pattern: label left, theme button right */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
                 <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
-                <Text style={styles.itemsBtnArrow}>{t('procViewDetail')} ›</Text>
-              </TouchableOpacity>
+                <TouchableOpacity onPress={openItemsModal} activeOpacity={0.7}>
+                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary }}>{t('procViewDetail')} →</Text>
+                </TouchableOpacity>
+              </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procNoteOptional')}</Text>
