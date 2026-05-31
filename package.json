@@ -1,7 +1,7 @@
 {
   "name": "snail-books-web",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "dependencies": {
     "@expo/metro-runtime": "~56.0.12",
     "expo": "~56.0.4",
