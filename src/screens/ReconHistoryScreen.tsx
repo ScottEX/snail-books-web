@@ -318,14 +318,16 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           </Svg>
         </TouchableOpacity>
       </View>
-      {/* Filter bar — backdrop fixed, panel in normal flow */}
+      {/* Filter bar */}
       {showFilter && (<>
         <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => {
             Animated.timing(filterAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setShowFilter(false));
           }} />
         </Animated.View>
-        <View style={{ position: 'relative', zIndex: 9999, marginHorizontal: 12, marginBottom: -8 }}>
+        <View style={{
+          position: 'fixed' as any, top: 72, left: 12, right: 12, zIndex: 9999,
+        }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <View style={st.filterField}>
