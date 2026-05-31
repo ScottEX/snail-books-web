@@ -284,7 +284,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   filterContent: { padding: 12, gap: 8 },
   filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  filterLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub, width: 64, flexShrink: 0 },
+  filterLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub, width: 64, flexShrink: 0 },
   filterDateRange: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterDateWrap: {
     flex: 1, height: 34, position: 'relative' as any,
@@ -292,8 +292,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
-  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: '400', color: colors.textSub },
+  filterDateText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
+  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
@@ -303,12 +303,12 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.secondary, borderRadius: 8,
   },
-  filterResetBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
+  filterResetBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.primary, borderRadius: 8,
   },
-  filterApplyBtnText: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.surface },
+  filterApplyBtnText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
 
   /* List */
   list: { flex: 1 },
@@ -337,7 +337,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   statusDotEmpty: { backgroundColor: colors.danger },
   statusDotDone: { backgroundColor: colors.success },
-  statusText: { fontSize: FONTS.micro.size, fontWeight: '600' },
+  statusText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight },
   statusTextEmpty: { color: colors.danger },
   statusTextDone: { color: colors.success },
 
@@ -348,8 +348,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 8,
   },
   cardAmtCol: { alignItems: 'center', flex: 1, gap: 4 },
-  cardAmtVal: { fontSize: FONTS.h2.size, fontWeight: '700' },
-  cardAmtLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
+  cardAmtVal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight },
+  cardAmtLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
 
   /* Footer */
   cardFooter: {
@@ -364,7 +364,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
     backgroundColor: withAlpha(colors.danger, 0.1),
   },
-  archivedBadgeText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.danger },
+  archivedBadgeText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.danger },
 
   /* Note display */
   cardNote: { borderTopWidth: 0.5, borderTopColor: colors.secondary, paddingTop: 8, marginTop: 4 },

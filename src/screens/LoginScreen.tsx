@@ -462,7 +462,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   msgBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
   msgOk: { backgroundColor: withAlpha(colors.success, 0.3) },
   msgErr: { backgroundColor: withAlpha(colors.danger, 0.12) },
-  msgText: { fontSize: FONTS.micro.size, fontWeight: '500' },
+  msgText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight },
   msgOkText: { color: withAlpha(colors.success, 0.1) },
   msgErrText: { color: colors.danger },
   tabRow: {
@@ -472,12 +472,12 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
-  tabText: { fontSize: FONTS.micro.size, fontWeight: '500', color: 'rgba(255,255,255,0.65)' },
+  tabText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: 'rgba(255,255,255,0.65)' },
   tabActiveText: { color: colors.surface },
   formSection: { gap: 16 },
   fieldWrap: { gap: 6 },
-  fieldLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: 'rgba(255,255,255,0.6)' },
-  hintText: { fontSize: FONTS.micro.size, fontWeight: '400', color: 'rgba(255,255,255,0.3)' },
+  fieldLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: 'rgba(255,255,255,0.6)' },
+  hintText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: 'rgba(255,255,255,0.3)' },
   pwWrap: { position: 'relative' as any },
   pwInput: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
@@ -502,13 +502,13 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  btnDarkText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.surface, letterSpacing: 1 },
+  btnDarkText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
   btnRed: {
     backgroundColor: withAlpha(colors.primary, 0.7), borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
     // @ts-ignore
     backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  btnRedText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.surface, letterSpacing: 1 },
+  btnRedText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
   forgotText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
   disabledText: { opacity: 0.3 },
   infoText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
@@ -519,7 +519,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     backdropFilter: 'blur(8px)',
   },
-  devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: '500', marginBottom: 8 },
-  devCodeValue: { fontSize: FONTS.amount.size, fontWeight: '700', color: colors.surface, letterSpacing: 8 },
+  devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: FONTS.micro.weight, marginBottom: 8 },
+  devCodeValue: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.surface, letterSpacing: 8 },
   copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });

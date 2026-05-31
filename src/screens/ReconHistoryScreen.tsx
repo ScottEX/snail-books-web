@@ -448,15 +448,15 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   dateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 8 },
   dateItem: { flex: 1, alignItems: 'center' },
-  dateLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 2 },
-  dateVal: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub },
+  dateLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 2 },
+  dateVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
   dateSep: { width: 1, height: 24, backgroundColor: colors.secondary },
   /* Card vertical pairs — plain, no background */
   cardPairRow: { flexDirection: 'row', gap: 4 },
   cardPairCol: { flex: 1, alignItems: 'center' },
   cardPairItem: { alignItems: 'center', gap: 2, paddingVertical: 4 },
-  cardPairLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
-  cardPairVal: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain },
+  cardPairLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
+  cardPairVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
   cardPairDiv: { height: 1, backgroundColor: colors.bg, width: '60%', marginVertical: 2 },
   tapHint: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center', marginTop: 2 },
   /* Modal */
@@ -482,8 +482,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 12, paddingHorizontal: 18,
   },
-  modalDate: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
-  modalDateSub: { fontSize: FONTS.micro.size, fontWeight: '400', color: withAlpha(colors.surface, 0.75), marginTop: 2 },
+  modalDate: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
+  modalDateSub: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: withAlpha(colors.surface, 0.75), marginTop: 2 },
   modalClose: { ...modalClose, paddingLeft: 8 },
   /* Three vertical pairs */
   pairRow: {
@@ -496,8 +496,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingVertical: 10, paddingHorizontal: 4,
   },
   pairItem: { alignItems: 'center', gap: 4, paddingVertical: 6 },
-  pairLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
-  pairVal: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain },
+  pairLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
+  pairVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
   pairDivider: { height: 1, backgroundColor: colors.secondary, width: '70%' },
   /* Channel section */
   chanSection: {
@@ -506,8 +506,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingTop: 12,
   },
   chanRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 7, paddingHorizontal: 4 },
-  chanLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: '500' },
-  chanVal: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain },
+  chanLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
+  chanVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
   /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
@@ -515,7 +515,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
   emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   /* Filter — ultra-minimal */
-  filterBtnText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub },
+  filterBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub },
   filterBtnTextActive: { color: colors.surface },
   filterPanel: {
     position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
@@ -531,7 +531,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
   },
   filterLabel: {
-    fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub,
+    fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub,
     width: 64, flexShrink: 0,
   },
   filterDateRange: {
@@ -544,7 +544,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 6,
     borderWidth: 1, borderColor: colors.secondary,
-    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textSub,
+    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
     fontFamily: 'inherit',
     outline: 'none',
   },
@@ -554,8 +554,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
-  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: '400', color: colors.textSub },
+  filterDateText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
+  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
@@ -566,7 +566,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 6,
     borderWidth: 1, borderColor: colors.secondary,
-    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textSub,
+    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
   },
   filterSelectWrap: {
     flex: 1, position: 'relative',
@@ -579,7 +579,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 6,
     borderWidth: 1, borderColor: colors.secondary,
-    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textSub,
+    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
     fontFamily: 'inherit',
     outline: 'none',
     WebkitAppearance: 'none',
@@ -590,7 +590,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   filterSelectArrow: {
     position: 'absolute',
     right: 8, top: 9,
-    fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '600',
+    fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight,
     pointerEvents: 'none',
   },
   filterActions: {
@@ -601,14 +601,14 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     backgroundColor: colors.secondary,
   },
-  filterResetBtnText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
+  filterResetBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterApplyBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
     backgroundColor: colors.primary,
   },
-  filterApplyBtnText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.surface },
+  filterApplyBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.surface },
   /* Reconciler in card */
   reconByRow: { alignItems: 'center', paddingBottom: 2 },
-  reconByText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
+  reconByText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
 } as any);

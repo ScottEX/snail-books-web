@@ -379,7 +379,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         <View style={styles.headerInner}>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
-              <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' }}>{t('bgSettings')}</Text>
+              <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowLogoutModal(true)}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
@@ -425,7 +425,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       {editingRevId && (
                         <TouchableOpacity onPress={cancelEdit} activeOpacity={0.7}
                           style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: colors.bg }}>
-                          <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '600' }}>✕ 取消</Text>
+                          <Text style={{ fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight }}>✕ 取消</Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -442,7 +442,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                               paddingHorizontal: 14, paddingVertical: 8, borderRadius: 22,
                               backgroundColor: revDate === pill.d ? colors.primary : colors.bg,
                             }}>
-                            <Text style={{ fontSize: FONTS.sub.size, fontWeight: '600', color: revDate === pill.d ? colors.surface : colors.textSub }}>
+                            <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: revDate === pill.d ? colors.surface : colors.textSub }}>
                               {pill.label}
                             </Text>
                           </TouchableOpacity>
@@ -450,7 +450,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       </View>
                       <View style={{ position: 'relative' }}>
                         <TouchableOpacity activeOpacity={1} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub }}>
+                          <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>
                             {revDate.replace(/-/g, '/')}
                           </Text>
                           <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>📅</Text>
@@ -551,15 +551,15 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     <View style={{ marginTop: 14, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}>
                       <View style={{ alignItems: 'flex-start' }}>
                         <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekRevenue')}</Text>
-                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
+                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
                       </View>
                       <View style={{ alignItems: 'center' }}>
                         <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekTurnover')}</Text>
-                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
+                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
                       </View>
                       <View style={{ alignItems: 'flex-end' }}>
                         <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekJD')}</Text>
-                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
+                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
                       </View>
                     </View>
                   </View>
@@ -571,14 +571,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textMain} strokeWidth={2} strokeLinecap="round">
                           <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6" />
                         </Svg>
-                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub }}>{t('revHistory')}</Text>
+                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>{t('revHistory')}</Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => { setShowDailyHistory(true); }}
                         activeOpacity={0.7}
                         style={{ marginLeft: 'auto' }}
                       >
-                        <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.primary }}>{t('revHistoryBtn')} →</Text>
+                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.primary }}>{t('revHistoryBtn')} →</Text>
                       </TouchableOpacity>
                     </View>
 
@@ -701,7 +701,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
               {/* ── Theme Picker ── */}
               <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
+                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
                 {allThemes.map((theme) => {
                   const isActive = theme.colors.primary === colors.primary;
                   const previewBg = theme.colors.bg;
@@ -742,8 +742,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               {/* Opacity slider */}
               <View style={{ marginTop: 20 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' }}>{t('opacity')}</Text>
-                  <Text style={{ fontSize: FONTS.sub.size, fontWeight: '700', color: colors.primary }}>{Math.round(bgOpacity * 100)}%</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('opacity')}</Text>
+                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.primary }}>{Math.round(bgOpacity * 100)}%</Text>
                 </View>
                 <View style={{ position: 'relative', height: 32, justifyContent: 'center' }}>
                   {/* track background */}
@@ -828,13 +828,13 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: colors.secondary }}
                   onPress={() => setShowLogoutModal(false)}
                 >
-                  <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: '500' }}>{t('cancel')}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t('cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', backgroundColor: colors.primary }}
                   onPress={async () => { await api.logout(); localStorage.removeItem('active_tab'); onLogout(); }}
                 >
-                  <Text style={{ fontSize: FONTS.sub.size, color: colors.surface, fontWeight: '600' }}>{t('confirmLogout') || '确定退出'}</Text>
+                  <Text style={{ fontSize: FONTS.subBold.size, color: colors.surface, fontWeight: FONTS.subBold.weight }}>{t('confirmLogout') || '确定退出'}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -953,41 +953,41 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  title: { fontSize: FONTS.h2.size, fontWeight: '700', color: colors.textMain },
+  title: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   // 8600: color:#8C8583 font-size:13px
   date: { color: colors.textSub, fontSize: FONTS.sub.size },
-  logoutBtn: { fontSize: FONTS.micro.size, color: colors.danger, fontWeight: '500' },
+  logoutBtn: { fontSize: FONTS.micro.size, color: colors.danger, fontWeight: FONTS.micro.weight },
   langRow: { flexDirection: 'row', gap: 4 },
-  langBtn: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
-  langActive: { color: colors.primary, backgroundColor: withAlpha(colors.danger, 0.1), fontWeight: '700' },
+  langBtn: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
+  langActive: { color: colors.primary, backgroundColor: withAlpha(colors.danger, 0.1), fontWeight: FONTS.microBold.weight },
   // Page — 8600: padding:0 16px 110px, max-width:520px, margin:0 auto
   page: { flex: 1, paddingHorizontal: 16, paddingBottom: 12, maxWidth: 520, alignSelf: 'center', width: '100%' },
   // Stats — 8600: grid-cols-4
   statsRow: { flexDirection: 'row', marginBottom: 20 },
   statItem: { flex: 1 },
   // 8600: stat-label font-size:11px color:#8C8583 font-weight:500
-  statLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', marginBottom: 4 },
+  statLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 4 },
   // 8600: stat-num font-size:28px font-weight:700
-  statNum: { fontSize: FONTS.amount.size, fontWeight: '700', lineHeight: 28 },
+  statNum: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, lineHeight: 28 },
   // 8600: text-xs color:#EAE5E0
-  statSub: { fontSize: FONTS.micro.size, color: colors.secondary, marginTop: 2 },
+  statSub: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   // Tab bar — 8600: display:flex border-bottom
   tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.secondary, marginBottom: 16 },
   // 8600: tab padding:10px font-size:12px color:#8C8583
   tabItem: { paddingVertical: 10, paddingHorizontal: 0, marginRight: 0, borderBottomWidth: 2, borderBottomColor: 'transparent', marginBottom: -1 },
   tabActive: { borderBottomColor: colors.textMain },
-  tabItemText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
+  tabItemText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   tabActiveText: { color: colors.textMain },
   // Content
   content: { flex: 1 },
   // Transaction row — 8600: tx-row
   txRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.bg },
   txDot: { width: 7, height: 7, borderRadius: 4 },
-  txCat: { fontSize: FONTS.sub.size, fontWeight: '500' },
-  txNote: { fontSize: FONTS.micro.size, color: colors.secondary },
-  txAmt: { fontSize: FONTS.sub.size, fontWeight: '600' },
-  txDate: { fontSize: FONTS.micro.size, color: colors.secondary, width: 70 },
-  txDel: { fontSize: FONTS.sub.size, color: colors.secondary, padding: 4 },
+  txCat: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight },
+  txNote: { fontSize: FONTS.micro.size, color: colors.textSub },
+  txAmt: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
+  txDate: { fontSize: FONTS.micro.size, color: colors.textSub, width: 70 },
+  txDel: { fontSize: FONTS.sub.size, color: colors.textSub, padding: 4 },
   // Pagination
   pageRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: 10 },
   pageBtn: { fontSize: FONTS.micro.size, color: colors.textSub, paddingHorizontal: 10, paddingVertical: 4 },
@@ -998,7 +998,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   typeBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.secondary, backgroundColor: colors.surface, alignItems: 'center' },
   typeBtnInc: { borderColor: colors.success, backgroundColor: withAlpha(colors.success, 0.1) },
   typeBtnExp: { borderColor: colors.danger, backgroundColor: withAlpha(colors.danger, 0.1) },
-  typeBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
+  typeBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
   typeBtnIncText: { color: colors.success },
   typeBtnExpText: { color: colors.danger },
   addInput: { width: '100%', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, fontSize: FONTS.sub.size, backgroundColor: colors.surface, color: colors.textSub, marginBottom: 8, fontFamily: undefined },
@@ -1008,13 +1008,13 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   saveBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.textMain, justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginTop: 8 },
   saveBtnText: { color: colors.surface, fontSize: FONTS.amount.size },
   // Supply
-  sectionTitle: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub, paddingVertical: 10 },
+  sectionTitle: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, paddingVertical: 10 },
   supplyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.secondary },
-  supplyName: { fontSize: FONTS.sub.size, fontWeight: '500', flex: 1 },
-  supplyPrice: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textSub },
+  supplyName: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, flex: 1 },
+  supplyPrice: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
   // Chart
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  barLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500', width: 36, textAlign: 'right' },
+  barLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, width: 36, textAlign: 'right' },
   barWrap: { flex: 1, height: 16, backgroundColor: colors.bg, borderRadius: 3, overflow: 'hidden', flexDirection: 'row' },
   barIncome: { backgroundColor: colors.success, height: '100%' },
   barExpense: { backgroundColor: colors.danger, opacity: 0.7, height: '100%' },
@@ -1048,7 +1048,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   navItemActive: {
     backgroundColor: 'rgba(0,0,0,0.06)',
   },
-  navLabel: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub, letterSpacing: 0.3 },
+  navLabel: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.3 },
   navLabelActive: { color: colors.textMain },
   // Background settings modal
   modalOverlay: {
@@ -1066,15 +1066,15 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 14,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  modalTitle: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.surface },
+  modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
   modalClose: { ...modalClose, },
   modalBodyBg: { padding: 24 },
   modalHint: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
   bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   bgBtnOutline: { borderWidth: 1, borderColor: colors.primary },
-  bgBtnOutlineText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
+  bgBtnOutlineText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
   bgBtnDanger: { borderWidth: 1, borderColor: withAlpha(colors.primary, 0.2), backgroundColor: withAlpha(colors.primary, 0.06) },
-  bgBtnDangerText: { fontSize: FONTS.micro.size, color: colors.primary, fontWeight: '500' },
+  bgBtnDangerText: { fontSize: FONTS.micro.size, color: colors.primary, fontWeight: FONTS.micro.weight },
 
   /* ── Daily Revenue (每日营收) ── */
   revCard: {
@@ -1084,16 +1084,16 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
   },
-  revTitle: { fontSize: FONTS.body.size, fontWeight: '700', color: colors.textMain },
+  revTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   // Three input cards
   revInputCard: {
     flex: 1, backgroundColor: colors.surface, borderRadius: 10,
     padding: 10, borderWidth: 0.5, borderColor: colors.secondary,
   },
-  revInputCardTitle: { fontSize: FONTS.micro.size, fontWeight: '700', color: colors.textSub, marginBottom: 2 },
+  revInputCardTitle: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, marginBottom: 2 },
   revInputCardSub: { fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 8 },
   revInputCardInputWrap: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 6 },
-  revInputCardSymbol: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub, marginRight: 2, marginBottom: 1 },
+  revInputCardSymbol: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, marginRight: 2, marginBottom: 1 },
   revInputCardInput: { flex: 1, fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain, padding: 0, outline: 'none' },
   revInputCardFooter: { fontSize: FONTS.micro.size, color: colors.textSub },
   revNoteInput: {
@@ -1104,13 +1104,13 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   revSubmitBtn: {
     backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center',
    },
-  revSubmitText: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.surface },
+  revSubmitText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
   revArchiveBtn: {
     backgroundColor: colors.secondary, borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', justifyContent: 'center', flex: 1,
   },
   revArchiveBtnDone: { backgroundColor: withAlpha(colors.success, 0.1) },
-  revArchiveText: { fontSize: FONTS.sub.size, fontWeight: '700', color: colors.textSub },
+  revArchiveText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
   revArchiveTextDone: { color: colors.success },
   // 7-day card items — same card style as history page
   rev7CardItem: {
@@ -1130,7 +1130,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8,
     backgroundColor: withAlpha(colors.success, 0.1),
   },
-  rev7TodayTagText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.success },
+  rev7TodayTagText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.success },
   rev7CardBadge: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,
@@ -1138,15 +1138,15 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   rev7CardBadgeGap: { backgroundColor: withAlpha(colors.danger, 0.1) },
   rev7CardBadgeOk: { backgroundColor: withAlpha(colors.success, 0.1) },
   rev7CardDot: { width: 6, height: 6, borderRadius: 3 },
-  rev7CardStatus: { fontSize: FONTS.micro.size, fontWeight: '600' },
+  rev7CardStatus: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight },
   rev7CardAmounts: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingVertical: 12, paddingHorizontal: 8,
     backgroundColor: colors.surface, borderRadius: 8,
   },
   rev7CardAmtCol: { alignItems: 'center', flex: 1, gap: 4 },
-  rev7CardAmtVal: { fontSize: FONTS.h2.size, fontWeight: '700' },
-  rev7CardAmtLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: '500' },
+  rev7CardAmtVal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight },
+  rev7CardAmtLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
   rev7CardFooter: {
     borderTopWidth: 0.5, borderTopColor: colors.secondary,
     paddingTop: 8,
@@ -1159,7 +1159,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
     backgroundColor: withAlpha(colors.danger, 0.1),
   },
-  rev7ArchivedBadgeText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.danger },
+  rev7ArchivedBadgeText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.danger },
 
   /* Note display */
   rev7CardNote: { borderTopWidth: 0.5, borderTopColor: colors.secondary, paddingTop: 8, marginTop: 4 },

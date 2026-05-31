@@ -382,13 +382,13 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     backgroundColor: withAlpha(colors.warning, 0.1), borderRadius: 4,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  catBadgeText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.primary },
+  catBadgeText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.primary },
   payBadge: {
     backgroundColor: colors.bg, borderRadius: 4,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  payBadgeText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
-  amount: { fontSize: FONTS.h2.size, fontWeight: '700', color: colors.danger },
+  payBadgeText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
+  amount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.danger },
   filledBy: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {
@@ -430,7 +430,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   previewArrowText: { fontSize: FONTS.amount.size, fontWeight: '300', color: colors.surface, marginTop: -2 },
   previewCounter: {
     position: 'absolute', bottom: 60, zIndex: 10,
-    fontSize: FONTS.sub.size, fontWeight: '500', color: 'rgba(255,255,255,0.7)',
+    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: 'rgba(255,255,255,0.7)',
   },
   /* Filter panel — matches ReconHistoryScreen */
   filterBtnTextActive: { color: colors.surface },
@@ -443,14 +443,14 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   },
   filterContent: { padding: 12, gap: 8 },
   filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  filterLabel: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub, width: 64, flexShrink: 0 },
+  filterLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub, width: 64, flexShrink: 0 },
   filterDateRange: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   // @ts-ignore outline is web-only CSS, not in RN types
   filterDateInput: {
     flex: 1, height: 34, paddingHorizontal: 8,
     backgroundColor: colors.surface, borderRadius: 6,
     borderWidth: 1, borderColor: colors.secondary,
-    fontSize: FONTS.sub.size, fontWeight: '400', color: colors.textSub,
+    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
     fontFamily: 'inherit', outline: 'none',
   },
   filterDateWrap: {
@@ -459,8 +459,8 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: FONTS.micro.size, fontWeight: '500', color: colors.textSub },
-  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: '400', color: colors.textSub },
+  filterDateText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
+  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
@@ -471,17 +471,17 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     backgroundColor: colors.bg,
   },
   filterChipActive: { backgroundColor: colors.primary },
-  filterChipText: { fontSize: FONTS.micro.size, fontWeight: '600', color: colors.textSub },
+  filterChipText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub },
   filterChipTextActive: { color: colors.surface },
   filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.secondary, borderRadius: 8,
   },
-  filterResetBtnText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
+  filterResetBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
   filterApplyBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.primary, borderRadius: 8,
   },
-  filterApplyBtnText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
+  filterApplyBtnText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
 } as any);

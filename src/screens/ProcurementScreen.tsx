@@ -9,6 +9,7 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
+import Toast from '../components/Toast';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = '现金' | '微信' | '支付宝';
@@ -121,12 +122,12 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   },
   headerSection: { padding: 16, paddingBottom: 8 },
   headerTop: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginBottom: 12 },
-  headerTitle: { fontSize: FONTS.h2.size, fontWeight: '700' as const, color: c.textMain },
+  headerTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.textMain },
   headerBadge: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 20, paddingHorizontal: 12, paddingVertical: 3 },
-  headerBadgeText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: '600' as const },
+  headerBadgeText: { fontSize: FONTS.microBold.size, color: c.primary, fontWeight: FONTS.microBold.weight },
   statRow: { flexDirection: 'row' as const, gap: 6 },
   statPill: { flex: 1, backgroundColor: withAlpha(c.textMain, 0.04), borderRadius: 10, padding: 10, alignItems: 'center' as const },
-  statNum: { fontSize: FONTS.sub.size, fontWeight: '600' as const, color: c.textMain },
+  statNum: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   statLbl: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 3 },
 
   searchSection: { paddingHorizontal: 16, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
@@ -141,26 +142,26 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   subTabRow: { flexDirection: 'row' as const, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06), marginHorizontal: 4, paddingTop: 2, marginBottom: 6 },
   subTab: { flex: 1, paddingVertical: 10, alignItems: 'center' as const },
   subTabOn: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 10 },
-  subTabText: { fontSize: FONTS.micro.size, fontWeight: '500' as const, color: c.textSub },
+  subTabText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textSub },
   subTabTextOn: { color: c.primary, fontWeight: '600' as const },
 
-  sectionHead: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4, fontSize: FONTS.micro.size, fontWeight: '600' as const, color: c.textSub, textTransform: 'uppercase' as const, letterSpacing: 1 },
+  sectionHead: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub, textTransform: 'uppercase' as const, letterSpacing: 1 },
   productCard: { marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), overflow: 'hidden' as const },
   productCardSel: { borderColor: c.primary, borderWidth: 1.5 },
   prodRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 10, gap: 10 },
   prodInfo: { flex: 1 },
-  prodName: { fontSize: FONTS.sub.size, fontWeight: '500' as const, color: c.textMain, marginBottom: 2 },
+  prodName: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 2 },
   prodSpec: { fontSize: FONTS.micro.size, color: c.textSub },
   prodPriceWrap: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 4, marginRight: 8 },
-  prodPrice: { fontSize: FONTS.sub.size, fontWeight: '600' as const, color: c.primary },
+  prodPrice: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary },
   qtyRow: { flexDirection: 'row' as const, alignItems: 'center' as const },
   qtyBtn: { width: 30, height: 30, borderRadius: 6, alignItems: 'center' as const, justifyContent: 'center' as const },
   qtyBtnMinus: { backgroundColor: withAlpha(c.textMain, 0.06) },
   qtyBtnMinusText: { fontSize: FONTS.h2.size, color: c.textSub },
   qtyBtnPlus: { backgroundColor: c.primary },
   qtyBtnPlusText: { fontSize: FONTS.h2.size, color: c.surface, fontWeight: '300' as const },
-  qtyNum: { width: 36, textAlign: 'center' as const, fontSize: FONTS.sub.size, fontWeight: '600' as const, color: c.textMain },
-  prodSubtotal: { paddingHorizontal: 12, paddingBottom: 8, fontSize: FONTS.micro.size, color: c.primary, fontWeight: '500' as const },
+  qtyNum: { width: 36, textAlign: 'center' as const, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
+  prodSubtotal: { paddingHorizontal: 12, paddingBottom: 8, fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.micro.weight },
 
   cartBar: {
     position: 'absolute' as const, bottom: 90, left: 0, right: 0, zIndex: 100,
@@ -172,11 +173,11 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartPreview: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12, padding: 12 },
   cartIconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center' as const, justifyContent: 'center' as const },
   cartBadge: { position: 'absolute' as const, top: -4, right: -4, width: 18, height: 18, backgroundColor: c.warning, borderRadius: 9, borderWidth: 2, borderColor: c.surface, alignItems: 'center' as const, justifyContent: 'center' as const },
-  cartBadgeText: { fontSize: FONTS.micro.size, fontWeight: '600' as const, color: c.surface },
+  cartBadgeText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.surface },
   cartInfo: { flex: 1 },
   cartInfoText: { fontSize: FONTS.micro.size, color: c.textSub },
   cartInfoBold: { fontWeight: '600' as const, color: c.textMain },
-  cartTotal: { fontSize: FONTS.h2.size, fontWeight: '700' as const, color: c.primary },
+  cartTotal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary },
 
   // Drawer overlay
   overlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200 },
@@ -198,11 +199,11 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   // Date row (all 4 elements inline)
   dateCatRow: { marginBottom: 12 },
   dateCatLine: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.06), gap: 8 },
-  dateCatLabel: { fontSize: FONTS.sub.size, fontWeight: '500' as const, color: c.textMain },
+  dateCatLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain },
   dateCatValue: { fontSize: FONTS.sub.size, color: c.textSub, flexDirection: 'row' as const, alignItems: 'center' as const },
 
   // Payment capsules (matching ExpenseScreen)
-  sectionLabel: { fontSize: FONTS.micro.size, fontWeight: '500' as const, color: c.textSub, marginBottom: 6 },
+  sectionLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textSub, marginBottom: 6 },
   payRow: { flexDirection: 'row' as const, gap: 6, marginBottom: 12 },
   payChip: {
     flex: 1, flexDirection: 'row' as const, paddingVertical: 8, borderRadius: 22,
@@ -212,7 +213,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   payChipOn: { backgroundColor: c.primary },
   payChipOnWechat: { backgroundColor: '#07C160' },
   payChipOnAlipay: { backgroundColor: '#1677FF' },
-  payChipText: { fontSize: FONTS.sub.size, fontWeight: '600' as const, color: c.textSub },
+  payChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textSub },
   payChipTextOn: { color: c.surface },
 
   chipIconCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const, justifyContent: 'center' as const, marginRight: 4 },
@@ -228,38 +229,38 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
     marginBottom: 12,
   },
-  itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: '500' as const },
+  itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
   itemsBtnArrow: { fontSize: FONTS.sub.size, color: c.textSub },
 
   // Items modal
   itemsModalOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
   itemsModalCard: { backgroundColor: c.surface, borderRadius: 16, width: 'calc(100% - 40px)' as any, maxWidth: 360, maxHeight: '75%' as any, overflow: 'hidden' as const },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
-  itemsModalTitle: { fontSize: FONTS.sub.size, fontWeight: '700' as const, color: c.surface },
+  itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
   itemsModalBody: { padding: 16 },
   itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10 },
   itemsRowName: { flex: 1, fontSize: FONTS.sub.size, color: c.textMain },
   itemsRowQty: { fontSize: FONTS.micro.size, color: c.textSub, marginRight: 12 },
-  itemsRowAmt: { fontSize: FONTS.sub.size, fontWeight: '600' as const, color: c.primary },
+  itemsRowAmt: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary },
   itemsTotalRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, paddingTop: 14, marginTop: 8, borderTopWidth: 2, borderTopColor: withAlpha(c.textMain, 0.12) },
-  itemsTotalLabel: { fontSize: FONTS.sub.size, fontWeight: '600' as const, color: c.textMain },
-  itemsTotal: { fontSize: FONTS.amount.size, fontWeight: '700' as const, color: c.primary },
+  itemsTotalLabel: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
+  itemsTotal: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.primary },
 
   // Submit
   submitBtn: { backgroundColor: c.primary, borderRadius: 12, paddingVertical: 15, alignItems: 'center' as const, marginTop: 16 },
   submitBtnDisabled: { opacity: 0.45 },
-  submitBtnText: { color: c.surface, fontSize: FONTS.sub.size, fontWeight: '600' as const },
+  submitBtnText: { color: c.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   // Product mgmt
   mgmtRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 12, marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06) },
   mgmtInfo: { flex: 1 },
-  mgmtName: { fontSize: FONTS.sub.size, fontWeight: '500' as const, color: c.textMain },
+  mgmtName: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain },
   mgmtMeta: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 },
   mgmtActions: { flexDirection: 'row' as const, gap: 8 },
   mgmtActionBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.05) },
   mgmtAddBtn: { marginHorizontal: 12, marginTop: 8, marginBottom: 16, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.primary, 0.2), paddingVertical: 12, alignItems: 'center' as const },
-  mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: '600' as const, color: c.primary },
+  mgmtAddBtnText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
   // Modal (product add/edit)
   modalOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 400, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center' as const, alignItems: 'center' as const },
@@ -267,42 +268,42 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     ...modalCardAnimation, },
   modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
-  modalTitle: { fontSize: FONTS.sub.size, fontWeight: '700' as const, color: c.surface },
+  modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   modalClose: { ...modalClose, },
   modalBody: { padding: 24 },
   modalInput: { paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12), borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 10, outline: 'none' },
   modalBtnRow: { flexDirection: 'row' as const, gap: 8, marginTop: 10 },
   modalBtnCancel: { flex: 1, paddingVertical: 11, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const },
-  modalBtnCancelText: { fontSize: FONTS.sub.size, color: c.textSub, fontWeight: '500' as const },
+  modalBtnCancelText: { fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight },
   modalBtnConfirm: { flex: 1, paddingVertical: 11, borderRadius: 10, backgroundColor: c.primary, alignItems: 'center' as const },
-  modalBtnConfirmText: { fontSize: FONTS.sub.size, color: c.surface, fontWeight: '600' as const },
+  modalBtnConfirmText: { fontSize: FONTS.subBold.size, color: c.surface, fontWeight: FONTS.subBold.weight },
 
   // History
   historyList: { padding: 12, paddingBottom: 100 },
   historyCard: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), marginBottom: 10, overflow: 'hidden' as const },
   histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
-  histNo: { fontSize: FONTS.micro.size, fontWeight: '600' as const, color: c.primary },
+  histNo: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary },
   histDate: { fontSize: FONTS.micro.size, color: c.textSub },
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
   histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
-  histRowVal: { fontSize: FONTS.micro.size, fontWeight: '500' as const, color: c.textMain },
+  histRowVal: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textMain },
   histPayBadge: { alignSelf: 'flex-start' as const, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: withAlpha(c.primary, 0.08), borderRadius: 12, marginTop: 4 },
-  histPayText: { fontSize: FONTS.micro.size, fontWeight: '500' as const, color: c.primary },
-  histAmount: { fontSize: FONTS.h2.size, fontWeight: '700' as const, color: c.primary, marginTop: 8 },
+  histPayText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.primary },
+  histAmount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary, marginTop: 8 },
   histImages: { flexDirection: 'row' as const, gap: 4, marginTop: 6 },
 
   // Success
   successOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
   successCard: { backgroundColor: c.surface, borderRadius: 20, padding: 28, width: 'calc(100% - 40px)' as any, maxWidth: 320, alignItems: 'center' as const },
-  successTitle: { fontSize: FONTS.h2.size, fontWeight: '700' as const, color: c.textMain, marginBottom: 6, marginTop: 8 },
+  successTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.textMain, marginBottom: 6, marginTop: 8 },
   successSub: { fontSize: FONTS.sub.size, color: c.textSub, lineHeight: 20 } as any,
-  successAmount: { fontSize: FONTS.amount.size, fontWeight: '700' as const, color: c.primary, marginVertical: 12 },
+  successAmount: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.primary, marginVertical: 12 },
   successBtns: { flexDirection: 'row' as const, gap: 8, marginTop: 16 },
   successBtnNew: { flex: 1, paddingVertical: 12, backgroundColor: c.primary, borderRadius: 12, alignItems: 'center' as const },
-  successBtnNewText: { color: c.surface, fontSize: FONTS.sub.size, fontWeight: '600' as const },
+  successBtnNewText: { color: c.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
   successBtnView: { flex: 1, paddingVertical: 12, backgroundColor: withAlpha(c.textMain, 0.06), borderRadius: 12, alignItems: 'center' as const },
-  successBtnViewText: { color: c.textSub, fontSize: FONTS.sub.size, fontWeight: '500' as const },
+  successBtnViewText: { color: c.textSub, fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight },
 
   // Empty state
   emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
@@ -352,6 +353,8 @@ export default function ProcurementScreen() {
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
 
   const [stats, setStats] = useState<ProcStats>({ total_spent: 0, total_income: 0, batch_count: 0, margin_pct: 0 });
   const [batches, setBatches] = useState<BatchRecord[]>([]);
@@ -362,6 +365,7 @@ export default function ProcurementScreen() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '' });
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   // ── Items modal animation (slide from top) ──
   const itemsModalAnim = useRef(new Animated.Value(0)).current;
@@ -487,7 +491,16 @@ export default function ProcurementScreen() {
     api.getProducts().then((data: any) => { if (Array.isArray(data)) setProducts(data); }).catch(() => {});
   }, []);
   const loadStats = useCallback(() => {
-    api.getProcurementStats().then((s: any) => { if (s) setStats(s); }).catch(() => {});
+    api.getProcurementStats().then((s: any) => {
+      if (s && typeof s === 'object') {
+        setStats({
+          total_spent: Number(s.total_spent) || 0,
+          total_income: Number(s.total_income) || 0,
+          batch_count: Number(s.batch_count) || 0,
+          margin_pct: Number(s.margin_pct) || 0,
+        });
+      }
+    }).catch(() => {});
   }, []);
 
   useEffect(() => { loadProducts(); loadStats(); }, [loadProducts, loadStats]);
@@ -590,12 +603,30 @@ export default function ProcurementScreen() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
+  const urlCache = useRef<Map<File, string>>(new Map());
+  const getPreviewUrl = (file: File) => {
+    if (!urlCache.current.has(file)) {
+      urlCache.current.set(file, URL.createObjectURL(file));
+    }
+    return urlCache.current.get(file)!;
+  };
+  const revokePreviewUrl = (file: File) => {
+    const url = urlCache.current.get(file);
+    if (url) { URL.revokeObjectURL(url); urlCache.current.delete(file); }
+  };
+  // Cleanup all object URLs on unmount
+  useEffect(() => {
+    return () => {
+      urlCache.current.forEach(url => URL.revokeObjectURL(url));
+      urlCache.current.clear();
+    };
+  }, []);
+
   const removeReceipt = (i: number) => {
     setReceipts(prev => {
       const removed = prev[i];
-      // Revoke any object URLs for the removed file's preview
-      const cp = prev.filter((_, idx) => idx !== i);
-      return cp;
+      if (removed) revokePreviewUrl(removed);
+      return prev.filter((_, idx) => idx !== i);
     });
   };
 
@@ -609,7 +640,12 @@ export default function ProcurementScreen() {
         setUploading(true);
         const result = await api.uploadExpenseImages(receipts);
         setUploading(false);
-        if (result.status !== 'ok') return;
+        if (result.status !== 'ok') {
+          setSubmitting(false);
+          setToastMsg(t('toastSubmitFailed'));
+          setShowToast(true);
+          return;
+        }
         imageUrls = result.images || [];
       }
       const r = await api.createProcurementBatch({
@@ -621,8 +657,14 @@ export default function ProcurementScreen() {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setShowSuccess(true);
         setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote(''); closeDrawer();
         loadStats();
+      } else {
+        setToastMsg(t('toastSubmitFailed'));
+        setShowToast(true);
       }
-    } catch {}
+    } catch {
+      setToastMsg(t('toastSubmitFailed'));
+      setShowToast(true);
+    }
     setSubmitting(false); setUploading(false);
   };
 
@@ -649,9 +691,13 @@ export default function ProcurementScreen() {
     setShowProductModal(false);
     loadProducts();
   };
-  const deleteProduct = async (p: Product) => {
-    await api.deleteProduct(p.id);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    await api.deleteProduct(deleteTarget.id);
+    // Clean orphan cart entries for deleted product
+    setCart(prev => { const cp = { ...prev }; delete cp[deleteTarget.id]; return cp; });
     loadProducts();
+    setDeleteTarget(null);
   };
 
   return (
@@ -736,7 +782,7 @@ export default function ProcurementScreen() {
                         <View style={styles.prodPriceWrap}>
                           {isEditing ? (
                             <TextInput
-                              style={{ width: 70, fontSize: FONTS.sub.size, fontWeight: '600', color: c.primary, borderWidth: 1, borderColor: c.primary, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, outline: 'none', backgroundColor: c.surface } as any}
+                              style={{ width: 70, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, borderWidth: 1, borderColor: c.primary, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, outline: 'none', backgroundColor: c.surface } as any}
                               value={editPriceVal} onChangeText={setEditPriceVal}
                               onBlur={() => commitPrice(p.id)} autoFocus keyboardType="numeric"
                             />
@@ -780,7 +826,7 @@ export default function ProcurementScreen() {
                 <Text style={styles.cartTotal}>¥{cartTotal.toFixed(2)}</Text>
                 <TouchableOpacity onPress={clearCart} activeOpacity={0.6}
                   style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.08) }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, fontWeight: '500' }}>{t('clear')}</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, fontWeight: FONTS.micro.weight }}>{t('clear')}</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
             </View>
@@ -861,7 +907,7 @@ export default function ProcurementScreen() {
                   <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openEditProduct(p)}>
                     <PencilIcon color={c.textSub} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => deleteProduct(p)}>
+                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => setDeleteTarget(p)}>
                     <TrashIcon color={c.danger} />
                   </TouchableOpacity>
                 </View>
@@ -892,6 +938,33 @@ export default function ProcurementScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.modalBtnConfirm} onPress={saveProduct}>
                   <Text style={styles.modalBtnConfirmText}>{t('procSubmit')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* ── Delete confirmation modal ── */}
+      {deleteTarget && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('procDeleteProduct') || '删除商品'}</Text>
+              <TouchableOpacity onPress={() => setDeleteTarget(null)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.modalBody, { alignItems: 'center', gap: 16 }]}>
+              <Text style={{ fontSize: FONTS.body.size, color: c.textMain, textAlign: 'center' }}>
+                确定删除「{deleteTarget.name}」？删除后历史批次中该商品将无法显示名称。
+              </Text>
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setDeleteTarget(null)}>
+                  <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.danger }]} onPress={confirmDelete}>
+                  <Text style={styles.modalBtnConfirmText}>{t('delete') || '删除'}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -955,7 +1028,7 @@ export default function ProcurementScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                 <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
                 <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: c.secondary, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: FONTS.micro.size, fontWeight: '700', color: c.textSub }}>!</Text>
+                  <Text style={{ fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub }}>!</Text>
                   {showImgTip && (
                     <View style={styles.imgTipBubble}>
                       <Text style={styles.imgTipText}>支持 jpg/png/webp，单张最大 10MB</Text>
@@ -975,7 +1048,7 @@ export default function ProcurementScreen() {
                 {receipts.map((file, i) => (
                   <View key={`rec-${i}`} style={styles.imgPreview}>
                     {React.createElement('img', {
-                      src: URL.createObjectURL(file), style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' } as any,
+                      src: getPreviewUrl(file), style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' } as any,
                     })}
                     <TouchableOpacity style={styles.imgRemove} onPress={() => removeReceipt(i)} activeOpacity={0.7}>
                       <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
@@ -999,7 +1072,7 @@ export default function ProcurementScreen() {
 
               {/* Total + Submit inline */}
               <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginTop: 8 }}>
-                <Text style={{ fontSize: FONTS.body.size, fontWeight: '700' as const, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
+                <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
                 <TouchableOpacity style={[styles.submitBtn, cartCount === 0 && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]} onPress={submitOrder} disabled={cartCount === 0 || submitting}>
                   {submitting ? <ActivityIndicator color={c.surface} /> : <Text style={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}>{t('procSubmit')}</Text>}
                 </TouchableOpacity>
@@ -1058,6 +1131,7 @@ export default function ProcurementScreen() {
           </View>
         </View>
       )}
+      <Toast message={toastMsg} visible={showToast} onDismiss={() => setShowToast(false)} />
     </View>
   );
 }

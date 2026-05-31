@@ -45,7 +45,7 @@ const theme1: Theme = {
   nameZh: '勃艮第红与暖沙白',
   description: '温润、沉稳、经典',
   colors: {
-    bg: '#FDFBF8',
+    bg: '#F9F7F4',
     surface: '#FFFFFF',
     primary: '#7D2329',
     accent: '#7D2329',
@@ -73,10 +73,10 @@ const theme2: Theme = {
     secondary: '#E5E7EB',
     textMain: '#111827',
     textSub: '#6B7280',
-    success: '#4B7A5E',
-    warning: '#C49852',
-    danger: '#BC4850',
-    info: '#4A7096',
+    success: '#4C7A5D',
+    warning: '#D59A53',
+    danger: '#B34149',
+    info: '#4A7299',
   },
 };
 
@@ -94,10 +94,10 @@ const theme3: Theme = {
     secondary: '#E1E5E4',
     textMain: '#1B2626',
     textSub: '#738080',
-    success: '#408060',
-    warning: '#CE9652',
-    danger: '#BE6066',
-    info: '#4A789A',
+    success: '#4C7A5D',
+    warning: '#D59A53',
+    danger: '#B34149',
+    info: '#4A7299',
   },
 };
 
@@ -130,16 +130,17 @@ export interface FontToken {
   size: number;
   weight: '300' | '400' | '500' | '600' | '700' | '800';
   color: 'textMain' | 'textSub';
-  lineHeight: number;
 }
 
 export const FONTS = {
-  h1:     { size: 24, weight: '600' as const, color: 'textMain' as const, lineHeight: 1.4 },
-  h2:     { size: 18, weight: '600' as const, color: 'textMain' as const, lineHeight: 1.4 },
-  body:   { size: 16, weight: '500' as const, color: 'textMain' as const, lineHeight: 1.5 },
-  sub:    { size: 14, weight: '400' as const, color: 'textSub'  as const, lineHeight: 1.5 },
-  micro:  { size: 12, weight: '400' as const, color: 'textSub'  as const, lineHeight: 1.5 },
-  amount: { size: 24, weight: '600' as const, color: 'textMain' as const, lineHeight: 1.2 },
+  h1:       { size: 24, weight: '600' as const, color: 'textMain' as const },
+  h2:       { size: 18, weight: '700' as const, color: 'textMain' as const },
+  body:     { size: 16, weight: '500' as const, color: 'textMain' as const },
+  sub:      { size: 14, weight: '500' as const, color: 'textSub'  as const },
+  subBold:  { size: 14, weight: '700' as const, color: 'textSub'  as const },
+  micro:    { size: 12, weight: '500' as const, color: 'textSub'  as const },
+  microBold:{ size: 12, weight: '700' as const, color: 'textSub'  as const },
+  amount:   { size: 24, weight: '700' as const, color: 'textMain' as const },
 } as const;
 
 // ═══════════════════════════════════════════
