@@ -76,7 +76,7 @@ export const historyHeader = (colors: ThemeColors) => ({
 export const uploadReceiptStyles = (colors: ThemeColors) => ({
   imgRow: {
     flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 8,
-    marginBottom: 4, paddingHorizontal: 10,
+    marginBottom: 0, paddingHorizontal: 10,
   },
   imgAddBtn: {
     width: 92, height: 92, borderRadius: 12,
