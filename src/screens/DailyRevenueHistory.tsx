@@ -117,7 +117,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
           }} />
         </Animated.View>
         <Animated.View style={{
-          position: 'fixed' as any, top: 72, left: 12, right: 12, zIndex: 9999,
+          position: 'fixed' as any, top: 108, left: 12, right: 12, zIndex: 9999,
           opacity: filterAnim,
           transform: [
             { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
@@ -177,7 +177,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
 
       {/* List — card-based layout */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: showFilter ? 130 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 166 : 112, paddingHorizontal: 16, paddingBottom: 80 }}>
         {loading ? (
           <View style={st.loading}>
             <ActivityIndicator size="large" color={colors.primary} />

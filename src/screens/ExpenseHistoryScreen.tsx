@@ -133,6 +133,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     }, 150);
   };
 
+  const todayISO = new Date().toISOString().split('T')[0];
+
   const validateExpDates = (): boolean => {
     const today = new Date().toISOString().split('T')[0];
     const from = filDateFrom, to = filDateTo;
@@ -172,7 +174,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           }} />
         </Animated.View>
         <Animated.View style={{
-          position: 'fixed' as any, top: 72, left: 12, right: 12, zIndex: 9999,
+          position: 'fixed' as any, top: 108, left: 12, right: 12, zIndex: 9999,
           opacity: filterAnim,
           transform: [
             { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
@@ -191,7 +193,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
+                  <input type="date" value={filDateFrom} max={todayISO} onChange={(e: any) => setFilDateFrom(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
@@ -201,7 +203,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
+                  <input type="date" value={filDateTo} max={todayISO} onChange={(e: any) => setFilDateTo(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>
@@ -250,7 +252,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 210 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
           <View style={st.emptyWrap}>
             <View style={st.emptyIcon}><Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text></View>
