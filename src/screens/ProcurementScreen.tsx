@@ -650,17 +650,11 @@ export default function ProcurementScreen() {
       let imageUrls: string[] = [];
       if (receipts.length > 0) {
         setUploading(true);
-        console.log('[procurement] uploading', receipts.length, 'images');
-        const result = await api.uploadExpenseImages(receipts);
+        console.log('[procurement] SKIPPING upload, simulating delay');
+        // Simulate upload delay without actual API call
+        await new Promise(r => setTimeout(r, 500));
         setUploading(false);
-        console.log('[procurement] upload result:', result);
-        if (result.status !== 'ok') {
-          setSubmitting(false);
-          setToastMsg(t('toastSubmitFailed'));
-          setShowToast(true);
-          return;
-        }
-        imageUrls = result.images || [];
+        imageUrls = ['/img/test-skip.jpg']; // dummy URL for testing
       }
       console.log('[procurement] creating batch with images:', imageUrls);
       const r = await api.createProcurementBatch({
