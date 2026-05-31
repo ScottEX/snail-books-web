@@ -171,8 +171,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     backdropFilter: 'saturate(180%) blur(20px)',
   },
   cartPreview: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12, padding: 12 },
-  cartIconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center' as const, justifyContent: 'center' as const },
-  cartBadge: { position: 'absolute' as const, top: -4, right: -4, width: 18, height: 18, backgroundColor: c.warning, borderRadius: 9, borderWidth: 2, borderColor: c.surface, alignItems: 'center' as const, justifyContent: 'center' as const },
+  cartIconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center' as const, justifyContent: 'center' as const, overflow: 'visible' as const },
+  cartBadge: { position: 'absolute' as const, top: -4, right: -4, minWidth: 18, height: 18, backgroundColor: c.warning, borderRadius: 9, borderWidth: 2, borderColor: c.surface, alignItems: 'center' as const, justifyContent: 'center' as const, paddingHorizontal: 3 },
   cartBadgeText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.surface },
   cartInfo: { flex: 1 },
   cartInfoText: { fontSize: FONTS.micro.size, color: c.textSub },
@@ -1057,12 +1057,12 @@ export default function ProcurementScreen() {
                 <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
                 <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: c.secondary, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub }}>!</Text>
-                  {showImgTip && (
-                    <View style={styles.imgTipBubble}>
-                      <Text style={styles.imgTipText}>支持 jpg/png/webp，单张最大 10MB</Text>
-                    </View>
-                  )}
                 </TouchableOpacity>
+                {showImgTip && (
+                  <View style={styles.imgTipBubble}>
+                    <Text style={styles.imgTipText}>支持 jpg/png/webp，单张最大 10MB</Text>
+                  </View>
+                )}
               </View>
               <View style={styles.imgRow}>
                 {React.createElement('input', {
