@@ -386,8 +386,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
   useEffect(() => { loadExpenses(); }, []);
 
+  // Sync uncontrolled date inputs when state changes externally
+  useEffect(() => { if (recDateInputRef.current) recDateInputRef.current.value = recDate; }, [recDate]);
+  useEffect(() => { if (expDateInputRef.current) expDateInputRef.current.value = expDate; }, [expDate]);
+  useEffect(() => { if (feeDateInputRef.current) feeDateInputRef.current.value = feeEntryDate; }, [feeEntryDate]);
+
   // Image upload handlers
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const recDateInputRef = useRef<HTMLInputElement>(null);
+  const expDateInputRef = useRef<HTMLInputElement>(null);
+  const feeDateInputRef = useRef<HTMLInputElement>(null);
   const [showImgTip, setShowImgTip] = useState(false);
 
   // Compress image via Canvas: max 1920px, JPEG quality 0.8
@@ -600,9 +608,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             {/* 日期行 */}
             <View style={st.dateRow}>
               <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub }}>{t('billDate')}</Text>
-              <TouchableOpacity
+              <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
-                activeOpacity={1}
               >
                 <Text style={st.dateText}>
                   {(() => {
@@ -620,17 +627,18 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </Text>
                 <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                 {React.createElement('input', {
+                  ref: recDateInputRef,
                   type: 'date',
-                  value: recDate,
+                  defaultValue: recDate,
                   max: todayStr(),
                   onChange: (e: any) => {
                     const v = e.target.value;
-                    if (v > todayStr()) { setToast(t('errDateFuture')); return; }
+                    if (v > todayStr()) { setToast(t('errDateFuture')); if (recDateInputRef.current) recDateInputRef.current.value = recDate; return; }
                     setRecDate(v);
                   },
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
-              </TouchableOpacity>
+              </View>
             </View>
 
             <View style={st.row2}>
@@ -960,9 +968,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Line x1="8" y1="2" x2="8" y2="6"/>
                   <Line x1="3" y1="10" x2="21" y2="10"/>
                 </Svg>
-                <TouchableOpacity
+                <View
                   style={{ flexDirection: 'row', alignItems: 'center', flex: 1, position: 'relative' }}
-                  activeOpacity={1}
                 >
                   <Text style={st.dateText}>
                     {(() => {
@@ -977,17 +984,18 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   </Text>
                   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                   {React.createElement('input', {
+                    ref: expDateInputRef,
                     type: 'date',
-                    value: expDate,
+                    defaultValue: expDate,
                     max: todayStr(),
                     onChange: (e: any) => {
                       const v = e.target.value;
-                      if (v > todayStr()) { setToast(t('errDateFuture')); return; }
+                      if (v > todayStr()) { setToast(t('errDateFuture')); if (expDateInputRef.current) expDateInputRef.current.value = expDate; return; }
                       setExpDate(v);
                     },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
-                </TouchableOpacity>
+                </View>
               </View>
               {/* 按钮行 */}
               <View style={st.btnRow}>
@@ -1082,21 +1090,22 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {/* Date */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t('entryDate')}</Text>
-                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }} activeOpacity={1}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }}>
                   <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>
                     {(() => { return fmtLocalDate(feeEntryDate); })()}
                   </Text>
                   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                   {React.createElement('input', {
-                    type: 'date', value: feeEntryDate, max: todayStr(),
+                    ref: feeDateInputRef,
+                    type: 'date', defaultValue: feeEntryDate, max: todayStr(),
                     onChange: (e: any) => {
                       const v = e.target.value;
-                      if (v > todayStr()) { setToast(t('noFutureDate')); return; }
+                      if (v > todayStr()) { setToast(t('noFutureDate')); if (feeDateInputRef.current) feeDateInputRef.current.value = feeEntryDate; return; }
                       setFeeEntryDate(v);
                     },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
-                </TouchableOpacity>
+                </View>
               </View>
 
               {/* Column headers */}

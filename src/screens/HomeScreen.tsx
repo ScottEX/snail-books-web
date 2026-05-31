@@ -102,6 +102,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [editingRevId, setEditingRevId] = useState<number | null>(null);
   const revPickerRef = useRef<any>(null);
   const revPickerAnim = useRef(new Animated.Value(0)).current;
+  const revDateInputRef = useRef<HTMLInputElement>(null);
   const [revPickerPos, setRevPickerPos] = useState({ top: 0, left: 0 });
   const [yesterdayRev, setYesterdayRev] = useState<any>(null);
   const [weekRev, setWeekRev] = useState<any>(null);
@@ -113,6 +114,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const db4Str = () => { const d = new Date(); d.setDate(d.getDate()-2); return fmtDate(d); };
   const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const pickDate = (d: string) => { if (d <= td) setRevDate(d); };
+
+  // Sync uncontrolled date input when revDate changes externally (quick-date pills)
+  useEffect(() => {
+    if (revDateInputRef.current) revDateInputRef.current.value = revDate;
+  }, [revDate]);
 
   const INCOME_CATS = ['🍜 堂食','🛵 美团外卖','🛵 饿了吗外卖','🎫 美团团购','📦 京东','🔧 其他收入'];
   const EXPENSE_CATS = ['📦 原材料进货','🏠 房租','⚡ 水电煤气','👨‍🍳 人工工资','🔧 设备/工具','🏗️ 装修','📋 培训/证件','🧹 卫生/清洁','🧻 餐具/纸巾','📦 包装/打包','📢 广告/推广','💊 杂项/烟酒','📝 其他'];
@@ -478,8 +484,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           </Text>
                           <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>📅</Text>
                           {React.createElement('input', {
-                            type: 'date', value: revDate, max: todayDateStr(),
-                            onChange: (e: any) => { const v = e.target.value; if (v > todayDateStr()) { setToast(t('errDateFuture')); return; } setRevDate(v); },
+                            ref: revDateInputRef,
+                            type: 'date', defaultValue: revDate, max: todayDateStr(),
+                            onChange: (e: any) => { const v = e.target.value; if (v > todayDateStr()) { setToast(t('errDateFuture')); if (revDateInputRef.current) revDateInputRef.current.value = revDate; return; } setRevDate(v); },
                             style: { position: 'absolute', top: -4, right: 0, bottom: -4, left: 0, opacity: 0.01, cursor: 'pointer' },
                           })}
                         </View>

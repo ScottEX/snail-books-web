@@ -529,6 +529,9 @@ export default function ProcurementScreen() {
 
   useEffect(() => { loadProducts(); loadStats(); }, [loadProducts, loadStats]);
 
+  // Sync uncontrolled date input when orderDate changes externally
+  useEffect(() => { if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; }, [orderDate]);
+
   // Persist cart to localStorage
   useEffect(() => {
     try { localStorage.setItem('snail_proc_cart', JSON.stringify(cart)); } catch {}
@@ -628,6 +631,7 @@ export default function ProcurementScreen() {
   };
 
   const urlCache = useRef<Map<File, string>>(new Map());
+  const orderDateInputRef = useRef<HTMLInputElement>(null);
   const getPreviewUrl = (file: File) => {
     if (!urlCache.current.has(file)) {
       urlCache.current.set(file, URL.createObjectURL(file));
@@ -1036,8 +1040,9 @@ export default function ProcurementScreen() {
                   <View style={styles.dateCatValue}>
                     <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{formatDateLocale(orderDate)}</Text>
                     {React.createElement('input', {
-                      type: 'date', value: orderDate, max: todayStr(),
-                      onChange: (e: any) => { const v = e.target.value; if (v > todayStr()) return; setOrderDate(v); },
+                      ref: orderDateInputRef,
+                      type: 'date', defaultValue: orderDate, max: todayStr(),
+                      onChange: (e: any) => { const v = e.target.value; if (v > todayStr()) { setToast(t('errDateFuture')); if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; return; } setOrderDate(v); },
                       style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
                     })}
                   </View>
