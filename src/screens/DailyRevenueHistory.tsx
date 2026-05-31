@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
-import { AnimatedFilterPanel } from '../components/AnimatedFilterPanel';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -18,6 +17,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
 
   // Filter state
   const [showFilter, setShowFilter] = useState(false);
+  const filterAnim = useRef(new Animated.Value(0)).current;
   const [dateFrom, setDateFrom] = useState(() => {
     const d = new Date(); d.setMonth(d.getMonth() - 1);
     return fmtISO(d);
@@ -93,7 +93,13 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         <Text style={st.title}>{t('revHistoryBtn')} ({records.length})</Text>
         <TouchableOpacity
           style={[st.filterBtn, showFilter && st.filterBtnActive]}
-          onPress={() => setShowFilter(!showFilter)}
+          onPress={() => {
+            if (!showFilter) {
+              filterAnim.setValue(0);
+              Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 170, friction: 26 }).start();
+            }
+            setShowFilter(!showFilter);
+          }}
           activeOpacity={0.7}
         >
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none"
@@ -104,7 +110,20 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       </View>
 
       {/* Filter panel — matches ReconHistoryScreen */}
-      <AnimatedFilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
+      {showFilter && (<>
+        <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => {
+            Animated.timing(filterAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setShowFilter(false));
+          }} />
+        </Animated.View>
+        <Animated.View style={{
+          position: 'fixed' as any, top: 72, left: 12, right: 12, zIndex: 9999,
+          opacity: filterAnim,
+          transform: [
+            { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+            { scale: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
+          ],
+        }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <View style={st.filterField}>
@@ -153,7 +172,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             </View>
           </View>
         </View>
-      </AnimatedFilterPanel>
+              </Animated.View>
+      </>)}
 
       {/* List — card-based layout */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
