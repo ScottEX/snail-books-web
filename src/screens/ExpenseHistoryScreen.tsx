@@ -5,7 +5,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
-import { FilterBackdrop } from '../components/FilterBackdrop';
+import { AnimatedFilterPanel } from '../components/AnimatedFilterPanel';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -159,10 +159,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       </View>
 
       {/* Filter panel */}
-      {showFilter && (
-        <>
-          <FilterBackdrop onPress={() => setShowFilter(false)} />
-          <View style={st.filterPanel}>
+      <AnimatedFilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
+        <View style={st.filterPanel}>
           <View style={st.filterContent}>
             {/* Date range */}
             <View style={st.filterField}>
@@ -227,10 +225,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             </View>
           </View>
         </View>
-        </>
-      )}
+        </AnimatedFilterPanel>
 
-      {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
+        {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 210 : 76, paddingHorizontal: 16, paddingBottom: 80 }}>

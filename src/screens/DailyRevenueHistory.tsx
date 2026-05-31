@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
-import { FilterBackdrop } from '../components/FilterBackdrop';
+import { AnimatedFilterPanel } from '../components/AnimatedFilterPanel';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -104,10 +104,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       </View>
 
       {/* Filter panel — matches ReconHistoryScreen */}
-      {showFilter && (
-        <>
-          <FilterBackdrop onPress={() => setShowFilter(false)} />
-          <View style={st.filterPanel}>
+      <AnimatedFilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
+        <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('filterDate')}</Text>
@@ -155,8 +153,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             </View>
           </View>
         </View>
-        </>
-      )}
+      </AnimatedFilterPanel>
 
       {/* List — card-based layout */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}

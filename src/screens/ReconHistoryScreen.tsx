@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
-import { FilterBackdrop } from '../components/FilterBackdrop';
+import { AnimatedFilterPanel } from '../components/AnimatedFilterPanel';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -313,10 +313,8 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         </TouchableOpacity>
       </View>
       {/* Filter bar */}
-      {showFilter && (
-        <>
-          <FilterBackdrop onPress={() => setShowFilter(false)} />
-          <View style={st.filterPanel}>
+      <AnimatedFilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
+        <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('billDate')}</Text>
@@ -398,8 +396,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             </View>
           </View>
         </View>
-        </>
-      )}
+      </AnimatedFilterPanel>
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
