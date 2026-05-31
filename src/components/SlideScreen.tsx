@@ -51,6 +51,7 @@ export default function SlideScreen({ visible, onClose, children }: Props) {
   return (
     <Animated.View style={{
       position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: '#F9F7F4',
       transform: [{ translateX }],
       zIndex: 100,
     }}>
