@@ -14,6 +14,9 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
+  // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
+  const dateFromRef = useRef<HTMLInputElement>(null);
+  const dateToRef = useRef<HTMLInputElement>(null);
 
   // Filter state
   const [showFilter, setShowFilter] = useState(false);
@@ -23,6 +26,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
     return fmtISO(d);
   });
   const [dateTo, setDateTo] = useState(() => fmtISO(new Date()));
+  useEffect(() => { if (dateFromRef.current) dateFromRef.current.value = dateFrom; }, [dateFrom]);
+  useEffect(() => { if (dateToRef.current) dateToRef.current.value = dateTo; }, [dateTo]);
   const [appliedFrom, setAppliedFrom] = useState(dateFrom);
   const [appliedTo, setAppliedTo] = useState(dateTo);
 
@@ -135,8 +140,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={dateFrom} max={todayISO}
-                    onChange={(e: any) => { const v = e.target.value; if (v <= todayISO) setDateFrom(v); }}
+                  <input type="date" ref={dateFromRef} defaultValue={dateFrom} max={todayISO}
+                    onChange={(e: any) => { const v = e.target.value; if (v > todayISO) { setToast(t('errDateFuture')); if (dateFromRef.current) dateFromRef.current.value = dateFrom; return; } setDateFrom(v); }}
                     style={st.filterDateHidden as any} />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
@@ -146,8 +151,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={dateTo} max={todayISO}
-                    onChange={(e: any) => { const v = e.target.value; if (v <= todayISO) setDateTo(v); }}
+                  <input type="date" ref={dateToRef} defaultValue={dateTo} max={todayISO}
+                    onChange={(e: any) => { const v = e.target.value; if (v > todayISO) { setToast(t('errDateFuture')); if (dateToRef.current) dateToRef.current.value = dateTo; return; } setDateTo(v); }}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>

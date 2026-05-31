@@ -22,10 +22,15 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
   const [previewOpacity, setPreviewOpacity] = useState(1);
   const touchStartX = useRef(0);
+  // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
+  const filDateFromRef = useRef<HTMLInputElement>(null);
+  const filDateToRef = useRef<HTMLInputElement>(null);
   const [showFilter, setShowFilter] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
   const [filDateFrom, setFilDateFrom] = useState('');
   const [filDateTo, setFilDateTo] = useState('');
+  useEffect(() => { if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; }, [filDateFrom]);
+  useEffect(() => { if (filDateToRef.current) filDateToRef.current.value = filDateTo; }, [filDateTo]);
   const [filCategories, setFilCategories] = useState<string[]>([]);
   // Track active filters (snapshot at last apply) — compare strings to avoid object deps
   const [appliedFrom, setAppliedFrom] = useState('');
@@ -193,7 +198,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={filDateFrom} max={todayISO} onChange={(e: any) => setFilDateFrom(e.target.value)}
+                  <input type="date" ref={filDateFromRef} defaultValue={filDateFrom} max={todayISO} onChange={(e: any) => { const v = e.target.value; if (v > todayISO) { setToast(t('errDateFuture')); if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; return; } setFilDateFrom(v); }}
                     style={st.filterDateHidden as any} />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
@@ -203,7 +208,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={filDateTo} max={todayISO} onChange={(e: any) => setFilDateTo(e.target.value)}
+                  <input type="date" ref={filDateToRef} defaultValue={filDateTo} max={todayISO} onChange={(e: any) => { const v = e.target.value; if (v > todayISO) { setToast(t('errDateFuture')); if (filDateToRef.current) filDateToRef.current.value = filDateTo; return; } setFilDateTo(v); }}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>
