@@ -966,13 +966,13 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   // Header — frosted glass, same as sub-screen headers
   header: {
+    position: 'relative' as const, zIndex: 101,
     paddingVertical: 8,
     paddingHorizontal: 20,
     backgroundColor: withAlpha(colors.bg, 0.55),
     // @ts-ignore - web-only
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
-    zIndex: 50,
   },
   headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
