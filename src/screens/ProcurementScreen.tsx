@@ -236,7 +236,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsRowName: { flex: 1, fontSize: FONTS.sub.size, color: c.textMain },
   itemsRowQty: { fontSize: FONTS.micro.size, color: c.textSub, marginRight: 12 },
   itemsRowAmt: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary },
-  itemsTotalRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, paddingTop: 14, marginTop: 8, borderTopWidth: 2, borderTopColor: withAlpha(c.textMain, 0.12) },
+  itemsTotalRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, paddingTop: 14, marginTop: 8, borderTopWidth: 1, borderTopColor: withAlpha(c.textMain, 0.12) },
   itemsTotalLabel: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsTotal: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.primary },
 
@@ -359,6 +359,25 @@ export default function ProcurementScreen() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '' });
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+
+  // ── Shared slide-from-top animation for product/delete/success modals ──
+  const modalSlide = useRef(new Animated.Value(0)).current;
+  const modalOverlayFade = useRef(new Animated.Value(0)).current;
+  const openSlideModal = (show: () => void) => {
+    show();
+    modalSlide.setValue(-300);
+    modalOverlayFade.setValue(0);
+    Animated.parallel([
+      Animated.spring(modalSlide, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(modalOverlayFade, { toValue: 1, duration: 200, useNativeDriver: true }),
+    ]).start();
+  };
+  const closeSlideModal = (hide: () => void) => {
+    Animated.parallel([
+      Animated.timing(modalSlide, { toValue: -300, duration: 180, useNativeDriver: true }),
+      Animated.timing(modalOverlayFade, { toValue: 0, duration: 180, useNativeDriver: true }),
+    ]).start(() => hide());
+  };
 
   // ── Items modal animation (slide from top) ──
   const itemsModalAnim = useRef(new Animated.Value(0)).current;
@@ -647,7 +666,7 @@ export default function ProcurementScreen() {
         images: imageUrls, note: orderNote,
       });
       if (r.status === 'ok') {
-        setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setShowSuccess(true);
+        setSuccessTotal(r.total); setSuccessBatch(r.batch_number); openSlideModal(() => setShowSuccess(true));
         setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote(''); closeDrawer();
         loadStats();
       } else {
@@ -662,27 +681,25 @@ export default function ProcurementScreen() {
   };
 
   const resetOrder = () => {
-    setShowSuccess(false);
-    setOrderDate(todayStr());
-    setPayMethod('微信'); setOrderNote(''); setReceipts([]);
+    closeSlideModal(() => { setShowSuccess(false); setOrderDate(todayStr()); setPayMethod('微信'); setOrderNote(''); setReceipts([]); });
   };
 
   const openAddProduct = () => {
     setEditingProduct(null);
     setProdForm({ name: '', spec: '', price: '', supplier: '' });
-    setShowProductModal(true);
+    openSlideModal(() => setShowProductModal(true));
   };
   const openEditProduct = (p: Product) => {
     setEditingProduct(p);
     setProdForm({ name: p.name, spec: p.spec, price: String(p.price), supplier: p.supplier });
-    setShowProductModal(true);
+    openSlideModal(() => setShowProductModal(true));
   };
   const saveProduct = async () => {
     if (!prodForm.name) return;
     const data = { name: prodForm.name, spec: prodForm.spec, price: parseFloat(prodForm.price) || 0, supplier: prodForm.supplier };
     try {
       editingProduct ? await api.updateProduct({ ...data, id: editingProduct.id }) : await api.createProduct(data);
-      setShowProductModal(false);
+      closeSlideModal(() => setShowProductModal(false));
       loadProducts();
     } catch {
       setToastMsg(t('toastSubmitFailed'));
@@ -700,7 +717,7 @@ export default function ProcurementScreen() {
       setToastMsg(t('toastSubmitFailed'));
       setShowToast(true);
     }
-    setDeleteTarget(null);
+    closeSlideModal(() => setDeleteTarget(null));
   };
 
   return (
@@ -910,7 +927,7 @@ export default function ProcurementScreen() {
                   <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openEditProduct(p)}>
                     <PencilIcon color={c.textSub} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => setDeleteTarget(p)}>
+                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openSlideModal(() => setDeleteTarget(p))}>
                     <TrashIcon color={c.danger} />
                   </TouchableOpacity>
                 </View>
@@ -922,11 +939,11 @@ export default function ProcurementScreen() {
 
       {/* ── Product Modal ── */}
       {showProductModal && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+        <Animated.View style={[styles.modalOverlay, { opacity: modalOverlayFade }]}>
+          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{editingProduct ? t('procEditProduct') : t('procAddProduct')}</Text>
-              <TouchableOpacity onPress={() => setShowProductModal(false)}>
+              <TouchableOpacity onPress={() => closeSlideModal(() => setShowProductModal(false))}>
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -936,7 +953,7 @@ export default function ProcurementScreen() {
               <TextInput style={styles.modalInput} placeholder={t('procProductSupplier')} placeholderTextColor={c.textSub} value={prodForm.supplier} onChangeText={v => setProdForm(p => ({ ...p, supplier: v }))} />
               <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: v }))} keyboardType="numeric" />
               <View style={styles.modalBtnRow}>
-                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setShowProductModal(false)}>
+                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setShowProductModal(false))}>
                   <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.modalBtnConfirm} onPress={saveProduct}>
@@ -944,17 +961,17 @@ export default function ProcurementScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       )}
 
       {/* ── Delete confirmation modal ── */}
       {deleteTarget && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+        <Animated.View style={[styles.modalOverlay, { opacity: modalOverlayFade }]}>
+          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t('procDeleteProduct') || '删除商品'}</Text>
-              <TouchableOpacity onPress={() => setDeleteTarget(null)}>
+              <TouchableOpacity onPress={() => closeSlideModal(() => setDeleteTarget(null))}>
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -963,7 +980,7 @@ export default function ProcurementScreen() {
                 确定删除「{deleteTarget.name}」？删除后历史批次中该商品将无法显示名称。
               </Text>
               <View style={styles.modalBtnRow}>
-                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setDeleteTarget(null)}>
+                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setDeleteTarget(null))}>
                   <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.danger }]} onPress={confirmDelete}>
@@ -971,8 +988,8 @@ export default function ProcurementScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       )}
 
       {/* ── Order Drawer (slides up) ── */}
@@ -1118,8 +1135,8 @@ export default function ProcurementScreen() {
 
       {/* ── Success ── */}
       {showSuccess && (
-        <View style={styles.successOverlay}>
-          <View style={styles.successCard}>
+        <Animated.View style={[styles.successOverlay, { opacity: modalOverlayFade }]}>
+          <Animated.View style={[styles.successCard, { transform: [{ translateY: modalSlide }] }]}>
             <CheckIcon color={c.success} />
             <Text style={styles.successTitle}>{t('procSubmitted')}</Text>
             <Text style={styles.successSub}>{t('procSubmittedMsg')}</Text>
@@ -1131,12 +1148,12 @@ export default function ProcurementScreen() {
               <TouchableOpacity style={styles.successBtnNew} onPress={resetOrder}>
                 <Text style={styles.successBtnNewText}>{t('procContinue')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.successBtnView} onPress={() => { setShowSuccess(false); setSubTab('history'); }}>
+              <TouchableOpacity style={styles.successBtnView} onPress={() => { closeSlideModal(() => setShowSuccess(false)); setSubTab('history'); }}>
                 <Text style={styles.successBtnViewText}>{t('procViewRecords')}</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       )}
       <Toast message={toastMsg} visible={showToast} onDismiss={() => setShowToast(false)} />
     </View>
