@@ -545,10 +545,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <TouchableOpacity
                         style={[styles.revArchiveBtn, { flex: 2 }, revMarkedClosed && styles.revArchiveBtnDone]}
-                        onPress={() => { if (!revMarkedClosed) setRevMarkedClosed(true); }}
+                        onPress={() => setRevMarkedClosed(!revMarkedClosed)}
                         activeOpacity={0.7}>
                         <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
-                          {revMarkedClosed ? '✓' : t('revMarkArchive')}
+                          {revMarkedClosed ? t('revCancelArchive') : t('revMarkArchive')}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
