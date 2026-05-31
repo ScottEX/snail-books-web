@@ -315,7 +315,16 @@ export default function ProcurementScreen() {
   const { colors: c } = useTheme();
   const styles = useMemo(() => getStyles(c), [c]);
 
-  const [subTab, setSubTab] = useState<SubTab>('new');
+  const [subTab, setSubTab] = useState<SubTab>(() => {
+    try {
+      const saved = localStorage.getItem('snail_proc_tab');
+      return (saved === 'new' || saved === 'history' || saved === 'products') ? saved : 'new';
+    } catch { return 'new'; }
+  });
+  // Persist selected tab across page navigations
+  useEffect(() => {
+    try { localStorage.setItem('snail_proc_tab', subTab); } catch {}
+  }, [subTab]);
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Record<number, number>>(() => {
     try {
