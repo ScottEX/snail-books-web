@@ -1017,9 +1017,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
       {/* 支出确认弹窗 */}
       {showExpConfirm && (
-        <View style={st.modalOverlay}>
-          <TouchableOpacity style={st.modalBackdrop} onPress={() => setShowExpConfirm(false)} activeOpacity={1} />
-          <View style={st.modalCard}>
+        <ModalOverlay onClose={() => setShowExpConfirm(false)}>
+          <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('expConfirmTitle')}</Text>
               <TouchableOpacity onPress={() => setShowExpConfirm(false)}>
@@ -1040,14 +1039,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
           </View>
-        </View>
+        </ModalOverlay>
       )}
 
       {/* 添加提示弹窗 */}
       {showToast && (
-        <View style={st.modalOverlay}>
-          <TouchableOpacity style={st.modalBackdrop} onPress={hideToast} activeOpacity={1} />
-          <View style={st.modalCard}>
+        <ModalOverlay onClose={hideToast}>
+          <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
               <TouchableOpacity onPress={hideToast}>
@@ -1068,13 +1066,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
           </View>
-        </View>
+        </ModalOverlay>
       )}
       {/* Platform fee entry bottom sheet */}
       {showFeeSheet && (
-        <View style={[st.modalOverlay, { justifyContent: 'center' }]}>
-          <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => setShowFeeSheet(false)} />
-          <View style={st.feeSheet}>
+        <ModalOverlay onClose={() => setShowFeeSheet(false)}>
+          <View style={st.feeSheet} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
               <TouchableOpacity onPress={() => setShowFeeSheet(false)}>
@@ -1145,14 +1142,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </ModalOverlay>
       )}
 
       {/* Fee history bottom sheet — "全部" detail view */}
       {showFeeHistory && (
-        <View style={[st.modalOverlay, { justifyContent: 'center' }]}>
-          <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }} />
-          <View style={[st.feeSheet, { maxHeight: '75%' }]}>
+        <ModalOverlay onClose={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
+          <View style={[st.feeSheet, { maxHeight: '75%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
               <TouchableOpacity onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
@@ -1220,7 +1216,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               })}
             </ScrollView>
           </View>
-        </View>
+        </ModalOverlay>
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
       {/* Month picker dropdown — animated spring popover */}
@@ -1339,6 +1335,34 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </>
       )}
     </View>
+  );
+}
+
+/* ══════════════════════════════ MODAL OVERLAY ══════════════════════════════ */
+
+function ModalOverlay({ children, onClose }: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) {
+  const anim = useRef(new Animated.Value(-300)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(anim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+    ]).start();
+  }, []);
+  const close = () => {
+    Animated.parallel([
+      Animated.timing(anim, { toValue: -300, duration: 180, useNativeDriver: true }),
+      Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
+    ]).start(onClose);
+  };
+  return (
+    <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16, opacity: fade }}>
+      <TouchableOpacity style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={close} activeOpacity={1} />
+      <Animated.View style={{ transform: [{ translateY: anim }], alignItems: 'center', justifyContent: 'center' }}>{children}</Animated.View>
+    </Animated.View>
   );
 }
 
