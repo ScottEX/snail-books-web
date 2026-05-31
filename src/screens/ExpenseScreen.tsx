@@ -1361,7 +1361,7 @@ function ModalOverlay({ children, onClose }: {
   return (
     <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16, opacity: fade }}>
       <TouchableOpacity style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={close} activeOpacity={1} />
-      <Animated.View style={{ transform: [{ translateY: anim }], alignItems: 'center', justifyContent: 'center' }}>{children}</Animated.View>
+      <Animated.View style={{ transform: [{ translateY: anim }], alignSelf: 'stretch' as any, alignItems: 'center', justifyContent: 'center' }}>{children}</Animated.View>
     </Animated.View>
   );
 }
