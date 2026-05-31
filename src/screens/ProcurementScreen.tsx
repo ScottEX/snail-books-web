@@ -270,6 +270,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   modalBtnCancelText: { fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight },
   modalBtnConfirm: { flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: c.primary, alignItems: 'center' as const },
   modalBtnConfirmText: { fontSize: FONTS.subBold.size, color: c.surface, fontWeight: FONTS.subBold.weight },
+  modalDeleteBox: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' as const },
+  modalDeleteText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' as const },
 
   // History
   historyList: { padding: 12, paddingBottom: 100 },
@@ -983,10 +985,12 @@ export default function ProcurementScreen() {
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <View style={[styles.modalBody, { alignItems: 'center', gap: 16 }]}>
-              <Text style={{ fontSize: FONTS.body.size, color: c.textMain, textAlign: 'center' }}>
-                确定删除「{deleteTarget.name}」？删除后历史批次中该商品将无法显示名称。
-              </Text>
+            <View style={[styles.modalBody, { gap: 16 }]}>
+              <View style={styles.modalDeleteBox}>
+                <Text style={styles.modalDeleteText}>
+                  确定删除「{deleteTarget.name}」？删除后历史批次中该商品将无法显示名称。
+                </Text>
+              </View>
               <View style={styles.modalBtnRow}>
                 <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setDeleteTarget(null))}>
                   <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
