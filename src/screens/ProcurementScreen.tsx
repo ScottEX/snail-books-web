@@ -203,7 +203,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   dateCatValue: { fontSize: FONTS.sub.size, color: c.textSub, flexDirection: 'row' as const, alignItems: 'center' as const },
 
   // Payment capsules (matching ExpenseScreen)
-  sectionLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textSub, marginBottom: 6 },
+  sectionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 6 },
   payRow: { flexDirection: 'row' as const, gap: 6, marginBottom: 12 },
   payChip: {
     flex: 1, flexDirection: 'row' as const, paddingVertical: 8, borderRadius: 22,
@@ -1076,9 +1076,11 @@ export default function ProcurementScreen() {
                 <Text style={styles.itemsBtnArrow}>{t('procViewDetail')} ›</Text>
               </TouchableOpacity>
 
-              <Text style={styles.sectionLabel}>{t('procNoteOptional')}</Text>
-              <TextInput style={{ paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' } as any}
-                value={orderNote} onChangeText={setOrderNote} placeholder={t('procNowBatch').replace('{n}', String(stats.batch_count + 1))} placeholderTextColor={c.textSub} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procNoteOptional')}</Text>
+                <TextInput style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' } as any}
+                  value={orderNote} onChangeText={setOrderNote} placeholder={t('procNowBatch').replace('{n}', String(stats.batch_count + 1))} placeholderTextColor={c.textSub} />
+              </View>
 
               {/* Total + Submit inline */}
               <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginTop: 8 }}>
