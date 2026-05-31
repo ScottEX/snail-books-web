@@ -1042,7 +1042,7 @@ export default function ProcurementScreen() {
                     {React.createElement('input', {
                       ref: orderDateInputRef,
                       type: 'date', defaultValue: orderDate, max: todayStr(),
-                      onChange: (e: any) => { const v = e.target.value; if (v > todayStr()) { setToast(t('errDateFuture')); if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; return; } setOrderDate(v); },
+                      onChange: (e: any) => { const v = e.target.value; if (v > todayStr()) { setToastMsg(t('errDateFuture')); if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; return; } setOrderDate(v); },
                       style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
                     })}
                   </View>
