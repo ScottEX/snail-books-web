@@ -227,7 +227,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Items modal
   itemsModalOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
-  itemsModalCard: { backgroundColor: c.surface, borderRadius: 16, width: 'calc(100% - 40px)' as any, maxWidth: 360, maxHeight: '75%' as any, overflow: 'hidden' as const },
+  itemsModalCard: { backgroundColor: c.surface, borderRadius: 16, width: 'calc(100% - 40px)' as any, maxWidth: 360, maxHeight: '75%' as any, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
@@ -666,8 +666,16 @@ export default function ProcurementScreen() {
         images: imageUrls, note: orderNote,
       });
       if (r.status === 'ok') {
-        setSuccessTotal(r.total); setSuccessBatch(r.batch_number); openSlideModal(() => setShowSuccess(true));
-        setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote(''); closeDrawer();
+        setSuccessTotal(r.total); setSuccessBatch(r.batch_number);
+        setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote('');
+        // Close drawer first, then show success to avoid overlay conflict
+        Animated.parallel([
+          Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+          Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+        ]).start(() => {
+          setShowDrawer(false);
+          openSlideModal(() => setShowSuccess(true));
+        });
         loadStats();
       } else {
         setToastMsg(t('toastSubmitFailed'));
@@ -1116,7 +1124,7 @@ export default function ProcurementScreen() {
                 <Text style={styles.itemsModalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.itemsModalBody}>
+            <ScrollView style={[styles.itemsModalBody, { flex: 1 }]}>
               {detailItems.map((item, idx) => (
                 <View key={idx} style={styles.itemsRow}>
                   <Text style={styles.itemsRowName}>{item.name}</Text>
@@ -1124,11 +1132,11 @@ export default function ProcurementScreen() {
                   <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
                 </View>
               ))}
-              <View style={styles.itemsTotalRow}>
-                <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
-                <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
-              </View>
             </ScrollView>
+            <View style={[styles.itemsTotalRow, { paddingHorizontal: 16, paddingBottom: 12 }]}>
+              <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
+              <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
+            </View>
           </Animated.View>
         </Animated.View>
       )}
