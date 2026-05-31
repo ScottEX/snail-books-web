@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
@@ -18,7 +18,6 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
 
   // Filter state
   const [showFilter, setShowFilter] = useState(false);
-  const filterAnim = useRef(new Animated.Value(0)).current;
   const [dateFrom, setDateFrom] = useState(() => {
     const d = new Date(); d.setMonth(d.getMonth() - 1);
     return fmtISO(d);
@@ -94,13 +93,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         <Text style={st.title}>{t('revHistoryBtn')} ({records.length})</Text>
         <TouchableOpacity
           style={[st.filterBtn, showFilter && st.filterBtnActive]}
-          onPress={() => {
-            if (!showFilter) {
-              filterAnim.setValue(0);
-              Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 170, friction: 26 }).start();
-            }
-            setShowFilter(!showFilter);
-          }}
+          onPress={() => setShowFilter(!showFilter)}
           activeOpacity={0.7}
         >
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none"
@@ -111,9 +104,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       </View>
 
       {/* Filter panel — matches ReconHistoryScreen */}
-      <AnimatedFilterPanel visible={showFilter} anim={filterAnim} onClose={() => {
-        Animated.timing(filterAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => setShowFilter(false));
-      }}>
+      <AnimatedFilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <View style={st.filterField}>
