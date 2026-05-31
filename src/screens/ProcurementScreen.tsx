@@ -295,8 +295,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   successBtns: { flexDirection: 'row' as const, gap: 8, marginTop: 16 },
   successBtnNew: { flex: 1, paddingVertical: 12, backgroundColor: c.primary, borderRadius: 12, alignItems: 'center' as const },
   successBtnNewText: { color: c.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
-  successBtnView: { flex: 1, paddingVertical: 12, backgroundColor: withAlpha(c.textMain, 0.06), borderRadius: 12, alignItems: 'center' as const },
-  successBtnViewText: { color: c.textSub, fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight },
+  successBtnView: { flex: 1, paddingVertical: 12, backgroundColor: c.secondary, borderRadius: 12, alignItems: 'center' as const },
+  successBtnViewText: { color: c.textMain, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   // Empty state
   emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
@@ -1153,11 +1153,11 @@ export default function ProcurementScreen() {
               {t('procNowBatch').replace('{n}', String(successBatch))} · {orderDate} · {payMethod}
             </Text>
             <View style={styles.successBtns}>
-              <TouchableOpacity style={styles.successBtnNew} onPress={resetOrder}>
-                <Text style={styles.successBtnNewText}>{t('procContinue')}</Text>
-              </TouchableOpacity>
               <TouchableOpacity style={styles.successBtnView} onPress={() => { closeSlideModal(() => setShowSuccess(false)); setSubTab('history'); }}>
                 <Text style={styles.successBtnViewText}>{t('procViewRecords')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.successBtnNew} onPress={resetOrder}>
+                <Text style={styles.successBtnNewText}>{t('procContinue')}</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
