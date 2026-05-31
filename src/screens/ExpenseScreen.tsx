@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
-  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
+  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
 } from 'react-native';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -1148,7 +1148,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Fee history bottom sheet — "全部" detail view */}
       {showFeeHistory && (
         <ModalOverlay onClose={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
-          <View style={[st.feeSheet, { height: '75vh' }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { height: Dimensions.get('window').height * 0.75 }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
               <TouchableOpacity onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
