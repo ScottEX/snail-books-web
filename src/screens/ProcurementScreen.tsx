@@ -667,12 +667,12 @@ export default function ProcurementScreen() {
       });
       if (r.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number);
-        setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote('');
-        // Close drawer first, then show success to avoid overlay conflict
+        // Close drawer first, then clear cart/receipts and show success to avoid overlay conflict
         Animated.parallel([
           Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
           Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
         ]).start(() => {
+          setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote('');
           setShowDrawer(false);
           openSlideModal(() => setShowSuccess(true));
         });
