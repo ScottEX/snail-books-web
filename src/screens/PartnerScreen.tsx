@@ -411,8 +411,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{translateName(showDetail.name)}</Text>
-                <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(showDetail.name))}</Text>
-                <Text style={mo.sub}>{t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%</Text>
+                <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(showDetail.name))} · {t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%</Text>
               </View>
               <TouchableOpacity onPress={() => setShowDetail(null)}>
                 <Text style={mo.close}>✕</Text>
