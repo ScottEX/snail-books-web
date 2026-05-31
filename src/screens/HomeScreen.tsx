@@ -1132,9 +1132,9 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.secondary, borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', justifyContent: 'center', flex: 1,
   },
-  revArchiveBtnDone: { backgroundColor: withAlpha(colors.success, 0.1) },
+  revArchiveBtnDone: { backgroundColor: withAlpha(colors.primary, 0.1) },
   revArchiveText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
-  revArchiveTextDone: { color: colors.success },
+  revArchiveTextDone: { color: colors.primary },
   // 7-day card items — same card style as history page
   rev7CardItem: {
     backgroundColor: colors.surface, borderRadius: 12,
