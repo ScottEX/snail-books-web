@@ -650,34 +650,33 @@ export default function ProcurementScreen() {
       let imageUrls: string[] = [];
       if (receipts.length > 0) {
         setUploading(true);
-        console.log('[procurement] SKIPPING upload, simulating delay');
-        // Simulate upload delay without actual API call
-        await new Promise(r => setTimeout(r, 500));
+        const result = await api.uploadExpenseImages(receipts);
         setUploading(false);
-        imageUrls = ['/img/test-skip.jpg']; // dummy URL for testing
+        if (result.status !== 'ok') {
+          setSubmitting(false);
+          setToastMsg(t('toastSubmitFailed'));
+          setShowToast(true);
+          return;
+        }
+        imageUrls = result.images || [];
       }
-      console.log('[procurement] creating batch with images:', imageUrls);
       const r = await api.createProcurementBatch({
         date: orderDate, payment_method: payMethod, category: t('procPurchase'),
         items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
         images: imageUrls, note: orderNote,
       });
-      console.log('[procurement] createBatch result:', r);
       if (r.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number);
-        // Close drawer first, then clear cart/receipts and show success to avoid overlay conflict
         Animated.parallel([
           Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
           Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
         ]).start(() => {
-          console.log('[procurement] drawer closed, showing success');
           setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote('');
           setShowDrawer(false);
           openSlideModal(() => setShowSuccess(true));
         });
         loadStats();
       } else {
-        console.log('[procurement] batch creation failed:', r);
         setToastMsg(t('toastSubmitFailed'));
         setShowToast(true);
       }

@@ -158,11 +158,21 @@ export const api = {
     files.forEach(f => form.append('files', f));
     const resp = await fetch(API_BASE + '/api/expenses/upload-images', {
       method: 'POST',
-      headers: { 'X-Lang': getLang() },
+      headers: headers(),  // Use shared headers() for consistency
       body: form,
+      credentials: 'same-origin' as RequestCredentials,
     });
+    if (resp.status === 401) {
+      localStorage.removeItem('user');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+      throw new Error('Unauthorized');
+    }
     if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
-    return resp.json();
+    bumpActivity();
+    const data = await resp.json();
+    return data;
   },
 
   getPartners: () => authFetch('/api/partners'),
