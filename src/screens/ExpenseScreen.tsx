@@ -1148,7 +1148,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Fee history bottom sheet — "全部" detail view */}
       {showFeeHistory && (
         <ModalOverlay onClose={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
-          <View style={[st.feeSheet, { maxHeight: '75%' }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { height: '75vh' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
               <TouchableOpacity onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
@@ -1185,7 +1185,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ paddingHorizontal: 12, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, paddingHorizontal: 12, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
               {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
@@ -1733,6 +1733,9 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     paddingBottom: 0,
+    // @ts-ignore
+    display: 'flex', flexDirection: 'column',
+    width: '90%', maxWidth: 500,
     // @ts-ignore
     ...modalCardAnimation,
     // @ts-ignore
