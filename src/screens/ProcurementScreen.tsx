@@ -997,7 +997,7 @@ export default function ProcurementScreen() {
             <View style={[styles.modalBody, { gap: 16 }]}>
               <View style={styles.modalDeleteBox}>
                 <Text style={styles.modalDeleteText}>
-                  确定删除「{deleteTarget.name}」？删除后历史批次中该商品将无法显示名称。
+                  {t('procDeleteProductConfirm').replace('{name}', deleteTarget.name)}{' '}{t('procDeleteProductWarning')}
                 </Text>
               </View>
               <View style={styles.modalBtnRow}>
