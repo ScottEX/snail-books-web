@@ -486,7 +486,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           {React.createElement('input', {
                             ref: revDateInputRef,
                             type: 'date', defaultValue: revDate, max: todayDateStr(),
-                            onChange: (e: any) => { const v = e.target.value; if (v > todayDateStr()) { setToast(t('errDateFuture')); if (revDateInputRef.current) revDateInputRef.current.value = revDate; return; } setRevDate(v); },
+                            onChange: (e: any) => setRevDate(e.target.value),
                             style: { position: 'absolute', top: -4, right: 0, bottom: -4, left: 0, opacity: 0.01, cursor: 'pointer' },
                           })}
                         </View>

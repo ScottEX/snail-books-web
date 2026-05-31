@@ -355,7 +355,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={filBillFromRef} defaultValue={filBillFrom} max={todayISO} onChange={(e: any) => { const v = e.target.value; if (v > todayISO) { setToast(t('errDateFuture')); if (filBillFromRef.current) filBillFromRef.current.value = filBillFrom; return; } setFilBillFrom(v); }}
+                  <input type="date" ref={filBillFromRef} defaultValue={filBillFrom} max={todayISO} onChange={(e: any) => setFilBillFrom(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
@@ -365,7 +365,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={filBillToRef} defaultValue={filBillTo} max={todayISO} onChange={(e: any) => { const v = e.target.value; if (v > todayISO) { setToast(t('errDateFuture')); if (filBillToRef.current) filBillToRef.current.value = filBillTo; return; } setFilBillTo(v); }}
+                  <input type="date" ref={filBillToRef} defaultValue={filBillTo} max={todayISO} onChange={(e: any) => setFilBillTo(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>
@@ -379,7 +379,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={filDateFromRef} defaultValue={filDateFrom} max={todayISO} onChange={(e: any) => { const v = e.target.value; if (v > todayISO) { setToast(t('errDateFuture')); if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; return; } setFilDateFrom(v); }}
+                  <input type="date" ref={filDateFromRef} defaultValue={filDateFrom} max={todayISO} onChange={(e: any) => setFilDateFrom(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
@@ -389,7 +389,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={filDateToRef} defaultValue={filDateTo} max={todayISO} onChange={(e: any) => { const v = e.target.value; if (v > todayISO) { setToast(t('errDateFuture')); if (filDateToRef.current) filDateToRef.current.value = filDateTo; return; } setFilDateTo(v); }}
+                  <input type="date" ref={filDateToRef} defaultValue={filDateTo} max={todayISO} onChange={(e: any) => setFilDateTo(e.target.value)}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>

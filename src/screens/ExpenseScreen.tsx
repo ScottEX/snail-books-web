@@ -631,11 +631,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   type: 'date',
                   defaultValue: recDate,
                   max: todayStr(),
-                  onChange: (e: any) => {
-                    const v = e.target.value;
-                    if (v > todayStr()) { setToast(t('errDateFuture')); if (recDateInputRef.current) recDateInputRef.current.value = recDate; return; }
-                    setRecDate(v);
-                  },
+                  onChange: (e: any) => setRecDate(e.target.value),
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
               </View>
@@ -988,11 +984,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     type: 'date',
                     defaultValue: expDate,
                     max: todayStr(),
-                    onChange: (e: any) => {
-                      const v = e.target.value;
-                      if (v > todayStr()) { setToast(t('errDateFuture')); if (expDateInputRef.current) expDateInputRef.current.value = expDate; return; }
-                      setExpDate(v);
-                    },
+                    onChange: (e: any) => setExpDate(e.target.value),
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
@@ -1098,11 +1090,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   {React.createElement('input', {
                     ref: feeDateInputRef,
                     type: 'date', defaultValue: feeEntryDate, max: todayStr(),
-                    onChange: (e: any) => {
-                      const v = e.target.value;
-                      if (v > todayStr()) { setToast(t('noFutureDate')); if (feeDateInputRef.current) feeDateInputRef.current.value = feeEntryDate; return; }
-                      setFeeEntryDate(v);
-                    },
+                    onChange: (e: any) => setFeeEntryDate(e.target.value),
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
