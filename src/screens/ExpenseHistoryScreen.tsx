@@ -358,7 +358,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
 const getSt = (colors: ThemeColors): any => StyleSheet.create({
   /* Root — flex: 1, no background (page bg from parent) */
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#F9F7F4' },
   ...historyHeader(colors),
   /* List — scrolls under absolute header (matches ReconHistoryScreen list) */
   list: { flex: 1 },

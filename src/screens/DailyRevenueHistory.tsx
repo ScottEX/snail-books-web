@@ -271,7 +271,7 @@ function fmtISO(d: Date) {
 
 const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Root */
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#F9F7F4' },
   ...historyHeader(colors),
 
   /* Filter panel — matches ReconHistoryScreen */
