@@ -16,6 +16,7 @@ const fmtInt = (n: number) => n.toLocaleString();
 const cnNow = () => { const d = new Date(); return new Date(d.getTime() + 8 * 3600000); };
 const yesterdayStr = () => { const d = cnNow(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
 const todayStr = () => cnNow().toISOString().slice(0, 10);
+const isFuture = (d: string) => d > todayStr();
 const fmtLocalDate = (s: string) => {
   const [y, m, d] = s.split('-');
   const l = getLang();
@@ -255,6 +256,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
+    if (isFuture(recDate)) { setToast(t('errDateFuture')); return; }
     try {
       const today = new Date().toISOString().slice(0, 10); // 对账日期 = 今天
       const username = localStorage.getItem('user') || '';
@@ -322,6 +324,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
+    if (isFuture(feeEntryDate)) { setToast(t('errDateFuture')); return; }
     const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
     if (mc + mw + ew + mt === 0) { setToast(t('atLeastOneFee')); return; }
     setSavingFee(true);
@@ -456,6 +459,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const handleAddExpense = async () => {
     if (!expAmount) return;
+    if (isFuture(expDate)) { setToast(t('errDateFuture')); return; }
     setLoadingExp(true);
     try {
       // Upload images first if any
