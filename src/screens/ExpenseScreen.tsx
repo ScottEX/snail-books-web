@@ -1344,17 +1344,24 @@ function ModalOverlay({ children, onClose }: {
   children: React.ReactNode;
   onClose: () => void;
 }) {
+  const anim = useRef(new Animated.Value(-300)).current;
   const fade = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+    Animated.parallel([
+      Animated.spring(anim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+    ]).start();
   }, []);
   const close = () => {
-    Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }).start(onClose);
+    Animated.parallel([
+      Animated.timing(anim, { toValue: -300, duration: 180, useNativeDriver: true }),
+      Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
+    ]).start(onClose);
   };
   return (
     <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16, opacity: fade }}>
       <TouchableOpacity style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={close} activeOpacity={1} />
-      <View style={{ alignItems: 'center', justifyContent: 'center' }}>{children}</View>
+      <Animated.View style={{ transform: [{ translateY: anim }], alignItems: 'center', justifyContent: 'center' }}>{children}</Animated.View>
     </Animated.View>
   );
 }
