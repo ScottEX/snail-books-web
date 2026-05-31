@@ -472,7 +472,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         ))}
                       </View>
                       <View style={{ position: 'relative' }}>
-                        <TouchableOpacity activeOpacity={1} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                           <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>
                             {revDate.replace(/-/g, '/')}
                           </Text>
@@ -482,7 +482,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                             onChange: (e: any) => { const v = e.target.value; if (v > todayDateStr()) { setToast(t('errDateFuture')); return; } setRevDate(v); },
                             style: { position: 'absolute', top: -4, right: 0, bottom: -4, left: 0, opacity: 0.01, cursor: 'pointer' },
                           })}
-                        </TouchableOpacity>
+                        </View>
                       </View>
                     </View>
 
