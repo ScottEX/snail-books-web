@@ -431,7 +431,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 }
 
 const getSt = (colors: ThemeColors) => StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F9F7F4' },
+  root: { flex: 1 },
   ...historyHeader(colors),
   list: { flex: 1, paddingHorizontal: 12 },
   loading: { marginTop: 80, alignItems: 'center' },

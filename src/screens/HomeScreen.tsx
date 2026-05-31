@@ -357,10 +357,25 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   const styles = useMemo(() => getStyles(colors), [colors]);
 
-  // Full-page history screens — render instead of main content
-  if (showExpenseHistory) return <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />;
-  if (showDailyHistory) return <DailyRevenueHistory onBack={() => setShowDailyHistory(false)} />;
-  if (showReconHistory) return <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />;
+  // Full-page history screens — render with background image
+  if (showExpenseHistory) return (
+    <View style={styles.container}>
+      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+      <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />
+    </View>
+  );
+  if (showDailyHistory) return (
+    <View style={styles.container}>
+      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+      <DailyRevenueHistory onBack={() => setShowDailyHistory(false)} />
+    </View>
+  );
+  if (showReconHistory) return (
+    <View style={styles.container}>
+      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+      <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />
+    </View>
+  );
 
   return (
     <View style={styles.container}>
