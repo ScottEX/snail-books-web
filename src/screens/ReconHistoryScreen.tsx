@@ -325,13 +325,8 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             Animated.timing(filterAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setShowFilter(false));
           }} />
         </Animated.View>
-        <Animated.View style={{
+        <View style={{
           position: 'fixed' as any, top: 72, left: 12, right: 12, zIndex: 9999,
-          opacity: filterAnim,
-          transform: [
-            { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-            { scale: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
-          ],
         }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
@@ -415,7 +410,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             </View>
           </View>
         </View>
-        </Animated.View>
+        </View>
       </>)}
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
