@@ -12,7 +12,6 @@ import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
-import SlideScreen from '../components/SlideScreen';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
@@ -358,6 +357,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   const styles = useMemo(() => getStyles(colors), [colors]);
 
+  // Full-page history screens — render instead of main content
+  if (showExpenseHistory) return <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />;
+  if (showDailyHistory) return <DailyRevenueHistory onBack={() => setShowDailyHistory(false)} />;
+  if (showReconHistory) return <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />;
+
   return (
     <View style={styles.container}>
       {/* Background */}
@@ -669,16 +673,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           </>
         )}
 
-          {/* Slide-screen overlays */}
-          <SlideScreen visible={showExpenseHistory} onClose={() => setShowExpenseHistory(false)}>
-            {(onBack) => <ExpenseHistoryScreen onBack={onBack} />}
-          </SlideScreen>
-          <SlideScreen visible={showDailyHistory} onClose={() => setShowDailyHistory(false)}>
-            {(onBack) => <DailyRevenueHistory onBack={onBack} />}
-          </SlideScreen>
-          <SlideScreen visible={showReconHistory} onClose={() => setShowReconHistory(false)}>
-            {(onBack) => <ReconHistoryScreen onBack={onBack} />}
-          </SlideScreen>
         </>
       )}
     </View>
