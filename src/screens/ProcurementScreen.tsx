@@ -194,7 +194,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   drawerHeadTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.textMain },
   drawerClose: { width: 30, height: 30, borderRadius: 15, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const, justifyContent: 'center' as const },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
-  drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1, paddingBottom: 90 } as any,
+  drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
+  drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 16, paddingVertical: 10, paddingBottom: 20 },
 
   // Date row (all 4 elements inline)
   dateCatRow: { marginBottom: 12 },
@@ -1115,14 +1116,17 @@ export default function ProcurementScreen() {
                   value={orderNote} onChangeText={setOrderNote} placeholder={t('procNowBatch').replace('{n}', String(stats.batch_count + 1))} placeholderTextColor={c.textSub} />
               </View>
 
-              {/* Total + Submit inline */}
-              <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginTop: 8 }}>
+              {/* Total + Submit moved to drawer footer */}
+            </ScrollView>
+            {/* Footer: Total + Submit — fixed at drawer bottom, above nav bar */}
+            <View style={styles.drawerFooter}>
+              <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
                 <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
                 <TouchableOpacity style={[styles.submitBtn, cartCount === 0 && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]} onPress={submitOrder} disabled={cartCount === 0 || submitting}>
                   {submitting ? <ActivityIndicator color={c.surface} /> : <Text style={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}>{t('procSubmit')}</Text>}
                 </TouchableOpacity>
               </View>
-            </ScrollView>
+            </View>
           </Animated.View>
         </>
       )}
