@@ -357,30 +357,22 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   const styles = useMemo(() => getStyles(colors), [colors]);
 
-  // Full-page history screens — render with background image
-  if (showExpenseHistory) return (
-    <View style={styles.container}>
-      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
-      <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />
-    </View>
-  );
-  if (showDailyHistory) return (
-    <View style={styles.container}>
-      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
-      <DailyRevenueHistory onBack={() => setShowDailyHistory(false)} />
-    </View>
-  );
-  if (showReconHistory) return (
-    <View style={styles.container}>
-      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
-      <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />
-    </View>
-  );
+  // History screens overlay (page content hidden via conditional below)
+  const historyScreen = showExpenseHistory ? (
+    <ExpenseHistoryScreen onBack={() => setShowExpenseHistory(false)} />
+  ) : showDailyHistory ? (
+    <DailyRevenueHistory onBack={() => setShowDailyHistory(false)} />
+  ) : showReconHistory ? (
+    <ReconHistoryScreen onBack={() => setShowReconHistory(false)} />
+  ) : null;
 
   return (
     <View style={styles.container}>
       {/* Background */}
       <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+
+      {/* History screen overlay — renders on top of background, main content hidden */}
+      {historyScreen}
 
       {/* Header */}
       <View style={styles.header}>
@@ -403,7 +395,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </View>
       </View>
 
-      {/* Page content */}
+      {/* Page content — hidden when history screen is active */}
+      {!showExpenseHistory && !showDailyHistory && !showReconHistory && (
       <View style={styles.page}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} />
@@ -691,6 +684,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </>
       )}
     </View>
+      )}  {/* end page-content conditional */}
 
       {/* Background settings modal */}
       {showBgModal && (
