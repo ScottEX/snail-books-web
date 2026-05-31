@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
@@ -27,6 +27,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const st = useMemo(() => getSt(colors), [colors]);
 
   const [showFilter, setShowFilter] = useState(false);
+  const filterAnim = useRef(new Animated.Value(0)).current;
   const [filBillFrom, setFilBillFrom] = useState('');
   const [filBillTo, setFilBillTo] = useState('');
   const [filDateFrom, setFilDateFrom] = useState('');
@@ -306,14 +307,22 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')} ({total})</Text>
-        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
+        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => {
+            if (!showFilter) {
+              filterAnim.setValue(0);
+              Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 170, friction: 26 }).start();
+            }
+            setShowFilter(!showFilter);
+          }} activeOpacity={0.7}>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? colors.surface : colors.textSub} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
           </Svg>
         </TouchableOpacity>
       </View>
       {/* Filter bar */}
-      <AnimatedFilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
+      <AnimatedFilterPanel visible={showFilter} anim={filterAnim} onClose={() => {
+        Animated.timing(filterAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => setShowFilter(false));
+      }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <View style={st.filterField}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -24,6 +24,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [previewOpacity, setPreviewOpacity] = useState(1);
   const touchStartX = useRef(0);
   const [showFilter, setShowFilter] = useState(false);
+  const filterAnim = useRef(new Animated.Value(0)).current;
   const [filDateFrom, setFilDateFrom] = useState('');
   const [filDateTo, setFilDateTo] = useState('');
   const [filCategories, setFilCategories] = useState<string[]>([]);
@@ -151,7 +152,13 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('expenseHistory')} ({total})</Text>
-        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
+        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => {
+            if (!showFilter) {
+              filterAnim.setValue(0);
+              Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 170, friction: 26 }).start();
+            }
+            setShowFilter(!showFilter);
+          }} activeOpacity={0.7}>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? colors.surface : colors.textSub} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
           </Svg>
@@ -159,7 +166,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       </View>
 
       {/* Filter panel */}
-      <AnimatedFilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
+      <AnimatedFilterPanel visible={showFilter} anim={filterAnim} onClose={() => {
+        Animated.timing(filterAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => setShowFilter(false));
+      }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
             {/* Date range */}
