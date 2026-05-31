@@ -227,6 +227,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     paddingVertical: 10, paddingLeft: 0, paddingRight: 12, borderRadius: 8,
     backgroundColor: withAlpha(c.textMain, 0.03),
     flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
+    marginTop: 8,
     marginBottom: 12,
   },
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
