@@ -129,24 +129,30 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   // Load yesterday's revenue for card footers
   useEffect(() => {
+    let cancelled = false;
     const yd = yesterdayStr();
     api.getDailyRevenue(1, 1, undefined, undefined, yd).then((r: any) => {
-      setYesterdayRev(r.records?.[0] || null);
+      if (!cancelled) setYesterdayRev(r.records?.[0] || null);
     }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   // Load last 30 days aggregated
   useEffect(() => {
+    let cancelled = false;
     api.getDailyRevenue(1, 1, undefined, undefined, undefined, 30).then((r: any) => {
-      setWeekRev(r.totals || null);
+      if (!cancelled) setWeekRev(r.totals || null);
     }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   // Load last 7 days table
   useEffect(() => {
+    let cancelled = false;
     api.getLast7Days().then((r: any) => {
-      setLast7Records(r.records || []);
+      if (!cancelled) setLast7Records(r.records || []);
     }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   const submitDailyRev = async () => {
@@ -309,20 +315,32 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   const handleAddTx = async () => {
     if (!amount || !category || !account) return;
-    await api.createTransaction({ type: txType, amount: parseFloat(amount), category, account, note });
-    setAmount(''); setCategory(''); setAccount(''); setNote('');
-    loadData();
+    try {
+      await api.createTransaction({ type: txType, amount: parseFloat(amount), category, account, note });
+      setAmount(''); setCategory(''); setAccount(''); setNote('');
+      loadData();
+    } catch {
+      setToast(t('toastSubmitFailed'));
+    }
   };
 
   const handlePage = async (p: number) => {
-    const tx = await api.getTransactions(p, 20);
-    setTransactions(tx.transactions || []);
-    setPage(p);
+    try {
+      const tx = await api.getTransactions(p, 20);
+      setTransactions(tx.transactions || []);
+      setPage(p);
+    } catch {
+      setToast(t('toastLoadFailed'));
+    }
   };
 
   const handleDeleteTx = async (id: number) => {
-    await api.deleteTransaction(id);
-    loadData();
+    try {
+      await api.deleteTransaction(id);
+      loadData();
+    } catch {
+      setToast(t('toastSubmitFailed'));
+    }
   };
 
   const formatDate = (d: string) => (d || '').slice(5, 16);
@@ -487,7 +505,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <Text style={styles.revInputCardSub}>{t('revTurnoverSub')}</Text>
                         <View style={styles.revInputCardInputWrap}>
                           <Text style={styles.revInputCardSymbol}>¥</Text>
-                          <TextInput style={[styles.revInputCardInput, { fontWeight: '700' }]}
+                          <TextInput style={styles.revInputCardInput}
                             value={revTurnover} onChangeText={setRevTurnover}
                             keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
                         </View>
@@ -832,7 +850,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', backgroundColor: colors.primary }}
-                  onPress={async () => { await api.logout(); localStorage.removeItem('active_tab'); onLogout(); }}
+                  onPress={async () => { await api.logout(); try { localStorage.removeItem('active_tab'); } catch {} onLogout(); }}
                 >
                   <Text style={{ fontSize: FONTS.subBold.size, color: colors.surface, fontWeight: FONTS.subBold.weight }}>{t('confirmLogout') || '确定退出'}</Text>
                 </TouchableOpacity>
@@ -991,7 +1009,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   // Pagination
   pageRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: 10 },
   pageBtn: { fontSize: FONTS.micro.size, color: colors.textSub, paddingHorizontal: 10, paddingVertical: 4 },
-  pageBtnActive: { color: colors.textMain, fontWeight: '600' },
+  pageBtnActive: { color: colors.textMain, fontWeight: FONTS.microBold.weight },
   // Add form — 8600 style
   addForm: { paddingTop: 4 },
   typeToggle: { flexDirection: 'row', gap: 6, marginBottom: 20 },
@@ -1094,7 +1112,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   revInputCardSub: { fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 8 },
   revInputCardInputWrap: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 6 },
   revInputCardSymbol: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, marginRight: 2, marginBottom: 1 },
-  revInputCardInput: { flex: 1, fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain, padding: 0, outline: 'none' },
+  revInputCardInput: { flex: 1, fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain, padding: 0, outline: 'none' },
   revInputCardFooter: { fontSize: FONTS.micro.size, color: colors.textSub },
   revNoteInput: {
     fontSize: FONTS.sub.size, color: colors.textSub, paddingVertical: 10, paddingHorizontal: 12,
@@ -1125,7 +1143,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   rev7CardTop: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  rev7CardDate: { fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain },
+  rev7CardDate: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   rev7TodayTag: {
     paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8,
     backgroundColor: withAlpha(colors.success, 0.1),

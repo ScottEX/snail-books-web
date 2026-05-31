@@ -126,6 +126,17 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
    ═══════════════════════════════════════════════════════════ */
 export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { onReconHistory?: () => void; onExpenseHistory?: () => void }) {
   const { colors } = useTheme();
+  const urlCache = useRef<Map<File, string>>(new Map());
+  const getPreviewUrl = (file: File) => {
+    if (!urlCache.current.has(file)) urlCache.current.set(file, URL.createObjectURL(file));
+    return urlCache.current.get(file)!;
+  };
+  const revokePreviewUrl = (file: File) => {
+    const url = urlCache.current.get(file);
+    if (url) { URL.revokeObjectURL(url); urlCache.current.delete(file); }
+  };
+  const clearUrlCache = () => { urlCache.current.forEach(u => URL.revokeObjectURL(u)); urlCache.current.clear(); };
+  useEffect(() => { return () => clearUrlCache(); }, []);
   const [activeTab, setActiveTabState] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('expense_active_tab');
@@ -212,7 +223,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             setTuan(toDec2(last.tuan));
             setJd(toDec2(last.jd));
           }
-        } catch { /* ignore */ }
+        } catch { setToast(t('toastLoadFailed')); }
       })();
       return;
     }
@@ -238,7 +249,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           setTuan('');
           setJd('');
         }
-      } catch { /* ignore */ }
+      } catch { setToast(t('toastLoadFailed')); }
     })();
   }, [recDate]);
 
@@ -305,7 +316,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       } else {
         setFeeData(null);
       }
-    } catch (err) { console.error('loadFeeData failed:', err); }
+    } catch { setToast(t('toastLoadFailed')); }
   };
   useEffect(() => { loadFeeData(); }, [feeMonth]);
 
@@ -430,9 +441,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const removeImage = (idx: number) => {
     setExpImages(prev => {
-      const cp = [...prev];
-      cp.splice(idx, 1);
-      return cp;
+      if (prev[idx]) revokePreviewUrl(prev[idx]);
+      return prev.filter((_, i) => i !== idx);
     });
   };
 
@@ -928,7 +938,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 {expImages.map((file, i) => (
                   <View key={`img-${i}`} style={st.imgPreview}>
                     {React.createElement('img', {
-                      src: URL.createObjectURL(file),
+                      src: getPreviewUrl(file),
                       style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' },
                       alt: file.name,
                     })}
@@ -1411,10 +1421,10 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     textAlign: 'center', marginBottom: 6,
   },
   totalExpVal: {
-    fontSize: FONTS.h1.size, fontWeight: '800', color: 'rgba(255,255,255,0.95)',
+    fontSize: FONTS.h1.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)',
   },
   tabStat: {
-    fontSize: FONTS.amount.size, fontWeight: '600', letterSpacing: -0.5,
+    fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, letterSpacing: -0.5,
     color: colors.surface,
     // @ts-ignore
     textShadow: '0 1px 4px rgba(0,0,0,0.15)',
@@ -1506,7 +1516,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingVertical: 10, paddingHorizontal: 14,
   },
   sumLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
-  sumVal: { fontSize: FONTS.body.size, fontWeight: '800', color: colors.textMain },
+  sumVal: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
 
   /* ── Result bar ── */
   resultBar: {
@@ -1518,7 +1528,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   resultDivider: { width: 1, height: 32, backgroundColor: colors.secondary },
   resultLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 4 },
   resultVal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
-  resultDiff: { fontSize: FONTS.h1.size, fontWeight: '800', letterSpacing: -0.5 },
+  resultDiff: { fontSize: FONTS.h1.size, fontWeight: FONTS.amount.weight, letterSpacing: -0.5 },
   /* ── Recon buttons ── */
   btnRow: {
     flexDirection: 'row', gap: 10, marginTop: 4,
@@ -1547,7 +1557,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.secondary,
   },
   kpiLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 4 },
-  kpiVal: { fontSize: FONTS.amount.size, fontWeight: '800', color: colors.textMain },
+  kpiVal: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.textMain },
 
   /* ── Table ── */
   tableWrap: {
@@ -1560,7 +1570,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: FONTS.micro.size, color: colors.textSub },
   tdDate: { width: 90, color: colors.textSub, fontSize: FONTS.micro.size },
   tdCat: { flex: 1 },
-  tdAmt: { width: 100, textAlign: 'right', fontWeight: '600' },
+  tdAmt: { width: 100, textAlign: 'right', fontWeight: FONTS.microBold.weight },
 
   /* ── Date row ── */
   expDateRow: {

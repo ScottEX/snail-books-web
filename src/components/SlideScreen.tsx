@@ -19,7 +19,7 @@ export default function SlideScreen({ visible, onClose, children }: Props) {
   const [render, setRender] = useState(false);
   const screenWidth = Dimensions.get('window').width;
 
-  // In
+  // In / Out
   useEffect(() => {
     if (visible) {
       setRender(true);
@@ -30,8 +30,19 @@ export default function SlideScreen({ visible, onClose, children }: Props) {
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }).start();
+    } else if (render) {
+      // Animate out when parent sets visible=false
+      Animated.timing(translateX, {
+        toValue: screenWidth,
+        duration: 250,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => {
+        setRender(false);
+        onClose();
+      });
     }
-  }, [visible]);
+  }, [visible, screenWidth]);
 
   // Out
   const close = useCallback(() => {

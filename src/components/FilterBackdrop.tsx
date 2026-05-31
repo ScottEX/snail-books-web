@@ -11,7 +11,7 @@ export const FilterBackdrop: React.FC<FilterBackdropProps> = ({ onPress }) => (
     activeOpacity={1}
     style={{
       position: 'fixed' as any,
-      inset: 0 as any,
+      top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(0,0,0,0.3)',
       zIndex: 88,
     }}

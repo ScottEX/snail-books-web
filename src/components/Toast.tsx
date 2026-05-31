@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -13,15 +13,19 @@ interface ToastProps {
 export default function Toast({ message, visible, onDismiss, duration = 3000 }: ToastProps) {
   const [show, setShow] = useState(false);
   const { colors } = useTheme();
+  const dismissRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (visible && message) {
       setShow(true);
-      const t = setTimeout(() => {
+      const outer = setTimeout(() => {
         setShow(false);
-        setTimeout(onDismiss, 300); // wait for fade-out
+        const inner = setTimeout(onDismiss, 300); // wait for fade-out
+        fadeRef.current = inner;
       }, duration);
-      return () => clearTimeout(t);
+      dismissRef.current = outer;
+      return () => { clearTimeout(outer); if (fadeRef.current) clearTimeout(fadeRef.current); };
     } else {
       setShow(false);
     }
@@ -59,7 +63,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   text: {
     color: colors.surface,
     fontSize: FONTS.sub.size,
-    fontWeight: '500',
+    fontWeight: FONTS.sub.weight,
     textAlign: 'center',
   },
 });

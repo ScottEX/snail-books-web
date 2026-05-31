@@ -41,7 +41,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const loadRecords = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await api.getDailyRevenue(1, 200);
+      const r = await api.getDailyRevenue(1, 5000);
       const all = (r.records || []) as any[];
       // Server-side filtering not implemented for daily_revenue, do client-side
       let filtered = all;
@@ -327,7 +327,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   cardTop: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  cardDate: { fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain },
+  cardDate: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   statusBadge: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5,

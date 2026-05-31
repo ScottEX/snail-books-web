@@ -81,14 +81,17 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const org = useMemo(() => getOrg(colors), [colors]);
   const tg = useMemo(() => getTg(colors), [colors]);
 
+  const [loadingData, setLoadingData] = useState(true);
   const loadData = async () => {
     try {
+      setLoadingData(true);
       const p = await api.getPartners();
       setPartners(p || []);
       const d = await api.getDividends();
       setDividends(d || []);
       setTotalDiv((d || []).reduce((s: number, x: any) => s + x.amount, 0));
     } catch { setToast(t('toastLoadFailed')); }
+    setLoadingData(false);
   };
 
   useEffect(() => { loadData(); }, []);
@@ -593,7 +596,7 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   backText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   redBar: { width: 8, height: 36, backgroundColor: colors.primary, borderRadius: 100 },
-  mainTitle: { fontSize: FONTS.h2.size, fontWeight: '600', color: colors.textMain, letterSpacing: -0.3 },
+  mainTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain, letterSpacing: -0.3 },
   engSub: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, letterSpacing: 0.3, marginTop: 1 },
   langRow: { flexDirection: 'row', gap: 4, paddingTop: 4 },
   langBtn: { fontSize: FONTS.micro.size, color: colors.textSub, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: FONTS.micro.weight as any },

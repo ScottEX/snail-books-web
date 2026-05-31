@@ -72,25 +72,30 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     if (loading) return;
     if (!username || !password) { setMsg(t('errEmptyFields')); triggerShake(); return; }
     setLoading(true);
-    const r = await api.login(username, password, remember);
-    setLoading(false);
-    if (r.status === 'ok') {
-      if (r.token && typeof localStorage !== 'undefined') localStorage.setItem('token', r.token);
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('user', r.username || username);
-        localStorage.setItem('user_id', String(r.user_id || ''));
-        localStorage.setItem('saved_login', username);
-        localStorage.removeItem('active_tab');
-        localStorage.removeItem('expense_active_tab');
+    try {
+      const r = await api.login(username, password, remember);
+      setLoading(false);
+      if (r.status === 'ok') {
+        if (r.token && typeof localStorage !== 'undefined') localStorage.setItem('token', r.token);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('user', r.username || username);
+          localStorage.setItem('user_id', String(r.user_id || ''));
+          localStorage.setItem('saved_login', username);
+          localStorage.removeItem('active_tab');
+          localStorage.removeItem('expense_active_tab');
+        }
+        try { await api.saveLang(getLang()); } catch {}
+        onLogin();
+      } else if (r.need_verify) {
+        setEmail(r.email); setStep('verify'); setMsg('');
+        setTimeout(() => codeRef.current?.focus(), 100);
+      } else {
+        setMsg(r.message || t('errWrongCredentials'));
+        triggerShake();
       }
-      try { await api.saveLang(getLang()); } catch {}
-      onLogin();
-    } else if (r.need_verify) {
-      setEmail(r.email); setStep('verify'); setMsg('');
-      setTimeout(() => codeRef.current?.focus(), 100);
-    } else {
-      setMsg(r.message || t('errWrongCredentials'));
-      triggerShake();
+    } catch {
+      setLoading(false);
+      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
     }
   };
 
@@ -103,20 +108,30 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     const emailErr = validateEmail(email);
     if (emailErr) { setMsg(emailErr); triggerShake(); return; }
     setLoading(true);
-    const r = await api.register(username, password, email);
-    setLoading(false);
-    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setDevCode(r.dev_code || ''); setStep('verify'); setTimeout(() => codeRef.current?.focus(), 100); }
-    else { setMsg(r.message); triggerShake(); }
+    try {
+      const r = await api.register(username, password, email);
+      setLoading(false);
+      if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setDevCode(r.dev_code || ''); setStep('verify'); setTimeout(() => codeRef.current?.focus(), 100); }
+      else { setMsg(r.message); triggerShake(); }
+    } catch {
+      setLoading(false);
+      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
+    }
   };
 
   const handleVerify = async () => {
     if (loading) return;
     if (!code) return;
     setLoading(true);
-    const r = await api.verify(email, code);
-    setLoading(false);
-    if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgVerifyOk')); setStep('login'); }
-    else { setMsg(r.message); triggerShake(); }
+    try {
+      const r = await api.verify(email, code);
+      setLoading(false);
+      if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgVerifyOk')); setStep('login'); }
+      else { setMsg(r.message); triggerShake(); }
+    } catch {
+      setLoading(false);
+      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
+    }
   };
 
   const handleForgot = async () => {
@@ -125,10 +140,15 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     const emailErr = validateEmail(email);
     if (emailErr) { setMsg(emailErr); return; }
     setLoading(true);
-    const r = await api.forgotPassword(email);
-    setLoading(false);
-    if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setDevCode(r.dev_code || ''); setStep('reset'); setTimeout(() => codeRef.current?.focus(), 100); }
-    else setMsg(r.message);
+    try {
+      const r = await api.forgotPassword(email);
+      setLoading(false);
+      if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setDevCode(r.dev_code || ''); setStep('reset'); setTimeout(() => codeRef.current?.focus(), 100); }
+      else setMsg(r.message);
+    } catch {
+      setLoading(false);
+      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
+    }
   };
 
   const handleReset = async () => {
@@ -137,19 +157,28 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     const pwErr = validatePassword(password);
     if (pwErr) { setMsg(pwErr); triggerShake(); return; }
     setLoading(true);
-    const r = await api.resetPassword(email, code, password);
-    setLoading(false);
-    if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgResetOk')); setStep('login'); }
-    else { setMsg(r.message); triggerShake(); }
+    try {
+      const r = await api.resetPassword(email, code, password);
+      setLoading(false);
+      if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgResetOk')); setStep('login'); }
+      else { setMsg(r.message); triggerShake(); }
+    } catch {
+      setLoading(false);
+      setMsg(t('errNetworkError') || '网络错误，请检查网络后重试');
+    }
   };
+
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => { return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); }; }, []);
 
   const handleResend = async () => {
     if (resendCooldown > 0) return;
     const r = await api.resendCode(email);
     if (r.dev_code) setDevCode(r.dev_code);
     setResendCooldown(30);
-    const iv = setInterval(() => {
-      setResendCooldown(c => { if (c <= 1) { clearInterval(iv); return 0; } return c - 1; });
+    if (cooldownRef.current) clearInterval(cooldownRef.current);
+    cooldownRef.current = setInterval(() => {
+      setResendCooldown(c => { if (c <= 1) { clearInterval(cooldownRef.current!); cooldownRef.current = null; return 0; } return c - 1; });
     }, 1000);
   };
 
@@ -512,7 +541,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   forgotText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
   disabledText: { opacity: 0.3 },
   infoText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
-  infoStrong: { fontWeight: '600', color: colors.surface },
+  infoStrong: { fontWeight: FONTS.subBold.weight, color: colors.surface },
   devCodeCard: {
     backgroundColor: withAlpha(colors.warning, 0.15), borderRadius: 12, padding: 16,
     alignItems: 'center', borderWidth: 1, borderColor: withAlpha(colors.warning, 0.3),

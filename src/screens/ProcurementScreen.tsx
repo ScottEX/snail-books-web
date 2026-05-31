@@ -143,7 +143,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   subTab: { flex: 1, paddingVertical: 10, alignItems: 'center' as const },
   subTabOn: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 10 },
   subTabText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textSub },
-  subTabTextOn: { color: c.primary, fontWeight: '600' as const },
+  subTabTextOn: { color: c.primary, fontWeight: FONTS.subBold.weight },
 
   sectionHead: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub, textTransform: 'uppercase' as const, letterSpacing: 1 },
   productCard: { marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), overflow: 'hidden' as const },
@@ -155,7 +155,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   prodPriceWrap: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 4, marginRight: 8 },
   prodPrice: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary },
   qtyRow: { flexDirection: 'row' as const, alignItems: 'center' as const },
-  qtyBtn: { width: 30, height: 30, borderRadius: 6, alignItems: 'center' as const, justifyContent: 'center' as const },
+  qtyBtn: { width: 44, height: 44, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const },
   qtyBtnMinus: { backgroundColor: withAlpha(c.textMain, 0.06) },
   qtyBtnMinusText: { fontSize: FONTS.h2.size, color: c.textSub },
   qtyBtnPlus: { backgroundColor: c.primary },
@@ -176,7 +176,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartBadgeText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.surface },
   cartInfo: { flex: 1 },
   cartInfoText: { fontSize: FONTS.micro.size, color: c.textSub },
-  cartInfoBold: { fontWeight: '600' as const, color: c.textMain },
+  // (removed unused style cartInfoBold)
   cartTotal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary },
 
   // Drawer overlay
@@ -191,7 +191,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   },
   drawerHandle: { width: 36, height: 4, backgroundColor: withAlpha(c.textMain, 0.15), borderRadius: 2, alignSelf: 'center' as const, marginTop: 10 },
   drawerHead: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 12, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.08) },
-  drawerHeadTitle: { fontSize: FONTS.body.size, fontWeight: '600' as const, color: c.textMain },
+  drawerHeadTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.textMain },
   drawerClose: { width: 30, height: 30, borderRadius: 15, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const, justifyContent: 'center' as const },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1, paddingBottom: 90 } as any,
@@ -307,7 +307,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Empty state
   emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500' as const, color: c.textSub, marginBottom: 6 },
+  emptyTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: c.textSub, marginBottom: 6 },
   emptyHint: { fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center' as const, paddingHorizontal: 40, lineHeight: 20 },
   loadingWrap: { paddingVertical: 20, alignItems: 'center' as const },
   contentArea: { flex: 1, paddingBottom: 100 },
@@ -687,16 +687,26 @@ export default function ProcurementScreen() {
   const saveProduct = async () => {
     if (!prodForm.name) return;
     const data = { name: prodForm.name, spec: prodForm.spec, price: parseFloat(prodForm.price) || 0, supplier: prodForm.supplier };
-    editingProduct ? await api.updateProduct({ ...data, id: editingProduct.id }) : await api.createProduct(data);
-    setShowProductModal(false);
-    loadProducts();
+    try {
+      editingProduct ? await api.updateProduct({ ...data, id: editingProduct.id }) : await api.createProduct(data);
+      setShowProductModal(false);
+      loadProducts();
+    } catch {
+      setToastMsg(t('toastSubmitFailed'));
+      setShowToast(true);
+    }
   };
   const confirmDelete = async () => {
     if (!deleteTarget) return;
-    await api.deleteProduct(deleteTarget.id);
-    // Clean orphan cart entries for deleted product
-    setCart(prev => { const cp = { ...prev }; delete cp[deleteTarget.id]; return cp; });
-    loadProducts();
+    try {
+      await api.deleteProduct(deleteTarget.id);
+      // Clean orphan cart entries for deleted product
+      setCart(prev => { const cp = { ...prev }; delete cp[deleteTarget.id]; return cp; });
+      loadProducts();
+    } catch {
+      setToastMsg(t('toastSubmitFailed'));
+      setShowToast(true);
+    }
     setDeleteTarget(null);
   };
 
