@@ -47,7 +47,7 @@ export const AnimatedFilterPanel: React.FC<Props> = ({ visible, onClose, childre
         style={{
           position: 'absolute' as any,
           top: 72, left: 12, right: 12,
-          zIndex: 89,
+          zIndex: 9999,
           opacity: anim,
           transform: [
             { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1], extrapolate: 'clamp' }) },
