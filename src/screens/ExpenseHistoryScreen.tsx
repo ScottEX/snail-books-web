@@ -41,6 +41,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasMoreRef = useRef(false);
   const scrollRatioRef = useRef(0);
+  const scrollRatioAtTriggerRef = useRef(0); // snapshot at loadPage trigger, immune to layout scroll events
 
   const { colors } = useTheme();
   const st = useMemo(() => getSt(colors), [colors]);
@@ -125,6 +126,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         if (!scrollTimerRef.current) {
           scrollTimerRef.current = setTimeout(() => {
             scrollTimerRef.current = null;
+            scrollRatioAtTriggerRef.current = scrollRatioRef.current;
             loadPage(pageRef.current + 1, false);
           }, 150);
         }
@@ -134,11 +136,13 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     return () => el.removeEventListener('scroll', onNativeScroll);
   }, [loadPage]);
 
-  // Auto-continue: if user was at bottom (ratio > 0.95) before new records
-  // arrived, immediately load the next page. Ignores first-page initial load.
+  // Auto-continue: if user was at bottom when last loadPage was triggered,
+  // immediately load the next page. Uses a snapshot ref to survive layout-
+  // triggered scroll events that fire when new DOM content changes scrollHeight.
   useEffect(() => {
     if (records.length <= PAGE_SIZE || !hasMoreRef.current || loadingRef.current) return;
-    if (scrollRatioRef.current > 0.95) {
+    if (scrollRatioAtTriggerRef.current > 0.95) {
+      scrollRatioAtTriggerRef.current = 0;
       loadPage(pageRef.current + 1, false);
     }
   }, [records.length, loadPage]);
