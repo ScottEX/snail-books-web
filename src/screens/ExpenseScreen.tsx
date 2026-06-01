@@ -636,7 +636,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   defaultValue: recDate,
                   max: todayStr(),
                   onChange: (e: any) => setRecDate(e.target.value),
-                  onBlur: (e: any) => { if (isFuture(e.target.value)) { setToast(t('errDateFuture')); setRecDate(todayStr()); } },
+                  onBlur: (e: any) => { if (isFuture(e.target.value)) { setTimeout(() => setToast(t('errDateFuture')), 0); setRecDate(todayStr()); } },
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
               </View>
@@ -990,7 +990,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     defaultValue: expDate,
                     max: todayStr(),
                     onChange: (e: any) => setExpDate(e.target.value),
-                    onBlur: (e: any) => { if (isFuture(e.target.value)) { setToast(t('errDateFuture')); setExpDate(todayStr()); } },
+                    onBlur: (e: any) => { if (isFuture(e.target.value)) { setTimeout(() => setToast(t('errDateFuture')), 0); setExpDate(todayStr()); } },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
@@ -1097,7 +1097,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     ref: feeDateInputRef,
                     type: 'date', defaultValue: feeEntryDate, max: todayStr(),
                     onChange: (e: any) => setFeeEntryDate(e.target.value),
-                    onBlur: (e: any) => { if (isFuture(e.target.value)) { setToast(t('errDateFuture')); setFeeEntryDate(todayStr()); } },
+                    onBlur: (e: any) => { if (isFuture(e.target.value)) { setTimeout(() => setToast(t('errDateFuture')), 0); setFeeEntryDate(todayStr()); } },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
