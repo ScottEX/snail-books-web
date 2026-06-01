@@ -80,14 +80,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     try { const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; } catch { return []; }
   };
 
-  // Preload a single image URL — resolve when cached (success or error, never block)
-  const preloadImage = (url: string): Promise<void> => new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve();
-    img.onerror = () => resolve();
-    img.src = url;
-  });
-
   // Fetch one page from server (with current filters)
   const loadPage = useCallback(async (pg: number, reset: boolean) => {
     if (loadingRef.current) return;
@@ -96,13 +88,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     try {
       const tx: any = await api.getTransactions(pg, PAGE_SIZE, getFilterParams());
       const exps = tx.transactions || [];
-      // Preload all images from this page before rendering — images render instantly
-      const allUrls: string[] = [];
-      for (const e of exps) {
-        const imgs = parseImages(e.images);
-        for (const u of imgs) allUrls.push(u);
-      }
-      if (allUrls.length > 0) await Promise.all(allUrls.map(preloadImage));
       setRecords(prev => reset ? exps : [...prev, ...exps]);
       setPage(pg);
       pageRef.current = pg;
