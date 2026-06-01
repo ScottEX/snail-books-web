@@ -11,7 +11,15 @@ import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 
 /* ── helpers ── */
-const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+const fmt = (n: number) => {
+  if (Math.abs(n) >= 10000) {
+    const lang = getLang();
+    if (lang.startsWith('en')) return '\u00A5' + (n / 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'K';
+    if (lang.startsWith('zh-TW') || lang.startsWith('zh-Hant')) return '\u00A5' + (n / 10000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u842C';
+    return '\u00A5' + (n / 10000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u4E07';
+  }
+  return '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+};
 const fmtInt = (n: number) => n.toLocaleString();
 const cnNow = () => { const d = new Date(); return new Date(d.getTime() + 8 * 3600000); };
 const yesterdayStr = () => { const d = cnNow(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
