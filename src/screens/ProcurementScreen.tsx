@@ -109,7 +109,7 @@ const CHIP_ICON_BG: Record<string, string> = { '微信': '#07C160', '支付宝':
 // ═══════════════════════════════════════════════
 const getStyles = (c: ThemeColors) => StyleSheet.create({
   ...uploadReceiptStyles(c),
-  container: { flex: 1 },
+  container: { flex: 1, position: 'relative' as const },
 
   frostedBlock: {
     marginHorizontal: 12, marginTop: 4, borderRadius: 16, overflow: 'hidden' as const,
@@ -164,7 +164,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   prodSubtotal: { paddingHorizontal: 12, paddingBottom: 8, fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.micro.weight },
 
   cartBar: {
-    position: 'absolute' as const, bottom: 80, left: 0, right: 0, zIndex: 100,
+    position: 'absolute' as const, bottom: 68, left: 0, right: 0, zIndex: 100,
     marginHorizontal: 12, backgroundColor: withAlpha(c.surface, 0.95), borderRadius: 14,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     // @ts-ignore
