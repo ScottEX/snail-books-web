@@ -1029,32 +1029,34 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Line x1="8" y1="2" x2="8" y2="6"/>
                   <Line x1="3" y1="10" x2="21" y2="10"/>
                 </Svg>
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', flex: 1, position: 'relative' }}
-                >
-                  <Text style={st.dateText}>
-                    {(() => {
-                      const l = getLang();
-                      const [y, m, d] = expDate.split('-');
-                      if (l.startsWith('en')) {
-                        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-                        return `${months[+m-1]} ${+d}, ${y}`;
-                      }
-                      return `${y}年${m}月${d}日`;
-                    })()}
-                  </Text>
-                  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
-                  {React.createElement('input', {
-                    ref: expDateInputRef,
-                    type: 'date',
-                    defaultValue: expDate,
-                    max: todayStr(),
-                    onChange: (e: any) => { if (isFuture(e.target.value)) { expDateInputRef.current!.value = expDate; setExpDateErr(c => c + 1); } else { setExpDate(e.target.value); } },
-                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
-                  })}
+                <View style={{ flex: 1 }}>
+                  <View
+                    style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }}
+                  >
+                    <Text style={st.dateText}>
+                      {(() => {
+                        const l = getLang();
+                        const [y, m, d] = expDate.split('-');
+                        if (l.startsWith('en')) {
+                          const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                          return `${months[+m-1]} ${+d}, ${y}`;
+                        }
+                        return `${y}年${m}月${d}日`;
+                      })()}
+                    </Text>
+                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
+                    {React.createElement('input', {
+                      ref: expDateInputRef,
+                      type: 'date',
+                      defaultValue: expDate,
+                      max: todayStr(),
+                      onChange: (e: any) => { if (isFuture(e.target.value)) { expDateInputRef.current!.value = expDate; setExpDateErr(c => c + 1); } else { setExpDate(e.target.value); } },
+                      style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
+                    })}
+                  </View>
+                  <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} colors={colors} />
                 </View>
               </View>
-              <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} colors={colors} />
               {/* 按钮行 */}
               <View style={st.btnRow}>
                 <TouchableOpacity style={st.reconRecordBtn}
