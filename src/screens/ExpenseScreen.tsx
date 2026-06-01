@@ -67,7 +67,7 @@ function NumberTicker({ value, duration = 500, style }: {
   }, [value, duration]);
 
   // Pick formatter: if value has decimals use fmt, else fmtInt + ¥
-  const text = Number.isInteger(value) && Number.isInteger(display)
+  const text = value !== 0 && Number.isInteger(value) && Number.isInteger(display)
     ? '¥' + fmtInt(Math.round(display))
     : fmt(display);
 
