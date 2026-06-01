@@ -1178,7 +1178,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 const inputNum = toNum(row.val);
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
-                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t(row.k)}</Text>
+                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }} numberOfLines={1}>{t(row.k)}</Text>
                     <Text style={{ width: 80, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
@@ -1796,7 +1796,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingBottom: 0,
     // @ts-ignore
     display: 'flex', flexDirection: 'column',
-    width: '90%', maxWidth: 500,
+    width: '96%', maxWidth: 500,
     // @ts-ignore
     ...modalCardAnimation,
     // @ts-ignore
