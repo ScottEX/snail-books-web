@@ -625,19 +625,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     <View style={st.cardFieldRow}>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('daily')}</Text>
-                        <Text style={[st.cardFieldVal, { fontSize: FONTS.subBold.size }]}>{fmt(expCatTotals.daily)}</Text>
+                        <Text style={[st.cardFieldVal, { fontSize: FONTS.body.size }]}>{fmt(expCatTotals.daily)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('rent')}</Text>
-                        <Text style={[st.cardFieldVal, { fontSize: FONTS.subBold.size }]}>{fmt(expCatTotals.rent)}</Text>
+                        <Text style={[st.cardFieldVal, { fontSize: FONTS.body.size }]}>{fmt(expCatTotals.rent)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('salary')}</Text>
-                        <Text style={[st.cardFieldVal, { fontSize: FONTS.subBold.size }]}>{fmt(expCatTotals.salary)}</Text>
+                        <Text style={[st.cardFieldVal, { fontSize: FONTS.body.size }]}>{fmt(expCatTotals.salary)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('goods')}</Text>
-                        <Text style={[st.cardFieldVal, { fontSize: FONTS.subBold.size }]}>{fmt(expCatTotals.goods)}</Text>
+                        <Text style={[st.cardFieldVal, { fontSize: FONTS.body.size }]}>{fmt(expCatTotals.goods)}</Text>
                       </View>
                     </View>
                   </View>
