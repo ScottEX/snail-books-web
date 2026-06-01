@@ -36,6 +36,7 @@ const fmtMonth = (year: number, month: number) => {
 };
 const toNum = (s: string) => parseFloat(s) || 0;
 const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
+const fmtDecInput = (s: string) => { s = blockNeg(s); return s.startsWith('.') ? '0' + s : s; };
 const toDec2 = (v: any) => String((parseFloat(String(v ?? 0)) || 0).toFixed(2));
 
 /* ═══════════════════════════════════════════════════════════
@@ -502,7 +503,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
 
   const handleAddExpense = async () => {
-    if (!expAmount || parseFloat(expAmount) <= 0) { setToast(t('errAmountPositive')); return; }
+    if (!expAmount) return;
     if (isFuture(expDate)) { setToast(t('errDateFuture')); return; }
     setLoadingExp(true);
     try {
@@ -896,7 +897,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <View style={st.bigAmtRow}>
                   <Text style={st.bigAmtSymbol}>¥</Text>
                   <TextInput style={st.bigAmtInput}
-                    value={expAmount} onChangeText={(v: string) => setExpAmount(blockNeg(v))}
+                    value={expAmount} onChangeText={(v: string) => setExpAmount(fmtDecInput(v))}
                     keyboardType="decimal-pad" placeholder="0.00"
                     placeholderTextColor={colors.textSub}
                     autoFocus={false} />
