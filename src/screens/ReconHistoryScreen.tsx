@@ -21,6 +21,8 @@ function DateErrorHint({ trigger, message, colors }: { trigger: number; message:
       setShow(true);
       const t = setTimeout(() => setShow(false), 3000);
       return () => clearTimeout(t);
+    } else {
+      setShow(false);
     }
   }, [trigger]);
   if (!show) return null;
