@@ -436,7 +436,10 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               <TouchableOpacity style={st.filterResetBtn} onPress={resetFilters} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.filterApplyBtn} onPress={() => {
+              <TouchableOpacity
+                style={[st.filterApplyBtn, rangeInvalid && st.filterApplyBtnDisabled]}
+                disabled={rangeInvalid}
+                onPress={() => {
                   setAppliedBillFrom(filBillFrom);
                   setAppliedBillTo(filBillTo);
                   setAppliedFrom(filDateFrom);
@@ -444,7 +447,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   setAppliedBy(filBy);
                   setShowFilter(false);
               }} activeOpacity={0.8}>
-                <Text style={st.filterApplyBtnText}>{t('apply')}</Text>
+                <Text style={[st.filterApplyBtnText, rangeInvalid && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -656,7 +659,13 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     backgroundColor: colors.primary,
   },
+  filterApplyBtnDisabled: {
+    backgroundColor: colors.secondary,
+  },
   filterApplyBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.surface },
+  filterApplyBtnTextDisabled: {
+    color: colors.textSub,
+  },
   /* Reconciler in card */
   reconByRow: { alignItems: 'center', paddingBottom: 2 },
   reconByText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
