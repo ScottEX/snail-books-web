@@ -23,23 +23,37 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [showPw2, setShowPw2] = useState(false);  // separate toggle for confirm password on register
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState(false);
   const [devCode, setDevCode] = useState('');  // dev mode: verification code
   const codeRef = useRef<any>(null);
+  const scrollRef = useRef<ScrollView>(null);
   const { colors } = useTheme();
 
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
       const saved = localStorage.getItem('saved_login');
-      if (saved) setUsername(saved);
+      if (saved) {
+        setUsername(saved);
+        // Restore remember preference for this saved user
+        setRemember(localStorage.getItem('remember_me') === 'true');
+      }
       if (localStorage.getItem('user')) onLogin();
     }
   }, []);
 
+  // Scroll to top when error message appears (prevents message being obscured)
+  useEffect(() => {
+    if (msg && !msgOk) {
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+    }
+  }, [msg, msgOk]);
+
   const reset = () => { setMsg(''); setMsgOk(false); setDevCode(''); };
   const goLogin = () => {
     setStep('login'); reset();
+    setPassword(''); setPassword2(''); setEmail('');
     // restore saved login username
     if (typeof localStorage !== 'undefined') {
       const saved = localStorage.getItem('saved_login');
@@ -191,7 +205,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       {/* Background layers */}
       <View style={styles.bgWrapper} />
       <View style={styles.bgOverlay} />
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
         <View style={styles.brand}>
           <View style={styles.logoWrap}>
@@ -266,7 +280,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                 <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
               </TouchableOpacity>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <TouchableOpacity onPress={() => setRemember(!remember)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
                     {remember && <Text style={{ fontSize: FONTS.micro.size, color: colors.surface }}>✓</Text>}
                   </View>
@@ -324,10 +338,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                 <View style={styles.pwWrap}>
                   <TextInput style={styles.pwInput} value={password2} onChangeText={setPassword2}
                     placeholder={t('confirmPassword')} placeholderTextColor="rgba(255,255,255,0.55)"
-                    secureTextEntry={!showPw} onSubmitEditing={handleRegister} />
-                  <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
+                    secureTextEntry={!showPw2} onSubmitEditing={handleRegister} />
+                  <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw2(!showPw2)}>
                     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      {showPw ? (
+                      {showPw2 ? (
                         <>
                           <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
                           <Path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
