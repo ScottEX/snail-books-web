@@ -623,7 +623,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 {i === 2 && (
                   <View style={st.cardFields}>
                     <View style={st.cardFieldRow}>
-                      <View style={st.cardFieldCol}>
+                      <View style={[st.cardFieldCol, { alignItems: 'flex-end' }]}>
                         <Text style={st.cardFieldLabel}>{t('salary')}</Text>
                         <Text style={st.cardFieldVal}>{fmt(expCatTotals.salary)}</Text>
                       </View>
