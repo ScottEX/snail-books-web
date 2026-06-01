@@ -193,6 +193,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   /* ── 模块一：对账 ── */
   const [recDate, setRecDate] = useState(yesterdayStr());
+  const [recDateKey, setRecDateKey] = useState(0);
   const [toast, setToast] = useState('');
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
@@ -657,9 +658,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 {React.createElement('input', {
                   ref: recDateInputRef,
                   type: 'date',
+                  key: recDateKey,
                   defaultValue: recDate,
                   max: todayStr(),
-                  onChange: (e: any) => { if (isFuture(e.target.value)) { recDateInputRef.current!.value = recDate; } else { setRecDate(e.target.value); } },
+                  onChange: (e: any) => { if (isFuture(e.target.value)) { recDateInputRef.current!.value = recDate; setRecDateKey(k => k + 1); } else { setRecDate(e.target.value); } },
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
               </View>
