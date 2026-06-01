@@ -134,7 +134,7 @@ function DateErrorHint({ trigger, message, colors }: { trigger: number; message:
     }
   }, [trigger]);
   if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, marginTop: 4 }}>{message}</Text>;
+  return <Text style={{ color: colors.danger, fontSize: 12, marginTop: 2, textAlign: 'right' }}>{message}</Text>;
 }
 
 /* ═══════════════════════════════════════════════════════════ */
