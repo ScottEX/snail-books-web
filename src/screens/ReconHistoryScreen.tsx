@@ -73,6 +73,12 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   // Reset error when filter panel opens
   useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
 
+  // Date range validity — persistent hint while invalid
+  const rangeInvalid = useMemo(() =>
+    (!!filBillFrom && !!filBillTo && filBillFrom > filBillTo) ||
+    (!!filDateFrom && !!filDateTo && filDateFrom > filDateTo),
+    [filBillFrom, filBillTo, filDateFrom, filDateTo]);
+
   // Fetch users when filter panel opens
   useEffect(() => {
     if (showFilter && users.length === 0) {
@@ -361,6 +367,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
+            {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('billDate')}</Text>
               <View style={st.filterDateRange}>
