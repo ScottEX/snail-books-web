@@ -125,7 +125,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
 /* ═══════════════════════════════════════════════════════════
    DateErrorHint — 未来日期红字提示，2.5s 自动消失
    ═══════════════════════════════════════════════════════════ */
-function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
+function DateErrorHint({ trigger, message, colors, textAlign = 'right' }: { trigger: number; message: string; colors: any; textAlign?: 'left' | 'right' | 'center' }) {
   const [show, setShow] = useState(false);
   useEffect(() => {
     if (trigger > 0) {
@@ -135,7 +135,7 @@ function DateErrorHint({ trigger, message, colors }: { trigger: number; message:
     }
   }, [trigger]);
   if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, marginTop: 1, textAlign: 'right' }}>{message}</Text>;
+  return <Text style={{ color: colors.danger, fontSize: 12, marginTop: 1, textAlign }}>{message}</Text>;
 }
 
 /* ═══════════════════════════════════════════════════════════ */
@@ -1054,7 +1054,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                     })}
                   </View>
-                  <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} colors={colors} />
+                  <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} colors={colors} textAlign="left" />
                 </View>
               </View>
               {/* 按钮行 */}
