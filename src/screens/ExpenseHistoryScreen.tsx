@@ -37,6 +37,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [appliedTo, setAppliedTo] = useState('');
   const [appliedCats, setAppliedCats] = useState('');
   const loadingRef = useRef(false);
+  const pageRef = useRef(1);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { colors } = useTheme();
@@ -89,6 +90,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       const exps = tx.transactions || [];
       setRecords(prev => reset ? exps : [...prev, ...exps]);
       setPage(pg);
+      pageRef.current = pg;
       setTotal(tx.total || 0);
       setHasMore(pg < (tx.pages || 1));
     } catch { setToast(t('toastLoadFailed')); }
@@ -114,11 +116,11 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       if (!scrollTimerRef.current) {
         scrollTimerRef.current = setTimeout(() => {
           scrollTimerRef.current = null;
-          loadPage(page + 1, false);
+          loadPage(pageRef.current + 1, false);
         }, 150);
       }
     }
-  }, [page, hasMore, loadPage]);
+  }, [hasMore, loadPage]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
