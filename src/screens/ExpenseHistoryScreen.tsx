@@ -39,7 +39,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const scrollYRef = useRef(0);
+  const sentinelRef = useRef<any>(null);
+  const hasMoreRef = useRef(false);
 
   const { colors } = useTheme();
   const st = useMemo(() => getSt(colors), [colors]);
@@ -93,7 +94,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       setPage(pg);
       pageRef.current = pg;
       setTotal(tx.total || 0);
-      setHasMore(pg < (tx.pages || 1));
+      const more = pg < (tx.pages || 1);
+      setHasMore(more);
+      hasMoreRef.current = more;
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
     loadingRef.current = false;
@@ -112,7 +115,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   // Scroll pagination — load next page when near bottom
   const handleScroll = useCallback((e: any) => {
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-    scrollYRef.current = contentOffset.y;
     if (loadingRef.current || !hasMore) return;
     if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 60) {
       if (!scrollTimerRef.current) {
@@ -124,14 +126,19 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     }
   }, [hasMore, loadPage]);
 
-  // Image async load expands contentSize after paint — auto-trigger if user is already at bottom
-  const handleContentSizeChange = useCallback((_w: number, contentH: number) => {
-    if (loadingRef.current || !hasMore) return;
-    if (contentH <= window.innerHeight + 10) return;
-    if (scrollYRef.current + window.innerHeight >= contentH - 60) {
-      loadPage(pageRef.current + 1, false);
-    }
-  }, [hasMore, loadPage]);
+  // Sentry — IntersectionObserver on hidden end-of-list element; fires instantly
+  // when sentinel enters viewport (regardless of image load height). No distance math.
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && hasMoreRef.current && !loadingRef.current) {
+        loadPage(pageRef.current + 1, false);
+      }
+    }, { rootMargin: '100px' });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [loadPage]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
@@ -270,7 +277,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        onContentSizeChange={handleContentSizeChange}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
           <View style={st.emptyWrap}>
@@ -332,6 +338,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                 <Text style={st.loadingText}>...</Text>
               </View>
             )}
+            <View ref={sentinelRef} style={{ height: 1, opacity: 0 }} />
           </>
         )}
       </ScrollView>
