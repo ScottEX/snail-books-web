@@ -622,24 +622,22 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </View>
                 {i === 2 && (
                   <View style={st.cardFields}>
-                    <View style={[st.cardFieldRow, { marginTop: -8 }]}>
-                      <View style={[st.cardFieldCol, { alignItems: 'flex-end' }]}>
-                        <Text style={st.cardFieldLabel}>{t('salary')}</Text>
-                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.salary)}</Text>
-                      </View>
-                    </View>
                     <View style={st.cardFieldRow}>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('daily')}</Text>
                         <Text style={st.cardFieldVal}>{fmt(expCatTotals.daily)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
-                        <Text style={st.cardFieldLabel}>{t('goods')}</Text>
-                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.goods)}</Text>
-                      </View>
-                      <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('rent')}</Text>
                         <Text style={st.cardFieldVal}>{fmt(expCatTotals.rent)}</Text>
+                      </View>
+                      <View style={st.cardFieldCol}>
+                        <Text style={st.cardFieldLabel}>{t('salary')}</Text>
+                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.salary)}</Text>
+                      </View>
+                      <View style={st.cardFieldCol}>
+                        <Text style={st.cardFieldLabel}>{t('goods')}</Text>
+                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.goods)}</Text>
                       </View>
                     </View>
                   </View>
