@@ -503,7 +503,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
 
   const handleAddExpense = async () => {
-    if (parseFloat(expAmount) <= 0) return;
+    if (!expAmount || parseFloat(expAmount) <= 0) return;
     if (isFuture(expDate)) { setToast(t('errDateFuture')); return; }
     setLoadingExp(true);
     try {
@@ -625,19 +625,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     <View style={st.cardFieldRow}>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('daily')}</Text>
-                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.daily)}</Text>
+                        <Text style={[st.cardFieldVal, { fontSize: FONTS.subBold.size }]}>{fmt(expCatTotals.daily)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('rent')}</Text>
-                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.rent)}</Text>
+                        <Text style={[st.cardFieldVal, { fontSize: FONTS.subBold.size }]}>{fmt(expCatTotals.rent)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('salary')}</Text>
-                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.salary)}</Text>
+                        <Text style={[st.cardFieldVal, { fontSize: FONTS.subBold.size }]}>{fmt(expCatTotals.salary)}</Text>
                       </View>
                       <View style={st.cardFieldCol}>
                         <Text style={st.cardFieldLabel}>{t('goods')}</Text>
-                        <Text style={st.cardFieldVal}>{fmt(expCatTotals.goods)}</Text>
+                        <Text style={[st.cardFieldVal, { fontSize: FONTS.subBold.size }]}>{fmt(expCatTotals.goods)}</Text>
                       </View>
                     </View>
                   </View>
@@ -1064,13 +1064,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <TouchableOpacity
                   style={[st.expBtn, { flex: 1 }]}
                   onPress={() => { if (parseFloat(expAmount) > 0) setShowExpConfirm(true); }}
-                  disabled={parseFloat(expAmount) <= 0 || loadingExp}
+                  disabled={!expAmount || parseFloat(expAmount) <= 0 || loadingExp}
                   activeOpacity={0.8}
                 >
                   <Text style={st.expBtnText}>
                     {loadingExp ? '...' : t('confirmRecord')}
                   </Text>
-                  {(parseFloat(expAmount) <= 0 || loadingExp) && (
+                  {(!expAmount || parseFloat(expAmount) <= 0 || loadingExp) && (
                     <View style={st.expBtnMask} />
                   )}
                 </TouchableOpacity>
