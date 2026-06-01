@@ -203,6 +203,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [jd, setJd] = useState('');
 
   const mountedRef = useRef(false);
+  const initReconValues = useRef({ card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' });
+  const reconJustLoaded = useRef(false);
 
   // Load reconciliation data from backend
   useEffect(() => {
@@ -224,6 +226,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             setTuan(toDec2(last.tuan));
             setJd(toDec2(last.jd));
           }
+          reconJustLoaded.current = true;
         } catch { setToast(t('toastLoadFailed')); }
       })();
       return;
@@ -250,9 +253,18 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           setTuan('');
           setJd('');
         }
+        reconJustLoaded.current = true;
       } catch { setToast(t('toastLoadFailed')); }
     })();
   }, [recDate]);
+
+  // Capture initial values after data load settles
+  useEffect(() => {
+    if (reconJustLoaded.current) {
+      reconJustLoaded.current = false;
+      initReconValues.current = { card: cardBalance, cash: cashBalance, dine: dineIn, mt: meituan, fs: flashSale, jd, tuan };
+    }
+  }, [cardBalance, cashBalance, dineIn, meituan, flashSale, jd, tuan]);
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
@@ -280,6 +292,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
   const realTotal = toNum(cardBalance) + toNum(cashBalance);
   const diff = realTotal - channelTotal;
+
+  const hasReconChanges =
+    cardBalance !== initReconValues.current.card ||
+    cashBalance !== initReconValues.current.cash ||
+    dineIn !== initReconValues.current.dine ||
+    meituan !== initReconValues.current.mt ||
+    flashSale !== initReconValues.current.fs ||
+    jd !== initReconValues.current.jd ||
+    tuan !== initReconValues.current.tuan;
 
   /* ── 模块二：平台手续费 ── */
   const now = new Date();
@@ -719,7 +740,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <TouchableOpacity style={st.reconRecordBtn} onPress={onReconHistory} activeOpacity={0.8}>
                 <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.reconBtn} onPress={() => setShowToast(true)} activeOpacity={0.8}>
+              <TouchableOpacity
+                style={[st.reconBtn, !hasReconChanges && { opacity: 0.4 }]}
+                onPress={() => hasReconChanges && setShowToast(true)}
+                activeOpacity={hasReconChanges ? 0.8 : 1}
+                disabled={!hasReconChanges}
+              >
                 <Text style={st.reconBtnText}>{t('reconComplete')}</Text>
               </TouchableOpacity>
             </View>
