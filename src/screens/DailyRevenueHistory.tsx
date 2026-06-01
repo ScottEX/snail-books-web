@@ -391,7 +391,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   cardNoteText: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 16 },
 
   /* Empty state */
-  emptyWrap: { marginTop: 78, alignItems: 'center', gap: 12 },
+  emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
   emptyEmoji: { fontSize: FONTS.h1.size },
   emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
