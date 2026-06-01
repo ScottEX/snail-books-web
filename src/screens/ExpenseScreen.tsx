@@ -1665,7 +1665,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* ── Date row ── */
   expDateRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: colors.bg, borderRadius: 10, padding: 12,
+    backgroundColor: colors.bg, borderRadius: 10,
+    paddingVertical: 12, paddingRight: 12,
   },
   expDateInput: {
     fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
