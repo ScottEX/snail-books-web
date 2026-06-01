@@ -83,7 +83,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const loadPage = useCallback(async (pg: number, reset: boolean) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
-    setLoading(true);
+    if (reset) setLoading(true);
     try {
       const tx: any = await api.getTransactions(pg, PAGE_SIZE, getFilterParams());
       const exps = tx.transactions || [];
