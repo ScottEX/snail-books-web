@@ -35,7 +35,7 @@ export const modalClose = {
  */
 export const historyHeader = (colors: ThemeColors) => ({
   header: {
-    position: 'absolute' as const, top: 36, left: 0, right: 0, zIndex: 90,
+    position: 'absolute' as const, top: 35, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
     paddingVertical: 14, paddingHorizontal: 16,
     backgroundColor: withAlpha(colors.bg, 0.55),
