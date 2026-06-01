@@ -39,7 +39,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sentinelRef = useRef<any>(null);
   const hasMoreRef = useRef(false);
 
   const { colors } = useTheme();
@@ -126,19 +125,20 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     }
   }, [hasMore, loadPage]);
 
-  // Sentry — IntersectionObserver on hidden end-of-list element; fires instantly
-  // when sentinel enters viewport (regardless of image load height). No distance math.
+  // After page load: if content still fits viewport (images 0-height → not enough
+  // to overflow), load next page immediately. No distance math, no sentinel, no observer.
   useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && hasMoreRef.current && !loadingRef.current) {
+    if (records.length === 0 || !hasMore || loadingRef.current) return;
+    const t = setTimeout(() => {
+      if (!hasMoreRef.current || loadingRef.current) return;
+      const el = document.querySelector('[data-testid="exp-scroll"]');
+      if (!el) return;
+      if (el.scrollHeight <= el.clientHeight + 20) {
         loadPage(pageRef.current + 1, false);
       }
-    }, { rootMargin: '100px' });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [loadPage]);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [records.length, hasMore, loadPage]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
@@ -275,7 +275,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       </>)}
 
         {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
-      <ScrollView style={st.list} showsVerticalScrollIndicator={false}
+      <ScrollView testID="exp-scroll" style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
@@ -338,7 +338,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                 <Text style={st.loadingText}>...</Text>
               </View>
             )}
-            <View ref={sentinelRef} style={{ height: 1, opacity: 0 }} />
           </>
         )}
       </ScrollView>
