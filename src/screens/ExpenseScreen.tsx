@@ -503,7 +503,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
 
   const handleAddExpense = async () => {
-    if (!expAmount) return;
+    if (parseFloat(expAmount) <= 0) return;
     if (isFuture(expDate)) { setToast(t('errDateFuture')); return; }
     setLoadingExp(true);
     try {
@@ -1063,14 +1063,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[st.expBtn, { flex: 1 }]}
-                  onPress={() => { if (expAmount) setShowExpConfirm(true); }}
-                  disabled={!expAmount || loadingExp}
+                  onPress={() => { if (parseFloat(expAmount) > 0) setShowExpConfirm(true); }}
+                  disabled={parseFloat(expAmount) <= 0 || loadingExp}
                   activeOpacity={0.8}
                 >
                   <Text style={st.expBtnText}>
                     {loadingExp ? '...' : t('confirmRecord')}
                   </Text>
-                  {(!expAmount || loadingExp) && (
+                  {(parseFloat(expAmount) <= 0 || loadingExp) && (
                     <View style={st.expBtnMask} />
                   )}
                 </TouchableOpacity>
