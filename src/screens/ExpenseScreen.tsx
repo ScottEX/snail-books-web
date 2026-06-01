@@ -511,16 +511,22 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     try {
       // Upload images first if any
       let imageUrls: string[] = [];
+      let thumbUrls: string[] = [];
       if (expImages.length > 0) {
         setUploadingImg(true);
         const result = await api.uploadExpenseImages(expImages);
         setUploadingImg(false);
         if (result.status !== 'ok') {
-          setToast(result.message || t('toastSubmitFailed'));
+          setToast(t('toastSubmitFailed'));
           setLoadingExp(false);
           return;
         }
         imageUrls = result.images || [];
+        // Use the server-generated thumb URLs for the history list; fall back to
+        // full-size images if the backend didn't return thumbs (PIL disabled).
+        thumbUrls = (result.thumb_images && result.thumb_images.length > 0)
+          ? result.thumb_images
+          : imageUrls;
       }
       await api.createTransaction({
         type: 'expense',
@@ -530,6 +536,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         note: expNote,
         date: expDate,
         images: imageUrls,
+        thumb_images: thumbUrls,
       });
       clearUrlCache();
       setExpAmount('');

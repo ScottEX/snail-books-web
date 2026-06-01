@@ -16,7 +16,7 @@ type PayMethod = '现金' | '微信' | '支付宝';
 
 interface Product { id: number; name: string; spec: string; price: number; supplier: string; }
 interface CartItem { product: Product; quantity: number; subtotal: number; }
-interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; note: string; items: any[]; }
+interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; thumb_images?: string[]; note: string; items: any[]; }
 interface ProcStats { total_spent: number; total_income: number; batch_count: number; margin_pct: number; }
 
 // ═══════════════════════════════════════════════
@@ -664,6 +664,7 @@ export default function ProcurementScreen() {
     try {
       // Upload images first (matching ExpenseScreen pattern)
       let imageUrls: string[] = [];
+      let thumbUrls: string[] = [];
       if (receipts.length > 0) {
         setUploading(true);
         const result = await api.uploadExpenseImages(receipts);
@@ -675,11 +676,15 @@ export default function ProcurementScreen() {
           return;
         }
         imageUrls = result.images || [];
+        // Prefer server-generated thumb URLs; fall back to full-size images if PIL is disabled
+        thumbUrls = (result.thumb_images && result.thumb_images.length > 0)
+          ? result.thumb_images
+          : imageUrls;
       }
       const r = await api.createProcurementBatch({
         date: orderDate, payment_method: payMethod, category: t('procPurchase'),
         items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
-        images: imageUrls, note: orderNote,
+        images: imageUrls, thumb_images: thumbUrls, note: orderNote,
       });
       if (r.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number);
@@ -911,11 +916,18 @@ export default function ProcurementScreen() {
                   <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
                   <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
                 </View>
-                {batch.images?.length > 0 && (
-                  <View style={styles.histImages}>
-                    {batch.images.map((img, i) => <Image key={i} source={{ uri: img }} style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />)}
-                  </View>
-                )}
+                {(() => {
+                  // Prefer 128×128 thumb URLs (fast), fall back to full-size for old data
+                  const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
+                  return thumbImgs.length > 0 && (
+                    <View style={styles.histImages}>
+                      {thumbImgs.map((img: string, i: number) => (
+                        <Image key={i} source={{ uri: img }}
+                          style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
+                      ))}
+                    </View>
+                  );
+                })()}
               </View>
             </TouchableOpacity>
           )}

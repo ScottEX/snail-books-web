@@ -151,7 +151,7 @@ export const api = {
   createTransaction: (data: any) => authFetch('/api/transactions', { method: 'POST', body: JSON.stringify(data) }),
   deleteTransaction: (id: number) => authFetch(`/api/transactions/${id}`, { method: 'DELETE' }),
 
-  // Expense image upload — returns { images: ['/expense-imgs/4/abc.jpg', ...] }
+  // Expense image upload — returns { images: [...], thumb_images: [...], has_thumbs: bool }
   uploadExpenseImages: async (files: File[]) => {
     bumpActivity();
     const form = new FormData();
@@ -172,7 +172,7 @@ export const api = {
     if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
     bumpActivity();
     const data = await resp.json();
-    return data;
+    return data as { status: 'ok'; images: string[]; thumb_images: string[]; has_thumbs: boolean };
   },
 
   getPartners: () => authFetch('/api/partners'),

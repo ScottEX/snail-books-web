@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated
+  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -132,18 +132,70 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   // Current user for displaying who filled each record
   const currentUser = (() => { try { return localStorage.getItem('user') || ''; } catch { return ''; } })();
 
-  // Scroll pagination — load next page when near bottom (simple, uses RN onScroll)
-  const handleScroll = useCallback((e: any) => {
+  // Render a single transaction row (FlatList item) — uses thumb_images for the
+  // 48×48 list tile (fast, ~5-10KB) and falls back to full-size images for old
+  // data without thumb_images. Preview always opens the full-size images.
+  const renderItem = useCallback(({ item: e, index: i }: { item: any; index: number }) => {
+    const thumbImgs = e.thumb_images ? parseImages(e.thumb_images) : [];
+    const displayImgs = thumbImgs.length > 0 ? thumbImgs : parseImages(e.images);
+    const previewImgs = parseImages(e.images);
+    return (
+      <View style={st.row}>
+        <View style={st.rowTop}>
+          <View style={st.badges}>
+            <View style={st.catBadge}>
+              <Text style={st.catBadgeText}>{trCat(e.category || '')}</Text>
+            </View>
+            <View style={st.payBadge}>
+              <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
+            </View>
+          </View>
+          <Text style={st.amount}>-¥{e.amount.toFixed(2)}</Text>
+        </View>
+        {currentUser ? (
+          <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
+        ) : null}
+        <View style={st.rowBottom}>
+          <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
+          {e.note ? (
+            <Text style={st.note} numberOfLines={1}>{e.note}</Text>
+          ) : (
+            <View style={{ flex: 1 }} />
+          )}
+        </View>
+        {/* Image thumbnails — lazy + async + bg placeholder so JS thread stays free for scroll */}
+        {displayImgs.length > 0 && (
+          <View style={st.imgThumbs}>
+            {displayImgs.map((url: string, j: number) => (
+              <TouchableOpacity key={j}
+                onPress={() => setPreviewData({ images: previewImgs, idx: j })}
+                activeOpacity={0.8}>
+                {React.createElement('img', {
+                  src: url,
+                  loading: 'lazy' as any,
+                  decoding: 'async' as any,
+                  style: {
+                    width: 48, height: 48, borderRadius: 6, objectFit: 'cover',
+                    backgroundColor: colors.bg,
+                  } as any,
+                  alt: 'receipt',
+                })}
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, setPreviewData]);
+
+  // End-of-list pagination — replaces ScrollView onScroll, debounced 150ms
+  const onEndReached = useCallback(() => {
     if (loadingRef.current || !hasMore) return;
-    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 60) {
-      if (!scrollTimerRef.current) {
-        scrollTimerRef.current = setTimeout(() => {
-          scrollTimerRef.current = null;
-          loadPage(pageRef.current + 1, false);
-        }, 150);
-      }
-    }
+    if (scrollTimerRef.current) return;
+    scrollTimerRef.current = setTimeout(() => {
+      scrollTimerRef.current = null;
+      loadPage(pageRef.current + 1, false);
+    }, 150);
   }, [hasMore, loadPage]);
 
   // Category toggle
@@ -279,73 +331,31 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                 </Animated.View>
       </>)}
 
-        {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
-      <ScrollView testID="exp-scroll" style={st.list} showsVerticalScrollIndicator={false}
-        onScroll={handleScroll} scrollEventThrottle={100}
-        contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 80 }}>
-        {visible.length === 0 && !loading ? (
+        {/* List — FlatList virtualises rows so off-screen items don't block scroll */}
+      <FlatList
+        testID="exp-scroll"
+        style={st.list}
+        data={visible}
+        keyExtractor={(e: any, i: number) => e.id != null ? `tx-${e.id}` : `tx-${i}`}
+        renderItem={renderItem}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.4}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 80 }}
+        ListEmptyComponent={!loading ? (
           <View style={st.emptyWrap}>
             <View style={st.emptyIcon}><Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text></View>
             <Text style={st.emptyTitle}>{t('noRecords')}</Text>
             <Text style={st.emptyHint}>{t('emptyExpenseHint')}</Text>
           </View>
-        ) : (
-          <>
-            {visible.map((e: any, i: number) => (
-              <View key={i} style={st.row}>
-                <View style={st.rowTop}>
-                  <View style={st.badges}>
-                    <View style={st.catBadge}>
-                      <Text style={st.catBadgeText}>{trCat(e.category || '')}</Text>
-                    </View>
-                    <View style={st.payBadge}>
-                      <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
-                    </View>
-                  </View>
-                  <Text style={st.amount}>-¥{e.amount.toFixed(2)}</Text>
-                </View>
-                {currentUser ? (
-                  <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
-                ) : null}
-                <View style={st.rowBottom}>
-                  <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
-                  {e.note ? (
-                    <Text style={st.note} numberOfLines={1}>{e.note}</Text>
-                  ) : (
-                    <View style={{ flex: 1 }} />
-                  )}
-                </View>
-                {/* Image thumbnails */}
-                {(() => {
-                  const imgs = parseImages(e.images);
-                  if (imgs.length === 0) return null;
-                  return (
-                    <View style={st.imgThumbs}>
-                      {imgs.map((url: string, j: number) => (
-                        <TouchableOpacity key={j}
-                          onPress={() => setPreviewData({ images: imgs, idx: j })}
-                          activeOpacity={0.8}>
-                          {React.createElement('img', {
-                            src: url,
-                            style: { width: 48, height: 48, borderRadius: 6, objectFit: 'cover' },
-                            alt: 'receipt',
-                          })}
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  );
-                })()}
-              </View>
-            ))}
-            {loading && (
-              <View style={st.loading}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={st.loadingText}>...</Text>
-              </View>
-            )}
-          </>
-        )}
-      </ScrollView>
+        ) : null}
+        ListFooterComponent={loading ? (
+          <View style={st.loading}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={st.loadingText}>...</Text>
+          </View>
+        ) : null}
+      />
 
       {/* Fullscreen image preview with left/right swipe */}
       {previewData && (
@@ -386,6 +396,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           {React.createElement('img', {
             src: previewData.images[previewData.idx],
             key: previewData.idx,
+            decoding: 'async' as any,
             style: {
               maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain',
               opacity: previewOpacity,
