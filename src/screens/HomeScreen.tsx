@@ -13,6 +13,19 @@ import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
 import SlideScreen from '../components/SlideScreen';
+
+function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
+  const [show, setShow] = React.useState(false);
+  React.useEffect(() => {
+    if (trigger > 0) {
+      setShow(true);
+      const t = setTimeout(() => setShow(false), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [trigger]);
+  if (!show) return null;
+  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'left', marginTop: 2 }}>{message}</Text>;
+}
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
@@ -88,6 +101,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   };
   const [dailyRevs, setDailyRevs] = useState<any[]>([]);
   const [revDate, setRevDate] = useState(todayDateStr());
+  const [revDateErr, setRevDateErr] = useState(0);
+  const [revDateKey, setRevDateKey] = useState(0);
+  const isFuture = (d: string) => d > todayDateStr();
   const [revRevenue, setRevRevenue] = useState('');
   const [revTurnover, setRevTurnover] = useState('');
   const [revJD, setRevJD] = useState('');
@@ -118,6 +134,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   // Sync uncontrolled date input when revDate changes externally (quick-date pills)
   useEffect(() => {
     if (revDateInputRef.current) revDateInputRef.current.value = revDate;
+    setRevDateErr(0);
   }, [revDate]);
 
   const INCOME_CATS = ['🍜 堂食','🛵 美团外卖','🛵 饿了吗外卖','🎫 美团团购','📦 京东','🔧 其他收入'];
@@ -485,11 +502,12 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>📅</Text>
                           {React.createElement('input', {
                             ref: revDateInputRef,
-                            type: 'date', defaultValue: revDate, max: todayDateStr(),
-                            onChange: (e: any) => setRevDate(e.target.value),
+                            type: 'date', defaultValue: revDate, max: todayDateStr(), key: revDateKey,
+                            onChange: (e: any) => { if (isFuture(e.target.value)) { revDateInputRef.current!.value = revDate; setRevDateKey(k => k + 1); setRevDateErr(c => c + 1); } else { setRevDate(e.target.value); } },
                             style: { position: 'absolute', top: -4, right: 0, bottom: -4, left: 0, opacity: 0.01, cursor: 'pointer' },
                           })}
                         </View>
+                        <DateErrorHint trigger={revDateErr} message={t('errDateFuture')} colors={colors} />
                       </View>
                     </View>
 
