@@ -635,8 +635,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   type: 'date',
                   defaultValue: recDate,
                   max: todayStr(),
-                  onChange: (e: any) => setRecDate(e.target.value),
-                  onBlur: (e: any) => { if (isFuture(e.target.value)) { setTimeout(() => setToast(t('errDateFuture')), 0); setRecDate(todayStr()); } },
+                  onChange: (e: any) => { if (!isFuture(e.target.value)) setRecDate(e.target.value); },
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
               </View>
@@ -989,8 +988,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     type: 'date',
                     defaultValue: expDate,
                     max: todayStr(),
-                    onChange: (e: any) => setExpDate(e.target.value),
-                    onBlur: (e: any) => { if (isFuture(e.target.value)) { setTimeout(() => setToast(t('errDateFuture')), 0); setExpDate(todayStr()); } },
+                    onChange: (e: any) => { if (!isFuture(e.target.value)) setExpDate(e.target.value); },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
@@ -1096,8 +1094,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   {React.createElement('input', {
                     ref: feeDateInputRef,
                     type: 'date', defaultValue: feeEntryDate, max: todayStr(),
-                    onChange: (e: any) => setFeeEntryDate(e.target.value),
-                    onBlur: (e: any) => { if (isFuture(e.target.value)) { setTimeout(() => setToast(t('errDateFuture')), 0); setFeeEntryDate(todayStr()); } },
+                    onChange: (e: any) => { if (!isFuture(e.target.value)) setFeeEntryDate(e.target.value); },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
