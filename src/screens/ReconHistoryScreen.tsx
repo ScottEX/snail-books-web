@@ -462,7 +462,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
   ...historyHeader(colors),
   list: { flex: 1, paddingHorizontal: 12 },
-  loading: { marginTop: 80, alignItems: 'center' },
+  loading: { marginTop: 78, alignItems: 'center' },
   loadingText: { marginTop: 12, fontSize: FONTS.sub.size, color: colors.primary },
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
   loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
@@ -537,7 +537,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   chanLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
   chanVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
   /* Empty state */
-  emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
+  emptyWrap: { marginTop: 78, alignItems: 'center', gap: 12 },
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
   emptyEmoji: { fontSize: FONTS.h1.size },
   emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
