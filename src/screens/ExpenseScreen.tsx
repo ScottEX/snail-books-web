@@ -525,11 +525,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     : feeData
     ? ((feeData.meituan_cashier || 0) + (feeData.meituan_waimai || 0) + (feeData.eleme_waimai || 0) + (feeData.meituan_tuan || 0))
     : 0;
+  const lang = getLang();
   const tabCards = useMemo(() => [
     { gradient: [withAlpha(colors.success, 0.22), withAlpha(colors.info, 0.22)], gradientActive: [withAlpha(colors.success, 0.48), withAlpha(colors.info, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
     { gradient: [withAlpha(colors.primary, 0.22), withAlpha(colors.warning, 0.22)], gradientActive: [withAlpha(colors.primary, 0.48), withAlpha(colors.warning, 0.48)], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: colors.textMain, prefix: '' },
     { gradient: [withAlpha(colors.danger, 0.22), withAlpha(colors.primary, 0.22)], gradientActive: [withAlpha(colors.danger, 0.48), withAlpha(colors.primary, 0.48)], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: colors.textMain, prefix: '' },
-  ], [diff, feeTotal, expCatTotals.daily, expCatTotals.rent, expCatTotals.salary, expCatTotals.goods, colors]);
+  ], [diff, feeTotal, expCatTotals.daily, expCatTotals.rent, expCatTotals.salary, expCatTotals.goods, colors, lang]);
 
   const st = useMemo(() => getSt(colors), [colors]);
 
