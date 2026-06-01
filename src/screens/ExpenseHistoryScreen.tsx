@@ -167,12 +167,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     }, 150);
   };
 
-  const validateExpDates = (): boolean => {
-    const from = filDateFrom, to = filDateTo;
-    if (from && to && from > to) { setToast(t('errDateRange')); return false; }
-    return true;
-  };
-
   return (
     <View style={st.root}>
       {/* Header — absolute, transparent, floats above scroll (matches ReconHistoryScreen) */}
@@ -266,16 +260,16 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
               }} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.filterApplyBtn} onPress={() => {
-                if (validateExpDates()) {
-                  // Snapshot filter values so server query runs with new params
+              <TouchableOpacity
+                style={[st.filterApplyBtn, rangeInvalid && st.filterApplyBtnDisabled]}
+                disabled={rangeInvalid}
+                onPress={() => {
                   setAppliedFrom(filDateFrom);
                   setAppliedTo(filDateTo);
                   setAppliedCats(filCategories.join(','));
                   setShowFilter(false);
-                }
-              }} activeOpacity={0.8}>
-                <Text style={st.filterApplyBtnText}>{t('apply')}</Text>
+                }} activeOpacity={0.8}>
+                <Text style={[st.filterApplyBtnText, rangeInvalid && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -534,5 +528,11 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.primary, borderRadius: 8,
   },
+  filterApplyBtnDisabled: {
+    backgroundColor: colors.secondary,
+  },
   filterApplyBtnText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
+  filterApplyBtnTextDisabled: {
+    color: colors.textSub,
+  },
 } as any);
