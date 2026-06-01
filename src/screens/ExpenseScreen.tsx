@@ -129,12 +129,12 @@ function DateErrorHint({ trigger, message, colors }: { trigger: number; message:
   useEffect(() => {
     if (trigger > 0) {
       setShow(true);
-      const t = setTimeout(() => setShow(false), 2500);
+      const t = setTimeout(() => setShow(false), 3000);
       return () => clearTimeout(t);
     }
   }, [trigger]);
   if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, marginTop: 2, textAlign: 'right' }}>{message}</Text>;
+  return <Text style={{ color: colors.danger, fontSize: 12, marginTop: 1, textAlign: 'right' }}>{message}</Text>;
 }
 
 /* ═══════════════════════════════════════════════════════════ */
