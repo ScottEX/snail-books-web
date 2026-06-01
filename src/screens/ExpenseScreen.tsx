@@ -162,6 +162,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   });
   const setActiveTab = (i: number) => {
     setActiveTabState(i);
+    if (i === 2) setExpDateErr(0);
     try { localStorage.setItem('expense_active_tab', String(i)); } catch {}
   };
   const [showToast, setShowToast] = useState(false);
@@ -501,7 +502,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
 
   const handleAddExpense = async () => {
-    if (!expAmount) return;
+    if (!expAmount || parseFloat(expAmount) <= 0) { setToast(t('errAmountPositive')); return; }
     if (isFuture(expDate)) { setToast(t('errDateFuture')); return; }
     setLoadingExp(true);
     try {
@@ -527,12 +528,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         date: expDate,
         images: imageUrls,
       });
+      clearUrlCache();
       setExpAmount('');
+      setExpCategory('日常');
       setPayMethod('微信');
       setExpNote('');
       setExpDate(todayStr());
       setExpImages([]);
-      // Revoke any remaining preview URLs
       await loadExpenses();
       onExpenseHistory?.();
     } catch { setToast(t('toastSubmitFailed')); }
