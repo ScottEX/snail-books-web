@@ -111,34 +111,26 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   // Current user for displaying who filled each record
   const currentUser = (() => { try { return localStorage.getItem('user') || ''; } catch { return ''; } })();
 
-  // Scroll pagination — load next page when near bottom
-  const handleScroll = useCallback((e: any) => {
-    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-    if (loadingRef.current || !hasMore) return;
-    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 60) {
-      if (!scrollTimerRef.current) {
-        scrollTimerRef.current = setTimeout(() => {
-          scrollTimerRef.current = null;
-          loadPage(pageRef.current + 1, false);
-        }, 150);
-      }
-    }
-  }, [hasMore, loadPage]);
-
-  // After page load: if content still fits viewport (images 0-height → not enough
-  // to overflow), load next page immediately. No distance math, no sentinel, no observer.
+  // Native DOM scroll — reads el.scrollTop/scrollHeight/clientHeight directly
+  // from the browser layout engine. RN Web's onScroll nativeEvent.contentSize
+  // can be stale after content changes; DOM properties are always accurate.
   useEffect(() => {
-    if (records.length === 0 || !hasMore || loadingRef.current) return;
-    const t = setTimeout(() => {
-      if (!hasMoreRef.current || loadingRef.current) return;
-      const el = document.querySelector('[data-testid="exp-scroll"]');
-      if (!el) return;
-      if (el.scrollHeight <= el.clientHeight + 20) {
-        loadPage(pageRef.current + 1, false);
+    const el = document.querySelector('[data-testid="exp-scroll"]');
+    if (!el) return;
+    const onNativeScroll = () => {
+      if (loadingRef.current || !hasMoreRef.current) return;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 60) {
+        if (!scrollTimerRef.current) {
+          scrollTimerRef.current = setTimeout(() => {
+            scrollTimerRef.current = null;
+            loadPage(pageRef.current + 1, false);
+          }, 150);
+        }
       }
-    }, 400);
-    return () => clearTimeout(t);
-  }, [records.length, hasMore, loadPage]);
+    };
+    el.addEventListener('scroll', onNativeScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onNativeScroll);
+  }, [loadPage]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
@@ -276,7 +268,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
         {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView testID="exp-scroll" style={st.list} showsVerticalScrollIndicator={false}
-        onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
           <View style={st.emptyWrap}>
