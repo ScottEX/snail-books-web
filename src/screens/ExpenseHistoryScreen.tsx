@@ -154,6 +154,11 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   // No client-side filtering — server handles it
   const visible = records;
 
+  // Date range validity — persistent hint while invalid (matches ReconHistoryScreen)
+  const rangeInvalid = useMemo(() =>
+    !!(filDateFrom && filDateTo && filDateFrom > filDateTo),
+    [filDateFrom, filDateTo]);
+
   const navPreview = (newIdx: number) => {
     setPreviewOpacity(0);
     setTimeout(() => {
@@ -209,6 +214,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
+            {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {/* Date range */}
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('filterDate')}</Text>
