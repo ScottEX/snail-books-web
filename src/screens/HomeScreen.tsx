@@ -186,7 +186,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   const submitDailyRev = async () => {
-    if (!revTurnover) { setToast(t('revTurnover') + ' 不能为空'); return; }
+    if (!revTurnover || parseFloat(revTurnover) <= 0) { setToast(t('revTurnover') + ' 不能为空'); return; }
     setRevSaving(true);
     try {
       if (editingRevId) {
@@ -580,8 +580,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.revSubmitBtn, { flex: 4 }, (!revTurnover || revSaving) && { opacity: 0.5 }]}
-                        onPress={submitDailyRev} disabled={!revTurnover || revSaving}
+                        style={[styles.revSubmitBtn, { flex: 4 }, (!revTurnover || parseFloat(revTurnover) <= 0 || revSaving) && { opacity: 0.5 }]}
+                        onPress={submitDailyRev} disabled={!revTurnover || parseFloat(revTurnover) <= 0 || revSaving}
                         activeOpacity={0.8}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                           {revSaving ? (
