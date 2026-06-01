@@ -12,6 +12,19 @@ import { modalClose, historyHeader } from '../sharedStyles';
 
 const PAGE_SIZE = 10;
 
+function DateErrorHint({ trigger, message, colors, textAlign }: { trigger: number; message: string; colors: any; textAlign?: 'left' | 'right' | 'center' }) {
+  const [show, setShow] = React.useState(false);
+  React.useEffect(() => {
+    if (trigger > 0) {
+      setShow(true);
+      const t = setTimeout(() => setShow(false), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [trigger]);
+  if (!show) return null;
+  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: textAlign || 'right', marginTop: 2 }}>{message}</Text>;
+}
+
 export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -39,6 +52,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [filterDateError, setFilterDateError] = useState(0);
+  const [filDateFromKey, setFilDateFromKey] = useState(0);
+  const [filDateToKey, setFilDateToKey] = useState(0);
 
   const { colors } = useTheme();
   const st = useMemo(() => getSt(colors), [colors]);
@@ -79,6 +95,12 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     if (Array.isArray(raw)) return raw;
     try { const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; } catch { return []; }
   };
+
+  const todayStr = () => new Date().toISOString().split('T')[0];
+  const isFuture = (d: string) => d > todayStr();
+
+  // Reset future-date error when filter panel opens
+  useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
 
   // Fetch one page from server (with current filters)
   const loadPage = useCallback(async (pg: number, reset: boolean) => {
@@ -140,12 +162,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     }, 150);
   };
 
-  const todayISO = new Date().toISOString().split('T')[0];
-
   const validateExpDates = (): boolean => {
-    const today = new Date().toISOString().split('T')[0];
     const from = filDateFrom, to = filDateTo;
-    if ((from && from > today) || (to && to > today)) { setToast(t('errDateFuture')); return false; }
     if (from && to && from > to) { setToast(t('errDateRange')); return false; }
     return true;
   };
@@ -190,6 +208,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
+            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
             {/* Date range */}
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('filterDate')}</Text>
@@ -200,7 +219,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={filDateFromRef} defaultValue={filDateFrom} max={todayISO} onChange={(e: any) => setFilDateFrom(e.target.value)}
+                  <input type="date" ref={filDateFromRef} defaultValue={filDateFrom} max={todayStr()} key={filDateFromKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { filDateFromRef.current!.value = filDateFrom; setFilDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateFrom(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
@@ -210,7 +230,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={filDateToRef} defaultValue={filDateTo} max={todayISO} onChange={(e: any) => setFilDateTo(e.target.value)}
+                  <input type="date" ref={filDateToRef} defaultValue={filDateTo} max={todayStr()} key={filDateToKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { filDateToRef.current!.value = filDateTo; setFilDateToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateTo(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>
