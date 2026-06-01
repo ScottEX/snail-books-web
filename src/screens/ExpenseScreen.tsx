@@ -121,6 +121,22 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════
+   DateErrorHint — 未来日期红字提示，2.5s 自动消失
+   ═══════════════════════════════════════════════════════════ */
+function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (trigger > 0) {
+      setShow(true);
+      const t = setTimeout(() => setShow(false), 2500);
+      return () => clearTimeout(t);
+    }
+  }, [trigger]);
+  if (!show) return null;
+  return <Text style={{ color: colors.danger, fontSize: 12, marginTop: 4 }}>{message}</Text>;
+}
+
 /* ═══════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════
    EXPENSE SCREEN
@@ -194,6 +210,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   /* ── 模块一：对账 ── */
   const [recDate, setRecDate] = useState(yesterdayStr());
   const [recDateKey, setRecDateKey] = useState(0);
+  const [recDateErr, setRecDateErr] = useState(0);
   const [toast, setToast] = useState('');
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
@@ -319,6 +336,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
   const [showFeeHistoryFilterPicker, setShowFeeHistoryFilterPicker] = useState(false);
   const [feeEntryDate, setFeeEntryDate] = useState(todayStr());
+  const [feeDateErr, setFeeDateErr] = useState(0);
   const [feeMc, setFeeMc] = useState('');
   const [feeMw, setFeeMw] = useState('');
   const [feeEw, setFeeEw] = useState('');
@@ -374,6 +392,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   /* ── 模块三：支出 ── */
   const [expDate, setExpDate] = useState(todayStr());
+  const [expDateErr, setExpDateErr] = useState(0);
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('日常');
   const [payMethod, setPayMethod] = useState('微信');
@@ -661,11 +680,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   key: recDateKey,
                   defaultValue: recDate,
                   max: todayStr(),
-                  onChange: (e: any) => { if (isFuture(e.target.value)) { recDateInputRef.current!.value = recDate; setRecDateKey(k => k + 1); } else { setRecDate(e.target.value); } },
+                  onChange: (e: any) => { if (isFuture(e.target.value)) { recDateInputRef.current!.value = recDate; setRecDateKey(k => k + 1); setRecDateErr(c => c + 1); } else { setRecDate(e.target.value); } },
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
               </View>
             </View>
+            <DateErrorHint trigger={recDateErr} message={t('errDateFuture')} colors={colors} />
 
             <View style={st.row2}>
               <View style={st.inputGroup}>
@@ -1026,11 +1046,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     type: 'date',
                     defaultValue: expDate,
                     max: todayStr(),
-                    onChange: (e: any) => { if (isFuture(e.target.value)) { expDateInputRef.current!.value = expDate; } else { setExpDate(e.target.value); } },
+                    onChange: (e: any) => { if (isFuture(e.target.value)) { expDateInputRef.current!.value = expDate; setExpDateErr(c => c + 1); } else { setExpDate(e.target.value); } },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
               </View>
+              <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} colors={colors} />
               {/* 按钮行 */}
               <View style={st.btnRow}>
                 <TouchableOpacity style={st.reconRecordBtn}
@@ -1132,11 +1153,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   {React.createElement('input', {
                     ref: feeDateInputRef,
                     type: 'date', defaultValue: feeEntryDate, max: todayStr(),
-                    onChange: (e: any) => { if (isFuture(e.target.value)) { feeDateInputRef.current!.value = feeEntryDate; } else { setFeeEntryDate(e.target.value); } },
+                    onChange: (e: any) => { if (isFuture(e.target.value)) { feeDateInputRef.current!.value = feeEntryDate; setFeeDateErr(c => c + 1); } else { setFeeEntryDate(e.target.value); } },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
               </View>
+              <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} colors={colors} />
 
               {/* Column headers */}
               <View style={{ flexDirection: 'row', marginBottom: 10, gap: 8, paddingHorizontal: 2 }}>
