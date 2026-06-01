@@ -635,7 +635,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   type: 'date',
                   defaultValue: recDate,
                   max: todayStr(),
-                  onChange: (e: any) => { if (!isFuture(e.target.value)) setRecDate(e.target.value); },
+                  onChange: (e: any) => { if (isFuture(e.target.value)) { recDateInputRef.current!.value = recDate; } else { setRecDate(e.target.value); } },
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
               </View>
@@ -988,7 +988,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     type: 'date',
                     defaultValue: expDate,
                     max: todayStr(),
-                    onChange: (e: any) => { if (!isFuture(e.target.value)) setExpDate(e.target.value); },
+                    onChange: (e: any) => { if (isFuture(e.target.value)) { expDateInputRef.current!.value = expDate; } else { setExpDate(e.target.value); } },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
@@ -1094,7 +1094,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   {React.createElement('input', {
                     ref: feeDateInputRef,
                     type: 'date', defaultValue: feeEntryDate, max: todayStr(),
-                    onChange: (e: any) => { if (!isFuture(e.target.value)) setFeeEntryDate(e.target.value); },
+                    onChange: (e: any) => { if (isFuture(e.target.value)) { feeDateInputRef.current!.value = feeEntryDate; } else { setFeeEntryDate(e.target.value); } },
                     style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                   })}
                 </View>
