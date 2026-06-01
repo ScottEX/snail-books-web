@@ -151,7 +151,10 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     return `${y}/${m}/${day}`;
   };
 
-  const fmtAmt = (n: number) => '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+  const fmtAmt = (n: number) => {
+    if (Math.abs(n) >= 10000) return '\u00A5' + (n / 10000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u4E07';
+    return '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+  };
 
   const onTouchStart = (e: any) => {
     const t = e.nativeEvent?.touches?.[0] || e.nativeEvent;
