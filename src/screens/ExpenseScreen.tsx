@@ -840,7 +840,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     setShowFeeHistory(true); setFeeHistoryFilter('all');
                   } else {
                     setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
-                    loadFeeData(); setShowFeeSheet(true);
+                    setFeeDateErr(0); loadFeeData(); setShowFeeSheet(true);
                   }
                 }}
                 activeOpacity={0.7}
@@ -1143,22 +1143,24 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t('entryDate')}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }}>
-                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>
-                    {(() => { return fmtLocalDate(feeEntryDate); })()}
-                  </Text>
-                  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
-                  {React.createElement('input', {
-                    ref: feeDateInputRef,
-                    type: 'date', defaultValue: feeEntryDate, max: todayStr(),
-                    onChange: (e: any) => { if (isFuture(e.target.value)) { feeDateInputRef.current!.value = feeEntryDate; setFeeDateErr(c => c + 1); } else { setFeeEntryDate(e.target.value); } },
-                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
-                  })}
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16 }}>
+                <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
+                <View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }}>
+                    <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>
+                      {(() => { return fmtLocalDate(feeEntryDate); })()}
+                    </Text>
+                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
+                    {React.createElement('input', {
+                      ref: feeDateInputRef,
+                      type: 'date', defaultValue: feeEntryDate, max: todayStr(),
+                      onChange: (e: any) => { if (isFuture(e.target.value)) { feeDateInputRef.current!.value = feeEntryDate; setFeeDateErr(c => c + 1); } else { setFeeEntryDate(e.target.value); } },
+                      style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
+                    })}
+                  </View>
+                  <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} colors={colors} />
                 </View>
               </View>
-              <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} colors={colors} />
 
               {/* Column headers */}
               <View style={{ flexDirection: 'row', marginBottom: 10, gap: 8, paddingHorizontal: 2 }}>
