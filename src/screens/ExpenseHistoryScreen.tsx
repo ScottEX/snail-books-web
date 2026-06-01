@@ -40,6 +40,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const pageRef = useRef(1);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasMoreRef = useRef(false);
+  const scrollRatioRef = useRef(0);
 
   const { colors } = useTheme();
   const st = useMemo(() => getSt(colors), [colors]);
@@ -118,6 +119,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     const el = document.querySelector('[data-testid="exp-scroll"]');
     if (!el) return;
     const onNativeScroll = () => {
+      scrollRatioRef.current = el.scrollTop / Math.max(el.scrollHeight - el.clientHeight, 1);
       if (loadingRef.current || !hasMoreRef.current) return;
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 60) {
         if (!scrollTimerRef.current) {
@@ -131,6 +133,15 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     el.addEventListener('scroll', onNativeScroll, { passive: true });
     return () => el.removeEventListener('scroll', onNativeScroll);
   }, [loadPage]);
+
+  // Auto-continue: if user was at bottom (ratio > 0.95) before new records
+  // arrived, immediately load the next page. Ignores first-page initial load.
+  useEffect(() => {
+    if (records.length <= PAGE_SIZE || !hasMoreRef.current || loadingRef.current) return;
+    if (scrollRatioRef.current > 0.95) {
+      loadPage(pageRef.current + 1, false);
+    }
+  }, [records.length, loadPage]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
