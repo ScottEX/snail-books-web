@@ -237,6 +237,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     catch { setToast(t('toastSubmitFailed')); }
   };
 
+  const fmtDecInput = (s: string) => { s = s.replace(/[^0-9.]/g, ''); return s.startsWith('.') ? '0' + s : s; };
   const toDec2 = (x: any) => String(parseFloat(x || 0).toFixed(2));
 
   const MONTHS_SHORT = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
@@ -524,7 +525,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <View style={styles.revInputCardInputWrap}>
                           <Text style={styles.revInputCardSymbol}>¥</Text>
                           <TextInput style={styles.revInputCardInput}
-                            value={revRevenue} onChangeText={setRevRevenue}
+                            value={revRevenue} onChangeText={(v) => setRevRevenue(fmtDecInput(v))}
                             keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
                         </View>
                         <Text style={styles.revInputCardFooter}>
@@ -538,7 +539,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <View style={styles.revInputCardInputWrap}>
                           <Text style={styles.revInputCardSymbol}>¥</Text>
                           <TextInput style={styles.revInputCardInput}
-                            value={revTurnover} onChangeText={setRevTurnover}
+                            value={revTurnover} onChangeText={(v) => setRevTurnover(fmtDecInput(v))}
                             keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
                         </View>
                         <Text style={styles.revInputCardFooter}>
@@ -554,7 +555,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <View style={styles.revInputCardInputWrap}>
                           <Text style={styles.revInputCardSymbol}>¥</Text>
                           <TextInput style={styles.revInputCardInput}
-                            value={revJD} onChangeText={setRevJD}
+                            value={revJD} onChangeText={(v) => setRevJD(fmtDecInput(v))}
                             keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
                         </View>
                         <Text style={styles.revInputCardFooter}>
