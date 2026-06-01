@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, useReducer } from 'react';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
 } from 'react-native';
@@ -205,6 +205,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const mountedRef = useRef(false);
   const initReconValues = useRef({ card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' });
   const reconJustLoaded = useRef(false);
+  const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
   // Load reconciliation data from backend
   useEffect(() => {
@@ -263,6 +264,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     if (reconJustLoaded.current) {
       reconJustLoaded.current = false;
       initReconValues.current = { card: cardBalance, cash: cashBalance, dine: dineIn, mt: meituan, fs: flashSale, jd, tuan };
+      forceUpdate();
     }
   }, [cardBalance, cashBalance, dineIn, meituan, flashSale, jd, tuan]);
 
