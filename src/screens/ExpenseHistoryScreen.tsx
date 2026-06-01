@@ -39,9 +39,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasMoreRef = useRef(false);
-  const scrollRatioRef = useRef(0);
-  const scrollRatioAtTriggerRef = useRef(0); // snapshot at loadPage trigger, immune to layout scroll events
 
   const { colors } = useTheme();
   const st = useMemo(() => getSt(colors), [colors]);
@@ -83,6 +80,14 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     try { const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; } catch { return []; }
   };
 
+  // Preload a single image URL — resolve when cached (success or error, never block)
+  const preloadImage = (url: string): Promise<void> => new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = url;
+  });
+
   // Fetch one page from server (with current filters)
   const loadPage = useCallback(async (pg: number, reset: boolean) => {
     if (loadingRef.current) return;
@@ -91,13 +96,18 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     try {
       const tx: any = await api.getTransactions(pg, PAGE_SIZE, getFilterParams());
       const exps = tx.transactions || [];
+      // Preload all images from this page before rendering — images render instantly
+      const allUrls: string[] = [];
+      for (const e of exps) {
+        const imgs = parseImages(e.images);
+        for (const u of imgs) allUrls.push(u);
+      }
+      if (allUrls.length > 0) await Promise.all(allUrls.map(preloadImage));
       setRecords(prev => reset ? exps : [...prev, ...exps]);
       setPage(pg);
       pageRef.current = pg;
       setTotal(tx.total || 0);
-      const more = pg < (tx.pages || 1);
-      setHasMore(more);
-      hasMoreRef.current = more;
+      setHasMore(pg < (tx.pages || 1));
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
     loadingRef.current = false;
@@ -113,39 +123,19 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   // Current user for displaying who filled each record
   const currentUser = (() => { try { return localStorage.getItem('user') || ''; } catch { return ''; } })();
 
-  // Native DOM scroll — reads el.scrollTop/scrollHeight/clientHeight directly
-  // from the browser layout engine. RN Web's onScroll nativeEvent.contentSize
-  // can be stale after content changes; DOM properties are always accurate.
-  useEffect(() => {
-    const el = document.querySelector('[data-testid="exp-scroll"]');
-    if (!el) return;
-    const onNativeScroll = () => {
-      scrollRatioRef.current = el.scrollTop / Math.max(el.scrollHeight - el.clientHeight, 1);
-      if (loadingRef.current || !hasMoreRef.current) return;
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 60) {
-        if (!scrollTimerRef.current) {
-          scrollTimerRef.current = setTimeout(() => {
-            scrollTimerRef.current = null;
-            scrollRatioAtTriggerRef.current = scrollRatioRef.current;
-            loadPage(pageRef.current + 1, false);
-          }, 150);
-        }
+  // Scroll pagination — load next page when near bottom (simple, uses RN onScroll)
+  const handleScroll = useCallback((e: any) => {
+    if (loadingRef.current || !hasMore) return;
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 60) {
+      if (!scrollTimerRef.current) {
+        scrollTimerRef.current = setTimeout(() => {
+          scrollTimerRef.current = null;
+          loadPage(pageRef.current + 1, false);
+        }, 150);
       }
-    };
-    el.addEventListener('scroll', onNativeScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onNativeScroll);
-  }, [loadPage]);
-
-  // Auto-continue: if user was at bottom when last loadPage was triggered,
-  // immediately load the next page. Uses a snapshot ref to survive layout-
-  // triggered scroll events that fire when new DOM content changes scrollHeight.
-  useEffect(() => {
-    if (records.length <= PAGE_SIZE || !hasMoreRef.current || loadingRef.current) return;
-    if (scrollRatioAtTriggerRef.current > 0.95) {
-      scrollRatioAtTriggerRef.current = 0;
-      loadPage(pageRef.current + 1, false);
     }
-  }, [records.length, loadPage]);
+  }, [hasMore, loadPage]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
@@ -283,6 +273,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
 
         {/* List — ScrollView with content padding (matches ReconHistoryScreen) */}
       <ScrollView testID="exp-scroll" style={st.list} showsVerticalScrollIndicator={false}
+        onScroll={handleScroll} scrollEventThrottle={100}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 80 }}>
         {visible.length === 0 && !loading ? (
           <View style={st.emptyWrap}>
