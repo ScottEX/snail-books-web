@@ -10,6 +10,22 @@ import { modalClose, historyHeader } from '../sharedStyles';
 
 const PAGE_SIZE = 30;
 
+const todayStr = () => new Date().toISOString().split('T')[0];
+const isFuture = (d: string) => d > todayStr();
+
+function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
+  const [show, setShow] = React.useState(false);
+  React.useEffect(() => {
+    if (trigger > 0) {
+      setShow(true);
+      const t = setTimeout(() => setShow(false), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [trigger]);
+  if (!show) return null;
+  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{message}</Text>;
+}
+
 export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,10 +46,19 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   useEffect(() => { if (dateToRef.current) dateToRef.current.value = dateTo; }, [dateTo]);
   const [appliedFrom, setAppliedFrom] = useState(dateFrom);
   const [appliedTo, setAppliedTo] = useState(dateTo);
+  const [filterDateError, setFilterDateError] = useState(0);
+  const [dateFromKey, setDateFromKey] = useState(0);
+  const [dateToKey, setDateToKey] = useState(0);
 
   const { colors } = useTheme();
 
-  const todayISO = fmtISO(new Date());
+  // Reset future-date error when filter panel opens
+  useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
+
+  // Date range validity — persistent hint while invalid
+  const rangeInvalid = useMemo(() =>
+    !!(dateFrom && dateTo && dateFrom > dateTo),
+    [dateFrom, dateTo]);
 
   // Build filter params
   const getFilterParams = useCallback((): Record<string, string> => {
@@ -76,13 +101,6 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   };
 
   const toDec2 = (x: any) => String(parseFloat(x || 0).toFixed(2));
-
-  const validateDates = (): boolean => {
-    const from = dateFrom, to = dateTo;
-    if ((from && from > todayISO) || (to && to > todayISO)) { setToast(t('errDateFuture')); return false; }
-    if (from && to && from > to) { setToast(t('errDateRange')); return false; }
-    return true;
-  };
 
   const st = useMemo(() => getSt(colors), [colors]);
 
@@ -131,6 +149,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
+            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
+            {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('filterDate')}</Text>
               <View style={st.filterDateRange}>
@@ -140,8 +160,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={dateFromRef} defaultValue={dateFrom} max={todayISO}
-                    onChange={(e: any) => setDateFrom(e.target.value)}
+                  <input type="date" ref={dateFromRef} defaultValue={dateFrom} max={todayStr()} key={dateFromKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { dateFromRef.current!.value = dateFrom; setDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setDateFrom(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
@@ -151,8 +171,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={dateToRef} defaultValue={dateTo} max={todayISO}
-                    onChange={(e: any) => setDateTo(e.target.value)}
+                  <input type="date" ref={dateToRef} defaultValue={dateTo} max={todayStr()} key={dateToKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { dateToRef.current!.value = dateTo; setDateToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setDateTo(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>
@@ -165,14 +185,15 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
               }} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.filterApplyBtn} onPress={() => {
-                if (validateDates()) {
+              <TouchableOpacity
+                style={[st.filterApplyBtn, rangeInvalid && st.filterApplyBtnDisabled]}
+                disabled={rangeInvalid}
+                onPress={() => {
                   setAppliedFrom(dateFrom);
                   setAppliedTo(dateTo);
                   setShowFilter(false);
-                }
-              }} activeOpacity={0.8}>
-                <Text style={st.filterApplyBtnText}>{t('apply')}</Text>
+                }} activeOpacity={0.8}>
+                <Text style={[st.filterApplyBtnText, rangeInvalid && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -328,7 +349,13 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.primary, borderRadius: 8,
   },
+  filterApplyBtnDisabled: {
+    backgroundColor: colors.secondary,
+  },
   filterApplyBtnText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
+  filterApplyBtnTextDisabled: {
+    color: colors.textSub,
+  },
 
   /* List */
   list: { flex: 1 },
