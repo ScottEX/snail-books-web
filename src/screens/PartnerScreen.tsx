@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { createPortal } from 'react-dom';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -938,8 +939,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
         </ModalOverlay>
       )}
 
-      {/* ====== CROP MODAL (dark fullscreen) ====== */}
-      {cropSrc !== '' && !showResult && (
+      {/* ====== CROP MODAL (portal to body — escapes stacking context, covers nav bar) ====== */}
+      {cropSrc !== '' && !showResult && createPortal(
         // @ts-ignore web-only overlay
         <View style={cropS.overlay as any} onClick={(e: any) => { if (e.target === e.currentTarget) setCropSrc(''); }}>
           {/* Header */}
@@ -1026,11 +1027,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           {cropMsg !== '' && (
             <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: 500 }}>{cropMsg}</Text>
           )}
-        </View>
+        </View>,
+        document.body
       )}
 
       {/* ====== RESULT PREVIEW ====== */}
-      {showResult && cropResult !== '' && (
+      {showResult && cropResult !== '' && createPortal(
         // @ts-ignore
         <View style={cropS.overlay as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setShowResult(false); setCropSrc(''); } }}>
           <View style={cropS.resultCard as any}>
@@ -1056,7 +1058,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </View>,
+        document.body
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
