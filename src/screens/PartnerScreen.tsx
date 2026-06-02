@@ -221,10 +221,10 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   };
 
   const confirmCrop = async () => {
-    if (!cropSrc) return;
-    const img = imgRef.current;
-    if (!img) return;
-    try {
+    // TEST: same as cancel — does async state update crash?
+    setCropSrc('');
+  };
+  /*
     const nw = (img as any).naturalWidth;
     const nh = (img as any).naturalHeight;
     const iw = (img as any).width;
@@ -271,7 +271,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       loadAvatar();
     } else { setCropMsg('上传失败'); }
     } catch (e) { console.error('crop failed', e); setCropMsg('裁切失败，请重试'); }
-  };
+  }; */
 
   const onDragStart = (e: any) => {
     const pt = e.nativeEvent.touches ? e.nativeEvent.touches[0] : e.nativeEvent;
