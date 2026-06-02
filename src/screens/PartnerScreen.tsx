@@ -96,6 +96,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Crop
+  const [cropSrc, setCropSrc] = useState('');
+  const [cropX, setCropX] = useState(0);
+  const [cropY, setCropY] = useState(0);
+  const dragRef = useRef({ sx: 0, sy: 0, ox: 0, oy: 0 });
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const { colors } = useTheme();
 
@@ -200,21 +206,62 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     } catch {}
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const form = new FormData();
-    form.append('file', file);
-    try {
-      const resp = await api.uploadAvatar(form);
-      if (resp.status === 'ok') {
-        setAvatarKey(k => k + 1);
-        loadAvatar();
-        setToast('头像已更新');
-      } else {
-        setToast('上传失败');
-      }
-    } catch { setToast('上传失败'); }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropSrc(reader.result as string);
+      setCropX(0); setCropY(0);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = ''; // allow re-select same file
+  };
+
+  const confirmCrop = async () => {
+    if (!cropSrc) return;
+    const img = imgRef.current;
+    if (!img) return;
+    const size = 200; // crop circle diameter
+    const scaleX = img.naturalWidth / img.width;
+    const scaleY = img.naturalHeight / img.height;
+    // Center of crop circle in image display coords
+    const cx = (img.width / 2) - cropX;
+    const cy = (img.height / 2) - cropY;
+    // Source rect in natural coords (square centered on the circle)
+    const sx = (cx - size / 2) * scaleX;
+    const sy = (cy - size / 2) * scaleY;
+    const sw = size * scaleX;
+    const sh = size * scaleY;
+    const canvas = document.createElement('canvas');
+    canvas.width = 256; canvas.height = 256;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 256, 256);
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      const form = new FormData();
+      form.append('file', blob, 'avatar.jpg');
+      try {
+        const resp = await api.uploadAvatar(form);
+        if (resp.status === 'ok') {
+          setCropSrc('');
+          setAvatarKey(k => k + 1);
+          loadAvatar();
+          setToast('头像已更新');
+        } else { setToast('上传失败'); }
+      } catch { setToast('上传失败'); }
+    }, 'image/jpeg', 0.9);
+  };
+
+  const onDragStart = (e: any) => {
+    const pt = e.nativeEvent.touches ? e.nativeEvent.touches[0] : e.nativeEvent;
+    dragRef.current = { sx: pt.clientX, sy: pt.clientY, ox: cropX, oy: cropY };
+  };
+  const onDragMove = (e: any) => {
+    e.preventDefault?.();
+    const pt = e.nativeEvent.touches ? e.nativeEvent.touches[0] : e.nativeEvent;
+    setCropX(dragRef.current.ox + pt.clientX - dragRef.current.sx);
+    setCropY(dragRef.current.oy + pt.clientY - dragRef.current.sy);
   };
 
   useEffect(() => { loadAvatar(); }, []);
@@ -245,7 +292,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               )}
             </TouchableOpacity>
             <input type="file" accept="image/*" ref={fileInputRef as any}
-              style={{ display: 'none' }} onChange={handleAvatarUpload} />
+              style={{ display: 'none' }} onChange={handleAvatarSelect} />
           </View>
 
           {/* ====== 3 STAT CARDS (8600 exact) ====== */}
@@ -580,6 +627,58 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 </View>
               ))}
               <Text style={org.joke}>{t('jokeClosedLoop')}</Text>
+            </View>
+          </View>
+        </ModalOverlay>
+      )}
+
+      {/* ====== CROP MODAL ====== */}
+      {cropSrc !== '' && (
+        <ModalOverlay styles={mo} onClose={() => setCropSrc('')}>
+          <View style={[mo.modalCard, { maxWidth: 340 }]} onStartShouldSetResponder={() => true}>
+            <View style={mo.header}>
+              <View>
+                <Text style={mo.title}>裁切头像</Text>
+                <Text style={mo.sub}>拖动图片调整位置</Text>
+              </View>
+              <TouchableOpacity onPress={() => setCropSrc('')}>
+                <Text style={mo.close}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <View style={{
+                width: 200, height: 200, borderRadius: 100, overflow: 'hidden',
+                position: 'relative', backgroundColor: colors.bg,
+              }}>
+                <img ref={imgRef as any} src={cropSrc}
+                  style={{
+                    position: 'absolute', left: cropX, top: cropY,
+                    width: 'auto', height: 200, minWidth: 200,
+                    userSelect: 'none', pointerEvents: 'none' as any,
+                  }}
+                  draggable={false}
+                />
+                {/* Drag area overlay */}
+                <View
+                  style={{ position: 'absolute', inset: 0, cursor: 'move' }}
+                  onMouseDown={onDragStart} onMouseMove={onDragMove} onMouseUp={onDragMove}
+                  onTouchStart={onDragStart} onTouchMove={onDragMove} onTouchEnd={onDragMove}
+                />
+                {/* Circle border */}
+                <View style={{
+                  position: 'absolute', inset: 0, borderRadius: 100,
+                  borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)',
+                  boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
+                }} pointerEvents="none" />
+              </View>
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 20, width: '100%' }}>
+                <TouchableOpacity style={moBody.cancelBtn} onPress={() => setCropSrc('')}>
+                  <Text style={moBody.cancelBtnText}>取消</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={moBody.confirmBtn} onPress={confirmCrop}>
+                  <Text style={moBody.confirmBtnText}>确认</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ModalOverlay>

@@ -201,11 +201,18 @@ export const api = {
   // Avatar
   uploadAvatar: async (form: FormData) => {
     bumpActivity();
+    const h: Record<string, string> = { 'X-Lang': getLang() };
     const resp = await fetch(API_BASE + '/api/users/avatar', {
       method: 'POST',
-      headers: { 'X-Lang': getLang() },
+      headers: h,
       body: form,
+      credentials: 'include' as RequestCredentials,
     });
+    if (resp.status === 401) {
+      localStorage.removeItem('user');
+      if (window.location.pathname !== '/login') window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
     if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
     return resp.json();
   },
