@@ -154,7 +154,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   container: { flex: 1, position: 'relative' as const },
 
   frostedBlock: {
-    position: 'relative' as const, zIndex: 10,
     marginHorizontal: 12, marginTop: 4, borderRadius: 16, overflow: 'hidden' as const,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     backgroundColor: withAlpha(c.surface, 0.65),
