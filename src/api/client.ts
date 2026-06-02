@@ -275,5 +275,5 @@ export const api = {
   getChart: () => authFetch('/api/chart'),
   getStats: () => authFetch('/api/stats'),
 
-  logout: () => fetch(API_BASE + '/logout').then(() => { localStorage.removeItem('user'); }),
+  logout: () => fetch(API_BASE + '/logout', { method: 'POST' }).then(() => { localStorage.removeItem('user'); }),
 };
