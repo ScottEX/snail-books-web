@@ -660,16 +660,17 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 />
                 {/* Drag area overlay */}
                 <View
-                  style={{ position: 'absolute', inset: 0, cursor: 'move' }}
+                  // @ts-ignore web-only
                   onMouseDown={onDragStart} onMouseMove={onDragMove} onMouseUp={onDragMove}
                   onTouchStart={onDragStart} onTouchMove={onDragMove} onTouchEnd={onDragMove}
+                  style={{ position: 'absolute', inset: 0, cursor: 'move' } as any}
                 />
                 {/* Circle border */}
                 <View style={{
                   position: 'absolute', inset: 0, borderRadius: 100,
                   borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)',
                   boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
-                }} pointerEvents="none" />
+                } as any} pointerEvents="none" />
               </View>
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 20, width: '100%' }}>
                 <TouchableOpacity style={moBody.cancelBtn} onPress={() => setCropSrc('')}>
