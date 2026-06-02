@@ -905,6 +905,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={st.bigAmtSymbol}>¥</Text>
                   <TextInput style={st.bigAmtInput}
                     value={expAmount} onChangeText={(v: string) => setExpAmount(fmtDecInput(v))}
+                    onBlur={() => { if (expAmount !== '') setExpAmount(toDec2(expAmount)); }}
                     keyboardType="decimal-pad" placeholder="0.00"
                     placeholderTextColor={colors.textSub}
                     autoFocus={false} />
