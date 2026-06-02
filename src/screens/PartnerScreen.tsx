@@ -21,9 +21,16 @@ function translateName(name: string): string {
   return key ? t(key) : name;
 }
 
-function translateDividendNote(note: string): string {
-  const m = note.match(/^第(\d+)次分红 \((.+)\)$/);
-  if (m) return t('dividendRoundFmt').replace('{n}', m[1]).replace('{date}', m[2]);
+function translateDividendNote(note: string, date?: string): string {
+  const m = note.match(/^(?:第(\d+)次分红|第(\d+)次)$/);
+  if (m) {
+    const n = m[1] || m[2];
+    if (date) return t('dividendRoundFmt').replace('{n}', n).replace('{date}', date);
+    return t('dividendRoundOnly').replace('{n}', n);
+  }
+  // fallback: old format with embedded date
+  const m2 = note.match(/^第(\d+)次分红 \((.+)\)$/);
+  if (m2) return t('dividendRoundFmt').replace('{n}', m2[1]).replace('{date}', m2[2]);
   return note;
 }
 
@@ -157,7 +164,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     Object.entries(grouped).forEach(([note, items]) => {
       items.forEach((d: any) => {
         if (d.partner === name && d.amount > 0)
-          history.push({ note: translateDividendNote(note), amount: d.amount });
+          history.push({ note: translateDividendNote(note, d.date), amount: d.amount });
       });
     });
     return history;
@@ -313,7 +320,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               const items = grouped[note];
               const total = items.reduce((s: number, d: any) => s + d.amount, 0);
               return (
-                <TableGroup key={note} title={translateDividendNote(note)} type="dividend" total={total}
+                <TableGroup key={note} title={translateDividendNote(note, items[0].date)} type="dividend" total={total}
                   themeColors={colors} styles={tg}
                   items={items.map((d: any) => ({ name: translateName(d.partner), sub: '', amount: d.amount }))}
                   onDelete={() => setShowDelete(note)} />
@@ -390,7 +397,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             <View style={{ padding: 20, gap: 16 }}>
               <View style={moBody.deleteBox}>
                 <Text style={moBody.deleteText}>
-                  {t('willDelete')}<Text style={{ fontWeight: '600', color: colors.textMain }}>{translateDividendNote(showDelete)}</Text>{t('allDividendRecords')}
+                  {t('willDelete')}<Text style={{ fontWeight: '600', color: colors.textMain }}>{translateDividendNote(showDelete, grouped[showDelete]?.[0]?.date)}</Text>{t('allDividendRecords')}
                 </Text>
               </View>
               <View style={moBody.btnRow}>

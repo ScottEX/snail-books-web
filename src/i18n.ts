@@ -123,6 +123,8 @@ const I18N: Record<string, Record<string, string>> = {
     nameLan: '蓝柳富',
     // Dividend round format
     dividendRoundFmt: '第{n}次分红 ({date})',
+    dividendRoundOnly: '第{n}次分红',
+    batchLabel: '{date} · 第{n}次分红',
     // Org chart & roles
     partnerStructure: '合伙架构',
     lpControl: '有限合伙控股',
@@ -452,6 +454,8 @@ const I18N: Record<string, Record<string, string>> = {
     nameJiang: '江寬',
     nameLan: '藍柳富',
     dividendRoundFmt: '第{n}次分紅 ({date})',
+    dividendRoundOnly: '第{n}次分紅',
+    batchLabel: '{date} · 第{n}次分紅',
     partnerStructure: '合夥架構',
     lpControl: '有限合夥控股',
     chairman: '董事長',
@@ -781,6 +785,7 @@ const I18N: Record<string, Record<string, string>> = {
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
     dividendRoundFmt: 'Dividend #{n} ({date})',
+    dividendRoundOnly: 'Dividend #{n}',
     partnerStructure: 'Partner Structure',
     lpControl: 'Limited Partnership Control',
     chairman: 'Chairman',
