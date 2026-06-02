@@ -953,7 +953,7 @@ export default function ProcurementScreen() {
               <Text style={styles.emptyHint}>{t('noProducts')}</Text>
             </View>
           ) : (
-            products.map(p => (
+            [...products].sort((a, b) => b.id - a.id).map(p => (
               <View key={p.id} style={styles.mgmtRow}>
                 <View style={styles.mgmtInfo}>
                   <Text style={styles.mgmtName}>{p.name}</Text>
