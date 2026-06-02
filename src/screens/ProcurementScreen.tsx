@@ -415,7 +415,7 @@ export default function ProcurementScreen() {
 
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '' });
+  const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '', note: '' });
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   // ── Shared slide-from-top animation for product/delete/success modals ──
@@ -761,17 +761,17 @@ export default function ProcurementScreen() {
 
   const openAddProduct = () => {
     setEditingProduct(null);
-    setProdForm({ name: '', spec: '', price: '', supplier: '' });
+    setProdForm({ name: '', spec: '', price: '', supplier: '', note: '' });
     openSlideModal(() => setShowProductModal(true));
   };
   const openEditProduct = (p: Product) => {
     setEditingProduct(p);
-    setProdForm({ name: p.name, spec: p.spec, price: String(p.price), supplier: p.supplier });
+    setProdForm({ name: p.name, spec: p.spec, price: String(p.price), supplier: p.supplier, note: p.note || '' });
     openSlideModal(() => setShowProductModal(true));
   };
   const saveProduct = async () => {
     if (!prodForm.name) return;
-    const data = { name: prodForm.name, spec: prodForm.spec, price: parseFloat(prodForm.price) || 0, supplier: prodForm.supplier };
+    const data = { name: prodForm.name, spec: prodForm.spec, price: parseFloat(prodForm.price) || 0, supplier: prodForm.supplier, note: prodForm.note };
     try {
       editingProduct ? await api.updateProduct({ ...data, id: editingProduct.id }) : await api.createProduct(data);
       closeSlideModal(() => setShowProductModal(false));
@@ -1063,6 +1063,7 @@ export default function ProcurementScreen() {
                 )}
               </View>
               <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: v }))} keyboardType="numeric" />
+              <TextInput style={styles.modalInput} placeholder={t('procProductNote')} placeholderTextColor={c.textSub} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
               <View style={styles.modalBtnRow}>
                 <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setShowProductModal(false))}>
                   <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
