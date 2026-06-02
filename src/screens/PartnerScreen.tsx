@@ -255,8 +255,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const cdh = Math.round(clampSh / sh * 256);
     ctx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, cdw, cdh);
     // Use toDataURL → fetch blob (fully async, one try-catch)
+    // Use toDataURL → manual blob (safe in all browsers)
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    // Convert data URL to blob (safe in all browsers, no fetch)
     const arr = dataUrl.split(',');
     const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
     const bstr = atob(arr[1]);
@@ -267,10 +267,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     form.append('file', blob, 'avatar.jpg');
     const resp = await api.uploadAvatar(form);
     if (resp.status === 'ok') {
-      setCropSrc('');
+      setToast('头像已更新');
+      // Refresh avatar on page (don't close modal yet — isolate crash)
       setAvatarKey(k => k + 1);
       loadAvatar();
-      setToast('头像已更新');
+      // Close after a short delay to see if setCropSrc crashes
+      setTimeout(() => setCropSrc(''), 300);
     } else { setToast('上传失败'); }
     } catch (e) { console.error('crop failed', e); setToast('裁切失败，请重试'); }
   };
@@ -712,7 +714,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <TouchableOpacity style={moBody.cancelBtn} onPress={() => setCropSrc('')}>
                   <Text style={moBody.cancelBtnText}>取消</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={moBody.confirmBtn} onPress={confirmCrop}>
+                <TouchableOpacity style={moBody.confirmBtn} onPress={() => { confirmCrop().catch(() => {}); }}>
                   <Text style={moBody.confirmBtnText}>确认</Text>
                 </TouchableOpacity>
               </View>
