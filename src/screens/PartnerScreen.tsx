@@ -119,40 +119,40 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const org = useMemo(() => getOrg(colors), [colors]);
   const tg = useMemo(() => getTg(colors), [colors]);
   const cropS = useMemo(() => ({
-    overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
-    header: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any,
-    title: { fontSize: 15, fontWeight: '600' as const, color: '#fff', letterSpacing: -0.2 },
-    closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' } as any,
+    overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
+    header: { paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any,
+    title: { fontSize: 14, fontWeight: '600' as const, color: '#fff', letterSpacing: -0.2 },
+    closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' } as any,
     closeBtnText: { color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 },
     stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' } as any,
     guideWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any,
     guideCircle: {
-      width: 200, height: 200, borderRadius: 100, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)',
+      width: 160, height: 160, borderRadius: 80, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)',
       position: 'relative',
       boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)',
     } as any,
     thirds: { position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' } as any,
     handle: { position: 'absolute', width: 18, height: 18, borderColor: '#fff', borderStyle: 'solid', opacity: 0.9 } as any,
     pill: {
-      position: 'absolute', bottom: 12, left: '50%', transform: [{ translateX: -75 }],
-      backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, paddingVertical: 5, paddingHorizontal: 14,
+      position: 'absolute', bottom: 8, left: '50%', transform: [{ translateX: -75 }],
+      backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, paddingVertical: 4, paddingHorizontal: 12,
       borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
     } as any,
-    pillText: { fontSize: 12, color: 'rgba(255,255,255,0.7)' },
+    pillText: { fontSize: 11, color: 'rgba(255,255,255,0.7)' },
     toolbar: {
-      paddingVertical: 12, paddingHorizontal: 20, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center',
+      paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center',
       borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', flexShrink: 0,
     } as any,
-    toolBtn: { paddingVertical: 8, paddingHorizontal: 10, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any,
+    toolBtn: { paddingVertical: 6, paddingHorizontal: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any,
     actions: {
-      paddingTop: 12, paddingHorizontal: 20, paddingBottom: 20, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0,
+      paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0,
     } as any,
     cancelBtn: {
-      flex: 1, padding: 13, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+      flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
       backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center',
     } as any,
     confirmBtn: {
-      flex: 2, padding: 13, borderRadius: 14, backgroundColor: '#5B5BD6',
+      flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6',
       justifyContent: 'center', alignItems: 'center', flexDirection: 'row',
     } as any,
     // Result preview
@@ -277,7 +277,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       setCropSrc(reader.result as string);
       setCropX(0); setCropY(0);
       setCropRotation(0); setCropMsg(''); setShowResult(false);
-      // Fit image so it covers the crop circle (200px)
+      // Fit image so it covers the crop circle (160px)
       const img = document.createElement('img');
       img.onload = () => {
         if (!img.naturalWidth || !img.naturalHeight) return;
@@ -306,14 +306,15 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       // Circle center in image local coords = (rw/2 - cropX, rh/2 - cropY)
       const imgCenterX = rw / 2;
       const imgCenterY = rh / 2;
-      const circleLeft = imgCenterX - cropX - 100;
-      const circleTop = imgCenterY - cropY - 100;
+      const CIRCLE = 160;
+      const circleLeft = imgCenterX - cropX - CIRCLE / 2;
+      const circleTop = imgCenterY - cropY - CIRCLE / 2;
       const scaleX_nat = nw / rw;
       const scaleY_nat = nh / rh;
       const sx = circleLeft * scaleX_nat;
       const sy = circleTop * scaleY_nat;
-      const sw = 200 * scaleX_nat;
-      const sh = 200 * scaleY_nat;
+      const sw = CIRCLE * scaleX_nat;
+      const sh = CIRCLE * scaleY_nat;
       const clampSx = Math.max(0, sx);
       const clampSy = Math.max(0, sy);
       const clampSw = Math.min(sw, nw - clampSx);
@@ -327,7 +328,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       octx.beginPath();
       octx.arc(outSize / 2, outSize / 2, outSize / 2, 0, Math.PI * 2);
       octx.clip();
-      const outScale = outSize / 200;
+      const outScale = outSize / 160;
       const dx = (clampSx - sx) * outScale;
       const dy = (clampSy - sy) * outScale;
       const dw = clampSw * outScale;
@@ -771,7 +772,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 position: 'absolute',
                 left: `calc(50% + ${cropX}px)`,
                 top: `calc(50% + ${cropY}px)`,
-                width: 'auto', height: 200 * cropScale, minWidth: 200 * cropScale,
+                width: 'auto', height: 160 * cropScale, minWidth: 160 * cropScale,
                 transform: `translate(-50%, -50%) rotate(${cropRotation}deg)`,
                 userSelect: 'none', pointerEvents: 'none',
               }}
