@@ -89,9 +89,9 @@ function BoxIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-function ChevronDownIcon({ color, size = 12 }: { color: string; size?: number }) {
+function ChevronDownIcon({ color, size = 14 }: { color: string; size?: number }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M6 9l6 6 6-6" />
     </Svg>
   );
