@@ -671,7 +671,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={st.dateRow}>
               <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub }}>{t('billDate')}</Text>
               <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
               >
                 <Text style={st.dateText}>
                   {(() => {
