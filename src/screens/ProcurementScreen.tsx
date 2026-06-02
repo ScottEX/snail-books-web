@@ -14,7 +14,7 @@ import Toast from '../components/Toast';
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = '现金' | '微信' | '支付宝';
 
-interface Product { id: number; name: string; spec: string; price: number; supplier: string; }
+interface Product { id: number; name: string; spec: string; price: number; supplier: string; note?: string; }
 interface CartItem { product: Product; quantity: number; subtotal: number; }
 interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; thumb_images?: string[]; note: string; items: any[]; }
 interface ProcStats { total_spent: number; total_income: number; batch_count: number; margin_pct: number; }
@@ -133,7 +133,7 @@ function PlusIcon({ color, size = 16 }: { color: string; size?: number }) {
 }
 
 const SUPPLIER_DISPLAY: Record<string, string> = {};
-const SUPPLIER_ORDER = ['蓝姐', '蒙方', '鲜禾', '粉仔'];
+const SUPPLIER_ORDER = ['蓝姐', '蒙方', '鲜禾', '粉仔', '桂螺'];
 const displaySupplier = (s: string) => SUPPLIER_DISPLAY[s] || s;
 const sortByOrder = (a: string, b: string) => {
   const ai = SUPPLIER_ORDER.indexOf(a), bi = SUPPLIER_ORDER.indexOf(b);
