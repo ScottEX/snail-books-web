@@ -16,10 +16,10 @@ const isFuture = (d: string) => d > todayStr();
 function RevenueEmptyIcon({ color }: { color: string }) {
   return (
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M4 20h16" />
-      <Path d="M6 20V14" /><circle cx="6" cy="13" r="1" fill={color} stroke="none" />
-      <Path d="M11 20V9" /><circle cx="11" cy="8" r="1" fill={color} stroke="none" />
-      <Path d="M16 20V12" /><circle cx="16" cy="11" r="1" fill={color} stroke="none" />
+      <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <Path d="M14 2v6h6" />
+      <Path d="M7 15l4-4 2 2 4-5" />
+      <circle cx="17" cy="8" r="1.2" fill={color} stroke="none" />
     </Svg>
   );
 }
