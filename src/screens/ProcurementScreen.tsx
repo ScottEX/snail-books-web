@@ -221,6 +221,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartInfoText: { fontSize: FONTS.micro.size, color: c.textSub },
   cartInfoCount: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary },
   cartTotal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary },
+  cartClearBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08) },
+  cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
 
   // Drawer overlay
   overlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200 },
@@ -927,9 +929,8 @@ export default function ProcurementScreen() {
                   <Text style={styles.cartInfoText}>{t('procSelected')} <Text style={styles.cartInfoCount}>{cartCount}</Text> {t('procUnit')}</Text>
                 </View>
                 <Text style={styles.cartTotal}>¥{cartTotal.toFixed(2)}</Text>
-                <TouchableOpacity onPress={clearCart} activeOpacity={0.6}
-                  style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.08) }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, fontWeight: FONTS.micro.weight }}>{t('clear')}</Text>
+                <TouchableOpacity onPress={clearCart} activeOpacity={0.6} style={styles.cartClearBtn}>
+                  <Text style={styles.cartClearBtnText}>{t('clear')}</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
             </View>
