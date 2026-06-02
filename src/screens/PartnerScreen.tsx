@@ -99,16 +99,18 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Crop
   const [cropSrc, setCropSrc] = useState('');
-  const [cropX, setCropX] = useState(0);
-  const [cropY, setCropY] = useState(0);
-  const [cropScale, setCropScale] = useState(1);
-  const [cropMinScale, setCropMinScale] = useState(1);  // min scale to cover circle
-  const [cropRotation, setCropRotation] = useState(0);
   const [cropResult, setCropResult] = useState('');  // data URL after crop
   const [showResult, setShowResult] = useState(false);
-  const dragRef = useRef({ sx: 0, sy: 0, ox: 0, oy: 0 });
-  const imgRef = useRef<HTMLImageElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
+  // Canvas-based crop — refs avoid React re-renders on every pixel move
+  const cropImgRef = useRef<HTMLImageElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const cropState = useRef({
+    x: 0, y: 0, scale: 1, rotation: 0, minScale: 1, maxScale: 8,
+    cropSize: 160,
+    drag: { active: false, sx: 0, sy: 0, ox: 0, oy: 0 },
+    pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
+  });
 
   const { colors } = useTheme();
 
@@ -274,66 +276,48 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      setCropSrc(reader.result as string);
-      setCropX(0); setCropY(0);
-      setCropRotation(0); setCropMsg(''); setShowResult(false);
-      // Fit image so it covers the crop circle (160px)
-      const img = document.createElement('img');
+      const src = reader.result as string;
+      setCropSrc(src);
+      setCropMsg(''); setShowResult(false);
+      // @ts-ignore web-only: document.createElement('img')
+      const img = document.createElement('img') as HTMLImageElement;
       img.onload = () => {
-        if (!img.naturalWidth || !img.naturalHeight) return;
-        const fitScale = Math.max(1, img.naturalHeight / img.naturalWidth) * 1.05;
-        setCropScale(fitScale);
-        setCropMinScale(Math.max(1, img.naturalHeight / img.naturalWidth));
+        cropImgRef.current = img;
+        const s = cropState.current;
+        s.rotation = 0; s.x = 0; s.y = 0;
+        // Fit image so it covers the crop circle
+        const sw = s.cropSize / img.naturalWidth;
+        const sh = s.cropSize / img.naturalHeight;
+        s.scale = Math.max(sw, sh) * 1.05;
+        s.minScale = Math.max(sw, sh);
+        s.maxScale = 8;
+        setupCanvas();
+        drawCrop();
       };
-      img.src = reader.result as string;
-      setCropScale(1);  // fallback until image loads
+      img.src = src;
     };
     reader.readAsDataURL(file);
-    e.target.value = ''; // allow re-select same file
+    e.target.value = '';
   };
 
-  const confirmCrop = async () => {
-    // Crop to circle and show result preview
+  const confirmCrop = () => {
     try {
-      const img = imgRef.current;
+      const img = cropImgRef.current;
       if (!img) { setCropMsg('图片未加载'); return; }
-      const nw = (img as any).naturalWidth;
-      const nh = (img as any).naturalHeight;
-      const rw = (img as any).width;
-      const rh = (img as any).height;
-      if (!nw || !nh || !rw || !rh) { setCropMsg('图片未加载完成，请重试'); return; }
-      // Image is centered with translate(-50%,-50%), cropX/Y are offsets from stage center
-      // Circle center in image local coords = (rw/2 - cropX, rh/2 - cropY)
-      const imgCenterX = rw / 2;
-      const imgCenterY = rh / 2;
-      const CIRCLE = 160;
-      const circleLeft = imgCenterX - cropX - CIRCLE / 2;
-      const circleTop = imgCenterY - cropY - CIRCLE / 2;
-      const scaleX_nat = nw / rw;
-      const scaleY_nat = nh / rh;
-      const sx = circleLeft * scaleX_nat;
-      const sy = circleTop * scaleY_nat;
-      const sw = CIRCLE * scaleX_nat;
-      const sh = CIRCLE * scaleY_nat;
-      const clampSx = Math.max(0, sx);
-      const clampSy = Math.max(0, sy);
-      const clampSw = Math.min(sw, nw - clampSx);
-      const clampSh = Math.min(sh, nh - clampSy);
-      if (!(clampSw > 0) || !(clampSh > 0)) { setCropMsg('裁切区域超出图片范围'); return; }
-      const output = document.createElement('canvas');
+      const s = cropState.current;
       const outSize = 400;
+      const output = document.createElement('canvas');
       output.width = outSize; output.height = outSize;
       const octx = output.getContext('2d')!;
       // Circular clip
       octx.beginPath();
       octx.arc(outSize / 2, outSize / 2, outSize / 2, 0, Math.PI * 2);
       octx.clip();
-      const outScale = outSize / 160;
-      const dx = (clampSx - sx) * outScale;
-      const dy = (clampSy - sy) * outScale;
-      const dw = clampSw * outScale;
-      const dh = clampSh * outScale;
-      octx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, dw, dh);
+      const outScale = outSize / s.cropSize;
+      octx.translate(outSize / 2 + s.x * outScale, outSize / 2 + s.y * outScale);
+      octx.rotate(s.rotation * Math.PI / 180);
+      octx.scale(s.scale * outScale, s.scale * outScale);
+      octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
       setCropResult(output.toDataURL('image/jpeg', 0.92));
       setShowResult(true);
     } catch (e) { console.error('crop failed', e); setCropMsg('裁切失败，请重试'); }
@@ -361,16 +345,169 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     } catch (e) { console.error('upload failed', e); setCropMsg('上传失败，请重试'); }
   };
 
-  const onDragStart = (e: any) => {
-    const pt = e.nativeEvent.touches ? e.nativeEvent.touches[0] : e.nativeEvent;
-    dragRef.current = { sx: pt.clientX, sy: pt.clientY, ox: cropX, oy: cropY };
+  // ── Canvas helpers ──
+  const drawCrop = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    const img = cropImgRef.current;
+    if (!ctx || !img) return;
+    const s = cropState.current;
+    ctx.clearRect(0, 0, canvas!.width, canvas!.height);
+    ctx.save();
+    ctx.translate(canvas!.width / 2 + s.x, canvas!.height / 2 + s.y);
+    ctx.rotate(s.rotation * Math.PI / 180);
+    ctx.scale(s.scale, s.scale);
+    ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+    ctx.restore();
   };
-  const onDragMove = (e: any) => {
-    e.preventDefault?.();
-    const pt = e.nativeEvent.touches ? e.nativeEvent.touches[0] : e.nativeEvent;
-    setCropX(dragRef.current.ox + pt.clientX - dragRef.current.sx);
-    setCropY(dragRef.current.oy + pt.clientY - dragRef.current.sy);
+
+  const clampCrop = () => {
+    const img = cropImgRef.current;
+    if (!img) return;
+    const s = cropState.current;
+    const hw = (img.naturalWidth * s.scale) / 2;
+    const hh = (img.naturalHeight * s.scale) / 2;
+    const hr = s.cropSize / 2;
+    const maxX = hw - hr, maxY = hh - hr;
+    s.x = maxX > 0 ? Math.max(-maxX, Math.min(maxX, s.x)) : 0;
+    s.y = maxY > 0 ? Math.max(-maxY, Math.min(maxY, s.y)) : 0;
   };
+
+  const setupCanvas = () => {
+    const stage = stageRef.current;
+    const canvas = canvasRef.current;
+    if (!stage || !canvas) return;
+    const rect = stage.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    // Keep cropSize at 160 — matches the static guide circle in JSX
+  };
+
+  const zoomCrop = (delta: number, cx: number, cy: number) => {
+    const s = cropState.current;
+    const newScale = Math.max(s.minScale, Math.min(s.maxScale, s.scale * (1 + delta)));
+    const sd = newScale / s.scale;
+    // Zoom toward point (cx,cy) in canvas-local coords relative to center
+    s.x = cx + (s.x - cx) * sd;
+    s.y = cy + (s.y - cy) * sd;
+    s.scale = newScale;
+    clampCrop();
+    drawCrop();
+  };
+
+  const updateSliderPct = () => {
+    const s = cropState.current;
+    const t = (s.scale - s.minScale) / ((s.maxScale - s.minScale) * 0.5);
+    return Math.max(0, Math.min(100, t * 100));
+  };
+
+  // ── Imperative event binding (Canvas needs native DOM events for smooth interaction) ──
+  useEffect(() => {
+    if (!cropSrc || showResult) return;
+    const stage = stageRef.current;
+    const canvas = canvasRef.current;
+    if (!stage || !canvas) return;
+
+    // This effect runs when the crop modal opens — set up the canvas
+    setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 60);
+
+    let frameId = 0;
+    const scheduleDraw = () => { if (!frameId) frameId = requestAnimationFrame(() => { frameId = 0; drawCrop(); }); };
+
+    const toLocal = (clientX: number, clientY: number) => {
+      const r = stage.getBoundingClientRect();
+      return { x: clientX - r.left - canvas.width / 2, y: clientY - r.top - canvas.height / 2 };
+    };
+
+    // Mouse
+    const onMD = (e: MouseEvent) => {
+      const s = cropState.current;
+      s.drag.active = true;
+      s.drag.sx = e.clientX; s.drag.sy = e.clientY;
+      s.drag.ox = s.x; s.drag.oy = s.y;
+    };
+    const onMM = (e: MouseEvent) => {
+      const s = cropState.current;
+      if (!s.drag.active) return;
+      s.x = s.drag.ox + (e.clientX - s.drag.sx);
+      s.y = s.drag.oy + (e.clientY - s.drag.sy);
+      clampCrop();
+      scheduleDraw();
+    };
+    const onMU = () => { cropState.current.drag.active = false; };
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const p = toLocal(e.clientX, e.clientY);
+      zoomCrop(e.deltaY > 0 ? -0.08 : 0.08, p.x, p.y);
+    };
+
+    // Touch
+    const getDist = (ts: TouchList) => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
+    const onTS = (e: TouchEvent) => {
+      e.preventDefault();
+      const s = cropState.current;
+      if (e.touches.length === 1) {
+        s.drag.active = true;
+        s.drag.sx = e.touches[0].clientX; s.drag.sy = e.touches[0].clientY;
+        s.drag.ox = s.x; s.drag.oy = s.y;
+      } else if (e.touches.length === 2) {
+        s.drag.active = false;
+        s.pinch.active = true;
+        s.pinch.startDist = getDist(e.touches);
+        s.pinch.startScale = s.scale;
+        const r = stage.getBoundingClientRect();
+        s.pinch.midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left - canvas.width / 2;
+        s.pinch.midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top - canvas.height / 2;
+      }
+    };
+    const onTM = (e: TouchEvent) => {
+      e.preventDefault();
+      const s = cropState.current;
+      if (s.drag.active && e.touches.length === 1) {
+        s.x = s.drag.ox + (e.touches[0].clientX - s.drag.sx);
+        s.y = s.drag.oy + (e.touches[0].clientY - s.drag.sy);
+        clampCrop();
+        scheduleDraw();
+      } else if (s.pinch.active && e.touches.length === 2) {
+        const d = getDist(e.touches);
+        const ns = Math.max(s.minScale, Math.min(s.maxScale, s.pinch.startScale * (d / s.pinch.startDist)));
+        const sd = ns / s.scale;
+        s.x = s.pinch.midX + (s.x - s.pinch.midX) * sd;
+        s.y = s.pinch.midY + (s.y - s.pinch.midY) * sd;
+        s.scale = ns;
+        clampCrop();
+        scheduleDraw();
+      }
+    };
+    const onTE = (e: TouchEvent) => {
+      const s = cropState.current;
+      if (e.touches.length < 2) s.pinch.active = false;
+      if (e.touches.length === 0) s.drag.active = false;
+    };
+
+    canvas.addEventListener('mousedown', onMD);
+    window.addEventListener('mousemove', onMM);
+    window.addEventListener('mouseup', onMU);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    canvas.addEventListener('touchstart', onTS, { passive: false });
+    canvas.addEventListener('touchmove', onTM, { passive: false });
+    canvas.addEventListener('touchend', onTE);
+    canvas.addEventListener('touchcancel', onTE);
+
+    return () => {
+      canvas.removeEventListener('mousedown', onMD);
+      window.removeEventListener('mousemove', onMM);
+      window.removeEventListener('mouseup', onMU);
+      canvas.removeEventListener('wheel', onWheel);
+      canvas.removeEventListener('touchstart', onTS);
+      canvas.removeEventListener('touchmove', onTM);
+      canvas.removeEventListener('touchend', onTE);
+      canvas.removeEventListener('touchcancel', onTE);
+      cancelAnimationFrame(frameId);
+    };
+  }, [cropSrc, showResult]);
 
   useEffect(() => { loadAvatar(); }, []);
 
@@ -764,19 +901,10 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           {/* Crop stage */}
           <View
             // @ts-ignore web-only
-            style={cropS.stage} ref={stageRef}
-            onMouseDown={onDragStart} onMouseMove={onDragMove} onMouseUp={onDragMove}
-            onTouchStart={onDragStart} onTouchMove={onDragMove} onTouchEnd={onDragMove}>
-            <img ref={imgRef as any} src={cropSrc}
-              style={{
-                position: 'absolute',
-                left: `calc(50% + ${cropX}px)`,
-                top: `calc(50% + ${cropY}px)`,
-                width: 'auto', height: 160 * cropScale, minWidth: 160 * cropScale,
-                transform: `translate(-50%, -50%) rotate(${cropRotation}deg)`,
-                userSelect: 'none', pointerEvents: 'none',
-              }}
-              draggable={false}
+            style={cropS.stage} ref={stageRef as any}>
+            {/* @ts-ignore */}
+            <canvas ref={canvasRef as any}
+              style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
             />
             {/* Guide overlay */}
             <View style={cropS.guideWrap as any} pointerEvents="none">
@@ -801,14 +929,21 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           <View style={cropS.toolbar as any}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>A</Text>
-              <input type="range" min="0" max="100" value={Math.round(((cropScale - cropMinScale) / ((cropMinScale * 3) - cropMinScale)) * 100)}
-                onChange={(e: any) => setCropScale(cropMinScale + ((cropMinScale * 3) - cropMinScale) * (Number(e.target.value) / 100))}
+              <input type="range" min="0" max="100" defaultValue={0}
+                ref={(el) => { if (el) (el as any)._hermesSlider = el; }}
+                onChange={(e: any) => {
+                  const s = cropState.current;
+                  const t = Number(e.target.value) / 100;
+                  s.scale = s.minScale + (s.maxScale - s.minScale) * t * 0.5;
+                  s.scale = Math.max(s.minScale, s.scale);
+                  clampCrop(); drawCrop();
+                }}
                 style={{ flex: 1, height: 3, appearance: 'none', cursor: 'pointer', accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
               />
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
             <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.12)', marginHorizontal: 10 }} />
-            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => setCropRotation(r => (r + 90) % 360)}>
+            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { cropState.current.rotation = (cropState.current.rotation + 90) % 360; drawCrop(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M3 12a9 9 0 109-9H9m0 0l3 3m-3-3l3-3" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
