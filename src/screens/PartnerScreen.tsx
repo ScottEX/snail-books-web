@@ -221,57 +221,45 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   };
 
   const confirmCrop = async () => {
-    // Step 1: just setCropMsg — does inline text crash?
-    setCropMsg('测试消息');
-  };
-  /*
-    const nw = (img as any).naturalWidth;
-    const nh = (img as any).naturalHeight;
-    const iw = (img as any).width;
-    const ih = (img as any).height;
-    if (!nw || !nh || !iw || !ih) { setCropMsg('图片未加载完成，请重试'); return; }
-    const size = 200;
-    const scaleX = nw / iw;
-    const scaleY = nh / ih;
-    if (!isFinite(scaleX) || !isFinite(scaleY) || scaleX <= 0 || scaleY <= 0) {
-      setCropMsg('图片尺寸异常，请重新选择'); return;
-    }
-    const cx = 100 - cropX;
-    const cy = 100 - cropY;
-    const sx = (cx - size / 2) * scaleX;
-    const sy = (cy - size / 2) * scaleY;
-    const sw = size * scaleX;
-    const sh = size * scaleY;
-    const clampSx = Math.max(0, sx);
-    const clampSy = Math.max(0, sy);
-    const clampSw = Math.min(sw, nw - clampSx);
-    const clampSh = Math.min(sh, nh - clampSy);
-    if (!(clampSw > 0) || !(clampSh > 0)) { setCropMsg('裁切区域超出图片范围'); return; }
-    const canvas = document.createElement('canvas');
-    canvas.width = 256; canvas.height = 256;
-    const ctx = canvas.getContext('2d')!;
-    const dx = sx < 0 ? Math.round(-sx / sw * 256) : 0;
-    const dy = sy < 0 ? Math.round(-sy / sh * 256) : 0;
-    const cdw = Math.round(clampSw / sw * 256);
-    const cdh = Math.round(clampSh / sh * 256);
-    ctx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, cdw, cdh);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    const arr = dataUrl.split(',');
-    const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
-    const bstr = atob(arr[1]);
-    const u8 = new Uint8Array(bstr.length);
-    for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
-    const blob = new Blob([u8], { type: mime });
-    const form = new FormData();
-    form.append('file', blob, 'avatar.jpg');
-    const resp = await api.uploadAvatar(form);
-    if (resp.status === 'ok') {
-      setCropSrc('');
-      setAvatarKey(k => k + 1);
-      loadAvatar();
-    } else { setCropMsg('上传失败'); }
+    // Step 2: canvas crop only — no upload
+    try {
+      const img = imgRef.current;
+      if (!img) { setCropMsg('图片未加载'); return; }
+      const nw = (img as any).naturalWidth;
+      const nh = (img as any).naturalHeight;
+      const iw = (img as any).width;
+      const ih = (img as any).height;
+      if (!nw || !nh || !iw || !ih) { setCropMsg('图片未加载完成，请重试'); return; }
+      const size = 200;
+      const scaleX = nw / iw;
+      const scaleY = nh / ih;
+      if (!isFinite(scaleX) || !isFinite(scaleY) || scaleX <= 0 || scaleY <= 0) {
+        setCropMsg('图片尺寸异常，请重新选择'); return;
+      }
+      const cx = 100 - cropX;
+      const cy = 100 - cropY;
+      const sx = (cx - size / 2) * scaleX;
+      const sy = (cy - size / 2) * scaleY;
+      const sw = size * scaleX;
+      const sh = size * scaleY;
+      const clampSx = Math.max(0, sx);
+      const clampSy = Math.max(0, sy);
+      const clampSw = Math.min(sw, nw - clampSx);
+      const clampSh = Math.min(sh, nh - clampSy);
+      if (!(clampSw > 0) || !(clampSh > 0)) { setCropMsg('裁切区域超出图片范围'); return; }
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 256;
+      const ctx = canvas.getContext('2d')!;
+      const dx = sx < 0 ? Math.round(-sx / sw * 256) : 0;
+      const dy = sy < 0 ? Math.round(-sy / sh * 256) : 0;
+      const cdw = Math.round(clampSw / sw * 256);
+      const cdh = Math.round(clampSh / sh * 256);
+      ctx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, cdw, cdh);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      setCropMsg('裁切成功');
+      setTimeout(() => setCropSrc(''), 800);
     } catch (e) { console.error('crop failed', e); setCropMsg('裁切失败，请重试'); }
-  }; */
+  };
 
   const onDragStart = (e: any) => {
     const pt = e.nativeEvent.touches ? e.nativeEvent.touches[0] : e.nativeEvent;
