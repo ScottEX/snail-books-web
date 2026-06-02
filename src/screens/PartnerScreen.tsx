@@ -221,8 +221,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   };
 
   const confirmCrop = async () => {
-    // TEST: same as cancel — does async state update crash?
-    setCropSrc('');
+    // Step 1: just setCropMsg — does inline text crash?
+    setCropMsg('测试消息');
   };
   /*
     const nw = (img as any).naturalWidth;
