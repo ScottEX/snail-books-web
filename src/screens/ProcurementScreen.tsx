@@ -989,14 +989,7 @@ export default function ProcurementScreen() {
               {React.createElement('select', {
                 value: prodForm.supplier,
                 onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
-                style: {
-                  paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8,
-                  fontSize: FONTS.sub.size, color: c.textMain,
-                  backgroundColor: withAlpha(c.textMain, 0.03),
-                  marginBottom: 10, borderWidth: 0, outline: 'none',
-                  cursor: 'pointer', width: '100%',
-                  fontFamily: 'inherit', fontWeight: FONTS.sub.weight,
-                } as any,
+                style: { ...styles.modalInput, borderWidth: 0, cursor: 'pointer', width: '100%', fontFamily: 'inherit' } as any,
               },
                 <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
                 suppliers.filter((s: string) => s !== '全部').map((s: string) => (
