@@ -714,8 +714,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <TouchableOpacity style={moBody.cancelBtn} onPress={() => setCropSrc('')}>
                   <Text style={moBody.cancelBtnText}>取消</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={moBody.confirmBtn} onPress={() => { setToast('click ok'); }}>
-                  <Text style={moBody.confirmBtnText}>确认(测试)</Text>
+                <TouchableOpacity style={moBody.confirmBtn} onPress={() => { alert('ok'); }}>
+                  <Text style={moBody.confirmBtnText}>确认(测试2)</Text>
                 </TouchableOpacity>
               </View>
             </View>
