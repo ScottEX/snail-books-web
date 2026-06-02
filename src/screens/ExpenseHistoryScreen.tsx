@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -11,6 +11,19 @@ import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
 
 const PAGE_SIZE = 10;
+
+function ExpenseEmptyIcon({ color }: { color: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <Path d="M14 2v6h6" />
+      <circle cx="10" cy="12" r="3" />
+      <Path d="M8 12h4" />
+      <Path d="M9 17h6" />
+      <Path d="M9 20h4" />
+    </Svg>
+  );
+}
 
 function DateErrorHint({ trigger, message, colors, textAlign }: { trigger: number; message: string; colors: any; textAlign?: 'left' | 'right' | 'center' }) {
   const [show, setShow] = React.useState(false);
@@ -344,7 +357,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 80 }}
         ListEmptyComponent={!loading ? (
           <View style={st.emptyWrap}>
-            <View style={st.emptyIcon}><Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text></View>
+            <View style={st.emptyIcon}><ExpenseEmptyIcon color={colors.textSub} /></View>
             <Text style={st.emptyTitle}>{t('noRecords')}</Text>
             <Text style={st.emptyHint}>{t('emptyExpenseHint')}</Text>
           </View>
@@ -457,7 +470,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   dateText: { fontSize: FONTS.sub.size, color: colors.textSub },
   note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right' },
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
   emptyEmoji: { fontSize: FONTS.h1.size },
   emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
   emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },

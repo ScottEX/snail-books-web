@@ -14,6 +14,15 @@ const PAGE_SIZE = 10;
 const todayStr = () => new Date().toISOString().split('T')[0];
 const isFuture = (d: string) => d > todayStr();
 
+function ReconEmptyIcon({ color }: { color: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <Path d="M9 12l2 2 4-4" />
+    </Svg>
+  );
+}
+
 function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
   const [show, setShow] = React.useState(false);
   React.useEffect(() => {
@@ -318,7 +327,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   const renderEmpty = () => (
     <View style={st.emptyWrap}>
-      <View style={st.emptyIcon}><Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text></View>
+      <View style={st.emptyIcon}><ReconEmptyIcon color={colors.textSub} /></View>
       <Text style={st.emptyTitle}>{t('noRecords')}</Text>
       <Text style={st.emptyHint}>{t('emptyReconHint')}</Text>
     </View>
@@ -566,7 +575,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   chanVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
   /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
   emptyEmoji: { fontSize: FONTS.h1.size },
   emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
   emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
