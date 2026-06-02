@@ -224,7 +224,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const img = imgRef.current;
     if (!img) return;
     try {
-    // Guard: image must have valid loaded dimensions
     const nw = (img as any).naturalWidth;
     const nh = (img as any).naturalHeight;
     const iw = (img as any).width;
@@ -236,8 +235,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     if (!isFinite(scaleX) || !isFinite(scaleY) || scaleX <= 0 || scaleY <= 0) {
       setToast('图片尺寸异常，请重新选择'); return;
     }
-    // Crop circle center in container is always (100, 100).
-    // Image is at (cropX, cropY) → crop center in image coords = (100 - cropX, 100 - cropY)
     const cx = 100 - cropX;
     const cy = 100 - cropY;
     const sx = (cx - size / 2) * scaleX;
@@ -248,7 +245,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const clampSy = Math.max(0, sy);
     const clampSw = Math.min(sw, nw - clampSx);
     const clampSh = Math.min(sh, nh - clampSy);
-    // !(x > 0) catches NaN, undefined, 0, and negative
     if (!(clampSw > 0) || !(clampSh > 0)) { setToast('裁切区域超出图片范围'); return; }
     const canvas = document.createElement('canvas');
     canvas.width = 256; canvas.height = 256;
@@ -258,20 +254,18 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const cdw = Math.round(clampSw / sw * 256);
     const cdh = Math.round(clampSh / sh * 256);
     ctx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, cdw, cdh);
-    canvas.toBlob(async (blob) => {
-      if (!blob) return;
-      const form = new FormData();
-      form.append('file', blob, 'avatar.jpg');
-      try {
-        const resp = await api.uploadAvatar(form);
-        if (resp.status === 'ok') {
-          setCropSrc('');
-          setAvatarKey(k => k + 1);
-          loadAvatar();
-          setToast('头像已更新');
-        } else { setToast('上传失败'); }
-      } catch { setToast('上传失败'); }
-    }, 'image/jpeg', 0.9);
+    // Use toDataURL → fetch blob (fully async, one try-catch)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    const blob = await fetch(dataUrl).then(r => r.blob());
+    const form = new FormData();
+    form.append('file', blob, 'avatar.jpg');
+    const resp = await api.uploadAvatar(form);
+    if (resp.status === 'ok') {
+      setCropSrc('');
+      setAvatarKey(k => k + 1);
+      loadAvatar();
+      setToast('头像已更新');
+    } else { setToast('上传失败'); }
     } catch (e) { console.error('crop failed', e); setToast('裁切失败，请重试'); }
   };
 
