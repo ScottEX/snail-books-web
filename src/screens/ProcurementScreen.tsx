@@ -96,6 +96,33 @@ function ChevronDownIcon({ color, size = 14 }: { color: string; size?: number })
     </Svg>
   );
 }
+// Empty state SVG icons — 48px, thin stroke
+function EmptyCartIcon({ color }: { color: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      <Path d="M3 6h18" />
+      <Path d="M16 10a4 4 0 0 1-8 0" />
+    </Svg>
+  );
+}
+function EmptyClipboardIcon({ color }: { color: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <Path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z" />
+    </Svg>
+  );
+}
+function EmptyBoxIcon({ color }: { color: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <Path d="M3.27 6.96L12 12.01l8.73-5.05" />
+      <Path d="M12 22.08V12" />
+    </Svg>
+  );
+}
 
 const SUPPLIER_DISPLAY: Record<string, string> = {};
 const SUPPLIER_ORDER = ['蓝姐', '蒙方', '鲜禾', '粉仔'];
@@ -309,6 +336,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   successBtnViewText: { color: c.textMain, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   // Empty state
+  emptyIconWrap: { marginBottom: 16, opacity: 0.35 },
   emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
   emptyTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: c.textSub, marginBottom: 6 },
   emptyHint: { fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center' as const, paddingHorizontal: 40, lineHeight: 20 },
@@ -867,6 +895,13 @@ export default function ProcurementScreen() {
                 })}
               </View>
             ))}
+            {groupedProducts.length === 0 && (
+              <View style={styles.emptyWrap}>
+                <View style={styles.emptyIconWrap}><EmptyCartIcon color={c.textSub} /></View>
+                <Text style={styles.emptyTitle}>{t('procEmptyNewTitle')}</Text>
+                <Text style={styles.emptyHint}>{t('procEmptyNewHint')}</Text>
+              </View>
+            )}
           </ScrollView>
 
           {cartCount > 0 && (
@@ -940,8 +975,9 @@ export default function ProcurementScreen() {
           )}
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
-              <Text style={styles.emptyTitle}>{t('noRecords')}</Text>
-              <Text style={styles.emptyHint}>{t('procNoHistory')}</Text>
+              <View style={styles.emptyIconWrap}><EmptyClipboardIcon color={c.textSub} /></View>
+              <Text style={styles.emptyTitle}>{t('procEmptyHistoryTitle')}</Text>
+              <Text style={styles.emptyHint}>{t('procEmptyHistoryHint')}</Text>
             </View>
           }
           ListFooterComponent={loadingHist ? <View style={styles.loadingWrap}><ActivityIndicator color={c.primary} /></View> : null}
@@ -956,8 +992,9 @@ export default function ProcurementScreen() {
           </TouchableOpacity>
           {products.length === 0 ? (
             <View style={styles.emptyWrap}>
-              <Text style={styles.emptyTitle}>{t('noRecords')}</Text>
-              <Text style={styles.emptyHint}>{t('noProducts')}</Text>
+              <View style={styles.emptyIconWrap}><EmptyBoxIcon color={c.textSub} /></View>
+              <Text style={styles.emptyTitle}>{t('procEmptyProductsTitle')}</Text>
+              <Text style={styles.emptyHint}>{t('procEmptyProductsHint')}</Text>
             </View>
           ) : (
             [...products].sort((a, b) => b.id - a.id).map(p => (
