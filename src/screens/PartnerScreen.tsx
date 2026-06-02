@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -50,17 +50,6 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8}>
       <Path strokeLinecap="round" strokeLinejoin="round"
         d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-    </Svg>
-  );
-}
-
-function LedgerEmptyIcon({ color }: { color: string }) {
-  return (
-    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <Path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      <Path d="M12 6v7" />
-      <Path d="M9 9h6" />
     </Svg>
   );
 }
@@ -318,7 +307,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   { name: translateName('蓝柳富'), sub: '33%', amount: 9953.46 },
                 ]} />
             )}
-            {(filter === 'all' || filter === 'dividend') && (groupKeys.length > 0 ? groupKeys.map(note => {
+            {(filter === 'all' || filter === 'dividend') && groupKeys.map(note => {
               const items = grouped[note];
               const total = items.reduce((s: number, d: any) => s + d.amount, 0);
               return (
@@ -327,13 +316,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   items={items.map((d: any) => ({ name: translateName(d.partner), sub: '', amount: d.amount }))}
                   onDelete={() => setShowDelete(note)} />
               );
-            }) : (
-              <View style={tg.emptyWrap}>
-                <View style={tg.emptyIcon}><LedgerEmptyIcon color={colors.textSub} /></View>
-                <Text style={tg.emptyTitle}>{t('ledgerEmpty')}</Text>
-                <Text style={tg.emptyHint}>{t('ledgerEmptyHint')}</Text>
-              </View>
-            ))}
+            })}
           </View>
         </View>
       </ScrollView>
@@ -758,8 +741,4 @@ const getTg = (colors: ThemeColors) => StyleSheet.create({
   tdSub: { fontSize: FONTS.micro.size, color: colors.textSub },
   tdMid: { width: 40 },
   tdAmt: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, paddingRight: 16 },
-  emptyWrap: { marginTop: 32, alignItems: 'center', gap: 12, paddingBottom: 24 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
-  emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
 });
