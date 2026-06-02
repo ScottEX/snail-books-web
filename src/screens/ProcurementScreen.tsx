@@ -607,6 +607,28 @@ export default function ProcurementScreen() {
     return list;
   }, [products, supplierFilter, search]);
 
+  const filteredBatches = useMemo(() => {
+    if (!search) return batches;
+    const s = search.toLowerCase();
+    return batches.filter(b =>
+      String(b.batch_number).includes(s) ||
+      (b.date || '').includes(s) ||
+      (b.note || '').toLowerCase().includes(s) ||
+      (b.payment_method || '').toLowerCase().includes(s)
+    );
+  }, [batches, search]);
+
+  const filteredMgmtProducts = useMemo(() => {
+    if (!search) return products;
+    const s = search.toLowerCase();
+    return products.filter(p =>
+      p.name.toLowerCase().includes(s) ||
+      (p.spec || '').toLowerCase().includes(s) ||
+      (p.supplier || '').toLowerCase().includes(s) ||
+      (p.note || '').toLowerCase().includes(s)
+    );
+  }, [products, search]);
+
   const groupedProducts = useMemo(() => {
     const map: Record<string, Product[]> = {};
     filteredProducts.forEach(p => {
@@ -830,10 +852,11 @@ export default function ProcurementScreen() {
         <View style={styles.searchSection}>
           <TextInput
             style={styles.searchInput}
-            placeholder={t('procSearchPlaceholder')}
+            placeholder={subTab === 'history' ? t('procSearchHistory') : subTab === 'products' ? t('procSearchProducts') : t('procSearchPlaceholder')}
             placeholderTextColor={c.textSub}
             value={search} onChangeText={setSearch}
           />
+          {subTab === 'new' && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ gap: 6 }}>
             {suppliers.map(sup => (
               <TouchableOpacity key={sup} style={[styles.filterChip, supplierFilter === sup && styles.filterChipOn]} onPress={() => setSupplierFilter(sup)}>
@@ -841,6 +864,7 @@ export default function ProcurementScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
+          )}
         </View>
 
         {/* Sub-tabs inside frosted block */}
@@ -941,10 +965,10 @@ export default function ProcurementScreen() {
       {/* ── History ── */}
       {subTab === 'history' && (
         <FlatList
-          data={batches}
+          data={filteredBatches}
           keyExtractor={item => String(item.id)}
           contentContainerStyle={styles.historyList}
-          onEndReached={batches.length < histTotal ? loadMoreHistory : undefined}
+          onEndReached={filteredBatches.length < histTotal ? loadMoreHistory : undefined}
           onEndReachedThreshold={0.4}
           renderItem={({ item: batch }) => (
             <TouchableOpacity style={styles.historyCard} onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
@@ -1004,14 +1028,14 @@ export default function ProcurementScreen() {
             <PlusIcon color={c.primary} />
             <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
-          {products.length === 0 ? (
+          {filteredMgmtProducts.length === 0 ? (
             <View style={styles.emptyWrap}>
               <View style={styles.emptyIconWrap}><EmptyBoxIcon color={c.textSub} /></View>
               <Text style={styles.emptyTitle}>{t('procEmptyProductsTitle')}</Text>
               <Text style={styles.emptyHint}>{t('procEmptyProductsHint')}</Text>
             </View>
           ) : (
-            [...products].sort((a, b) => b.id - a.id).map(p => (
+            [...filteredMgmtProducts].sort((a, b) => b.id - a.id).map(p => (
               <View key={p.id} style={styles.mgmtRow}>
                 <View style={styles.mgmtInfo}>
                   <Text style={styles.mgmtName}>{p.name}</Text>
