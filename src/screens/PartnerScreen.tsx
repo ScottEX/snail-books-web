@@ -93,6 +93,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [lang, setLangState] = useState(getLang());
 
   const [toast, setToast] = useState('');
+  const [cropMsg, setCropMsg] = useState('');  // inline feedback inside crop modal
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -213,7 +214,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const reader = new FileReader();
     reader.onload = () => {
       setCropSrc(reader.result as string);
-      setCropX(0); setCropY(0); setCropScale(1);
+      setCropX(0); setCropY(0); setCropScale(1); setCropMsg('');
     };
     reader.readAsDataURL(file);
     e.target.value = ''; // allow re-select same file
@@ -228,12 +229,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const nh = (img as any).naturalHeight;
     const iw = (img as any).width;
     const ih = (img as any).height;
-    if (!nw || !nh || !iw || !ih) { setToast('图片未加载完成，请重试'); return; }
+    if (!nw || !nh || !iw || !ih) { setCropMsg('图片未加载完成，请重试'); return; }
     const size = 200;
     const scaleX = nw / iw;
     const scaleY = nh / ih;
     if (!isFinite(scaleX) || !isFinite(scaleY) || scaleX <= 0 || scaleY <= 0) {
-      setToast('图片尺寸异常，请重新选择'); return;
+      setCropMsg('图片尺寸异常，请重新选择'); return;
     }
     const cx = 100 - cropX;
     const cy = 100 - cropY;
@@ -245,7 +246,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const clampSy = Math.max(0, sy);
     const clampSw = Math.min(sw, nw - clampSx);
     const clampSh = Math.min(sh, nh - clampSy);
-    if (!(clampSw > 0) || !(clampSh > 0)) { setToast('裁切区域超出图片范围'); return; }
+    if (!(clampSw > 0) || !(clampSh > 0)) { setCropMsg('裁切区域超出图片范围'); return; }
     const canvas = document.createElement('canvas');
     canvas.width = 256; canvas.height = 256;
     const ctx = canvas.getContext('2d')!;
@@ -254,8 +255,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const cdw = Math.round(clampSw / sw * 256);
     const cdh = Math.round(clampSh / sh * 256);
     ctx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, cdw, cdh);
-    // Use toDataURL → fetch blob (fully async, one try-catch)
-    // Use toDataURL → manual blob (safe in all browsers)
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
     const arr = dataUrl.split(',');
     const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
@@ -267,14 +266,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     form.append('file', blob, 'avatar.jpg');
     const resp = await api.uploadAvatar(form);
     if (resp.status === 'ok') {
-      setToast('头像已更新');
-      // Refresh avatar on page (don't close modal yet — isolate crash)
+      setCropSrc('');
       setAvatarKey(k => k + 1);
       loadAvatar();
-      // Close after a short delay to see if setCropSrc crashes
-      setTimeout(() => setCropSrc(''), 300);
-    } else { setToast('上传失败'); }
-    } catch (e) { console.error('crop failed', e); setToast('裁切失败，请重试'); }
+      setToast('头像已更新');
+    } else { setCropMsg('上传失败'); }
+    } catch (e) { console.error('crop failed', e); setCropMsg('裁切失败，请重试'); }
   };
 
   const onDragStart = (e: any) => {
@@ -714,10 +711,13 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <TouchableOpacity style={moBody.cancelBtn} onPress={() => setCropSrc('')}>
                   <Text style={moBody.cancelBtnText}>取消</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={moBody.confirmBtn} onPress={() => { alert('ok'); }}>
-                  <Text style={moBody.confirmBtnText}>确认(测试2)</Text>
+                <TouchableOpacity style={moBody.confirmBtn} onPress={confirmCrop}>
+                  <Text style={moBody.confirmBtnText}>确认</Text>
                 </TouchableOpacity>
               </View>
+              {cropMsg !== '' && (
+                <Text style={{ fontSize: 13, color: colors.primary, marginTop: 12, textAlign: 'center', fontWeight: '500' }}>{cropMsg}</Text>
+              )}
             </View>
           </View>
         </ModalOverlay>
