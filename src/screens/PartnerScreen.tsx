@@ -447,7 +447,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 </View>
                 <View style={[ds.cell, { backgroundColor: withAlpha(colors.primary, 0.1) }]}>
                   <Text style={[ds.cellLabel, { color: colors.primary }]}>{t('totalDividends')}</Text>
-                  <Text style={[ds.cellNum, { color: colors.primary }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={[ds.cellNum, { color: colors.primary, fontSize: FONTS.micro.size }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
@@ -645,7 +645,7 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   statIconBg: { width: 36, height: 36, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   statLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, letterSpacing: 0.3 },
   statValue: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, marginTop: 2 },
-  statGreen: { fontSize: FONTS.micro.size, color: colors.success, fontWeight: FONTS.micro.weight, marginTop: 2 },
+  statGreen: { fontSize: 10, color: '#1EE69F', fontWeight: FONTS.micro.weight, marginTop: 2 },
   statSub: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginTop: 2 },
   dividendBtn: { backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12 },
   dividendBtnText: { color: colors.surface, fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight },
@@ -659,7 +659,7 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   partnerName: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
   partnerPct: { fontSize: FONTS.micro.size, color: colors.textSub },
   paidBadge: { backgroundColor: withAlpha(colors.success, 0.18), borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
-  paidBadgeText: { fontSize: FONTS.micro.size, fontWeight: FONTS.microBold.weight, color: colors.success },
+  paidBadgeText: { fontSize: 10, fontWeight: FONTS.microBold.weight, color: '#1EE69F' },
   partnerDataRow: { flexDirection: 'row', gap: 4 },
   partnerDataCell: { flex: 1, alignItems: 'center' },
   dataLabel: { fontSize: FONTS.micro.size, color: colors.textSub },
