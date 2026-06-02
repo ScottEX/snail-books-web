@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -12,6 +12,17 @@ const PAGE_SIZE = 30;
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 const isFuture = (d: string) => d > todayStr();
+
+function RevenueEmptyIcon({ color }: { color: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4 20h16" />
+      <Path d="M6 20V14" /><circle cx="6" cy="13" r="1" fill={color} stroke="none" />
+      <Path d="M11 20V9" /><circle cx="11" cy="8" r="1" fill={color} stroke="none" />
+      <Path d="M16 20V12" /><circle cx="16" cy="11" r="1" fill={color} stroke="none" />
+    </Svg>
+  );
+}
 
 function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
   const [show, setShow] = React.useState(false);
@@ -213,7 +224,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
           </View>
         ) : records.length === 0 ? (
           <View style={st.emptyWrap}>
-            <View style={st.emptyIcon}><Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text></View>
+            <View style={st.emptyIcon}><RevenueEmptyIcon color={colors.textSub} /></View>
             <Text style={st.emptyTitle}>{t('revEmpty')}</Text>
             <Text style={st.emptyHint}>{t('revEmptyHint')}</Text>
           </View>
@@ -421,8 +432,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
 
   /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.secondary },
-  emptyEmoji: { fontSize: FONTS.h1.size },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
   emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
   emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
 
