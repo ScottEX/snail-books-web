@@ -124,6 +124,14 @@ function EmptyBoxIcon({ color }: { color: string }) {
   );
 }
 
+function PlusIcon({ color, size = 16 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 5v14M5 12h14" />
+    </Svg>
+  );
+}
+
 const SUPPLIER_DISPLAY: Record<string, string> = {};
 const SUPPLIER_ORDER = ['蓝姐', '蒙方', '鲜禾', '粉仔'];
 const displaySupplier = (s: string) => SUPPLIER_DISPLAY[s] || s;
@@ -287,8 +295,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtMeta: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 },
   mgmtActions: { flexDirection: 'row' as const, gap: 8 },
   mgmtActionBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.05) },
-  mgmtAddBtn: { marginHorizontal: 12, marginTop: 8, marginBottom: 16, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.primary, 0.2), paddingVertical: 12, alignItems: 'center' as const },
-  mgmtAddBtnText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary },
+  mgmtAddBtn: { marginHorizontal: 12, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: withAlpha(c.primary, 0.06), borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
+  mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
   // Modal (product add/edit)
   modalOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 400, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center' as const, alignItems: 'center' as const },
@@ -988,7 +996,8 @@ export default function ProcurementScreen() {
       {subTab === 'products' && (
         <ScrollView style={styles.contentArea}>
           <TouchableOpacity style={styles.mgmtAddBtn} onPress={openAddProduct}>
-            <Text style={styles.mgmtAddBtnText}>+ {t('procAddProduct')}</Text>
+            <PlusIcon color={c.primary} />
+            <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
           {products.length === 0 ? (
             <View style={styles.emptyWrap}>
