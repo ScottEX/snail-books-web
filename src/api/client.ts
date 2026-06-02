@@ -201,11 +201,11 @@ export const api = {
   // Avatar
   uploadAvatar: async (form: FormData) => {
     bumpActivity();
-    const h: Record<string, string> = { 'X-Lang': getLang() };
     const resp = await fetch(API_BASE + '/api/users/avatar', {
       method: 'POST',
-      headers: h,
+      headers: headers(),
       body: form,
+      credentials: 'same-origin' as RequestCredentials,
     });
     if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
     return resp.json();

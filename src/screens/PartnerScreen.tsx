@@ -256,7 +256,13 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     ctx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, cdw, cdh);
     // Use toDataURL → fetch blob (fully async, one try-catch)
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    const blob = await fetch(dataUrl).then(r => r.blob());
+    // Convert data URL to blob (safe in all browsers, no fetch)
+    const arr = dataUrl.split(',');
+    const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
+    const bstr = atob(arr[1]);
+    const u8 = new Uint8Array(bstr.length);
+    for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
+    const blob = new Blob([u8], { type: mime });
     const form = new FormData();
     form.append('file', blob, 'avatar.jpg');
     const resp = await api.uploadAvatar(form);
