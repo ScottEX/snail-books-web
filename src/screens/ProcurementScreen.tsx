@@ -986,16 +986,22 @@ export default function ProcurementScreen() {
             <View style={styles.modalBody}>
               <TextInput style={styles.modalInput} placeholder={t('procProductName')} placeholderTextColor={c.textSub} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
               <TextInput style={styles.modalInput} placeholder={t('procProductSpec')} placeholderTextColor={c.textSub} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
-              {React.createElement('select', {
-                value: prodForm.supplier,
-                onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
-                style: { ...styles.modalInput, borderWidth: 0, cursor: 'pointer', width: '100%', fontFamily: 'inherit' } as any,
-              },
-                <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
-                suppliers.filter((s: string) => s !== '全部').map((s: string) => (
-                  React.createElement('option', { key: s, value: s }, s)
-                ))
-              )}
+              <View style={[styles.modalInput, { position: 'relative', justifyContent: 'center' }]}>
+                <Text style={{ fontSize: FONTS.sub.size, color: prodForm.supplier ? c.textMain : c.textSub }}>
+                  {prodForm.supplier || t('procProductSupplier')}
+                </Text>
+                <Text style={{ position: 'absolute', right: 10, fontSize: 10, color: c.textSub }}>▼</Text>
+                {React.createElement('select', {
+                  value: prodForm.supplier,
+                  onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
+                  style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.01, cursor: 'pointer' } as any,
+                },
+                  <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
+                  suppliers.filter((s: string) => s !== '全部').map((s: string) => (
+                    React.createElement('option', { key: s, value: s }, s)
+                  ))
+                )}
+              </View>
               <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: v }))} keyboardType="numeric" />
               <View style={styles.modalBtnRow}>
                 <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setShowProductModal(false))}>
