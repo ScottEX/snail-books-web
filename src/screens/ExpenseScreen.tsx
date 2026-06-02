@@ -38,6 +38,10 @@ const toNum = (s: string) => parseFloat(s) || 0;
 const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
 const fmtDecInput = (s: string) => { s = blockNeg(s); return s.startsWith('.') ? '0' + s : s; };
 const toDec2 = (v: any) => String((parseFloat(String(v ?? 0)) || 0).toFixed(2));
+const toDec2Comma = (v: any) => {
+  const n = parseFloat(String(v ?? 0)) || 0;
+  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
 /* ═══════════════════════════════════════════════════════════
    NumberTicker — 数字从 0 平滑滚动到目标值
@@ -503,7 +507,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
 
   const handleAddExpense = async () => {
-    if (!expAmount || parseFloat(expAmount) <= 0) return;
+    if (!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0) return;
     if (isFuture(expDate)) { setToast(t('errDateFuture')); return; }
     setLoadingExp(true);
     try {
@@ -528,7 +532,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       }
       await api.createTransaction({
         type: 'expense',
-        amount: parseFloat(expAmount),
+        amount: parseFloat(expAmount.replace(/,/g, '')),
         category: expCategory,
         account: payMethod,
         note: expNote,
@@ -905,7 +909,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={st.bigAmtSymbol}>¥</Text>
                   <TextInput style={st.bigAmtInput}
                     value={expAmount} onChangeText={(v: string) => setExpAmount(fmtDecInput(v))}
-                    onBlur={() => { if (expAmount !== '') setExpAmount(toDec2(expAmount)); }}
+                    onBlur={() => { if (expAmount !== '') setExpAmount(toDec2Comma(expAmount)); }}
                     keyboardType="decimal-pad" placeholder="0.00"
                     placeholderTextColor={colors.textSub}
                     autoFocus={false} />
@@ -1073,14 +1077,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[st.expBtn, { flex: 1 }]}
-                  onPress={() => { if (parseFloat(expAmount) > 0) setShowExpConfirm(true); }}
-                  disabled={!expAmount || parseFloat(expAmount) <= 0 || loadingExp}
+                  onPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) > 0) setShowExpConfirm(true); }}
+                  disabled={!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0 || loadingExp}
                   activeOpacity={0.8}
                 >
                   <Text style={st.expBtnText}>
                     {loadingExp ? '...' : t('confirmRecord')}
                   </Text>
-                  {(!expAmount || parseFloat(expAmount) <= 0 || loadingExp) && (
+                  {(!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0 || loadingExp) && (
                     <View style={st.expBtnMask} />
                   )}
                 </TouchableOpacity>
