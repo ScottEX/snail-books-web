@@ -316,13 +316,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const diff = realTotal - channelTotal;
 
   const hasReconChanges =
-    cardBalance !== initReconValues.current.card ||
-    cashBalance !== initReconValues.current.cash ||
-    dineIn !== initReconValues.current.dine ||
-    meituan !== initReconValues.current.mt ||
-    flashSale !== initReconValues.current.fs ||
-    jd !== initReconValues.current.jd ||
-    tuan !== initReconValues.current.tuan;
+    toNum(cardBalance) !== toNum(initReconValues.current.card) ||
+    toNum(cashBalance) !== toNum(initReconValues.current.cash) ||
+    toNum(dineIn) !== toNum(initReconValues.current.dine) ||
+    toNum(meituan) !== toNum(initReconValues.current.mt) ||
+    toNum(flashSale) !== toNum(initReconValues.current.fs) ||
+    toNum(jd) !== toNum(initReconValues.current.jd) ||
+    toNum(tuan) !== toNum(initReconValues.current.tuan);
 
   /* ── 模块二：平台手续费 ── */
   const now = new Date();
