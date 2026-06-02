@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animated } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -406,6 +406,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   };
 
   const styles = useMemo(() => getStyles(colors), [colors]);
+  const usr = useMemo(() => { try { return localStorage.getItem('user') || '用户'; } catch { return '用户'; } }, []);
 
   return (
     <View style={styles.container}>
@@ -426,6 +427,13 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerInner}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <Circle cx="12" cy="7" r="4" />
+            </Svg>
+            <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{usr}</Text>
+          </View>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => openModal(() => setShowBgModal(true))} style={{ marginRight: 8 }}>
               <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
@@ -1002,7 +1010,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  headerInner: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
+  headerInner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   title: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   // 8600: color:#8C8583 font-size:13px
