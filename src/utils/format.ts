@@ -8,5 +8,5 @@ export function fmtAmt(n: number): string {
     if (lang.startsWith('zh-TW') || lang.startsWith('zh-Hant')) return '\u00A5' + (n / 10000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u842C';
     return '\u00A5' + (n / 10000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u4E07';
   }
-  return '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+  return '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
