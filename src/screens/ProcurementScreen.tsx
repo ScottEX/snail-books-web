@@ -154,16 +154,14 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   container: { flex: 1, position: 'relative' as const },
 
   frostedBlock: {
-    borderRadius: 16, overflow: 'hidden' as const,
+    position: 'relative' as const, zIndex: 10,
+    marginHorizontal: 12, marginTop: 4, borderRadius: 16, overflow: 'hidden' as const,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     backgroundColor: withAlpha(c.surface, 0.65),
     // @ts-ignore
     backdropFilter: 'saturate(180%) blur(24px)',
     // @ts-ignore
     boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
-  },
-  frostedBlockOverlay: {
-    position: 'absolute' as const, top: 4, left: 12, right: 12, zIndex: 10,
   },
   headerSection: { padding: 16, paddingBottom: 8 },
   headerTop: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginBottom: 12 },
@@ -384,7 +382,6 @@ export default function ProcurementScreen() {
   });
   const [search, setSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('全部');
-  const [headerHeight, setHeaderHeight] = useState(240); // frostedBlock spacer
   const [editingPrice, setEditingPrice] = useState<number | null>(null);
   const [editPriceVal, setEditPriceVal] = useState('');
 
@@ -801,17 +798,8 @@ export default function ProcurementScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Spacer — pushes content below the frostedBlock */}
-      <View style={{ height: headerHeight }} />
-
-      {/* ── Frosted Glass Block (absolute overlay) ── */}
-      <View
-        style={[styles.frostedBlock, styles.frostedBlockOverlay]}
-        onLayout={(e: any) => {
-          const h = e.nativeEvent.layout.height;
-          if (h > 0 && h !== headerHeight) setHeaderHeight(h);
-        }}
-      >
+      {/* ── Frosted Glass Block (everything merged) ── */}
+      <View style={styles.frostedBlock}>
         {/* Header */}
         <View style={styles.headerSection}>
           <View style={styles.headerTop}>
