@@ -105,8 +105,9 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const cropImgRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const guideRef = useRef<HTMLDivElement | null>(null);
   const cropState = useRef({
-    x: 0, y: 0, scale: 1, rotation: 0, minScale: 1, maxScale: 8,
+    x: 0, y: 0, scale: 1, rotation: 0, flipX: false, minScale: 1, maxScale: 8,
     cropSize: 160,
     drag: { active: false, sx: 0, sy: 0, ox: 0, oy: 0 },
     pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
@@ -130,7 +131,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     guideWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any,
     guideCircle: {
       width: 160, height: 160, borderRadius: 80, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)',
-      position: 'relative',
+      position: 'relative', transition: 'border-color 0.2s',
       boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)',
     } as any,
     thirds: { position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' } as any,
@@ -283,15 +284,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       const img = document.createElement('img') as HTMLImageElement;
       img.onload = () => {
         cropImgRef.current = img;
-        const s = cropState.current;
-        s.rotation = 0; s.x = 0; s.y = 0;
-        // Fit image so it covers the crop circle
-        const sw = s.cropSize / img.naturalWidth;
-        const sh = s.cropSize / img.naturalHeight;
-        s.scale = Math.max(sw, sh) * 1.05;
-        s.minScale = Math.max(sw, sh);
-        s.maxScale = 8;
         setupCanvas();
+        fitImage();
         drawCrop();
       };
       img.src = src;
@@ -316,6 +310,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       const outScale = outSize / s.cropSize;
       octx.translate(outSize / 2 + s.x * outScale, outSize / 2 + s.y * outScale);
       octx.rotate(s.rotation * Math.PI / 180);
+      if (s.flipX) octx.scale(-1, 1);
       octx.scale(s.scale * outScale, s.scale * outScale);
       octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
       setCropResult(output.toDataURL('image/jpeg', 0.92));
@@ -356,6 +351,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     ctx.save();
     ctx.translate(canvas!.width / 2 + s.x, canvas!.height / 2 + s.y);
     ctx.rotate(s.rotation * Math.PI / 180);
+    if (s.flipX) ctx.scale(-1, 1);
     ctx.scale(s.scale, s.scale);
     ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
     ctx.restore();
@@ -382,7 +378,28 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     canvas.height = rect.height;
     canvas.style.width = rect.width + 'px';
     canvas.style.height = rect.height + 'px';
-    // Keep cropSize at 160 — matches the static guide circle in JSX
+    // Dynamic crop circle — 76% of smaller dimension (reference behavior)
+    const s = cropState.current;
+    s.cropSize = Math.round(Math.min(rect.width, rect.height) * 0.76);
+    // Update guide circle size imperatively (avoids React re-render)
+    const guide = guideRef.current;
+    if (guide) {
+      guide.style.width = s.cropSize + 'px';
+      guide.style.height = s.cropSize + 'px';
+      guide.style.borderRadius = (s.cropSize / 2) + 'px';
+    }
+  };
+
+  // ── Re-fit image when guide circle size changes ──
+  const fitImage = () => {
+    const img = cropImgRef.current;
+    if (!img) return;
+    const s = cropState.current;
+    const sw = s.cropSize / img.naturalWidth;
+    const sh = s.cropSize / img.naturalHeight;
+    s.scale = Math.max(sw, sh) * 1.05;
+    s.minScale = Math.max(sw, sh);
+    s.x = 0; s.y = 0; s.rotation = 0; s.flipX = false;
   };
 
   const zoomCrop = (delta: number, cx: number, cy: number) => {
@@ -421,12 +438,42 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       return { x: clientX - r.left - canvas.width / 2, y: clientY - r.top - canvas.height / 2 };
     };
 
+    // Guide circle active state + pill hide
+    const guide = guideRef.current;
+    const setGuideActive = (active: boolean) => {
+      if (!guide) return;
+      guide.style.borderColor = active ? '#fff' : 'rgba(255,255,255,0.8)';
+      guide.style.boxShadow = active
+        ? '0 0 0 9999px rgba(0,0,0,0.62)'
+        : '0 0 0 9999px rgba(0,0,0,0.55)';
+    };
+
+    // Pill auto-hide (3s) + hide on interaction
+    let pillTimer: any = setTimeout(() => {
+      const pill = stage.querySelector('[data-pill]') as HTMLElement;
+      if (pill) pill.style.opacity = '0';
+    }, 3000);
+    const hidePill = () => {
+      clearTimeout(pillTimer);
+      const pill = stage.querySelector('[data-pill]') as HTMLElement;
+      if (pill) pill.style.opacity = '0';
+    };
+
+    // Window resize
+    const onResize = () => {
+      setupCanvas();
+      clampCrop();
+      drawCrop();
+    };
+    window.addEventListener('resize', onResize);
+
     // Mouse
     const onMD = (e: MouseEvent) => {
       const s = cropState.current;
       s.drag.active = true;
       s.drag.sx = e.clientX; s.drag.sy = e.clientY;
       s.drag.ox = s.x; s.drag.oy = s.y;
+      setGuideActive(true); hidePill();
     };
     const onMM = (e: MouseEvent) => {
       const s = cropState.current;
@@ -436,7 +483,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       clampCrop();
       scheduleDraw();
     };
-    const onMU = () => { cropState.current.drag.active = false; };
+    const onMU = () => { cropState.current.drag.active = false; setGuideActive(false); };
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const p = toLocal(e.clientX, e.clientY);
@@ -448,12 +495,15 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
       const s = cropState.current;
+      hidePill();
       if (e.touches.length === 1) {
         s.drag.active = true;
         s.drag.sx = e.touches[0].clientX; s.drag.sy = e.touches[0].clientY;
         s.drag.ox = s.x; s.drag.oy = s.y;
+        setGuideActive(true);
       } else if (e.touches.length === 2) {
         s.drag.active = false;
+        setGuideActive(false);
         s.pinch.active = true;
         s.pinch.startDist = getDist(e.touches);
         s.pinch.startScale = s.scale;
@@ -484,7 +534,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const onTE = (e: TouchEvent) => {
       const s = cropState.current;
       if (e.touches.length < 2) s.pinch.active = false;
-      if (e.touches.length === 0) s.drag.active = false;
+      if (e.touches.length === 0) { s.drag.active = false; setGuideActive(false); }
     };
 
     canvas.addEventListener('mousedown', onMD);
@@ -505,7 +555,9 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       canvas.removeEventListener('touchmove', onTM);
       canvas.removeEventListener('touchend', onTE);
       canvas.removeEventListener('touchcancel', onTE);
+      window.removeEventListener('resize', onResize);
       cancelAnimationFrame(frameId);
+      clearTimeout(pillTimer);
     };
   }, [cropSrc, showResult]);
 
@@ -908,7 +960,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             />
             {/* Guide overlay */}
             <View style={cropS.guideWrap as any} pointerEvents="none">
-              <View style={cropS.guideCircle as any}>
+              {/* @ts-ignore */}
+              <View style={cropS.guideCircle as any} ref={guideRef as any}>
                 <View style={[cropS.thirds, { top: '33.3%' }] as any} />
                 <View style={[cropS.thirds, { top: '66.6%' }] as any} />
                 <View style={[cropS.thirds, { left: '33.3%', width: 1, height: '100%' }] as any} />
@@ -920,7 +973,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               </View>
             </View>
             {/* Hint pill */}
-            <View style={cropS.pill as any} pointerEvents="none">
+            {/* @ts-ignore */}
+            <View style={cropS.pill as any} pointerEvents="none" data-pill="true">
               <Text style={cropS.pillText}>拖动移动 · 双指缩放</Text>
             </View>
           </View>
@@ -948,6 +1002,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <path d="M3 12a9 9 0 109-9H9m0 0l3 3m-3-3l3-3" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>旋转</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { cropState.current.flipX = !cropState.current.flipX; drawCrop(); }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>翻转</Text>
             </TouchableOpacity>
           </View>
 
