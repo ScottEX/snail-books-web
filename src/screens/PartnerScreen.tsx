@@ -118,60 +118,59 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const org = useMemo(() => getOrg(colors), [colors]);
   const tg = useMemo(() => getTg(colors), [colors]);
   const cropS = useMemo(() => ({
-    overlay: { position: 'fixed', inset: 0, zIndex: 200, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' },
-    header: { padding: '16px 20px 12px', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 },
-    title: { fontSize: 15, fontWeight: '600', color: '#fff', letterSpacing: -0.2 },
-    closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
+    overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
+    header: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any,
+    title: { fontSize: 15, fontWeight: '600' as const, color: '#fff', letterSpacing: -0.2 },
+    closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' } as any,
     closeBtnText: { color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 },
-    stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' },
-    guideWrap: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' } as any,
+    guideWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any,
     guideCircle: {
       width: 200, height: 200, borderRadius: 100, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)',
       position: 'relative',
-      boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)',
-    },
-    thirds: { position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' },
-    handle: { position: 'absolute', width: 18, height: 18, borderColor: '#fff', borderStyle: 'solid', opacity: 0.9 },
+    } as any,
+    thirds: { position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' } as any,
+    handle: { position: 'absolute', width: 18, height: 18, borderColor: '#fff', borderStyle: 'solid', opacity: 0.9 } as any,
     pill: {
-      position: 'absolute', bottom: 12, left: '50%', transform: [{ translateX: '-50%' }],
+      position: 'absolute', bottom: 12, left: '50%', transform: [{ translateX: -75 }],
       backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, paddingVertical: 5, paddingHorizontal: 14,
       borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
-    },
+    } as any,
     pillText: { fontSize: 12, color: 'rgba(255,255,255,0.7)' },
     toolbar: {
-      padding: '12px 20px', backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center',
+      paddingVertical: 12, paddingHorizontal: 20, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center',
       borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', flexShrink: 0,
-    },
-    toolBtn: { paddingVertical: 8, paddingHorizontal: 10, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 },
+    } as any,
+    toolBtn: { paddingVertical: 8, paddingHorizontal: 10, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any,
     actions: {
-      padding: '12px 20px 20px', backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0,
-    },
+      paddingTop: 12, paddingHorizontal: 20, paddingBottom: 20, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0,
+    } as any,
     cancelBtn: {
       flex: 1, padding: 13, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
       backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center',
-    },
+    } as any,
     confirmBtn: {
       flex: 2, padding: 13, borderRadius: 14, backgroundColor: '#5B5BD6',
       justifyContent: 'center', alignItems: 'center', flexDirection: 'row',
-    },
+    } as any,
     // Result preview
     resultCard: {
-      position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: '-50%' }, { translateY: '-50%' }],
+      position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: -160 }, { translateY: -100 }],
       backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 32,
       borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12,
-    },
-    resultBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' },
-    resultLabel: { fontSize: 14, fontWeight: '600', color: '#fff' },
-    sizePreviews: { flexDirection: 'row', gap: 16, alignItems: 'flex-end' },
+    } as any,
+    resultBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any,
+    resultLabel: { fontSize: 14, fontWeight: '600' as const, color: '#fff' },
+    sizePreviews: { flexDirection: 'row', gap: 16, alignItems: 'flex-end' } as any,
     resultSub: { fontSize: 12, color: 'rgba(255,255,255,0.4)' },
     reEditBtn: {
       flex: 1, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
       justifyContent: 'center', alignItems: 'center',
-    },
+    } as any,
     saveBtn: {
       flex: 2, padding: 12, borderRadius: 10, backgroundColor: '#5B5BD6',
       justifyContent: 'center', alignItems: 'center',
-    },
+    } as any,
   }), [colors]);
 
   const [loadingData, setLoadingData] = useState(true);
@@ -749,8 +748,9 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           </View>
 
           {/* Crop stage */}
-          {/* @ts-ignore web-only drag handlers */}
-          <View style={cropS.stage as any} ref={stageRef as any}
+          <View
+            // @ts-ignore web-only
+            style={cropS.stage} ref={stageRef}
             onMouseDown={onDragStart} onMouseMove={onDragMove} onMouseUp={onDragMove}
             onTouchStart={onDragStart} onTouchMove={onDragMove} onTouchEnd={onDragMove}>
             <img ref={imgRef as any} src={cropSrc}
@@ -824,7 +824,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
         <View style={cropS.overlay as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setShowResult(false); setCropSrc(''); } }}>
           <View style={cropS.resultCard as any}>
             <View style={cropS.resultBadge as any}>
-              <Text style={{ fontSize: 20, color: colors.ok || '#1B7A4A' }}>✓</Text>
+              <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
             </View>
             <Text style={cropS.resultLabel}>头像已更新</Text>
             <View style={cropS.sizePreviews as any}>
