@@ -21,16 +21,29 @@ function translateName(name: string): string {
   return key ? t(key) : name;
 }
 
+function formatDate(dateStr: string): string {
+  if (!dateStr) return dateStr;
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [y, m, d] = parts;
+  const lang = getLang();
+  if (lang === 'en') {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
+  }
+  return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+}
+
 function translateDividendNote(note: string, date?: string): string {
   const m = note.match(/^(?:第(\d+)次分红|第(\d+)次)$/);
   if (m) {
     const n = m[1] || m[2];
-    if (date) return t('dividendRoundFmt').replace('{n}', n).replace('{date}', date);
+    if (date) return t('dividendRoundFmt').replace('{n}', n).replace('{date}', formatDate(date));
     return t('dividendRoundOnly').replace('{n}', n);
   }
   // fallback: old format with embedded date
   const m2 = note.match(/^第(\d+)次分红 \((.+)\)$/);
-  if (m2) return t('dividendRoundFmt').replace('{n}', m2[1]).replace('{date}', m2[2]);
+  if (m2) return t('dividendRoundFmt').replace('{n}', m2[1]).replace('{date}', formatDate(m2[2]));
   return note;
 }
 
@@ -254,11 +267,11 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                       <Text style={s.dataValue}>¥{p.investment.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                     <View style={s.partnerDataCell}>
-                      <Text style={s.dataLabel}>{t('initial')} ({initDate[p.name]})</Text>
+                      <Text style={s.dataLabel}>{t('initial')} ({formatDate(initDate[p.name])})</Text>
                       <Text style={s.dataValue}>¥{initInv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                     <View style={s.partnerDataCell}>
-                      <Text style={s.dataLabel}>{t('additional')} ({addDate[p.name]})</Text>
+                      <Text style={s.dataLabel}>{t('additional')} ({formatDate(addDate[p.name])})</Text>
                       <Text style={s.dataValue}>¥{midInv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                   </View>
