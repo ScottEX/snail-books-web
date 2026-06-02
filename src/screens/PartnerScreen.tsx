@@ -102,6 +102,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [cropX, setCropX] = useState(0);
   const [cropY, setCropY] = useState(0);
   const [cropScale, setCropScale] = useState(1);
+  const [cropMinScale, setCropMinScale] = useState(1);  // min scale to cover circle
   const [cropRotation, setCropRotation] = useState(0);
   const [cropResult, setCropResult] = useState('');  // data URL after crop
   const [showResult, setShowResult] = useState(false);
@@ -128,6 +129,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     guideCircle: {
       width: 200, height: 200, borderRadius: 100, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)',
       position: 'relative',
+      boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)',
     } as any,
     thirds: { position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' } as any,
     handle: { position: 'absolute', width: 18, height: 18, borderColor: '#fff', borderStyle: 'solid', opacity: 0.9 } as any,
@@ -273,7 +275,18 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const reader = new FileReader();
     reader.onload = () => {
       setCropSrc(reader.result as string);
-      setCropX(0); setCropY(0); setCropScale(1); setCropRotation(0); setCropMsg(''); setShowResult(false);
+      setCropX(0); setCropY(0);
+      setCropRotation(0); setCropMsg(''); setShowResult(false);
+      // Fit image so it covers the crop circle (200px)
+      const img = document.createElement('img');
+      img.onload = () => {
+        if (!img.naturalWidth || !img.naturalHeight) return;
+        const fitScale = Math.max(1, img.naturalHeight / img.naturalWidth) * 1.05;
+        setCropScale(fitScale);
+        setCropMinScale(Math.max(1, img.naturalHeight / img.naturalWidth));
+      };
+      img.src = reader.result as string;
+      setCropScale(1);  // fallback until image loads
     };
     reader.readAsDataURL(file);
     e.target.value = ''; // allow re-select same file
@@ -286,21 +299,21 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       if (!img) { setCropMsg('图片未加载'); return; }
       const nw = (img as any).naturalWidth;
       const nh = (img as any).naturalHeight;
-      const iw = (img as any).width;
-      const ih = (img as any).height;
-      if (!nw || !nh || !iw || !ih) { setCropMsg('图片未加载完成，请重试'); return; }
-      const size = 200;
-      const scaleX = nw / iw;
-      const scaleY = nh / ih;
-      if (!isFinite(scaleX) || !isFinite(scaleY) || scaleX <= 0 || scaleY <= 0) {
-        setCropMsg('图片尺寸异常，请重新选择'); return;
-      }
-      const cx = 100 - cropX;
-      const cy = 100 - cropY;
-      const sx = (cx - size / 2) * scaleX;
-      const sy = (cy - size / 2) * scaleY;
-      const sw = size * scaleX;
-      const sh = size * scaleY;
+      const rw = (img as any).width;
+      const rh = (img as any).height;
+      if (!nw || !nh || !rw || !rh) { setCropMsg('图片未加载完成，请重试'); return; }
+      // Image is centered with translate(-50%,-50%), cropX/Y are offsets from stage center
+      // Circle center in image local coords = (rw/2 - cropX, rh/2 - cropY)
+      const imgCenterX = rw / 2;
+      const imgCenterY = rh / 2;
+      const circleLeft = imgCenterX - cropX - 100;
+      const circleTop = imgCenterY - cropY - 100;
+      const scaleX_nat = nw / rw;
+      const scaleY_nat = nh / rh;
+      const sx = circleLeft * scaleX_nat;
+      const sy = circleTop * scaleY_nat;
+      const sw = 200 * scaleX_nat;
+      const sh = 200 * scaleY_nat;
       const clampSx = Math.max(0, sx);
       const clampSy = Math.max(0, sy);
       const clampSw = Math.min(sw, nw - clampSx);
@@ -755,9 +768,11 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             onTouchStart={onDragStart} onTouchMove={onDragMove} onTouchEnd={onDragMove}>
             <img ref={imgRef as any} src={cropSrc}
               style={{
-                position: 'absolute', left: cropX, top: cropY,
+                position: 'absolute',
+                left: `calc(50% + ${cropX}px)`,
+                top: `calc(50% + ${cropY}px)`,
                 width: 'auto', height: 200 * cropScale, minWidth: 200 * cropScale,
-                transform: `rotate(${cropRotation}deg)`,
+                transform: `translate(-50%, -50%) rotate(${cropRotation}deg)`,
                 userSelect: 'none', pointerEvents: 'none',
               }}
               draggable={false}
@@ -785,8 +800,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
           <View style={cropS.toolbar as any}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>A</Text>
-              <input type="range" min="0" max="100" value={Math.round(((cropScale - 0.3) / (3 - 0.3)) * 100)}
-                onChange={(e: any) => setCropScale(0.3 + (3 - 0.3) * (Number(e.target.value) / 100))}
+              <input type="range" min="0" max="100" value={Math.round(((cropScale - cropMinScale) / ((cropMinScale * 3) - cropMinScale)) * 100)}
+                onChange={(e: any) => setCropScale(cropMinScale + ((cropMinScale * 3) - cropMinScale) * (Number(e.target.value) / 100))}
                 style={{ flex: 1, height: 3, appearance: 'none', cursor: 'pointer', accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
               />
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
