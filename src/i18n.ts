@@ -209,6 +209,8 @@ const I18N: Record<string, Record<string, string>> = {
     reconDate: '对账日期',
     emptyReconHint: '每完成一次对账，这里就多一张小卡片',
     emptyExpenseHint: '每完成一次记账，这里就多一条记录',
+    ledgerEmpty: '暂无分红记录',
+    ledgerEmptyHint: '发放分红后，账目流水会显示在这里',
     loadMore: '加载更多',
     tapForDetail: '点击卡片查看详情',
     // Toast messages
@@ -537,6 +539,8 @@ const I18N: Record<string, Record<string, string>> = {
     reconDate: '對賬日期',
     emptyReconHint: '每完成一次對賬，這裡就多一張小卡片',
     emptyExpenseHint: '每完成一次記賬，這裡就多一條記錄',
+    ledgerEmpty: '暫無分紅記錄',
+    ledgerEmptyHint: '發放分紅後，帳目流水會顯示在這裡',
     loadMore: '載入更多',
     tapForDetail: '點擊卡片檢視詳情',
     // Toast messages
@@ -865,6 +869,8 @@ const I18N: Record<string, Record<string, string>> = {
     reconDate: 'Date',
     emptyReconHint: 'Each reconciliation adds a card here',
     emptyExpenseHint: 'Each expense record will appear here',
+    ledgerEmpty: 'No dividend records',
+    ledgerEmptyHint: 'Dividend transactions will appear here after distribution',
     loadMore: 'Load More',
     tapForDetail: 'Tap card for details',
     // Toast messages
