@@ -31,7 +31,7 @@ function formatDate(dateStr: string): string {
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
   }
-  return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+  return `${y}年${m}月${d}日`;
 }
 
 function translateDividendNote(note: string, date?: string): string {
@@ -410,7 +410,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             <View style={{ padding: 20, gap: 16 }}>
               <View style={moBody.deleteBox}>
                 <Text style={moBody.deleteText}>
-                  {t('willDelete')}<Text style={{ fontWeight: '600', color: colors.textMain }}>{translateDividendNote(showDelete, grouped[showDelete]?.[0]?.date)}</Text>{t('allDividendRecords')}
+                  {t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{translateDividendNote(showDelete, grouped[showDelete]?.[0]?.date)}</Text>{t('allDividendRecords')}
                 </Text>
               </View>
               <View style={moBody.btnRow}>
