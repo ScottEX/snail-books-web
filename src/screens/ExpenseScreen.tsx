@@ -67,10 +67,8 @@ function NumberTicker({ value, duration = 500, style }: {
     return () => cancelAnimationFrame(rafRef.current);
   }, [value, duration]);
 
-  // Pick formatter: if value has decimals use fmt, else fmtInt + ¥
-  const text = value !== 0 && Number.isInteger(value) && Number.isInteger(display)
-    ? '¥' + fmtInt(Math.round(display))
-    : fmt(display);
+  // Always use fmt (now with guaranteed 2 decimal places)
+  const text = fmt(display);
 
   return <Text style={style}>{text}</Text>;
 }
