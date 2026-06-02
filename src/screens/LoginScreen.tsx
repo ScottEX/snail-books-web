@@ -67,9 +67,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   };
 
   const validatePassword = (pw: string): string => {
-    if (pw.length < 6) return t('errPwTooShort') || '6 chars min';
+    if (pw.length < 8) return t('errPwTooShort') || '8 chars min';
     if (!/[A-Za-z]/.test(pw)) return t('errPwNeedLetter') || 'needs a letter';
     if (!/[0-9]/.test(pw)) return t('errPwNeedNumber') || 'needs a number';
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pw)) return t('errPwNeedSpecial') || 'needs a special char';
     return '';
   };
 
@@ -167,15 +168,15 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   const handleReset = async () => {
     if (loading) return;
-    if (!code || !password) { setMsg(t('errEmptyFields')); triggerShake(); return; }
+    if (!code || !password) { setMsgOk(false); setMsg(t('errEmptyFields')); triggerShake(); return; }
     const pwErr = validatePassword(password);
-    if (pwErr) { setMsg(pwErr); triggerShake(); return; }
+    if (pwErr) { setMsgOk(false); setMsg(pwErr); triggerShake(); return; }
     setLoading(true);
     try {
       const r = await api.resetPassword(email, code, password);
       setLoading(false);
       if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgResetOk')); setStep('login'); }
-      else { setMsg(r.message); triggerShake(); }
+      else { setMsgOk(false); setMsg(r.message); triggerShake(); }
     } catch (e: any) {
       setLoading(false);
       setMsg(e?.message || t('errNetworkError') || '网络错误，请检查网络后重试');
