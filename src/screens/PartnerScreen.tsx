@@ -212,16 +212,8 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const dataUrl = reader.result as string;
-      setCropSrc(dataUrl);
-      // Calc initial scale so the image's shorter side fills the 200px circle
-      const tmp = new (window as any).Image();
-      tmp.onload = () => {
-        const minDim = Math.min(tmp.naturalWidth, tmp.naturalHeight);
-        setCropScale(Math.round(200 / minDim * 100) / 100);
-      };
-      tmp.src = dataUrl;
-      setCropX(0); setCropY(0);
+      setCropSrc(reader.result as string);
+      setCropX(0); setCropY(0); setCropScale(1);
     };
     reader.readAsDataURL(file);
     e.target.value = ''; // allow re-select same file
@@ -243,10 +235,21 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const sy = (cy - size / 2) * scaleY;
     const sw = size * scaleX;
     const sh = size * scaleY;
+    // Clamp to image bounds (crop area may extend beyond image edges)
+    const clampSx = Math.max(0, sx);
+    const clampSy = Math.max(0, sy);
+    const clampSw = Math.min(sw, img.naturalWidth - clampSx);
+    const clampSh = Math.min(sh, img.naturalHeight - clampSy);
+    if (clampSw <= 0 || clampSh <= 0) { setToast('裁切区域超出图片范围'); return; }
     const canvas = document.createElement('canvas');
     canvas.width = 256; canvas.height = 256;
     const ctx = canvas.getContext('2d')!;
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 256, 256);
+    // Map clamped source → full 256×256 destination, with offset for negative source
+    const dx = sx < 0 ? Math.round(-sx / sw * 256) : 0;
+    const dy = sy < 0 ? Math.round(-sy / sh * 256) : 0;
+    const dw = Math.round(clampSw / sw * 256);
+    const dh = Math.round(clampSh / sh * 256);
+    ctx.drawImage(img, clampSx, clampSy, clampSw, clampSh, dx, dy, dw, dh);
     canvas.toBlob(async (blob) => {
       if (!blob) return;
       const form = new FormData();

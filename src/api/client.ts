@@ -207,11 +207,6 @@ export const api = {
       headers: h,
       body: form,
     });
-    if (resp.status === 401) {
-      localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') window.location.href = '/login';
-      throw new Error('Unauthorized');
-    }
     if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
     return resp.json();
   },
