@@ -13,6 +13,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
   const [username, setUsername] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [email, setEmail] = useState('');
@@ -65,6 +66,23 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setStep('register'); reset();
     setUsername(''); // don't carry over saved login
   };
+
+  // Fetch avatar when username changes (debounced)
+  useEffect(() => {
+    if (!username) { setAvatarUrl(''); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const resp = await fetch(`/api/users/avatar?username=${encodeURIComponent(username)}`);
+        if (resp.ok) {
+          const blob = await resp.blob();
+          setAvatarUrl(URL.createObjectURL(blob));
+        } else {
+          setAvatarUrl('');
+        }
+      } catch { setAvatarUrl(''); }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [username]);
 
   const validatePassword = (pw: string): string => {
     if (pw.length < 8) return t('errPwTooShort') || '8 chars min';
@@ -210,7 +228,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         {/* Brand */}
         <View style={styles.brand}>
           <View style={styles.logoWrap}>
-            <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.logo} />
+            ) : (
+              <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
+            )}
           </View>
           <Text style={styles.subtitle}>{t('subtitle')}</Text>
           <View style={styles.langRow}>

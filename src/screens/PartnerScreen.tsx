@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
@@ -93,6 +93,9 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [lang, setLangState] = useState(getLang());
 
   const [toast, setToast] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarKey, setAvatarKey] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { colors } = useTheme();
 
@@ -185,6 +188,37 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     return history;
   };
 
+  const loadAvatar = async () => {
+    const uid = localStorage.getItem('user_id');
+    if (!uid) return;
+    try {
+      const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
+      if (resp.ok) {
+        const blob = await resp.blob();
+        setAvatarUrl(URL.createObjectURL(blob));
+      }
+    } catch {}
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const resp = await api.uploadAvatar(form);
+      if (resp.status === 'ok') {
+        setAvatarKey(k => k + 1);
+        loadAvatar();
+        setToast('头像已更新');
+      } else {
+        setToast('上传失败');
+      }
+    } catch { setToast('上传失败'); }
+  };
+
+  useEffect(() => { loadAvatar(); }, []);
+
   return (
     <View style={s.root}>
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
@@ -201,6 +235,17 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 </View>
               </View>
             </View>
+            <TouchableOpacity onPress={() => fileInputRef.current?.click()}>
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={s.avatar} key={avatarKey} />
+              ) : (
+                <View style={[s.avatar, s.avatarPlaceholder]}>
+                  <Text style={s.avatarInitial}>{localStorage.getItem('user')?.charAt(0)?.toUpperCase() || '?'}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <input type="file" accept="image/*" ref={fileInputRef as any}
+              style={{ display: 'none' }} onChange={handleAvatarUpload} />
           </View>
 
           {/* ====== 3 STAT CARDS (8600 exact) ====== */}
@@ -636,6 +681,9 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   engSub: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, letterSpacing: 0.3, marginTop: 1 },
   langRow: { flexDirection: 'row', gap: 4, paddingTop: 4 },
   langBtn: { fontSize: FONTS.micro.size, color: colors.textSub, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: FONTS.micro.weight as any },
+  avatar: { width: 40, height: 40, borderRadius: 20 },
+  avatarPlaceholder: { backgroundColor: withAlpha(colors.primary, 0.12), justifyContent: 'center', alignItems: 'center' },
+  avatarInitial: { fontSize: 16, fontWeight: '600', color: colors.primary },
   langActive: { color: colors.primary, backgroundColor: withAlpha(colors.danger, 0.1), fontWeight: FONTS.microBold.weight as any },
   statGrid: { flexDirection: 'row', gap: 12, marginTop: 16, flexWrap: 'wrap' },
   statCard: {

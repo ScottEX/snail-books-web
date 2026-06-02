@@ -198,6 +198,18 @@ export const api = {
   resetBackground: () => authFetch('/api/settings/background', { method: 'DELETE' }),
   saveBackgroundSettings: (data: any) => authFetch('/api/settings/background', { method: 'PUT', body: JSON.stringify(data) }),
 
+  // Avatar
+  uploadAvatar: async (form: FormData) => {
+    bumpActivity();
+    const resp = await fetch(API_BASE + '/api/users/avatar', {
+      method: 'POST',
+      headers: { 'X-Lang': getLang() },
+      body: form,
+    });
+    if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
+    return resp.json();
+  },
+
   // Language preference (stored per-user in user_settings)
   getLang: () => authFetch('/api/settings/lang'),
   saveLang: (lang: string) => authFetch('/api/settings/lang', { method: 'PUT', body: JSON.stringify({ lang }) }),
