@@ -256,8 +256,21 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       const cdh = Math.round(clampSh / sh * 256);
       ctx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, cdw, cdh);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      setCropMsg('裁切成功');
-      setTimeout(() => setCropSrc(''), 800);
+      // Upload
+      const arr = dataUrl.split(',');
+      const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
+      const bstr = atob(arr[1]);
+      const u8 = new Uint8Array(bstr.length);
+      for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
+      const blob = new Blob([u8], { type: mime });
+      const form = new FormData();
+      form.append('file', blob, 'avatar.jpg');
+      const resp = await api.uploadAvatar(form);
+      if (resp.status === 'ok') {
+        setCropSrc('');
+        setAvatarKey(k => k + 1);
+        loadAvatar();
+      } else { setCropMsg('上传失败'); }
     } catch (e) { console.error('crop failed', e); setCropMsg('裁切失败，请重试'); }
   };
 
