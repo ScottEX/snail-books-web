@@ -267,11 +267,11 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                       <Text style={s.dataValue}>¥{p.investment.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                     <View style={s.partnerDataCell}>
-                      <Text style={s.dataLabel}>{t('initial')} ({formatDate(initDate[p.name])})</Text>
+                      <Text style={s.dataLabel}>{t('initial')}</Text>
                       <Text style={s.dataValue}>¥{initInv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                     <View style={s.partnerDataCell}>
-                      <Text style={s.dataLabel}>{t('additional')} ({formatDate(addDate[p.name])})</Text>
+                      <Text style={s.dataLabel}>{t('additional')}</Text>
                       <Text style={s.dataValue}>¥{midInv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                   </View>
@@ -312,7 +312,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             </View>
 
             {(filter === 'all' || filter === 'invest') && (
-              <TableGroup title={t('initialApr2024')} type="invest" total={130000}
+              <TableGroup title={`${t('initial')} · ${formatDate('2024-04-01')}`} type="invest" total={130000}
                 themeColors={colors} styles={tg}
                 items={[
                   { name: translateName('张安武'), sub: '34%', amount: 44200 },
@@ -321,7 +321,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 ]} />
             )}
             {(filter === 'all' || filter === 'mid') && (
-              <TableGroup title={t('midJan2025')} type="mid" total={30162}
+              <TableGroup title={`${t('additional')} · ${formatDate('2025-01-21')}`} type="mid" total={30162}
                 themeColors={colors} styles={tg}
                 items={[
                   { name: translateName('张安武'), sub: '34%', amount: 10255.08 },

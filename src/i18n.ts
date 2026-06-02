@@ -122,7 +122,7 @@ const I18N: Record<string, Record<string, string>> = {
     nameJiang: '江宽',
     nameLan: '蓝柳富',
     // Dividend round format
-    dividendRoundFmt: '第{n}次分红 ({date})',
+    dividendRoundFmt: '第{n}次分红 · {date}',
     dividendRoundOnly: '第{n}次分红',
     batchLabel: '{date} · 第{n}次分红',
     // Org chart & roles
@@ -131,7 +131,7 @@ const I18N: Record<string, Record<string, string>> = {
     chairman: '董事长',
     ceo: 'CEO',
     janitor: '打杂',
-    jokeClosedLoop: '一个董事长负责画饼，一个CEO负责烙饼，一个打杂的负责吃饼 —— 完美的商业闭环',
+    jokeClosedLoop: '「一个董事长负责画饼，一个CEO负责烙饼，一个打杂的负责吃饼 —— 完美的商业闭环」',
     noDividendRecords: '暂无分红记录',
     // Background settings
     bgSettings: '主题设置',
@@ -453,7 +453,7 @@ const I18N: Record<string, Record<string, string>> = {
     nameZhang: '張安武',
     nameJiang: '江寬',
     nameLan: '藍柳富',
-    dividendRoundFmt: '第{n}次分紅 ({date})',
+    dividendRoundFmt: '第{n}次分紅 · {date}',
     dividendRoundOnly: '第{n}次分紅',
     batchLabel: '{date} · 第{n}次分紅',
     partnerStructure: '合夥架構',
@@ -461,7 +461,7 @@ const I18N: Record<string, Record<string, string>> = {
     chairman: '董事長',
     ceo: 'CEO',
     janitor: '打雜',
-    jokeClosedLoop: '一個董事長負責畫餅，一個CEO負責烙餅，一個打雜的負責吃餅 —— 完美的商業閉環',
+    jokeClosedLoop: '「一個董事長負責畫餅，一個CEO負責烙餅，一個打雜的負責吃餅 —— 完美的商業閉環」',
     noDividendRecords: '暫無分紅記錄',
     // Background settings
     bgSettings: '主題設定',
@@ -784,14 +784,14 @@ const I18N: Record<string, Record<string, string>> = {
     nameZhang: 'Zhang Anwu',
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
-    dividendRoundFmt: 'Dividend #{n} ({date})',
+    dividendRoundFmt: 'Dividend #{n} · {date}',
     dividendRoundOnly: 'Dividend #{n}',
     partnerStructure: 'Partner Structure',
     lpControl: 'Limited Partnership Control',
     chairman: 'Chairman',
     ceo: 'CEO',
     janitor: 'Helper',
-    jokeClosedLoop: 'One chairman paints the pie, one CEO bakes it, one helper eats it — the perfect business loop',
+    jokeClosedLoop: '「One chairman paints the pie, one CEO bakes it, one helper eats it — the perfect business loop」',
     noDividendRecords: 'No dividend records',
     // Background settings
     bgSettings: 'Theme',
