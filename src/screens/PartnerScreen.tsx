@@ -269,7 +269,6 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       setCropSrc('');
       setAvatarKey(k => k + 1);
       loadAvatar();
-      setToast('头像已更新');
     } else { setCropMsg('上传失败'); }
     } catch (e) { console.error('crop failed', e); setCropMsg('裁切失败，请重试'); }
   };
