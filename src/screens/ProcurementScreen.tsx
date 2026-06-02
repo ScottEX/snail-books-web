@@ -89,6 +89,13 @@ function BoxIcon({ color }: { color: string }) {
     </Svg>
   );
 }
+function ChevronDownIcon({ color, size = 12 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M6 9l6 6 6-6" />
+    </Svg>
+  );
+}
 
 const SUPPLIER_DISPLAY: Record<string, string> = {};
 const SUPPLIER_ORDER = ['蓝姐', '蒙方', '鲜禾', '粉仔'];
@@ -990,7 +997,9 @@ export default function ProcurementScreen() {
                 <Text style={{ fontSize: FONTS.sub.size, color: prodForm.supplier ? c.textMain : c.textSub }}>
                   {prodForm.supplier || t('procProductSupplier')}
                 </Text>
-                <Text style={{ position: 'absolute', right: 10, fontSize: 10, color: c.textSub }}>▼</Text>
+                <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, justifyContent: 'center' }}>
+                  <ChevronDownIcon color={c.textSub} />
+                </View>
                 {React.createElement('select', {
                   value: prodForm.supplier,
                   onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
