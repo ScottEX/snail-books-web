@@ -90,8 +90,8 @@ function BoxIcon({ color }: { color: string }) {
   );
 }
 
-const SUPPLIER_DISPLAY: Record<string, string> = { '蓝姐螺蛳粉': '蓝姐', '鲜禾配送': '鲜禾', '桂螺帮': '桂螺' };
-const SUPPLIER_ORDER = ['蓝姐螺蛳粉', '蒙方', '鲜禾配送', '桂螺帮', '粉仔'];
+const SUPPLIER_DISPLAY: Record<string, string> = {};
+const SUPPLIER_ORDER = ['蓝姐', '蒙方', '鲜禾', '粉仔'];
 const displaySupplier = (s: string) => SUPPLIER_DISPLAY[s] || s;
 const sortByOrder = (a: string, b: string) => {
   const ai = SUPPLIER_ORDER.indexOf(a), bi = SUPPLIER_ORDER.indexOf(b);
@@ -986,7 +986,16 @@ export default function ProcurementScreen() {
             <View style={styles.modalBody}>
               <TextInput style={styles.modalInput} placeholder={t('procProductName')} placeholderTextColor={c.textSub} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
               <TextInput style={styles.modalInput} placeholder={t('procProductSpec')} placeholderTextColor={c.textSub} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
-              <TextInput style={styles.modalInput} placeholder={t('procProductSupplier')} placeholderTextColor={c.textSub} value={prodForm.supplier} onChangeText={v => setProdForm(p => ({ ...p, supplier: v }))} />
+              {React.createElement('select', {
+                value: prodForm.supplier,
+                onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
+                style: { ...styles.modalInput, height: 44, cursor: 'pointer', appearance: 'none' as any, WebkitAppearance: 'none' as any } as any,
+              },
+                <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
+                suppliers.filter((s: string) => s !== '全部').map((s: string) => (
+                  React.createElement('option', { key: s, value: s }, s)
+                ))
+              )}
               <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: v }))} keyboardType="numeric" />
               <View style={styles.modalBtnRow}>
                 <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setShowProductModal(false))}>
