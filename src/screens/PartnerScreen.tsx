@@ -12,6 +12,8 @@ import { modalCardAnimation, modalClose } from '../sharedStyles';
 // 默认值（33%、42900）可能不准确。理想方案是从后端返回并缓存这些映射。
 const partnerShare: Record<string, number> = { '张安武': 0.34, '江宽': 0.33, '蓝柳富': 0.33 };
 const initCapital: Record<string, number> = { '张安武': 44200, '江宽': 42900, '蓝柳富': 42900 };
+const initDate: Record<string, string> = { '张安武': '2024-04-01', '江宽': '2024-04-01', '蓝柳富': '2024-04-01' };
+const addDate: Record<string, string> = { '张安武': '2025-01-21', '江宽': '2025-01-21', '蓝柳富': '2025-01-21' };
 const nameMap: Record<string, string> = { '张安武': 'nameZhang', '江宽': 'nameJiang', '蓝柳富': 'nameLan' };
 
 function translateName(name: string): string {
@@ -245,11 +247,11 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                       <Text style={s.dataValue}>¥{p.investment.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                     <View style={s.partnerDataCell}>
-                      <Text style={s.dataLabel}>{t('initial')}</Text>
+                      <Text style={s.dataLabel}>{t('initial')} ({initDate[p.name]})</Text>
                       <Text style={s.dataValue}>¥{initInv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                     <View style={s.partnerDataCell}>
-                      <Text style={s.dataLabel}>{t('additional')}</Text>
+                      <Text style={s.dataLabel}>{t('additional')} ({addDate[p.name]})</Text>
                       <Text style={s.dataValue}>¥{midInv.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                     </View>
                   </View>
@@ -486,7 +488,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
       {showOrg && (
         <ModalOverlay styles={mo} onClose={() => setShowOrg(false)}>
-          <View style={[mo.modalCard, { maxWidth: 300 }]} onStartShouldSetResponder={() => true}>
+          <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{t('partnerStructure')}</Text>
@@ -636,8 +638,8 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   partnerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   partnerName: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
   partnerPct: { fontSize: FONTS.micro.size, color: colors.textSub },
-  paidBadge: { backgroundColor: withAlpha(colors.success, 0.1), borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
-  paidBadgeText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.success },
+  paidBadge: { backgroundColor: withAlpha(colors.success, 0.18), borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
+  paidBadgeText: { fontSize: FONTS.micro.size, fontWeight: FONTS.microBold.weight, color: colors.success },
   partnerDataRow: { flexDirection: 'row', gap: 4 },
   partnerDataCell: { flex: 1, alignItems: 'center' },
   dataLabel: { fontSize: FONTS.micro.size, color: colors.textSub },
