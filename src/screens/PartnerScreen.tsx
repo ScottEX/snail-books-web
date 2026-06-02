@@ -100,6 +100,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [cropSrc, setCropSrc] = useState('');
   const [cropX, setCropX] = useState(0);
   const [cropY, setCropY] = useState(0);
+  const [cropScale, setCropScale] = useState(1);
   const dragRef = useRef({ sx: 0, sy: 0, ox: 0, oy: 0 });
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -211,7 +212,15 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      setCropSrc(reader.result as string);
+      const dataUrl = reader.result as string;
+      setCropSrc(dataUrl);
+      // Calc initial scale so the image's shorter side fills the 200px circle
+      const tmp = new (window as any).Image();
+      tmp.onload = () => {
+        const minDim = Math.min(tmp.naturalWidth, tmp.naturalHeight);
+        setCropScale(Math.round(200 / minDim * 100) / 100);
+      };
+      tmp.src = dataUrl;
       setCropX(0); setCropY(0);
     };
     reader.readAsDataURL(file);
@@ -225,10 +234,11 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const size = 200; // crop circle diameter
     const scaleX = img.naturalWidth / img.width;
     const scaleY = img.naturalHeight / img.height;
-    // Center of crop circle in image display coords
-    const cx = (img.width / 2) - cropX;
-    const cy = (img.height / 2) - cropY;
-    // Source rect in natural coords (square centered on the circle)
+    // Crop circle center in container is always (100, 100).
+    // Image is at (cropX, cropY) → crop center in image coords = (100 - cropX, 100 - cropY)
+    const cx = 100 - cropX;
+    const cy = 100 - cropY;
+    // Source rect in display coords: 200×200 square centered on (cx, cy)
     const sx = (cx - size / 2) * scaleX;
     const sy = (cy - size / 2) * scaleY;
     const sw = size * scaleX;
@@ -639,7 +649,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>裁切头像</Text>
-                <Text style={mo.sub}>拖动图片调整位置</Text>
+                <Text style={mo.sub}>拖动调整位置 · 缩放调整大小</Text>
               </View>
               <TouchableOpacity onPress={() => setCropSrc('')}>
                 <Text style={mo.close}>✕</Text>
@@ -653,7 +663,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 <img ref={imgRef as any} src={cropSrc}
                   style={{
                     position: 'absolute', left: cropX, top: cropY,
-                    width: 'auto', height: 200, minWidth: 200,
+                    width: 'auto', height: 200 * cropScale, minWidth: 200 * cropScale,
                     userSelect: 'none', pointerEvents: 'none' as any,
                   }}
                   draggable={false}
@@ -671,6 +681,20 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)',
                   boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
                 } as any} pointerEvents="none" />
+              </View>
+              {/* Zoom controls */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 }}>
+                <TouchableOpacity
+                  onPress={() => setCropScale(s => Math.max(0.3, +(s - 0.2).toFixed(1)))}
+                  style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 18, color: colors.textSub, lineHeight: 20, userSelect: 'none' as any }}>−</Text>
+                </TouchableOpacity>
+                <Text style={{ fontSize: 12, color: colors.textSub, fontWeight: '500', minWidth: 36, textAlign: 'center' }}>{Math.round(cropScale * 100)}%</Text>
+                <TouchableOpacity
+                  onPress={() => setCropScale(s => Math.min(3, +(s + 0.2).toFixed(1)))}
+                  style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 18, color: colors.textSub, lineHeight: 20, userSelect: 'none' as any }}>+</Text>
+                </TouchableOpacity>
               </View>
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 20, width: '100%' }}>
                 <TouchableOpacity style={moBody.cancelBtn} onPress={() => setCropSrc('')}>

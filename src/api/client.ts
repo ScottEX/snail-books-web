@@ -206,7 +206,6 @@ export const api = {
       method: 'POST',
       headers: h,
       body: form,
-      credentials: 'include' as RequestCredentials,
     });
     if (resp.status === 401) {
       localStorage.removeItem('user');
