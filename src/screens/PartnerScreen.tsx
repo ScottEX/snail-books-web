@@ -102,8 +102,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [cropX, setCropX] = useState(0);
   const [cropY, setCropY] = useState(0);
   const [cropScale, setCropScale] = useState(1);
+  const [cropRotation, setCropRotation] = useState(0);
+  const [cropResult, setCropResult] = useState('');  // data URL after crop
+  const [showResult, setShowResult] = useState(false);
   const dragRef = useRef({ sx: 0, sy: 0, ox: 0, oy: 0 });
   const imgRef = useRef<HTMLImageElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   const { colors } = useTheme();
 
@@ -113,6 +117,62 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const ds = useMemo(() => getDs(colors), [colors]);
   const org = useMemo(() => getOrg(colors), [colors]);
   const tg = useMemo(() => getTg(colors), [colors]);
+  const cropS = useMemo(() => ({
+    overlay: { position: 'fixed', inset: 0, zIndex: 200, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' },
+    header: { padding: '16px 20px 12px', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 },
+    title: { fontSize: 15, fontWeight: '600', color: '#fff', letterSpacing: -0.2 },
+    closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
+    closeBtnText: { color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 },
+    stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' },
+    guideWrap: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    guideCircle: {
+      width: 200, height: 200, borderRadius: 100, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)',
+      position: 'relative',
+      boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)',
+    },
+    thirds: { position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' },
+    handle: { position: 'absolute', width: 18, height: 18, borderColor: '#fff', borderStyle: 'solid', opacity: 0.9 },
+    pill: {
+      position: 'absolute', bottom: 12, left: '50%', transform: [{ translateX: '-50%' }],
+      backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, paddingVertical: 5, paddingHorizontal: 14,
+      borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    },
+    pillText: { fontSize: 12, color: 'rgba(255,255,255,0.7)' },
+    toolbar: {
+      padding: '12px 20px', backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center',
+      borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', flexShrink: 0,
+    },
+    toolBtn: { paddingVertical: 8, paddingHorizontal: 10, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 },
+    actions: {
+      padding: '12px 20px 20px', backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0,
+    },
+    cancelBtn: {
+      flex: 1, padding: 13, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+      backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center',
+    },
+    confirmBtn: {
+      flex: 2, padding: 13, borderRadius: 14, backgroundColor: '#5B5BD6',
+      justifyContent: 'center', alignItems: 'center', flexDirection: 'row',
+    },
+    // Result preview
+    resultCard: {
+      position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: '-50%' }, { translateY: '-50%' }],
+      backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 32,
+      borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12,
+    },
+    resultBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' },
+    resultLabel: { fontSize: 14, fontWeight: '600', color: '#fff' },
+    sizePreviews: { flexDirection: 'row', gap: 16, alignItems: 'flex-end' },
+    resultSub: { fontSize: 12, color: 'rgba(255,255,255,0.4)' },
+    reEditBtn: {
+      flex: 1, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+      justifyContent: 'center', alignItems: 'center',
+    },
+    saveBtn: {
+      flex: 2, padding: 12, borderRadius: 10, backgroundColor: '#5B5BD6',
+      justifyContent: 'center', alignItems: 'center',
+    },
+  }), [colors]);
 
   const [loadingData, setLoadingData] = useState(true);
   const loadData = async () => {
@@ -214,14 +274,14 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const reader = new FileReader();
     reader.onload = () => {
       setCropSrc(reader.result as string);
-      setCropX(0); setCropY(0); setCropScale(1); setCropMsg('');
+      setCropX(0); setCropY(0); setCropScale(1); setCropRotation(0); setCropMsg(''); setShowResult(false);
     };
     reader.readAsDataURL(file);
     e.target.value = ''; // allow re-select same file
   };
 
   const confirmCrop = async () => {
-    // Step 2: canvas crop only — no upload
+    // Crop to circle and show result preview
     try {
       const img = imgRef.current;
       if (!img) { setCropMsg('图片未加载'); return; }
@@ -247,17 +307,29 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       const clampSw = Math.min(sw, nw - clampSx);
       const clampSh = Math.min(sh, nh - clampSy);
       if (!(clampSw > 0) || !(clampSh > 0)) { setCropMsg('裁切区域超出图片范围'); return; }
-      const canvas = document.createElement('canvas');
-      canvas.width = 256; canvas.height = 256;
-      const ctx = canvas.getContext('2d')!;
-      const dx = sx < 0 ? Math.round(-sx / sw * 256) : 0;
-      const dy = sy < 0 ? Math.round(-sy / sh * 256) : 0;
-      const cdw = Math.round(clampSw / sw * 256);
-      const cdh = Math.round(clampSh / sh * 256);
-      ctx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, cdw, cdh);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      // Upload
-      const arr = dataUrl.split(',');
+      const output = document.createElement('canvas');
+      const outSize = 400;
+      output.width = outSize; output.height = outSize;
+      const octx = output.getContext('2d')!;
+      // Circular clip
+      octx.beginPath();
+      octx.arc(outSize / 2, outSize / 2, outSize / 2, 0, Math.PI * 2);
+      octx.clip();
+      const outScale = outSize / 200;
+      const dx = (clampSx - sx) * outScale;
+      const dy = (clampSy - sy) * outScale;
+      const dw = clampSw * outScale;
+      const dh = clampSh * outScale;
+      octx.drawImage(img as any, clampSx, clampSy, clampSw, clampSh, dx, dy, dw, dh);
+      setCropResult(output.toDataURL('image/jpeg', 0.92));
+      setShowResult(true);
+    } catch (e) { console.error('crop failed', e); setCropMsg('裁切失败，请重试'); }
+  };
+
+  const doUpload = async () => {
+    if (!cropResult) return;
+    try {
+      const arr = cropResult.split(',');
       const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
       const bstr = atob(arr[1]);
       const u8 = new Uint8Array(bstr.length);
@@ -267,11 +339,13 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
       form.append('file', blob, 'avatar.jpg');
       const resp = await api.uploadAvatar(form);
       if (resp.status === 'ok') {
+        setShowResult(false);
         setCropSrc('');
+        setCropResult('');
         setAvatarKey(k => k + 1);
         loadAvatar();
       } else { setCropMsg('上传失败'); }
-    } catch (e) { console.error('crop failed', e); setCropMsg('裁切失败，请重试'); }
+    } catch (e) { console.error('upload failed', e); setCropMsg('上传失败，请重试'); }
   };
 
   const onDragStart = (e: any) => {
@@ -303,14 +377,23 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 </View>
               </View>
             </View>
-            <TouchableOpacity onPress={() => fileInputRef.current?.click()}>
+            <TouchableOpacity onPress={() => fileInputRef.current?.click()} style={{ position: 'relative' }}>
               {avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={s.avatar} key={avatarKey} />
               ) : (
-                <View style={[s.avatar, s.avatarPlaceholder]}>
-                  <Text style={s.avatarInitial}>{localStorage.getItem('user')?.charAt(0)?.toUpperCase() || '?'}</Text>
+                <View style={[s.avatar, s.avatarPlaceholder, s.avatarRing]}>
+                  <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+                    <circle cx="20" cy="16" r="7" stroke={colors.textSub} strokeWidth="2"/>
+                    <path d="M6 34c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke={colors.textSub} strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
                 </View>
               )}
+              <View style={s.camBadge}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#fff" strokeWidth="2"/>
+                  <circle cx="12" cy="13" r="4" stroke="#fff" strokeWidth="2"/>
+                </svg>
+              </View>
             </TouchableOpacity>
             <input type="file" accept="image/*" ref={fileInputRef as any}
               style={{ display: 'none' }} onChange={handleAvatarSelect} />
@@ -653,74 +736,116 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
         </ModalOverlay>
       )}
 
-      {/* ====== CROP MODAL ====== */}
-      {cropSrc !== '' && (
-        <ModalOverlay styles={mo} onClose={() => setCropSrc('')}>
-          <View style={[mo.modalCard, { maxWidth: 340 }]} onStartShouldSetResponder={() => true}>
-            <View style={mo.header}>
-              <View>
-                <Text style={mo.title}>裁切头像</Text>
-                <Text style={mo.sub}>拖动调整位置 · 缩放调整大小</Text>
+      {/* ====== CROP MODAL (dark fullscreen) ====== */}
+      {cropSrc !== '' && !showResult && (
+        // @ts-ignore web-only overlay
+        <View style={cropS.overlay as any} onClick={(e: any) => { if (e.target === e.currentTarget) setCropSrc(''); }}>
+          {/* Header */}
+          <View style={cropS.header as any}>
+            <Text style={cropS.title}>调整头像</Text>
+            <TouchableOpacity onPress={() => setCropSrc('')} style={cropS.closeBtn as any}>
+              <Text style={cropS.closeBtnText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Crop stage */}
+          {/* @ts-ignore web-only drag handlers */}
+          <View style={cropS.stage as any} ref={stageRef as any}
+            onMouseDown={onDragStart} onMouseMove={onDragMove} onMouseUp={onDragMove}
+            onTouchStart={onDragStart} onTouchMove={onDragMove} onTouchEnd={onDragMove}>
+            <img ref={imgRef as any} src={cropSrc}
+              style={{
+                position: 'absolute', left: cropX, top: cropY,
+                width: 'auto', height: 200 * cropScale, minWidth: 200 * cropScale,
+                transform: `rotate(${cropRotation}deg)`,
+                userSelect: 'none', pointerEvents: 'none',
+              }}
+              draggable={false}
+            />
+            {/* Guide overlay */}
+            <View style={cropS.guideWrap as any} pointerEvents="none">
+              <View style={cropS.guideCircle as any}>
+                <View style={[cropS.thirds, { top: '33.3%' }] as any} />
+                <View style={[cropS.thirds, { top: '66.6%' }] as any} />
+                <View style={[cropS.thirds, { left: '33.3%', width: 1, height: '100%' }] as any} />
+                <View style={[cropS.thirds, { left: '66.6%', width: 1, height: '100%' }] as any} />
+                <View style={[cropS.handle, { top: -2, left: -2, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 4 }] as any} />
+                <View style={[cropS.handle, { top: -2, right: -2, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 4 }] as any} />
+                <View style={[cropS.handle, { bottom: -2, left: -2, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 4 }] as any} />
+                <View style={[cropS.handle, { bottom: -2, right: -2, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 4 }] as any} />
               </View>
-              <TouchableOpacity onPress={() => setCropSrc('')}>
-                <Text style={mo.close}>✕</Text>
-              </TouchableOpacity>
             </View>
-            <View style={{ padding: 20, alignItems: 'center' }}>
-              <View style={{
-                width: 200, height: 200, borderRadius: 100, overflow: 'hidden',
-                position: 'relative', backgroundColor: colors.bg,
-              }}>
-                <img ref={imgRef as any} src={cropSrc}
-                  style={{
-                    position: 'absolute', left: cropX, top: cropY,
-                    width: 'auto', height: 200 * cropScale, minWidth: 200 * cropScale,
-                    userSelect: 'none', pointerEvents: 'none' as any,
-                  }}
-                  draggable={false}
-                />
-                {/* Drag area overlay */}
-                <View
-                  // @ts-ignore web-only
-                  onMouseDown={onDragStart} onMouseMove={onDragMove} onMouseUp={onDragMove}
-                  onTouchStart={onDragStart} onTouchMove={onDragMove} onTouchEnd={onDragMove}
-                  style={{ position: 'absolute', inset: 0, cursor: 'move' } as any}
-                />
-                {/* Circle border */}
-                <View style={{
-                  position: 'absolute', inset: 0, borderRadius: 100,
-                  borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)',
-                  boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
-                } as any} pointerEvents="none" />
-              </View>
-              {/* Zoom controls */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 }}>
-                <TouchableOpacity
-                  onPress={() => setCropScale(s => Math.max(0.3, +(s - 0.2).toFixed(1)))}
-                  style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 18, color: colors.textSub, lineHeight: 20, userSelect: 'none' as any }}>−</Text>
-                </TouchableOpacity>
-                <Text style={{ fontSize: 12, color: colors.textSub, fontWeight: '500', minWidth: 36, textAlign: 'center' }}>{Math.round(cropScale * 100)}%</Text>
-                <TouchableOpacity
-                  onPress={() => setCropScale(s => Math.min(3, +(s + 0.2).toFixed(1)))}
-                  style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 18, color: colors.textSub, lineHeight: 20, userSelect: 'none' as any }}>+</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 20, width: '100%' }}>
-                <TouchableOpacity style={moBody.cancelBtn} onPress={() => setCropSrc('')}>
-                  <Text style={moBody.cancelBtnText}>取消</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={moBody.confirmBtn} onPress={confirmCrop}>
-                  <Text style={moBody.confirmBtnText}>确认</Text>
-                </TouchableOpacity>
-              </View>
-              {cropMsg !== '' && (
-                <Text style={{ fontSize: 13, color: colors.primary, marginTop: 12, textAlign: 'center', fontWeight: '500' }}>{cropMsg}</Text>
-              )}
+            {/* Hint pill */}
+            <View style={cropS.pill as any} pointerEvents="none">
+              <Text style={cropS.pillText}>拖动移动 · 双指缩放</Text>
             </View>
           </View>
-        </ModalOverlay>
+
+          {/* Toolbar */}
+          <View style={cropS.toolbar as any}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>A</Text>
+              <input type="range" min="0" max="100" value={Math.round(((cropScale - 0.3) / (3 - 0.3)) * 100)}
+                onChange={(e: any) => setCropScale(0.3 + (3 - 0.3) * (Number(e.target.value) / 100))}
+                style={{ flex: 1, height: 3, appearance: 'none', cursor: 'pointer', accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+              />
+              <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
+            </View>
+            <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.12)', marginHorizontal: 10 }} />
+            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => setCropRotation(r => (r + 90) % 360)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M3 12a9 9 0 109-9H9m0 0l3 3m-3-3l3-3" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>旋转</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Actions */}
+          <View style={cropS.actions as any}>
+            <TouchableOpacity style={cropS.cancelBtn as any} onPress={() => setCropSrc('')}>
+              <Text style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>取消</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={cropS.confirmBtn as any} onPress={confirmCrop}>
+              <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 }}>
+                <Text style={{ fontSize: 10, color: '#fff' }}>✓</Text>
+              </View>
+              <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>使用此头像</Text>
+            </TouchableOpacity>
+          </View>
+          {cropMsg !== '' && (
+            <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: 500 }}>{cropMsg}</Text>
+          )}
+        </View>
+      )}
+
+      {/* ====== RESULT PREVIEW ====== */}
+      {showResult && cropResult !== '' && (
+        // @ts-ignore
+        <View style={cropS.overlay as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setShowResult(false); setCropSrc(''); } }}>
+          <View style={cropS.resultCard as any}>
+            <View style={cropS.resultBadge as any}>
+              <Text style={{ fontSize: 20, color: colors.ok || '#1B7A4A' }}>✓</Text>
+            </View>
+            <Text style={cropS.resultLabel}>头像已更新</Text>
+            <View style={cropS.sizePreviews as any}>
+              {[80, 48, 32].map((size) => (
+                <View key={size} style={{ alignItems: 'center', gap: 6 }}>
+                  <img src={cropResult} width={size} height={size} style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} />
+                  <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>{size}px</Text>
+                </View>
+              ))}
+            </View>
+            <Text style={cropS.resultSub}>在不同场景下的显示效果</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
+              <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setShowResult(false); }}>
+                <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>重新裁剪</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={cropS.saveBtn as any} onPress={doUpload}>
+                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>确认使用</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
@@ -821,7 +946,14 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   langBtn: { fontSize: FONTS.micro.size, color: colors.textSub, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: FONTS.micro.weight as any },
   avatar: { width: 40, height: 40, borderRadius: 20 },
   avatarPlaceholder: { backgroundColor: withAlpha(colors.primary, 0.12), justifyContent: 'center', alignItems: 'center' },
+  avatarRing: { borderWidth: 1.5, borderColor: colors.bg, borderStyle: 'dashed' as any },
   avatarInitial: { fontSize: 16, fontWeight: '600', color: colors.primary },
+  camBadge: {
+    position: 'absolute', bottom: -2, right: -2, width: 22, height: 22,
+    backgroundColor: colors.primary, borderRadius: 11,
+    borderWidth: 2, borderColor: colors.surface,
+    justifyContent: 'center', alignItems: 'center',
+  },
   langActive: { color: colors.primary, backgroundColor: withAlpha(colors.danger, 0.1), fontWeight: FONTS.microBold.weight as any },
   statGrid: { flexDirection: 'row', gap: 12, marginTop: 16, flexWrap: 'wrap' },
   statCard: {
