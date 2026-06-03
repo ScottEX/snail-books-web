@@ -622,7 +622,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     </View>
                   )}
                   {i === 1 && (
-                    <View style={{ flex: 1, gap: 16 }}>
+                    <View style={{ flex: 1, gap: 8 }}>
                       {/* Hero: 在手资金 */}
                       <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
                         {/* @ts-ignore */}
