@@ -608,7 +608,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('bookBalance')}</Text>
-                          <Text style={[st.cardFieldVal, { color: colors.textMain }]}>{fmt(channelTotal)}</Text>
+                          <Text style={[st.cardFieldVal, { color: colors.textMain }]}>{fmt(businessSummary.cash_on_hand || 0)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('currentBalance')}</Text>
