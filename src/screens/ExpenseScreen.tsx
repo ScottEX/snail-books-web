@@ -622,19 +622,56 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     </View>
                   )}
                   {i === 1 && (
-                    <View style={st.cardFields}>
-                      <View style={st.cardFieldRow}>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('cumulativeRevenue')}</Text>
-                          <Text style={st.cardFieldVal}>{fmt(businessSummary.cumulative_revenue || 0)}</Text>
+                    <View style={{ flex: 1, gap: 16 }}>
+                      {/* Hero: 在手资金 */}
+                      <View style={{ alignItems: 'flex-start', gap: 6 }}>
+                        {/* @ts-ignore */}
+                        <Text style={{
+                          fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                        } as any}>{t('cashOnHand')}</Text>
+                        {/* @ts-ignore */}
+                        <Text style={{
+                          fontSize: FONTS.h1.size, fontWeight: FONTS.h1.weight,
+                          color: (businessSummary.cash_on_hand || 0) >= 0
+                            ? 'rgba(255,255,255,0.95)' : colors.danger,
+                          textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        } as any}>{'¥' + toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
+                      </View>
+                      {/* Sub-cards: 累計營收 | 累計支出 */}
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <View style={{
+                          flex: 1, backgroundColor: 'rgba(255,255,255,0.10)',
+                          borderRadius: 10, padding: 12, gap: 6,
+                          borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.18)',
+                        }}>
+                          {/* @ts-ignore */}
+                        <Text style={{
+                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                            color: 'rgba(255,255,255,0.70)',
+                          }}>{t('cumulativeRevenue')}</Text>
+                          {/* @ts-ignore */}
+                        <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: 'rgba(255,255,255,0.95)',
+                          }}>{'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}</Text>
                         </View>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('cumulativeExpense')}</Text>
-                          <Text style={st.cardFieldVal}>{fmt(businessSummary.cumulative_expense || 0)}</Text>
-                        </View>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('cashOnHand')}</Text>
-                          <Text style={[st.cardFieldVal, { color: (businessSummary.cash_on_hand || 0) >= 0 ? colors.success : colors.danger }]}>{fmt(businessSummary.cash_on_hand || 0)}</Text>
+                        <View style={{
+                          flex: 1, backgroundColor: 'rgba(255,255,255,0.10)',
+                          borderRadius: 10, padding: 12, gap: 6,
+                          borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.18)',
+                        }}>
+                          {/* @ts-ignore */}
+                        <Text style={{
+                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                            color: 'rgba(255,255,255,0.70)',
+                          }}>{t('cumulativeExpense')}</Text>
+                          {/* @ts-ignore */}
+                        <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: 'rgba(255,255,255,0.95)',
+                          }}>{'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}</Text>
                         </View>
                       </View>
                     </View>
@@ -1295,8 +1332,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       {platforms.map((p) => (
                         <View key={p.label} style={{ flex: 1, minWidth: '46%', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg, borderRadius: 6, paddingVertical: 6, paddingHorizontal: 8, gap: 6 }}>
                           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: p.color }} />
-                          <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, flex: 1 }}>{p.label}</Text>
-                          <Text style={{ fontSize: FONTS.microBold.size, color: colors.textMain, fontWeight: FONTS.microBold.weight }}>¥{p.value.toFixed(2)}</Text>
+                          {/* @ts-ignore */}
+                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, flex: 1 }}>{p.label}</Text>
+                          {/* @ts-ignore */}
+                        <Text style={{ fontSize: FONTS.microBold.size, color: colors.textMain, fontWeight: FONTS.microBold.weight }}>¥{p.value.toFixed(2)}</Text>
                         </View>
                       ))}
                     </View>
@@ -1473,7 +1512,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   tabCard: {
     // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
-    width: 'calc(100vw - 61px)', height: 120,
+    width: 'calc(100vw - 61px)', height: 180,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
