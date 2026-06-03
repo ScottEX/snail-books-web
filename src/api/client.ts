@@ -267,6 +267,11 @@ export const api = {
   createProcurementBatch: (data: any) => authFetch('/api/procurement-batches', { method: 'POST', body: JSON.stringify(data) }),
   getProcurementBatchDetail: (id: number) => authFetch(`/api/procurement-batches/${id}`),
   getProcurementStats: () => authFetch('/api/procurement-stats'),
+  // Shared cart
+  getCart: () => authFetch('/api/procurement-cart'),
+  addToCart: (product_id: number, quantity: number) => authFetch('/api/procurement-cart', { method: 'POST', body: JSON.stringify({ product_id, quantity }) }),
+  removeFromCart: (product_id: number) => authFetch(`/api/procurement-cart/${product_id}`, { method: 'DELETE' }),
+  clearCart: () => authFetch('/api/procurement-cart', { method: 'DELETE' }),
 
   // Daily revenue (每日营收)
   getDailyRevenue: (page = 1, perPage = 30, year?: number, month?: number, date?: string, days?: number) => {

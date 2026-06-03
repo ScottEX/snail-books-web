@@ -373,12 +373,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     try { localStorage.setItem('snail_proc_tab', subTab); } catch {}
   }, [subTab]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<Record<number, number>>(() => {
-    try {
-      const saved = localStorage.getItem('snail_proc_cart');
-      return saved ? JSON.parse(saved) : {};
-    } catch { return {}; }
-  });
+  const [cart, setCart] = useState<Record<number, number>>({});
   const [search, setSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('全部');
   const [editingPrice, setEditingPrice] = useState<number | null>(null);
@@ -577,12 +572,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   useEffect(() => { loadProducts(); loadStats(); }, [loadProducts, loadStats]);
 
   // Sync uncontrolled date input when orderDate changes externally
-  useEffect(() => { if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; }, [orderDate]);
-
-  // Persist cart to localStorage
+  // Load shared cart from server on mount
   useEffect(() => {
-    try { localStorage.setItem('snail_proc_cart', JSON.stringify(cart)); } catch {}
-  }, [cart]);
+    api.getCart().then((data: any) => {
+      if (Array.isArray(data)) {
+        const map: Record<number, number> = {};
+        data.forEach((item: any) => { map[item.product_id] = item.quantity; });
+        setCart(map);
+      }
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => { if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; }, [orderDate]);
 
   useEffect(() => {
     if (subTab !== 'history') return;
@@ -659,12 +660,22 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const cartCount = cartItems.length;
 
   const updateQty = (pid: number, delta: number) => {
-    setCart(prev => ({ ...prev, [pid]: Math.max(0, (prev[pid] || 0) + delta) }));
+    setCart(prev => {
+      const newQty = Math.max(0, (prev[pid] || 0) + delta);
+      if (newQty === 0) {
+        api.removeFromCart(pid).catch(() => {});
+        const next = { ...prev };
+        delete next[pid];
+        return next;
+      }
+      api.addToCart(pid, newQty).catch(() => {});
+      return { ...prev, [pid]: newQty };
+    });
   };
 
   const clearCart = () => {
     setCart({});
-    try { localStorage.removeItem('snail_proc_cart'); } catch {}
+    api.clearCart().catch(() => {});
   };
 
   const startEditPrice = (pid: number) => {
@@ -761,7 +772,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
           Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
           Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
         ]).start(() => {
-          setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote('');
+          setCart({}); api.clearCart().catch(() => {}); setReceipts([]); setOrderNote('');
           setShowDrawer(false); onDrawerClose?.();
           openSlideModal(() => setShowSuccess(true));
         });
