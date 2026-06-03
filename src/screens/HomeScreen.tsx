@@ -910,7 +910,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </Animated.View>
       )}
 
-      {/* Bottom Nav */}
+      {/* Bottom Nav — hidden when history screens are active */}
+      {!showExpenseHistory && !showDailyHistory && !showReconHistory && (
       <View style={styles.bottomNav}>
         {([
           { id: 'expense', icon: NavIconAdd },
@@ -939,6 +940,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
           </TouchableOpacity>
         ))}
       </View>
+      )}
       {/* Hidden file input for background upload */}
       <input
         ref={fileRef}
