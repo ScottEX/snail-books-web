@@ -148,9 +148,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       const r = await api.register(username, password, email);
       setLoading(false);
       if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setDevCode(r.dev_code || ''); setStep('verify'); setTimeout(() => codeRef.current?.focus(), 100); }
-      else { setMsg(r.message); triggerShake(); }
+      else { setMsgOk(false); setMsg(r.message); triggerShake(); }
     } catch (e: any) {
       setLoading(false);
+      setMsgOk(false);
       setMsg(e?.message || t('errNetworkError') || '网络错误，请检查网络后重试');
     }
   };
@@ -162,10 +163,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     try {
       const r = await api.verify(email, code);
       setLoading(false);
-      if (r.status === 'ok') { setMsgOk(true); setMsg(t('msgVerifyOk')); setStep('login'); }
-      else { setMsg(r.message); triggerShake(); }
+      if (r.status === 'ok') { setMsgOk(true); setMsg(r.message); setStep('login'); }
+      else { setMsgOk(false); setMsg(r.message); triggerShake(); }
     } catch (e: any) {
       setLoading(false);
+      setMsgOk(false);
       setMsg(e?.message || t('errNetworkError') || '网络错误，请检查网络后重试');
     }
   };
@@ -200,6 +202,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       else { setMsgOk(false); setMsg(r.message); triggerShake(); }
     } catch (e: any) {
       setLoading(false);
+      setMsgOk(false);
       setMsg(e?.message || t('errNetworkError') || '网络错误，请检查网络后重试');
     }
   };
