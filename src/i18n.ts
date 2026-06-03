@@ -234,7 +234,7 @@ const I18N: Record<string, Record<string, string>> = {
     cumulativeExpense: '累计支出',
     cashOnHand: '在手资金',
     actualReceived: '实收金额',
-    receivable: '应收金额',
+    receivable: '应收总额',
     discountAmount: '优惠减免',
     // Platform fees
     platformFee: '平台手续费',
@@ -575,7 +575,7 @@ const I18N: Record<string, Record<string, string>> = {
     cumulativeExpense: '累計支出',
     cashOnHand: '在手資金',
     actualReceived: '實收金額',
-    receivable: '應收金額',
+    receivable: '應收總額',
     discountAmount: '優惠減免',
     // Platform fees
     platformFee: '平台手續費',
@@ -915,7 +915,7 @@ const I18N: Record<string, Record<string, string>> = {
     cumulativeExpense: 'Cumulative Expense',
     cashOnHand: 'Cash on Hand',
     actualReceived: 'Actual Received',
-    receivable: 'Receivable',
+    receivable: 'Total Receivable',
     discountAmount: 'Discount',
     // Platform fees
     platformFee: 'Platform Fees',
