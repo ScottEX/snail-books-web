@@ -267,33 +267,15 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
 
                 <View style={st.cardAmounts}>
                   <View style={st.cardAmtCol}>
-                    {rec.revenue > 0 ? (
-                      <Text style={[st.cardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.revenue)}</Text>
-                    ) : (
-                      <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
-                        <Path d="M4 6h16" />
-                      </Svg>
-                    )}
+                    <Text style={[st.cardAmtVal, { color: rec.revenue > 0 ? colors.textMain : colors.textSub }]}>¥{toDec2(rec.revenue)}</Text>
                     <Text style={st.cardAmtLabel}>{t('revRevenue')}</Text>
                   </View>
                   <View style={st.cardAmtCol}>
-                    {rec.turnover > 0 ? (
-                      <Text style={[st.cardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.turnover)}</Text>
-                    ) : (
-                      <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
-                        <Path d="M4 6h16" />
-                      </Svg>
-                    )}
+                    <Text style={[st.cardAmtVal, { color: rec.turnover > 0 ? colors.textMain : colors.textSub }]}>¥{toDec2(rec.turnover)}</Text>
                     <Text style={st.cardAmtLabel}>{t('revTurnover')}</Text>
                   </View>
                   <View style={st.cardAmtCol}>
-                    {rec.jd_revenue > 0 ? (
-                      <Text style={[st.cardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.jd_revenue)}</Text>
-                    ) : (
-                      <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
-                        <Path d="M4 6h16" />
-                      </Svg>
-                    )}
+                    <Text style={[st.cardAmtVal, { color: rec.jd_revenue > 0 ? colors.textMain : colors.textSub }]}>¥{toDec2(rec.jd_revenue)}</Text>
                     <Text style={st.cardAmtLabel}>{t('revJD')}</Text>
                   </View>
                 </View>
