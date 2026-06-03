@@ -527,12 +527,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         </Svg>
                         <Text style={styles.revTitle}>{t('dailyRevenue')}</Text>
                       </View>
-                      {editingRevId && (
-                        <TouchableOpacity onPress={cancelEdit} activeOpacity={0.7}
-                          style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: colors.bg }}>
-                          <Text style={{ fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight }}>✕ 取消</Text>
-                        </TouchableOpacity>
-                      )}
+                      {/*
+                        editingRevId no longer shows cancel — date selection auto-loads data,
+                        user can modify and save directly without explicit cancel/edit modes.
+                      */}
                     </View>
 
                     {/* Quick date pills + date picker */}
@@ -651,7 +649,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                               <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                 <Path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8" />
                               </Svg>
-                              <Text style={styles.revSubmitText}>{editingRevId ? t('revEdit') : revDate === todayDateStr() ? t('revSaveToday') : revDate === yesterdayDateStr() ? t('revSaveYesterday') : revDate === dayBeforeDateStr() ? t('revSaveDayBefore') : `储存${revDate.slice(5).replace('-', '')}数据`}</Text>
+                              <Text style={styles.revSubmitText}>{revDate === todayDateStr() ? t('revSaveToday') : revDate === yesterdayDateStr() ? t('revSaveYesterday') : revDate === dayBeforeDateStr() ? t('revSaveDayBefore') : `储存${revDate.slice(5).replace('-', '')}数据`}</Text>
                             </>
                           )}
                         </View>
