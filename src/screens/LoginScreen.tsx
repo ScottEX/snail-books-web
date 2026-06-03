@@ -20,15 +20,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [code, setCode] = useState('');
   const [msg, setMsg] = useState('');
   const [msgKey, setMsgKey] = useState('');
-  const msgKeyRef = useRef(msgKey);
-  useEffect(() => { msgKeyRef.current = msgKey; }, [msgKey]);
   const [msgOk, setMsgOk] = useState(false);
   const [lang, setLangState] = useState(getLang());
-  const [displayMsg, setDisplayMsg] = useState('');
-
-  useEffect(() => {
-    setDisplayMsg(msgKey ? t(msgKey) : msg);
-  }, [msgKey, msg]);
+  const displayMsg = useMemo(() => msgKey ? t(msgKey) : msg, [msgKey, msg, lang]);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
@@ -237,9 +231,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const switchLang = (l: string) => {
     setLang(l);
     setLangState(l);
-    // 立即用新语言重新翻译当前错误提示
-    const key = msgKeyRef.current;
-    if (key) setDisplayMsg(t(key));
   };
 
   const styles = useMemo(() => getStyles(colors), [colors]);
