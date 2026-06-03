@@ -159,6 +159,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
   const clearUrlCache = () => { urlCache.current.forEach(u => URL.revokeObjectURL(u)); urlCache.current.clear(); };
   useEffect(() => { return () => clearUrlCache(); }, []);
+
+  // Load cumulative turnover from daily revenue totals
+  useEffect(() => {
+    api.getDailyRevenueTotal().then((data: any) => {
+      setCumulativeTurnover(data?.total_turnover || 0);
+    }).catch(() => {});
+  }, []);
+
   const [activeTab, setActiveTabState] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('expense_active_tab');
@@ -218,6 +226,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [recDateKey, setRecDateKey] = useState(0);
   const [recDateErr, setRecDateErr] = useState(0);
   const [toast, setToast] = useState('');
+  const [cumulativeTurnover, setCumulativeTurnover] = useState(0);
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
   const [dineIn, setDineIn] = useState('');
@@ -617,7 +626,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('cumulativeRevenue')}</Text>
-                          <Text style={st.cardFieldVal}>{fmt(channelTotal)}</Text>
+                          <Text style={st.cardFieldVal}>{fmt(cumulativeTurnover)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('cumulativeExpense')}</Text>
