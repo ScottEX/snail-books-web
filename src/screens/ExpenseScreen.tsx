@@ -1671,7 +1671,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingVertical: 12, paddingHorizontal: 4,
   },
   kpiDivider: { height: 1, backgroundColor: colors.secondary, marginHorizontal: 4 },
-  kpiLabel: { fontSize: FONTS.body.size, color: colors.textMain, fontWeight: FONTS.body.weight },
+  kpiLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
   kpiVal: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
 
   /* ── Table ── */
