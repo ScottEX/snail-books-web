@@ -135,7 +135,27 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate()-1); return fmtDate(d); };
   const db4Str = () => { const d = new Date(); d.setDate(d.getDate()-2); return fmtDate(d); };
   const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  const pickDate = (d: string) => { if (d <= td) setRevDate(d); };
+  const pickDate = (d: string) => { if (d <= td) loadRevForDate(d); };
+
+  // Load existing record for a date (for quick-date pills + date picker)
+  const loadRevForDate = (d: string) => {
+    setRevDate(d);
+    api.getDailyRevenue(1, 1, undefined, undefined, d).then((r: any) => {
+      const rec = r?.records?.[0];
+      if (rec) {
+        setEditingRevId(rec.id);
+        setRevRevenue(String(rec.revenue || ''));
+        setRevTurnover(String(rec.turnover || ''));
+        setRevJD(String(rec.jd_revenue || ''));
+        setRevNote(rec.note || '');
+        setRevMarkedClosed(!!rec.archived);
+      } else {
+        setEditingRevId(null);
+        setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
+        setRevMarkedClosed(false);
+      }
+    }).catch(() => {});
+  };
 
   // Sync uncontrolled date input when revDate changes externally (quick-date pills)
   useEffect(() => {
@@ -542,7 +562,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           {React.createElement('input', {
                             ref: revDateInputRef,
                             type: 'date', defaultValue: revDate, max: todayDateStr(), key: revDateKey,
-                            onChange: (e: any) => { if (isFuture(e.target.value)) { revDateInputRef.current!.value = revDate; setRevDateKey(k => k + 1); setRevDateErr(c => c + 1); } else { setRevDate(e.target.value); } },
+                            onChange: (e: any) => { if (isFuture(e.target.value)) { revDateInputRef.current!.value = revDate; setRevDateKey(k => k + 1); setRevDateErr(c => c + 1); } else { loadRevForDate(e.target.value); } },
                             style: { position: 'absolute', top: -4, right: 0, bottom: -4, left: 0, opacity: 0.01, cursor: 'pointer' },
                           })}
                         </View>
