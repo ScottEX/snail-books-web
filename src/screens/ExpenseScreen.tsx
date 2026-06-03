@@ -388,7 +388,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
         setShowFeeSheet(false);
         // Reload all months to keep totals accurate
-        api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : []));
+        api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : [])).catch(() => {});
       } else {
         setToast(r?.message || t('toastSubmitFailed'));
       }
