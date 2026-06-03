@@ -32,7 +32,7 @@ const fmtMonth = (year: number, month: number) => {
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     return `${months[month-1]} ${year}`;
   }
-  return `${year}年${month}月`;
+  return `${year}年${String(month).padStart(2, '0')}月`;
 };
 const toNum = (s: string) => parseFloat(s) || 0;
 const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
