@@ -290,6 +290,7 @@ export const api = {
   deleteDailyRevenue: (id: number) => authFetch(`/api/daily-revenue/${id}`, { method: 'DELETE' }),
   getLast7Days: () => authFetch('/api/daily-revenue/last-7'),
   getDailyRevenueTotal: () => authFetch('/api/daily-revenue/total'),
+  getBusinessSummary: () => authFetch('/api/business-summary'),
 
   getChart: () => authFetch('/api/chart'),
   getStats: () => authFetch('/api/stats'),

@@ -160,10 +160,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const clearUrlCache = () => { urlCache.current.forEach(u => URL.revokeObjectURL(u)); urlCache.current.clear(); };
   useEffect(() => { return () => clearUrlCache(); }, []);
 
-  // Load cumulative turnover from daily revenue totals
+  // Load business summary from backend
   useEffect(() => {
-    api.getDailyRevenueTotal().then((data: any) => {
-      setCumulativeTurnover(data?.total_turnover || 0);
+    api.getBusinessSummary().then((data: any) => {
+      setBusinessSummary(data || {});
     }).catch(() => {});
   }, []);
 
@@ -226,7 +226,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [recDateKey, setRecDateKey] = useState(0);
   const [recDateErr, setRecDateErr] = useState(0);
   const [toast, setToast] = useState('');
-  const [cumulativeTurnover, setCumulativeTurnover] = useState(0);
+  const [businessSummary, setBusinessSummary] = useState<any>({});
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
   const [dineIn, setDineIn] = useState('');
@@ -572,8 +572,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const tabCards = useMemo(() => [
     { gradient: [withAlpha(colors.success, 0.22), withAlpha(colors.info, 0.22)], gradientActive: [withAlpha(colors.success, 0.48), withAlpha(colors.info, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
     { gradient: [withAlpha(colors.primary, 0.22), withAlpha(colors.warning, 0.22)], gradientActive: [withAlpha(colors.primary, 0.48), withAlpha(colors.warning, 0.48)], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: colors.textMain, prefix: '' },
-    { gradient: [withAlpha(colors.danger, 0.22), withAlpha(colors.primary, 0.22)], gradientActive: [withAlpha(colors.danger, 0.48), withAlpha(colors.primary, 0.48)], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: colors.textMain, prefix: '' },
-  ], [diff, feeTotal, expCatTotals.daily, expCatTotals.rent, expCatTotals.salary, expCatTotals.goods, colors, lang]);
+    { gradient: [withAlpha(colors.danger, 0.22), withAlpha(colors.primary, 0.22)], gradientActive: [withAlpha(colors.danger, 0.48), withAlpha(colors.primary, 0.48)], title: t('tabExpense'), stat: businessSummary.cumulative_expense || 0, statFmt: fmt(businessSummary.cumulative_expense || 0), statColor: colors.textMain, prefix: '' },
+  ], [diff, feeTotal, businessSummary.cumulative_expense, colors, lang]);
 
   const st = useMemo(() => getSt(colors), [colors]);
 
@@ -601,7 +601,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               >
                 <View style={st.tabInner}>
                   <Text style={[st.tabTitle, active && st.tabTitleActive]}>
-                    {tab.title}{i === 2 ? ' ¥' + fmtInt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods) : ''}
+                    {tab.title}{i === 2 ? ' ¥' + fmtInt(businessSummary.cumulative_expense || 0) : ''}
                   </Text>
                   {i === 0 && (
                     <View style={st.cardFields}>
@@ -626,15 +626,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       <View style={st.cardFieldRow}>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('cumulativeRevenue')}</Text>
-                          <Text style={st.cardFieldVal}>{fmt(cumulativeTurnover)}</Text>
+                          <Text style={st.cardFieldVal}>{fmt(businessSummary.cumulative_revenue || 0)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('cumulativeExpense')}</Text>
-                          <Text style={st.cardFieldVal}>{fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods)}</Text>
+                          <Text style={st.cardFieldVal}>{fmt(businessSummary.cumulative_expense || 0)}</Text>
                         </View>
                         <View style={st.cardFieldCol}>
                           <Text style={st.cardFieldLabel}>{t('cashOnHand')}</Text>
-                          <Text style={[st.cardFieldVal, { color: Math.abs(realTotal) < 0.005 ? colors.textMain : colors.primary }]}>{fmt(realTotal)}</Text>
+                          <Text style={[st.cardFieldVal, { color: (businessSummary.cash_on_hand || 0) >= 0 ? colors.success : colors.danger }]}>{fmt(businessSummary.cash_on_hand || 0)}</Text>
                         </View>
                       </View>
                     </View>
@@ -809,15 +809,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={st.kpiRow}>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
-                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>¥0.00</Text>
+                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>¥{fmt(businessSummary.actual_received || 0)}</Text>
               </View>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('receivable')}</Text>
-                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>¥0.00</Text>
+                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>¥{fmt(businessSummary.receivable || 0)}</Text>
               </View>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
-                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>¥0.00</Text>
+                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>¥{fmt(businessSummary.discount || 0)}</Text>
               </View>
             </View>
           </View>
