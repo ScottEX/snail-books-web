@@ -1666,7 +1666,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   kpiRow: { flexDirection: 'column' },
   kpiItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 8, paddingHorizontal: 4,
+    paddingVertical: 8,
   },
   kpiDivider: { height: 1, backgroundColor: colors.secondary, marginHorizontal: 4 },
   kpiLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
