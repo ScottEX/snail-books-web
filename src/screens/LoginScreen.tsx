@@ -420,8 +420,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           {/* VERIFY */}
           {step === 'verify' && (
             <View style={styles.formSection}>
-              <Text style={styles.infoText}>
-                {t('verifySent') || 'Code sent to'} <Text style={styles.infoStrong}>{email}</Text>
+              <Text style={styles.verifyTitle}>{t('verifyNewTitle') || '只差最后一步啦！✨'}</Text>
+              <Text style={styles.verifyBody}>
+                {t('verifyNewBodyPre') || '欢迎加入柳味探秘科技！一封装有激活密码的邮件已经飞往您的邮箱：'}
+                <Text style={styles.verifyEmail}>{email}</Text>
+                {t('verifyNewBodyPost') || '。请前往查收并点击链接完成验证。'}
               </Text>
               {devCode !== '' && (
                 <View style={styles.devCodeCard}>
@@ -438,14 +441,15 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <TouchableOpacity onPress={handleVerify} style={styles.btnRed} disabled={loading}>
                 <Text style={styles.btnRedText}>{loading ? '...' : t('verifyBtn')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleResend} disabled={resendCooldown > 0}>
-                <Text style={[styles.forgotText, resendCooldown > 0 && styles.disabledText]}>
-                  {resendCooldown > 0 ? `${resendCooldown}s` : t('resendCode')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={goLogin}>
-                <Text style={styles.forgotText}>{t('backToLogin')}</Text>
-              </TouchableOpacity>
+              <Text style={styles.verifyHint}>
+                {t('verifyNewNoEmail') || '一直没收到？别着急，您可以 '}
+                <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s` : t('verifyNewResend') || '重新发送'}</Text>
+                {t('verifyNewOrSpam') || ' 或检查一下垃圾箱。'}
+              </Text>
+              <Text style={styles.verifyHint}>
+                {t('verifyNewWrongEmail') || '填错邮箱了？'}
+                <Text style={styles.verifyLink} onPress={() => { setStep('register'); reset(); }}>{t('verifyNewEditEmail') || '修改邮箱地址'}</Text>
+              </Text>
             </View>
           )}
 
@@ -519,7 +523,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           )}
 
           {/* Copyright */}
-          <Text style={styles.copyright}>© 2026 柳味探秘 · 螺蛳粉 · 经营查询</Text>
+          <Text style={styles.copyright}>{t('copyright') || '© 2026 柳味探秘 · 经营查询 · 版权所有'}</Text>
         </View>
       </ScrollView>
     </View>
@@ -606,6 +610,11 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   disabledText: { opacity: 0.3 },
   infoText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
   infoStrong: { fontWeight: FONTS.subBold.weight, color: colors.surface },
+  verifyTitle: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: colors.surface, textAlign: 'center', marginBottom: 12 },
+  verifyBody: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
+  verifyEmail: { fontWeight: FONTS.subBold.weight, color: colors.surface },
+  verifyHint: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.45)', textAlign: 'center', lineHeight: 18 },
+  verifyLink: { color: colors.primary, fontWeight: FONTS.micro.weight },
   devCodeCard: {
     backgroundColor: withAlpha(colors.warning, 0.15), borderRadius: 12, padding: 16,
     alignItems: 'center', borderWidth: 1, borderColor: withAlpha(colors.warning, 0.3),
