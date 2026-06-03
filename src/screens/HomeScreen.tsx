@@ -67,6 +67,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [showReconHistory, setShowReconHistory] = useState(false);
   const [showExpenseHistory, setShowExpenseHistory] = useState(false);
   const [showDailyHistory, setShowDailyHistory] = useState(false);
+  const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
@@ -463,7 +464,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen />
+          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} />
         ) : (
           <>
             {/* Underlying tab content */}
@@ -910,8 +911,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </Animated.View>
       )}
 
-      {/* Bottom Nav — hidden when history screens are active */}
-      {!showExpenseHistory && !showDailyHistory && !showReconHistory && (
+      {/* Bottom Nav — hidden when history screens or cart drawer are active */}
+      {!showExpenseHistory && !showDailyHistory && !showReconHistory && !showCartDrawer && (
       <View style={styles.bottomNav}>
         {([
           { id: 'expense', icon: NavIconAdd },

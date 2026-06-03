@@ -240,7 +240,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   drawerClose: { width: 30, height: 30, borderRadius: 15, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const, justifyContent: 'center' as const },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
-  drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 16, paddingVertical: 10, paddingBottom: 90 },
+  drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 16, paddingVertical: 10, paddingBottom: 24 },
 
   // Date row (all 4 elements inline)
   dateCatRow: { marginBottom: 12 },
@@ -358,7 +358,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════
-export default function ProcurementScreen() {
+export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onDrawerOpen?: () => void; onDrawerClose?: () => void }) {
   const { colors: c } = useTheme();
   const styles = useMemo(() => getStyles(c), [c]);
 
@@ -476,6 +476,7 @@ export default function ProcurementScreen() {
   // ── Drawer animation ──
   const openDrawer = () => {
     setShowDrawer(true);
+    onDrawerOpen?.();
     if (!orderNote) setOrderNote(t('procNowBatch').replace('{n}', String(stats.batch_count + 1)));
     Animated.parallel([
       Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
@@ -486,7 +487,7 @@ export default function ProcurementScreen() {
     Animated.parallel([
       Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
       Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => setShowDrawer(false));
+    ]).start(() => { setShowDrawer(false); onDrawerClose?.(); });
   };
 
   const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
@@ -761,7 +762,7 @@ export default function ProcurementScreen() {
           Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
         ]).start(() => {
           setCart({}); try { localStorage.removeItem('snail_proc_cart'); } catch {} setReceipts([]); setOrderNote('');
-          setShowDrawer(false);
+          setShowDrawer(false); onDrawerClose?.();
           openSlideModal(() => setShowSuccess(true));
         });
         loadStats();
