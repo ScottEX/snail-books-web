@@ -739,7 +739,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   )}
                 </View>
                 {i === 2 && (
-                  <View style={{ gap: 8 }}>
+                  <View>
                     {/* Row 1: 日常 | 采购 */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{
@@ -774,7 +774,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       </View>
                     </View>
                     {/* Row 2: 房租 | 薪资 */}
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.danger, 0.15),
                         borderRadius: 10, padding: 10, gap: 4,
@@ -1619,7 +1619,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   tabCard: {
     // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
-    width: 'calc(100vw - 61px)', height: 220,
+    width: 'calc(100vw - 61px)', height: 200,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
