@@ -88,7 +88,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
   const [showDetail, setShowDetail] = useState<any>(null);
   const [showOrg, setShowOrg] = useState(false);
   const [divAmount, setDivAmount] = useState('');
-  const [divNote, setDivNote] = useState('');
+  const [divRoundNum, setDivRoundNum] = useState(0);
   const [divPreview, setDivPreview] = useState<any[]>([]);
   const [filter, setFilter] = useState('all');
   const [lang, setLangState] = useState(getLang());
@@ -217,13 +217,13 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
     const items = partners.map((p: any) => ({
       partner: p.name,
       amount: parseFloat((amt * (partnerShare[p.name] ?? 0.33)).toFixed(2)),
-      note: divNote || `第${groupKeys.length + 1}次`,
+      note: `第${divRoundNum}次`,
       date: today,
     }));
     try {
       await api.createDividend({ items });
       setShowDividend(false);
-      setDivAmount(''); setDivNote(''); setDivPreview([]);
+      setDivAmount(''); setDivRoundNum(0); setDivPreview([]);
       loadData();
     } catch {
       setToast(t('toastSubmitFailed'));
@@ -626,7 +626,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                   <Text style={s.statSub}>{t('cumulativeByShare')}</Text>
                 </View>
               </View>
-              <TouchableOpacity style={s.dividendBtn} onPress={() => setShowDividend(true)}>
+              <TouchableOpacity style={s.dividendBtn} onPress={() => { setDivRoundNum(groupKeys.length + 1); setShowDividend(true); }}>
                 <Text style={s.dividendBtnText}>{t('issueDividend')}</Text>
               </TouchableOpacity>
             </View>
@@ -766,8 +766,30 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               </View>
               <View>
                 <Text style={moBody.label}>{t('roundNote')}</Text>
-                <TextInput style={moBody.input} placeholder={t('roundNoteExample')} value={divNote}
-                  onChangeText={setDivNote} placeholderTextColor={colors.textSub} />
+                <View style={[moBody.input, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                  {(() => {
+                    const fmt = (t('dividendRoundFmt') as string).replace('{date}', formatDate(new Date().toISOString().slice(0, 10)));
+                    const idx = fmt.indexOf('{n}');
+                    const prefix = fmt.slice(0, idx);
+                    const suffix = fmt.slice(idx + 3);
+                    const min = groupKeys.length + 1;
+                    const disabled = divRoundNum <= min;
+                    const btn = { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' } as const;
+                    return (<>
+                      <Text style={{ fontSize: 14, color: colors.textSub }}>{prefix}</Text>
+                      <TouchableOpacity onPress={() => setDivRoundNum(n => Math.max(min, n - 1))} disabled={disabled}
+                        style={{ ...btn, backgroundColor: disabled ? 'transparent' : colors.bg, borderWidth: 1, borderColor: disabled ? 'transparent' : colors.primary, opacity: disabled ? 0.25 : 1 }}>
+                        <Text style={{ color: colors.primary, fontSize: 14, lineHeight: 14 }}>−</Text>
+                      </TouchableOpacity>
+                      <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textMain, minWidth: 18, textAlign: 'center' }}>{divRoundNum}</Text>
+                      <TouchableOpacity onPress={() => setDivRoundNum(n => n + 1)}
+                        style={{ ...btn, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.primary }}>
+                        <Text style={{ color: colors.primary, fontSize: 14, lineHeight: 14 }}>+</Text>
+                      </TouchableOpacity>
+                      <Text style={{ fontSize: 14, color: colors.textSub }}>{suffix}</Text>
+                    </>);
+                  })()}
+                </View>
               </View>
               <View style={moBody.preview}>
                 <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
