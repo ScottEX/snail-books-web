@@ -600,12 +600,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
               {avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={s.avatar} key={avatarKey} />
               ) : (
-                <View style={[s.avatar, s.avatarPlaceholder, s.avatarRing]}>
-                  <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
-                    <circle cx="20" cy="16" r="7" stroke={colors.textSub} strokeWidth="2"/>
-                    <path d="M6 34c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke={colors.textSub} strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </View>
+                <Image source={{ uri: '/img/logo.jpg' }} style={s.avatar} />
               )}
               <View style={s.camBadge}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
