@@ -148,9 +148,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setRevLoading(true);
     try {
       const r = await api.getDailyRevenue(p, 30, yr, mo);
-      setDailyRevs(r.records || []);
-      setRevPages(r.pages || 1);
-      setRevPage(r.page || 1);
+      setDailyRevs(r?.records || []);
+      setRevPages(r?.pages || 1);
+      setRevPage(r?.page || 1);
     } catch { setToast(t('toastLoadFailed')); }
     setRevLoading(false);
   }, []);
@@ -171,7 +171,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     let cancelled = false;
     api.getDailyRevenue(1, 1, undefined, undefined, undefined, 30).then((r: any) => {
-      if (!cancelled) setWeekRev(r.totals || null);
+      if (!cancelled) setWeekRev(r?.totals || null);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -180,7 +180,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     let cancelled = false;
     api.getLast7Days().then((r: any) => {
-      if (!cancelled) setLast7Records(r.records || []);
+      if (!cancelled) setLast7Records(r?.records || []);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);

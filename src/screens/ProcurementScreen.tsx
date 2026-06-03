@@ -587,7 +587,7 @@ export default function ProcurementScreen() {
     if (subTab !== 'history') return;
     setLoadingHist(true);
     api.getProcurementBatches(1).then((data: any) => {
-      setBatches(data.records || []); setHistTotal(data.total || 0); setHistPage(1);
+      setBatches(data?.records || []); setHistTotal(data?.total || 0); setHistPage(1);
     }).catch(() => {}).finally(() => setLoadingHist(false));
   }, [subTab]);
 
@@ -596,7 +596,7 @@ export default function ProcurementScreen() {
     const next = histPage + 1;
     setLoadingHist(true);
     api.getProcurementBatches(next).then((data: any) => {
-      setBatches(prev => [...prev, ...(data.records || [])]); setHistPage(next);
+      setBatches(prev => [...prev, ...(data?.records || [])]); setHistPage(next);
     }).catch(() => {}).finally(() => setLoadingHist(false));
   };
 
@@ -675,7 +675,7 @@ export default function ProcurementScreen() {
     const val = parseFloat(editPriceVal);
     if (!isNaN(val) && val > 0) {
       api.updateProduct({ id: pid, name: products.find(p => p.id === pid)?.name, price: val }).then((r: any) => {
-        if (r.status === 'ok') setProducts(prev => prev.map(p => p.id === pid ? { ...p, price: val } : p));
+        if (r?.status === 'ok') setProducts(prev => prev.map(p => p.id === pid ? { ...p, price: val } : p));
       }).catch(() => {});
     }
     setEditingPrice(null);
@@ -754,7 +754,7 @@ export default function ProcurementScreen() {
         items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
         images: imageUrls, thumb_images: thumbUrls, note: orderNote,
       });
-      if (r.status === 'ok') {
+      if (r?.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number);
         Animated.parallel([
           Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),

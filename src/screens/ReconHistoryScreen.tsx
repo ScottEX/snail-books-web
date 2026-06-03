@@ -125,11 +125,11 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     if (reset) setLoading(true);
     try {
       const data: any = await api.getReconciliationsPage(pg, PAGE_SIZE, getFilterParams());
-      const recs = data.records || [];
+      const recs = data?.records || [];
       setRecords(prev => reset ? recs : [...prev, ...recs]);
       setPage(pg);
-      setTotal(data.total || 0);
-      setHasMore(pg < (data.pages || 1));
+      setTotal(data?.total || 0);
+      setHasMore(pg < (data?.pages || 1));
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
     loadingRef.current = false;

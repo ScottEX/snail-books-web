@@ -384,7 +384,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         eleme_waimai: ew, meituan_tuan: mt,
       });
       if (r?.status === 'ok') {
-        setFeeData(r.data);
+        setFeeData(r?.data);
         setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
         setShowFeeSheet(false);
         // Reload all months to keep totals accurate

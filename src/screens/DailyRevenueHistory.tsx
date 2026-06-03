@@ -85,7 +85,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
     setLoading(true);
     try {
       const r = await api.getDailyRevenue(1, 5000);
-      const all = (r.records || []) as any[];
+      const all = (r?.records || []) as any[];
       // Server-side filtering not implemented for daily_revenue, do client-side
       let filtered = all;
       if (appliedFrom) filtered = filtered.filter((rec: any) => rec.date >= appliedFrom);
