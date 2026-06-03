@@ -807,17 +807,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           {/* Revenue KPI cards */}
           <View style={st.card}>
             <View style={st.kpiRow}>
-              <View style={st.kpiCard}>
+              <View style={st.kpiItem}>
                 <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
-                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>{fmt(businessSummary.actual_received || 0)}</Text>
+                <Text style={st.kpiVal}>{fmt(businessSummary.actual_received || 0)}</Text>
               </View>
-              <View style={st.kpiCard}>
+              <View style={st.kpiDivider} />
+              <View style={st.kpiItem}>
                 <Text style={st.kpiLabel}>{t('receivable')}</Text>
-                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>{fmt(businessSummary.receivable || 0)}</Text>
+                <Text style={st.kpiVal}>{fmt(businessSummary.receivable || 0)}</Text>
               </View>
-              <View style={st.kpiCard}>
+              <View style={st.kpiDivider} />
+              <View style={st.kpiItem}>
                 <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
-                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>{fmt(businessSummary.discount || 0)}</Text>
+                <Text style={st.kpiVal}>{fmt(businessSummary.discount || 0)}</Text>
               </View>
             </View>
           </View>
@@ -1663,14 +1665,14 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
 
   /* ── KPI ── */
-  kpiRow: { flexDirection: 'row', gap: 12 },
-  kpiCard: {
-    flex: 1, backgroundColor: colors.bg,
-    borderRadius: 14, padding: 16, alignItems: 'center',
-    borderWidth: 1, borderColor: colors.secondary,
+  kpiRow: { flexDirection: 'column' },
+  kpiItem: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 12, paddingHorizontal: 4,
   },
-  kpiLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 4 },
-  kpiVal: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.textMain },
+  kpiDivider: { height: 1, backgroundColor: colors.secondary, marginHorizontal: 4 },
+  kpiLabel: { fontSize: FONTS.body.size, color: colors.textMain, fontWeight: FONTS.body.weight },
+  kpiVal: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
 
   /* ── Table ── */
   tableWrap: {
