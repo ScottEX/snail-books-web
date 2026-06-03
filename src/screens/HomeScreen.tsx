@@ -186,7 +186,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   const submitDailyRev = async () => {
-    if (!revTurnover || parseFloat(revTurnover) <= 0) { setToast(t('revTurnover') + ' 不能为空'); return; }
+    const isClosed = revMarkedClosed;
+    if (!isClosed && (!revTurnover || parseFloat(revTurnover) <= 0)) { setToast(t('revTurnover') + ' 不能为空'); return; }
     setRevSaving(true);
     try {
       if (editingRevId) {
@@ -224,12 +225,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setRevTurnover(String(rev.turnover || ''));
     setRevJD(String(rev.jd_revenue || ''));
     setRevNote(rev.note || '');
+    setRevMarkedClosed(!!rev.archived);
   };
 
   const cancelEdit = () => {
     setEditingRevId(null);
     setRevDate(todayDateStr());
     setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
+    setRevMarkedClosed(false);
   };
 
   const deleteDailyRev = async (id: number) => {
@@ -581,15 +584,19 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <TouchableOpacity
                         style={[styles.revArchiveBtn, { flex: 2 }, revMarkedClosed && styles.revArchiveBtnDone]}
-                        onPress={() => setRevMarkedClosed(!revMarkedClosed)}
+                        onPress={() => {
+                          const next = !revMarkedClosed;
+                          setRevMarkedClosed(next);
+                          if (next && !revNote.trim()) { setRevNote(t('revClosedReason')); }
+                        }}
                         activeOpacity={0.7}>
                         <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
                           {revMarkedClosed ? t('revCancelArchive') : t('revMarkArchive')}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.revSubmitBtn, { flex: 4 }, (!revTurnover || parseFloat(revTurnover) <= 0 || revSaving) && { opacity: 0.5 }]}
-                        onPress={submitDailyRev} disabled={!revTurnover || parseFloat(revTurnover) <= 0 || revSaving}
+                        style={[styles.revSubmitBtn, { flex: 4 }, (!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0) || revSaving) && { opacity: 0.5 }]}
+                        onPress={submitDailyRev} disabled={(!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0)) || revSaving}
                         activeOpacity={0.8}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                           {revSaving ? (
