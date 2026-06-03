@@ -624,7 +624,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   {i === 1 && (
                     <View style={{ flex: 1, gap: 16 }}>
                       {/* Hero: 在手资金 */}
-                      <View style={{ alignItems: 'flex-start', gap: 6 }}>
+                      <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 8 }}>
                         {/* @ts-ignore */}
                         <Text style={{
                           fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight,
@@ -635,15 +635,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         <Text style={{
                           fontSize: FONTS.h1.size, fontWeight: FONTS.h1.weight,
                           color: (businessSummary.cash_on_hand || 0) >= 0
-                            ? 'rgba(255,255,255,0.95)' : colors.danger,
+                            ? colors.surface : colors.danger,
                           textShadow: '0 1px 3px rgba(0,0,0,0.1)',
                         } as any}>{'¥' + toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
                       </View>
                       {/* Sub-cards: 累計營收 | 累計支出 */}
                       <View style={{ flexDirection: 'row', gap: 10 }}>
                         <View style={{
-                          flex: 1, backgroundColor: 'rgba(255,255,255,0.10)',
-                          borderRadius: 10, padding: 12, gap: 6,
+                          flex: 1, backgroundColor: 'rgba(255,255,255,0.12)',
+ borderRadius: 10, padding: 14, gap: 6,
                           borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.18)',
                         }}>
                           {/* @ts-ignore */}
@@ -658,8 +658,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           }}>{'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}</Text>
                         </View>
                         <View style={{
-                          flex: 1, backgroundColor: 'rgba(255,255,255,0.10)',
-                          borderRadius: 10, padding: 12, gap: 6,
+                          flex: 1, backgroundColor: 'rgba(255,255,255,0.12)',
+ borderRadius: 10, padding: 14, gap: 6,
                           borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.18)',
                         }}>
                           {/* @ts-ignore */}
@@ -1512,7 +1512,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   tabCard: {
     // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
-    width: 'calc(100vw - 61px)', height: 180,
+    width: 'calc(100vw - 61px)', height: 200,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
