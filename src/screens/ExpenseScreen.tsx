@@ -604,19 +604,69 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     {tab.title}{i === 2 ? ' ¥' + fmtInt(businessSummary.cumulative_expense || 0) : ''}
                   </Text>
                   {i === 0 && (
-                    <View style={st.cardFields}>
-                      <View style={st.cardFieldRow}>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('bookBalance')}</Text>
-                          <Text style={[st.cardFieldVal, { color: colors.textMain }]}>{fmt(businessSummary.cash_on_hand || 0)}</Text>
+                    <View style={{ flex: 1, gap: 8 }}>
+                      {/* Hero: 账面差额 */}
+                      <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
+                        {/* @ts-ignore */}
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                        } as any}>{t('bookDiff')}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                          {/* @ts-ignore */}
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: (() => {
+                              if (diff > 0.005) return colors.primary;
+                              if (diff < -0.005) return colors.danger;
+                              return colors.textMain;
+                            })(),
+                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          } as any}>{diff >= 0 ? '+' : '-'}¥</Text>
+                          {/* @ts-ignore */}
+                          <Text style={{
+                            fontSize: FONTS.h1.size, fontWeight: FONTS.h1.weight,
+                            color: (() => {
+                              if (diff > 0.005) return colors.primary;
+                              if (diff < -0.005) return colors.danger;
+                              return colors.textMain;
+                            })(),
+                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          } as any}>{toDec2Comma(Math.abs(diff))}</Text>
                         </View>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('currentBalance')}</Text>
-                          <Text style={[st.cardFieldVal, { color: colors.textMain }]}>{fmt(realTotal)}</Text>
+                      </View>
+                      {/* Sub-cards: 账面余额 | 当前资金 */}
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <View style={{
+                          flex: 1, backgroundColor: withAlpha(colors.success, 0.15),
+                          borderRadius: 10, padding: 14, gap: 6,
+                          borderWidth: 0.5, borderColor: withAlpha(colors.success, 0.30),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        } as any}>
+                          <Text style={{
+                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                            color: 'rgba(255,255,255,0.70)',
+                          }}>{t('bookBalance')}</Text>
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: 'rgba(255,255,255,0.95)',
+                          }}>{'¥' + toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
                         </View>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
-                          <Text style={[st.cardFieldVal, { color: Math.abs(diff) < 0.005 ? colors.textMain : colors.primary }]}>{diff >= 0 ? '+' : '-'}{fmt(Math.abs(diff))}</Text>
+                        <View style={{
+                          flex: 1, backgroundColor: withAlpha(colors.info, 0.15),
+                          borderRadius: 10, padding: 14, gap: 6,
+                          borderWidth: 0.5, borderColor: withAlpha(colors.info, 0.30),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        } as any}>
+                          <Text style={{
+                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                            color: 'rgba(255,255,255,0.70)',
+                          }}>{t('currentBalance')}</Text>
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: 'rgba(255,255,255,0.95)',
+                          }}>{'¥' + toDec2Comma(realTotal)}</Text>
                         </View>
                       </View>
                     </View>
@@ -689,23 +739,71 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   )}
                 </View>
                 {i === 2 && (
-                  <View style={st.cardFields}>
-                    <View style={st.cardFieldRow}>
-                      <View style={st.cardFieldCol}>
-                        <Text style={st.cardFieldLabel}>{t('daily')}</Text>
-                        <Text style={[st.cardFieldVal, { fontSize: FONTS.body.size }]}>{fmt(expCatTotals.daily)}</Text>
+                  <View style={{ flex: 1, gap: 10 }}>
+                    {/* Row 1: 日常 | 采购 */}
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                      <View style={{
+                        flex: 1, backgroundColor: withAlpha(colors.danger, 0.15),
+                        borderRadius: 10, padding: 12, gap: 6,
+                        borderWidth: 0.5, borderColor: withAlpha(colors.danger, 0.30),
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      } as any}>
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                        }}>{t('daily')}</Text>
+                        <Text style={{
+                          fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                          color: 'rgba(255,255,255,0.95)',
+                        }}>{'¥' + toDec2Comma(expCatTotals.daily)}</Text>
                       </View>
-                      <View style={st.cardFieldCol}>
-                        <Text style={st.cardFieldLabel}>{t('rent')}</Text>
-                        <Text style={[st.cardFieldVal, { fontSize: FONTS.body.size }]}>{fmt(expCatTotals.rent)}</Text>
+                      <View style={{
+                        flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
+                        borderRadius: 10, padding: 12, gap: 6,
+                        borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      } as any}>
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                        }}>{t('goods')}</Text>
+                        <Text style={{
+                          fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                          color: 'rgba(255,255,255,0.95)',
+                        }}>{'¥' + toDec2Comma(expCatTotals.goods)}</Text>
                       </View>
-                      <View style={st.cardFieldCol}>
-                        <Text style={st.cardFieldLabel}>{t('salary')}</Text>
-                        <Text style={[st.cardFieldVal, { fontSize: FONTS.body.size }]}>{fmt(expCatTotals.salary)}</Text>
+                    </View>
+                    {/* Row 2: 房租 | 薪资 */}
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                      <View style={{
+                        flex: 1, backgroundColor: withAlpha(colors.danger, 0.15),
+                        borderRadius: 10, padding: 12, gap: 6,
+                        borderWidth: 0.5, borderColor: withAlpha(colors.danger, 0.30),
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      } as any}>
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                        }}>{t('rent')}</Text>
+                        <Text style={{
+                          fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                          color: 'rgba(255,255,255,0.95)',
+                        }}>{'¥' + toDec2Comma(expCatTotals.rent)}</Text>
                       </View>
-                      <View style={st.cardFieldCol}>
-                        <Text style={st.cardFieldLabel}>{t('goods')}</Text>
-                        <Text style={[st.cardFieldVal, { fontSize: FONTS.body.size }]}>{fmt(expCatTotals.goods)}</Text>
+                      <View style={{
+                        flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
+                        borderRadius: 10, padding: 12, gap: 6,
+                        borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      } as any}>
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                        }}>{t('salary')}</Text>
+                        <Text style={{
+                          fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                          color: 'rgba(255,255,255,0.95)',
+                        }}>{'¥' + toDec2Comma(expCatTotals.salary)}</Text>
                       </View>
                     </View>
                   </View>
