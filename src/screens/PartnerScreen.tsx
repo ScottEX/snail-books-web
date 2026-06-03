@@ -77,6 +77,22 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
   );
 }
 
+function IconMinus({ color = '#7D2329', size = 14 }: { color?: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}>
+      <Path strokeLinecap="round" d="M5 12h14" />
+    </Svg>
+  );
+}
+
+function IconPlus({ color = '#7D2329', size = 14 }: { color?: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}>
+      <Path strokeLinecap="round" d="M12 5v14 M5 12h14" />
+    </Svg>
+  );
+}
+
 /* ========== MAIN SCREEN ========== */
 
 export default function PartnerScreen({ onBack }: { onBack: () => void }) {
@@ -779,12 +795,12 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                       <Text style={{ fontSize: 14, color: colors.textSub }}>{prefix}</Text>
                       <TouchableOpacity onPress={() => setDivRoundNum(n => Math.max(min, n - 1))} disabled={disabled}
                         style={{ ...btn, backgroundColor: disabled ? 'transparent' : colors.bg, borderWidth: 1, borderColor: disabled ? 'transparent' : colors.primary, opacity: disabled ? 0.25 : 1 }}>
-                        <Text style={{ color: colors.primary, fontSize: 14, lineHeight: 14 }}>−</Text>
+                        <IconMinus color={colors.primary} size={12} />
                       </TouchableOpacity>
                       <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textMain, minWidth: 18, textAlign: 'center' }}>{divRoundNum}</Text>
                       <TouchableOpacity onPress={() => setDivRoundNum(n => n + 1)}
                         style={{ ...btn, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.primary }}>
-                        <Text style={{ color: colors.primary, fontSize: 14, lineHeight: 14 }}>+</Text>
+                        <IconPlus color={colors.primary} size={12} />
                       </TouchableOpacity>
                       <Text style={{ fontSize: 14, color: colors.textSub }}>{suffix}</Text>
                     </>);
