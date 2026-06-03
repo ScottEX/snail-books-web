@@ -232,6 +232,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const switchLang = (l: string) => {
     setLang(l);
     setLangState(l);
+    setMsg('');
+    setMsgKey('');
+    setMsgOk(false);
   };
 
   const styles = useMemo(() => getStyles(colors), [colors]);
