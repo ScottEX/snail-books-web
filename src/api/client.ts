@@ -57,12 +57,11 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
   });
   if (resp.status === 401) {
     localStorage.removeItem('user');
-    // Navigate immediately — callers don't need to handle this
+    // Navigate immediately — this promise never resolves so callers don't render
     if (window.location.pathname !== '/login') {
       window.location.replace('/login');
     }
-    // Return empty response so callers' .catch(() => {}) don't crash on null data
-    return {} as T;
+    return new Promise(() => {});
   }
   if (!resp.ok) {
     throw new Error(`API error: ${resp.status} ${resp.statusText}`);
