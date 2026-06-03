@@ -213,7 +213,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       setEditingRevId(null); setRevDate(todayDateStr());
       setRevMarkedClosed(false);
       loadDailyRevs(1, revYear, revMonth);
-      api.getLast7Days().then((r: any) => setLast7Records(r.records || [])).catch(() => {});
+      api.getLast7Days().then((r: any) => {
+        try { setLast7Records(r?.records || []); } catch {}
+      }).catch(() => {});
     } catch { setToast(t('toastSubmitFailed')); }
     setRevSaving(false);
   };
