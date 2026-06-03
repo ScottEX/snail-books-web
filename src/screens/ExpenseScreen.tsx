@@ -627,48 +627,53 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 8 }}>
                         {/* @ts-ignore */}
                         <Text style={{
-                          fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight,
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
                           color: 'rgba(255,255,255,0.70)',
                           textShadow: '0 1px 2px rgba(0,0,0,0.1)',
                         } as any}>{t('cashOnHand')}</Text>
-                        {/* @ts-ignore */}
-                        <Text style={{
-                          fontSize: FONTS.h1.size, fontWeight: FONTS.h1.weight,
-                          color: (businessSummary.cash_on_hand || 0) >= 0
-                            ? colors.surface : colors.danger,
-                          textShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                        } as any}>{'¥' + toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                          {/* @ts-ignore */}
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: (businessSummary.cash_on_hand || 0) >= 0
+                              ? colors.primary : colors.danger,
+                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          } as any}>¥</Text>
+                          {/* @ts-ignore */}
+                          <Text style={{
+                            fontSize: FONTS.h1.size, fontWeight: FONTS.h1.weight,
+                            color: (businessSummary.cash_on_hand || 0) >= 0
+                              ? colors.primary : colors.danger,
+                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          } as any}>{toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
+                        </View>
                       </View>
                       {/* Sub-cards: 累計營收 | 累計支出 */}
                       <View style={{ flexDirection: 'row', gap: 10 }}>
                         <View style={{
                           flex: 1, backgroundColor: 'rgba(255,255,255,0.12)',
- borderRadius: 10, padding: 14, gap: 6,
+                          borderRadius: 10, padding: 14, gap: 6,
                           borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.18)',
                         }}>
-                          {/* @ts-ignore */}
-                        <Text style={{
+                          <Text style={{
                             fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
                             color: 'rgba(255,255,255,0.70)',
                           }}>{t('cumulativeRevenue')}</Text>
-                          {/* @ts-ignore */}
-                        <Text style={{
+                          <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                             color: 'rgba(255,255,255,0.95)',
                           }}>{'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}</Text>
                         </View>
                         <View style={{
                           flex: 1, backgroundColor: 'rgba(255,255,255,0.12)',
- borderRadius: 10, padding: 14, gap: 6,
+                          borderRadius: 10, padding: 14, gap: 6,
                           borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.18)',
                         }}>
-                          {/* @ts-ignore */}
-                        <Text style={{
+                          <Text style={{
                             fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
                             color: 'rgba(255,255,255,0.70)',
                           }}>{t('cumulativeExpense')}</Text>
-                          {/* @ts-ignore */}
-                        <Text style={{
+                          <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                             color: 'rgba(255,255,255,0.95)',
                           }}>{'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}</Text>
@@ -1332,10 +1337,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       {platforms.map((p) => (
                         <View key={p.label} style={{ flex: 1, minWidth: '46%', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg, borderRadius: 6, paddingVertical: 6, paddingHorizontal: 8, gap: 6 }}>
                           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: p.color }} />
-                          {/* @ts-ignore */}
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, flex: 1 }}>{p.label}</Text>
-                          {/* @ts-ignore */}
-                        <Text style={{ fontSize: FONTS.microBold.size, color: colors.textMain, fontWeight: FONTS.microBold.weight }}>¥{p.value.toFixed(2)}</Text>
+                          <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, flex: 1 }}>{p.label}</Text>
+                          <Text style={{ fontSize: FONTS.microBold.size, color: colors.textMain, fontWeight: FONTS.microBold.weight }}>¥{p.value.toFixed(2)}</Text>
                         </View>
                       ))}
                     </View>
