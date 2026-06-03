@@ -811,12 +811,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
                 <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.actual_received)}</Text>
               </View>
-              <View style={st.kpiDivider} />
               <View style={st.kpiItem}>
                 <Text style={st.kpiLabel}>{t('receivable')}</Text>
                 <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.receivable)}</Text>
               </View>
-              <View style={st.kpiDivider} />
               <View style={st.kpiItem}>
                 <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
                 <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.discount)}</Text>
@@ -1668,7 +1666,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   kpiRow: { flexDirection: 'column' },
   kpiItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 12, paddingHorizontal: 4,
+    paddingVertical: 8, paddingHorizontal: 4,
   },
   kpiDivider: { height: 1, backgroundColor: colors.secondary, marginHorizontal: 4 },
   kpiLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
