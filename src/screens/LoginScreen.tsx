@@ -22,7 +22,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [msgKey, setMsgKey] = useState('');
   const [msgOk, setMsgOk] = useState(false);
   const [lang, setLangState] = useState(getLang());
-  const displayMsg = useMemo(() => msgKey ? t(msgKey) : msg, [msgKey, msg, lang]);
+  const displayMsg = msgKey ? t(msgKey) : msg;
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
