@@ -325,8 +325,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
 
   const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
-  const realTotal = toNum(cardBalance) + toNum(cashBalance);
-  const diff = (businessSummary.cash_on_hand || 0) - (toNum(cardBalance) + toNum(cashBalance) + channelTotal);
+  const realTotal = toNum(cardBalance) + toNum(cashBalance) + channelTotal;
+  const diff = (businessSummary.cash_on_hand || 0) - realTotal;
 
   const hasReconChanges =
     toNum(cardBalance) !== toNum(initReconValues.current.card) ||
