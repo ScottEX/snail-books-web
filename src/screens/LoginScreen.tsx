@@ -232,13 +232,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
         <View style={styles.brand}>
-          <View style={styles.logoWrap}>
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.logo} />
-            ) : (
-              <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
-            )}
-          </View>
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={styles.logo} />
+          ) : (
+            <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
+          )}
           <Text style={styles.subtitle}>{t('subtitle')}</Text>
           <View style={styles.langRow}>
             {langs.map(([l, label]) => (
@@ -519,7 +517,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore - web-only boxShadow
     boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)',
   },
-  logo: { width: 80, height: 80 },
+  logo: { width: 80, height: 80, borderRadius: 40, marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)' } as any,
   subtitle: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
   langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
   langBtn: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },

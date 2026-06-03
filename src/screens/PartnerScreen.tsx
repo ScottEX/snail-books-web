@@ -596,7 +596,7 @@ export default function PartnerScreen({ onBack }: { onBack: () => void }) {
                 </View>
               </View>
             </View>
-            <TouchableOpacity onPress={() => fileInputRef.current?.click()} style={{ position: 'relative' }}>
+            <TouchableOpacity onPress={() => fileInputRef.current?.click()} style={{ position: 'relative', marginTop: -4 }}>
               {avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={s.avatar} key={avatarKey} />
               ) : (
