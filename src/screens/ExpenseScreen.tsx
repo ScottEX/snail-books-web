@@ -809,15 +809,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={st.kpiRow}>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
-                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>¥{fmt(businessSummary.actual_received || 0)}</Text>
+                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>{fmt(businessSummary.actual_received || 0)}</Text>
               </View>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('receivable')}</Text>
-                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>¥{fmt(businessSummary.receivable || 0)}</Text>
+                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>{fmt(businessSummary.receivable || 0)}</Text>
               </View>
               <View style={st.kpiCard}>
                 <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
-                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>¥{fmt(businessSummary.discount || 0)}</Text>
+                <Text style={[st.kpiVal, { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }]}>{fmt(businessSummary.discount || 0)}</Text>
               </View>
             </View>
           </View>
