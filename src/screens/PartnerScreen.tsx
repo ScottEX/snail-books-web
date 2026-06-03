@@ -1196,7 +1196,7 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   engSub: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, letterSpacing: 0.3, marginTop: 1 },
   langRow: { flexDirection: 'row', gap: 4, paddingTop: 4 },
   langBtn: { fontSize: FONTS.micro.size, color: colors.textSub, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: FONTS.micro.weight as any },
-  avatar: { width: 40, height: 40, borderRadius: 20 },
+  avatar: { width: 48, height: 48, borderRadius: 24 },
   avatarPlaceholder: { backgroundColor: withAlpha(colors.primary, 0.12), justifyContent: 'center', alignItems: 'center' },
   avatarRing: { borderWidth: 1.5, borderColor: colors.bg, borderStyle: 'dashed' as any },
   avatarInitial: { fontSize: 16, fontWeight: '600', color: colors.primary },

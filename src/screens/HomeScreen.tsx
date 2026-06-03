@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animated, Image } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
@@ -71,6 +71,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
   const [bgImage, setBgImage] = useState(() => {
@@ -261,6 +262,20 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  const loadAvatar = async () => {
+    const uid = localStorage.getItem('user_id');
+    if (!uid) return;
+    try {
+      const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
+      if (resp.ok) {
+        const blob = await resp.blob();
+        setAvatarUrl(URL.createObjectURL(blob));
+      }
+    } catch {}
+  };
+
+  useEffect(() => { loadAvatar(); }, []);
+
   // Load background image — user-specific
   useEffect(() => {
     api.getBackground().then((r: any) => {
@@ -434,10 +449,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={styles.header}>
         <View style={styles.headerInner}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-              <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <Circle cx="12" cy="7" r="4" />
-            </Svg>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={{ width: 32, height: 32, borderRadius: 16 }} />
+            ) : (
+              <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <Circle cx="12" cy="7" r="4" />
+              </Svg>
+            )}
             <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{usr}</Text>
           </View>
           <View style={styles.headerRight}>

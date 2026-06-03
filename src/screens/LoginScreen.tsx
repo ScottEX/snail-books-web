@@ -515,11 +515,11 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   contentScroll: { paddingBottom: 40 },
   brand: { alignItems: 'center', marginBottom: 32 },
   logoWrap: {
-    width: 56, height: 56, borderRadius: 16, overflow: 'hidden' as const, marginBottom: 20,
+    width: 80, height: 80, borderRadius: 16, overflow: 'hidden' as const, marginBottom: 20,
     // @ts-ignore - web-only boxShadow
     boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)',
   },
-  logo: { width: 56, height: 56 },
+  logo: { width: 80, height: 80 },
   subtitle: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
   langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
   langBtn: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
