@@ -262,7 +262,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         <View style={[styles.glassCard, shake && styles.shake]}>
           {/* Message */}
           {(msg || msgKey) ? (
-            <View style={styles.msgBox}>
+            <View key={lang} style={styles.msgBox}>
               <Text style={styles.msgText}>{displayMsg}</Text>
             </View>
           ) : null}
