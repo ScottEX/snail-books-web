@@ -82,7 +82,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   });
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
-      const saved = localStorage.getItem('bg-opacity');
+      const uid = localStorage.getItem('user_id');
+      const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
+      const saved = localStorage.getItem(key);
       return saved !== null ? parseFloat(saved) : 0.5;
     } catch { return 0.5; }
   });
@@ -290,11 +292,15 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       // Load opacity from server (overrides localStorage default)
       if (r?.opacity !== null && r?.opacity !== undefined) {
         setBgOpacity(r.opacity);
-        try { localStorage.setItem('bg-opacity', String(r.opacity)); } catch {}
+        try {
+          const uid = localStorage.getItem('user_id');
+          localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(r.opacity));
+        } catch {}
       } else {
         // Migration: push localStorage opacity to server if not saved yet
         try {
-          const local = localStorage.getItem('bg-opacity');
+          const uid = localStorage.getItem('user_id');
+          const local = localStorage.getItem(uid ? `bg-opacity-${uid}` : 'bg-opacity');
           if (local !== null) {
             const v = parseFloat(local);
             api.saveBackgroundSettings({ opacity: v }).catch(() => {});
@@ -852,7 +858,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     onChange={(e: any) => {
                       const v = parseFloat(e.target.value);
                       setBgOpacity(v);
-                      try { localStorage.setItem('bg-opacity', String(v)); } catch {}
+                      try {
+                        const uid = localStorage.getItem('user_id');
+                        localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(v));
+                      } catch {}
                       // Debounced save to server
                       clearTimeout((window as any).__bgOpacityTimer);
                       (window as any).__bgOpacityTimer = setTimeout(() => {

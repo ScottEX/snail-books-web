@@ -110,6 +110,13 @@ export const THEMES: Record<string, Theme> = {
 export const DEFAULT_THEME_ID = 'burgundy-warm';
 export const THEME_STORAGE_KEY = 'snail-books-theme';
 
+function getThemeKey(): string {
+  try {
+    const uid = localStorage.getItem('user_id');
+    return uid ? `snail-books-theme-${uid}` : 'snail-books-theme';
+  } catch { return 'snail-books-theme'; }
+}
+
 /**
  * Convert hex color to rgba string.
  * Example: withAlpha('#7D2329', 0.5) → 'rgba(125,35,41,0.5)'
@@ -164,7 +171,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 export function ThemeProvider({ children }: { children: React.ReactNode }): React.ReactNode {
   const [theme, setThemeState] = useState<Theme>(() => {
     try {
-      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      const stored = localStorage.getItem(getThemeKey());
       if (stored && THEMES[stored]) return THEMES[stored];
     } catch {}
     return theme1;
@@ -174,7 +181,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
     const t = THEMES[themeId];
     if (!t) return;
     setThemeState(t);
-    try { localStorage.setItem(THEME_STORAGE_KEY, themeId); } catch {}
+    try { localStorage.setItem(getThemeKey(), themeId); } catch {}
     // Fire-and-forget sync to server (don't block UI)
     api.saveTheme(themeId).catch(() => {});
   }, []);
@@ -187,7 +194,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
       const serverThemeId = (resp as any)?.theme;
       if (serverThemeId && THEMES[serverThemeId]) {
         setThemeState(THEMES[serverThemeId]);
-        try { localStorage.setItem(THEME_STORAGE_KEY, serverThemeId); } catch {}
+        try { localStorage.setItem(getThemeKey(), serverThemeId); } catch {}
       }
     }).catch(() => {
       // Not logged in or network error — keep current (localStorage) theme

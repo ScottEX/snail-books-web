@@ -72,7 +72,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     if (!username) { setAvatarUrl(''); return; }
     const timer = setTimeout(async () => {
       try {
-        const resp = await fetch(`/api/users/avatar?username=${encodeURIComponent(username)}`);
+        let resp = await fetch(`/api/users/avatar?username=${encodeURIComponent(username)}`);
+        if (!resp.ok && username.includes('@')) {
+          resp = await fetch(`/api/users/avatar?email=${encodeURIComponent(username)}`);
+        }
         if (resp.ok) {
           const blob = await resp.blob();
           setAvatarUrl(URL.createObjectURL(blob));
@@ -273,9 +276,18 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             <View style={styles.formSection}>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('username')}</Text>
-                <TextInput style={styles.textInput} value={username} onChangeText={setUsername}
-                  placeholder={t('loginPlaceholder') || '用户名 / 邮箱'} placeholderTextColor="rgba(255,255,255,0.55)"
-                  onSubmitEditing={handleLogin} />
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TextInput style={[styles.textInput, { flex: 1 }]} value={username} onChangeText={setUsername}
+                    placeholder={t('loginPlaceholder') || '用户名 / 邮箱'} placeholderTextColor="rgba(255,255,255,0.55)"
+                    onSubmitEditing={handleLogin} />
+                  {username ? (
+                    <TouchableOpacity onPress={() => setUsername('')} style={{ padding: 8, marginLeft: -36 }}>
+                      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2} strokeLinecap="round">
+                        <Path d="M18 6L6 18M6 6l12 12" />
+                      </Svg>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               </View>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('password')}</Text>
@@ -324,8 +336,17 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             <View style={styles.formSection}>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('username')}</Text>
-                <TextInput style={styles.textInput} value={username} onChangeText={setUsername}
-                  placeholder={t('username')} placeholderTextColor="rgba(255,255,255,0.55)" />
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TextInput style={[styles.textInput, { flex: 1 }]} value={username} onChangeText={setUsername}
+                    placeholder={t('username')} placeholderTextColor="rgba(255,255,255,0.55)" />
+                  {username ? (
+                    <TouchableOpacity onPress={() => setUsername('')} style={{ padding: 8, marginLeft: -36 }}>
+                      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2} strokeLinecap="round">
+                        <Path d="M18 6L6 18M6 6l12 12" />
+                      </Svg>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               </View>
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('email') || 'Email'}</Text>
