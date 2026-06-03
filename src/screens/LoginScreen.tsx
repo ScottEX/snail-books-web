@@ -20,9 +20,13 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [code, setCode] = useState('');
   const [msg, setMsg] = useState('');
   const [msgKey, setMsgKey] = useState('');
-  const displayMsg = msgKey ? t(msgKey) : msg;
   const [msgOk, setMsgOk] = useState(false);
   const [lang, setLangState] = useState(getLang());
+  const [displayMsg, setDisplayMsg] = useState('');
+
+  useEffect(() => {
+    setDisplayMsg(msgKey ? t(msgKey) : msg);
+  }, [msgKey, msg, lang]);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
