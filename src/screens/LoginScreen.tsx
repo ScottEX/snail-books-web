@@ -67,6 +67,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const goRegister = () => {
     setStep('register'); reset();
     setUsername(''); // don't carry over saved login
+    setPassword(''); setPassword2(''); setEmail('');
   };
 
   // Fetch avatar when username changes (debounced)
