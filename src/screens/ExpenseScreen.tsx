@@ -655,9 +655,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       {/* Sub-cards: 累計營收 | 累計支出 */}
                       <View style={{ flexDirection: 'row', gap: 10 }}>
                         <View style={{
-                          flex: 1, backgroundColor: withAlpha(colors.primary, 0.12),
+                          flex: 1, backgroundColor: withAlpha(colors.warning, 0.15),
                           borderRadius: 10, padding: 14, gap: 6,
-                          borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.25),
+                          borderWidth: 0.5, borderColor: withAlpha(colors.warning, 0.30),
                           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                         } as any}>
                           <Text style={{
@@ -670,9 +670,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           }}>{'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}</Text>
                         </View>
                         <View style={{
-                          flex: 1, backgroundColor: withAlpha(colors.warning, 0.12),
+                          flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
                           borderRadius: 10, padding: 14, gap: 6,
-                          borderWidth: 0.5, borderColor: withAlpha(colors.warning, 0.25),
+                          borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
                           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                         } as any}>
                           <Text style={{
