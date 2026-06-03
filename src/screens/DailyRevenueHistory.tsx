@@ -329,7 +329,6 @@ function fmtISO(d: Date) {
 const getSt = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
   ...historyHeader(colors),
-  title: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
 
   filterPanel: {
     backgroundColor: colors.surface, borderRadius: 10,
@@ -368,13 +367,11 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   list: { flex: 1 },
 
   card: {
-    backgroundColor: withAlpha(colors.surface, 0.65), borderRadius: 12,
+    backgroundColor: colors.surface, borderRadius: 12,
     paddingVertical: 16, paddingHorizontal: 16,
     marginBottom: 10,
-    borderWidth: 0.5, borderColor: withAlpha(colors.textMain, 0.08),
-    // @ts-ignore
-    backdropFilter: 'saturate(180%) blur(24px)',
-    boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+    borderWidth: 1, borderColor: colors.secondary,
+    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 12,
   } as any,
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
