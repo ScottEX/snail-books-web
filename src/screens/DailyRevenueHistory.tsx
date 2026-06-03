@@ -43,6 +43,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const [records, setRecords] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [allTotal, setAllTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
@@ -105,6 +106,13 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
     loadPage(1, true);
   }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Fetch unfiltered total once on mount
+  useEffect(() => {
+    api.getDailyRevenue(1, 1).then((r: any) => {
+      setAllTotal(r?.total || 0);
+    }).catch(() => {});
+  }, []);
+
   // Infinite scroll
   const handleScroll = useCallback((e: any) => {
     if (loadingRef.current || !hasMore) return;
@@ -142,7 +150,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             <Text style={st.backArrow}>{'\u2039'}</Text>
           </View>
         </TouchableOpacity>
-        <Text style={st.title}>{t('revHistoryBtn')} ({total})</Text>
+        <Text style={st.title}>{t('revHistoryBtn')} [{total}/{allTotal}]</Text>
         <TouchableOpacity
           style={[st.filterBtn, showFilter && st.filterBtnActive]}
           onPress={() => {
