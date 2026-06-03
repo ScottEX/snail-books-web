@@ -624,7 +624,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   {i === 1 && (
                     <View style={{ flex: 1, gap: 16 }}>
                       {/* Hero: 在手资金 */}
-                      <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 8 }}>
+                      <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
                         {/* @ts-ignore */}
                         <Text style={{
                           fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
@@ -635,15 +635,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           {/* @ts-ignore */}
                           <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-                            color: (businessSummary.cash_on_hand || 0) >= 0
-                              ? colors.primary : colors.danger,
+                            color: (() => {
+                              const v = businessSummary.cash_on_hand || 0;
+                              return v > 0 ? colors.primary : v < 0 ? colors.danger : colors.textMain;
+                            })(),
                             textShadow: '0 1px 3px rgba(0,0,0,0.1)',
                           } as any}>¥</Text>
                           {/* @ts-ignore */}
                           <Text style={{
                             fontSize: FONTS.h1.size, fontWeight: FONTS.h1.weight,
-                            color: (businessSummary.cash_on_hand || 0) >= 0
-                              ? colors.primary : colors.danger,
+                            color: (() => {
+                              const v = businessSummary.cash_on_hand || 0;
+                              return v > 0 ? colors.primary : v < 0 ? colors.danger : colors.textMain;
+                            })(),
                             textShadow: '0 1px 3px rgba(0,0,0,0.1)',
                           } as any}>{toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
                         </View>
@@ -651,10 +655,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       {/* Sub-cards: 累計營收 | 累計支出 */}
                       <View style={{ flexDirection: 'row', gap: 10 }}>
                         <View style={{
-                          flex: 1, backgroundColor: 'rgba(255,255,255,0.12)',
+                          flex: 1, backgroundColor: withAlpha(colors.primary, 0.12),
                           borderRadius: 10, padding: 14, gap: 6,
-                          borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.18)',
-                        }}>
+                          borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.25),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        } as any}>
                           <Text style={{
                             fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
                             color: 'rgba(255,255,255,0.70)',
@@ -665,10 +670,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           }}>{'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}</Text>
                         </View>
                         <View style={{
-                          flex: 1, backgroundColor: 'rgba(255,255,255,0.12)',
+                          flex: 1, backgroundColor: withAlpha(colors.warning, 0.12),
                           borderRadius: 10, padding: 14, gap: 6,
-                          borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.18)',
-                        }}>
+                          borderWidth: 0.5, borderColor: withAlpha(colors.warning, 0.25),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        } as any}>
                           <Text style={{
                             fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
                             color: 'rgba(255,255,255,0.70)',
