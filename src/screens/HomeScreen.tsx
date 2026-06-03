@@ -517,7 +517,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 {/* Tab Content */}
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
-                <View style={{ paddingBottom: 120, paddingTop: 14 }}>
+                <View style={{ paddingBottom: 120, paddingTop: 4 }}>
                   {/* ── 每日营收录入卡片 ── */}
                   <View style={styles.revCard}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
