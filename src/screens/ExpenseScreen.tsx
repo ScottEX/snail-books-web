@@ -739,12 +739,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   )}
                 </View>
                 {i === 2 && (
-                  <View style={{ flex: 1, gap: 10 }}>
+                  <View style={{ flex: 1, gap: 8 }}>
                     {/* Row 1: 日常 | 采购 */}
-                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.danger, 0.15),
-                        borderRadius: 10, padding: 12, gap: 6,
+                        borderRadius: 10, padding: 10, gap: 4,
                         borderWidth: 0.5, borderColor: withAlpha(colors.danger, 0.30),
                         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                       } as any}>
@@ -759,7 +759,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       </View>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
-                        borderRadius: 10, padding: 12, gap: 6,
+                        borderRadius: 10, padding: 10, gap: 4,
                         borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
                         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                       } as any}>
@@ -774,10 +774,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       </View>
                     </View>
                     {/* Row 2: 房租 | 薪资 */}
-                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.danger, 0.15),
-                        borderRadius: 10, padding: 12, gap: 6,
+                        borderRadius: 10, padding: 10, gap: 4,
                         borderWidth: 0.5, borderColor: withAlpha(colors.danger, 0.30),
                         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                       } as any}>
@@ -792,7 +792,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       </View>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
-                        borderRadius: 10, padding: 12, gap: 6,
+                        borderRadius: 10, padding: 10, gap: 4,
                         borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
                         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                       } as any}>
