@@ -1192,13 +1192,15 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
 
   /* ── Daily Revenue (每日营收) ── */
   revCard: {
-    backgroundColor: colors.bg, borderRadius: 14,
-    borderWidth: 0.5, borderColor: colors.secondary,
+    backgroundColor: withAlpha(colors.surface, 0.65), borderRadius: 14,
+    borderWidth: 0.5, borderColor: withAlpha(colors.textMain, 0.08),
     padding: 18,
     // @ts-ignore
-    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+    backdropFilter: 'saturate(180%) blur(24px)',
+    // @ts-ignore
+    boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
   },
-  revTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
+  revTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   // Three input cards
   revInputCard: {
     flex: 1, backgroundColor: colors.surface, borderRadius: 10,
