@@ -585,6 +585,13 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
 
   useEffect(() => { if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; }, [orderDate]);
 
+  // Preload history total on mount so the tab badge shows correct count immediately
+  useEffect(() => {
+    api.getProcurementBatches(1).then((data: any) => {
+      setHistTotal(data?.total || 0);
+    }).catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (subTab !== 'history') return;
     setLoadingHist(true);
