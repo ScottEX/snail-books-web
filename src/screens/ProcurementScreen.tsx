@@ -840,7 +840,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
             setEditingBatchId(null); setEditingBatchNumber(0);
             setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('微信');
             setShowDrawer(false); onDrawerClose?.();
-            setToastMsg(t('procBatchUpdated')); setShowToast(true);
+            // Skip toast — Modal close + Toast mount on same frame crashes RN Web layout (same as password-change fix 1d06376)
             loadHistory();
             loadStats();
           });
@@ -914,7 +914,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     try {
       const r = await api.deleteProcurementBatch(targetId);
       if (r?.status === 'ok') {
-        setToastMsg(t('procBatchDeleted')); setShowToast(true);
+        // Skip toast — Modal close + Toast mount on same frame crashes RN Web layout (same as password-change fix 1d06376)
         // Refresh history list and stats
         loadHistory();
         loadStats();
