@@ -407,6 +407,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const [itemsModalIsCart, setItemsModalIsCart] = useState(false);
   const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
   const [productPickerSearch, setProductPickerSearch] = useState('');
+
+  // Hide native scrollbar in items modal (Webkit/Firefox/IE) so it doesn't overlap the +/- buttons
+  useEffect(() => {
+    const id = 'procurement-modal-scrollbar-hide';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = '[data-proc-picker-scroll]::-webkit-scrollbar { display: none; } [data-proc-picker-scroll] { scrollbar-width: none; -ms-overflow-style: none; }';
+    document.head.appendChild(style);
+  }, []);
   const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
   const [detailTotal, setDetailTotal] = useState(0);
   const [detailBatchId, setDetailBatchId] = useState(0);
@@ -1518,7 +1528,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                   />
                 </View>
                 <View style={styles.itemsModalBodyWrap}>
-                  <ScrollView style={{ flex: 1, minHeight: 0 }}>
+                  <ScrollView style={{ flex: 1, minHeight: 0 }} {...{ 'data-proc-picker-scroll': '' } as any}>
                     {products
                       .filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch))
                       .map((p, idx, arr) => {
