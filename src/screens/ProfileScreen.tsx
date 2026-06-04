@@ -310,7 +310,6 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
               <ChevronLeft color="#fff" />
             </TouchableOpacity>
             <Text style={st.coverTitle}>{t('editProfile')}</Text>
-            <View style={{ width: 36 }} />
           </View>
           <View style={st.coverOverlay}>
             <CameraIcon color="#fff" size={14} />
@@ -522,8 +521,8 @@ function getStyles(colors: ThemeColors) {
     // Floating nav on top of cover
     coverNav: {
       position: 'absolute', top: 0, left: 0, right: 0,
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      paddingHorizontal: 16, paddingTop: 48, paddingBottom: 12,
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12,
     },
     coverBackBtn: {
       width: 36, height: 36, borderRadius: 18,

@@ -462,7 +462,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
 
       {/* History screen overlay — renders on top of background, main content hidden */}
-      <SlideScreen visible={showProfile} onClose={() => setShowProfile(false)}>
+      <SlideScreen visible={showProfile} onClose={() => setShowProfile(false)} top={48}>
         {(onBack) => <ProfileScreen onBack={onBack} />}
       </SlideScreen>
       <SlideScreen visible={showExpenseHistory} onClose={() => setShowExpenseHistory(false)}>
@@ -959,7 +959,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       )}
 
       {/* Bottom Nav — hidden when history screens or cart drawer are active */}
-      {!showExpenseHistory && !showDailyHistory && !showReconHistory && !showCartDrawer && (
+      {!showProfile && !showExpenseHistory && !showDailyHistory && !showReconHistory && !showCartDrawer && (
       <View style={styles.bottomNav}>
         {([
           { id: 'expense', icon: NavIconAdd },

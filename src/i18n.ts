@@ -150,7 +150,7 @@ const I18N: Record<string, Record<string, string>> = {
     loading: '加载中...',
     noRecords: '暂无记录',
     // Profile
-    editProfile: '个人资料',
+    editProfile: '个人中心',
     editCover: '更换封面',
     editAvatar: '更换头像',
     displayName: '名称',
@@ -501,7 +501,7 @@ const I18N: Record<string, Record<string, string>> = {
     loading: '載入中...',
     noRecords: '暫無記錄',
     // Profile
-    editProfile: '個人資料',
+    editProfile: '個人中心',
     editCover: '更換封面',
     editAvatar: '更換頭像',
     displayName: '名稱',

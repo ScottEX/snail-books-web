@@ -5,6 +5,7 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   children: (close: () => void) => React.ReactNode;
+  top?: number;
 }
 
 /**
@@ -14,7 +15,7 @@ interface Props {
  *     {(onBack) => <SomeScreen onBack={onBack} />}
  *   </SlideScreen>
  */
-export default function SlideScreen({ visible, onClose, children }: Props) {
+export default function SlideScreen({ visible, onClose, children, top = 0 }: Props) {
   const translateX = useRef(new Animated.Value(0)).current;
   const [render, setRender] = useState(false);
   const screenWidth = Dimensions.get('window').width;
@@ -61,7 +62,7 @@ export default function SlideScreen({ visible, onClose, children }: Props) {
 
   return (
     <Animated.View style={{
-      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      position: 'absolute', top, left: 0, right: 0, bottom: 0,
       transform: [{ translateX }],
       zIndex: 100,
     }}>
