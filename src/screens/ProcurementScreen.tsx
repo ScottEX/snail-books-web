@@ -204,6 +204,11 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   qtyBtnPlus: { backgroundColor: c.primary },
   qtyBtnPlusText: { fontSize: FONTS.h2.size, color: c.surface, fontWeight: '300' as const },
   qtyNum: { width: 36, textAlign: 'center' as const, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
+  // Compact buttons for items modal (cart edit + product picker)
+  qtyBtnSm: { width: 26, height: 26, borderRadius: 13, alignItems: 'center' as const, justifyContent: 'center' as const },
+  qtyBtnSmText: { fontSize: 15, lineHeight: 17, color: c.textSub },
+  qtyBtnSmPlusText: { fontSize: 15, lineHeight: 17, color: c.surface, fontWeight: '400' as const },
+  qtyNumSm: { width: 28, textAlign: 'center' as const, fontSize: FONTS.body.size, color: c.textMain },
   prodSubtotal: { paddingHorizontal: 12, paddingBottom: 8, fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.micro.weight },
 
   cartBar: {
@@ -1529,19 +1534,19 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                               {p.spec} · ¥{p.price.toFixed(2)}
                             </Text>
                           </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                             <TouchableOpacity
-                              style={[styles.qtyBtn, styles.qtyBtnMinus]}
+                              style={[styles.qtyBtnSm, styles.qtyBtnMinus]}
                               onPress={() => updateQty(p.id, -1)}
                             >
-                              <Text style={styles.qtyBtnMinusText}>−</Text>
+                              <Text style={styles.qtyBtnSmText}>−</Text>
                             </TouchableOpacity>
-                            <Text style={styles.qtyNum}>{qty}</Text>
+                            <Text style={styles.qtyNumSm}>{qty}</Text>
                             <TouchableOpacity
-                              style={[styles.qtyBtn, styles.qtyBtnPlus]}
+                              style={[styles.qtyBtnSm, styles.qtyBtnPlus]}
                               onPress={() => updateQty(p.id, 1)}
                             >
-                              <Text style={styles.qtyBtnPlusText}>+</Text>
+                              <Text style={styles.qtyBtnSmPlusText}>+</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -1577,19 +1582,19 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                             ¥{i.product.price.toFixed(2)} · {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
                           </Text>
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                           <TouchableOpacity
-                            style={[styles.qtyBtn, styles.qtyBtnMinus]}
+                            style={[styles.qtyBtnSm, styles.qtyBtnMinus]}
                             onPress={() => updateQty(i.product.id, -1)}
                           >
-                            <Text style={styles.qtyBtnMinusText}>−</Text>
+                            <Text style={styles.qtyBtnSmText}>−</Text>
                           </TouchableOpacity>
-                          <Text style={styles.qtyNum}>{i.quantity}</Text>
+                          <Text style={styles.qtyNumSm}>{i.quantity}</Text>
                           <TouchableOpacity
-                            style={[styles.qtyBtn, styles.qtyBtnPlus]}
+                            style={[styles.qtyBtnSm, styles.qtyBtnPlus]}
                             onPress={() => updateQty(i.product.id, 1)}
                           >
-                            <Text style={styles.qtyBtnPlusText}>+</Text>
+                            <Text style={styles.qtyBtnSmPlusText}>+</Text>
                           </TouchableOpacity>
                         </View>
                       </View>
