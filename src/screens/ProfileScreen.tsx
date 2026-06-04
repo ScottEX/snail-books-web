@@ -1242,8 +1242,8 @@ function getStyles(colors: ThemeColors) {
     },
     // Card
     card: {
-      marginTop: 10, backgroundColor: colors.surface,
-      borderRadius: 12, paddingHorizontal: 16, paddingVertical: 2,
+      marginTop: 4, backgroundColor: colors.surface,
+      borderRadius: 12, paddingHorizontal: 0, paddingVertical: 2,
     },
     field: {
       flexDirection: 'row', justifyContent: 'space-between',
@@ -1259,10 +1259,10 @@ function getStyles(colors: ThemeColors) {
     },
     actionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain },
     // Section
-    section: { marginHorizontal: 16, marginTop: 12 },
+    section: { paddingHorizontal: 20, marginTop: 12 },
     sectionTitle: {
       fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase',
-      color: colors.textSub, marginBottom: 10, paddingLeft: 2,
+      color: colors.textSub, marginBottom: 6, paddingLeft: 0,
     } as any,
     // Profile head
     profileHead: { paddingHorizontal: 20, paddingTop: 44, paddingBottom: 12 },
