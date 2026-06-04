@@ -778,7 +778,7 @@ const I18N: Record<string, Record<string, string>> = {
     midJan2025: 'Jan 2025 · Additional Capital',
     navHome: 'Home',
     backHome: 'Back to Home',
-    partnerTitle: 'LiuWei TanMi Technology · Partners',
+    partnerTitle: 'LiuWei TanMi Technology Partners',
     issueProportional: 'Issue Proportional Dividend',
     autoByShare: 'Auto-distribute by share ratio',
     totalToPool: 'Total amount to dividend pool (¥)',
