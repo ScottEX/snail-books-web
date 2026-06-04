@@ -327,6 +327,12 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
             </View>
           )}
 
+          {/* Top shadow gradient — ensures nav readability on any cover */}
+          <View style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: 80,
+            backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.35), transparent)',
+          } as any} />
+
           {/* Floating nav — back + title on top of cover */}
           <View style={st.coverNav}>
             <TouchableOpacity onPress={onBack} style={st.coverBackBtn}>
@@ -582,10 +588,13 @@ function getStyles(colors: ThemeColors) {
     },
     coverBackBtn: {
       width: 36, height: 36, borderRadius: 18,
-      backgroundColor: 'rgba(255,255,255,0.15)',
+      backgroundColor: 'rgba(0,0,0,0.25)',
       justifyContent: 'center', alignItems: 'center',
     },
-    coverTitle: { fontSize: FONTS.body.size, fontWeight: '600', color: '#fff' },
+    coverTitle: {
+      fontSize: FONTS.body.size, fontWeight: '600', color: '#fff',
+      textShadow: '0 1px 3px rgba(0,0,0,0.4)',
+    } as any,
     coverOverlay: {
       position: 'absolute', bottom: 12, left: 12,
       flexDirection: 'row', alignItems: 'center', gap: 6,
