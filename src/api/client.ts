@@ -234,6 +234,10 @@ export const api = {
   },
   resetProfileCover: () => authFetch('/api/profile/cover', { method: 'DELETE' }),
 
+  // Signature
+  saveSignature: (signature: string) =>
+    authFetch('/api/users/signature', { method: 'POST', body: JSON.stringify({ signature }) }),
+
   // Profile settings
   changePassword: (old_password: string, new_password: string) =>
     authFetch('/api/profile/password', { method: 'POST', body: JSON.stringify({ old_password, new_password }) }),

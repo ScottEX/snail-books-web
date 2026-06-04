@@ -52,10 +52,15 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
   const [coverUploading, setCoverUploading] = useState(false);
   const [toast, setToast] = useState('');
 
+  const [lang, setLangState] = useState(getLang());
+
   const username = useMemo(() => {
     try { return localStorage.getItem('user') || ''; } catch { return ''; }
   }, []);
   const [email, setEmail] = useState('');
+  const [signature, setSignature] = useState('');
+  const [signatureEditing, setSignatureEditing] = useState(false);
+  const [signatureDraft, setSignatureDraft] = useState('');
   const [daysSince, setDaysSince] = useState(0);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -146,6 +151,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       if (resp.ok) {
         const data = await resp.json();
         if (data.email) setEmail(data.email);
+        if (data.signature) setSignature(data.signature);
         if (data.created_at) {
           const days = Math.floor((Date.now() - new Date(data.created_at).getTime()) / 86400000);
           setDaysSince(Math.max(1, days));
@@ -185,6 +191,14 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       setCoverUrl(''); setCoverKey(k => k + 1);
     } catch {}
     finally { setCoverUploading(false); }
+  };
+
+  const handleSignatureSave = async () => {
+    setSignatureEditing(false);
+    const val = signatureDraft.trim();
+    if (val === signature) return;
+    setSignature(val);
+    try { await api.saveSignature(val); } catch {}
   };
 
   // ── Avatar upload flow ──
@@ -781,6 +795,28 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
         <View style={st.profileHead}>
           <Text style={st.profileName}>{username}</Text>
           <Text style={st.profileEmail}>{email || '—'}</Text>
+          {/* Signature */}
+          {signatureEditing ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 }}>
+              <TextInput
+                style={st.signatureInput}
+                value={signatureDraft}
+                onChangeText={setSignatureDraft}
+                placeholder={t('signaturePlaceholder')}
+                placeholderTextColor={colors.textSub}
+                maxLength={200}
+                autoFocus
+                onBlur={handleSignatureSave}
+                onSubmitEditing={handleSignatureSave}
+              />
+            </View>
+          ) : (
+            <TouchableOpacity onPress={() => { setSignatureDraft(signature); setSignatureEditing(true); }}>
+              <Text style={st.signatureText}>
+                {signature || t('signaturePlaceholder')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* ── Section: Account ── */}
@@ -857,7 +893,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
               <Text style={st.iconLabel}>{t('language')}</Text>
               <View style={{ flexDirection: 'row' }}>
                 {(['zh-CN','zh-TW','en'] as const).map(l => (
-                  <TouchableOpacity key={l} onPress={() => setLang(l)}>
+                  <TouchableOpacity key={l} onPress={() => { setLang(l); setLangState(l); }}>
                     <Text style={[st.langBtn, getLang() === l && st.langBtnActive]}>
                       {l === 'zh-CN' ? '简' : l === 'zh-TW' ? '繁' : 'EN'}
                     </Text>
@@ -874,7 +910,6 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
               </View>
               <Text style={st.iconLabel}>{t('themeLabel')}</Text>
               <Text style={st.badge}>{getLang() === 'zh-TW' ? (theme as any).nameTw || theme.nameZh : getLang() === 'en' ? (theme as any).nameEn || theme.nameZh : theme.nameZh}</Text>
-              <ChevronRight color={colors.textSub} />
             </TouchableOpacity>
           </View>
         </View>
@@ -1332,6 +1367,12 @@ function getStyles(colors: ThemeColors) {
     profileHead: { paddingHorizontal: 20, paddingTop: 44, paddingBottom: 12 },
     profileName: { fontSize: 26, fontWeight: '700', color: colors.textMain, letterSpacing: -0.2 } as any,
     profileEmail: { fontSize: 12, color: colors.textSub, marginTop: 4 } as any,
+    signatureText: { fontSize: 12, color: colors.textSub, marginTop: 6, fontStyle: 'italic' } as any,
+    signatureInput: {
+      fontSize: 13, color: colors.textMain,
+      borderBottomWidth: 1, borderBottomColor: colors.primary,
+      paddingVertical: 4, flex: 1,
+    } as any,
     // Icon rows
     iconRow: {
       flexDirection: 'row', alignItems: 'center',
@@ -1349,12 +1390,12 @@ function getStyles(colors: ThemeColors) {
     iconTheme: { backgroundColor: 'rgba(255,180,80,0.12)' },
     iconDanger: { backgroundColor: 'rgba(192,57,43,0.1)' },
     badge: {
-      fontSize: 11, fontWeight: '500',
+      fontSize: 13, fontWeight: '500',
       color: colors.textSub,
       backgroundColor: withAlpha(colors.textMain, 0.05),
       paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10,
     } as any,
-    langBtn: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub, paddingHorizontal: 4 },
+    langBtn: { fontSize: 13, fontWeight: FONTS.micro.weight, color: colors.textSub, paddingHorizontal: 8 },
     langBtnActive: { color: colors.primary, fontWeight: FONTS.microBold.weight },
     iconLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain, flex: 1 },
     iconValue: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textMain },
