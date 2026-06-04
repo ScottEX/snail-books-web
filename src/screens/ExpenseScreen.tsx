@@ -604,7 +604,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     {tab.title}{i === 2 ? ' ¥' + fmtInt(businessSummary.cumulative_expense || 0) : ''}
                   </Text>
                   {i === 0 && (
-                    <View style={{ flex: 1, gap: 8 }}>
+                    <View style={{ flex: 1, gap: 12 }}>
                       {/* Hero: 账面差额 */}
                       <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
                         {/* @ts-ignore */}
@@ -626,7 +626,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           } as any}>{diff >= 0 ? '+' : '-'}¥</Text>
                           {/* @ts-ignore */}
                           <Text style={{
-                            fontSize: FONTS.h1.size, fontWeight: FONTS.h1.weight,
+                            fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
                             color: (() => {
                               if (diff > 0.005) return colors.primary;
                               if (diff < -0.005) return colors.danger;
@@ -672,7 +672,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     </View>
                   )}
                   {i === 1 && (
-                    <View style={{ flex: 1, gap: 8 }}>
+                    <View style={{ flex: 1, gap: 12 }}>
                       {/* Hero: 在手资金 */}
                       <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
                         {/* @ts-ignore */}
@@ -693,7 +693,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           } as any}>¥</Text>
                           {/* @ts-ignore */}
                           <Text style={{
-                            fontSize: FONTS.h1.size, fontWeight: FONTS.h1.weight,
+                            fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
                             color: (() => {
                               const v = businessSummary.cash_on_hand || 0;
                               return v > 0 ? colors.primary : v < 0 ? colors.danger : colors.textMain;
