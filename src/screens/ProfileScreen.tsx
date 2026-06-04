@@ -50,9 +50,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
   const username = useMemo(() => {
     try { return localStorage.getItem('user') || ''; } catch { return ''; }
   }, []);
-  const [email, setEmail] = useState(() => {
-    try { return localStorage.getItem('email') || ''; } catch { return ''; }
-  });
+  const [email, setEmail] = useState('');
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -107,7 +105,17 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     } catch {}
   };
 
-  useEffect(() => { loadAvatar(); loadCover(); }, []);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); }, []);
+
+  const loadUserInfo = async () => {
+    try {
+      const resp = await fetch('/api/users/me');
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.email) setEmail(data.email);
+      }
+    } catch {}
+  };
 
   // ── Cover upload ──
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
