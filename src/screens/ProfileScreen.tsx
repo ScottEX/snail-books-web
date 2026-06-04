@@ -92,6 +92,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
   const coverCropImgRef = useRef<HTMLImageElement | null>(null);
   const coverCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const coverStageRef = useRef<HTMLDivElement | null>(null);
+  const coverGuideRef = useRef<HTMLDivElement | null>(null);
   const coverCropState = useRef({
     x: 0, y: 0, scale: 1, rotation: 0, flipX: false, minScale: 1, maxScale: 8,
     cropW: 320, cropH: 160,
@@ -462,22 +463,45 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
 
   // ── Cover crop handlers ──
   const coverSetupCanvas = () => {
-    const canvas = coverCanvasRef.current;
     const stage = coverStageRef.current;
-    if (!canvas || !stage) return;
-    canvas.width = stage.clientWidth;
-    canvas.height = stage.clientHeight;
+    const canvas = coverCanvasRef.current;
+    if (!stage || !canvas) return;
+    const rect = stage.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    const s = coverCropState.current;
+    s.cropW = Math.round(rect.width * 0.8);
+    s.cropH = Math.round(s.cropW / 2);
+    const guide = coverGuideRef.current;
+    if (guide) {
+      guide.style.width = s.cropW + 'px';
+      guide.style.height = s.cropH + 'px';
+    }
   };
 
   const coverFitImage = () => {
     const img = coverCropImgRef.current;
-    const stage = coverStageRef.current;
-    if (!img || !stage) return;
+    if (!img) return;
     const s = coverCropState.current;
-    const sw = stage.clientWidth, sh = stage.clientHeight;
-    s.scale = Math.max(sw / img.naturalWidth, sh / img.naturalHeight) * 0.85;
-    s.minScale = s.scale * 0.3; s.maxScale = s.scale * 4;
+    const sw = s.cropW / img.naturalWidth;
+    const sh = s.cropH / img.naturalHeight;
+    s.scale = Math.max(sw, sh) * 1.05;
+    s.minScale = Math.max(sw, sh);
     s.x = 0; s.y = 0; s.rotation = 0; s.flipX = false;
+  };
+
+  const coverClampCrop = () => {
+    const img = coverCropImgRef.current;
+    if (!img) return;
+    const s = coverCropState.current;
+    const hw = (img.naturalWidth * s.scale) / 2;
+    const hh = (img.naturalHeight * s.scale) / 2;
+    const hrh = s.cropH / 2, hrw = s.cropW / 2;
+    const maxX = hw - hrw, maxY = hh - hrh;
+    s.x = maxX > 0 ? Math.max(-maxX, Math.min(maxX, s.x)) : 0;
+    s.y = maxY > 0 ? Math.max(-maxY, Math.min(maxY, s.y)) : 0;
   };
 
   const coverDrawCrop = () => {
@@ -494,6 +518,17 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     ctx.scale(s.scale, s.scale);
     ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
     ctx.restore();
+  };
+
+  const coverZoomCrop = (delta: number, cx: number, cy: number) => {
+    const s = coverCropState.current;
+    const newScale = Math.max(s.minScale, Math.min(s.maxScale, s.scale * (1 + delta)));
+    const sd = newScale / s.scale;
+    s.x = cx + (s.x - cx) * sd;
+    s.y = cy + (s.y - cy) * sd;
+    s.scale = newScale;
+    coverClampCrop();
+    coverDrawCrop();
   };
 
   const coverConfirmCrop = () => {
@@ -534,28 +569,117 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     } catch { setCoverCropMsg('上传失败，请重试'); }
   };
 
-  // Cover crop mouse/touch
-  const onCoverMouseDown = (e: any) => {
-    const s = coverCropState.current; s.drag.active = true;
-    const cx = e.clientX || (e.touches?.[0]?.clientX) || 0;
-    const cy = e.clientY || (e.touches?.[0]?.clientY) || 0;
-    s.drag.sx = cx; s.drag.sy = cy; s.drag.ox = s.x; s.drag.oy = s.y;
-  };
-  const onCoverMouseMove = (e: any) => {
-    const s = coverCropState.current; if (!s.drag.active) return;
-    const cx = e.clientX || (e.touches?.[0]?.clientX) || 0;
-    const cy = e.clientY || (e.touches?.[0]?.clientY) || 0;
-    s.x = s.drag.ox + (cx - s.drag.sx); s.y = s.drag.oy + (cy - s.drag.sy);
-    coverDrawCrop();
-  };
-  const onCoverMouseUp = () => { coverCropState.current.drag.active = false; };
-  const onCoverWheel = (e: any) => {
-    e.preventDefault();
-    const s = coverCropState.current;
-    const delta = e.deltaY > 0 ? -0.08 : 0.08;
-    s.scale = Math.min(s.maxScale, Math.max(s.minScale, s.scale + delta));
-    coverDrawCrop();
-  };
+  // ── Imperative cover crop event binding ──
+  useEffect(() => {
+    if (!coverCropSrc || coverShowResult) return;
+    const stage = coverStageRef.current;
+    const canvas = coverCanvasRef.current;
+    if (!stage || !canvas) return;
+
+    setTimeout(() => { coverSetupCanvas(); coverClampCrop(); coverDrawCrop(); }, 60);
+
+    let frameId = 0;
+    const scheduleDraw = () => { if (!frameId) frameId = requestAnimationFrame(() => { frameId = 0; coverDrawCrop(); }); };
+
+    const toLocal = (clientX: number, clientY: number) => {
+      const r = stage.getBoundingClientRect();
+      return { x: clientX - r.left - canvas.width / 2, y: clientY - r.top - canvas.height / 2 };
+    };
+
+    const guide = coverGuideRef.current;
+    const setGuideActive = (active: boolean) => {
+      if (!guide) return;
+      guide.style.borderColor = active ? '#fff' : 'rgba(255,255,255,0.8)';
+      guide.style.boxShadow = active
+        ? '0 0 0 9999px rgba(0,0,0,0.62)'
+        : '0 0 0 9999px rgba(0,0,0,0.55)';
+    };
+
+    const onResize = () => { coverSetupCanvas(); coverClampCrop(); coverDrawCrop(); };
+    window.addEventListener('resize', onResize);
+
+    const onMD = (e: MouseEvent) => {
+      const s = coverCropState.current; s.drag.active = true;
+      s.drag.sx = e.clientX; s.drag.sy = e.clientY;
+      s.drag.ox = s.x; s.drag.oy = s.y;
+      setGuideActive(true);
+    };
+    const onMM = (e: MouseEvent) => {
+      const s = coverCropState.current; if (!s.drag.active) return;
+      s.x = s.drag.ox + (e.clientX - s.drag.sx);
+      s.y = s.drag.oy + (e.clientY - s.drag.sy);
+      coverClampCrop(); scheduleDraw();
+    };
+    const onMU = () => { coverCropState.current.drag.active = false; setGuideActive(false); };
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const p = toLocal(e.clientX, e.clientY);
+      coverZoomCrop(e.deltaY > 0 ? -0.08 : 0.08, p.x, p.y);
+    };
+
+    const getDist = (ts: TouchList) => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
+    const onTS = (e: TouchEvent) => {
+      e.preventDefault();
+      const s = coverCropState.current;
+      if (e.touches.length === 1) {
+        s.drag.active = true;
+        s.drag.sx = e.touches[0].clientX; s.drag.sy = e.touches[0].clientY;
+        s.drag.ox = s.x; s.drag.oy = s.y;
+        setGuideActive(true);
+      } else if (e.touches.length === 2) {
+        s.drag.active = false; setGuideActive(false);
+        s.pinch.active = true;
+        s.pinch.startDist = getDist(e.touches);
+        s.pinch.startScale = s.scale;
+        const r = stage.getBoundingClientRect();
+        s.pinch.midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left - canvas.width / 2;
+        s.pinch.midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top - canvas.height / 2;
+      }
+    };
+    const onTM = (e: TouchEvent) => {
+      e.preventDefault();
+      const s = coverCropState.current;
+      if (s.drag.active && e.touches.length === 1) {
+        s.x = s.drag.ox + (e.touches[0].clientX - s.drag.sx);
+        s.y = s.drag.oy + (e.touches[0].clientY - s.drag.sy);
+        coverClampCrop(); scheduleDraw();
+      } else if (s.pinch.active && e.touches.length === 2) {
+        const d = getDist(e.touches);
+        const ns = Math.max(s.minScale, Math.min(s.maxScale, s.pinch.startScale * (d / s.pinch.startDist)));
+        const sd = ns / s.scale;
+        s.x = s.pinch.midX + (s.x - s.pinch.midX) * sd;
+        s.y = s.pinch.midY + (s.y - s.pinch.midY) * sd;
+        s.scale = ns; coverClampCrop(); scheduleDraw();
+      }
+    };
+    const onTE = (e: TouchEvent) => {
+      const s = coverCropState.current;
+      if (e.touches.length < 2) s.pinch.active = false;
+      if (e.touches.length === 0) { s.drag.active = false; setGuideActive(false); }
+    };
+
+    canvas.addEventListener('mousedown', onMD);
+    window.addEventListener('mousemove', onMM);
+    window.addEventListener('mouseup', onMU);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    canvas.addEventListener('touchstart', onTS, { passive: false });
+    canvas.addEventListener('touchmove', onTM, { passive: false });
+    canvas.addEventListener('touchend', onTE);
+    canvas.addEventListener('touchcancel', onTE);
+
+    return () => {
+      canvas.removeEventListener('mousedown', onMD);
+      window.removeEventListener('mousemove', onMM);
+      window.removeEventListener('mouseup', onMU);
+      canvas.removeEventListener('wheel', onWheel);
+      canvas.removeEventListener('touchstart', onTS);
+      canvas.removeEventListener('touchmove', onTM);
+      canvas.removeEventListener('touchend', onTE);
+      canvas.removeEventListener('touchcancel', onTE);
+      window.removeEventListener('resize', onResize);
+      cancelAnimationFrame(frameId);
+    };
+  }, [coverCropSrc, coverShowResult]);
 
   return (
     <View style={st.root}>
@@ -882,48 +1006,94 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
         document.body
       )}
 
-      {/* Cover Crop Modal (portal) */}
+      {/* ====== COVER CROP MODAL (portal) ====== */}
       {coverCropSrc !== '' && !coverShowResult && createPortal(
-        <View style={cropS.overlay}>
-          <View style={cropS.header}>
-            <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={cropS.closeBtn}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverCropSrc(''); setCoverCropResult(''); } }}>
+          <View style={cropS.header as any}>
+            <Text style={cropS.title}>编辑封面</Text>
+            <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={cropS.closeBtn as any}>
               <Text style={cropS.closeBtnText}>✕</Text>
             </TouchableOpacity>
-            <Text style={cropS.title}>编辑封面</Text>
-            <TouchableOpacity onPress={coverConfirmCrop}>
-              <Text style={{ color: '#5B5BD6', fontSize: 14, fontWeight: '600' }}>确认</Text>
+          </View>
+          <View style={cropS.stage as any} ref={coverStageRef as any}>
+            <canvas ref={coverCanvasRef as any}
+              style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
+            />
+            <View style={cropS.guideWrap as any} pointerEvents="none">
+              <View style={{ width: 320, height: 160, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative', transition: 'border-color 0.2s', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any} ref={coverGuideRef as any}>
+                <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '33.3%' } as any} />
+                <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '66.6%' } as any} />
+                <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '33.3%' } as any} />
+                <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '66.6%' } as any} />
+              </View>
+            </View>
+          </View>
+          <View style={cropS.toolbar as any}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>A</Text>
+              <input type="range" min="0" max="100" defaultValue={0}
+                onChange={(e: any) => {
+                  const s = coverCropState.current;
+                  const t = Number(e.target.value) / 100;
+                  s.scale = s.minScale + (s.maxScale - s.minScale) * t * 0.5;
+                  s.scale = Math.max(s.minScale, s.scale);
+                  coverClampCrop(); coverDrawCrop();
+                }}
+                style={{ flex: 1, height: 3, appearance: 'none', cursor: 'pointer', accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+              />
+              <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
+            </View>
+            <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.12)', marginHorizontal: 10 }} />
+            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { coverCropState.current.rotation = (coverCropState.current.rotation + 90) % 360; coverDrawCrop(); }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M3 12a9 9 0 109-9H9m0 0l3 3m-3-3l3-3" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>旋转</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { coverCropState.current.flipX = !coverCropState.current.flipX; coverDrawCrop(); }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>翻转</Text>
             </TouchableOpacity>
           </View>
-          <div ref={coverStageRef as any} style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move', touchAction: 'none' } as any}
-            onMouseDown={onCoverMouseDown} onMouseMove={onCoverMouseMove} onMouseUp={onCoverMouseUp} onMouseLeave={onCoverMouseUp}
-            onTouchStart={onCoverMouseDown} onTouchMove={onCoverMouseMove} onTouchEnd={onCoverMouseUp} onWheel={onCoverWheel}>
-            <canvas ref={coverCanvasRef as any} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any}>
-              <View style={{ width: 320, height: 160, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any} />
-            </View>
-          </div>
-          {coverCropMsg ? <Text style={{ color: '#ef4444', textAlign: 'center', padding: 4, fontSize: 12, backgroundColor: 'rgba(0,0,0,0.6)' }}>{coverCropMsg}</Text> : null}
-        </View>,
+          <View style={cropS.actions as any}>
+            <TouchableOpacity style={cropS.cancelBtn as any} onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }}>
+              <Text style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>取消</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={cropS.confirmBtn as any} onPress={coverConfirmCrop}>
+              <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 }}>
+                <Text style={{ fontSize: 10, color: '#fff' }}>✓</Text>
+              </View>
+              <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>使用此封面</Text>
+            </TouchableOpacity>
+          </View>
+          {coverCropMsg !== '' && (
+            <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: 500 }}>{coverCropMsg}</Text>
+          )}
+        </div>,
         document.body
       )}
 
-      {/* Cover Result Modal */}
+      {/* ====== COVER RESULT PREVIEW ====== */}
       {coverShowResult && createPortal(
-        <View style={cropS.overlay}>
-          <View style={cropS.resultCard}>
-            <View style={cropS.resultBadge}><Text style={{ fontSize: 20 }}>✓</Text></View>
-            <Text style={cropS.resultLabel}>封面预览</Text>
-            {coverCropResult ? <Image source={{ uri: coverCropResult }} style={{ width: 120, height: 60, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.15)' }} /> : null}
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' } as any}>
-              <TouchableOpacity style={cropS.reEditBtn} onPress={() => { setCoverShowResult(false); }}>
-                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>重选</Text>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverShowResult(false); setCoverCropSrc(''); } }}>
+          <View style={cropS.resultCard as any}>
+            <View style={cropS.resultBadge as any}>
+              <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
+            </View>
+            <Text style={cropS.resultLabel}>封面已更新</Text>
+            {coverCropResult ? <img src={coverCropResult} width={240} height={120} style={{ borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} /> : null}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
+              <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setCoverShowResult(false); }}>
+                <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>重新裁剪</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={cropS.saveBtn} onPress={coverDoUpload}>
-                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>保存</Text>
+              <TouchableOpacity style={cropS.saveBtn as any} onPress={coverDoUpload}>
+                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>确认使用</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>,
+        </div>,
         document.body
       )}
     </View>
