@@ -574,7 +574,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
 
 function getStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    root: { flex: 1, backgroundColor: colors.bg },
+    root: { flex: 1, backgroundColor: colors.surface },
     scroll: { flex: 1 },
     // Cover
     coverWrap: { height: 180, position: 'relative', overflow: 'visible' as any },
