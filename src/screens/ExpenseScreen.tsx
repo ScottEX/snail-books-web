@@ -1,21 +1,47 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, useReducer } from 'react';
 import {
-  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated,
+  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
 } from 'react-native';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
+import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
+import { fmtAmt as fmt } from '../utils/format';
 
 /* ── helpers ── */
-const fmt = (n: number) => '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
 const fmtInt = (n: number) => n.toLocaleString();
 const cnNow = () => { const d = new Date(); return new Date(d.getTime() + 8 * 3600000); };
 const yesterdayStr = () => { const d = cnNow(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
 const todayStr = () => cnNow().toISOString().slice(0, 10);
-const fmtLocalDate = (s: string) => { const p = s.split('-'); return `${p[0]}年${p[1]}月${p[2]}日`; };
+const isFuture = (d: string) => d > todayStr();
+const fmtLocalDate = (s: string) => {
+  const [y, m, d] = s.split('-');
+  const l = getLang();
+  if (l.startsWith('en')) {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${months[+m-1]} ${+d}, ${y}`;
+  }
+  return `${y}年${m}月${d}日`;
+};
+const fmtMonth = (year: number, month: number) => {
+  const l = getLang();
+  if (l.startsWith('en')) {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${months[month-1]} ${year}`;
+  }
+  return `${year}年${String(month).padStart(2, '0')}月`;
+};
 const toNum = (s: string) => parseFloat(s) || 0;
 const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
+const fmtDecInput = (s: string) => { s = blockNeg(s); return s.startsWith('.') ? '0' + s : s; };
+const toDec2 = (v: any) => String((parseFloat(String(v ?? 0)) || 0).toFixed(2));
+const toDec2Comma = (v: any) => {
+  const n = parseFloat(String(v ?? 0)) || 0;
+  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
 /* ═══════════════════════════════════════════════════════════
    NumberTicker — 数字从 0 平滑滚动到目标值
@@ -45,10 +71,8 @@ function NumberTicker({ value, duration = 500, style }: {
     return () => cancelAnimationFrame(rafRef.current);
   }, [value, duration]);
 
-  // Pick formatter: if value has decimals use fmt, else fmtInt + ¥
-  const text = Number.isInteger(value) && Number.isInteger(display)
-    ? '¥' + fmtInt(Math.round(display))
-    : fmt(display);
+  // Always use fmt (now with guaranteed 2 decimal places)
+  const text = fmt(display);
 
   return <Text style={style}>{text}</Text>;
 }
@@ -81,6 +105,7 @@ function FadeInView({ children, style }: {
    ═══════════════════════════════════════════════════════════ */
 function InputWithFocus({ style, inputStyle, ...props }: any) {
   const [focused, setFocused] = useState(false);
+  const { colors } = useTheme();
 
   return (
     <TextInput
@@ -90,7 +115,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
       style={[
         inputStyle,
         {
-          borderColor: focused ? '#8B1E22' : '#E5E7EB',
+          borderColor: focused ? colors.primary : colors.secondary,
           // @ts-ignore — web-only transition
           transition: 'border-color 200ms ease',
         },
@@ -99,19 +124,58 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════
+   DateErrorHint — 未来日期红字提示，2.5s 自动消失
+   ═══════════════════════════════════════════════════════════ */
+function DateErrorHint({ trigger, message, colors, textAlign = 'right' }: { trigger: number; message: string; colors: any; textAlign?: 'left' | 'right' | 'center' }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (trigger > 0) {
+      setShow(true);
+      const t = setTimeout(() => setShow(false), 3000);
+      return () => clearTimeout(t);
+    } else {
+      setShow(false);
+    }
+  }, [trigger]);
+  if (!show) return null;
+  return <Text style={{ color: colors.danger, fontSize: 12, marginTop: 1, textAlign }}>{message}</Text>;
+}
+
 /* ═══════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════
    EXPENSE SCREEN
    ═══════════════════════════════════════════════════════════ */
 export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { onReconHistory?: () => void; onExpenseHistory?: () => void }) {
+  const { colors } = useTheme();
+  const urlCache = useRef<Map<File, string>>(new Map());
+  const getPreviewUrl = (file: File) => {
+    if (!urlCache.current.has(file)) urlCache.current.set(file, URL.createObjectURL(file));
+    return urlCache.current.get(file)!;
+  };
+  const revokePreviewUrl = (file: File) => {
+    const url = urlCache.current.get(file);
+    if (url) { URL.revokeObjectURL(url); urlCache.current.delete(file); }
+  };
+  const clearUrlCache = () => { urlCache.current.forEach(u => URL.revokeObjectURL(u)); urlCache.current.clear(); };
+  useEffect(() => { return () => clearUrlCache(); }, []);
+
+  // Load business summary from backend
+  useEffect(() => {
+    api.getBusinessSummary().then((data: any) => {
+      setBusinessSummary(data || {});
+    }).catch(() => {});
+  }, []);
+
   const [activeTab, setActiveTabState] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('expense_active_tab');
-      return saved !== null ? parseInt(saved, 10) : 2; // default to 支出 (index 2)
-    } catch { return 2; }
+      return saved !== null ? parseInt(saved, 10) : 1; // default to 营业 (index 1)
+    } catch { return 1; }
   });
   const setActiveTab = (i: number) => {
     setActiveTabState(i);
+    if (i === 2) setExpDateErr(0);
     try { localStorage.setItem('expense_active_tab', String(i)); } catch {}
   };
   const [showToast, setShowToast] = useState(false);
@@ -159,7 +223,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   /* ── 模块一：对账 ── */
   const [recDate, setRecDate] = useState(yesterdayStr());
+  const [recDateKey, setRecDateKey] = useState(0);
+  const [recDateErr, setRecDateErr] = useState(0);
   const [toast, setToast] = useState('');
+  const [businessSummary, setBusinessSummary] = useState<any>({});
   const [cardBalance, setCardBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
   const [dineIn, setDineIn] = useState('');
@@ -169,6 +236,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [jd, setJd] = useState('');
 
   const mountedRef = useRef(false);
+  const initReconValues = useRef({ card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' });
+  const reconJustLoaded = useRef(false);
+  const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
   // Load reconciliation data from backend
   useEffect(() => {
@@ -182,15 +252,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             const last = data[0];
             const d = last.bill_date || last.date || yesterdayStr();
             setRecDate(d);
-            setCardBalance(String(last.card_balance || ''));
-            setCashBalance(String(last.cash_balance || ''));
-            setDineIn(String(last.dine_in || ''));
-            setMeituan(String(last.meituan || ''));
-            setFlashSale(String(last.flash_sale || ''));
-            setTuan(String(last.tuan || ''));
-            setJd(String(last.jd || ''));
+            setCardBalance(toDec2(last.card_balance));
+            setCashBalance(toDec2(last.cash_balance));
+            setDineIn(toDec2(last.dine_in));
+            setMeituan(toDec2(last.meituan));
+            setFlashSale(toDec2(last.flash_sale));
+            setTuan(toDec2(last.tuan));
+            setJd(toDec2(last.jd));
           }
-        } catch { /* ignore */ }
+          reconJustLoaded.current = true;
+        } catch { setToast(t('toastLoadFailed')); }
       })();
       return;
     }
@@ -200,13 +271,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         const data = await api.getReconciliations(365);
         const match = (data || []).find((r: any) => r.bill_date === recDate);
         if (match) {
-          setCardBalance(String(match.card_balance || ''));
-          setCashBalance(String(match.cash_balance || ''));
-          setDineIn(String(match.dine_in || ''));
-          setMeituan(String(match.meituan || ''));
-          setFlashSale(String(match.flash_sale || ''));
-          setTuan(String(match.tuan || ''));
-          setJd(String(match.jd || ''));
+          setCardBalance(toDec2(match.card_balance));
+          setCashBalance(toDec2(match.cash_balance));
+          setDineIn(toDec2(match.dine_in));
+          setMeituan(toDec2(match.meituan));
+          setFlashSale(toDec2(match.flash_sale));
+          setTuan(toDec2(match.tuan));
+          setJd(toDec2(match.jd));
         } else {
           setCardBalance('');
           setCashBalance('');
@@ -216,12 +287,23 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           setTuan('');
           setJd('');
         }
-      } catch { /* ignore */ }
+        reconJustLoaded.current = true;
+      } catch { setToast(t('toastLoadFailed')); }
     })();
   }, [recDate]);
 
+  // Capture initial values after data load settles
+  useEffect(() => {
+    if (reconJustLoaded.current) {
+      reconJustLoaded.current = false;
+      initReconValues.current = { card: cardBalance, cash: cashBalance, dine: dineIn, mt: meituan, fs: flashSale, jd, tuan };
+      forceUpdate();
+    }
+  }, [cardBalance, cashBalance, dineIn, meituan, flashSale, jd, tuan]);
+
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
+    if (isFuture(recDate)) { setToast(t('errDateFuture')); return; }
     try {
       const today = new Date().toISOString().slice(0, 10); // 对账日期 = 今天
       const username = localStorage.getItem('user') || '';
@@ -243,8 +325,17 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
 
   const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
-  const realTotal = toNum(cardBalance) + toNum(cashBalance);
-  const diff = realTotal - channelTotal;
+  const realTotal = toNum(cardBalance) + toNum(cashBalance) + channelTotal;
+  const diff = (businessSummary.cash_on_hand || 0) - realTotal;
+
+  const hasReconChanges =
+    toNum(cardBalance) !== toNum(initReconValues.current.card) ||
+    toNum(cashBalance) !== toNum(initReconValues.current.cash) ||
+    toNum(dineIn) !== toNum(initReconValues.current.dine) ||
+    toNum(meituan) !== toNum(initReconValues.current.mt) ||
+    toNum(flashSale) !== toNum(initReconValues.current.fs) ||
+    toNum(jd) !== toNum(initReconValues.current.jd) ||
+    toNum(tuan) !== toNum(initReconValues.current.tuan);
 
   /* ── 模块二：平台手续费 ── */
   const now = new Date();
@@ -260,6 +351,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
   const [showFeeHistoryFilterPicker, setShowFeeHistoryFilterPicker] = useState(false);
   const [feeEntryDate, setFeeEntryDate] = useState(todayStr());
+  const [feeDateErr, setFeeDateErr] = useState(0);
   const [feeMc, setFeeMc] = useState('');
   const [feeMw, setFeeMw] = useState('');
   const [feeEw, setFeeEw] = useState('');
@@ -283,14 +375,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       } else {
         setFeeData(null);
       }
-    } catch (err) { console.error('loadFeeData failed:', err); }
+    } catch { setToast(t('toastLoadFailed')); }
   };
   useEffect(() => { loadFeeData(); }, [feeMonth]);
 
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
+    if (isFuture(feeEntryDate)) { setToast(t('errDateFuture')); return; }
     const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
-    if (mc + mw + ew + mt === 0) { setToast('至少输入一个平台的手续费'); return; }
+    if (mc + mw + ew + mt === 0) { setToast(t('atLeastOneFee')); return; }
     setSavingFee(true);
     try {
       const r = await api.addPlatformFeeEntry({
@@ -300,11 +393,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         eleme_waimai: ew, meituan_tuan: mt,
       });
       if (r?.status === 'ok') {
-        setFeeData(r.data);
+        setFeeData(r?.data);
         setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
         setShowFeeSheet(false);
         // Reload all months to keep totals accurate
-        api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : []));
+        api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : [])).catch(() => {});
+      } else {
+        setToast(r?.message || t('toastSubmitFailed'));
       }
     } catch { setToast(t('toastSubmitFailed')); }
     setSavingFee(false);
@@ -312,6 +407,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   /* ── 模块三：支出 ── */
   const [expDate, setExpDate] = useState(todayStr());
+  const [expDateErr, setExpDateErr] = useState(0);
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('日常');
   const [payMethod, setPayMethod] = useState('微信');
@@ -351,8 +447,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
   useEffect(() => { loadExpenses(); }, []);
 
+  // Sync uncontrolled date inputs when state changes externally
+  useEffect(() => { if (recDateInputRef.current) recDateInputRef.current.value = recDate; }, [recDate]);
+  useEffect(() => { if (expDateInputRef.current) expDateInputRef.current.value = expDate; }, [expDate]);
+  useEffect(() => { if (feeDateInputRef.current) feeDateInputRef.current.value = feeEntryDate; }, [feeEntryDate]);
+
   // Image upload handlers
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const recDateInputRef = useRef<HTMLInputElement>(null);
+  const expDateInputRef = useRef<HTMLInputElement>(null);
+  const feeDateInputRef = useRef<HTMLInputElement>(null);
   const [showImgTip, setShowImgTip] = useState(false);
 
   // Compress image via Canvas: max 1920px, JPEG quality 0.8
@@ -406,44 +510,52 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const removeImage = (idx: number) => {
     setExpImages(prev => {
-      const cp = [...prev];
-      cp.splice(idx, 1);
-      return cp;
+      if (prev[idx]) revokePreviewUrl(prev[idx]);
+      return prev.filter((_, i) => i !== idx);
     });
   };
 
   const handleAddExpense = async () => {
-    if (!expAmount) return;
+    if (!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0) return;
+    if (isFuture(expDate)) { setToast(t('errDateFuture')); return; }
     setLoadingExp(true);
     try {
       // Upload images first if any
       let imageUrls: string[] = [];
+      let thumbUrls: string[] = [];
       if (expImages.length > 0) {
         setUploadingImg(true);
         const result = await api.uploadExpenseImages(expImages);
         setUploadingImg(false);
         if (result.status !== 'ok') {
-          setToast(result.message || t('toastSubmitFailed'));
+          setToast(t('toastSubmitFailed'));
           setLoadingExp(false);
           return;
         }
         imageUrls = result.images || [];
+        // Use the server-generated thumb URLs for the history list; fall back to
+        // full-size images if the backend didn't return thumbs (PIL disabled).
+        thumbUrls = (result.thumb_images && result.thumb_images.length > 0)
+          ? result.thumb_images
+          : imageUrls;
       }
       await api.createTransaction({
         type: 'expense',
-        amount: parseFloat(expAmount),
+        amount: parseFloat(expAmount.replace(/,/g, '')),
         category: expCategory,
         account: payMethod,
         note: expNote,
         date: expDate,
         images: imageUrls,
+        thumb_images: thumbUrls,
       });
+      clearUrlCache();
       setExpAmount('');
+      setExpCategory('日常');
       setPayMethod('微信');
       setExpNote('');
       setExpDate(todayStr());
       setExpImages([]);
-      // Revoke any remaining preview URLs
       await loadExpenses();
       onExpenseHistory?.();
     } catch { setToast(t('toastSubmitFailed')); }
@@ -456,11 +568,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     : feeData
     ? ((feeData.meituan_cashier || 0) + (feeData.meituan_waimai || 0) + (feeData.eleme_waimai || 0) + (feeData.meituan_tuan || 0))
     : 0;
-  const tabCards = [
-    { gradient: ['rgba(13,148,136,0.22)', 'rgba(101,163,13,0.22)'], gradientActive: ['rgba(13,148,136,0.48)', 'rgba(101,163,13,0.48)'], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? '#059669' : '#DC2626', prefix: diff >= 0 ? '+' : '' },
-    { gradient: ['rgba(236,72,153,0.22)', 'rgba(249,115,22,0.22)'], gradientActive: ['rgba(236,72,153,0.48)', 'rgba(249,115,22,0.48)'], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: '#1A1A1A', prefix: '' },
-    { gradient: ['rgba(220,38,38,0.22)', 'rgba(153,27,27,0.22)'], gradientActive: ['rgba(220,38,38,0.48)', 'rgba(153,27,27,0.48)'], title: t('tabExpense'), stat: expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods, statFmt: fmt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods), statColor: '#1A1A1A', prefix: '' },
-  ];
+  const lang = getLang();
+  const tabCards = useMemo(() => [
+    { gradient: [withAlpha(colors.success, 0.22), withAlpha(colors.info, 0.22)], gradientActive: [withAlpha(colors.success, 0.48), withAlpha(colors.info, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
+    { gradient: [withAlpha(colors.primary, 0.22), withAlpha(colors.warning, 0.22)], gradientActive: [withAlpha(colors.primary, 0.48), withAlpha(colors.warning, 0.48)], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: colors.textMain, prefix: '' },
+    { gradient: [withAlpha(colors.danger, 0.22), withAlpha(colors.primary, 0.22)], gradientActive: [withAlpha(colors.danger, 0.48), withAlpha(colors.primary, 0.48)], title: t('tabExpense'), stat: businessSummary.cumulative_expense || 0, statFmt: fmt(businessSummary.cumulative_expense || 0), statColor: colors.textMain, prefix: '' },
+  ], [diff, feeTotal, businessSummary.cumulative_expense, colors, lang]);
+
+  const st = useMemo(() => getSt(colors), [colors]);
 
   /* ── Render ── */
   return (
@@ -486,63 +601,209 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               >
                 <View style={st.tabInner}>
                   <Text style={[st.tabTitle, active && st.tabTitleActive]}>
-                    {tab.title}{i === 2 ? ' ¥' + fmtInt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods) : ''}
+                    {tab.title}{i === 2 ? ' ¥' + fmtInt(businessSummary.cumulative_expense || 0) : ''}
                   </Text>
                   {i === 0 && (
-                    <View style={st.cardFields}>
-                      <View style={st.cardFieldRow}>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('bookBalance')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
+                    <View style={{ flex: 1, gap: 12 }}>
+                      {/* Hero: 账面差额 */}
+                      <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
+                        {/* @ts-ignore */}
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                        } as any}>{t('bookDiff')}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                          {/* @ts-ignore */}
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: (() => {
+                              if (diff > 0.005) return colors.primary;
+                              if (diff < -0.005) return colors.danger;
+                              return colors.textMain;
+                            })(),
+                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          } as any}>{diff >= 0 ? '+' : '-'}¥</Text>
+                          {/* @ts-ignore */}
+                          <Text style={{
+                            fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
+                            color: (() => {
+                              if (diff > 0.005) return colors.primary;
+                              if (diff < -0.005) return colors.danger;
+                              return colors.textMain;
+                            })(),
+                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          } as any}>{toDec2Comma(Math.abs(diff))}</Text>
                         </View>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('currentBalance')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(realTotal)}</Text>
+                      </View>
+                      {/* Sub-cards: 账面余额 | 当前资金 */}
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <View style={{
+                          flex: 1, backgroundColor: withAlpha(colors.success, 0.15),
+                          borderRadius: 10, padding: 14, gap: 6,
+                          borderWidth: 0.5, borderColor: withAlpha(colors.success, 0.30),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        } as any}>
+                          <Text style={{
+                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                            color: 'rgba(255,255,255,0.70)',
+                          }}>{t('bookBalance')}</Text>
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: 'rgba(255,255,255,0.95)',
+                          }}>{'¥' + toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
                         </View>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('bookDiff')}</Text>
-                          <Text style={[st.cardFieldVal, { color: diff >= 0 ? '#E6F7EE' : '#FCA5A5' }]}>{diff >= 0 ? '+' : '-'}¥{fmtInt(Math.abs(diff))}</Text>
+                        <View style={{
+                          flex: 1, backgroundColor: withAlpha(colors.info, 0.15),
+                          borderRadius: 10, padding: 14, gap: 6,
+                          borderWidth: 0.5, borderColor: withAlpha(colors.info, 0.30),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        } as any}>
+                          <Text style={{
+                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                            color: 'rgba(255,255,255,0.70)',
+                          }}>{t('currentBalance')}</Text>
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: 'rgba(255,255,255,0.95)',
+                          }}>{'¥' + toDec2Comma(realTotal)}</Text>
                         </View>
                       </View>
                     </View>
                   )}
                   {i === 1 && (
-                    <View style={st.cardFields}>
-                      <View style={st.cardFieldRow}>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('cumulativeRevenue')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(channelTotal)}</Text>
+                    <View style={{ flex: 1, gap: 12 }}>
+                      {/* Hero: 在手资金 */}
+                      <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
+                        {/* @ts-ignore */}
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                        } as any}>{t('cashOnHand')}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                          {/* @ts-ignore */}
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: (() => {
+                              const v = businessSummary.cash_on_hand || 0;
+                              return v > 0 ? colors.primary : v < 0 ? colors.danger : colors.textMain;
+                            })(),
+                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          } as any}>¥</Text>
+                          {/* @ts-ignore */}
+                          <Text style={{
+                            fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
+                            color: (() => {
+                              const v = businessSummary.cash_on_hand || 0;
+                              return v > 0 ? colors.primary : v < 0 ? colors.danger : colors.textMain;
+                            })(),
+                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          } as any}>{toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
                         </View>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('cumulativeExpense')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.daily + expCatTotals.rent + expCatTotals.salary + expCatTotals.goods)}</Text>
+                      </View>
+                      {/* Sub-cards: 累計營收 | 累計支出 */}
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <View style={{
+                          flex: 1, backgroundColor: withAlpha(colors.warning, 0.15),
+                          borderRadius: 10, padding: 14, gap: 6,
+                          borderWidth: 0.5, borderColor: withAlpha(colors.warning, 0.30),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        } as any}>
+                          <Text style={{
+                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                            color: 'rgba(255,255,255,0.70)',
+                          }}>{t('cumulativeRevenue')}</Text>
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: 'rgba(255,255,255,0.95)',
+                          }}>{'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}</Text>
                         </View>
-                        <View style={st.cardFieldCol}>
-                          <Text style={st.cardFieldLabel}>{t('cashOnHand')}</Text>
-                          <Text style={st.cardFieldVal}>¥{fmtInt(realTotal)}</Text>
+                        <View style={{
+                          flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
+                          borderRadius: 10, padding: 14, gap: 6,
+                          borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        } as any}>
+                          <Text style={{
+                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                            color: 'rgba(255,255,255,0.70)',
+                          }}>{t('cumulativeExpense')}</Text>
+                          <Text style={{
+                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                            color: 'rgba(255,255,255,0.95)',
+                          }}>{'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}</Text>
                         </View>
                       </View>
                     </View>
                   )}
                 </View>
                 {i === 2 && (
-                  <View style={st.cardFields}>
-                    <View style={st.cardFieldRow}>
-                      <View style={st.cardFieldCol}>
-                        <Text style={st.cardFieldLabel}>{t('daily')}</Text>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.daily)}</Text>
+                  <View>
+                    {/* Row 1: 日常 | 采购 */}
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <View style={{
+                        flex: 1, backgroundColor: withAlpha(colors.danger, 0.15),
+                        borderRadius: 10, padding: 10, gap: 4,
+                        borderWidth: 0.5, borderColor: withAlpha(colors.danger, 0.30),
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      } as any}>
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                        }}>{t('daily')}</Text>
+                        <Text style={{
+                          fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                          color: 'rgba(255,255,255,0.95)',
+                        }}>{'¥' + toDec2Comma(expCatTotals.daily)}</Text>
                       </View>
-                      <View style={st.cardFieldCol}>
-                        <Text style={st.cardFieldLabel}>{t('rent')}</Text>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.rent)}</Text>
+                      <View style={{
+                        flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
+                        borderRadius: 10, padding: 10, gap: 4,
+                        borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      } as any}>
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                        }}>{t('goods')}</Text>
+                        <Text style={{
+                          fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                          color: 'rgba(255,255,255,0.95)',
+                        }}>{'¥' + toDec2Comma(expCatTotals.goods)}</Text>
                       </View>
-                      <View style={st.cardFieldCol}>
-                        <Text style={st.cardFieldLabel}>{t('salary')}</Text>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.salary)}</Text>
+                    </View>
+                    {/* Row 2: 房租 | 薪资 */}
+                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                      <View style={{
+                        flex: 1, backgroundColor: withAlpha(colors.danger, 0.15),
+                        borderRadius: 10, padding: 10, gap: 4,
+                        borderWidth: 0.5, borderColor: withAlpha(colors.danger, 0.30),
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      } as any}>
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                        }}>{t('rent')}</Text>
+                        <Text style={{
+                          fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                          color: 'rgba(255,255,255,0.95)',
+                        }}>{'¥' + toDec2Comma(expCatTotals.rent)}</Text>
                       </View>
-                      <View style={st.cardFieldCol}>
-                        <Text style={st.cardFieldLabel}>{t('goods')}</Text>
-                        <Text style={st.cardFieldVal}>¥{fmtInt(expCatTotals.goods)}</Text>
+                      <View style={{
+                        flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
+                        borderRadius: 10, padding: 10, gap: 4,
+                        borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      } as any}>
+                        <Text style={{
+                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+                          color: 'rgba(255,255,255,0.70)',
+                        }}>{t('salary')}</Text>
+                        <Text style={{
+                          fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+                          color: 'rgba(255,255,255,0.95)',
+                        }}>{'¥' + toDec2Comma(expCatTotals.salary)}</Text>
                       </View>
                     </View>
                   </View>
@@ -563,10 +824,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={st.card}>
             {/* 日期行 */}
             <View style={st.dateRow}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: '#6B7280' }}>{t('billDate')}</Text>
-              <TouchableOpacity
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub }}>{t('billDate')}</Text>
+              <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
-                activeOpacity={1}
               >
                 <Text style={st.dateText}>
                   {(() => {
@@ -582,42 +842,43 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     return `${y}年${m}月${d}日`;
                   })()}
                 </Text>
-                <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF' }}>›</Text>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                 {React.createElement('input', {
+                  ref: recDateInputRef,
                   type: 'date',
-                  value: recDate,
+                  key: recDateKey,
+                  defaultValue: recDate,
                   max: todayStr(),
-                  onChange: (e: any) => {
-                    const v = e.target.value;
-                    if (v > todayStr()) { setToast(t('errDateFuture')); return; }
-                    setRecDate(v);
-                  },
-                  style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
+                  onChange: (e: any) => { if (isFuture(e.target.value)) { recDateInputRef.current!.value = recDate; setRecDateKey(k => k + 1); setRecDateErr(c => c + 1); } else { setRecDate(e.target.value); } },
+                  style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
-              </TouchableOpacity>
+              </View>
             </View>
+            <DateErrorHint trigger={recDateErr} message={t('errDateFuture')} colors={colors} />
 
             <View style={st.row2}>
               <View style={st.inputGroup}>
-                <Text style={st.inputLabel}>{t('cardBalance')} 💳</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Rect x="2" y="4" width="20" height="16" rx="2"/><Path d="M2 10h20"/><Rect x="5" y="14" width="3" height="2" rx="0.5"/></Svg><Text style={st.inputLabel}>{t('cardBalance')}</Text></View>
                 <InputWithFocus inputStyle={st.input}
                   value={cardBalance} onChangeText={(v: string) => setCardBalance(blockNeg(v))}
+                  onBlur={() => { if (cardBalance !== '') setCardBalance(toDec2(cardBalance)); }}
                   keyboardType="decimal-pad"
-                  placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                  placeholder="0.00" placeholderTextColor={colors.textSub} />
               </View>
               <View style={st.inputGroup}>
-                <Text style={st.inputLabel}>{t('cashBalance')} 💴</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Rect x="2" y="5" width="20" height="14" rx="2"/><Circle cx="12" cy="12" r="2.5"/><Path d="M18.5 9l-1 0M18.5 15l-1 0M5.5 9l1 0M5.5 15l1 0"/></Svg><Text style={st.inputLabel}>{t('cashBalance')}</Text></View>
                 <InputWithFocus inputStyle={st.input}
                   value={cashBalance} onChangeText={(v: string) => setCashBalance(blockNeg(v))}
+                  onBlur={() => { if (cashBalance !== '') setCashBalance(toDec2(cashBalance)); }}
                   keyboardType="decimal-pad"
-                  placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                  placeholder="0.00" placeholderTextColor={colors.textSub} />
               </View>
             </View>
 
             {/* 在途资金 */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: '#6B7280' }}>{t('fundsInTransit')}</Text>
-              <NumberTicker value={channelTotal} style={{ fontSize: 14, fontWeight: '700', color: '#C93638' }} />
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub }}>{t('fundsInTransit')}</Text>
+              <NumberTicker value={channelTotal} style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.primary }} />
             </View>
             <View style={st.channelGrid}>
               {/* Row 1: 堂食 + 美团 + 闪购 */}
@@ -626,22 +887,25 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={st.chipLabel}>{t('dineIn')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={dineIn} onChangeText={(v: string) => setDineIn(blockNeg(v))}
+                    onBlur={() => { if (dineIn !== '') setDineIn(toDec2(dineIn)); }}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('meituan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={meituan} onChangeText={(v: string) => setMeituan(blockNeg(v))}
+                    onBlur={() => { if (meituan !== '') setMeituan(toDec2(meituan)); }}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('flashSale')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={flashSale} onChangeText={(v: string) => setFlashSale(blockNeg(v))}
+                    onBlur={() => { if (flashSale !== '') setFlashSale(toDec2(flashSale)); }}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
               </View>
               {/* Row 2: 京东 + 团购 */}
@@ -650,15 +914,17 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={st.chipLabel}>{t('jd')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={jd} onChangeText={(v: string) => setJd(blockNeg(v))}
+                    onBlur={() => { if (jd !== '') setJd(toDec2(jd)); }}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('tuan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
                     value={tuan} onChangeText={(v: string) => setTuan(blockNeg(v))}
+                    onBlur={() => { if (tuan !== '') setTuan(toDec2(tuan)); }}
                     keyboardType="decimal-pad"
-                    placeholder="0.00" placeholderTextColor="#D1D5DB" />
+                    placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -668,7 +934,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <TouchableOpacity style={st.reconRecordBtn} onPress={onReconHistory} activeOpacity={0.8}>
                 <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.reconBtn} onPress={() => setShowToast(true)} activeOpacity={0.8}>
+              <TouchableOpacity
+                style={[st.reconBtn, !hasReconChanges && { opacity: 0.4 }]}
+                onPress={() => hasReconChanges && setShowToast(true)}
+                activeOpacity={hasReconChanges ? 0.8 : 1}
+                disabled={!hasReconChanges}
+              >
                 <Text style={st.reconBtnText}>{t('reconComplete')}</Text>
               </TouchableOpacity>
             </View>
@@ -682,17 +953,17 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           {/* Revenue KPI cards */}
           <View style={st.card}>
             <View style={st.kpiRow}>
-              <View style={st.kpiCard}>
+              <View style={st.kpiItem}>
                 <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+                <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.actual_received)}</Text>
               </View>
-              <View style={st.kpiCard}>
+              <View style={st.kpiItem}>
                 <Text style={st.kpiLabel}>{t('receivable')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+                <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.receivable)}</Text>
               </View>
-              <View style={st.kpiCard}>
+              <View style={st.kpiItem}>
                 <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
-                <Text style={[st.kpiVal, { fontSize: 13, fontWeight: '600' }]}>¥0.00</Text>
+                <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.discount)}</Text>
               </View>
             </View>
           </View>
@@ -701,7 +972,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={[st.card, { marginTop: 12 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#1A1A1A' }}>{t('platformFee')}</Text>
+                <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain }}>{t('platformFee')}</Text>
                 <TouchableOpacity
                   ref={pickerTriggerRef}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 2, position: 'relative', paddingTop: 2 }}
@@ -724,12 +995,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={{ fontSize: 12, color: '#8B1E22', fontWeight: '600' }}>
-                    {feeMonth === 'all' ? t('feeAllMonths') : `${feeMonth.year}年${feeMonth.month}月`}
+                  <Text style={{ fontSize: FONTS.microBold.size, color: colors.primary, fontWeight: FONTS.microBold.weight }}>
+                    {feeMonth === 'all' ? t('feeAllMonths') : fmtMonth(feeMonth.year, feeMonth.month)}
                   </Text>
-                  <Text style={{ fontSize: 10, color: '#8B1E22' }}>▼</Text>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>▼</Text>
                 </TouchableOpacity>
               </View>
+              {(feeMonth !== 'all' || allFees.length > 0) && (
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
                 onPress={() => {
@@ -737,38 +1009,39 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     setShowFeeHistory(true); setFeeHistoryFilter('all');
                   } else {
                     setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
-                    loadFeeData(); setShowFeeSheet(true);
+                    setFeeDateErr(0); loadFeeData(); setShowFeeSheet(true);
                   }
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 13, color: '#8B1E22', fontWeight: '600' }}>
+                <Text style={{ fontSize: FONTS.subBold.size, color: colors.primary, fontWeight: FONTS.subBold.weight }}>
                   {feeMonth === 'all' ? t('feeViewDetail') : t('feeDetail')}
                 </Text>
-                <Text style={{ fontSize: 16, color: '#8B1E22', fontWeight: '700' }}>→</Text>
+                <Text style={{ fontSize: FONTS.body.size, color: colors.primary, fontWeight: FONTS.h2.weight }}>→</Text>
               </TouchableOpacity>
+              )}
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 }}>
-              <Text style={{ fontSize: 32, fontWeight: '700', color: '#FA855A', marginRight: 6 }}>¥</Text>
-              <Text style={{ fontSize: 42, fontWeight: '700', color: '#1A1A1A', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>
+              <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.primary, marginRight: 6 }}>¥</Text>
+              <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.textMain }}>
                 {feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </Text>
             </View>
 
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {([
-                { k: 'meituanCashier', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0) : (feeData?.meituan_cashier || 0), color: '#3B82F6' },
-                { k: 'meituanWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0) : (feeData?.meituan_waimai || 0), color: '#F59E0B' },
-                { k: 'shangouWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0) : (feeData?.eleme_waimai || 0), color: '#06B6D4' },
-                { k: 'meituanTuan', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0) : (feeData?.meituan_tuan || 0), color: '#10B981' },
+                { k: 'meituanCashier', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0) : (feeData?.meituan_cashier || 0), color: colors.info },
+                { k: 'meituanWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0) : (feeData?.meituan_waimai || 0), color: colors.warning },
+                { k: 'shangouWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0) : (feeData?.eleme_waimai || 0), color: colors.info },
+                { k: 'meituanTuan', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0) : (feeData?.meituan_tuan || 0), color: colors.success },
               ] as const).map((p) => (
-                <View key={p.k} style={{ flex: 1, minWidth: '45%', backgroundColor: '#F9FAFB', borderRadius: 10, padding: 10 }}>
+                <View key={p.k} style={{ flex: 1, minWidth: '45%', backgroundColor: colors.bg, borderRadius: 10, padding: 10 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: p.color }} />
-                    <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{t(p.k)}</Text>
+                    <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t(p.k)}</Text>
                   </View>
-                  <Text style={{ fontSize: 17, fontWeight: '700', color: '#1A1A1A' }}>
+                  <Text style={{ fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain }}>
                     ¥{p.v.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </Text>
                 </View>
@@ -790,9 +1063,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <View style={st.bigAmtRow}>
                   <Text style={st.bigAmtSymbol}>¥</Text>
                   <TextInput style={st.bigAmtInput}
-                    value={expAmount} onChangeText={(v: string) => setExpAmount(blockNeg(v))}
-                    keyboardType="decimal-pad" placeholder="0"
-                    placeholderTextColor="#D1D5DB"
+                    value={expAmount} onChangeText={(v: string) => setExpAmount(fmtDecInput(v))}
+                    onBlur={() => { if (expAmount !== '') setExpAmount(toDec2Comma(expAmount)); }}
+                    keyboardType="decimal-pad" placeholder="0.00"
+                    placeholderTextColor={colors.textSub}
                     autoFocus={false} />
                 </View>
                 <View style={st.amtCursor} />
@@ -802,10 +1076,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <View style={st.catGridWide}>
                 {(() => {
                   const icons: Record<string, React.ReactElement> = {
-                    '日常': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><Path d="M9 22V12h6v10"/></Svg>,
-                    '房租': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M1 22V8.5L12 2l11 6.5V22"/><Rect x="8" y="14" width="8" height="8" rx="1"/></Svg>,
-                    '薪资': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Circle cx="12" cy="12" r="10"/><Path d="M16 8h-4a2 2 0 100 4h2a2 2 0 110 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
-                    '采购': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><Line x1="3" y1="6" x2="21" y2="6"/><Path d="M16 10a4 4 0 01-8 0"/></Svg>,
+                    '日常': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2l-2-3H9L7 7H5a2 2 0 00-2 2z"/><Path d="M16 12a4 4 0 11-8 0"/></Svg>,
+                    '房租': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 21h18"/><Path d="M3 10l9-7 9 7"/><Path d="M5 12v7h4v-4h6v4h4v-7"/></Svg>,
+                    '薪资': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="9"/><Path d="M14 8h-3.5a2 2 0 000 4h1a2 2 0 010 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
+                    '采购': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 7l-3-4H7L4 7v12a2 2 0 002 2h12a2 2 0 002-2V7z"/><Path d="M4 7h16"/><Path d="M9 12h6"/><Path d="M12 9v6"/></Svg>,
                   };
                   const keys: Record<string, string> = { '日常': 'daily', '房租': 'rent', '薪资': 'salary', '采购': 'goods' };
                   const cats = ['日常', '房租', '薪资', '采购'] as const;
@@ -831,11 +1105,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
               <View style={st.payGrid}>
                 {(() => {
-                  const payIcons: Record<string, React.ReactElement> = {
-                    '现金': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Rect x="2" y="6" width="20" height="12" rx="2"/><Circle cx="12" cy="12" r="2"/><Path d="M2 10h20"/></Svg>,
-                    '微信': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></Svg>,
-                    '支付宝': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><Path d="M18 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z"/><Path d="M10 14l2 2 4-4"/></Svg>,
+                  const payIcons: Record<string, (color: string) => React.ReactNode> = {
+                    '现金': (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
+                    '微信': (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
+                    '支付宝': (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
                   };
+                  const chipIconBg: Record<string, string> = { '微信': '#07C160', '支付宝': '#1677FF', '现金': '#333' };
                   const keyMap: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
                   return (['现金', '微信', '支付宝'] as const).map((m) => {
                     const active = payMethod === m;
@@ -845,7 +1120,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       <TouchableOpacity key={m}
                         style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : isAlipay ? st.payChipActiveAlipay : st.payChipActive)]}
                         onPress={() => setPayMethod(m)} activeOpacity={0.7}>
-                        <View style={[st.chipIconCircle, active && st.chipIconCircleActive]}>{payIcons[m]}</View>
+                        <View style={[st.chipIconCircle, active && { backgroundColor: chipIconBg[m] }]}>
+                          {payIcons[m](active ? colors.surface : colors.textSub)}
+                        </View>
                         <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(keyMap[m] as any)}</Text>
                       </TouchableOpacity>
                     );
@@ -858,14 +1135,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 value={expNote}
                 onChangeText={setExpNote}
                 placeholder={t('notePlaceholder')}
-                placeholderTextColor="#D1D5DB"
+                placeholderTextColor={colors.textSub}
                 multiline />
               {/* 凭证上传 */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={[st.catSectionTitle, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
                 <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7}
-                  style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#9CA3AF' }}>!</Text>
+                  style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: colors.secondary, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub }}>!</Text>
                 </TouchableOpacity>
                 {showImgTip && (
                   <View style={st.imgTipBubble}>
@@ -887,7 +1164,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <TouchableOpacity style={st.imgAddBtn}
                   onPress={() => fileInputRef.current?.click()}
                   activeOpacity={0.7}>
-                  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round">
+                  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5} strokeLinecap="round">
                     <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
                     <Circle cx="12" cy="13" r="4" />
                   </Svg>
@@ -897,14 +1174,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 {expImages.map((file, i) => (
                   <View key={`img-${i}`} style={st.imgPreview}>
                     {React.createElement('img', {
-                      src: URL.createObjectURL(file),
-                      style: { width: 95, height: 95, borderRadius: 16, objectFit: 'cover' },
+                      src: getPreviewUrl(file),
+                      style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' },
                       alt: file.name,
                     })}
                     <TouchableOpacity style={st.imgRemove}
                       onPress={() => removeImage(i)}
                       activeOpacity={0.7}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round">
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth={2.5} strokeLinecap="round">
                         <Path d="M18 6L6 18M6 6l12 12" />
                       </Svg>
                     </TouchableOpacity>
@@ -913,40 +1190,39 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
               {/* 日期选择 */}
               <View style={st.expDateRow}>
-                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={1.5}>
+                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5}>
                   <Rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                   <Line x1="16" y1="2" x2="16" y2="6"/>
                   <Line x1="8" y1="2" x2="8" y2="6"/>
                   <Line x1="3" y1="10" x2="21" y2="10"/>
                 </Svg>
-                <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', flex: 1, position: 'relative' }}
-                  activeOpacity={1}
-                >
-                  <Text style={st.dateText}>
-                    {(() => {
-                      const l = getLang();
-                      const [y, m, d] = expDate.split('-');
-                      if (l.startsWith('en')) {
-                        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-                        return `${months[+m-1]} ${+d}, ${y}`;
-                      }
-                      return `${y}年${m}月${d}日`;
-                    })()}
-                  </Text>
-                  <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF' }}>›</Text>
-                  {React.createElement('input', {
-                    type: 'date',
-                    value: expDate,
-                    max: todayStr(),
-                    onChange: (e: any) => {
-                      const v = e.target.value;
-                      if (v > todayStr()) { setToast(t('errDateFuture')); return; }
-                      setExpDate(v);
-                    },
-                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
-                  })}
-                </TouchableOpacity>
+                <View style={{ flex: 1 }}>
+                  <View
+                    style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }}
+                  >
+                    <Text style={st.dateText}>
+                      {(() => {
+                        const l = getLang();
+                        const [y, m, d] = expDate.split('-');
+                        if (l.startsWith('en')) {
+                          const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                          return `${months[+m-1]} ${+d}, ${y}`;
+                        }
+                        return `${y}年${m}月${d}日`;
+                      })()}
+                    </Text>
+                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
+                    {React.createElement('input', {
+                      ref: expDateInputRef,
+                      type: 'date',
+                      defaultValue: expDate,
+                      max: todayStr(),
+                      onChange: (e: any) => { if (isFuture(e.target.value)) { expDateInputRef.current!.value = expDate; setExpDateErr(c => c + 1); } else { setExpDate(e.target.value); } },
+                      style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
+                    })}
+                  </View>
+                  <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} colors={colors} textAlign="left" />
+                </View>
               </View>
               {/* 按钮行 */}
               <View style={st.btnRow}>
@@ -956,14 +1232,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[st.expBtn, { flex: 1 }]}
-                  onPress={() => { if (expAmount) setShowExpConfirm(true); }}
-                  disabled={!expAmount || loadingExp}
+                  onPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) > 0) setShowExpConfirm(true); }}
+                  disabled={!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0 || loadingExp}
                   activeOpacity={0.8}
                 >
                   <Text style={st.expBtnText}>
                     {loadingExp ? '...' : t('confirmRecord')}
                   </Text>
-                  {(!expAmount || loadingExp) && (
+                  {(!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0 || loadingExp) && (
                     <View style={st.expBtnMask} />
                   )}
                 </TouchableOpacity>
@@ -976,9 +1252,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
       {/* 支出确认弹窗 */}
       {showExpConfirm && (
-        <View style={st.modalOverlay}>
-          <TouchableOpacity style={st.modalBackdrop} onPress={() => setShowExpConfirm(false)} activeOpacity={1} />
-          <View style={st.modalCard}>
+        <ModalOverlay onClose={() => setShowExpConfirm(false)}>
+          <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('expConfirmTitle')}</Text>
               <TouchableOpacity onPress={() => setShowExpConfirm(false)}>
@@ -986,7 +1261,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
             <View style={{ padding: 20, gap: 16 }}>
-              <Text style={{ fontSize: 14, color: '#4B5563', textAlign: 'center' }}>
+              <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
                 {t('expConfirmMsg')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -999,14 +1274,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
           </View>
-        </View>
+        </ModalOverlay>
       )}
 
       {/* 添加提示弹窗 */}
       {showToast && (
-        <View style={st.modalOverlay}>
-          <TouchableOpacity style={st.modalBackdrop} onPress={hideToast} activeOpacity={1} />
-          <View style={st.modalCard}>
+        <ModalOverlay onClose={hideToast}>
+          <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
               <TouchableOpacity onPress={hideToast}>
@@ -1014,7 +1288,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
             <View style={{ padding: 20, gap: 16 }}>
-              <Text style={{ fontSize: 14, color: '#4B5563', textAlign: 'center' }}>
+              <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
                 {t('jokeRecon')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -1027,13 +1301,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
           </View>
-        </View>
+        </ModalOverlay>
       )}
       {/* Platform fee entry bottom sheet */}
       {showFeeSheet && (
-        <View style={[st.modalOverlay, { justifyContent: 'center' }]}>
-          <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => setShowFeeSheet(false)} />
-          <View style={st.feeSheet}>
+        <ModalOverlay onClose={() => setShowFeeSheet(false)}>
+          <View style={st.feeSheet} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
               <TouchableOpacity onPress={() => setShowFeeSheet(false)}>
@@ -1042,31 +1315,31 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>{t('entryDate')}</Text>
-                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }} activeOpacity={1}>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#1A1A1A' }}>
-                    {(() => { return fmtLocalDate(feeEntryDate); })()}
-                  </Text>
-                  <Text style={{ fontSize: 22, fontWeight: '700', color: '#9CA3AF', marginLeft: 4 }}>›</Text>
-                  {React.createElement('input', {
-                    type: 'date', value: feeEntryDate, max: todayStr(),
-                    onChange: (e: any) => {
-                      const v = e.target.value;
-                      if (v > todayStr()) { setToast(t('noFutureDate')); return; }
-                      setFeeEntryDate(v);
-                    },
-                    style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: 14 },
-                  })}
-                </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16 }}>
+                <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
+                <View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }}>
+                    <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>
+                      {(() => { return fmtLocalDate(feeEntryDate); })()}
+                    </Text>
+                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
+                    {React.createElement('input', {
+                      ref: feeDateInputRef,
+                      type: 'date', defaultValue: feeEntryDate, max: todayStr(),
+                      onChange: (e: any) => { if (isFuture(e.target.value)) { feeDateInputRef.current!.value = feeEntryDate; setFeeDateErr(c => c + 1); } else { setFeeEntryDate(e.target.value); } },
+                      style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
+                    })}
+                  </View>
+                  <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} colors={colors} />
+                </View>
               </View>
 
               {/* Column headers */}
               <View style={{ flexDirection: 'row', marginBottom: 10, gap: 8, paddingHorizontal: 2 }}>
-                <Text style={{ flex: 1, maxWidth: '30%', fontSize: 10, color: '#9CA3AF', fontWeight: '600' }}></Text>
-                <Text style={{ width: 80, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'left' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 80, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'left' }}>{t('feeCurrent')}</Text>
-                <Text style={{ width: 72, fontSize: 10, color: '#9CA3AF', fontWeight: '600', textAlign: 'right' }}>{t('feeEntry')}</Text>
+                <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight }}></Text>
+                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feePreview')}</Text>
+                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 72, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeEntry')}</Text>
               </View>
 
               {/* Fee rows */}
@@ -1079,17 +1352,17 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 const inputNum = toNum(row.val);
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
-                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: 13, color: '#374151', fontWeight: '500' }}>{t(row.k)}</Text>
-                    <Text style={{ width: 80, fontSize: 15, fontWeight: '700', color: '#1A1A1A', textAlign: 'left' }}>
+                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }} numberOfLines={1}>{t(row.k)}</Text>
+                    <Text style={{ width: 80, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 80, fontSize: 12, color: '#9CA3AF', textAlign: 'left' }}>
+                    <Text style={{ width: 80, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left' }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, fontSize: 14, fontWeight: '600', color: '#1A1A1A', textAlign: 'right', backgroundColor: '#FAFAFA', outline: 'none' } as any}
-                      value={row.val} onChangeText={row.set}
-                      keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor="#D1D5DB"
+                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
+                      value={row.val} onChangeText={(v: string) => row.set(fmtDecInput(v))}
+                      keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub}
                     />
                   </View>
                 );
@@ -1097,21 +1370,20 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
               {/* Confirm */}
               <TouchableOpacity
-                style={{ backgroundColor: '#8B1E22', borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: savingFee ? 0.6 : 1 }}
-                onPress={handleAddFee} disabled={savingFee} activeOpacity={0.8}
+                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: (savingFee || (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0)) ? 0.35 : 1 }}
+                onPress={handleAddFee} disabled={savingFee || (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0)} activeOpacity={0.8}
               >
-                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{savingFee ? '...' : t('confirm')}</Text>
+                <Text style={{ color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}>{savingFee ? '...' : t('confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </ModalOverlay>
       )}
 
       {/* Fee history bottom sheet — "全部" detail view */}
       {showFeeHistory && (
-        <View style={[st.modalOverlay, { justifyContent: 'center' }]}>
-          <TouchableOpacity style={st.modalBackdrop} activeOpacity={1} onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }} />
-          <View style={[st.feeSheet, { maxHeight: '75%' }]}>
+        <ModalOverlay onClose={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
+          <View style={[st.feeSheet, { height: Dimensions.get('window').height * 0.75, width: '96%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
               <TouchableOpacity onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
@@ -1141,36 +1413,36 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 13, color: '#8B1E22', fontWeight: '600' }}>
-                  {feeHistoryFilter === 'all' ? t('feeAllMonths') : `${feeHistoryFilter.year}年${feeHistoryFilter.month}月`}
+                <Text style={{ fontSize: FONTS.subBold.size, color: colors.primary, fontWeight: FONTS.subBold.weight }}>
+                  {feeHistoryFilter === 'all' ? t('feeAllMonths') : fmtMonth(feeHistoryFilter.year, feeHistoryFilter.month)}
                 </Text>
-                <Text style={{ fontSize: 10, color: '#8B1E22', marginLeft: 2 }}>▼</Text>
+                <Text style={{ fontSize: FONTS.micro.size, color: colors.primary, marginLeft: 2 }}>▼</Text>
 
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ paddingHorizontal: 12, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, paddingHorizontal: 12, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
               {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
-                  { label: '美团收银', value: f.meituan_cashier || 0, color: '#3B82F6' as const },
-                  { label: '美团外卖', value: f.meituan_waimai || 0, color: '#F59E0B' as const },
-                  { label: '闪购外卖', value: f.eleme_waimai || 0, color: '#06B6D4' as const },
-                  { label: '美团团购', value: f.meituan_tuan || 0, color: '#10B981' as const },
+                  { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: colors.info },
+                  { label: t('meituanWaimai'), value: f.meituan_waimai || 0, color: colors.warning },
+                  { label: t('shangouWaimai'), value: f.eleme_waimai || 0, color: colors.info },
+                  { label: t('meituanTuan'), value: f.meituan_tuan || 0, color: colors.success },
                 ];
                 return (
-                  <View key={f.id} style={{ backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#EEEBE6', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as any}>
+                  <View key={f.id} style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: colors.secondary, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as any}>
                     {/* Header: date + total */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-                      <Text style={{ fontSize: 14, color: '#374151', fontWeight: '600' }}>{f.year}年{f.month}月</Text>
-                      <Text style={{ fontSize: 16, color: '#8B1E22', fontWeight: '700', fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif' }}>¥{monthTotal.toFixed(2)}</Text>
+                      <Text style={{ fontSize: FONTS.subBold.size, color: colors.textSub, fontWeight: FONTS.subBold.weight }}>{fmtMonth(f.year, f.month)}</Text>
+                      <Text style={{ fontSize: FONTS.body.size, color: colors.primary, fontWeight: FONTS.h2.weight }}>¥{monthTotal.toFixed(2)}</Text>
                     </View>
                     {/* Sub items: 2x2 grid of platform fees */}
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                       {platforms.map((p) => (
-                        <View key={p.label} style={{ flex: 1, minWidth: '46%', flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderRadius: 6, paddingVertical: 6, paddingHorizontal: 8, gap: 6 }}>
+                        <View key={p.label} style={{ flex: 1, minWidth: '46%', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg, borderRadius: 6, paddingVertical: 6, paddingHorizontal: 8, gap: 6 }}>
                           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: p.color }} />
-                          <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500', flex: 1 }}>{p.label}</Text>
-                          <Text style={{ fontSize: 12, color: '#374151', fontWeight: '600' }}>¥{p.value.toFixed(2)}</Text>
+                          <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, flex: 1 }}>{p.label}</Text>
+                          <Text style={{ fontSize: FONTS.microBold.size, color: colors.textMain, fontWeight: FONTS.microBold.weight }}>¥{p.value.toFixed(2)}</Text>
                         </View>
                       ))}
                     </View>
@@ -1179,7 +1451,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               })}
             </ScrollView>
           </View>
-        </View>
+        </ModalOverlay>
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
       {/* Month picker dropdown — animated spring popover */}
@@ -1200,7 +1472,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             top: pickerPos.top || '38%',
             left: pickerPos.left || 10,
             zIndex: 9999,
-            backgroundColor: '#fff',
+            backgroundColor: colors.surface,
             borderRadius: 14,
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
             paddingVertical: 6,
@@ -1211,29 +1483,29 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeMonth('all');
                 Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
               }}
               activeOpacity={0.6}
             >
-              <Text style={{ fontSize: 13, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
             </TouchableOpacity>
-            <View style={{ height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 12, marginVertical: 4 }} />
+            <View style={{ height: 1, backgroundColor: colors.secondary, marginHorizontal: 12, marginVertical: 4 }} />
             {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
               const isSel = feeMonth !== 'all' && feeMonth.year === f.year && feeMonth.month === f.month;
               return (
                 <TouchableOpacity
                   key={`${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeMonth({ year: f.year, month: f.month });
                     Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
                   }}
                   activeOpacity={0.6}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, fontWeight: isSel ? '700' : '400', color: isSel ? colors.primary : colors.textMain }}>{fmtMonth(f.year, f.month)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -1257,7 +1529,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             top: feeHistoryPickerPos.top || '38%',
             left: feeHistoryPickerPos.left || 10,
             zIndex: 9999,
-            backgroundColor: '#fff',
+            backgroundColor: colors.surface,
             borderRadius: 14,
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
             paddingVertical: 6,
@@ -1268,29 +1540,29 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeHistoryFilter('all');
                 Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
               }}
               activeOpacity={0.6}
             >
-              <Text style={{ fontSize: 13, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? '#8B1E22' : '#374151' }}>{t('feeAllMonths')}</Text>
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
             </TouchableOpacity>
-            <View style={{ height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 12, marginVertical: 4 }} />
+            <View style={{ height: 1, backgroundColor: colors.secondary, marginHorizontal: 12, marginVertical: 4 }} />
             {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
               const isSel = feeHistoryFilter !== 'all' && feeHistoryFilter.year === f.year && feeHistoryFilter.month === f.month;
               return (
                 <TouchableOpacity
                   key={`hf-${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? '#FFF0F1' : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeHistoryFilter({ year: f.year, month: f.month });
                     Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
                   }}
                   activeOpacity={0.6}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: isSel ? '700' : '400', color: isSel ? '#8B1E22' : '#374151' }}>{f.year}年{f.month}月</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, fontWeight: isSel ? '700' : '400', color: isSel ? colors.primary : colors.textMain }}>{fmtMonth(f.year, f.month)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -1301,13 +1573,42 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   );
 }
 
+/* ══════════════════════════════ MODAL OVERLAY ══════════════════════════════ */
+
+function ModalOverlay({ children, onClose }: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) {
+  const anim = useRef(new Animated.Value(-300)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(anim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+    ]).start();
+  }, []);
+  const close = () => {
+    Animated.parallel([
+      Animated.timing(anim, { toValue: -300, duration: 180, useNativeDriver: true }),
+      Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
+    ]).start(onClose);
+  };
+  return (
+    <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16, opacity: fade }}>
+      <TouchableOpacity style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={close} activeOpacity={1} />
+      <Animated.View style={{ transform: [{ translateY: anim }], alignSelf: 'stretch' as any, alignItems: 'center', justifyContent: 'center' }}>{children}</Animated.View>
+    </Animated.View>
+  );
+}
+
 /* ═══════════════════════════════════════ STYLES ═══════════════════════════════════ */
-const st = StyleSheet.create({
+const getSt = (colors: ThemeColors) => StyleSheet.create({
+  ...uploadReceiptStyles(colors),
   root: { flex: 1 },
 
   /* ── Tab Bar ── */
   tabBar: {
-    paddingTop: 12, paddingBottom: 8,
+    paddingTop: 4, paddingBottom: 8,
     // @ts-ignore — 确保容器透明，让底层背景透出
     backgroundColor: 'transparent',
   },
@@ -1318,9 +1619,9 @@ const st = StyleSheet.create({
   },
   tabCard: {
     // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
-    width: 'calc(100vw - 61px)', height: 120,
+    width: 'calc(100vw - 61px)', height: 210,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
-    backgroundImage: 'linear-gradient(90deg, rgba(239,104,55,0.22) 0%, rgba(17,68,104,0.22) 100%)',
+    backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
     paddingHorizontal: 16, paddingVertical: 14,
@@ -1344,14 +1645,13 @@ const st = StyleSheet.create({
     flex: 1, alignItems: 'stretch',
   },
   tabTitle: {
-    fontSize: 20, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
-    fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
+    fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)',
     alignSelf: 'flex-start',
     // @ts-ignore
     textShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   tabTitleActive: {
-    color: '#FFFFFF', fontWeight: '700',
+    color: colors.surface, fontWeight: FONTS.amount.weight,
     // @ts-ignore
     textShadow: '0 1px 4px rgba(0,0,0,0.15)',
   },
@@ -1366,28 +1666,25 @@ const st = StyleSheet.create({
     flex: 1, alignItems: 'center', gap: 2,
   },
   cardFieldLabel: {
-    fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.70)',
-    fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
+    fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: 'rgba(255,255,255,0.70)',
     // @ts-ignore
     textShadow: '0 1px 2px rgba(0,0,0,0.1)',
   },
   cardFieldVal: {
-    fontSize: 18, fontWeight: '700', color: 'rgba(255,255,255,0.95)',
-    fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
+    fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: 'rgba(255,255,255,0.95)',
     // @ts-ignore
     textShadow: '0 1px 2px rgba(0,0,0,0.1)',
   },
   totalExpLabel: {
-    fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.70)',
+    fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: 'rgba(255,255,255,0.70)',
     textAlign: 'center', marginBottom: 6,
   },
   totalExpVal: {
-    fontSize: 22, fontWeight: '800', color: 'rgba(255,255,255,0.95)',
+    fontSize: FONTS.h1.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)',
   },
   tabStat: {
-    fontSize: 28, fontWeight: '600', letterSpacing: -0.5,
-    fontFamily: 'SF Pro Display, Helvetica Neue, Roboto, sans-serif',
-    color: '#FFFFFF',
+    fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, letterSpacing: -0.5,
+    color: colors.surface,
     // @ts-ignore
     textShadow: '0 1px 4px rgba(0,0,0,0.15)',
   },
@@ -1406,8 +1703,8 @@ const st = StyleSheet.create({
     borderRadius: 14,
     paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12,
     gap: 14,
-    backgroundColor: '#FAF7F2',
-    borderWidth: 0.5, borderColor: '#E8E4DD',
+    backgroundColor: colors.bg,
+    borderWidth: 0.5, borderColor: colors.secondary,
     // @ts-ignore
     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
   },
@@ -1417,11 +1714,11 @@ const st = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   dateText: {
-    fontSize: 14, fontWeight: '700', color: '#000000',
+    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub,
     fontFamily: undefined,
   },
   dateInput: {
-    fontSize: 14, fontWeight: '600', color: '#000000',
+    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub,
     borderWidth: 0, padding: 0, margin: 0,
     backgroundColor: 'transparent', fontFamily: 'inherit',
     // @ts-ignore
@@ -1431,17 +1728,17 @@ const st = StyleSheet.create({
   } as any,
 
   /* ── Labels ── */
-  sectionLabel: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
-  subLabel: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5, textTransform: 'uppercase' },
+  sectionLabel: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
+  subLabel: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.5, textTransform: 'uppercase' },
 
   /* ── Inputs ── */
   row2: { flexDirection: 'row', gap: 12 },
   inputGroup: { flex: 1 },
-  inputLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', marginBottom: 4 },
+  inputLabel: { fontSize: FONTS.micro.size, lineHeight: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 4 },
   input: {
-    backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB',
+    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary,
     borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12,
-    fontSize: 15, fontWeight: '600', color: '#1A1A1A', fontFamily: undefined,
+    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, fontFamily: undefined,
     // @ts-ignore
     outline: 'none',
   },
@@ -1452,17 +1749,17 @@ const st = StyleSheet.create({
   },
   channelChip: {
     flex: 1, minWidth: 60,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 10, borderWidth: 1, borderColor: '#EBEBEB',
+    backgroundColor: colors.bg,
+    borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
     paddingVertical: 4, paddingHorizontal: 4,
     alignItems: 'center',
     gap: 2,
   },
   chipLabel: {
-    fontSize: 9, color: '#9CA3AF', fontWeight: '600',
+    fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight,
   },
   chipInput: {
-    fontSize: 14, fontWeight: '700', color: '#1A1A1A',
+    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub,
     textAlign: 'center', paddingVertical: 2,
     fontFamily: undefined,
     width: '100%',
@@ -1474,144 +1771,121 @@ const st = StyleSheet.create({
   /* ── Sum row ── */
   sumRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#F9FAFB', borderRadius: 10,
+    backgroundColor: colors.bg, borderRadius: 10,
     paddingVertical: 10, paddingHorizontal: 14,
   },
-  sumLabel: { fontSize: 11, color: '#6B7280', fontWeight: '500' },
-  sumVal: { fontSize: 16, fontWeight: '800', color: '#1A1A1A' },
+  sumLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
+  sumVal: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
 
   /* ── Result bar ── */
   resultBar: {
-    flexDirection: 'row', backgroundColor: '#F9FAFB',
+    flexDirection: 'row', backgroundColor: colors.bg,
     borderRadius: 14, padding: 16,
     alignItems: 'center',
   },
   resultItem: { flex: 1, alignItems: 'center' },
-  resultDivider: { width: 1, height: 32, backgroundColor: '#E5E7EB' },
-  resultLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', marginBottom: 4 },
-  resultVal: { fontSize: 17, fontWeight: '700', color: '#374151' },
-  resultDiff: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  resultDivider: { width: 1, height: 32, backgroundColor: colors.secondary },
+  resultLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 4 },
+  resultVal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
+  resultDiff: { fontSize: FONTS.h1.size, fontWeight: FONTS.amount.weight, letterSpacing: -0.5 },
   /* ── Recon buttons ── */
   btnRow: {
     flexDirection: 'row', gap: 10, marginTop: 4,
   },
   reconBtn: {
-    flex: 1, backgroundColor: '#FA855A', borderRadius: 12,
+    flex: 1, backgroundColor: colors.primary, borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
   },
   reconBtnText: {
-    fontSize: 15, fontWeight: '700', color: '#FFFFFF',
+    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface,
   },
   reconRecordBtn: {
-    flex: 1, backgroundColor: '#B3CFE5', borderRadius: 12,
+    flex: 1, backgroundColor: colors.secondary, borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
-    borderWidth: 1, borderColor: '#E5E7EB',
+    borderWidth: 1, borderColor: colors.secondary,
   },
   reconRecordBtnText: {
-    fontSize: 14, fontWeight: '600', color: '#4B5563',
+    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub,
   },
 
   /* ── KPI ── */
-  kpiRow: { flexDirection: 'row', gap: 12 },
-  kpiCard: {
-    flex: 1, backgroundColor: '#F9FAFB',
-    borderRadius: 14, padding: 16, alignItems: 'center',
-    borderWidth: 1, borderColor: '#EBEBEB',
+  kpiRow: { flexDirection: 'column' },
+  kpiItem: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 8,
   },
-  kpiLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '500', marginBottom: 4 },
-  kpiVal: { fontSize: 20, fontWeight: '800', color: '#1A1A1A' },
+  kpiDivider: { height: 1, backgroundColor: colors.secondary, marginHorizontal: 4 },
+  kpiLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
+  kpiVal: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
 
   /* ── Table ── */
   tableWrap: {
-    borderWidth: 1, borderColor: '#EBEBEB', borderRadius: 12, overflow: 'hidden',
+    borderWidth: 1, borderColor: colors.secondary, borderRadius: 12, overflow: 'hidden',
   },
-  tableHead: { backgroundColor: '#F9FAFB' },
+  tableHead: { backgroundColor: colors.bg },
   tableRow: {
-    flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#EBEBEB',
+    flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.secondary,
   },
-  td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: 12, color: '#374151' },
-  tdDate: { width: 90, color: '#6B7280', fontSize: 11 },
+  td: { paddingVertical: 10, paddingHorizontal: 10, fontSize: FONTS.micro.size, color: colors.textSub },
+  tdDate: { width: 90, color: colors.textSub, fontSize: FONTS.micro.size },
   tdCat: { flex: 1 },
-  tdAmt: { width: 100, textAlign: 'right', fontWeight: '600' },
+  tdAmt: { width: 100, textAlign: 'right', fontWeight: FONTS.microBold.weight },
 
   /* ── Date row ── */
   expDateRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#F9FAFB', borderRadius: 10, padding: 12,
+    backgroundColor: colors.bg, borderRadius: 10,
+    paddingVertical: 12, paddingRight: 12,
   },
   expDateInput: {
-    fontSize: 14, fontWeight: '500', color: '#1A1A1A',
+    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
     borderWidth: 0, padding: 0, backgroundColor: 'transparent',
     // @ts-ignore
     outline: 'none',
   },
 
-  /* ── Image upload ── */
-  imgRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4, paddingHorizontal: 10 },
-  imgAddBtn: {
-    width: 95, height: 95, borderRadius: 16,
-    borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D1D5DB',
-    backgroundColor: '#FAFAFA',
-    alignItems: 'center', justifyContent: 'center',
-    gap: 4,
-  },
-  imgAddText: { fontSize: 10, color: '#9CA3AF', fontWeight: '500' },
-  imgPreview: { position: 'relative' as any },
-  imgRemove: {
-    position: 'absolute', top: 4, right: 4,
-    width: 20, height: 20, borderRadius: 10,
-    backgroundColor: 'rgba(0,0,0,0.50)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  imgTipBubble: {
-    backgroundColor: '#374151', borderRadius: 6,
-    paddingHorizontal: 10, paddingVertical: 6,
-  },
-  imgTipText: { fontSize: 11, color: '#FFFFFF', fontWeight: '500' },
-
   /* ── Expense form ── */
   expForm: { gap: 14 },
   /* Big amount input */
   bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
-  bigAmtLabel: { fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
+  bigAmtLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 8 },
   bigAmtRow: { flexDirection: 'row', alignItems: 'flex-end' },
-  bigAmtSymbol: { fontSize: 32, fontWeight: '700', color: '#FA855A', marginRight: 6 },
+  bigAmtSymbol: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.primary, marginRight: 6 },
   bigAmtInput: {
-    fontSize: 42, fontWeight: '700', color: '#1A1A1A',
+    fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.textMain,
     borderWidth: 0, backgroundColor: 'transparent',
     textAlign: 'left', padding: 0,
-    fontFamily: 'SF Pro Display, Helvetica Neue, sans-serif',
     flex: 0, width: 180,
     // @ts-ignore
     outline: 'none',
   },
   amtCursor: {
-    width: 40, height: 2, backgroundColor: '#FA855A',
+    width: 40, height: 2, backgroundColor: colors.primary,
     marginTop: 10, borderRadius: 1,
   },
   /* Category chips */
-  catSectionTitle: { fontSize: 12, color: '#1A1A1A', fontWeight: '700', marginBottom: 10 },
+  catSectionTitle: { fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, marginBottom: 10 },
   catGrid: { flexDirection: 'row', gap: 8 },
   catGridWide: { gap: 8 },
   catRow: { flexDirection: 'row', width: '100%' as any, gap: 8, marginBottom: 6 },
   catChip: {
     flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
-    backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
   },
-  catChipActive: { backgroundColor: '#FA855A' },
-  catChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
-  catChipTextActive: { color: '#FFFFFF' },
+  catChipActive: { backgroundColor: colors.primary },
+  catChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
+  catChipTextActive: { color: colors.surface },
   /* Payment method chips */
   payGrid: { flexDirection: 'row', gap: 8 },
   payChip: {
     flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
-    backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
   },
-  payChipActive: { backgroundColor: '#FA855A' },
+  payChipActive: { backgroundColor: colors.primary },
   payChipActiveWechat: { backgroundColor: '#07C160' },
   payChipActiveAlipay: { backgroundColor: '#1677FF' },
-  payChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
-  payChipTextActive: { color: '#FFFFFF' },
+  payChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
+  payChipTextActive: { color: colors.surface },
   /* Chip icon circle */
   chipIconCircle: {
     width: 26, height: 26, borderRadius: 13,
@@ -1622,37 +1896,37 @@ const st = StyleSheet.create({
   chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
   /* Expense records */
   noteInput: {
-    fontSize: 14, color: '#1A1A1A',
-    borderWidth: 0, backgroundColor: '#F9FAFB',
+    fontSize: FONTS.sub.size, color: colors.textSub,
+    borderWidth: 0, backgroundColor: colors.bg,
     borderRadius: 10, padding: 12, minHeight: 60,
     textAlignVertical: 'top',
     // @ts-ignore
     outline: 'none',
   },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  expCatLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
+  expCatLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
   expBtn: {
-    backgroundColor: '#FA855A', borderRadius: 12, paddingVertical: 14,
+    backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14,
     alignItems: 'center', position: 'relative', overflow: 'hidden',
   },
   expBtnMask: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 12,
   },
-  expBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  expBtnText: { color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   /* ── Expense list ── */
   expRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: '#EBEBEB',
+    borderBottomWidth: 1, borderBottomColor: colors.secondary,
   },
-  expNote: { fontSize: 13, color: '#374151', fontWeight: '500' },
-  expDateText: { fontSize: 10, color: '#9CA3AF', marginTop: 2 },
-  expAmt: { fontSize: 15, fontWeight: '700', color: '#DC2626' },
+  expNote: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
+  expDateText: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
+  expAmt: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.danger },
 
   /* ── Empty ── */
   empty: {
-    fontSize: 12, color: '#9CA3AF', textAlign: 'center', paddingVertical: 24,
+    fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center', paddingVertical: 24,
   },
 
   /* ── Modal ── */
@@ -1662,41 +1936,44 @@ const st = StyleSheet.create({
   },
   modalBackdrop: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(26,26,26,0.4)',
+    backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modalCard: {
-    backgroundColor: '#fff', borderRadius: 20, width: 320, maxWidth: '100%',
+    backgroundColor: colors.surface, borderRadius: 20, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
-    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    ...modalCardAnimation,
     // @ts-ignore
     boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
   },
   modalHeader: {
-    backgroundColor: '#8B1E22', paddingVertical: 14, paddingHorizontal: 20,
+    backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
-  modalTitle: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  modalClose: { color: '#FECACA', fontSize: 18 },
+  modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
+  modalClose: { ...modalClose, },
   modalBtn: {
-    flex: 1, backgroundColor: '#8B1E22', borderRadius: 14,
+    flex: 1, backgroundColor: colors.primary, borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',
   },
-  modalBtnText: { fontSize: 13, fontWeight: '500', color: '#fff' },
+  modalBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface },
   modalCancelBtn: {
-    flex: 1, backgroundColor: '#F3F4F6', borderRadius: 14,
+    flex: 1, backgroundColor: colors.bg, borderRadius: 14,
     paddingVertical: 10, alignItems: 'center',
   },
-  modalCancelText: { fontSize: 13, fontWeight: '500', color: '#4B5563' },
+  modalCancelText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     overflow: 'hidden',
     paddingBottom: 0,
     // @ts-ignore
-    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    display: 'flex', flexDirection: 'column',
+    width: '96%', maxWidth: 500,
+    // @ts-ignore
+    ...modalCardAnimation,
     // @ts-ignore
     boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
   },

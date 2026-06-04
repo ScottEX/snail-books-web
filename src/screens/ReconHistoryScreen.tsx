@@ -1,11 +1,42 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
+import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
+import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
+import { fmtAmt } from '../utils/format';
 
 const PAGE_SIZE = 10;
+
+const todayStr = () => new Date().toISOString().split('T')[0];
+const isFuture = (d: string) => d > todayStr();
+
+function ReconEmptyIcon({ color }: { color: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <Path d="M9 12l2 2 4-4" />
+    </Svg>
+  );
+}
+
+function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
+  const [show, setShow] = React.useState(false);
+  React.useEffect(() => {
+    if (trigger > 0) {
+      setShow(true);
+      const t = setTimeout(() => setShow(false), 3000);
+      return () => clearTimeout(t);
+    } else {
+      setShow(false);
+    }
+  }, [trigger]);
+  if (!show) return null;
+  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{message}</Text>;
+}
 
 export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
@@ -18,12 +49,25 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const touchRef = useRef({ startX: 0, startY: 0 });
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadingRef = useRef(false);
+  // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
+  const filBillFromRef = useRef<HTMLInputElement>(null);
+  const filBillToRef = useRef<HTMLInputElement>(null);
+  const filDateFromRef = useRef<HTMLInputElement>(null);
+  const filDateToRef = useRef<HTMLInputElement>(null);
+
+  const { colors } = useTheme();
+  const st = useMemo(() => getSt(colors), [colors]);
 
   const [showFilter, setShowFilter] = useState(false);
+  const filterAnim = useRef(new Animated.Value(0)).current;
   const [filBillFrom, setFilBillFrom] = useState('');
   const [filBillTo, setFilBillTo] = useState('');
   const [filDateFrom, setFilDateFrom] = useState('');
   const [filDateTo, setFilDateTo] = useState('');
+  useEffect(() => { if (filBillFromRef.current) filBillFromRef.current.value = filBillFrom; }, [filBillFrom]);
+  useEffect(() => { if (filBillToRef.current) filBillToRef.current.value = filBillTo; }, [filBillTo]);
+  useEffect(() => { if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; }, [filDateFrom]);
+  useEffect(() => { if (filDateToRef.current) filDateToRef.current.value = filDateTo; }, [filDateTo]);
   const [filBy, setFilBy] = useState('');
   const [users, setUsers] = useState<{id: number; username: string}[]>([]);
   // Track applied filters (snapshot at last apply)
@@ -32,6 +76,20 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [appliedFrom, setAppliedFrom] = useState('');
   const [appliedTo, setAppliedTo] = useState('');
   const [appliedBy, setAppliedBy] = useState('');
+  const [filterDateError, setFilterDateError] = useState(0);
+  const [filBillFromKey, setFilBillFromKey] = useState(0);
+  const [filBillToKey, setFilBillToKey] = useState(0);
+  const [filDateFromKey, setFilDateFromKey] = useState(0);
+  const [filDateToKey, setFilDateToKey] = useState(0);
+
+  // Reset error when filter panel opens
+  useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
+
+  // Date range validity — persistent hint while invalid
+  const rangeInvalid = useMemo(() =>
+    (!!filBillFrom && !!filBillTo && filBillFrom > filBillTo) ||
+    (!!filDateFrom && !!filDateTo && filDateFrom > filDateTo),
+    [filBillFrom, filBillTo, filDateFrom, filDateTo]);
 
   // Fetch users when filter panel opens
   useEffect(() => {
@@ -64,14 +122,14 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const loadPage = useCallback(async (pg: number, reset: boolean) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
-    setLoading(true);
+    if (reset) setLoading(true);
     try {
       const data: any = await api.getReconciliationsPage(pg, PAGE_SIZE, getFilterParams());
-      const recs = data.records || [];
+      const recs = data?.records || [];
       setRecords(prev => reset ? recs : [...prev, ...recs]);
       setPage(pg);
-      setTotal(data.total || 0);
-      setHasMore(pg < (data.pages || 1));
+      setTotal(data?.total || 0);
+      setHasMore(pg < (data?.pages || 1));
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
     loadingRef.current = false;
@@ -104,8 +162,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     if (l.startsWith('en')) { const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${months[+m-1]} ${+day}, ${y}`; }
     return `${y}/${m}/${day}`;
   };
-
-  const fmtAmt = (n: number) => '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2 });
 
   const onTouchStart = (e: any) => {
     const t = e.nativeEvent?.touches?.[0] || e.nativeEvent;
@@ -169,14 +225,14 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookDiff')}</Text>
-            <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? '#059669' : '#DC2626' }]}>
+            <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
               {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
             </Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('fundsInTransit')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmt(r.channel_total)}</Text>
+            <Text style={[st.cardPairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmt(r.channel_total)}</Text>
           </View>
         </View>
       </View>
@@ -207,6 +263,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             </TouchableOpacity>
           </View>
           {/* Three vertical pair groups */}
+          <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
           <View style={st.pairRow}>
             {/* Group 1: 账面余额 / 卡余额 */}
             <View style={st.pairCol}>
@@ -236,14 +293,14 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View style={st.pairCol}>
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('bookDiff')}</Text>
-                <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? '#059669' : '#DC2626' }]}>
+                <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
                   {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
                 </Text>
               </View>
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('fundsInTransit')}</Text>
-                <Text style={st.pairVal}>{fmtAmt(r.channel_total)}</Text>
+                <Text style={[st.pairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmt(r.channel_total)}</Text>
               </View>
             </View>
           </View>
@@ -262,6 +319,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               </View>
             ))}
           </View>
+          </ScrollView>
         </View>
       </View>
     );
@@ -269,21 +327,13 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   const renderEmpty = () => (
     <View style={st.emptyWrap}>
-      <View style={st.emptyIcon}><Text style={st.emptyEmoji}>{'\uD83D\uDCCB'}</Text></View>
+      <View style={st.emptyIcon}><ReconEmptyIcon color={colors.textSub} /></View>
       <Text style={st.emptyTitle}>{t('noRecords')}</Text>
       <Text style={st.emptyHint}>{t('emptyReconHint')}</Text>
     </View>
   );
 
-  const validateReconDates = (): boolean => {
-    const today = new Date().toISOString().split('T')[0];
-    const pairs: [string, string][] = [[filBillFrom, filBillTo], [filDateFrom, filDateTo]];
-    for (const [from, to] of pairs) {
-      if ((from && from > today) || (to && to > today)) { setToast(t('errDateFuture')); return false; }
-      if (from && to && from > to) { setToast(t('errDateRange')); return false; }
-    }
-    return true;
-  };
+  const todayISO = new Date().toISOString().split('T')[0];
 
   return (
     <View style={st.root} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -293,20 +343,41 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <Text style={st.backBtnArrow}>{'\u2039'}</Text>
+            <Text style={st.backArrow}>{'\u2039'}</Text>
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')} ({total})</Text>
-        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? '#FFFFFF' : '#6B7280'} strokeWidth={2} strokeLinecap="round">
+        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => {
+            if (!showFilter) {
+              filterAnim.setValue(0);
+              Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 170, friction: 26 }).start();
+            }
+            setShowFilter(!showFilter);
+          }} activeOpacity={0.7}>
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? colors.surface : colors.textSub} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
           </Svg>
         </TouchableOpacity>
       </View>
       {/* Filter bar */}
-      {showFilter && (
+      {showFilter && (<>
+        <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => {
+            Animated.timing(filterAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setShowFilter(false));
+          }} />
+        </Animated.View>
+        <Animated.View style={{
+          position: 'fixed' as any, top: 108, left: 12, right: 12, zIndex: 9999,
+          opacity: filterAnim,
+          transform: [
+            { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+            { scale: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
+          ],
+        }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
+            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
+            {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('billDate')}</Text>
               <View style={st.filterDateRange}>
@@ -316,17 +387,19 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={filBillFrom} onChange={(e: any) => setFilBillFrom(e.target.value)}
+                  <input type="date" ref={filBillFromRef} defaultValue={filBillFrom} max={todayISO} key={filBillFromKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { filBillFromRef.current!.value = filBillFrom; setFilBillFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilBillFrom(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
-                <Text style={st.filterDateArrow}>→</Text>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
                 <View style={st.filterDateWrap}>
                   {filBillTo ? (
                     <Text style={st.filterDateText}>{fmtDate(filBillTo)}</Text>
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={filBillTo} onChange={(e: any) => setFilBillTo(e.target.value)}
+                  <input type="date" ref={filBillToRef} defaultValue={filBillTo} max={todayISO} key={filBillToKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { filBillToRef.current!.value = filBillTo; setFilBillToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilBillTo(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>
@@ -340,17 +413,19 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={filDateFrom} onChange={(e: any) => setFilDateFrom(e.target.value)}
+                  <input type="date" ref={filDateFromRef} defaultValue={filDateFrom} max={todayISO} key={filDateFromKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { filDateFromRef.current!.value = filDateFrom; setFilDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateFrom(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
-                <Text style={st.filterDateArrow}>→</Text>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
                 <View style={st.filterDateWrap}>
                   {filDateTo ? (
                     <Text style={st.filterDateText}>{fmtDate(filDateTo)}</Text>
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" value={filDateTo} onChange={(e: any) => setFilDateTo(e.target.value)}
+                  <input type="date" ref={filDateToRef} defaultValue={filDateTo} max={todayISO} key={filDateToKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { filDateToRef.current!.value = filDateTo; setFilDateToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateTo(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>
@@ -372,29 +447,31 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               <TouchableOpacity style={st.filterResetBtn} onPress={resetFilters} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.filterApplyBtn} onPress={() => {
-                if (validateReconDates()) {
+              <TouchableOpacity
+                style={[st.filterApplyBtn, rangeInvalid && st.filterApplyBtnDisabled]}
+                disabled={rangeInvalid}
+                onPress={() => {
                   setAppliedBillFrom(filBillFrom);
                   setAppliedBillTo(filBillTo);
                   setAppliedFrom(filDateFrom);
                   setAppliedTo(filDateTo);
                   setAppliedBy(filBy);
                   setShowFilter(false);
-                }
               }} activeOpacity={0.8}>
-                <Text style={st.filterApplyBtnText}>{t('apply')}</Text>
+                <Text style={[st.filterApplyBtnText, rangeInvalid && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
-      )}
+        </Animated.View>
+      </>)}
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 300 : 76 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 266 : 112 }}>
         {loading ? (
           <View style={st.loading}>
-            <ActivityIndicator size="large" color="#8B1E22" />
+            <ActivityIndicator size="large" color={colors.primary} />
             <Text style={st.loadingText}>{t('loading')}</Text>
           </View>
         ) : records.length === 0 ? (
@@ -404,7 +481,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             {records.map(renderCard)}
             {hasMore && (
               <View style={st.loadingMore}>
-                <ActivityIndicator size="small" color="#8B1E22" />
+                <ActivityIndicator size="small" color={colors.primary} />
                 <Text style={st.loadingMoreText}>{t('loading')}...</Text>
               </View>
             )}
@@ -418,54 +495,35 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-const st = StyleSheet.create({
+const getSt = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
-  backBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(250,250,250,0.30)',
-    justifyContent: 'center', alignItems: 'center',
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
-  },
-  backBtnArrow: { fontSize: 26, fontWeight: '300', color: '#8B1E22', marginTop: -2, marginLeft: -1 },
-  /* Frosted glass header — iOS 26 style */
-  header: {
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: 'rgba(250,250,250,0.55)',
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
-  },
-  title: { fontSize: 16, fontWeight: '400', color: '#1A1A1A' },
+  ...historyHeader(colors),
   list: { flex: 1, paddingHorizontal: 12 },
   loading: { marginTop: 80, alignItems: 'center' },
-  loadingText: { marginTop: 12, fontSize: 14, color: '#8B1E22' },
+  loadingText: { marginTop: 12, fontSize: FONTS.sub.size, color: colors.primary },
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
-  loadingMoreText: { fontSize: 13, color: '#8B1E22' },
+  loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Card */
   card: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
-    marginBottom: 12, borderWidth: 1, borderColor: '#EBEBEB',
+    backgroundColor: colors.surface, borderRadius: 14, padding: 14,
+    marginBottom: 12, borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 10,
   },
   dateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 8 },
   dateItem: { flex: 1, alignItems: 'center' },
-  dateLabel: { fontSize: 9, color: '#B0B0B0', fontWeight: '500', marginBottom: 2 },
-  dateVal: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  dateSep: { width: 1, height: 24, backgroundColor: '#EBEBEB' },
+  dateLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 2 },
+  dateVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
+  dateSep: { width: 1, height: 24, backgroundColor: colors.secondary },
   /* Card vertical pairs — plain, no background */
   cardPairRow: { flexDirection: 'row', gap: 4 },
   cardPairCol: { flex: 1, alignItems: 'center' },
   cardPairItem: { alignItems: 'center', gap: 2, paddingVertical: 4 },
-  cardPairLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
-  cardPairVal: { fontSize: 14, fontWeight: '700', color: '#374151' },
-  cardPairDiv: { height: 1, backgroundColor: '#F3F4F6', width: '60%', marginVertical: 2 },
-  tapHint: { fontSize: 10, color: '#C0C0C0', textAlign: 'center', marginTop: 2 },
+  cardPairLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
+  cardPairVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
+  cardPairDiv: { height: 1, backgroundColor: colors.bg, width: '60%', marginVertical: 2 },
+  tapHint: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center', marginTop: 2 },
   /* Modal */
   mask: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -473,25 +531,25 @@ const st = StyleSheet.create({
   },
   maskBg: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(26,26,26,0.4)',
+    backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modal: {
     width: '88%', maxWidth: 380,
-    backgroundColor: '#FFFFFF', borderRadius: 20,
+    backgroundColor: colors.surface, borderRadius: 20,
     overflow: 'hidden',
     // @ts-ignore
     boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
     // @ts-ignore
-    animationName: 'modalIn', animationDuration: '0.2s', animationTimingFunction: 'ease',
+    ...modalCardAnimation,
   },
   modalHeader: {
-    backgroundColor: '#8B1E22',
+    backgroundColor: colors.primary,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 12, paddingHorizontal: 18,
   },
-  modalDate: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
-  modalDateSub: { fontSize: 12, fontWeight: '400', color: 'rgba(255,255,255,0.75)', marginTop: 2 },
-  modalClose: { fontSize: 18, fontWeight: '400', color: '#FFFFFF', paddingLeft: 8 },
+  modalDate: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
+  modalDateSub: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: withAlpha(colors.surface, 0.75), marginTop: 2 },
+  modalClose: { ...modalClose, paddingLeft: 8 },
   /* Three vertical pairs */
   pairRow: {
     flexDirection: 'row', paddingVertical: 16, paddingHorizontal: 10,
@@ -499,106 +557,92 @@ const st = StyleSheet.create({
   },
   pairCol: {
     flex: 1, alignItems: 'center',
-    backgroundColor: '#FAF7F2', borderRadius: 12,
+    backgroundColor: colors.bg, borderRadius: 12,
     paddingVertical: 10, paddingHorizontal: 4,
   },
   pairItem: { alignItems: 'center', gap: 4, paddingVertical: 6 },
-  pairLabel: { fontSize: 10, color: '#999', fontWeight: '500' },
-  pairVal: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
-  pairDivider: { height: 1, backgroundColor: '#E8E4DD', width: '70%' },
+  pairLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
+  pairVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
+  pairDivider: { height: 1, backgroundColor: colors.secondary, width: '70%' },
   /* Channel section */
   chanSection: {
     marginHorizontal: 14, marginBottom: 18, marginTop: 4,
-    borderTopWidth: 1, borderTopColor: '#F3F4F6',
+    borderTopWidth: 1, borderTopColor: colors.bg,
     paddingTop: 12,
   },
   chanRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 7, paddingHorizontal: 4 },
-  chanLabel: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
-  chanVal: { fontSize: 14, fontWeight: '600', color: '#374151' },
+  chanLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
+  chanVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
   /* Empty state */
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#FAF7F2', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#EBEBEB' },
-  emptyEmoji: { fontSize: 30 },
-  emptyTitle: { fontSize: 16, fontWeight: '500', color: '#6B7280' },
-  emptyHint: { fontSize: 13, color: '#B0B0B0', textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
+  emptyEmoji: { fontSize: FONTS.h1.size },
+  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
+  emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   /* Filter — ultra-minimal */
-  filterBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(250,250,250,0.30)',
-    // @ts-ignore
-    backdropFilter: 'saturate(200%) blur(30px)',
-    borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
-  },
-  filterBtnActive: { backgroundColor: '#FA855A', borderColor: '#FA855A' },
-  filterBtnText: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
-  filterBtnTextActive: { color: '#FFFFFF' },
+  filterBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub },
+  filterBtnTextActive: { color: colors.surface },
   filterPanel: {
-    position: 'absolute', top: 72, left: 12, right: 12, zIndex: 89,
-    backgroundColor: '#FAFAFA', borderRadius: 10,
-    borderWidth: 1, borderColor: '#EBEBEB',
+    backgroundColor: colors.surface, borderRadius: 10,
+    borderWidth: 1, borderColor: colors.secondary,
     overflow: 'hidden',
   },
   filterContent: {
     padding: 12, gap: 8,
   },
   filterField: {
-    gap: 3,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
   },
   filterLabel: {
-    fontSize: 11, fontWeight: '500', color: '#999',
-    paddingLeft: 2,
+    fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub,
+    width: 64, flexShrink: 0,
   },
   filterDateRange: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
+    flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6,
   },
   filterDateInput: {
     flex: 1,
     height: 34,
     paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 6,
-    borderWidth: 1, borderColor: '#EBEBEB',
-    fontSize: 13, fontWeight: '400', color: '#374151',
+    borderWidth: 1, borderColor: colors.secondary,
+    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
     fontFamily: 'inherit',
     outline: 'none',
   },
   filterDateWrap: {
     flex: 1, height: 34, position: 'relative' as any,
-    backgroundColor: '#FFFFFF', borderRadius: 6,
-    borderWidth: 1, borderColor: '#EBEBEB',
+    backgroundColor: colors.surface, borderRadius: 6,
+    borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: 11, fontWeight: '500', color: '#374151' },
-  filterDatePlaceholder: { fontSize: 11, fontWeight: '400', color: '#B0B0B0' },
+  filterDateText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
+  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
   },
-  filterDateArrow: {
-    fontSize: 11, color: '#CCC', fontWeight: '300',
-    marginHorizontal: 2,
-  },
   filterInput: {
     height: 34,
     paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 6,
-    borderWidth: 1, borderColor: '#EBEBEB',
-    fontSize: 13, fontWeight: '400', color: '#374151',
+    borderWidth: 1, borderColor: colors.secondary,
+    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
   },
   filterSelectWrap: {
-    position: 'relative',
+    flex: 1, position: 'relative',
   },
   filterSelect: {
     width: '100%',
     height: 34,
     paddingLeft: 8,
     paddingRight: 30,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 6,
-    borderWidth: 1, borderColor: '#EBEBEB',
-    fontSize: 13, fontWeight: '400', color: '#374151',
+    borderWidth: 1, borderColor: colors.secondary,
+    fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub,
     fontFamily: 'inherit',
     outline: 'none',
     WebkitAppearance: 'none',
@@ -609,7 +653,7 @@ const st = StyleSheet.create({
   filterSelectArrow: {
     position: 'absolute',
     right: 8, top: 9,
-    fontSize: 10, color: '#B0B0B0', fontWeight: '600',
+    fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight,
     pointerEvents: 'none',
   },
   filterActions: {
@@ -618,16 +662,22 @@ const st = StyleSheet.create({
   filterResetBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#B3CFE5',
+    backgroundColor: colors.secondary,
   },
-  filterResetBtnText: { fontSize: 12, fontWeight: '500', color: '#999' },
+  filterResetBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterApplyBtn: {
     flex: 1, height: 34, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#FA855A',
+    backgroundColor: colors.primary,
   },
-  filterApplyBtnText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
+  filterApplyBtnDisabled: {
+    backgroundColor: colors.secondary,
+  },
+  filterApplyBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.surface },
+  filterApplyBtnTextDisabled: {
+    color: colors.textSub,
+  },
   /* Reconciler in card */
   reconByRow: { alignItems: 'center', paddingBottom: 2 },
-  reconByText: { fontSize: 10, color: '#9CA3AF', fontWeight: '500' },
-});
+  reconByText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
+} as any);

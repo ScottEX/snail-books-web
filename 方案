@@ -1,0 +1,71 @@
+方案一：勃艮第红与暖沙白（温润、沉稳、经典）
+这套方案延续了咱们之前调校的方向，非常适合“账单、餐饮、营业数据”这种需要给人安全感和厚重感的场景。
+•	基础底色 (Background)： #F9F7F4 (带有极弱米色调的暖白，降低屏幕刺眼感)
+•	卡片/面板色 (Surface)： #FFFFFF (纯白，配合极弱的阴影，从底色中浮出来)
+•	主色调 / 主按钮 (Primary)： #7D2329 (勃艮第红，极具质感，绝不刺眼)
+•	次按钮 / 默认描边 (Secondary)： #EAE5E0 (燕麦灰，作为次要操作的背景，存在感极低)
+•	主标题文字 (Text Main)： #2C2626 (带有一点点红灰调的深色，比纯黑更柔和)
+•	副标题文字 (Text Sub)： #8C8583 (中性暖灰，用于日期、说明文字)
+
+变量名 (CSS Token)	颜色值 (Hex)	映射元素
+--color-bg-page	#FDFBF8	页面最底层背景色
+--color-bg-card	#FFFFFF	面板、输入框底层卡片背景
+--color-primary	#7D2329	底部“对账完成”按钮、核心高亮
+--color-border	#EAE5E0	分割线、输入框默认边框
+--color-text-main	#2C2626	页面大标题、输入框内的输入值、金额
+--color-text-sub	#8C8583	日期、输入框 Label、占位符 (Placeholder)
+
+方案二：曜石黑与流沙金（极简、冷峻、绝对专业）
+这是高端金融 App（如高级黑卡管理、私人财富面板）最爱用的经典结构，剥离一切多余色彩，用极简的黑白灰搭配极少量的金色来强调重点。
+•	基础底色 (Background)： #F3F4F6 (冷灰白，极具现代科技感)
+•	卡片/面板色 (Surface)： #FFFFFF
+•	主色调 / 主按钮 (Primary)： #171A1F (曜石黑，极其冷峻干练)
+•	强调色 / 金额高亮 (Accent)： #C5A880 (流沙金，只用于最核心的“总计金额”或 VIP 标签)
+•	次按钮 / 默认描边 (Secondary)： #E5E7EB
+•	主标题文字 (Text Main)： #111827 (极深灰，对比度极高)
+•	副标题文字 (Text Sub)： #6B7280 (冷灰色)
+
+变量名 (CSS Token)	颜色值 (Hex)	映射元素
+--color-bg-page	#F3F4F6	页面最底层背景色
+--color-bg-card	#FFFFFF	面板、输入框底层卡片背景
+--color-primary	#171A1F	底部主按钮、选中的 Tab
+--color-border	#E5E7EB	分割线、输入框默认边框
+--color-text-main	#111827	页面大标题、输入框内的输入值、金额
+--color-text-sub	#6B7280	日期、输入框 Label、占位符 (Placeholder)
+
+方案三：深空青与燕麦色（现代、清新、克制）
+如果你希望这个 App 看起来不像传统的财务软件那么死板，而是带有一种现代 SaaS 工具的轻盈和精英感，这套莫兰迪色系的方案是首选。
+•	基础底色 (Background)： #F4F5F4 (极淡的灰绿色调)
+•	卡片/面板色 (Surface)： #FFFFFF
+•	主色调 / 主按钮 (Primary)： #2A4B4B (深空青色，低调且极具现代感)
+•	次按钮 / 默认描边 (Secondary)： #E1E5E4
+•	主标题文字 (Text Main)： #1B2626
+•	副标题文字 (Text Sub)： #738080
+
+变量名 (CSS Token)	颜色值 (Hex)	映射元素
+--color-bg-page	#F4F5F4	页面最底层背景色
+--color-bg-card	#FFFFFF	面板、输入框底层卡片背景
+--color-primary	#2A4B4B	底部主按钮、选中的 Tab
+--color-border	#E1E5E4	分割线、输入框默认边框
+--color-text-main	#1B2626	页面大标题、输入框内的输入值、金额
+--color-text-sub	#738080	日期、输入框 Label、占位符 (Placeholder)
+
+不管你选上面哪套主色调，警告、成功、危险这三种颜色绝对不能用系统默认的“大红大绿”。必须降低饱和度，使其融入高级感的氛围中：
+状态	色值 (Hex)	设计意图	适用场景
+成功 (Success)	#4C7A5D	沉稳的灰绿色	账单已平、保存成功、对账完成
+警告 (Warning)	#D59A53	哑光橘黄色	数据异常、待录入、网络延迟
+危险 (Danger)	#B34149	铁锈红	删除账单、退出账号、强阻断提示
+信息 (Info)	#4A7299	莫兰迪蓝灰	帮助说明图标、普通的跳转链接
+
+一、 全局共用排版规范（所有主题通用）
+这部分定义了字体的骨架，确保无论客户选哪个主题，界面的布局都是稳固的。
+•	全局字体家族： font-family: "Inter", -apple-system, "PingFang SC", sans-serif;
+•	数字等宽属性（对账必备）： font-variant-numeric: tabular-nums;
+
+变量名 (CSS Token)	场景说明	字号 (px)	字重 (Weight)	行高
+--font-size-h1	页面顶部大标题（如“对账”）	24px	600 (Semibold)	1.4
+--font-size-h2	卡片模块标题（如“实盘录入”）	18px	600 (Semibold)	1.4
+--font-size-body	输入框输入值、普通正文	16px	500 (Medium)	1.5
+--font-size-sub	输入框 Label、副标题	14px	400 (Regular)	1.5
+--font-size-micro	渠道名、极小提示语	12px	400 (Regular)	1.5
+--font-size-amount	合计金额数字专用	24px	600 (Semibold)	1.2

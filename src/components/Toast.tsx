@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
 
 interface ToastProps {
   message: string;
@@ -10,21 +12,28 @@ interface ToastProps {
 
 export default function Toast({ message, visible, onDismiss, duration = 3000 }: ToastProps) {
   const [show, setShow] = useState(false);
+  const { colors } = useTheme();
+  const dismissRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (visible && message) {
       setShow(true);
-      const t = setTimeout(() => {
+      const outer = setTimeout(() => {
         setShow(false);
-        setTimeout(onDismiss, 300); // wait for fade-out
+        const inner = setTimeout(onDismiss, 300); // wait for fade-out
+        fadeRef.current = inner;
       }, duration);
-      return () => clearTimeout(t);
+      dismissRef.current = outer;
+      return () => { clearTimeout(outer); if (fadeRef.current) clearTimeout(fadeRef.current); };
     } else {
       setShow(false);
     }
   }, [visible, message, duration, onDismiss]);
 
   if (!show && !visible) return null;
+
+  const styles = useMemo(() => getStyles(colors), [colors]);
 
   return (
     <View style={[styles.overlay, { opacity: show ? 1 : 0 }]}>
@@ -35,7 +44,7 @@ export default function Toast({ message, visible, onDismiss, duration = 3000 }: 
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors) => StyleSheet.create({
   overlay: {
     position: 'absolute' as any,
     top: 60,
@@ -45,16 +54,16 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   box: {
-    backgroundColor: 'rgba(26,26,26,0.88)',
+    backgroundColor: withAlpha(colors.textMain, 0.88),
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 20,
     maxWidth: 320,
   },
   text: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
+    color: colors.surface,
+    fontSize: FONTS.sub.size,
+    fontWeight: FONTS.sub.weight,
     textAlign: 'center',
   },
 });
