@@ -13,6 +13,7 @@ import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
 import SlideScreen from '../components/SlideScreen';
+import ProfileScreen from './ProfileScreen';
 
 function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
   const [show, setShow] = React.useState(false);
@@ -68,6 +69,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [showExpenseHistory, setShowExpenseHistory] = useState(false);
   const [showDailyHistory, setShowDailyHistory] = useState(false);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
@@ -460,6 +462,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
 
       {/* History screen overlay — renders on top of background, main content hidden */}
+      <SlideScreen visible={showProfile} onClose={() => setShowProfile(false)}>
+        {(onBack) => <ProfileScreen onBack={onBack} />}
+      </SlideScreen>
       <SlideScreen visible={showExpenseHistory} onClose={() => setShowExpenseHistory(false)}>
         {(onBack) => <ExpenseHistoryScreen onBack={onBack} />}
       </SlideScreen>
@@ -473,14 +478,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerInner}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <TouchableOpacity onPress={() => setShowProfile(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={{ width: 32, height: 32, borderRadius: 16 }} />
             ) : (
               <Image source={{ uri: '/img/logo.jpg' }} style={{ width: 32, height: 32, borderRadius: 16 }} />
             )}
             <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{usr}</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => openModal(() => setShowBgModal(true))} style={{ marginRight: 8 }}>
               <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
@@ -500,10 +505,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       </View>
 
       {/* Page content — hidden when history screen is active */}
-      {!showExpenseHistory && !showDailyHistory && !showReconHistory && (
+      {!showProfile && !showExpenseHistory && !showDailyHistory && !showReconHistory && (
       <View style={styles.page}>
         {tab === 'partner' ? (
-          <PartnerScreen onBack={() => setTab('list')} />
+          <PartnerScreen onBack={() => setTab('list')} onProfile={() => setShowProfile(true)} />
         ) : tab === 'supply' ? (
           <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} />
         ) : (

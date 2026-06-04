@@ -212,6 +212,23 @@ export const api = {
     return resp.json();
   },
 
+  // Profile cover
+  getProfileCover: () => authFetch('/api/profile/cover'),
+  uploadProfileCover: async (file: File) => {
+    bumpActivity();
+    const form = new FormData();
+    form.append('file', file);
+    const resp = await fetch(API_BASE + '/api/profile/cover', {
+      method: 'POST',
+      headers: { 'X-Lang': getLang() },
+      body: form,
+    });
+    if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
+    bumpActivity();
+    return resp.json();
+  },
+  resetProfileCover: () => authFetch('/api/profile/cover', { method: 'DELETE' }),
+
   // Language preference (stored per-user in user_settings)
   getLang: () => authFetch('/api/settings/lang'),
   saveLang: (lang: string) => authFetch('/api/settings/lang', { method: 'PUT', body: JSON.stringify({ lang }) }),
