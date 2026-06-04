@@ -408,13 +408,19 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
   const [productPickerSearch, setProductPickerSearch] = useState('');
 
-  // Hide native scrollbar in items modal (Webkit/Firefox/IE) so it doesn't overlap the +/- buttons
+  // Hide native scrollbar in items modal (RN Web renders ScrollView as a <div> wrapper around a scrollable inner div)
   useEffect(() => {
     const id = 'procurement-modal-scrollbar-hide';
     if (document.getElementById(id)) return;
     const style = document.createElement('style');
     style.id = id;
-    style.textContent = '[data-proc-picker-scroll]::-webkit-scrollbar { display: none; } [data-proc-picker-scroll] { scrollbar-width: none; -ms-overflow-style: none; }';
+    // Target both the ScrollView root element and any descendant that can scroll
+    style.textContent = `
+      [data-proc-picker-scroll]::-webkit-scrollbar { width: 0; height: 0; display: none; }
+      [data-proc-picker-scroll] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
+      [data-proc-picker-scroll] { scrollbar-width: none; -ms-overflow-style: none; }
+      [data-proc-picker-scroll] * { scrollbar-width: none; -ms-overflow-style: none; }
+    `;
     document.head.appendChild(style);
   }, []);
   const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
