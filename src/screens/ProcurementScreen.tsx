@@ -395,6 +395,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
   const [detailTotal, setDetailTotal] = useState(0);
+  const [detailBatchId, setDetailBatchId] = useState(0);
 
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
@@ -452,6 +453,29 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       Animated.timing(itemsModalOverlayAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
     ]).start(() => setShowItemsModal(false));
   };
+
+  const downloadPDF = async (batchId: number) => {
+    try {
+      const resp = await fetch(`/api/procurement-batches/${batchId}/pdf`);
+      if (!resp.ok) throw new Error('Download failed');
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const filename = `procurement_${batchId}.pdf`;
+      const file = new File([blob], filename, { type: 'application/pdf' });
+      // Try native share first (WeChat / system share sheet)
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] });
+      } else {
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; a.click();
+      }
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      window.open(`/api/procurement-batches/${batchId}/pdf`, '_blank');
+    }
+  };
+
+  // ── History Detail ──
   const openHistoryDetail = (batch: BatchRecord) => {
     setDetailItems(batch.items.map((item: any) => ({
       name: item.name || item.product_name || `商品#${item.product_id}`,
@@ -459,6 +483,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       subtotal: item.subtotal || item.unit_price * item.quantity || 0,
     })));
     setDetailTotal(batch.total);
+    setDetailBatchId(batch.id);
     setShowItemsModal(true);
     itemsModalAnim.setValue(-300);
     itemsModalOverlayAnim.setValue(0);
@@ -1290,6 +1315,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
               <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
             </View>
+            <TouchableOpacity
+              style={{ marginHorizontal: 16, marginBottom: 16, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
+              onPress={() => downloadPDF(detailBatchId)}
+            >
+              <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>📥 下载 PDF</Text>
+            </TouchableOpacity>
           </Animated.View>
         </Animated.View>
       )}
