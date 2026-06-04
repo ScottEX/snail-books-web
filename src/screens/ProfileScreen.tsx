@@ -52,6 +52,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     try { return localStorage.getItem('user') || ''; } catch { return ''; }
   }, []);
   const [email, setEmail] = useState('');
+  const [daysSince, setDaysSince] = useState(0);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -133,6 +134,10 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
       if (resp.ok) {
         const data = await resp.json();
         if (data.email) setEmail(data.email);
+        if (data.created_at) {
+          const days = Math.floor((Date.now() - new Date(data.created_at).getTime()) / 86400000);
+          setDaysSince(Math.max(1, days));
+        }
       }
     } catch {}
   };
@@ -753,6 +758,15 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
             <Text style={st.fieldValue}>{email || '—'}</Text>
           </View>
           <View style={st.divider} />
+          {daysSince > 0 && (
+            <>
+              <View style={st.field}>
+                <Text style={st.fieldLabel}>已陪伴</Text>
+                <Text style={st.fieldValue}>{daysSince} 天</Text>
+              </View>
+              <View style={st.divider} />
+            </>
+          )}
           <TouchableOpacity style={st.actionRow} onPress={() => { setShowPwModal(true); setOldPw(''); setNewPw(''); setConfirmPw(''); setModalMsg(''); }}>
             <Text style={st.actionLabel}>{t('changePassword')}</Text>
             <ChevronRight color={colors.textSub} />
