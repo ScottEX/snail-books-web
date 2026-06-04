@@ -1608,7 +1608,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
 
   /* ── Tab Bar ── */
   tabBar: {
-    paddingTop: 12, paddingBottom: 8,
+    paddingTop: 4, paddingBottom: 8,
     // @ts-ignore — 确保容器透明，让底层背景透出
     backgroundColor: 'transparent',
   },
@@ -1619,7 +1619,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   tabCard: {
     // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
-    width: 'calc(100vw - 61px)', height: 150,
+    width: 'calc(100vw - 61px)', height: 210,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
