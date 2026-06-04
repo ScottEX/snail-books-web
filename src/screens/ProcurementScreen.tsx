@@ -465,15 +465,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       const blob = await resp.blob();
       const url = URL.createObjectURL(blob);
       const filename = `procurement_${batchId}.pdf`;
-      const file = new File([blob], filename, { type: 'application/pdf' });
       if (mode === 'share') {
-        // Mobile: system share sheet (WeChat / AirDrop / etc)
-        if (navigator.share && navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ title: `进货单 #${batchId}`, files: [file] });
+        // 获取分享链接
+        const linkResp = await fetch(`/api/procurement-batches/${batchId}/share-link`);
+        const linkData = await linkResp.json();
+        const shareUrl = window.location.origin + linkData.url;
+        if (navigator.share) {
+          await navigator.share({ title: `进货单 #${batchId}`, url: shareUrl });
         } else {
-          // Desktop fallback: download instead
-          const a = document.createElement('a');
-          a.href = url; a.download = filename; a.click();
+          await navigator.clipboard.writeText(shareUrl);
+          alert('链接已复制，可粘贴到微信发送');
         }
       } else {
         const a = document.createElement('a');
