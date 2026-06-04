@@ -42,7 +42,7 @@ function ChevronRight({ color }: { color: string }) {
 
 /* ========== MAIN SCREEN ========== */
 
-export default function ProfileScreen({ onBack, onLogout, onLangChange }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void }) {
+export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void }) {
   const { colors, theme } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
@@ -333,7 +333,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange }: { onBa
       const form = new FormData();
       form.append('file', blob, 'avatar.jpg');
       const resp = await api.uploadAvatar(form);
-      if (resp.status === 'ok') { setShowResult(false); setCropSrc(''); setCropResult(''); setAvatarKey(k => k + 1); try { sessionStorage.removeItem(CACHE_KEY_AVATAR); } catch {} loadAvatar(); }
+      if (resp.status === 'ok') { setShowResult(false); setCropSrc(''); setCropResult(''); setAvatarKey(k => k + 1); try { sessionStorage.removeItem(CACHE_KEY_AVATAR); } catch {} loadAvatar(); onAvatarChange?.(); }
       else { setCropMsg('上传失败'); }
     } catch (e) { setCropMsg('上传失败，请重试'); }
   };
