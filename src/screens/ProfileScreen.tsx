@@ -107,7 +107,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
   const coverGuideRef = useRef<HTMLDivElement | null>(null);
   const coverCropState = useRef({
     x: 0, y: 0, scale: 1, rotation: 0, flipX: false, minScale: 1, maxScale: 8,
-    cropW: 320, cropH: 160,
+    cropW: 320, cropH: 208, cropRatio: 260/375,
     drag: { active: false, sx: 0, sy: 0, ox: 0, oy: 0 },
     pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
   });
@@ -533,7 +533,8 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
     canvas.style.height = rect.height + 'px';
     const s = coverCropState.current;
     s.cropW = Math.round(rect.width * 0.8);
-    s.cropH = Math.round(s.cropW / 2);
+    s.cropRatio = 260 / rect.width;
+    s.cropH = Math.round(s.cropW * s.cropRatio);
     const guide = coverGuideRef.current;
     if (guide) {
       guide.style.width = s.cropW + 'px';
@@ -596,7 +597,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       const img = coverCropImgRef.current;
       if (!img) { setCoverCropMsg('图片未加载'); return; }
       const s = coverCropState.current;
-      const outW = 720, outH = 360;
+      const outW = 720, outH = Math.round(outW * s.cropRatio);
       const output = document.createElement('canvas');
       output.width = outW; output.height = outH;
       const octx = output.getContext('2d')!;
@@ -1225,7 +1226,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
               style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
             />
             <View style={cropS.guideWrap as any} pointerEvents="none">
-              <View style={{ width: 320, height: 231, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative', transition: 'border-color 0.2s', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any} ref={coverGuideRef as any}>
+              <View style={{ width: 320, height: Math.round(320 * 260 / 375), borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative', transition: 'border-color 0.2s', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any} ref={coverGuideRef as any}>
                 <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '33.3%' } as any} />
                 <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '66.6%' } as any} />
                 <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '33.3%' } as any} />
@@ -1288,7 +1289,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
               <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
             </View>
             <Text style={cropS.resultLabel}>封面已更新</Text>
-            {coverCropResult ? <img src={coverCropResult} width={240} height={173} style={{ borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} /> : null}
+            {coverCropResult ? <img src={coverCropResult} width={240} height={Math.round(240 * coverCropState.current.cropRatio)} style={{ borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} /> : null}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
               <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setCoverShowResult(false); }}>
                 <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>重新裁剪</Text>
