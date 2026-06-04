@@ -301,6 +301,8 @@ export const api = {
   getProcurementBatches: (page = 1, perPage = 10) => authFetch(`/api/procurement-batches?page=${page}&per_page=${perPage}`),
   createProcurementBatch: (data: any) => authFetch('/api/procurement-batches', { method: 'POST', body: JSON.stringify(data) }),
   getProcurementBatchDetail: (id: number) => authFetch(`/api/procurement-batches/${id}`),
+  updateProcurementBatch: (id: number, data: any) => authFetch(`/api/procurement-batches/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteProcurementBatch: (id: number) => authFetch(`/api/procurement-batches/${id}`, { method: 'DELETE' }),
   getProcurementStats: () => authFetch('/api/procurement-stats'),
   // Shared cart
   getCart: () => authFetch('/api/procurement-cart'),

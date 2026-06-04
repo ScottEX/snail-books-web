@@ -325,6 +325,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
   histNo: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary },
   histDate: { fontSize: FONTS.micro.size, color: c.textSub },
+  histActions: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
+  histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
   histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
@@ -388,6 +390,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const [receipts, setReceipts] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Edit mode: when set, the drawer is editing this batch instead of creating a new one
+  const [editingBatchId, setEditingBatchId] = useState<number | null>(null);
+  const [editingBatchNumber, setEditingBatchNumber] = useState<number>(0);
+  // Server-side image URLs kept across edit (new uploads get appended)
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [existingThumbUrls, setExistingThumbUrls] = useState<string[]>([]);
+  // Delete confirmation target (batch record)
+  const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
 
   const [showImgTip, setShowImgTip] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -508,7 +518,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     Animated.parallel([
       Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
       Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => { setShowDrawer(false); onDrawerClose?.(); });
+    ]).start(() => {
+      setShowDrawer(false); onDrawerClose?.();
+      // Reset edit state when drawer is closed (in any way)
+      if (editingBatchId !== null) {
+        setEditingBatchId(null); setEditingBatchNumber(0);
+        setExistingImageUrls([]); setExistingThumbUrls([]);
+        setCart({}); setReceipts([]); setOrderNote('');
+        setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('微信');
+      }
+    });
   };
 
   const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
@@ -625,6 +644,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       setBatches(data?.records || []); setHistTotal(data?.total || 0); setHistPage(1);
     }).catch(() => {}).finally(() => setLoadingHist(false));
   }, [subTab]);
+
+  // Refetch history list (page 1) — used after edit/delete
+  const loadHistory = useCallback(() => {
+    setLoadingHist(true);
+    api.getProcurementBatches(1).then((data: any) => {
+      setBatches(data?.records || []); setHistTotal(data?.total || 0); setHistPage(1);
+    }).catch(() => {}).finally(() => setLoadingHist(false));
+  }, []);
 
   const loadMoreHistory = () => {
     if (loadingHist) return;
@@ -775,9 +802,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     if (cartItems.length === 0) return;
     setSubmitting(true);
     try {
-      // Upload images first (matching ExpenseScreen pattern)
-      let imageUrls: string[] = [];
-      let thumbUrls: string[] = [];
+      // Upload new images first (matching ExpenseScreen pattern)
+      let newImageUrls: string[] = [];
+      let newThumbUrls: string[] = [];
       if (receipts.length > 0) {
         setUploading(true);
         const result = await api.uploadExpenseImages(receipts);
@@ -788,16 +815,46 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
           setShowToast(true);
           return;
         }
-        imageUrls = result.images || [];
+        newImageUrls = result.images || [];
         // Prefer server-generated thumb URLs; fall back to full-size images if PIL is disabled
-        thumbUrls = (result.thumb_images && result.thumb_images.length > 0)
+        newThumbUrls = (result.thumb_images && result.thumb_images.length > 0)
           ? result.thumb_images
-          : imageUrls;
+          : newImageUrls;
       }
+      // Edit mode: combine existing + new images; call update endpoint
+      if (editingBatchId !== null) {
+        const allImages = [...existingImageUrls, ...newImageUrls];
+        const allThumbs = [...existingThumbUrls, ...newThumbUrls];
+        const r = await api.updateProcurementBatch(editingBatchId, {
+          date: orderDate, payment_method: payMethod, category: t('procPurchase'),
+          items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
+          images: allImages, thumb_images: allThumbs, note: orderNote,
+        });
+        if (r?.status === 'ok') {
+          Animated.parallel([
+            Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+            Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+          ]).start(() => {
+            setCart({}); setReceipts([]); setOrderNote('');
+            setExistingImageUrls([]); setExistingThumbUrls([]);
+            setEditingBatchId(null); setEditingBatchNumber(0);
+            setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('微信');
+            setShowDrawer(false); onDrawerClose?.();
+            setToastMsg(t('procBatchUpdated')); setShowToast(true);
+            loadHistory();
+            loadStats();
+          });
+        } else {
+          setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+        }
+        setSubmitting(false);
+        return;
+      }
+      // Create mode (default)
       const r = await api.createProcurementBatch({
         date: orderDate, payment_method: payMethod, category: t('procPurchase'),
         items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
-        images: imageUrls, thumb_images: thumbUrls, note: orderNote,
+        images: newImageUrls, thumb_images: newThumbUrls, note: orderNote,
       });
       if (r?.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number);
@@ -820,6 +877,59 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       setShowToast(true);
     }
     setSubmitting(false); setUploading(false);
+  };
+
+  // Open drawer in edit mode, prefilled from the batch
+  const openEditBatch = (batch: BatchRecord) => {
+    setEditingBatchId(batch.id);
+    setEditingBatchNumber(batch.batch_number);
+    setOrderDate(batch.date);
+    setPayMethod((batch.payment_method as PayMethod) || '微信');
+    setOrderNote(batch.note || '');
+    // Rebuild cart from batch items: look up current product by id
+    const newCart: Record<number, number> = {};
+    for (const it of batch.items) {
+      const pid = it.product_id;
+      const qty = it.quantity;
+      if (pid && qty > 0) newCart[pid] = qty;
+    }
+    setCart(newCart);
+    setReceipts([]);
+    setExistingImageUrls(batch.images || []);
+    setExistingThumbUrls(batch.thumb_images || []);
+    // Open the same drawer the new-batch flow uses
+    setShowDrawer(true);
+    onDrawerOpen?.();
+    Animated.parallel([
+      Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+    ]).start();
+  };
+
+  // Confirm delete batch + cascade
+  const confirmDeleteBatch = async () => {
+    if (!deleteBatchTarget) return;
+    const targetId = deleteBatchTarget.id;
+    setDeleteBatchTarget(null);
+    try {
+      const r = await api.deleteProcurementBatch(targetId);
+      if (r?.status === 'ok') {
+        setToastMsg(t('procBatchDeleted')); setShowToast(true);
+        // Refresh history list and stats
+        loadHistory();
+        loadStats();
+      } else {
+        setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+      }
+    } catch (err) {
+      console.error('[procurement] delete error:', err);
+      setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+    }
+  };
+
+  const removeExistingImage = (i: number) => {
+    setExistingImageUrls(prev => prev.filter((_, idx) => idx !== i));
+    setExistingThumbUrls(prev => prev.filter((_, idx) => idx !== i));
   };
 
   const resetOrder = () => {
@@ -1016,11 +1126,30 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
           onEndReached={filteredBatches.length < histTotal ? loadMoreHistory : undefined}
           onEndReachedThreshold={0.4}
           renderItem={({ item: batch }) => (
-            <TouchableOpacity style={styles.historyCard} onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
-              <View style={styles.histHead}>
-                <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
-                <Text style={styles.histDate}>{batch.date}</Text>
-              </View>
+            <View style={styles.historyCard}>
+              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ padding: 12 }}>
+                <View style={styles.histHead}>
+                  <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
+                  <View style={styles.histActions}>
+                    <TouchableOpacity
+                      style={styles.histActionBtn}
+                      onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}
+                      activeOpacity={0.7}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      <PencilIcon color={c.textSub} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.histActionBtn}
+                      onPress={(e) => { e.stopPropagation?.(); openSlideModal(() => setDeleteBatchTarget(batch)); }}
+                      activeOpacity={0.7}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      <TrashIcon color={c.danger} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.histDate}>{batch.date}</Text>
+                </View>
               <View style={styles.histBody}>
                 <View style={styles.histRow}>
                   <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
@@ -1053,7 +1182,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                   );
                 })()}
               </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
           )}
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
@@ -1175,6 +1305,35 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
         </Animated.View>
       )}
 
+      {/* ── Delete batch confirmation modal ── */}
+      {deleteBatchTarget && (
+        <Animated.View style={[styles.modalOverlay, { opacity: modalOverlayFade }]}>
+          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('procDeleteBatch')}</Text>
+              <TouchableOpacity onPress={() => closeSlideModal(() => setDeleteBatchTarget(null))}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.modalBody, { gap: 16 }]}>
+              <View style={styles.modalDeleteBox}>
+                <Text style={styles.modalDeleteText}>
+                  {t('procDeleteBatchConfirm').replace('{n}', String(deleteBatchTarget.batch_number))}
+                </Text>
+              </View>
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setDeleteBatchTarget(null))}>
+                  <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.danger }]} onPress={confirmDeleteBatch}>
+                  <Text style={styles.modalBtnConfirmText}>{t('delete') || '删除'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animated.View>
+        </Animated.View>
+      )}
+
       {/* ── Order Drawer (slides up) ── */}
       {showDrawer && (
         <>
@@ -1184,7 +1343,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
           <Animated.View style={[styles.drawer, { transform: [{ translateY: Animated.add(drawerTranslateY, dragY) }] }]}>
             <View style={styles.drawerHandle} {...panResponder.panHandlers} />
             <View style={styles.drawerHead} {...panResponder.panHandlers}>
-              <Text style={styles.drawerHeadTitle}>{t('procConfirmOrder')}</Text>
+              <Text style={styles.drawerHeadTitle}>
+                {editingBatchId !== null
+                  ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
+                  : t('procConfirmOrder')}
+              </Text>
               <TouchableOpacity style={styles.drawerClose} onPress={closeDrawer}>
                 <Text style={styles.drawerCloseText}>×</Text>
               </TouchableOpacity>
@@ -1249,6 +1412,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                   <CameraIcon color={c.textSub} />
                   <Text style={styles.imgAddText}>{t('addImage')}</Text>
                 </TouchableOpacity>
+                {existingImageUrls.map((url, i) => (
+                  <View key={`exist-${i}`} style={styles.imgPreview}>
+                    {React.createElement('img', {
+                      src: url, style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' } as any,
+                    })}
+                    <TouchableOpacity style={styles.imgRemove} onPress={() => removeExistingImage(i)} activeOpacity={0.7}>
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
+                        <Path d="M18 6L6 18M6 6l12 12" />
+                      </Svg>
+                    </TouchableOpacity>
+                  </View>
+                ))}
                 {receipts.map((file, i) => (
                   <View key={`rec-${i}`} style={styles.imgPreview}>
                     {React.createElement('img', {
