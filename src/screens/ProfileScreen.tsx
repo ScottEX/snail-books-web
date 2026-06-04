@@ -350,7 +350,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       if (r.status === 'ok') {
         setShowPwModal(false);
         setOldPw(''); setNewPw(''); setConfirmPw('');
-        setToast(t('pwChanged'));
+
       } else {
         setModalMsg(r.message || '修改失败');
       }
