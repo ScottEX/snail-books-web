@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { createPortal } from 'react-dom';
-import { useTheme, ThemeColors, FONTS } from '../theme';
+import { useTheme, ThemeColors, withAlpha, FONTS } from '../theme';
 import { t } from '../i18n';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 import ThemePicker from './ThemePicker';
 
 interface ThemePickerModalProps {
@@ -20,31 +21,31 @@ interface ThemePickerModalProps {
 function getStyles(colors: ThemeColors) {
   return StyleSheet.create({
     overlay: {
-      position: 'fixed' as any, inset: 0,
-      backgroundColor: 'rgba(0,0,0,0.3)',
-      justifyContent: 'center', alignItems: 'center', zIndex: 500,
+      position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+      zIndex: 500, backgroundColor: 'rgba(0,0,0,0.3)',
+      justifyContent: 'center', alignItems: 'center',
     },
     card: {
-      backgroundColor: colors.surface, borderRadius: 16,
-      width: 360, maxWidth: '90%', overflow: 'hidden' as any,
+      backgroundColor: colors.surface, borderRadius: 16, width: 340, maxWidth: '90%',
+      overflow: 'hidden' as any,
+      // @ts-ignore
+      ...modalCardAnimation,
     },
     header: {
       backgroundColor: colors.primary,
       paddingHorizontal: 20, paddingVertical: 14,
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     },
-    title: { fontSize: 14, fontWeight: '700', color: colors.surface },
-    closeBtn: { fontSize: 18, color: colors.surface, lineHeight: 20 },
-    body: { padding: 20, gap: 8 } as any,
-    hint: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginBottom: 4 },
+    title: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
+    closeBtn: { ...modalClose },
+    body: { padding: 24 },
+    hint: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' as any },
     btnRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
-    btn: {
-      flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center' as any,
-      borderWidth: 1, borderColor: colors.primary,
-    },
-    btnOutlineText: { fontSize: FONTS.sub.size, color: colors.primary, fontWeight: FONTS.sub.weight },
-    btnDanger: { borderColor: '#e06464' },
-    btnDangerText: { fontSize: FONTS.sub.size, color: '#e06464', fontWeight: FONTS.sub.weight },
+    bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' as any },
+    bgBtnOutline: { borderWidth: 1, borderColor: colors.primary },
+    bgBtnOutlineText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
+    bgBtnDanger: { borderWidth: 1, borderColor: withAlpha(colors.primary, 0.2), backgroundColor: withAlpha(colors.primary, 0.06) },
+    bgBtnDangerText: { fontSize: FONTS.micro.size, color: colors.primary, fontWeight: FONTS.micro.weight },
   });
 }
 
@@ -103,9 +104,7 @@ export default function ThemePickerModal({
 
               {/* ── Cover image tools (ProfileScreen only) ── */}
               {showCoverTools && (
-                <>
-                  <Text style={styles.hint}>{t('bgHint')}</Text>
-                </>
+                <Text style={styles.hint}>{t('bgHint')}</Text>
               )}
 
               {/* ── Theme Picker ── */}
@@ -159,18 +158,18 @@ export default function ThemePickerModal({
               {showCoverTools && (
                 <View style={styles.btnRow}>
                   <TouchableOpacity
-                    style={styles.btn}
+                    style={[styles.bgBtn, styles.bgBtnOutline]}
                     disabled={coverUploading}
                     onPress={onChooseCover}
                   >
-                    <Text style={styles.btnOutlineText}>{coverUploading ? t('uploading') : t('chooseImage')}</Text>
+                    <Text style={styles.bgBtnOutlineText}>{coverUploading ? t('uploading') : t('chooseImage')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.btn, styles.btnDanger]}
+                    style={[styles.bgBtn, styles.bgBtnDanger]}
                     disabled={coverUploading}
                     onPress={onResetCover}
                   >
-                    <Text style={styles.btnDangerText}>{t('resetDefault')}</Text>
+                    <Text style={styles.bgBtnDangerText}>{t('resetDefault')}</Text>
                   </TouchableOpacity>
                 </View>
               )}
