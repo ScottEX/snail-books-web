@@ -1403,8 +1403,9 @@ function getStyles(colors: ThemeColors) {
     stamp: {
       alignItems: 'center' as any,
       paddingVertical: 32, paddingBottom: 48,
-    },
-    stampPre: { fontSize: 13, color: colors.textSub, letterSpacing: 0.5, lineHeight: 48 } as any,
+      paddingHorizontal: 24,
+    } as any,
+    stampPre: { fontSize: 13, color: colors.textSub, letterSpacing: 0.5, lineHeight: 48, textAlign: 'center' } as any,
     stampNum: { fontSize: 42, fontWeight: '700', fontFamily: 'Inter, serif', fontStyle: 'italic' } as any,
     stampPost: { fontSize: 12, color: colors.textSub, marginTop: 4 } as any,
   });
