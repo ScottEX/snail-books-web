@@ -1370,7 +1370,6 @@ function getStyles(colors: ThemeColors) {
     signatureText: { fontSize: 12, color: colors.textSub, marginTop: 6, fontStyle: 'italic' } as any,
     signatureInput: {
       fontSize: 13, color: colors.textMain,
-      borderBottomWidth: 1, borderBottomColor: colors.primary,
       paddingVertical: 4, flex: 1,
     } as any,
     // Icon rows
