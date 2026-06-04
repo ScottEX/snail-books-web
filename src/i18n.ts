@@ -146,6 +146,8 @@ const I18N: Record<string, Record<string, string>> = {
     bgHint: '选择一张图片作为首页背景',
     opacity: '透明度',
     uploading: '上传中...',
+    chooseImage: '选择图片',
+    resetDefault: '恢复默认',
     themePicker: '主题方案',
     loading: '加载中...',
     noRecords: '暂无记录',
