@@ -746,30 +746,10 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
           </TouchableOpacity>
         </TouchableOpacity>
 
-        {/* ── Section: Account ── */}
-        <View style={st.section}>
-          <Text style={st.sectionTitle}>账号信息</Text>
-          <View style={st.card}>
-            <View style={st.iconRow}>
-              <View style={st.iconWrap}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-              </View>
-              <Text style={st.iconLabel}>{t('displayName')}</Text>
-              <Text style={st.iconValue}>{username}</Text>
-            </View>
-            <View style={st.divider} />
-            <View style={st.iconRow}>
-              <View style={st.iconWrap}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-                </svg>
-              </View>
-              <Text style={st.iconLabel}>{t('profileEmail')}</Text>
-              <Text style={st.iconValue}>{email || '—'}</Text>
-            </View>
-          </View>
+        {/* ── Profile head ── */}
+        <View style={st.profileHead}>
+          <Text style={st.profileName}>{username}</Text>
+          <Text style={st.profileEmail}>{email || '—'}</Text>
         </View>
 
         {/* ── Section: Security ── */}
@@ -1216,6 +1196,11 @@ function getStyles(colors: ThemeColors) {
       fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase',
       color: colors.textSub, marginBottom: 10, paddingLeft: 2,
     } as any,
+    // Profile head
+    profileHead: { paddingHorizontal: 20, paddingTop: 44, paddingBottom: 12 },
+    profileName: { fontSize: 26, fontWeight: '700', color: colors.textMain, letterSpacing: -0.2 } as any,
+    profileEmail: { fontSize: 12, color: colors.textSub, marginTop: 4 } as any,
+    // Icon rows
     iconRow: {
       flexDirection: 'row', alignItems: 'center',
       paddingVertical: 14, paddingHorizontal: 0, gap: 10,
