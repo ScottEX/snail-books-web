@@ -14,7 +14,7 @@ import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
 import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
-import ThemePickerModal from '../components/ThemePickerModal';
+import ThemePicker from '../components/ThemePicker';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 
 function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
@@ -62,7 +62,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [showThemeModal, setShowThemeModal] = useState(false);
   // ── Modal slide-from-top animation ──
   const modalAnim = useRef(new Animated.Value(0)).current;
   const modalFade = useRef(new Animated.Value(0)).current;
@@ -816,13 +815,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               <Text style={styles.modalHint}>{t('bgHint')}</Text>
 
               {/* ── Theme Picker ── */}
-              <TouchableOpacity
-                style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }}
-                onPress={() => { setShowBgModal(false); setTimeout(() => setShowThemeModal(true), 150); }}
-              >
-                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('themePicker') || '主题'}</Text>
-                <Text style={{ fontSize: FONTS.sub.size, color: colors.primary }}>›</Text>
-              </TouchableOpacity>
+              <View style={{ marginTop: 20 }}>
+                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
+                <ThemePicker />
+              </View>
 
               {/* Opacity slider */}
               <View style={{ marginTop: 20 }}>
@@ -897,8 +893,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </Animated.View>
       )}
 
-      {/* Shared modals — used by both HomeScreen and ProfileScreen */}
-      <ThemePickerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
+      {/* Shared modal */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
 
       {/* Bottom Nav — hidden when history screens or cart drawer are active */}

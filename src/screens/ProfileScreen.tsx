@@ -8,7 +8,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
-import ThemePickerModal from '../components/ThemePickerModal';
+import ThemePicker from '../components/ThemePicker';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 
 /* ========== SVG ICONS ========== */
@@ -875,7 +875,24 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
       {/* Shared modals — used by both HomeScreen and ProfileScreen */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
-      <ThemePickerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
+
+      {/* ── Theme Picker Modal ── */}
+      {showThemeModal && createPortal(
+        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowThemeModal(false)}>
+          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
+            <View style={mo.header}>
+              <Text style={mo.title}>{t('themeLabel') || '主题'}</Text>
+              <TouchableOpacity onPress={() => setShowThemeModal(false)}>
+                <Text style={mo.closeBtn}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={mo.body}>
+              <ThemePicker onSelect={() => setShowThemeModal(false)} />
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>,
+        document.body
+      )}
 
       {/* ── Change Password Modal ── */}
       {showPwModal && createPortal(
