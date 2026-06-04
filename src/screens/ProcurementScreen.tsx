@@ -456,7 +456,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     ]).start(() => setShowItemsModal(false));
   };
 
-  const downloadPDF = async (batchId: number, mode: 'download' | 'share' = 'download') => {
+  const downloadPDF = async (batchId: number) => {
     if (downloadingPDF) return;
     setDownloadingPDF(true);
     try {
@@ -464,27 +464,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       if (!resp.ok) throw new Error('Download failed');
       const blob = await resp.blob();
       const url = URL.createObjectURL(blob);
-      const filename = `procurement_${batchId}.pdf`;
-      if (mode === 'share') {
-        // 获取分享链接
-        const linkResp = await fetch(`/api/procurement-batches/${batchId}/share-link`);
-        const linkData = await linkResp.json();
-        const shareUrl = window.location.origin + linkData.url;
-        if (navigator.share) {
-          await navigator.share({ title: `进货单 #${batchId}`, url: shareUrl });
-        } else {
-          await navigator.clipboard.writeText(shareUrl);
-          alert('链接已复制，可粘贴到微信发送');
-        }
-      } else {
-        const a = document.createElement('a');
-        a.href = url; a.download = filename; a.click();
-      }
+      const a = document.createElement('a');
+      a.href = url; a.download = `procurement_${batchId}.pdf`; a.click();
       URL.revokeObjectURL(url);
       setPdfDone(true);
       setTimeout(() => setPdfDone(false), 2000);
     } catch (e: any) {
-      if (e?.name === 'AbortError') return;
       window.open(`/api/procurement-batches/${batchId}/pdf`, '_blank');
     } finally {
       setDownloadingPDF(false);
@@ -1331,24 +1316,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
               <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 16, gap: 10 }}>
-              <TouchableOpacity
-                style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: downloadingPDF ? c.secondary : c.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, opacity: downloadingPDF ? 0.7 : 1 }}
-                onPress={() => downloadPDF(detailBatchId, 'download')}
-                disabled={downloadingPDF}
-              >
-                <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>
-                  {downloadingPDF ? '⏳' : pdfDone ? '✅' : '📥'} {downloadingPDF ? '生成中' : pdfDone ? '已保存' : '下载'}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{ paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, borderWidth: 1, borderColor: c.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
-                onPress={() => downloadPDF(detailBatchId, 'share')}
-                disabled={downloadingPDF}
-              >
-                <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.primary }}>📤 分享</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={{ marginHorizontal: 16, marginBottom: 16, paddingVertical: 12, borderRadius: 8, backgroundColor: downloadingPDF ? c.secondary : c.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, opacity: downloadingPDF ? 0.7 : 1 }}
+              onPress={() => downloadPDF(detailBatchId)}
+              disabled={downloadingPDF}
+            >
+              <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>
+                {downloadingPDF ? '⏳ 生成中...' : pdfDone ? '✅ 已保存' : '📥 下载 PDF'}
+              </Text>
+            </TouchableOpacity>
             {/* Loading overlay */}
             {downloadingPDF && (
               <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 16, alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
