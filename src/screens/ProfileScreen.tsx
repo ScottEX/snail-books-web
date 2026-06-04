@@ -48,6 +48,8 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
   const [avatarKey, setAvatarKey] = useState(0);
   const [coverUrl, setCoverUrl] = useState('');
   const [coverKey, setCoverKey] = useState(0);
+  const [coverOpacity, setCoverOpacity] = useState(1);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [toast, setToast] = useState('');
 
   const username = useMemo(() => {
@@ -128,6 +130,12 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       const r: any = await api.getProfileCover();
       if (r?.url) setCoverUrl(r.url);
     } catch {}
+    // Load cover opacity from localStorage
+    try {
+      const uid = localStorage.getItem('user_id');
+      const saved = localStorage.getItem(uid ? `cover-opacity-${uid}` : 'cover-opacity');
+      if (saved !== null) setCoverOpacity(parseFloat(saved));
+    } catch {}
   };
 
   useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); }, []);
@@ -160,6 +168,23 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
     };
     reader.readAsDataURL(file);
     e.target.value = '';
+  };
+
+  const handleCoverOpacityChange = (v: number) => {
+    setCoverOpacity(v);
+    try {
+      const uid = localStorage.getItem('user_id');
+      localStorage.setItem(uid ? `cover-opacity-${uid}` : 'cover-opacity', String(v));
+    } catch {}
+  };
+
+  const handleCoverReset = async () => {
+    setCoverUploading(true);
+    try {
+      await api.resetProfileCover();
+      setCoverUrl(''); setCoverKey(k => k + 1);
+    } catch {}
+    finally { setCoverUploading(false); }
   };
 
   // ── Avatar upload flow ──
@@ -562,6 +587,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
   const coverDoUpload = async () => {
     if (!coverCropResult) return;
+    setCoverUploading(true);
     try {
       const arr = coverCropResult.split(',');
       const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
@@ -576,6 +602,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
         setCoverCropSrc(''); setCoverCropResult(''); setCoverShowResult(false);
       } else { setCoverCropMsg('上传失败'); }
     } catch { setCoverCropMsg('上传失败，请重试'); }
+    finally { setCoverUploading(false); }
   };
 
   // ── Imperative cover crop event binding ──
@@ -696,7 +723,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
         {/* Cover Image — nav & controls overlaid on top */}
         <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
-            <Image source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (localStorage.getItem('user_id') || '0') + '&v=' + coverKey }} style={st.coverImg} />
+            <Image source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (localStorage.getItem('user_id') || '0') + '&v=' + coverKey }} style={[st.coverImg, { opacity: coverOpacity }]} />
           ) : (
             <View style={st.coverGradient}>
               <Svg width="100%" height="100%" viewBox="0 0 360 180" preserveAspectRatio="none">
@@ -892,7 +919,16 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
       {/* Shared modals */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
-      <ThemePickerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
+      <ThemePickerModal
+        visible={showThemeModal}
+        onClose={() => setShowThemeModal(false)}
+        showCoverTools
+        coverOpacity={coverOpacity}
+        onCoverOpacityChange={handleCoverOpacityChange}
+        onChooseCover={() => coverInputRef.current?.click()}
+        onResetCover={handleCoverReset}
+        coverUploading={coverUploading}
+      />
 
       {/* ── Change Password Modal ── */}
       {showPwModal && createPortal(
