@@ -41,7 +41,7 @@ function ChevronRight({ color }: { color: string }) {
 /* ========== MAIN SCREEN ========== */
 
 export default function ProfileScreen({ onBack }: { onBack: () => void }) {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
   const [coverUrl, setCoverUrl] = useState('');
@@ -759,13 +759,23 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
           </View>
           <View style={st.divider} />
           {daysSince > 0 && (
-            <>
-              <View style={st.field}>
-                <Text style={st.fieldLabel}>已陪伴</Text>
-                <Text style={st.fieldValue}>{daysSince} 天</Text>
-              </View>
-              <View style={st.divider} />
-            </>
+            <View style={[st.daysRow]}>
+              {/* Hourglass icon */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ marginRight: 8, flexShrink: 0, marginTop: 2 }}>
+                <path d="M6 2h12M6 22h12" stroke={colors.textSub} strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M6 2v4a6 6 0 006 6 6 6 0 006-6V2M6 22v-4a6 6 0 016-6 6 6 0 016 6v4" stroke={colors.textSub} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 14v2" stroke={colors.textSub} strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <Text style={[st.daysText]}>
+                {theme.id === 'obsidian-gold'
+                  ? '这是我们并肩走过的\u00A0'
+                  : theme.id === 'deep-teal'
+                  ? '为您保驾护航的\u00A0'
+                  : '时光流转，已默默陪伴您\u00A0'}
+                <Text style={[st.daysNum, { color: colors.primary }]}>{daysSince}</Text>
+                {'\u00A0天'}
+              </Text>
+            </View>
           )}
           <TouchableOpacity style={st.actionRow} onPress={() => { setShowPwModal(true); setOldPw(''); setNewPw(''); setConfirmPw(''); setModalMsg(''); }}>
             <Text style={st.actionLabel}>{t('changePassword')}</Text>
@@ -1179,6 +1189,13 @@ function getStyles(colors: ThemeColors) {
       alignItems: 'center', paddingVertical: 16,
     },
     actionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain },
+    // Days counter
+    daysRow: {
+      flexDirection: 'row', alignItems: 'flex-start',
+      paddingVertical: 14, paddingHorizontal: 2,
+    },
+    daysText: { fontSize: 13, color: '#888', lineHeight: 20, flexShrink: 1 } as any,
+    daysNum: { fontSize: 18, fontWeight: '600', fontFamily: 'Inter, sans-serif' },
   });
 }
 
