@@ -408,23 +408,40 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
   const [productPickerSearch, setProductPickerSearch] = useState('');
 
-  // Hide native scrollbar in items modal (RN Web renders ScrollView as a <div> wrapper)
+  // Hide native scrollbar in items modal. RN Web renders ScrollView as two anonymous <div>s:
+  // an outer React container and an inner anonymous <div> that has `overflow: auto` and is the
+  // element that actually paints the webkit scrollbar. Neither div carries any className or
+  // data-* attribute, so CSS attribute selectors cannot reliably target it.
+  // Instead we walk the modal subtree and use getComputedStyle to find any element whose
+  // computed `overflow-y` is auto/scroll, then set inline `scrollbar-width: none` on each one.
+  // This works regardless of RN Web's internal DOM composition.
+  const itemsModalRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    const id = 'procurement-modal-scrollbar-hide';
-    if (document.getElementById(id)) return;
-    const style = document.createElement('style');
-    style.id = id;
-    style.textContent = `
-      [data-proc-picker-scroll] { scrollbar-width: none !important; -ms-overflow-style: none !important; }
-      [data-proc-picker-scroll]::-webkit-scrollbar,
-      [data-proc-picker-scroll] > div::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; -webkit-appearance: none !important; background: transparent !important; }
-      [data-proc-picker-scroll]::-webkit-scrollbar-track,
-      [data-proc-picker-scroll] > div::-webkit-scrollbar-track { background: transparent !important; }
-      [data-proc-picker-scroll]::-webkit-scrollbar-thumb,
-      [data-proc-picker-scroll] > div::-webkit-scrollbar-thumb { background: transparent !important; }
-    `;
-    document.head.appendChild(style);
-  }, []);
+    if (!showItemsModal) return;
+    let cancelled = false;
+    const hideScrollbars = (root: HTMLElement) => {
+      const all = root.querySelectorAll('*');
+      for (let i = 0; i < all.length; i++) {
+        const el = all[i] as HTMLElement;
+        const overflowY = getComputedStyle(el).overflowY;
+        if (overflowY === 'auto' || overflowY === 'scroll') {
+          el.style.setProperty('scrollbar-width', 'none', 'important');
+          el.style.setProperty('-ms-overflow-style', 'none', 'important');
+        }
+      }
+    };
+    const apply = () => {
+      if (cancelled) return;
+      const node = itemsModalRef.current;
+      if (node) hideScrollbars(node);
+    };
+    // Modal animates in; retry on multiple frames to catch elements as they appear.
+    apply();
+    const t1 = setTimeout(apply, 50);
+    const t2 = setTimeout(apply, 200);
+    const t3 = setTimeout(apply, 500);
+    return () => { cancelled = true; clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [showItemsModal]);
   const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
   const [detailTotal, setDetailTotal] = useState(0);
   const [detailBatchId, setDetailBatchId] = useState(0);
@@ -1504,7 +1521,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       {/* ── Items Modal (slides from top) ── */}
       {showItemsModal && (
         <Animated.View style={[styles.itemsModalOverlay, { opacity: itemsModalOverlayAnim }]}>
-          <Animated.View style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}>
+          <Animated.View
+            ref={(node: any) => { itemsModalRef.current = node as HTMLElement | null; }}
+            style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}
+          >
             <View style={styles.itemsModalHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 {itemsModalIsCart && itemsModalView === 'products' && (
