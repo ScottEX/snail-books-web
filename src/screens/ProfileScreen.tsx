@@ -746,46 +746,66 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
           </TouchableOpacity>
         </TouchableOpacity>
 
-        {/* Info card — with action rows */}
-        <View style={st.card}>
-          <View style={st.field}>
-            <Text style={st.fieldLabel}>{t('displayName')}</Text>
-            <Text style={st.fieldValue}>{username}</Text>
+        {/* ── Section: Account ── */}
+        <View style={st.section}>
+          <Text style={st.sectionTitle}>账号信息</Text>
+          <View style={st.card}>
+            <View style={st.iconRow}>
+              <View style={st.iconWrap}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>{t('displayName')}</Text>
+              <Text style={st.iconValue}>{username}</Text>
+            </View>
+            <View style={st.divider} />
+            <View style={st.iconRow}>
+              <View style={st.iconWrap}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>{t('profileEmail')}</Text>
+              <Text style={st.iconValue}>{email || '—'}</Text>
+            </View>
           </View>
-          <View style={st.divider} />
-          <View style={st.field}>
-            <Text style={st.fieldLabel}>{t('profileEmail')}</Text>
-            <Text style={st.fieldValue}>{email || '—'}</Text>
-          </View>
-          <View style={st.divider} />
-          <TouchableOpacity style={st.actionRow} onPress={() => { setShowPwModal(true); setOldPw(''); setNewPw(''); setConfirmPw(''); setModalMsg(''); }}>
-            <Text style={st.actionLabel}>{t('changePassword')}</Text>
-            <ChevronRight color={colors.textSub} />
-          </TouchableOpacity>
-          <View style={st.divider} />
-          <TouchableOpacity style={st.actionRow} onPress={openEmailModal}>
-            <Text style={st.actionLabel}>{t('changeEmail')}</Text>
-            <ChevronRight color={colors.textSub} />
-          </TouchableOpacity>
         </View>
 
-        {/* Days counter — centered below card */}
+        {/* ── Section: Security ── */}
+        <View style={st.section}>
+          <Text style={st.sectionTitle}>安全设置</Text>
+          <View style={st.card}>
+            <TouchableOpacity style={st.iconRow} onPress={() => { setShowPwModal(true); setOldPw(''); setNewPw(''); setConfirmPw(''); setModalMsg(''); }}>
+              <View style={st.iconWrap}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>{t('changePassword')}</Text>
+              <ChevronRight color={colors.textSub} />
+            </TouchableOpacity>
+            <View style={st.divider} />
+            <TouchableOpacity style={st.iconRow} onPress={openEmailModal}>
+              <View style={st.iconWrap}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>{t('changeEmail')}</Text>
+              <ChevronRight color={colors.textSub} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── Bottom stamp ── */}
         {daysSince > 0 && (
-          <View style={st.daysRow}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ marginRight: 8, flexShrink: 0, marginTop: 2 }}>
-              <path d="M6 2h12M6 22h12" stroke={colors.textSub} strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M6 2v4a6 6 0 006 6 6 6 0 006-6V2M6 22v-4a6 6 0 016-6 6 6 0 016 6v4" stroke={colors.textSub} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 14v2" stroke={colors.textSub} strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            <Text style={st.daysText}>
-              {theme.id === 'obsidian-gold'
-                ? '这是我们并肩走过的\u00A0'
-                : theme.id === 'deep-teal'
-                ? '为您保驾护航的\u00A0'
-                : '时光流转，已默默陪伴您\u00A0'}
-              <Text style={[st.daysNum, { color: colors.primary }]}>{daysSince}</Text>
-              {'\u00A0天'}
+          <View style={st.stamp}>
+            <Text style={st.stampPre}>
+              {theme.id === 'obsidian-gold' ? '这是我们并肩走过的' : theme.id === 'deep-teal' ? '为您保驾护航的' : '时光流转'}
             </Text>
+            <Text style={[st.stampNum, { color: colors.primary }]}>{daysSince}</Text>
+            <Text style={st.stampPost}>已默默陪伴您 · 感谢信任</Text>
           </View>
         )}
       </ScrollView>
@@ -1190,13 +1210,31 @@ function getStyles(colors: ThemeColors) {
       alignItems: 'center', paddingVertical: 16,
     },
     actionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain },
-    // Days counter
-    daysRow: {
-      flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center',
-      paddingVertical: 20, paddingHorizontal: 16,
+    // Section
+    section: { marginHorizontal: 16, marginTop: 16 },
+    sectionTitle: {
+      fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase',
+      color: colors.textSub, marginBottom: 10, paddingLeft: 2,
+    } as any,
+    iconRow: {
+      flexDirection: 'row', alignItems: 'center',
+      paddingVertical: 14, paddingHorizontal: 0, gap: 10,
     },
-    daysText: { fontSize: 13, color: '#888', lineHeight: 20, flexShrink: 1 } as any,
-    daysNum: { fontSize: 18, fontWeight: '600', fontFamily: 'Inter, sans-serif' },
+    iconWrap: {
+      width: 28, height: 28, borderRadius: 8,
+      backgroundColor: withAlpha(colors.textMain, 0.04),
+      justifyContent: 'center', alignItems: 'center', flexShrink: 0,
+    },
+    iconLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain, flex: 1 },
+    iconValue: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textMain },
+    // Bottom stamp
+    stamp: {
+      alignItems: 'center' as any,
+      paddingVertical: 32, paddingBottom: 48,
+    },
+    stampPre: { fontSize: 13, color: colors.textSub, letterSpacing: 0.5 } as any,
+    stampNum: { fontSize: 42, fontWeight: '700', fontFamily: 'Inter, serif', lineHeight: 48, marginVertical: 4, fontStyle: 'italic' } as any,
+    stampPost: { fontSize: 12, color: colors.textSub, marginTop: 4 } as any,
   });
 }
 
