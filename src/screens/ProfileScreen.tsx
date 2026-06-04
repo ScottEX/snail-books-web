@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Defs, LinearGradient as SVGGradient, Stop, Rect } from 'react-native-svg';
-import { t } from '../i18n';
+import { t, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -40,7 +40,7 @@ function ChevronRight({ color }: { color: string }) {
 
 /* ========== MAIN SCREEN ========== */
 
-export default function ProfileScreen({ onBack }: { onBack: () => void }) {
+export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void; onLogout: () => void }) {
   const { colors, theme } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
@@ -752,13 +752,39 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
           <Text style={st.profileEmail}>{email || '—'}</Text>
         </View>
 
+        {/* ── Section: Account ── */}
+        <View style={st.section}>
+          <Text style={st.sectionTitle}>账号信息</Text>
+          <View style={st.card}>
+            <View style={st.iconRow}>
+              <View style={[st.iconWrap, st.iconUser]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6499ff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>{t('displayName')}</Text>
+              <Text style={st.iconValue}>{username}</Text>
+            </View>
+            <View style={st.divider} />
+            <View style={st.iconRow}>
+              <View style={[st.iconWrap, st.iconMail]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64c896" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>{t('profileEmail')}</Text>
+              <Text style={st.iconValue}>{email || '—'}</Text>
+            </View>
+          </View>
+        </View>
+
         {/* ── Section: Security ── */}
         <View style={st.section}>
           <Text style={st.sectionTitle}>安全设置</Text>
           <View style={st.card}>
             <TouchableOpacity style={st.iconRow} onPress={() => { setShowPwModal(true); setOldPw(''); setNewPw(''); setConfirmPw(''); setModalMsg(''); }}>
-              <View style={st.iconWrap}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <View style={[st.iconWrap, st.iconLock]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
                 </svg>
               </View>
@@ -767,13 +793,55 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
             </TouchableOpacity>
             <View style={st.divider} />
             <TouchableOpacity style={st.iconRow} onPress={openEmailModal}>
-              <View style={st.iconWrap}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <View style={[st.iconWrap, st.iconMail]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64c896" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
                 </svg>
               </View>
               <Text style={st.iconLabel}>{t('changeEmail')}</Text>
               <ChevronRight color={colors.textSub} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── Section: Preferences ── */}
+        <View style={st.section}>
+          <Text style={st.sectionTitle}>偏好设置</Text>
+          <View style={st.card}>
+            <View style={st.iconRow}>
+              <View style={[st.iconWrap, st.iconLang]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c096d8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>语言</Text>
+              <Text style={st.badge}>{langs.find(([l]) => l === getLang())?.[1] === '简' ? '简体中文' : getLang() === 'zh-TW' ? '繁體中文' : 'English'}</Text>
+            </View>
+            <View style={st.divider} />
+            <View style={st.iconRow}>
+              <View style={[st.iconWrap, st.iconTheme]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffb450" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>主题</Text>
+              <Text style={st.badge}>{theme.nameZh}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ── Section: Danger ── */}
+        <View style={st.section}>
+          <Text style={st.sectionTitle}>危险操作</Text>
+          <View style={st.card}>
+            <TouchableOpacity style={st.iconRow} onPress={onLogout}>
+              <View style={[st.iconWrap, st.iconDanger]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                </svg>
+              </View>
+              <Text style={[st.iconLabel, { color: '#e06464' }]}>{t('logout')}</Text>
+              <ChevronRight color="#e06464" />
             </TouchableOpacity>
           </View>
         </View>
@@ -1206,10 +1274,22 @@ function getStyles(colors: ThemeColors) {
       paddingVertical: 14, paddingHorizontal: 0, gap: 10,
     },
     iconWrap: {
-      width: 28, height: 28, borderRadius: 8,
+      width: 32, height: 32, borderRadius: 8,
       backgroundColor: withAlpha(colors.textMain, 0.04),
       justifyContent: 'center', alignItems: 'center', flexShrink: 0,
     },
+    iconUser: { backgroundColor: 'rgba(100,160,255,0.12)' },
+    iconMail: { backgroundColor: 'rgba(100,200,150,0.12)' },
+    iconLock: { backgroundColor: withAlpha(colors.primary, 0.12) },
+    iconLang: { backgroundColor: 'rgba(180,130,220,0.12)' },
+    iconTheme: { backgroundColor: 'rgba(255,180,80,0.12)' },
+    iconDanger: { backgroundColor: 'rgba(192,57,43,0.1)' },
+    badge: {
+      fontSize: 11, fontWeight: '500',
+      color: colors.textSub,
+      backgroundColor: withAlpha(colors.textMain, 0.05),
+      paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10,
+    } as any,
     iconLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain, flex: 1 },
     iconValue: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textMain },
     // Bottom stamp

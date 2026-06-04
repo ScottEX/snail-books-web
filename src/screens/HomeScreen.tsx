@@ -477,7 +477,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
       {/* History screen overlay — renders on top of background, main content hidden */}
       <SlideScreen visible={showProfile} onClose={() => setShowProfile(false)} top={48}>
-        {(onBack) => <ProfileScreen onBack={onBack} />}
+        {(onBack) => <ProfileScreen onBack={onBack} onLogout={onLogout} />}
       </SlideScreen>
       <SlideScreen visible={showExpenseHistory} onClose={() => setShowExpenseHistory(false)}>
         {(onBack) => <ExpenseHistoryScreen onBack={onBack} />}
