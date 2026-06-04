@@ -411,6 +411,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
 
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
+  const [successIsEdit, setSuccessIsEdit] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -840,7 +841,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
             setEditingBatchId(null); setEditingBatchNumber(0);
             setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('微信');
             setShowDrawer(false); onDrawerClose?.();
-            // Skip toast — Modal close + Toast mount on same frame crashes RN Web layout (same as password-change fix 1d06376)
+            // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
+            setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
+            setSuccessIsEdit(true);
+            openSlideModal(() => setShowSuccess(true));
             loadHistory();
             loadStats();
           });
@@ -857,7 +861,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
         images: newImageUrls, thumb_images: newThumbUrls, note: orderNote,
       });
       if (r?.status === 'ok') {
-        setSuccessTotal(r.total); setSuccessBatch(r.batch_number);
+        setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setSuccessIsEdit(false);
         Animated.parallel([
           Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
           Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
@@ -1520,19 +1524,21 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
         <Animated.View style={[styles.successOverlay, { opacity: modalOverlayFade }]}>
           <Animated.View style={[styles.successCard, { transform: [{ translateY: modalSlide }] }]}>
             <CheckIcon color={c.primary} />
-            <Text style={styles.successTitle}>{t('procSubmitted')}</Text>
-            <Text style={styles.successSub}>{t('procSubmittedMsg')}</Text>
+            <Text style={styles.successTitle}>{successIsEdit ? t('procUpdated') : t('procSubmitted')}</Text>
+            <Text style={styles.successSub}>{successIsEdit ? t('procUpdatedMsg') : t('procSubmittedMsg')}</Text>
             <Text style={styles.successAmount}>¥{successTotal.toFixed(2)}</Text>
             <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>
               {t('procNowBatch').replace('{n}', String(successBatch))} · {orderDate} · {payMethod}
             </Text>
             <View style={styles.successBtns}>
-              <TouchableOpacity style={styles.successBtnView} onPress={() => { closeSlideModal(() => setShowSuccess(false)); setSubTab('history'); }}>
+              <TouchableOpacity style={[styles.successBtnView, !successIsEdit && { flex: 1 }]} onPress={() => { closeSlideModal(() => { setShowSuccess(false); setSuccessIsEdit(false); }); setSubTab('history'); }}>
                 <Text style={styles.successBtnViewText}>{t('procViewRecords')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.successBtnNew} onPress={resetOrder}>
-                <Text style={styles.successBtnNewText}>{t('procContinue')}</Text>
-              </TouchableOpacity>
+              {!successIsEdit && (
+                <TouchableOpacity style={styles.successBtnNew} onPress={resetOrder}>
+                  <Text style={styles.successBtnNewText}>{t('procContinue')}</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </Animated.View>
         </Animated.View>
