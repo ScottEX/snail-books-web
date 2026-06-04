@@ -386,7 +386,6 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
         // Reset modal state BEFORE closing to avoid render timing issues
         setNewEmail(''); setEmailCode(''); setEmailStep('input');
         setShowEmailModal(false);
-        requestAnimationFrame(() => setToast(t('emailChanged')));
       } else {
         setModalMsg(r.message || '验证失败');
       }
