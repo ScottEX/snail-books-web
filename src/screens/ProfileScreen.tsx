@@ -383,9 +383,10 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       if (r.status === 'ok') {
         setEmail(newEmail);
         try { localStorage.setItem('email', newEmail); } catch {}
-        setShowEmailModal(false);
+        // Reset modal state BEFORE closing to avoid render timing issues
         setNewEmail(''); setEmailCode(''); setEmailStep('input');
-        setToast(t('emailChanged'));
+        setShowEmailModal(false);
+        requestAnimationFrame(() => setToast(t('emailChanged')));
       } else {
         setModalMsg(r.message || '验证失败');
       }
