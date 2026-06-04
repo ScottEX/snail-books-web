@@ -1130,25 +1130,27 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ padding: 12 }}>
                 <View style={styles.histHead}>
                   <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
-                  <View style={styles.histActions}>
-                    <TouchableOpacity
-                      style={styles.histActionBtn}
-                      onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}
-                      activeOpacity={0.7}
-                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                    >
-                      <PencilIcon color={c.textSub} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.histActionBtn}
-                      onPress={(e) => { e.stopPropagation?.(); openSlideModal(() => setDeleteBatchTarget(batch)); }}
-                      activeOpacity={0.7}
-                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                    >
-                      <TrashIcon color={c.danger} />
-                    </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <Text style={styles.histDate}>{batch.date}</Text>
+                    <View style={styles.histActions}>
+                      <TouchableOpacity
+                        style={styles.histActionBtn}
+                        onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <PencilIcon color={c.textSub} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.histActionBtn}
+                        onPress={(e) => { e.stopPropagation?.(); openSlideModal(() => setDeleteBatchTarget(batch)); }}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <TrashIcon color={c.danger} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <Text style={styles.histDate}>{batch.date}</Text>
                 </View>
               <View style={styles.histBody}>
                 <View style={styles.histRow}>
