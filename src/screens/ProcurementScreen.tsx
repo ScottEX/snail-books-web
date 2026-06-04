@@ -282,12 +282,13 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
-  itemsModalBody: { padding: 16 },
-  itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10 },
+  itemsModalBody: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
+  itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.06) },
+  itemsRowLast: { borderBottomWidth: 0 },
   itemsRowName: { flex: 1, fontSize: FONTS.sub.size, color: c.textMain },
   itemsRowQty: { fontSize: FONTS.micro.size, color: c.textSub, marginRight: 12, width: 48, textAlign: 'right' as const },
   itemsRowAmt: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, width: 80, textAlign: 'right' as const },
-  itemsTotalRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingTop: 14, marginTop: 8, borderTopWidth: 1, borderTopColor: withAlpha(c.textMain, 0.12) },
+  itemsTotalRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingVertical: 14, marginTop: 6, borderTopWidth: 1, borderTopColor: withAlpha(c.textMain, 0.12) },
   itemsTotalLabel: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsTotal: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.primary },
 
@@ -1509,7 +1510,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
             {itemsModalIsCart && itemsModalView === 'products' ? (
               // ── Product picker view ──
               <>
-                <View style={{ paddingHorizontal: 12, paddingTop: 10, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.06) }}>
+                <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
                   <TextInput
                     value={productPickerSearch}
                     onChangeText={setProductPickerSearch}
@@ -1521,13 +1522,13 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                     } as any}
                   />
                 </View>
-                <ScrollView style={{ flex: 1 }}>
+                <ScrollView style={[styles.itemsModalBody, { flex: 1 }]}>
                   {products
                     .filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch))
-                    .map(p => {
+                    .map((p, idx, arr) => {
                       const qty = cart[p.id] || 0;
                       return (
-                        <View key={p.id} style={styles.itemsRow}>
+                        <View key={p.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
                           <View style={{ flex: 1 }}>
                             <Text style={styles.itemsRowName}>{p.name}</Text>
                             <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
@@ -1559,7 +1560,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                   )}
                 </ScrollView>
                 <TouchableOpacity
-                  style={{ marginHorizontal: 16, marginVertical: 12, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
+                  style={{ marginHorizontal: 16, marginBottom: 16, marginTop: 4, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
                   onPress={() => setItemsModalView('items')}
                 >
                   <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
@@ -1568,14 +1569,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
             ) : itemsModalIsCart ? (
               // ── Cart edit view (with +/- qty) ──
               <>
-                <ScrollView style={{ flex: 1 }}>
+                <ScrollView style={[styles.itemsModalBody, { flex: 1 }]}>
                   {cartItems.length === 0 ? (
                     <View style={{ padding: 24, alignItems: 'center' }}>
                       <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
                     </View>
                   ) : (
-                    cartItems.map(i => (
-                      <View key={i.product.id} style={styles.itemsRow}>
+                    cartItems.map((i, idx, arr) => (
+                      <View key={i.product.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
                         <View style={{ flex: 1 }}>
                           <Text style={styles.itemsRowName}>{i.product.name}</Text>
                           <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
@@ -1601,11 +1602,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                     ))
                   )}
                 </ScrollView>
-                <View style={[styles.itemsTotalRow, { paddingHorizontal: 16 }]}>
+                <View style={styles.itemsTotalRow}>
                   <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
                   <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
                 </View>
-                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 8 }}>
+                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }}>
                   <TouchableOpacity
                     style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08), alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
                     onPress={() => setItemsModalView('products')}
@@ -1623,16 +1624,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
             ) : (
               // ── History detail view (read-only) ──
               <>
-                <ScrollView style={{ flex: 1 }}>
-                  {detailItems.map((item, idx) => (
-                    <View key={idx} style={styles.itemsRow}>
+                <ScrollView style={[styles.itemsModalBody, { flex: 1 }]}>
+                  {detailItems.map((item, idx, arr) => (
+                    <View key={idx} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
                       <Text style={styles.itemsRowName}>{item.name}</Text>
                       <Text style={styles.itemsRowQty}>×{item.quantity}</Text>
                       <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
                     </View>
                   ))}
                 </ScrollView>
-                <View style={[styles.itemsTotalRow, { paddingHorizontal: 16, paddingBottom: 12 }]}>
+                <View style={styles.itemsTotalRow}>
                   <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
                   <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
                 </View>
