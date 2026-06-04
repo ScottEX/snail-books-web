@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animat
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useTheme, withAlpha, ThemeColors, Theme } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 import PartnerScreen from './PartnerScreen';
@@ -456,6 +456,20 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const styles = useMemo(() => getStyles(colors), [colors]);
   const usr = useMemo(() => { try { return localStorage.getItem('user') || '用户'; } catch { return '用户'; } }, []);
 
+  // Language-aware theme name/desc
+  const themeLabel = (theme: Theme) => {
+    const l = getLang();
+    if (l === 'zh-TW') return theme.nameTw;
+    if (l === 'en') return theme.nameEn;
+    return theme.nameZh;
+  };
+  const themeSub = (theme: Theme) => {
+    const l = getLang();
+    if (l === 'zh-TW') return theme.descTw;
+    if (l === 'en') return theme.descEn;
+    return theme.descZh;
+  };
+
   return (
     <View style={styles.container}>
       {/* Background */}
@@ -838,10 +852,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: FONTS.micro.size, fontWeight: isActive ? '700' : '500', color: colors.textSub }}>
-                          {theme.nameZh}
+                          {themeLabel(theme)}
                         </Text>
                         <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 1 }}>
-                          {theme.description}
+                          {themeSub(theme)}
                         </Text>
                       </View>
                       {isActive && (
