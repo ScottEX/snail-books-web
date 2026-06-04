@@ -276,17 +276,8 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <View style={st.root}>
-      {/* Header */}
-      <View style={st.header}>
-        <TouchableOpacity onPress={onBack} style={st.backBtn}>
-          <ChevronLeft color={colors.primary} />
-        </TouchableOpacity>
-        <Text style={st.headerTitle}>{t('editProfile')}</Text>
-        <View style={{ width: 36 }} />
-      </View>
-
       <ScrollView style={st.scroll} showsVerticalScrollIndicator={false}>
-        {/* Cover Image */}
+        {/* Cover Image — nav & controls overlaid on top */}
         <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
             <Image source={{ uri: coverUrl + '&t=' + coverKey }} style={st.coverImg} />
@@ -304,6 +295,15 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
               </Svg>
             </View>
           )}
+
+          {/* Floating nav — back + title on top of cover */}
+          <View style={st.coverNav}>
+            <TouchableOpacity onPress={onBack} style={st.coverBackBtn}>
+              <ChevronLeft color="#fff" />
+            </TouchableOpacity>
+            <Text style={st.coverTitle}>{t('editProfile')}</Text>
+            <View style={{ width: 36 }} />
+          </View>
           <View style={st.coverOverlay}>
             <CameraIcon color="#fff" size={14} />
             <Text style={st.coverOverlayText}>{t('editCover')}</Text>
@@ -506,22 +506,23 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
 function getStyles(colors: ThemeColors) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
-    header: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      paddingHorizontal: 16, paddingTop: 48, paddingBottom: 12,
-      backgroundColor: colors.surface,
-    },
-    backBtn: {
-      width: 36, height: 36, borderRadius: 18,
-      backgroundColor: withAlpha(colors.textMain, 0.06),
-      justifyContent: 'center', alignItems: 'center',
-    },
-    headerTitle: { fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain },
     scroll: { flex: 1 },
     // Cover
     coverWrap: { height: 180, position: 'relative', overflow: 'visible' as any },
     coverImg: { width: '100%', height: '100%', resizeMode: 'cover' as any } as any,
     coverGradient: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+    // Floating nav on top of cover
+    coverNav: {
+      position: 'absolute', top: 0, left: 0, right: 0,
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      paddingHorizontal: 16, paddingTop: 48, paddingBottom: 12,
+    },
+    coverBackBtn: {
+      width: 36, height: 36, borderRadius: 18,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      justifyContent: 'center', alignItems: 'center',
+    },
+    coverTitle: { fontSize: FONTS.body.size, fontWeight: '600', color: '#fff' },
     coverOverlay: {
       position: 'absolute', bottom: 12, left: 12,
       flexDirection: 'row', alignItems: 'center', gap: 6,
