@@ -2,14 +2,12 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { createPortal } from 'react-dom';
 import { useTheme, ThemeColors } from '../theme';
-import { FONTS } from '../theme';
 import { t } from '../i18n';
-import { api } from '../api/client';
+import ThemePicker from './ThemePicker';
 
-interface LogoutConfirmModalProps {
+interface ThemePickerModalProps {
   visible: boolean;
   onClose: () => void;
-  onLogout: () => void;
 }
 
 function getStyles(colors: ThemeColors) {
@@ -21,7 +19,7 @@ function getStyles(colors: ThemeColors) {
     },
     card: {
       backgroundColor: colors.surface, borderRadius: 16,
-      width: 340, maxWidth: '90%', overflow: 'hidden' as any,
+      width: 360, maxWidth: '90%', overflow: 'hidden' as any,
     },
     header: {
       backgroundColor: colors.primary,
@@ -30,25 +28,11 @@ function getStyles(colors: ThemeColors) {
     },
     title: { fontSize: 14, fontWeight: '700', color: colors.surface },
     closeBtn: { fontSize: 18, color: colors.surface, lineHeight: 20 },
-    body: { padding: 24, alignItems: 'center', gap: 18 } as any,
-    confirmText: { fontSize: FONTS.body.size, color: colors.textMain, textAlign: 'center' as any },
-    btnRow: { flexDirection: 'row', gap: 12, width: '100%' },
-    cancelBtn: {
-      flex: 1, paddingVertical: 12, borderRadius: 10,
-      borderWidth: 1, borderColor: (colors as any).secondary || '#e0e0e0',
-      justifyContent: 'center', alignItems: 'center',
-    },
-    cancelText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
-    confirmBtn: {
-      flex: 1, paddingVertical: 12, borderRadius: 10,
-      backgroundColor: colors.primary,
-      justifyContent: 'center', alignItems: 'center',
-    },
-    confirmBtnText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
+    body: { padding: 20, gap: 8 } as any,
   });
 }
 
-export default function LogoutConfirmModal({ visible, onClose, onLogout }: LogoutConfirmModalProps) {
+export default function ThemePickerModal({ visible, onClose }: ThemePickerModalProps) {
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const fade = useRef(new Animated.Value(0)).current;
@@ -87,27 +71,13 @@ export default function LogoutConfirmModal({ visible, onClose, onLogout }: Logou
         <Animated.View style={[styles.card as any, { transform: [{ translateY: slide }] }]}>
           <TouchableOpacity activeOpacity={1} onPress={() => {}}>
             <View style={styles.header}>
-              <Text style={styles.title}>{t('logout')}</Text>
+              <Text style={styles.title}>{t('themeLabel') || '主题'}</Text>
               <TouchableOpacity onPress={handleClose}>
                 <Text style={styles.closeBtn}>✕</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.body}>
-              <Text style={styles.confirmText}>
-                {t('logoutConfirm') || '确定要退出登录吗？'}
-              </Text>
-              <View style={styles.btnRow}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={handleClose}>
-                  <Text style={styles.cancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.confirmBtn} onPress={async () => {
-                  await api.logout();
-                  try { localStorage.removeItem('active_tab'); } catch {}
-                  onLogout();
-                }}>
-                  <Text style={styles.confirmBtnText}>{t('confirmLogout') || '确定退出'}</Text>
-                </TouchableOpacity>
-              </View>
+              <ThemePicker onSelect={handleClose} />
             </View>
           </TouchableOpacity>
         </Animated.View>

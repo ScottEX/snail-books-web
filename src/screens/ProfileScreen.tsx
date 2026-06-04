@@ -2,13 +2,13 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Defs, LinearGradient as SVGGradient, Stop, Rect } from 'react-native-svg';
-import { t, getLang, setLang, langs } from '../i18n';
+import { t, getLang, setLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
-import ThemePicker from '../components/ThemePicker';
+import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 
 /* ========== SVG ICONS ========== */
@@ -758,7 +758,10 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
         {/* ── Section: Account ── */}
         <View style={st.section}>
-          <Text style={st.sectionTitle}>{t('accountInfo')}</Text>
+          <View style={st.sectionTitleRow}>
+            <Text style={st.sectionTitleText}>{t('accountInfo')}</Text>
+            <View style={st.sectionTitleLine} />
+          </View>
           <View style={st.card}>
             <View style={st.iconRow}>
               <View style={[st.iconWrap, st.iconUser]}>
@@ -784,7 +787,10 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
         {/* ── Section: Security ── */}
         <View style={st.section}>
-          <Text style={st.sectionTitle}>{t('securitySettings')}</Text>
+          <View style={st.sectionTitleRow}>
+            <Text style={st.sectionTitleText}>{t('securitySettings')}</Text>
+            <View style={st.sectionTitleLine} />
+          </View>
           <View style={st.card}>
             <TouchableOpacity style={st.iconRow} onPress={() => { setShowPwModal(true); setOldPw(''); setNewPw(''); setConfirmPw(''); setModalMsg(''); }}>
               <View style={[st.iconWrap, st.iconLock]}>
@@ -810,20 +816,28 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
         {/* ── Section: Preferences ── */}
         <View style={st.section}>
-          <Text style={st.sectionTitle}>{t('preferences')}</Text>
+          <View style={st.sectionTitleRow}>
+            <Text style={st.sectionTitleText}>{t('preferences')}</Text>
+            <View style={st.sectionTitleLine} />
+          </View>
           <View style={st.card}>
-            <TouchableOpacity style={st.iconRow} onPress={() => {
-              const next = getLang() === 'zh-CN' ? 'zh-TW' : getLang() === 'zh-TW' ? 'en' : 'zh-CN';
-              setLang(next);
-            }}>
+            <View style={st.iconRow}>
               <View style={[st.iconWrap, st.iconLang]}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c096d8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
                 </svg>
               </View>
               <Text style={st.iconLabel}>{t('language')}</Text>
-              <Text style={st.badge}>{getLang() === 'zh-CN' ? t('langZh') : getLang() === 'zh-TW' ? t('langTw') : t('langEn')}</Text>
-            </TouchableOpacity>
+              <View style={{ flexDirection: 'row' }}>
+                {(['zh-CN','zh-TW','en'] as const).map(l => (
+                  <TouchableOpacity key={l} onPress={() => setLang(l)}>
+                    <Text style={[st.langBtn, getLang() === l && st.langBtnActive]}>
+                      {l === 'zh-CN' ? '简' : l === 'zh-TW' ? '繁' : 'EN'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
             <View style={st.divider} />
             <TouchableOpacity style={st.iconRow} onPress={() => setShowThemeModal(true)}>
               <View style={[st.iconWrap, st.iconTheme]}>
@@ -840,7 +854,10 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
         {/* ── Section: Danger ── */}
         <View style={st.section}>
-          <Text style={st.sectionTitle}>{t('dangerZone')}</Text>
+          <View style={st.sectionTitleRow}>
+            <Text style={st.sectionTitleText}>{t('dangerZone')}</Text>
+            <View style={st.sectionTitleLine} />
+          </View>
           <View style={st.card}>
             <TouchableOpacity style={st.iconRow} onPress={() => setShowLogoutModal(true)}>
               <View style={[st.iconWrap, st.iconDanger]}>
@@ -873,26 +890,9 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       {/* Toast */}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
 
-      {/* Shared modals — used by both HomeScreen and ProfileScreen */}
+      {/* Shared modals */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
-
-      {/* ── Theme Picker Modal ── */}
-      {showThemeModal && createPortal(
-        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowThemeModal(false)}>
-          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
-            <View style={mo.header}>
-              <Text style={mo.title}>{t('themeLabel') || '主题'}</Text>
-              <TouchableOpacity onPress={() => setShowThemeModal(false)}>
-                <Text style={mo.closeBtn}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={mo.body}>
-              <ThemePicker onSelect={() => setShowThemeModal(false)} />
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>,
-        document.body
-      )}
+      <ThemePickerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
 
       {/* ── Change Password Modal ── */}
       {showPwModal && createPortal(
@@ -1289,10 +1289,9 @@ function getStyles(colors: ThemeColors) {
     actionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain },
     // Section
     section: { paddingHorizontal: 20, marginTop: 12 },
-    sectionTitle: {
-      fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase',
-      color: colors.textSub, marginBottom: 6, paddingLeft: 0,
-    } as any,
+    sectionTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 8 },
+    sectionTitleText: { fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase', color: colors.textSub } as any,
+    sectionTitleLine: { flex: 1, height: 1, backgroundColor: withAlpha(colors.textMain, 0.08) },
     // Profile head
     profileHead: { paddingHorizontal: 20, paddingTop: 44, paddingBottom: 12 },
     profileName: { fontSize: 26, fontWeight: '700', color: colors.textMain, letterSpacing: -0.2 } as any,
@@ -1319,6 +1318,8 @@ function getStyles(colors: ThemeColors) {
       backgroundColor: withAlpha(colors.textMain, 0.05),
       paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10,
     } as any,
+    langBtn: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub, paddingHorizontal: 4 },
+    langBtnActive: { color: colors.primary, fontWeight: FONTS.microBold.weight },
     iconLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain, flex: 1 },
     iconValue: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textMain },
     // Bottom stamp
