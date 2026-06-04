@@ -408,18 +408,20 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
   const [productPickerSearch, setProductPickerSearch] = useState('');
 
-  // Hide native scrollbar in items modal (RN Web renders ScrollView as a <div> wrapper around a scrollable inner div)
+  // Hide native scrollbar in items modal (RN Web renders ScrollView as a <div> wrapper)
   useEffect(() => {
     const id = 'procurement-modal-scrollbar-hide';
     if (document.getElementById(id)) return;
     const style = document.createElement('style');
     style.id = id;
-    // Target both the ScrollView root element and any descendant that can scroll
     style.textContent = `
-      [data-proc-picker-scroll]::-webkit-scrollbar { width: 0; height: 0; display: none; }
-      [data-proc-picker-scroll] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
-      [data-proc-picker-scroll] { scrollbar-width: none; -ms-overflow-style: none; }
-      [data-proc-picker-scroll] * { scrollbar-width: none; -ms-overflow-style: none; }
+      [data-proc-picker-scroll] { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+      [data-proc-picker-scroll]::-webkit-scrollbar,
+      [data-proc-picker-scroll] > div::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; -webkit-appearance: none !important; background: transparent !important; }
+      [data-proc-picker-scroll]::-webkit-scrollbar-track,
+      [data-proc-picker-scroll] > div::-webkit-scrollbar-track { background: transparent !important; }
+      [data-proc-picker-scroll]::-webkit-scrollbar-thumb,
+      [data-proc-picker-scroll] > div::-webkit-scrollbar-thumb { background: transparent !important; }
     `;
     document.head.appendChild(style);
   }, []);
