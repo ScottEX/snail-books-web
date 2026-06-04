@@ -604,12 +604,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 <Image source={{ uri: '/img/logo.jpg' }} style={s.avatar} />
               )}
             </TouchableOpacity>
-              <TouchableOpacity onPress={() => fileInputRef.current?.click()} style={s.camBadge}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#fff" strokeWidth="2"/>
-                  <circle cx="12" cy="13" r="4" stroke="#fff" strokeWidth="2"/>
-                </svg>
-              </TouchableOpacity>
             </View>
             <input type="file" accept="image/*" ref={fileInputRef as any}
               style={{ display: 'none' }} onChange={handleAvatarSelect} />

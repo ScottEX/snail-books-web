@@ -83,6 +83,21 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
   });
 
+  // Cover crop state
+  const [coverCropSrc, setCoverCropSrc] = useState('');
+  const [coverCropResult, setCoverCropResult] = useState('');
+  const [coverShowResult, setCoverShowResult] = useState(false);
+  const [coverCropMsg, setCoverCropMsg] = useState('');
+  const coverCropImgRef = useRef<HTMLImageElement | null>(null);
+  const coverCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const coverStageRef = useRef<HTMLDivElement | null>(null);
+  const coverCropState = useRef({
+    x: 0, y: 0, scale: 1, rotation: 0, flipX: false, minScale: 1, maxScale: 8,
+    cropW: 320, cropH: 160,
+    drag: { active: false, sx: 0, sy: 0, ox: 0, oy: 0 },
+    pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
+  });
+
   const st = useMemo(() => getStyles(colors), [colors]);
   const mo = useMemo(() => getMo(colors), [colors]);
   const cropS = useMemo(() => getCropStyles(), []);
@@ -120,14 +135,19 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     } catch {}
   };
 
-  // ── Cover upload ──
-  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ── Cover upload flow (crop before upload) ──
+  const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    try {
-      const r: any = await api.uploadProfileCover(file);
-      if (r?.url) { setCoverUrl(r.url); setCoverKey(k => k + 1); }
-    } catch { setToast('上传失败'); }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const src = reader.result as string;
+      setCoverCropSrc(src); setCoverCropMsg(''); setCoverShowResult(false);
+      const img = document.createElement('img') as HTMLImageElement;
+      img.onload = () => { coverCropImgRef.current = img; coverSetupCanvas(); coverFitImage(); coverDrawCrop(); };
+      img.src = src;
+    };
+    reader.readAsDataURL(file);
     e.target.value = '';
   };
 
@@ -305,6 +325,103 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     drawCrop();
   };
 
+  // ── Cover crop handlers ──
+  const coverSetupCanvas = () => {
+    const canvas = coverCanvasRef.current;
+    const stage = coverStageRef.current;
+    if (!canvas || !stage) return;
+    canvas.width = stage.clientWidth;
+    canvas.height = stage.clientHeight;
+  };
+
+  const coverFitImage = () => {
+    const img = coverCropImgRef.current;
+    const stage = coverStageRef.current;
+    if (!img || !stage) return;
+    const s = coverCropState.current;
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    s.scale = Math.max(sw / img.naturalWidth, sh / img.naturalHeight) * 0.85;
+    s.minScale = s.scale * 0.3; s.maxScale = s.scale * 4;
+    s.x = 0; s.y = 0; s.rotation = 0; s.flipX = false;
+  };
+
+  const coverDrawCrop = () => {
+    const canvas = coverCanvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    const img = coverCropImgRef.current;
+    if (!ctx || !img) return;
+    const s = coverCropState.current;
+    ctx.clearRect(0, 0, canvas!.width, canvas!.height);
+    ctx.save();
+    ctx.translate(canvas!.width / 2 + s.x, canvas!.height / 2 + s.y);
+    ctx.rotate(s.rotation * Math.PI / 180);
+    if (s.flipX) ctx.scale(-1, 1);
+    ctx.scale(s.scale, s.scale);
+    ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+    ctx.restore();
+  };
+
+  const coverConfirmCrop = () => {
+    try {
+      const img = coverCropImgRef.current;
+      if (!img) { setCoverCropMsg('图片未加载'); return; }
+      const s = coverCropState.current;
+      const outW = 720, outH = 360;
+      const output = document.createElement('canvas');
+      output.width = outW; output.height = outH;
+      const octx = output.getContext('2d')!;
+      const outScale = outW / s.cropW;
+      octx.translate(outW / 2 + s.x * outScale, outH / 2 + s.y * outScale);
+      octx.rotate(s.rotation * Math.PI / 180);
+      if (s.flipX) octx.scale(-1, 1);
+      octx.scale(s.scale * outScale, s.scale * outScale);
+      octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+      setCoverCropResult(output.toDataURL('image/jpeg', 0.92));
+      setCoverShowResult(true);
+    } catch { setCoverCropMsg('裁切失败，请重试'); }
+  };
+
+  const coverDoUpload = async () => {
+    if (!coverCropResult) return;
+    try {
+      const arr = coverCropResult.split(',');
+      const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
+      const bstr = atob(arr[1]);
+      const u8 = new Uint8Array(bstr.length);
+      for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
+      const blob = new Blob([u8], { type: mime });
+      const file = new File([blob], 'cover.jpg', { type: mime });
+      const r: any = await api.uploadProfileCover(file);
+      if (r?.url) {
+        setCoverUrl(r.url); setCoverKey(k => k + 1);
+        setCoverCropSrc(''); setCoverCropResult(''); setCoverShowResult(false);
+      } else { setCoverCropMsg('上传失败'); }
+    } catch { setCoverCropMsg('上传失败，请重试'); }
+  };
+
+  // Cover crop mouse/touch
+  const onCoverMouseDown = (e: any) => {
+    const s = coverCropState.current; s.drag.active = true;
+    const cx = e.clientX || (e.touches?.[0]?.clientX) || 0;
+    const cy = e.clientY || (e.touches?.[0]?.clientY) || 0;
+    s.drag.sx = cx; s.drag.sy = cy; s.drag.ox = s.x; s.drag.oy = s.y;
+  };
+  const onCoverMouseMove = (e: any) => {
+    const s = coverCropState.current; if (!s.drag.active) return;
+    const cx = e.clientX || (e.touches?.[0]?.clientX) || 0;
+    const cy = e.clientY || (e.touches?.[0]?.clientY) || 0;
+    s.x = s.drag.ox + (cx - s.drag.sx); s.y = s.drag.oy + (cy - s.drag.sy);
+    coverDrawCrop();
+  };
+  const onCoverMouseUp = () => { coverCropState.current.drag.active = false; };
+  const onCoverWheel = (e: any) => {
+    e.preventDefault();
+    const s = coverCropState.current;
+    const delta = e.deltaY > 0 ? -0.08 : 0.08;
+    s.scale = Math.min(s.maxScale, Math.max(s.minScale, s.scale + delta));
+    coverDrawCrop();
+  };
+
   return (
     <View style={st.root}>
       <ScrollView style={st.scroll} showsVerticalScrollIndicator={false}>
@@ -390,7 +507,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
       </ScrollView>
 
       {/* Hidden file inputs */}
-      <input type="file" accept="image/*" ref={coverInputRef as any} style={{ display: 'none' }} onChange={handleCoverUpload} />
+      <input type="file" accept="image/*" ref={coverInputRef as any} style={{ display: 'none' }} onChange={handleCoverSelect} />
       <input type="file" accept="image/*" ref={avatarInputRef as any} style={{ display: 'none' }} onChange={handleAvatarSelect} />
 
       {/* Toast */}
@@ -561,6 +678,51 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
                 <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>重选</Text>
               </TouchableOpacity>
               <TouchableOpacity style={cropS.saveBtn} onPress={doUpload}>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>保存</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>,
+        document.body
+      )}
+
+      {/* Cover Crop Modal (portal) */}
+      {coverCropSrc !== '' && !coverShowResult && createPortal(
+        <View style={cropS.overlay}>
+          <View style={cropS.header}>
+            <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={cropS.closeBtn}>
+              <Text style={cropS.closeBtnText}>✕</Text>
+            </TouchableOpacity>
+            <Text style={cropS.title}>编辑封面</Text>
+            <TouchableOpacity onPress={coverConfirmCrop}>
+              <Text style={{ color: '#5B5BD6', fontSize: 14, fontWeight: '600' }}>确认</Text>
+            </TouchableOpacity>
+          </View>
+          <div ref={coverStageRef as any} style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move', touchAction: 'none' } as any}
+            onMouseDown={onCoverMouseDown} onMouseMove={onCoverMouseMove} onMouseUp={onCoverMouseUp} onMouseLeave={onCoverMouseUp}
+            onTouchStart={onCoverMouseDown} onTouchMove={onCoverMouseMove} onTouchEnd={onCoverMouseUp} onWheel={onCoverWheel}>
+            <canvas ref={coverCanvasRef as any} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any}>
+              <View style={{ width: 320, height: 160, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any} />
+            </View>
+          </div>
+          {coverCropMsg ? <Text style={{ color: '#ef4444', textAlign: 'center', padding: 4, fontSize: 12, backgroundColor: 'rgba(0,0,0,0.6)' }}>{coverCropMsg}</Text> : null}
+        </View>,
+        document.body
+      )}
+
+      {/* Cover Result Modal */}
+      {coverShowResult && createPortal(
+        <View style={cropS.overlay}>
+          <View style={cropS.resultCard}>
+            <View style={cropS.resultBadge}><Text style={{ fontSize: 20 }}>✓</Text></View>
+            <Text style={cropS.resultLabel}>封面预览</Text>
+            {coverCropResult ? <Image source={{ uri: coverCropResult }} style={{ width: 120, height: 60, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.15)' }} /> : null}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' } as any}>
+              <TouchableOpacity style={cropS.reEditBtn} onPress={() => { setCoverShowResult(false); }}>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>重选</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={cropS.saveBtn} onPress={coverDoUpload}>
                 <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>保存</Text>
               </TouchableOpacity>
             </View>
