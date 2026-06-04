@@ -282,7 +282,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
-  itemsModalBody: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
+  itemsModalBodyWrap: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
   itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.06) },
   itemsRowLast: { borderBottomWidth: 0 },
   itemsRowName: { flex: 1, fontSize: FONTS.sub.size, color: c.textMain },
@@ -1522,13 +1522,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                     } as any}
                   />
                 </View>
-                <ScrollView style={[styles.itemsModalBody, { flex: 1 }]}>
-                  {products
-                    .filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch))
-                    .map((p, idx, arr) => {
-                      const qty = cart[p.id] || 0;
-                      return (
-                        <View key={p.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
+                <View style={styles.itemsModalBodyWrap}>
+                  <ScrollView style={{ flex: 1 }}>
+                    {products
+                      .filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch))
+                      .map((p, idx, arr) => {
+                        const qty = cart[p.id] || 0;
+                        return (
+                          <View key={p.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
                           <View style={{ flex: 1 }}>
                             <Text style={styles.itemsRowName}>{p.name}</Text>
                             <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
@@ -1558,7 +1559,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                       <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
                     </View>
                   )}
-                </ScrollView>
+                  </ScrollView>
+                </View>
                 <TouchableOpacity
                   style={{ marginHorizontal: 16, marginBottom: 16, marginTop: 4, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
                   onPress={() => setItemsModalView('items')}
@@ -1569,39 +1571,41 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
             ) : itemsModalIsCart ? (
               // ── Cart edit view (with +/- qty) ──
               <>
-                <ScrollView style={[styles.itemsModalBody, { flex: 1 }]}>
-                  {cartItems.length === 0 ? (
-                    <View style={{ padding: 24, alignItems: 'center' }}>
-                      <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
-                    </View>
-                  ) : (
-                    cartItems.map((i, idx, arr) => (
-                      <View key={i.product.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.itemsRowName}>{i.product.name}</Text>
-                          <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
-                            ¥{i.product.price.toFixed(2)} · {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
-                          </Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <TouchableOpacity
-                            style={[styles.qtyBtnSm, styles.qtyBtnMinus]}
-                            onPress={() => updateQty(i.product.id, -1)}
-                          >
-                            <Text style={styles.qtyBtnSmText}>−</Text>
-                          </TouchableOpacity>
-                          <Text style={styles.qtyNumSm}>{i.quantity}</Text>
-                          <TouchableOpacity
-                            style={[styles.qtyBtnSm, styles.qtyBtnPlus]}
-                            onPress={() => updateQty(i.product.id, 1)}
-                          >
-                            <Text style={styles.qtyBtnSmPlusText}>+</Text>
-                          </TouchableOpacity>
-                        </View>
+                <View style={styles.itemsModalBodyWrap}>
+                  <ScrollView style={{ flex: 1 }}>
+                    {cartItems.length === 0 ? (
+                      <View style={{ padding: 24, alignItems: 'center' }}>
+                        <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
                       </View>
-                    ))
-                  )}
-                </ScrollView>
+                    ) : (
+                      cartItems.map((i, idx, arr) => (
+                        <View key={i.product.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.itemsRowName}>{i.product.name}</Text>
+                            <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
+                              ¥{i.product.price.toFixed(2)} · {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
+                            </Text>
+                          </View>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <TouchableOpacity
+                              style={[styles.qtyBtnSm, styles.qtyBtnMinus]}
+                              onPress={() => updateQty(i.product.id, -1)}
+                            >
+                              <Text style={styles.qtyBtnSmText}>−</Text>
+                            </TouchableOpacity>
+                            <Text style={styles.qtyNumSm}>{i.quantity}</Text>
+                            <TouchableOpacity
+                              style={[styles.qtyBtnSm, styles.qtyBtnPlus]}
+                              onPress={() => updateQty(i.product.id, 1)}
+                            >
+                              <Text style={styles.qtyBtnSmPlusText}>+</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ))
+                    )}
+                  </ScrollView>
+                </View>
                 <View style={styles.itemsTotalRow}>
                   <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
                   <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
@@ -1624,15 +1628,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
             ) : (
               // ── History detail view (read-only) ──
               <>
-                <ScrollView style={[styles.itemsModalBody, { flex: 1 }]}>
-                  {detailItems.map((item, idx, arr) => (
-                    <View key={idx} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
-                      <Text style={styles.itemsRowName}>{item.name}</Text>
-                      <Text style={styles.itemsRowQty}>×{item.quantity}</Text>
-                      <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
-                    </View>
-                  ))}
-                </ScrollView>
+                <View style={styles.itemsModalBodyWrap}>
+                  <ScrollView style={{ flex: 1 }}>
+                    {detailItems.map((item, idx, arr) => (
+                      <View key={idx} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
+                        <Text style={styles.itemsRowName}>{item.name}</Text>
+                        <Text style={styles.itemsRowQty}>×{item.quantity}</Text>
+                        <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
+                      </View>
+                    ))}
+                  </ScrollView>
+                </View>
                 <View style={styles.itemsTotalRow}>
                   <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
                   <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
