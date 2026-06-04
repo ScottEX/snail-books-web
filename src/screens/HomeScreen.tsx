@@ -236,10 +236,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
       setEditingRevId(null); setRevDate(todayDateStr());
       setRevMarkedClosed(false);
-      loadDailyRevs(1, revYear, revMonth);
-      api.getLast7Days().then((r: any) => {
-        try { setLast7Records(r?.records || []); } catch {}
-      }).catch(() => {});
+      await loadDailyRevs(1, revYear, revMonth);
+      const r = await api.getLast7Days();
+      setLast7Records(r?.records || []);
     } catch { setToast(t('toastSubmitFailed')); }
     setRevSaving(false);
   };
