@@ -403,6 +403,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
+  const [itemsModalIsCart, setItemsModalIsCart] = useState(false);
+  const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
+  const [productPickerSearch, setProductPickerSearch] = useState('');
   const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
   const [detailTotal, setDetailTotal] = useState(0);
   const [detailBatchId, setDetailBatchId] = useState(0);
@@ -452,6 +455,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const openItemsModal = () => {
     setDetailItems(cartItems.map(i => ({ name: i.product.name, quantity: i.quantity, subtotal: i.subtotal })));
     setDetailTotal(cartTotal);
+    setItemsModalIsCart(true);
+    setItemsModalView('items');
+    setProductPickerSearch('');
     setShowItemsModal(true);
     itemsModalAnim.setValue(-300);
     itemsModalOverlayAnim.setValue(0);
@@ -496,6 +502,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     })));
     setDetailTotal(batch.total);
     setDetailBatchId(batch.id);
+    setItemsModalIsCart(false);
+    setItemsModalView('items');
     setShowItemsModal(true);
     itemsModalAnim.setValue(-300);
     itemsModalOverlayAnim.setValue(0);
@@ -1479,41 +1487,168 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
         <Animated.View style={[styles.itemsModalOverlay, { opacity: itemsModalOverlayAnim }]}>
           <Animated.View style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}>
             <View style={styles.itemsModalHeader}>
-              <Text style={styles.itemsModalTitle}>{t('procOrderItems')}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {itemsModalIsCart && itemsModalView === 'products' && (
+                  <TouchableOpacity onPress={() => setItemsModalView('items')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Text style={[styles.itemsModalClose, { fontSize: 18 }]}>←</Text>
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.itemsModalTitle}>
+                  {itemsModalIsCart && itemsModalView === 'products' ? t('procAddProduct') : t('procOrderItems')}
+                </Text>
+              </View>
               <TouchableOpacity onPress={closeItemsModal}>
                 <Text style={styles.itemsModalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView style={[styles.itemsModalBody, { flex: 1 }]}>
-              {detailItems.map((item, idx) => (
-                <View key={idx} style={styles.itemsRow}>
-                  <Text style={styles.itemsRowName}>{item.name}</Text>
-                  <Text style={styles.itemsRowQty}>×{item.quantity}</Text>
-                  <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
+            {itemsModalIsCart && itemsModalView === 'products' ? (
+              // ── Product picker view ──
+              <>
+                <View style={{ paddingHorizontal: 12, paddingTop: 10, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.06) }}>
+                  <TextInput
+                    value={productPickerSearch}
+                    onChangeText={setProductPickerSearch}
+                    placeholder={t('procSearchProducts')}
+                    placeholderTextColor={c.textSub}
+                    style={{
+                      paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8, fontSize: FONTS.sub.size,
+                      color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.04), outline: 'none',
+                    } as any}
+                  />
                 </View>
-              ))}
-            </ScrollView>
-            <View style={[styles.itemsTotalRow, { paddingHorizontal: 16, paddingBottom: 12 }]}>
-              <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
-              <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
-            </View>
-            <TouchableOpacity
-              style={{ marginHorizontal: 16, marginBottom: 16, paddingVertical: 12, borderRadius: 8, backgroundColor: downloadingPDF ? c.secondary : c.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, opacity: downloadingPDF ? 0.7 : 1 }}
-              onPress={() => downloadPDF(detailBatchId)}
-              disabled={downloadingPDF}
-            >
-              <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>
-                {downloadingPDF ? '⏳ 生成中...' : pdfDone ? '✅ 已保存' : '📥 下载 PDF'}
-              </Text>
-            </TouchableOpacity>
-            {/* Loading overlay */}
-            {downloadingPDF && (
-              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 16, alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                <View style={{ backgroundColor: c.surface, paddingVertical: 16, paddingHorizontal: 28, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, alignItems: 'center' }}>
-                  <ActivityIndicator size="small" color={c.primary} />
-                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 10 }}>正在生成进货单…</Text>
+                <ScrollView style={{ flex: 1 }}>
+                  {products
+                    .filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch))
+                    .map(p => {
+                      const qty = cart[p.id] || 0;
+                      return (
+                        <View key={p.id} style={styles.itemsRow}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.itemsRowName}>{p.name}</Text>
+                            <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
+                              {p.spec} · ¥{p.price.toFixed(2)}
+                            </Text>
+                          </View>
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <TouchableOpacity
+                              style={[styles.qtyBtn, styles.qtyBtnMinus]}
+                              onPress={() => updateQty(p.id, -1)}
+                            >
+                              <Text style={styles.qtyBtnMinusText}>−</Text>
+                            </TouchableOpacity>
+                            <Text style={styles.qtyNum}>{qty}</Text>
+                            <TouchableOpacity
+                              style={[styles.qtyBtn, styles.qtyBtnPlus]}
+                              onPress={() => updateQty(p.id, 1)}
+                            >
+                              <Text style={styles.qtyBtnPlusText}>+</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  {products.filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch)).length === 0 && (
+                    <View style={{ padding: 24, alignItems: 'center' }}>
+                      <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
+                    </View>
+                  )}
+                </ScrollView>
+                <TouchableOpacity
+                  style={{ marginHorizontal: 16, marginVertical: 12, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
+                  onPress={() => setItemsModalView('items')}
+                >
+                  <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
+                </TouchableOpacity>
+              </>
+            ) : itemsModalIsCart ? (
+              // ── Cart edit view (with +/- qty) ──
+              <>
+                <ScrollView style={{ flex: 1 }}>
+                  {cartItems.length === 0 ? (
+                    <View style={{ padding: 24, alignItems: 'center' }}>
+                      <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
+                    </View>
+                  ) : (
+                    cartItems.map(i => (
+                      <View key={i.product.id} style={styles.itemsRow}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.itemsRowName}>{i.product.name}</Text>
+                          <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
+                            ¥{i.product.price.toFixed(2)} · {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
+                          </Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <TouchableOpacity
+                            style={[styles.qtyBtn, styles.qtyBtnMinus]}
+                            onPress={() => updateQty(i.product.id, -1)}
+                          >
+                            <Text style={styles.qtyBtnMinusText}>−</Text>
+                          </TouchableOpacity>
+                          <Text style={styles.qtyNum}>{i.quantity}</Text>
+                          <TouchableOpacity
+                            style={[styles.qtyBtn, styles.qtyBtnPlus]}
+                            onPress={() => updateQty(i.product.id, 1)}
+                          >
+                            <Text style={styles.qtyBtnPlusText}>+</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))
+                  )}
+                </ScrollView>
+                <View style={[styles.itemsTotalRow, { paddingHorizontal: 16 }]}>
+                  <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
+                  <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
                 </View>
-              </View>
+                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 8 }}>
+                  <TouchableOpacity
+                    style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08), alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
+                    onPress={() => setItemsModalView('products')}
+                  >
+                    <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.primary }}>+ {t('procAddProduct')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
+                    onPress={closeItemsModal}
+                  >
+                    <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              // ── History detail view (read-only) ──
+              <>
+                <ScrollView style={{ flex: 1 }}>
+                  {detailItems.map((item, idx) => (
+                    <View key={idx} style={styles.itemsRow}>
+                      <Text style={styles.itemsRowName}>{item.name}</Text>
+                      <Text style={styles.itemsRowQty}>×{item.quantity}</Text>
+                      <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+                <View style={[styles.itemsTotalRow, { paddingHorizontal: 16, paddingBottom: 12 }]}>
+                  <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
+                  <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
+                </View>
+                <TouchableOpacity
+                  style={{ marginHorizontal: 16, marginBottom: 16, paddingVertical: 12, borderRadius: 8, backgroundColor: downloadingPDF ? c.secondary : c.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, opacity: downloadingPDF ? 0.7 : 1 }}
+                  onPress={() => downloadPDF(detailBatchId)}
+                  disabled={downloadingPDF}
+                >
+                  <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>
+                    {downloadingPDF ? '⏳ 生成中...' : pdfDone ? '✅ 已保存' : '📥 下载 PDF'}
+                  </Text>
+                </TouchableOpacity>
+                {downloadingPDF && (
+                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 16, alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                    <View style={{ backgroundColor: c.surface, paddingVertical: 16, paddingHorizontal: 28, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, alignItems: 'center' }}>
+                      <ActivityIndicator size="small" color={c.primary} />
+                      <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 10 }}>正在生成进货单…</Text>
+                    </View>
+                  </View>
+                )}
+              </>
             )}
           </Animated.View>
         </Animated.View>
