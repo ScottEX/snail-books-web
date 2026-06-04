@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Defs, LinearGradient as SVGGradient, Stop, Rect } from 'react-native-svg';
 import { t } from '../i18n';
@@ -7,6 +7,7 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 /* ========== SVG ICONS ========== */
 
@@ -19,10 +20,19 @@ function CameraIcon({ color = '#fff', size = 12 }: { color?: string; size?: numb
   );
 }
 
-function ChevronLeft({ color = '#fff' }: { color?: string }) {
+function ChevronLeft({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M16 4L6 12l10 8" />
+    </Svg>
+  );
+}
+
+function ChevronRight({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      style={{ transform: [{ translateY: -1 }] }}>
+      <Path d="M10 6l6 6-6 6" />
     </Svg>
   );
 }
@@ -40,12 +50,22 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
   const username = useMemo(() => {
     try { return localStorage.getItem('user') || ''; } catch { return ''; }
   }, []);
-  const email = useMemo(() => {
+  const [email, setEmail] = useState(() => {
     try { return localStorage.getItem('email') || ''; } catch { return ''; }
-  }, []);
+  });
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+
+  // Modals
+  const [showPwModal, setShowPwModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [oldPw, setOldPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [modalMsg, setModalMsg] = useState('');
+  const [modalLoading, setModalLoading] = useState(false);
 
   // Crop state
   const [cropSrc, setCropSrc] = useState('');
@@ -63,6 +83,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
   });
 
   const st = useMemo(() => getStyles(colors), [colors]);
+  const mo = useMemo(() => getMo(colors), [colors]);
   const cropS = useMemo(() => getCropStyles(), []);
 
   // Load avatar
@@ -82,16 +103,11 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
   const loadCover = async () => {
     try {
       const r: any = await api.getProfileCover();
-      if (r?.url) {
-        setCoverUrl(r.url);
-      }
+      if (r?.url) setCoverUrl(r.url);
     } catch {}
   };
 
-  useEffect(() => {
-    loadAvatar();
-    loadCover();
-  }, []);
+  useEffect(() => { loadAvatar(); loadCover(); }, []);
 
   // ── Cover upload ──
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,30 +115,21 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     if (!file) return;
     try {
       const r: any = await api.uploadProfileCover(file);
-      if (r?.url) {
-        setCoverUrl(r.url);
-        setCoverKey(k => k + 1);
-      }
+      if (r?.url) { setCoverUrl(r.url); setCoverKey(k => k + 1); }
     } catch { setToast('上传失败'); }
     e.target.value = '';
   };
 
-  // ── Avatar upload flow (crop from PartnerScreen) ──
+  // ── Avatar upload flow ──
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       const src = reader.result as string;
-      setCropSrc(src);
-      setCropMsg(''); setShowResult(false);
+      setCropSrc(src); setCropMsg(''); setShowResult(false);
       const img = document.createElement('img') as HTMLImageElement;
-      img.onload = () => {
-        cropImgRef.current = img;
-        setupCanvas();
-        fitImage();
-        drawCrop();
-      };
+      img.onload = () => { cropImgRef.current = img; setupCanvas(); fitImage(); drawCrop(); };
       img.src = src;
     };
     reader.readAsDataURL(file);
@@ -143,11 +150,8 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     if (!img || !stage) return;
     const s = cropState.current;
     const sw = stage.clientWidth, sh = stage.clientHeight;
-    const scaleW = sw / img.naturalWidth;
-    const scaleH = sh / img.naturalHeight;
-    s.scale = Math.max(scaleW, scaleH) * 0.9;
-    s.minScale = s.scale * 0.3;
-    s.maxScale = s.scale * 4;
+    s.scale = Math.max(sw / img.naturalWidth, sh / img.naturalHeight) * 0.9;
+    s.minScale = s.scale * 0.3; s.maxScale = s.scale * 4;
     s.x = 0; s.y = 0; s.rotation = 0; s.flipX = false;
   };
 
@@ -187,7 +191,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
       octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
       setCropResult(output.toDataURL('image/jpeg', 0.92));
       setShowResult(true);
-    } catch (e) { console.error('crop failed', e); setCropMsg('裁切失败，请重试'); }
+    } catch (e) { setCropMsg('裁切失败，请重试'); }
   };
 
   const doUpload = async () => {
@@ -202,46 +206,71 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
       const form = new FormData();
       form.append('file', blob, 'avatar.jpg');
       const resp = await api.uploadAvatar(form);
-      if (resp.status === 'ok') {
-        setShowResult(false);
-        setCropSrc('');
-        setCropResult('');
-        setAvatarKey(k => k + 1);
-        loadAvatar();
-      } else { setCropMsg('上传失败'); }
-    } catch (e) { console.error('upload failed', e); setCropMsg('上传失败，请重试'); }
+      if (resp.status === 'ok') { setShowResult(false); setCropSrc(''); setCropResult(''); setAvatarKey(k => k + 1); loadAvatar(); }
+      else { setCropMsg('上传失败'); }
+    } catch (e) { setCropMsg('上传失败，请重试'); }
   };
 
-  // ── Crop canvas mouse/touch handlers ──
+  // ── Change Password ──
+  const handleChangePw = async () => {
+    setModalMsg('');
+    if (!oldPw) { setModalMsg(t('errOldPwRequired')); return; }
+    if (!newPw) { setModalMsg('请输入新密码'); return; }
+    if (newPw !== confirmPw) { setModalMsg(t('errPwMismatch')); return; }
+    setModalLoading(true);
+    try {
+      const r: any = await api.changePassword(oldPw, newPw);
+      if (r.status === 'ok') {
+        setShowPwModal(false);
+        setOldPw(''); setNewPw(''); setConfirmPw('');
+        setToast(t('pwChanged'));
+      } else {
+        setModalMsg(r.message || '修改失败');
+      }
+    } catch { setModalMsg('网络错误'); }
+    setModalLoading(false);
+  };
+
+  // ── Change Email ──
+  const handleChangeEmail = async () => {
+    setModalMsg('');
+    if (!newEmail) { setModalMsg('请输入新邮箱'); return; }
+    setModalLoading(true);
+    try {
+      const r: any = await api.changeEmail(newEmail);
+      if (r.status === 'ok') {
+        setEmail(newEmail);
+        try { localStorage.setItem('email', newEmail); } catch {}
+        setShowEmailModal(false);
+        setNewEmail('');
+        setToast(t('emailChanged'));
+      } else {
+        setModalMsg(r.message || '修改失败');
+      }
+    } catch { setModalMsg('网络错误'); }
+    setModalLoading(false);
+  };
+
+  // ── Crop mouse/touch handlers ──
   const onStageMouseDown = (e: any) => {
-    const s = cropState.current;
-    s.drag.active = true;
+    const s = cropState.current; s.drag.active = true;
     const cx = e.clientX || (e.touches?.[0]?.clientX) || 0;
     const cy = e.clientY || (e.touches?.[0]?.clientY) || 0;
-    s.drag.sx = cx; s.drag.sy = cy;
-    s.drag.ox = s.x; s.drag.oy = s.y;
+    s.drag.sx = cx; s.drag.sy = cy; s.drag.ox = s.x; s.drag.oy = s.y;
   };
-
   const onStageMouseMove = (e: any) => {
-    const s = cropState.current;
-    if (!s.drag.active) return;
+    const s = cropState.current; if (!s.drag.active) return;
     const cx = e.clientX || (e.touches?.[0]?.clientX) || 0;
     const cy = e.clientY || (e.touches?.[0]?.clientY) || 0;
-    s.x = s.drag.ox + (cx - s.drag.sx);
-    s.y = s.drag.oy + (cy - s.drag.sy);
+    s.x = s.drag.ox + (cx - s.drag.sx); s.y = s.drag.oy + (cy - s.drag.sy);
     drawCrop();
   };
-
-  const onStageMouseUp = () => {
-    cropState.current.drag.active = false;
-  };
-
+  const onStageMouseUp = () => { cropState.current.drag.active = false; };
   const onStageWheel = (e: any) => {
     e.preventDefault();
     const s = cropState.current;
     const delta = e.deltaY > 0 ? -0.08 : 0.08;
-    const newScale = Math.min(s.maxScale, Math.max(s.minScale, s.scale + delta));
-    s.scale = newScale;
+    s.scale = Math.min(s.maxScale, Math.max(s.minScale, s.scale + delta));
     drawCrop();
   };
 
@@ -258,24 +287,20 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
 
       <ScrollView style={st.scroll} showsVerticalScrollIndicator={false}>
         {/* Cover Image */}
-        <TouchableOpacity
-          style={st.coverWrap}
-          onPress={() => coverInputRef.current?.click()}
-          activeOpacity={0.9}
-        >
+        <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
             <Image source={{ uri: coverUrl + '&t=' + coverKey }} style={st.coverImg} />
           ) : (
             <View style={st.coverGradient}>
               <Svg width="100%" height="100%" viewBox="0 0 360 180" preserveAspectRatio="none">
                 <Defs>
-                  <SVGGradient id="coverGrad" x1="0" y1="0" x2="1" y2="1">
+                  <SVGGradient id="coverGrad2" x1="0" y1="0" x2="1" y2="1">
                     <Stop offset="0" stopColor={colors.primary} stopOpacity={1} />
                     <Stop offset="0.5" stopColor={colors.accent} stopOpacity={0.7} />
                     <Stop offset="1" stopColor={colors.primary} stopOpacity={0.35} />
                   </SVGGradient>
                 </Defs>
-                <Rect width="360" height="180" fill="url(#coverGrad)" />
+                <Rect width="360" height="180" fill="url(#coverGrad2)" />
               </Svg>
             </View>
           )}
@@ -283,13 +308,11 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
             <CameraIcon color="#fff" size={14} />
             <Text style={st.coverOverlayText}>{t('editCover')}</Text>
           </View>
-        </TouchableOpacity>
 
-        {/* Avatar — overlapping cover bottom */}
-        <View style={st.avatarRow}>
+          {/* Avatar — right side, half overlapping cover bottom */}
           <TouchableOpacity
-            onPress={() => avatarInputRef.current?.click()}
-            style={st.avatarWrap}
+            onPress={(e: any) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
+            style={st.avatarFloat}
             activeOpacity={0.8}
           >
             {avatarUrl ? (
@@ -304,9 +327,9 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
               </svg>
             </View>
           </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
 
-        {/* Info card */}
+        {/* Info card — with action rows */}
         <View style={st.card}>
           <View style={st.field}>
             <Text style={st.fieldLabel}>{t('displayName')}</Text>
@@ -317,17 +340,120 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
             <Text style={st.fieldLabel}>{t('profileEmail')}</Text>
             <Text style={st.fieldValue}>{email || '—'}</Text>
           </View>
+          <View style={st.divider} />
+          <TouchableOpacity style={st.actionRow} onPress={() => { setShowPwModal(true); setOldPw(''); setNewPw(''); setConfirmPw(''); setModalMsg(''); }}>
+            <Text style={st.actionLabel}>{t('changePassword')}</Text>
+            <ChevronRight color={colors.textSub} />
+          </TouchableOpacity>
+          <View style={st.divider} />
+          <TouchableOpacity style={st.actionRow} onPress={() => { setShowEmailModal(true); setNewEmail(''); setModalMsg(''); }}>
+            <Text style={st.actionLabel}>{t('changeEmail')}</Text>
+            <ChevronRight color={colors.textSub} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
       {/* Hidden file inputs */}
-      <input type="file" accept="image/*" ref={coverInputRef as any}
-        style={{ display: 'none' }} onChange={handleCoverUpload} />
-      <input type="file" accept="image/*" ref={avatarInputRef as any}
-        style={{ display: 'none' }} onChange={handleAvatarSelect} />
+      <input type="file" accept="image/*" ref={coverInputRef as any} style={{ display: 'none' }} onChange={handleCoverUpload} />
+      <input type="file" accept="image/*" ref={avatarInputRef as any} style={{ display: 'none' }} onChange={handleAvatarSelect} />
 
       {/* Toast */}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+
+      {/* ── Change Password Modal ── */}
+      {showPwModal && createPortal(
+        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowPwModal(false)}>
+          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
+            <View style={mo.header}>
+              <Text style={mo.title}>{t('changePassword')}</Text>
+              <TouchableOpacity onPress={() => setShowPwModal(false)}>
+                <Text style={mo.closeBtn}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={mo.body}>
+              <TextInput
+                style={[mo.input, { outline: 'none' } as any]}
+                placeholder={t('oldPassword')}
+                placeholderTextColor={colors.textSub}
+                secureTextEntry
+                value={oldPw}
+                onChangeText={setOldPw}
+                autoFocus
+              />
+              <TextInput
+                style={[mo.input, { outline: 'none' } as any]}
+                placeholder={t('newPassword')}
+                placeholderTextColor={colors.textSub}
+                secureTextEntry
+                value={newPw}
+                onChangeText={setNewPw}
+              />
+              <Text style={mo.pwHint}>{t('pwHint')}</Text>
+              <TextInput
+                style={[mo.input, { outline: 'none' } as any]}
+                placeholder={t('confirmNewPassword')}
+                placeholderTextColor={colors.textSub}
+                secureTextEntry
+                value={confirmPw}
+                onChangeText={setConfirmPw}
+              />
+              {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
+              <View style={mo.btnRow}>
+                <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowPwModal(false)}>
+                  <Text style={mo.cancelText}>取消</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
+                  onPress={handleChangePw}
+                  disabled={modalLoading}
+                >
+                  <Text style={mo.confirmText}>{modalLoading ? '...' : '确认修改'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>,
+        document.body
+      )}
+
+      {/* ── Change Email Modal ── */}
+      {showEmailModal && createPortal(
+        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowEmailModal(false)}>
+          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
+            <View style={mo.header}>
+              <Text style={mo.title}>{t('changeEmail')}</Text>
+              <TouchableOpacity onPress={() => setShowEmailModal(false)}>
+                <Text style={mo.closeBtn}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={mo.body}>
+              <TextInput
+                style={[mo.input, { outline: 'none' } as any]}
+                placeholder={t('newEmail')}
+                placeholderTextColor={colors.textSub}
+                value={newEmail}
+                onChangeText={setNewEmail}
+                autoFocus
+                keyboardType="email-address"
+              />
+              {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
+              <View style={mo.btnRow}>
+                <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowEmailModal(false)}>
+                  <Text style={mo.cancelText}>取消</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
+                  onPress={handleChangeEmail}
+                  disabled={modalLoading}
+                >
+                  <Text style={mo.confirmText}>{modalLoading ? '...' : '确认修改'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>,
+        document.body
+      )}
 
       {/* Crop Modal (portal) */}
       {cropSrc !== '' && !showResult && createPortal(
@@ -341,31 +467,12 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
               <Text style={{ color: '#5B5BD6', fontSize: 14, fontWeight: '600' }}>确认</Text>
             </TouchableOpacity>
           </View>
-          <div
-            ref={stageRef as any}
-            style={{
-              flex: 1, position: 'relative', overflow: 'hidden',
-              backgroundColor: '#000', cursor: 'move', touchAction: 'none',
-            } as any}
-            onMouseDown={onStageMouseDown}
-            onMouseMove={onStageMouseMove}
-            onMouseUp={onStageMouseUp}
-            onMouseLeave={onStageMouseUp}
-            onTouchStart={onStageMouseDown}
-            onTouchMove={onStageMouseMove}
-            onTouchEnd={onStageMouseUp}
-            onWheel={onStageWheel}
-          >
+          <div ref={stageRef as any} style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move', touchAction: 'none' } as any}
+            onMouseDown={onStageMouseDown} onMouseMove={onStageMouseMove} onMouseUp={onStageMouseUp} onMouseLeave={onStageMouseUp}
+            onTouchStart={onStageMouseDown} onTouchMove={onStageMouseMove} onTouchEnd={onStageMouseUp} onWheel={onStageWheel}>
             <canvas ref={canvasRef as any} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
-            <View style={{
-              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-              alignItems: 'center', justifyContent: 'center',
-            } as any}>
-              <View style={{
-                width: 160, height: 160, borderRadius: 80,
-                borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)',
-                boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)',
-              } as any} />
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any}>
+              <View style={{ width: 160, height: 160, borderRadius: 80, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any} />
             </View>
           </div>
           {cropMsg ? <Text style={{ color: '#ef4444', textAlign: 'center', padding: 4, fontSize: 12, backgroundColor: 'rgba(0,0,0,0.6)' }}>{cropMsg}</Text> : null}
@@ -377,14 +484,9 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
       {showResult && createPortal(
         <View style={cropS.overlay}>
           <View style={cropS.resultCard}>
-            <View style={cropS.resultBadge}>
-              <Text style={{ fontSize: 20 }}>✓</Text>
-            </View>
+            <View style={cropS.resultBadge}><Text style={{ fontSize: 20 }}>✓</Text></View>
             <Text style={cropS.resultLabel}>预览</Text>
-            {cropResult ? (
-              <Image source={{ uri: cropResult }}
-                style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: 'rgba(255,255,255,0.15)' }} />
-            ) : null}
+            {cropResult ? <Image source={{ uri: cropResult }} style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: 'rgba(255,255,255,0.15)' }} /> : null}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' } as any}>
               <TouchableOpacity style={cropS.reEditBtn} onPress={() => { setShowResult(false); }}>
                 <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>重选</Text>
@@ -414,35 +516,23 @@ function getStyles(colors: ThemeColors) {
       backgroundColor: withAlpha(colors.textMain, 0.06),
       justifyContent: 'center', alignItems: 'center',
     },
-    headerTitle: {
-      fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain,
-    },
+    headerTitle: { fontSize: FONTS.body.size, fontWeight: '600', color: colors.textMain },
     scroll: { flex: 1 },
     // Cover
-    coverWrap: {
-      height: 180, position: 'relative', overflow: 'hidden',
-    },
-    coverImg: {
-      width: '100%', height: '100%', resizeMode: 'cover' as any,
-    } as any,
-    coverGradient: {
-      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    },
+    coverWrap: { height: 180, position: 'relative', overflow: 'visible' as any },
+    coverImg: { width: '100%', height: '100%', resizeMode: 'cover' as any } as any,
+    coverGradient: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
     coverOverlay: {
-      position: 'absolute', bottom: 12, right: 12,
+      position: 'absolute', bottom: 12, left: 12,
       flexDirection: 'row', alignItems: 'center', gap: 6,
       backgroundColor: 'rgba(0,0,0,0.35)',
       borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6,
     },
-    coverOverlayText: {
-      fontSize: 12, fontWeight: '500', color: '#fff',
-    },
-    // Avatar
-    avatarRow: {
-      alignItems: 'center', marginTop: -40, marginBottom: 20,
-    },
-    avatarWrap: {
-      position: 'relative',
+    coverOverlayText: { fontSize: 12, fontWeight: '500', color: '#fff' },
+    // Avatar — positioned right, half overlapping cover bottom
+    avatarFloat: {
+      position: 'absolute' as any, right: 20, bottom: -40,
+      zIndex: 10,
     },
     avatar: {
       width: 80, height: 80, borderRadius: 40,
@@ -458,66 +548,80 @@ function getStyles(colors: ThemeColors) {
     },
     // Card
     card: {
-      marginHorizontal: 16, backgroundColor: colors.surface,
+      marginHorizontal: 16, marginTop: 48, backgroundColor: colors.surface,
       borderRadius: 14, paddingHorizontal: 18, paddingVertical: 4,
     },
     field: {
       flexDirection: 'row', justifyContent: 'space-between',
       alignItems: 'center', paddingVertical: 16,
     },
-    fieldLabel: {
-      fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
+    fieldLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
+    fieldValue: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textMain },
+    divider: { height: 0.5, backgroundColor: withAlpha(colors.textMain, 0.08) },
+    // Action rows (password / email)
+    actionRow: {
+      flexDirection: 'row', justifyContent: 'space-between',
+      alignItems: 'center', paddingVertical: 16,
     },
-    fieldValue: {
-      fontSize: FONTS.body.size, fontWeight: '500', color: colors.textMain,
+    actionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain },
+  });
+}
+
+function getMo(colors: ThemeColors) {
+  return StyleSheet.create({
+    overlay: {
+      position: 'fixed' as any, inset: 0,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+      justifyContent: 'center', alignItems: 'center', zIndex: 500,
     },
-    divider: {
-      height: 0.5, backgroundColor: withAlpha(colors.textMain, 0.08),
+    card: {
+      backgroundColor: colors.surface, borderRadius: 16,
+      width: 340, maxWidth: '90%', overflow: 'hidden' as any,
+      ...modalCardAnimation,
     },
+    header: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 20, paddingVertical: 14,
+      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    },
+    title: { fontSize: 14, fontWeight: '700', color: colors.surface },
+    closeBtn: { ...modalClose },
+    body: { padding: 20, gap: 12 } as any,
+    input: {
+      borderWidth: 1, borderColor: withAlpha(colors.textMain, 0.12),
+      borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
+      fontSize: FONTS.sub.size, color: colors.textMain,
+      backgroundColor: withAlpha(colors.textMain, 0.03),
+    },
+    pwHint: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 18 },
+    err: { fontSize: FONTS.micro.size, color: colors.danger },
+    btnRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
+    cancelBtn: {
+      flex: 1, paddingVertical: 12, borderRadius: 10,
+      borderWidth: 1, borderColor: colors.primary,
+      justifyContent: 'center', alignItems: 'center',
+    },
+    cancelText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
+    confirmBtn: {
+      flex: 2, paddingVertical: 12, borderRadius: 10,
+      backgroundColor: colors.primary,
+      justifyContent: 'center', alignItems: 'center',
+    },
+    confirmText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
   });
 }
 
 function getCropStyles() {
   return {
-    overlay: {
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)',
-      display: 'flex', flexDirection: 'column',
-    } as any,
-    header: {
-      paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8,
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      flexShrink: 0,
-    } as any,
+    overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
+    header: { paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any,
     title: { fontSize: 14, fontWeight: '600' as const, color: '#fff', letterSpacing: -0.2 },
-    closeBtn: {
-      width: 28, height: 28, borderRadius: 14,
-      backgroundColor: 'rgba(255,255,255,0.1)',
-      justifyContent: 'center', alignItems: 'center',
-    } as any,
+    closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' } as any,
     closeBtnText: { color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 },
-    resultCard: {
-      position: 'absolute', top: '50%', left: '50%',
-      transform: [{ translateX: -160 }, { translateY: -100 }],
-      backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 32,
-      borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320,
-      alignItems: 'center', gap: 12,
-    } as any,
-    resultBadge: {
-      width: 44, height: 44, borderRadius: 22,
-      backgroundColor: 'rgba(27,122,74,0.2)',
-      justifyContent: 'center', alignItems: 'center',
-    } as any,
+    resultCard: { position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: -160 }, { translateY: -100 }], backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12 } as any,
+    resultBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any,
     resultLabel: { fontSize: 14, fontWeight: '600' as const, color: '#fff' },
-    reEditBtn: {
-      flex: 1, padding: 12, borderRadius: 10,
-      borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
-      justifyContent: 'center', alignItems: 'center',
-    } as any,
-    saveBtn: {
-      flex: 2, padding: 12, borderRadius: 10,
-      backgroundColor: '#5B5BD6',
-      justifyContent: 'center', alignItems: 'center',
-    } as any,
+    reEditBtn: { flex: 1, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' } as any,
+    saveBtn: { flex: 2, padding: 12, borderRadius: 10, backgroundColor: '#5B5BD6', justifyContent: 'center', alignItems: 'center' } as any,
   };
 }

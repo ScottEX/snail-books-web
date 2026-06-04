@@ -229,6 +229,12 @@ export const api = {
   },
   resetProfileCover: () => authFetch('/api/profile/cover', { method: 'DELETE' }),
 
+  // Profile settings
+  changePassword: (old_password: string, new_password: string) =>
+    authFetch('/api/profile/password', { method: 'POST', body: JSON.stringify({ old_password, new_password }) }),
+  changeEmail: (email: string) =>
+    authFetch('/api/profile/email', { method: 'POST', body: JSON.stringify({ email }) }),
+
   // Language preference (stored per-user in user_settings)
   getLang: () => authFetch('/api/settings/lang'),
   saveLang: (lang: string) => authFetch('/api/settings/lang', { method: 'PUT', body: JSON.stringify({ lang }) }),
