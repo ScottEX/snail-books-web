@@ -938,9 +938,9 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
           <View style={st.stamp}>
             <Text style={st.stampPre}>
               {theme.id === 'obsidian-gold' ? t('stampPrefixObsidian') : theme.id === 'deep-teal' ? t('stampPrefixTeal') : t('stampPrefixBurgundy')}
+              <Text style={[st.stampNum, { color: colors.primary }]}> {daysSince} </Text>
+              {theme.id === 'obsidian-gold' ? t('stampSuffixObsidian') : theme.id === 'deep-teal' ? t('stampSuffixTeal') : t('stampSuffixBurgundy')}
             </Text>
-            <Text style={[st.stampNum, { color: colors.primary }]}>{daysSince}</Text>
-            <Text style={st.stampPost}>{t('stampPost')}</Text>
           </View>
         )}
       </ScrollView>
@@ -1404,8 +1404,8 @@ function getStyles(colors: ThemeColors) {
       alignItems: 'center' as any,
       paddingVertical: 32, paddingBottom: 48,
     },
-    stampPre: { fontSize: 13, color: colors.textSub, letterSpacing: 0.5 } as any,
-    stampNum: { fontSize: 42, fontWeight: '700', fontFamily: 'Inter, serif', lineHeight: 48, marginVertical: 4, fontStyle: 'italic' } as any,
+    stampPre: { fontSize: 13, color: colors.textSub, letterSpacing: 0.5, lineHeight: 48 } as any,
+    stampNum: { fontSize: 42, fontWeight: '700', fontFamily: 'Inter, serif', fontStyle: 'italic' } as any,
     stampPost: { fontSize: 12, color: colors.textSub, marginTop: 4 } as any,
   });
 }
