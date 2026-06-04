@@ -8,6 +8,8 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
+import ThemePickerModal from '../components/ThemePickerModal';
+import LogoutConfirmModal from '../components/LogoutConfirmModal';
 
 /* ========== SVG ICONS ========== */
 
@@ -41,7 +43,7 @@ function ChevronRight({ color }: { color: string }) {
 /* ========== MAIN SCREEN ========== */
 
 export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void; onLogout: () => void }) {
-  const { colors, theme, setTheme, allThemes } = useTheme();
+  const { colors, theme } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
   const [coverUrl, setCoverUrl] = useState('');
@@ -871,89 +873,9 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       {/* Toast */}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
 
-      {/* ── Logout Confirmation Modal ── */}
-      {showLogoutModal && createPortal(
-        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowLogoutModal(false)}>
-          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
-            <View style={mo.header}>
-              <Text style={mo.title}>{t('logout')}</Text>
-              <TouchableOpacity onPress={() => setShowLogoutModal(false)}>
-                <Text style={mo.closeBtn}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ padding: 24, alignItems: 'center', gap: 18 }}>
-              <Text style={{ fontSize: FONTS.body.size, color: colors.textMain, textAlign: 'center' as any }}>
-                {t('logoutConfirm') || '确定要退出登录吗？'}
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowLogoutModal(false)}>
-                  <Text style={mo.cancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={mo.confirmBtn} onPress={async () => {
-                  await api.logout();
-                  try { localStorage.removeItem('active_tab'); } catch {}
-                  onLogout();
-                }}>
-                  <Text style={mo.confirmText}>{t('confirmLogout') || '确定退出'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>,
-        document.body
-      )}
-
-      {/* ── Theme Picker Modal ── */}
-      {showThemeModal && createPortal(
-        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowThemeModal(false)}>
-          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
-            <View style={mo.header}>
-              <Text style={mo.title}>{t('themeLabel') || '主题'}</Text>
-              <TouchableOpacity onPress={() => setShowThemeModal(false)}>
-                <Text style={mo.closeBtn}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={mo.body}>
-              {allThemes.map((t: any) => {
-                const isActive = t.colors.primary === colors.primary;
-                const tn = getLang() === 'zh-TW' ? (t.nameTw || t.nameZh) : getLang() === 'en' ? (t.nameEn || t.nameZh) : t.nameZh;
-                const td = getLang() === 'zh-TW' ? (t.descTw || t.descZh) : getLang() === 'en' ? (t.descEn || t.descZh) : t.descZh;
-                return (
-                  <TouchableOpacity
-                    key={t.id}
-                    onPress={() => { setTheme(t.id); setShowThemeModal(false); }}
-                    style={{
-                      flexDirection: 'row', alignItems: 'center',
-                      padding: 12, borderRadius: 12, marginBottom: 8,
-                      backgroundColor: isActive ? withAlpha(colors.primary, 0.06) : colors.bg,
-                      borderWidth: 1.5,
-                      borderColor: isActive ? colors.primary : (colors as any).secondary || '#e0e0e0',
-                    }}
-                  >
-                    <View style={{
-                      width: 40, height: 40, borderRadius: 10,
-                      backgroundColor: t.colors.primary,
-                      justifyContent: 'center', alignItems: 'center', marginRight: 12,
-                    }}>
-                      <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>A</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain, marginBottom: 2 }}>{tn}</Text>
-                      <Text style={{ fontSize: 11, color: colors.textSub }}>{td}</Text>
-                    </View>
-                    {isActive && (
-                      <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' }}>
-                        <Text style={{ color: '#fff', fontSize: 12 }}>✓</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>,
-        document.body
-      )}
+      {/* Shared modals — used by both HomeScreen and ProfileScreen */}
+      <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
+      <ThemePickerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
 
       {/* ── Change Password Modal ── */}
       {showPwModal && createPortal(

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animat
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
-import { useTheme, withAlpha, ThemeColors, Theme } from '../theme';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 import PartnerScreen from './PartnerScreen';
@@ -14,6 +14,8 @@ import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
 import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
+import ThemePickerModal from '../components/ThemePickerModal';
+import LogoutConfirmModal from '../components/LogoutConfirmModal';
 
 function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
   const [show, setShow] = React.useState(false);
@@ -34,7 +36,7 @@ import { modalCardAnimation, modalClose } from '../sharedStyles';
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
-  const { colors, setTheme, allThemes } = useTheme();
+  const { colors } = useTheme();
   const [tab, setTabState] = useState<Tab>(() => {
     try { return (localStorage.getItem('active_tab') as Tab) || 'expense'; }
     catch { return 'expense'; }
@@ -60,6 +62,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
   // ── Modal slide-from-top animation ──
   const modalAnim = useRef(new Animated.Value(0)).current;
   const modalFade = useRef(new Animated.Value(0)).current;
@@ -456,20 +459,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const styles = useMemo(() => getStyles(colors), [colors]);
   const usr = useMemo(() => { try { return localStorage.getItem('user') || '用户'; } catch { return '用户'; } }, []);
 
-  // Language-aware theme name/desc
-  const themeLabel = (theme: Theme) => {
-    const l = getLang();
-    if (l === 'zh-TW') return theme.nameTw;
-    if (l === 'en') return theme.nameEn;
-    return theme.nameZh;
-  };
-  const themeSub = (theme: Theme) => {
-    const l = getLang();
-    if (l === 'zh-TW') return theme.descTw;
-    if (l === 'en') return theme.descEn;
-    return theme.descZh;
-  };
-
   return (
     <View style={styles.container}>
       {/* Background */}
@@ -827,44 +816,13 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               <Text style={styles.modalHint}>{t('bgHint')}</Text>
 
               {/* ── Theme Picker ── */}
-              <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
-                {allThemes.map((theme) => {
-                  const isActive = theme.colors.primary === colors.primary;
-                  const previewBg = theme.colors.bg;
-                  return (
-                    <TouchableOpacity
-                      key={theme.id}
-                      onPress={() => setTheme(theme.id)}
-                      style={{
-                        flexDirection: 'row', alignItems: 'center',
-                        padding: 12, borderRadius: 12, marginBottom: 8,
-                        backgroundColor: isActive ? withAlpha(colors.primary, 0.06) : colors.surface,
-                        borderWidth: 1.5,
-                        borderColor: isActive ? colors.primary : colors.secondary,
-                      }}
-                    >
-                      {/* Color preview dots */}
-                      <View style={{ flexDirection: 'row', gap: 4, marginRight: 12 }}>
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.primary }} />
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.bg, borderWidth: 1, borderColor: colors.secondary }} />
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.accent }} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: FONTS.micro.size, fontWeight: isActive ? '700' : '500', color: colors.textSub }}>
-                          {themeLabel(theme)}
-                        </Text>
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 1 }}>
-                          {themeSub(theme)}
-                        </Text>
-                      </View>
-                      {isActive && (
-                        <Text style={{ fontSize: FONTS.sub.size, color: colors.primary }}>✓</Text>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+              <TouchableOpacity
+                style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }}
+                onPress={() => { setShowBgModal(false); setTimeout(() => setShowThemeModal(true), 150); }}
+              >
+                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('themePicker') || '主题'}</Text>
+                <Text style={{ fontSize: FONTS.sub.size, color: colors.primary }}>›</Text>
+              </TouchableOpacity>
 
               {/* Opacity slider */}
               <View style={{ marginTop: 20 }}>
@@ -939,38 +897,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </Animated.View>
       )}
 
-      {/* Logout confirmation modal */}
-      {showLogoutModal && (
-        <Animated.View style={[styles.modalOverlay, { opacity: modalFade }]}>
-          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalAnim }] }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('logout')}</Text>
-              <TouchableOpacity onPress={() => closeModal(() => setShowLogoutModal(false))}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ padding: 24, alignItems: 'center', gap: 18 }}>
-              <Text style={{ fontSize: FONTS.body.size, color: colors.textMain, textAlign: 'center' }}>
-                {t('logoutConfirm') || '确定要退出登录吗？'}
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                <TouchableOpacity
-                  style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: colors.secondary }}
-                  onPress={() => closeModal(() => setShowLogoutModal(false))}
-                >
-                  <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', backgroundColor: colors.primary }}
-                  onPress={async () => { await api.logout(); try { localStorage.removeItem('active_tab'); } catch {} onLogout(); }}
-                >
-                  <Text style={{ fontSize: FONTS.subBold.size, color: colors.surface, fontWeight: FONTS.subBold.weight }}>{t('confirmLogout') || '确定退出'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
-        </Animated.View>
-      )}
+      {/* Shared modals — used by both HomeScreen and ProfileScreen */}
+      <ThemePickerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
+      <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
 
       {/* Bottom Nav — hidden when history screens or cart drawer are active */}
       {!showProfile && !showExpenseHistory && !showDailyHistory && !showReconHistory && !showCartDrawer && (
