@@ -1242,8 +1242,8 @@ function getStyles(colors: ThemeColors) {
     },
     // Card
     card: {
-      marginHorizontal: 16, marginTop: 48, backgroundColor: colors.surface,
-      borderRadius: 14, paddingHorizontal: 18, paddingVertical: 4,
+      marginTop: 10, backgroundColor: colors.surface,
+      borderRadius: 12, paddingHorizontal: 16, paddingVertical: 2,
     },
     field: {
       flexDirection: 'row', justifyContent: 'space-between',
@@ -1259,7 +1259,7 @@ function getStyles(colors: ThemeColors) {
     },
     actionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain },
     // Section
-    section: { marginHorizontal: 16, marginTop: 16 },
+    section: { marginHorizontal: 16, marginTop: 12 },
     sectionTitle: {
       fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase',
       color: colors.textSub, marginBottom: 10, paddingLeft: 2,
