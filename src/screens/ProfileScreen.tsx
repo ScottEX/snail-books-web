@@ -116,15 +116,27 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
   const mo = useMemo(() => getMo(colors), [colors]);
   const cropS = useMemo(() => getCropStyles(), []);
 
-  // Load avatar
+  // Load avatar (cached to avoid flash)
+  const CACHE_KEY_AVATAR = 'cached_avatar_b64';
   const loadAvatar = async () => {
     const uid = localStorage.getItem('user_id');
     if (!uid) return;
+    // Serve from cache immediately
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY_AVATAR);
+      if (cached) setAvatarUrl(cached);
+    } catch {}
     try {
       const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
       if (resp.ok) {
         const blob = await resp.blob();
-        setAvatarUrl(URL.createObjectURL(blob));
+        const reader = new FileReader();
+        reader.onload = () => {
+          const b64 = reader.result as string;
+          setAvatarUrl(b64);
+          try { sessionStorage.setItem(CACHE_KEY_AVATAR, b64); } catch {}
+        };
+        reader.readAsDataURL(blob);
       }
     } catch {}
   };
@@ -321,7 +333,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       const form = new FormData();
       form.append('file', blob, 'avatar.jpg');
       const resp = await api.uploadAvatar(form);
-      if (resp.status === 'ok') { setShowResult(false); setCropSrc(''); setCropResult(''); setAvatarKey(k => k + 1); loadAvatar(); }
+      if (resp.status === 'ok') { setShowResult(false); setCropSrc(''); setCropResult(''); setAvatarKey(k => k + 1); try { sessionStorage.removeItem(CACHE_KEY_AVATAR); } catch {} loadAvatar(); }
       else { setCropMsg('上传失败'); }
     } catch (e) { setCropMsg('上传失败，请重试'); }
   };
