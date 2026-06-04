@@ -204,11 +204,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   qtyBtnPlus: { backgroundColor: c.primary },
   qtyBtnPlusText: { fontSize: FONTS.h2.size, color: c.surface, fontWeight: '300' as const },
   qtyNum: { width: 36, textAlign: 'center' as const, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
-  // Compact buttons for items modal (cart edit + product picker)
-  qtyBtnSm: { width: 26, height: 26, borderRadius: 13, alignItems: 'center' as const, justifyContent: 'center' as const },
-  qtyBtnSmText: { fontSize: 15, lineHeight: 17, color: c.textSub },
-  qtyBtnSmPlusText: { fontSize: 15, lineHeight: 17, color: c.surface, fontWeight: '400' as const },
-  qtyNumSm: { width: 28, textAlign: 'center' as const, fontSize: FONTS.body.size, color: c.textMain },
   prodSubtotal: { paddingHorizontal: 12, paddingBottom: 8, fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.micro.weight },
 
   cartBar: {
@@ -282,7 +277,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
-  itemsModalBodyWrap: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
+  itemsModalBodyWrap: { flex: 1, minHeight: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
   itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.06) },
   itemsRowLast: { borderBottomWidth: 0 },
   itemsRowName: { flex: 1, fontSize: FONTS.sub.size, color: c.textMain },
@@ -1523,7 +1518,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                   />
                 </View>
                 <View style={styles.itemsModalBodyWrap}>
-                  <ScrollView style={{ flex: 1 }}>
+                  <ScrollView style={{ flex: 1, minHeight: 0 }}>
                     {products
                       .filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch))
                       .map((p, idx, arr) => {
@@ -1536,19 +1531,19 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                               {p.spec} · ¥{p.price.toFixed(2)}
                             </Text>
                           </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <View style={styles.qtyRow}>
                             <TouchableOpacity
-                              style={[styles.qtyBtnSm, styles.qtyBtnMinus]}
+                              style={[styles.qtyBtn, styles.qtyBtnMinus]}
                               onPress={() => updateQty(p.id, -1)}
                             >
-                              <Text style={styles.qtyBtnSmText}>−</Text>
+                              <Text style={styles.qtyBtnMinusText}>−</Text>
                             </TouchableOpacity>
-                            <Text style={styles.qtyNumSm}>{qty}</Text>
+                            <Text style={styles.qtyNum}>{qty}</Text>
                             <TouchableOpacity
-                              style={[styles.qtyBtnSm, styles.qtyBtnPlus]}
+                              style={[styles.qtyBtn, styles.qtyBtnPlus]}
                               onPress={() => updateQty(p.id, 1)}
                             >
-                              <Text style={styles.qtyBtnSmPlusText}>+</Text>
+                              <Text style={styles.qtyBtnPlusText}>+</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -1572,7 +1567,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               // ── Cart edit view (with +/- qty) ──
               <>
                 <View style={styles.itemsModalBodyWrap}>
-                  <ScrollView style={{ flex: 1 }}>
+                  <ScrollView style={{ flex: 1, minHeight: 0 }}>
                     {cartItems.length === 0 ? (
                       <View style={{ padding: 24, alignItems: 'center' }}>
                         <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
@@ -1586,19 +1581,19 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                               ¥{i.product.price.toFixed(2)} · {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
                             </Text>
                           </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <View style={styles.qtyRow}>
                             <TouchableOpacity
-                              style={[styles.qtyBtnSm, styles.qtyBtnMinus]}
+                              style={[styles.qtyBtn, styles.qtyBtnMinus]}
                               onPress={() => updateQty(i.product.id, -1)}
                             >
-                              <Text style={styles.qtyBtnSmText}>−</Text>
+                              <Text style={styles.qtyBtnMinusText}>−</Text>
                             </TouchableOpacity>
-                            <Text style={styles.qtyNumSm}>{i.quantity}</Text>
+                            <Text style={styles.qtyNum}>{i.quantity}</Text>
                             <TouchableOpacity
-                              style={[styles.qtyBtnSm, styles.qtyBtnPlus]}
+                              style={[styles.qtyBtn, styles.qtyBtnPlus]}
                               onPress={() => updateQty(i.product.id, 1)}
                             >
-                              <Text style={styles.qtyBtnSmPlusText}>+</Text>
+                              <Text style={styles.qtyBtnPlusText}>+</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -1629,7 +1624,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               // ── History detail view (read-only) ──
               <>
                 <View style={styles.itemsModalBodyWrap}>
-                  <ScrollView style={{ flex: 1 }}>
+                  <ScrollView style={{ flex: 1, minHeight: 0 }}>
                     {detailItems.map((item, idx, arr) => (
                       <View key={idx} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
                         <Text style={styles.itemsRowName}>{item.name}</Text>
