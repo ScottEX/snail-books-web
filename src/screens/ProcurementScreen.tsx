@@ -396,6 +396,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
   const [detailTotal, setDetailTotal] = useState(0);
   const [detailBatchId, setDetailBatchId] = useState(0);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
@@ -455,6 +456,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   };
 
   const downloadPDF = async (batchId: number) => {
+    if (downloadingPDF) return;
+    setDownloadingPDF(true);
     try {
       const resp = await fetch(`/api/procurement-batches/${batchId}/pdf`);
       if (!resp.ok) throw new Error('Download failed');
@@ -462,7 +465,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       const url = URL.createObjectURL(blob);
       const filename = `procurement_${batchId}.pdf`;
       const file = new File([blob], filename, { type: 'application/pdf' });
-      // Try native share first (WeChat / system share sheet)
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file] });
       } else {
@@ -472,6 +474,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       URL.revokeObjectURL(url);
     } catch (e: any) {
       window.open(`/api/procurement-batches/${batchId}/pdf`, '_blank');
+    } finally {
+      setDownloadingPDF(false);
     }
   };
 
@@ -1316,11 +1320,23 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
             </View>
             <TouchableOpacity
-              style={{ marginHorizontal: 16, marginBottom: 16, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
+              style={{ marginHorizontal: 16, marginBottom: 16, paddingVertical: 12, borderRadius: 8, backgroundColor: downloadingPDF ? c.secondary : c.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, opacity: downloadingPDF ? 0.7 : 1 }}
               onPress={() => downloadPDF(detailBatchId)}
+              disabled={downloadingPDF}
             >
-              <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>📥 下载 PDF</Text>
+              <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>
+                {downloadingPDF ? '⏳ 生成中...' : '📥 下载 PDF'}
+              </Text>
             </TouchableOpacity>
+            {/* Loading overlay */}
+            {downloadingPDF && (
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 16, alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                <View style={{ backgroundColor: c.surface, paddingVertical: 16, paddingHorizontal: 28, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, alignItems: 'center' }}>
+                  <ActivityIndicator size="small" color={c.primary} />
+                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 10 }}>正在生成进货单…</Text>
+                </View>
+              </View>
+            )}
           </Animated.View>
         </Animated.View>
       )}
