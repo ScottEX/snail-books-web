@@ -232,8 +232,10 @@ export const api = {
   // Profile settings
   changePassword: (old_password: string, new_password: string) =>
     authFetch('/api/profile/password', { method: 'POST', body: JSON.stringify({ old_password, new_password }) }),
-  changeEmail: (email: string) =>
-    authFetch('/api/profile/email', { method: 'POST', body: JSON.stringify({ email }) }),
+  sendEmailCode: (email: string) =>
+    authFetch('/api/profile/email/send-code', { method: 'POST', body: JSON.stringify({ email }) }),
+  verifyEmailCode: (email: string, code: string) =>
+    authFetch('/api/profile/email/verify', { method: 'POST', body: JSON.stringify({ email, code }) }),
 
   // Language preference (stored per-user in user_settings)
   getLang: () => authFetch('/api/settings/lang'),

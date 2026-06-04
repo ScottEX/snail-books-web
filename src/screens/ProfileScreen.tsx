@@ -20,10 +20,11 @@ function CameraIcon({ color = '#fff', size = 12 }: { color?: string; size?: numb
   );
 }
 
-function ChevronLeft({ color }: { color: string }) {
+function ArrowLeft({ color = '#fff' }: { color?: string }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M16 4L6 12l10 8" />
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M19 12H5" />
+      <Path d="M10 5l-7 7 7 7" />
     </Svg>
   );
 }
@@ -58,10 +59,12 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
   // Modals
   const [showPwModal, setShowPwModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailStep, setEmailStep] = useState<'input' | 'code'>('input');
   const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [emailCode, setEmailCode] = useState('');
   const [modalMsg, setModalMsg] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
 
@@ -239,24 +242,44 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
     setModalLoading(false);
   };
 
-  // ── Change Email ──
-  const handleChangeEmail = async () => {
+  // ── Change Email (two-step) ──
+  const handleSendCode = async () => {
     setModalMsg('');
     if (!newEmail) { setModalMsg('请输入新邮箱'); return; }
     setModalLoading(true);
     try {
-      const r: any = await api.changeEmail(newEmail);
+      const r: any = await api.sendEmailCode(newEmail);
+      if (r.status === 'ok') {
+        setEmailStep('code');
+      } else {
+        setModalMsg(r.message || '发送失败');
+      }
+    } catch { setModalMsg('网络错误'); }
+    setModalLoading(false);
+  };
+
+  const handleVerifyEmail = async () => {
+    setModalMsg('');
+    if (!emailCode) { setModalMsg('请输入验证码'); return; }
+    setModalLoading(true);
+    try {
+      const r: any = await api.verifyEmailCode(newEmail, emailCode);
       if (r.status === 'ok') {
         setEmail(newEmail);
         try { localStorage.setItem('email', newEmail); } catch {}
         setShowEmailModal(false);
-        setNewEmail('');
+        setNewEmail(''); setEmailCode(''); setEmailStep('input');
         setToast(t('emailChanged'));
       } else {
-        setModalMsg(r.message || '修改失败');
+        setModalMsg(r.message || '验证失败');
       }
     } catch { setModalMsg('网络错误'); }
     setModalLoading(false);
+  };
+
+  const openEmailModal = () => {
+    setShowEmailModal(true);
+    setNewEmail(''); setEmailCode(''); setEmailStep('input'); setModalMsg('');
   };
 
   // ── Crop mouse/touch handlers ──
@@ -307,7 +330,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
           {/* Floating nav — back + title on top of cover */}
           <View style={st.coverNav}>
             <TouchableOpacity onPress={onBack} style={st.coverBackBtn}>
-              <ChevronLeft color="#fff" />
+              <ArrowLeft color="#fff" />
             </TouchableOpacity>
             <Text style={st.coverTitle}>{t('editProfile')}</Text>
           </View>
@@ -353,7 +376,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
             <ChevronRight color={colors.textSub} />
           </TouchableOpacity>
           <View style={st.divider} />
-          <TouchableOpacity style={st.actionRow} onPress={() => { setShowEmailModal(true); setNewEmail(''); setModalMsg(''); }}>
+          <TouchableOpacity style={st.actionRow} onPress={openEmailModal}>
             <Text style={st.actionLabel}>{t('changeEmail')}</Text>
             <ChevronRight color={colors.textSub} />
           </TouchableOpacity>
@@ -434,28 +457,61 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
               </TouchableOpacity>
             </View>
             <View style={mo.body}>
-              <TextInput
-                style={[mo.input, { outline: 'none' } as any]}
-                placeholder={t('newEmail')}
-                placeholderTextColor={colors.textSub}
-                value={newEmail}
-                onChangeText={setNewEmail}
-                autoFocus
-                keyboardType="email-address"
-              />
-              {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
-              <View style={mo.btnRow}>
-                <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowEmailModal(false)}>
-                  <Text style={mo.cancelText}>取消</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
-                  onPress={handleChangeEmail}
-                  disabled={modalLoading}
-                >
-                  <Text style={mo.confirmText}>{modalLoading ? '...' : '确认修改'}</Text>
-                </TouchableOpacity>
-              </View>
+              {emailStep === 'input' ? (
+                <>
+                  <TextInput
+                    style={[mo.input, { outline: 'none' } as any]}
+                    placeholder={t('newEmail')}
+                    placeholderTextColor={colors.textSub}
+                    value={newEmail}
+                    onChangeText={setNewEmail}
+                    autoFocus
+                    keyboardType="email-address"
+                  />
+                  {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
+                  <View style={mo.btnRow}>
+                    <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowEmailModal(false)}>
+                      <Text style={mo.cancelText}>取消</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
+                      onPress={handleSendCode}
+                      disabled={modalLoading}
+                    >
+                      <Text style={mo.confirmText}>{modalLoading ? '...' : t('sendCode')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
+                    {t('codeSent')}：{newEmail}
+                  </Text>
+                  <TextInput
+                    style={[mo.input, { outline: 'none', textAlign: 'center', letterSpacing: 8, fontSize: 24, fontWeight: '700' } as any]}
+                    placeholder={t('enterCode')}
+                    placeholderTextColor={colors.textSub}
+                    value={emailCode}
+                    onChangeText={setEmailCode}
+                    autoFocus
+                    maxLength={6}
+                    keyboardType="number-pad"
+                  />
+                  {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
+                  <View style={mo.btnRow}>
+                    <TouchableOpacity style={mo.cancelBtn} onPress={() => setEmailStep('input')}>
+                      <Text style={mo.cancelText}>返回</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
+                      onPress={handleVerifyEmail}
+                      disabled={modalLoading}
+                    >
+                      <Text style={mo.confirmText}>{modalLoading ? t('verifying') : '确认'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
             </View>
           </TouchableOpacity>
         </TouchableOpacity>,
