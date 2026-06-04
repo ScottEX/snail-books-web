@@ -42,7 +42,7 @@ function ChevronRight({ color }: { color: string }) {
 
 /* ========== MAIN SCREEN ========== */
 
-export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void; onLogout: () => void }) {
+export default function ProfileScreen({ onBack, onLogout, onLangChange }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void }) {
   const { colors, theme } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
@@ -906,7 +906,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
               <Text style={st.iconLabel}>{t('language')}</Text>
               <View style={{ flexDirection: 'row' }}>
                 {(['zh-CN','zh-TW','en'] as const).map(l => (
-                  <TouchableOpacity key={l} onPress={() => { setLang(l); setLangState(l); }}>
+                  <TouchableOpacity key={l} onPress={() => { setLang(l); setLangState(l); onLangChange?.(); }}>
                     <Text style={[st.langBtn, getLang() === l && st.langBtnActive]}>
                       {l === 'zh-CN' ? '简' : l === 'zh-TW' ? '繁' : 'EN'}
                     </Text>
