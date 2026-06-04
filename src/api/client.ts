@@ -64,7 +64,12 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     return new Promise(() => {});
   }
   if (!resp.ok) {
-    throw new Error(`API error: ${resp.status} ${resp.statusText}`);
+    let msg = `API error: ${resp.status} ${resp.statusText}`;
+    try {
+      const body = await resp.json();
+      if (body.message) msg = body.message;
+    } catch {}
+    throw new Error(msg);
   }
   bumpActivity();
   return resp.json();

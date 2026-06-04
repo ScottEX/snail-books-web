@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Defs, LinearGradient as SVGGradient, Stop, Rect } from 'react-native-svg';
-import { t, getLang, langs } from '../i18n';
+import { t, getLang, setLang, langs } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -41,7 +41,7 @@ function ChevronRight({ color }: { color: string }) {
 /* ========== MAIN SCREEN ========== */
 
 export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void; onLogout: () => void }) {
-  const { colors, theme } = useTheme();
+  const { colors, theme, setTheme, allThemes } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
   const [coverUrl, setCoverUrl] = useState('');
@@ -61,6 +61,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
   const [showPwModal, setShowPwModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
   const [emailStep, setEmailStep] = useState<'input' | 'code'>('input');
   const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
@@ -300,7 +301,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       } else {
         setModalMsg(r.message || '修改失败');
       }
-    } catch { setModalMsg('网络错误'); }
+    } catch (e: any) { setModalMsg(e.message || t('errNetworkError')); }
     setModalLoading(false);
   };
 
@@ -316,7 +317,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       } else {
         setModalMsg(r.message || '发送失败');
       }
-    } catch { setModalMsg('网络错误'); }
+    } catch (e: any) { setModalMsg(e.message || t('errNetworkError')); }
     setModalLoading(false);
   };
 
@@ -335,7 +336,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
       } else {
         setModalMsg(r.message || '验证失败');
       }
-    } catch { setModalMsg('网络错误'); }
+    } catch (e: any) { setModalMsg(e.message || t('errNetworkError')); }
     setModalLoading(false);
   };
 
@@ -755,7 +756,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
         {/* ── Section: Account ── */}
         <View style={st.section}>
-          <Text style={st.sectionTitle}>账号信息</Text>
+          <Text style={st.sectionTitle}>{t('accountInfo')}</Text>
           <View style={st.card}>
             <View style={st.iconRow}>
               <View style={[st.iconWrap, st.iconUser]}>
@@ -781,7 +782,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
         {/* ── Section: Security ── */}
         <View style={st.section}>
-          <Text style={st.sectionTitle}>安全设置</Text>
+          <Text style={st.sectionTitle}>{t('securitySettings')}</Text>
           <View style={st.card}>
             <TouchableOpacity style={st.iconRow} onPress={() => { setShowPwModal(true); setOldPw(''); setNewPw(''); setConfirmPw(''); setModalMsg(''); }}>
               <View style={[st.iconWrap, st.iconLock]}>
@@ -807,33 +808,37 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
         {/* ── Section: Preferences ── */}
         <View style={st.section}>
-          <Text style={st.sectionTitle}>偏好设置</Text>
+          <Text style={st.sectionTitle}>{t('preferences')}</Text>
           <View style={st.card}>
-            <View style={st.iconRow}>
+            <TouchableOpacity style={st.iconRow} onPress={() => {
+              const next = getLang() === 'zh-CN' ? 'zh-TW' : getLang() === 'zh-TW' ? 'en' : 'zh-CN';
+              setLang(next);
+            }}>
               <View style={[st.iconWrap, st.iconLang]}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c096d8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
                 </svg>
               </View>
-              <Text style={st.iconLabel}>语言</Text>
-              <Text style={st.badge}>{langs.find(([l]) => l === getLang())?.[1] === '简' ? '简体中文' : getLang() === 'zh-TW' ? '繁體中文' : 'English'}</Text>
-            </View>
+              <Text style={st.iconLabel}>{t('language')}</Text>
+              <Text style={st.badge}>{getLang() === 'zh-CN' ? t('langZh') : getLang() === 'zh-TW' ? t('langTw') : t('langEn')}</Text>
+            </TouchableOpacity>
             <View style={st.divider} />
-            <View style={st.iconRow}>
+            <TouchableOpacity style={st.iconRow} onPress={() => setShowThemeModal(true)}>
               <View style={[st.iconWrap, st.iconTheme]}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffb450" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
                 </svg>
               </View>
-              <Text style={st.iconLabel}>主题</Text>
-              <Text style={st.badge}>{theme.nameZh}</Text>
-            </View>
+              <Text style={st.iconLabel}>{t('themeLabel')}</Text>
+              <Text style={st.badge}>{getLang() === 'zh-TW' ? (theme as any).nameTw || theme.nameZh : getLang() === 'en' ? (theme as any).nameEn || theme.nameZh : theme.nameZh}</Text>
+              <ChevronRight color={colors.textSub} />
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* ── Section: Danger ── */}
         <View style={st.section}>
-          <Text style={st.sectionTitle}>危险操作</Text>
+          <Text style={st.sectionTitle}>{t('dangerZone')}</Text>
           <View style={st.card}>
             <TouchableOpacity style={st.iconRow} onPress={() => setShowLogoutModal(true)}>
               <View style={[st.iconWrap, st.iconDanger]}>
@@ -851,10 +856,10 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
         {daysSince > 0 && (
           <View style={st.stamp}>
             <Text style={st.stampPre}>
-              {theme.id === 'obsidian-gold' ? '这是我们并肩走过的' : theme.id === 'deep-teal' ? '为您保驾护航的' : '时光流转'}
+              {theme.id === 'obsidian-gold' ? t('stampPrefixObsidian') : theme.id === 'deep-teal' ? t('stampPrefixTeal') : t('stampPrefixBurgundy')}
             </Text>
             <Text style={[st.stampNum, { color: colors.primary }]}>{daysSince}</Text>
-            <Text style={st.stampPost}>已默默陪伴您 · 感谢信任</Text>
+            <Text style={st.stampPost}>{t('stampPost')}</Text>
           </View>
         )}
       </ScrollView>
@@ -892,6 +897,58 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
                   <Text style={mo.confirmText}>{t('confirmLogout') || '确定退出'}</Text>
                 </TouchableOpacity>
               </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>,
+        document.body
+      )}
+
+      {/* ── Theme Picker Modal ── */}
+      {showThemeModal && createPortal(
+        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowThemeModal(false)}>
+          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
+            <View style={mo.header}>
+              <Text style={mo.title}>{t('themeLabel') || '主题'}</Text>
+              <TouchableOpacity onPress={() => setShowThemeModal(false)}>
+                <Text style={mo.closeBtn}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={mo.body}>
+              {allThemes.map((t: any) => {
+                const isActive = t.colors.primary === colors.primary;
+                const tn = getLang() === 'zh-TW' ? (t.nameTw || t.nameZh) : getLang() === 'en' ? (t.nameEn || t.nameZh) : t.nameZh;
+                const td = getLang() === 'zh-TW' ? (t.descTw || t.descZh) : getLang() === 'en' ? (t.descEn || t.descZh) : t.descZh;
+                return (
+                  <TouchableOpacity
+                    key={t.id}
+                    onPress={() => { setTheme(t.id); setShowThemeModal(false); }}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center',
+                      padding: 12, borderRadius: 12, marginBottom: 8,
+                      backgroundColor: isActive ? withAlpha(colors.primary, 0.06) : colors.bg,
+                      borderWidth: 1.5,
+                      borderColor: isActive ? colors.primary : (colors as any).secondary || '#e0e0e0',
+                    }}
+                  >
+                    <View style={{
+                      width: 40, height: 40, borderRadius: 10,
+                      backgroundColor: t.colors.primary,
+                      justifyContent: 'center', alignItems: 'center', marginRight: 12,
+                    }}>
+                      <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>A</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: FONTS.sub.size, fontWeight: '600', color: colors.textMain, marginBottom: 2 }}>{tn}</Text>
+                      <Text style={{ fontSize: 11, color: colors.textSub }}>{td}</Text>
+                    </View>
+                    {isActive && (
+                      <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' }}>
+                        <Text style={{ color: '#fff', fontSize: 12 }}>✓</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </TouchableOpacity>
         </TouchableOpacity>,
@@ -1146,7 +1203,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
               style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
             />
             <View style={cropS.guideWrap as any} pointerEvents="none">
-              <View style={{ width: 320, height: 160, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative', transition: 'border-color 0.2s', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any} ref={coverGuideRef as any}>
+              <View style={{ width: 320, height: 231, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative', transition: 'border-color 0.2s', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any} ref={coverGuideRef as any}>
                 <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '33.3%' } as any} />
                 <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '66.6%' } as any} />
                 <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '33.3%' } as any} />
@@ -1209,7 +1266,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
               <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
             </View>
             <Text style={cropS.resultLabel}>封面已更新</Text>
-            {coverCropResult ? <img src={coverCropResult} width={240} height={120} style={{ borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} /> : null}
+            {coverCropResult ? <img src={coverCropResult} width={240} height={173} style={{ borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} /> : null}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
               <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setCoverShowResult(false); }}>
                 <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>重新裁剪</Text>
