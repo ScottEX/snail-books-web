@@ -311,7 +311,7 @@ export default function ProfileScreen({ onBack }: { onBack: () => void }) {
         {/* Cover Image — nav & controls overlaid on top */}
         <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
-            <Image source={{ uri: coverUrl + '&t=' + coverKey }} style={st.coverImg} />
+            <Image source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (localStorage.getItem('user_id') || '0') + '&v=' + coverKey }} style={st.coverImg} />
           ) : (
             <View style={st.coverGradient}>
               <Svg width="100%" height="100%" viewBox="0 0 360 180" preserveAspectRatio="none">
@@ -619,10 +619,10 @@ function getStyles(colors: ThemeColors) {
       flexDirection: 'row', justifyContent: 'space-between',
       alignItems: 'center', paddingVertical: 16,
     },
-    fieldLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
+    fieldLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain },
     fieldValue: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textMain },
     divider: { height: 0.5, backgroundColor: withAlpha(colors.textMain, 0.08) },
-    // Action rows (password / email)
+    // Action rows (password / email) — same typography as field labels above
     actionRow: {
       flexDirection: 'row', justifyContent: 'space-between',
       alignItems: 'center', paddingVertical: 16,
@@ -652,8 +652,7 @@ function getMo(colors: ThemeColors) {
     closeBtn: { ...modalClose },
     body: { padding: 20, gap: 12 } as any,
     input: {
-      borderWidth: 1, borderColor: withAlpha(colors.textMain, 0.12),
-      borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
+      paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8,
       fontSize: FONTS.sub.size, color: colors.textMain,
       backgroundColor: withAlpha(colors.textMain, 0.03),
     },
