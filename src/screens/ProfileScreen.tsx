@@ -60,6 +60,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
   // Modals
   const [showPwModal, setShowPwModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [emailStep, setEmailStep] = useState<'input' | 'code'>('input');
   const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
@@ -703,7 +704,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
                     <Stop offset="1" stopColor={colors.primary} stopOpacity={0.35} />
                   </SVGGradient>
                 </Defs>
-                <Rect width="360" height="180" fill="url(#coverGrad2)" />
+                <Rect width="360" height="260" fill="url(#coverGrad2)" />
               </Svg>
             </View>
           )}
@@ -834,7 +835,7 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
         <View style={st.section}>
           <Text style={st.sectionTitle}>危险操作</Text>
           <View style={st.card}>
-            <TouchableOpacity style={st.iconRow} onPress={onLogout}>
+            <TouchableOpacity style={st.iconRow} onPress={() => setShowLogoutModal(true)}>
               <View style={[st.iconWrap, st.iconDanger]}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
@@ -864,6 +865,38 @@ export default function ProfileScreen({ onBack, onLogout }: { onBack: () => void
 
       {/* Toast */}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+
+      {/* ── Logout Confirmation Modal ── */}
+      {showLogoutModal && createPortal(
+        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowLogoutModal(false)}>
+          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
+            <View style={mo.header}>
+              <Text style={mo.title}>{t('logout')}</Text>
+              <TouchableOpacity onPress={() => setShowLogoutModal(false)}>
+                <Text style={mo.closeBtn}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ padding: 24, alignItems: 'center', gap: 18 }}>
+              <Text style={{ fontSize: FONTS.body.size, color: colors.textMain, textAlign: 'center' as any }}>
+                {t('logoutConfirm') || '确定要退出登录吗？'}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowLogoutModal(false)}>
+                  <Text style={mo.cancelText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={mo.confirmBtn} onPress={async () => {
+                  await api.logout();
+                  try { localStorage.removeItem('active_tab'); } catch {}
+                  onLogout();
+                }}>
+                  <Text style={mo.confirmText}>{t('confirmLogout') || '确定退出'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>,
+        document.body
+      )}
 
       {/* ── Change Password Modal ── */}
       {showPwModal && createPortal(
@@ -1198,7 +1231,7 @@ function getStyles(colors: ThemeColors) {
     root: { flex: 1, backgroundColor: colors.surface },
     scroll: { flex: 1 },
     // Cover
-    coverWrap: { height: 180, position: 'relative', overflow: 'visible' as any },
+    coverWrap: { height: 260, position: 'relative', overflow: 'visible' as any },
     coverImg: { width: '100%', height: '100%', resizeMode: 'cover' as any } as any,
     coverGradient: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
     // Floating nav on top of cover
