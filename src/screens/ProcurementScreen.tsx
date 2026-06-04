@@ -277,7 +277,10 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
-  itemsModalBodyWrap: { flex: 1, minHeight: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
+  // No horizontal padding here — ScrollView applies its own paddingHorizontal: 16 so that the
+  // webkit scrollbar (which paints on the padding-box edge) lands in the rightmost 2px gutter
+  // and never overlaps the +/- buttons in the content area.
+  itemsModalBodyWrap: { flex: 1, minHeight: 0, paddingTop: 12, paddingBottom: 4 },
   itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.06) },
   itemsRowLast: { borderBottomWidth: 0 },
   itemsRowName: { flex: 1, fontSize: FONTS.sub.size, color: c.textMain },
@@ -408,40 +411,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
   const [productPickerSearch, setProductPickerSearch] = useState('');
 
-  // Hide native scrollbar in items modal. RN Web renders ScrollView as two anonymous <div>s:
-  // an outer React container and an inner anonymous <div> that has `overflow: auto` and is the
-  // element that actually paints the webkit scrollbar. Neither div carries any className or
-  // data-* attribute, so CSS attribute selectors cannot reliably target it.
-  // Instead we walk the modal subtree and use getComputedStyle to find any element whose
-  // computed `overflow-y` is auto/scroll, then set inline `scrollbar-width: none` on each one.
-  // This works regardless of RN Web's internal DOM composition.
-  const itemsModalRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    if (!showItemsModal) return;
-    let cancelled = false;
-    const hideScrollbars = (root: HTMLElement) => {
-      const all = root.querySelectorAll('*');
-      for (let i = 0; i < all.length; i++) {
-        const el = all[i] as HTMLElement;
-        const overflowY = getComputedStyle(el).overflowY;
-        if (overflowY === 'auto' || overflowY === 'scroll') {
-          el.style.setProperty('scrollbar-width', 'none', 'important');
-          el.style.setProperty('-ms-overflow-style', 'none', 'important');
-        }
-      }
-    };
-    const apply = () => {
-      if (cancelled) return;
-      const node = itemsModalRef.current;
-      if (node) hideScrollbars(node);
-    };
-    // Modal animates in; retry on multiple frames to catch elements as they appear.
-    apply();
-    const t1 = setTimeout(apply, 50);
-    const t2 = setTimeout(apply, 200);
-    const t3 = setTimeout(apply, 500);
-    return () => { cancelled = true; clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, [showItemsModal]);
+  // Note: webkit scrollbar cannot be hidden via React/JS — its ::-webkit-scrollbar pseudo-elements
+  // are not addressable. We accept the scrollbar exists and instead position it OUT of the +/-
+  // button area by giving the ScrollView itself paddingHorizontal: 16 + boxSizing: 'border-box';
+  // the webkit scrollbar paints on the padding box edge (the card's rightmost 2px), well clear
+  // of the +/- buttons (which live in the content area, 16px inset from that edge).
+  useEffect(() => { /* intentionally empty: webkit scrollbar hiding is not possible from JS */ }, [showItemsModal]);
   const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
   const [detailTotal, setDetailTotal] = useState(0);
   const [detailBatchId, setDetailBatchId] = useState(0);
@@ -1522,7 +1497,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       {showItemsModal && (
         <Animated.View style={[styles.itemsModalOverlay, { opacity: itemsModalOverlayAnim }]}>
           <Animated.View
-            ref={(node: any) => { itemsModalRef.current = node as HTMLElement | null; }}
             style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}
           >
             <View style={styles.itemsModalHeader}>
@@ -1556,7 +1530,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                   />
                 </View>
                 <View style={styles.itemsModalBodyWrap}>
-                  <ScrollView style={{ flex: 1, minHeight: 0 }} {...{ 'data-proc-picker-scroll': '' } as any}>
+                  <ScrollView
+                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 16, boxSizing: 'border-box' } as any}
+                  >
                     {products
                       .filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch))
                       .map((p, idx, arr) => {
@@ -1605,7 +1581,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               // ── Cart edit view (with +/- qty) ──
               <>
                 <View style={styles.itemsModalBodyWrap}>
-                  <ScrollView style={{ flex: 1, minHeight: 0 }}>
+                  <ScrollView
+                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 16, boxSizing: 'border-box' } as any}
+                  >
                     {cartItems.length === 0 ? (
                       <View style={{ padding: 24, alignItems: 'center' }}>
                         <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
@@ -1662,7 +1640,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               // ── History detail view (read-only) ──
               <>
                 <View style={styles.itemsModalBodyWrap}>
-                  <ScrollView style={{ flex: 1, minHeight: 0 }}>
+                  <ScrollView
+                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 16, boxSizing: 'border-box' } as any}
+                  >
                     {detailItems.map((item, idx, arr) => (
                       <View key={idx} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
                         <Text style={styles.itemsRowName}>{item.name}</Text>
