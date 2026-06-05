@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput, Switch } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Defs, LinearGradient as SVGGradient, Stop, Rect } from 'react-native-svg';
 import { t, getLang, setLang } from '../i18n';
@@ -64,6 +64,11 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [emailCode, setEmailCode] = useState('');
   const [modalMsg, setModalMsg] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
+
+  // Auth prefs (single-device login + session timeout)
+  const [enforceSingleSession, setEnforceSingleSession] = useState(1);
+  const [sessionTimeoutHours, setSessionTimeoutHours] = useState(1);
+  const authPrefsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Crop state
   const [cropSrc, setCropSrc] = useState('');
@@ -153,8 +158,33 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           const days = Math.floor((Date.now() - new Date(data.created_at).getTime()) / 86400000);
           setDaysSince(Math.max(1, days));
         }
+        if (typeof data.enforce_single_session === 'number') {
+          setEnforceSingleSession(data.enforce_single_session);
+        }
+        if (typeof data.session_timeout_hours === 'number' && [1, 2, 6, 24].includes(data.session_timeout_hours)) {
+          setSessionTimeoutHours(data.session_timeout_hours);
+        }
       }
     } catch {}
+  };
+
+  // Debounced save for auth preferences
+  const persistAuthPrefs = (next: { enforce_single_session?: number; session_timeout_hours?: number }) => {
+    if (authPrefsTimer.current) clearTimeout(authPrefsTimer.current);
+    authPrefsTimer.current = setTimeout(async () => {
+      try {
+        await api.updateAuthPrefs(next);
+      } catch {}
+    }, 400);
+  };
+  const toggleEnforceSingleSession = (v: boolean) => {
+    const nv = v ? 1 : 0;
+    setEnforceSingleSession(nv);
+    persistAuthPrefs({ enforce_single_session: nv });
+  };
+  const pickTimeout = (h: number) => {
+    setSessionTimeoutHours(h);
+    persistAuthPrefs({ session_timeout_hours: h });
   };
 
   // ── Cover upload flow (crop before upload) ──
@@ -875,6 +905,50 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
         </View>
 
+        {/* ── Section: Sign-in Security ── */}
+        <View style={st.section}>
+          <View style={st.sectionTitleRow}>
+            <Text style={st.sectionTitleText}>{t('authSettingsTitle')}</Text>
+            <View style={st.sectionTitleLine} />
+          </View>
+          <View style={st.authCard}>
+            {/* SSO row */}
+            <View style={st.authRow}>
+              <View style={st.authSwitchRow}>
+                <Text style={st.authLabel}>{t('ssoLabel')}</Text>
+                <Switch
+                  value={enforceSingleSession === 1}
+                  onValueChange={toggleEnforceSingleSession}
+                  trackColor={{ false: withAlpha(colors.textMain, 0.18), true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+              <Text style={st.authDesc}>{t('ssoDesc')}</Text>
+            </View>
+            <View style={st.divider} />
+            {/* Session timeout row */}
+            <View style={st.authRow}>
+              <Text style={st.authLabel}>{t('sessionTimeoutLabel')}</Text>
+              <View style={st.capsuleRow}>
+                {[1, 2, 6, 24].map(h => {
+                  const active = sessionTimeoutHours === h;
+                  return (
+                    <TouchableOpacity
+                      key={h}
+                      activeOpacity={0.7}
+                      style={[st.capsule, active && st.capsuleActive]}
+                      onPress={() => pickTimeout(h)}
+                    >
+                      <Text style={[st.capsuleText, active && st.capsuleTextActive]}>{h}h</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={st.authDesc}>{t('sessionTimeoutDesc')}</Text>
+            </View>
+          </View>
+        </View>
+
         {/* ── Section: Preferences ── */}
         <View style={st.section}>
           <View style={st.sectionTitleRow}>
@@ -1355,6 +1429,41 @@ function getStyles(colors: ThemeColors) {
     sectionTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 8 },
     sectionTitleText: { fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase', color: colors.textSub } as any,
     sectionTitleLine: { flex: 1, height: 1, backgroundColor: withAlpha(colors.textMain, 0.08) },
+    // Auth security (SSO + timeout)
+    authCard: {
+      marginTop: 4, backgroundColor: colors.surface,
+      borderRadius: 12, paddingVertical: 2,
+    },
+    authRow: {
+      flexDirection: 'column', paddingVertical: 14, paddingHorizontal: 14, gap: 8,
+    },
+    authSwitchRow: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    },
+    authLabel: {
+      fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain,
+    },
+    authDesc: {
+      fontSize: 12, color: colors.textSub, lineHeight: 16,
+    },
+    capsuleRow: {
+      flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 2, flexWrap: 'wrap',
+    },
+    capsule: {
+      paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14,
+      borderWidth: 1, borderColor: withAlpha(colors.textMain, 0.15),
+      backgroundColor: 'transparent',
+    },
+    capsuleActive: {
+      borderColor: colors.primary,
+      backgroundColor: withAlpha(colors.primary, 0.08),
+    },
+    capsuleText: {
+      fontSize: 13, color: colors.textSub, fontWeight: '500',
+    },
+    capsuleTextActive: {
+      color: colors.primary, fontWeight: '600',
+    },
     // Profile head
     profileHead: { paddingHorizontal: 20, paddingTop: 44, paddingBottom: 12 },
     profileName: { fontSize: 26, fontWeight: '700', color: colors.textMain, letterSpacing: -0.2 } as any,

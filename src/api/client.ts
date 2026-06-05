@@ -57,8 +57,25 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     headers: mergedHeaders,
   });
   if (resp.status === 401) {
+    // Try to read body to detect specific kick reason before clearing state
+    let kickCode: string | null = null;
+    let kickMsg: string | null = null;
+    try {
+      const body = await resp.clone().json();
+      if (body?.code) kickCode = body.code;
+      if (body?.message) kickMsg = body.message;
+    } catch {}
     localStorage.removeItem('user');
-    // Navigate immediately — this promise never resolves so callers don't render
+    // If kicked by another device, show alert (window.alert is the simplest
+    // cross-screen channel; the page will be replaced by /login anyway).
+    if (kickCode === 'session_kicked' && typeof window !== 'undefined') {
+      try {
+        const { t } = await import('../i18n');
+        window.alert(t('sessionKickedToast') || kickMsg || 'Signed in elsewhere');
+      } catch {
+        window.alert(kickMsg || 'Signed in elsewhere');
+      }
+    }
     if (window.location.pathname !== '/login') {
       window.location.replace('/login');
     }
@@ -246,6 +263,11 @@ export const api = {
     authFetch('/api/profile/email/send-code', { method: 'POST', body: JSON.stringify({ email }) }),
   verifyEmailCode: (email: string, code: string) =>
     authFetch('/api/profile/email/verify', { method: 'POST', body: JSON.stringify({ email, code }) }),
+
+  // Auth preferences (single-device login + session timeout)
+  getAuthPrefs: () => authFetch('/api/users/me/auth-prefs'),
+  updateAuthPrefs: (data: { enforce_single_session?: number; session_timeout_hours?: number }) =>
+    authFetch('/api/users/me/auth-prefs', { method: 'PATCH', body: JSON.stringify(data) }),
 
   // Language preference (stored per-user in user_settings)
   getLang: () => authFetch('/api/settings/lang'),

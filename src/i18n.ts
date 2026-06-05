@@ -415,6 +415,12 @@ const I18N: Record<string, Record<string, string>> = {
     procTitle: '进货管理',
     copyright: '© 2026 柳味探秘 · 经营查询 · 版权所有',
     procViewDetail: '查看明细',
+    authSettingsTitle: '登录安全',
+    ssoLabel: '单设备登录',
+    ssoDesc: '最多一台设备同时登录',
+    sessionTimeoutLabel: '超时时间',
+    sessionTimeoutDesc: '超过该时长未操作自动退出',
+    sessionKickedToast: '您的账号在其他设备登录，当前会话已退出',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -827,6 +833,12 @@ const I18N: Record<string, Record<string, string>> = {
     procTitle: '進貨管理',
     copyright: '© 2026 柳味探秘 · 經營查詢 · 版權所有',
     procViewDetail: '檢視明細',
+    authSettingsTitle: '登入安全',
+    ssoLabel: '單一裝置登入',
+    ssoDesc: '最多一台裝置同時登入',
+    sessionTimeoutLabel: '超時時間',
+    sessionTimeoutDesc: '超過該時長未操作自動退出',
+    sessionKickedToast: '您的帳號在其他裝置登入，當前工作階段已退出',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -1238,6 +1250,12 @@ const I18N: Record<string, Record<string, string>> = {
     procTitle: 'Procurement',
     copyright: '© 2026 LiuWei TanMi · Business Dashboard · All Rights Reserved',
     procViewDetail: 'View Details',
+    authSettingsTitle: 'Sign-in Security',
+    ssoLabel: 'Single-device sign-in',
+    ssoDesc: 'Only one device can stay signed in at a time',
+    sessionTimeoutLabel: 'Session timeout',
+    sessionTimeoutDesc: 'Auto sign-out after this idle period',
+    sessionKickedToast: 'Signed in elsewhere. This session was ended.',
   },
 };
 
