@@ -432,10 +432,12 @@ const getStyles = (c: ThemeColors) => {
     },
     infoLabel: {
       fontSize: FONTS.sub.size,
+      lineHeight: 20,
       color: c.textSub,
     },
     infoValue: {
       fontSize: FONTS.sub.size,
+      lineHeight: 20,
       fontWeight: '500' as const,
       color: c.textMain,
     },
