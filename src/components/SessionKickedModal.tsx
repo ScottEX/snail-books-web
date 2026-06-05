@@ -20,9 +20,16 @@ export default function SessionKickedModal() {
 
   const handleClose = () => {
     setVisible(false);
-    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-      window.location.replace('/login');
-    }
+    // Defer the redirect to the next macrotask. setVisible(false) is a
+    // batched setState (React 18); calling window.location.replace in the
+    // same tick causes the navigation to race with React's commit and
+    // get swallowed. setTimeout(0) lets the modal's close animation and
+    // any pending state commits complete before we navigate.
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        window.location.replace('/login');
+      }
+    }, 0);
   };
 
   return (
