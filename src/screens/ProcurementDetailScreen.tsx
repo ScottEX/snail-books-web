@@ -302,6 +302,11 @@ const getStyles = (c: ThemeColors) => {
       backgroundColor: c.bg,
     },
     ...hdr,
+    // Only this screen: transparent header — home bg shows through, blur stays
+    header: {
+      ...hdr.header,
+      backgroundColor: 'transparent',
+    },
     batchInfo: {
       marginBottom: 16,
     },
