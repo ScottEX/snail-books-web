@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from './api/client';
 import { getCurrentUserId } from './utils/storage';
+import { setLang } from './i18n';
 
 // ═══════════════════════════════════════════
 // 三方案主题色值定义
@@ -207,7 +208,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
     api.saveTheme(themeId).catch(() => {});
   }, []);
 
-  // On mount, pull theme from server (per-user). If not logged in yet, keep localStorage value.
+  // On mount, pull theme AND language from server (per-user). If not
+  // logged in yet, keep localStorage value. The mount listener fires
+  // every time App.tsx bumps appKey (i.e. on every login / logout /
+  // session-kicked), so the subtree always reflects the current
+  // user's server-side preferences.
   useEffect(() => {
     let cancelled = false;
     api.getTheme().then(resp => {
@@ -219,6 +224,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
       }
     }).catch(() => {
       // Not logged in or network error — keep current (localStorage) theme
+    });
+    // Pull language so a new user signing in sees THEIR preferred
+    // language, not the previous user's localStorage value. i18n's
+    // setLang() writes the curLang global + localStorage; React
+    // child components mounted after this point will useState
+    // (getLang()) and read the updated value.
+    api.getLang().then((resp: any) => {
+      if (cancelled) return;
+      const serverLang = resp?.lang;
+      // setLang is from i18n.ts — writes curLang + localStorage and
+      // also fires a fire-and-forget PUT (no-op since we just pulled
+      // the same value). i18n's setLang() validates the key against
+      // its own I18N map and silently rejects unknown languages.
+      // CurLang is consumed by t() at render time, so as long as
+      // child components re-mount after this (which they do, because
+      // appKey bumped in App.tsx), they'll see the new language.
+      if (serverLang) setLang(serverLang);
+    }).catch(() => {
+      // Not logged in or network error — keep current (localStorage) lang
     });
     return () => { cancelled = true; };
   }, []);
