@@ -226,13 +226,15 @@ export default function ThemePickerModal({
         onClose={() => { setShowCrop(false); setImageSrc(''); }}
         imageSrc={imageSrc}
         onClearImage={() => setImageSrc('')}
+        onUploaded={handleClose}
         onConfirm={async (blob) => {
           if (!onCoverImagePicked) return;
           const file = new File([blob], 'background.jpg', { type: blob.type || 'image/jpeg' });
           await onCoverImagePicked(file);
-          // Only close on success — let caller decide. After successful
-          // upload, ThemePickerModal stays open and resets its crop state
-          // for the next interaction.
+          // Clear crop state so BgCropModal returns null immediately,
+          // then onUploaded() → handleClose() animates THIS modal out
+          // (handles its own setShowCrop(false) + setImageSrc('')
+          // inside, so we don't repeat them here).
           setShowCrop(false);
           setImageSrc('');
         }}

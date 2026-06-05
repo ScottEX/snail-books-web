@@ -17,6 +17,12 @@ interface BgCropModalProps {
   /** Called with a JPEG Blob after the user confirms the crop.
    *  Caller is responsible for upload + any post-upload state updates. */
   onConfirm: (blob: Blob) => void | Promise<void>;
+  /** Called after the upload triggered by onConfirm has resolved
+   *  successfully. Distinct from onClose (which fires on cancel /
+   *  ✕ / overlay click) so the parent can decide to close the WHOLE
+   *  surrounding modal on upload success without affecting the
+   *  cancel-flow. */
+  onUploaded?: () => void;
   /** Optional crop aspect ratio (height/width). Default: viewport ratio,
    *  so the cropped image fills the fullscreen background without black
    *  bars or distortion. Clamped to [0.5, 2.4] to match existing UX. */
@@ -34,7 +40,7 @@ interface BgCropModalProps {
  *  default — the cropped image is intended to fill the screen. */
 export default function BgCropModal({
   visible, onClose, imageSrc, onClearImage,
-  onConfirm, aspectRatio, title, confirmLabel,
+  onConfirm, onUploaded, aspectRatio, title, confirmLabel,
 }: BgCropModalProps) {
   // ── Internal crop state machine ──
   //   cropping → user is adjusting the crop
@@ -320,9 +326,14 @@ export default function BgCropModal({
         setPhase('uploading');
         try {
           await onConfirm(blob);
-          // Caller is responsible for closing on success
+          // Upload succeeded. Fire onUploaded (parent uses this to
+          // close the surrounding modal). Do NOT call onClose here —
+          // the parent's onConfirm wrapper already cleared our
+          // imageSrc, which made us return null already. Calling
+          // onClose would also clear the parent's imageSrc, which is
+          // a no-op but obscures intent.
           setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
-          onClose();
+          onUploaded?.();
         } catch (e: any) {
           setMsg(e?.message || t('uploadFailed'));
           setPhase('preview');
