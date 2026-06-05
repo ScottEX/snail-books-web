@@ -37,7 +37,8 @@ function formatDate(dateStr: string): string {
   return `${y}年${m}月${d}日`;
 }
 
-function translateDividendNote(note: string, date?: string): string {
+function translateDividendNote(note: string | null, date?: string): string {
+  if (!note) return '';
   const m = note.match(/^(?:第(\d+)次分红|第(\d+)次)$/);
   if (m) {
     const n = m[1] || m[2];
