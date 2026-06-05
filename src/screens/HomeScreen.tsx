@@ -19,7 +19,6 @@ import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
-import BgCropModal from '../components/BgCropModal';
 
 function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
   const [show, setShow] = React.useState(false);
@@ -63,7 +62,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [account, setAccount] = useState('');
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
-  const [showBgCrop, setShowBgCrop] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showReconHistory, setShowReconHistory] = useState(false);
   const [showExpenseHistory, setShowExpenseHistory] = useState(false);
@@ -440,19 +438,21 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   const todayStr = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
 
-  // ── BgCropModal upload callback (replaces inline bgDoUpload) ──
-  const handleBgCropConfirm = async (blob: Blob) => {
+  // Background image crop flow is self-contained inside ThemePickerModal —
+  // it calls onCoverImagePicked(file) after the user confirms in the
+  // BgCropModal preview step. We just upload + refresh local state.
+  const handleCoverImagePicked = async (file: File) => {
     setUploadingBg(true);
     try {
-      const file = new File([blob], 'background.jpg', { type: blob.type || 'image/jpeg' });
       const r: any = await api.uploadBackground(file);
       if (r?.url) {
         setBgImage(r.url);
         try { localStorage.setItem('bg-image', r.url); } catch {}
         setBgVersion(v => v + 1);
       } else { throw new Error(t('uploadFailedShort')); }
-    } catch (e: any) { throw e; }
-    finally { setUploadingBg(false); }
+    } finally {
+      setUploadingBg(false);
+    }
   };
 
   const handleBgReset = async () => {
@@ -839,15 +839,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         showCoverTools
         coverOpacity={bgOpacity}
         onCoverOpacityChange={handleBgOpacityChange}
-        onChooseCover={() => { setShowBgModal(false); setShowBgCrop(true); }}
+        onCoverImagePicked={handleCoverImagePicked}
         onResetCover={handleBgReset}
         coverUploading={uploadingBg}
-      />
-
-      <BgCropModal
-        visible={showBgCrop}
-        onClose={() => setShowBgCrop(false)}
-        onConfirm={handleBgCropConfirm}
       />
 
       {/* Shared modal */}

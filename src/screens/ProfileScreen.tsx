@@ -9,7 +9,6 @@ import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 import ThemePickerModal from '../components/ThemePickerModal';
-import BgCropModal from '../components/BgCropModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
 import BackArrow from '../components/icons/BackArrow';
@@ -57,7 +56,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
-  const [showBgCrop, setShowBgCrop] = useState(false);
   const [emailStep, setEmailStep] = useState<'input' | 'code'>('input');
   const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
@@ -222,13 +220,28 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     finally { setCoverUploading(false); }
   };
 
-  // Theme button is "set background image" (per user clarification). After
-  // the BgCropModal emits a cropped blob, upload it to the same
-  // /api/settings/background endpoint that HomeScreen uses.
-  // BgCropModal handles its own uploading indicator — no local state needed.
-  const handleBgCropConfirm = async (blob: Blob) => {
-    const file = new File([blob], 'background.jpg', { type: blob.type || 'image/jpeg' });
-    await api.uploadBackground(file);
+  // Theme button is "set background image" (per user clarification).
+  // ThemePickerModal self-contains the crop flow; we receive the
+  // cropped File via onCoverImagePicked and just upload to the same
+  // /api/settings/background endpoint HomeScreen uses.
+  const handleCoverImagePicked = async (file: File) => {
+    setCoverUploading(true);
+    try {
+      await api.uploadBackground(file);
+    } finally {
+      setCoverUploading(false);
+    }
+  };
+
+  // Theme button "reset default" should reset the BACKGROUND, not the cover
+  // — the theme button is "set background image" per user clarification.
+  const handleThemeReset = async () => {
+    setCoverUploading(true);
+    try {
+      await api.resetBackground();
+    } finally {
+      setCoverUploading(false);
+    }
   };
 
   const handleSignatureSave = async () => {
@@ -1055,17 +1068,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         showCoverTools
         coverOpacity={coverOpacity}
         onCoverOpacityChange={handleCoverOpacityChange}
-        onChooseCover={() => { setShowThemeModal(false); setShowBgCrop(true); }}
-        onResetCover={handleCoverReset}
+        onCoverImagePicked={handleCoverImagePicked}
+        onResetCover={handleThemeReset}
         coverUploading={coverUploading}
-      />
-
-      <BgCropModal
-        visible={showBgCrop}
-        onClose={() => setShowBgCrop(false)}
-        onConfirm={handleBgCropConfirm}
-        title={t('bgSettings') || '主题设置'}
-        confirmLabel={t('useThisBg') || '使用此图片'}
       />
 
       {/* ── Change Password Modal ── */}

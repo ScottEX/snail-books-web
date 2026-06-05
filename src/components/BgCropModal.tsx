@@ -28,9 +28,15 @@ export default function BgCropModal({
   visible, onClose, onConfirm, aspectRatio,
   title, confirmLabel,
 }: BgCropModalProps) {
+  // ── Internal crop state machine ──
+  //   cropping → user is adjusting the crop
+  //   preview  → user clicked "使用此图片", shows preview with "再编辑 / 确认使用" buttons
+  //   uploading → confirm pressed, onConfirm is in flight
   const [src, setSrc] = useState('');
   const [msg, setMsg] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [phase, setPhase] = useState<'cropping' | 'preview' | 'uploading'>('cropping');
+  const [cropBlob, setCropBlob] = useState<Blob | null>(null);
+  const [cropDataUrl, setCropDataUrl] = useState('');
   const imgRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -55,12 +61,12 @@ export default function BgCropModal({
   // ── Reset internal state on close ──
   useEffect(() => {
     if (!visible) {
-      setSrc(''); setMsg(''); setUploading(false);
+      setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
     }
   }, [visible]);
 
   const close = () => {
-    setSrc(''); setMsg(''); setUploading(false);
+    setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
     onClose();
   };
 
@@ -267,8 +273,11 @@ export default function BgCropModal({
     };
   }, [src]);
 
-  // ── Render result blob to confirm callback ──
-  const confirmCrop = async () => {
+  // ── Render result blob. Two paths:
+  //   - 'cropping' phase (first confirm click) → render to blob + dataURL,
+  //     set phase to 'preview'. User can still go back.
+  //   - 'preview' phase (final confirm) → call onConfirm(blob).
+  const handleConfirm = async () => {
     try {
       const img = imgRef.current;
       if (!img) { setMsg(t('imgNotLoaded')); return; }
@@ -287,19 +296,34 @@ export default function BgCropModal({
       const blob: Blob = await new Promise((resolve, reject) => {
         output.toBlob((b) => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/jpeg', 0.92);
       });
-      setUploading(true);
-      try {
-        await onConfirm(blob);
-        // Caller is responsible for closing on success; close on our end too
-        setSrc(''); setMsg(''); setUploading(false);
-        onClose();
-      } catch (e: any) {
-        setMsg(e?.message || t('uploadFailed'));
-        setUploading(false);
+      if (phase === 'cropping') {
+        // Generate a dataURL for the preview thumbnail
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result as string);
+          r.onerror = () => reject(new Error('FileReader failed'));
+          r.readAsDataURL(blob);
+        });
+        setCropBlob(blob);
+        setCropDataUrl(dataUrl);
+        setPhase('preview');
+        return;
+      }
+      if (phase === 'preview') {
+        setPhase('uploading');
+        try {
+          await onConfirm(blob);
+          // Caller is responsible for closing on success
+          setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
+          onClose();
+        } catch (e: any) {
+          setMsg(e?.message || t('uploadFailed'));
+          setPhase('preview');
+        }
       }
     } catch {
       setMsg(t('cropFailed'));
-      setUploading(false);
+      setPhase('cropping');
     }
   };
 
@@ -321,8 +345,8 @@ export default function BgCropModal({
         </TouchableOpacity>
       </View>
 
-      {/* Stage */}
-      {src !== '' && (
+      {/* Stage — cropping phase: live canvas crop. preview phase: thumbnail. */}
+      {src !== '' && phase === 'cropping' && (
         <View style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' } as any} ref={stageRef as any}>
           <canvas
             ref={canvasRef as any}
@@ -345,8 +369,29 @@ export default function BgCropModal({
         </View>
       )}
 
-      {/* Toolbar (only when an image is loaded) */}
-      {src !== '' && (
+      {/* Preview — shows the cropped result before upload */}
+      {phase === 'preview' && cropDataUrl !== '' && (
+        <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', padding: 24 } as any}>
+          <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360 } as any}>
+            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any}>
+              <Text style={{ fontSize: 20, color: '#1B7A4A' } as any}>✓</Text>
+            </View>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{t('bgUpdated') || '预览'}</Text>
+            <img
+              src={cropDataUrl}
+              style={{
+                maxWidth: 280, maxHeight: 180,
+                borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)',
+              }}
+              alt=""
+            />
+            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' } as any}>{t('bgResultHint') || '确认使用此图片，或返回再编辑'}</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Toolbar (only when cropping) */}
+      {src !== '' && phase === 'cropping' && (
         <View style={{ paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', flexShrink: 0 } as any}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
             <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
@@ -385,26 +430,55 @@ export default function BgCropModal({
         </View>
       )}
 
-      {/* Actions */}
-      <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0 } as any}>
-        <TouchableOpacity
-          style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
-          onPress={close}
-        >
-          <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('cancel')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{ flex: 2, padding: 11, borderRadius: 12, backgroundColor: uploading ? 'rgba(91,91,214,0.5)' : '#5B5BD6', justifyContent: 'center', alignItems: 'center', flexDirection: 'row' } as any}
-          onPress={confirmCrop}
-          disabled={uploading || !src}
-        >
-          <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 } as any}>
-            <Text style={{ fontSize: 10, color: '#fff' } as any}>{uploading ? '⏳' : '✓'}</Text>
-          </View>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{uploading ? t('uploading') : (confirmLabel || t('useThisBg'))}</Text>
-        </TouchableOpacity>
-      </View>
-      {msg !== '' && (
+      {/* Actions — different button set per phase */}
+      {phase === 'cropping' && (
+        <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0 } as any}>
+          <TouchableOpacity
+            style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
+            onPress={close}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('cancel')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6', justifyContent: 'center', alignItems: 'center', flexDirection: 'row' } as any}
+            onPress={handleConfirm}
+            disabled={!src}
+          >
+            <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 } as any}>
+              <Text style={{ fontSize: 10, color: '#fff' } as any}>✓</Text>
+            </View>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{confirmLabel || t('useThisBg')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {phase === 'preview' && (
+        <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0 } as any}>
+          <TouchableOpacity
+            style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
+            onPress={() => { setPhase('cropping'); setMsg(''); }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('recrop') || '再编辑'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6', justifyContent: 'center', alignItems: 'center' } as any}
+            onPress={handleConfirm}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{t('confirmUse') || '确认使用'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {phase === 'uploading' && (
+        <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', flexShrink: 0 } as any}>
+          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' } as any}>{t('uploading')}</Text>
+        </View>
+      )}
+
+      {msg !== '' && phase !== 'cropping' && (
+        <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: '500' } as any}>{msg}</Text>
+      )}
+      {msg !== '' && phase === 'cropping' && (
         <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: '500' } as any}>{msg}</Text>
       )}
     </div>,

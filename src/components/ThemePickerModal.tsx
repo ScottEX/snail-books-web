@@ -1,20 +1,24 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { createPortal } from 'react-dom';
 import { useTheme, ThemeColors, withAlpha, FONTS } from '../theme';
 import { t } from '../i18n';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 import ThemePicker from './ThemePicker';
+import BgCropModal from './BgCropModal';
 
 interface ThemePickerModalProps {
   visible: boolean;
   onClose: () => void;
-  // Optional cover tools (for ProfileScreen)
+  // Theme tools
   showCoverTools?: boolean;
   coverOpacity?: number;
   onCoverOpacityChange?: (v: number) => void;
-  onChooseCover?: () => void;
-  onResetCover?: () => void;
+  // NEW: receives a cropped File when user confirms in the BgCropModal preview.
+  // Caller is responsible for uploading (e.g. api.uploadBackground).
+  onCoverImagePicked?: (file: File) => Promise<void> | void;
+  // Optional: reset to default (e.g. api.resetBackground / api.resetProfileCover).
+  onResetCover?: () => Promise<void> | void;
   coverUploading?: boolean;
 }
 
@@ -52,13 +56,14 @@ function getStyles(colors: ThemeColors) {
 export default function ThemePickerModal({
   visible, onClose,
   showCoverTools, coverOpacity, onCoverOpacityChange,
-  onChooseCover, onResetCover, coverUploading,
+  onCoverImagePicked, onResetCover, coverUploading,
 }: ThemePickerModalProps) {
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(-300)).current;
   const [show, setShow] = React.useState(false);
+  const [showCrop, setShowCrop] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -158,7 +163,7 @@ export default function ThemePickerModal({
               <TouchableOpacity
                 style={[styles.bgBtn, styles.bgBtnOutline]}
                 disabled={coverUploading}
-                onPress={onChooseCover}
+                onPress={() => setShowCrop(true)}
               >
                 <Text style={styles.bgBtnOutlineText}>{coverUploading ? t('uploading') : t('chooseImage')}</Text>
               </TouchableOpacity>
@@ -173,6 +178,24 @@ export default function ThemePickerModal({
           )}
         </View>
       </Animated.View>
+
+      {/* ── Background image crop modal (self-contained) ──
+          Triggered by the "选择图片" button above. The full crop + preview +
+          upload flow is handled inside BgCropModal; we just forward the
+          final blob up via onCoverImagePicked. */}
+      <BgCropModal
+        visible={showCrop}
+        onClose={() => setShowCrop(false)}
+        onConfirm={async (blob) => {
+          if (!onCoverImagePicked) return;
+          const file = new File([blob], 'background.jpg', { type: blob.type || 'image/jpeg' });
+          await onCoverImagePicked(file);
+          // Only close on success — let caller decide. After successful
+          // upload, ThemePickerModal stays open and resets its crop state
+          // for the next interaction.
+          setShowCrop(false);
+        }}
+      />
     </Animated.View>,
     document.body
   );
