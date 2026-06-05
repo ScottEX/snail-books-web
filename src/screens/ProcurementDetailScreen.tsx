@@ -11,6 +11,8 @@ import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
 import { formatDate } from '../utils/format';
+import BackArrow from '../components/icons/BackArrow';
+import TrashIcon from '../components/icons/TrashIcon';
 
 interface BatchItem {
   name?: string;
@@ -34,32 +36,12 @@ interface BatchRecord {
   items: BatchItem[];
 }
 
-function BackArrow({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M15 18l-6-6 6-6" />
-    </Svg>
-  );
-}
-
 function DownloadIcon({ color }: { color: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <Path d="M7 10l5 5 5-5" />
       <Path d="M12 15V3" />
-    </Svg>
-  );
-}
-
-function TrashIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M3 6h18" />
-      <Path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-      <Path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <Path d="M10 11v6" />
-      <Path d="M14 11v6" />
     </Svg>
   );
 }

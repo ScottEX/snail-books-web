@@ -12,6 +12,9 @@ import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedSt
 import Toast from '../components/Toast';
 import ConfirmModal from '../components/ConfirmModal';
 import { formatDate } from '../utils/format';
+import TrashIcon from '../components/icons/TrashIcon';
+import CameraIcon from '../components/icons/CameraIcon';
+import PlusIcon from '../components/icons/PlusIcon';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = '现金' | '微信' | '支付宝';
@@ -22,8 +25,9 @@ interface BatchRecord { id: number; batch_number: number; date: string; payment_
 interface ProcStats { total_spent: number; total_income: number; batch_count: number; margin_pct: number; }
 
 // ═══════════════════════════════════════════════
-// SVG Icons
+// SVG Icons (local)
 // ═══════════════════════════════════════════════
+
 function CartIcon({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -37,14 +41,6 @@ function PencilIcon({ color }: { color: string }) {
     <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
       <Path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </Svg>
-  );
-}
-function CameraIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round">
-      <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-      <Circle cx="12" cy="13" r="4" />
     </Svg>
   );
 }
@@ -76,13 +72,6 @@ const PAY_ICONS: Record<string, (color: string) => React.ReactNode> = {
     </Svg>
   ),
 };
-function TrashIcon({ color }: { color: string }) {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-    </Svg>
-  );
-}
 function BoxIcon({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -122,14 +111,6 @@ function EmptyBoxIcon({ color }: { color: string }) {
       <Path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
       <Path d="M3.27 6.96L12 12.01l8.73-5.05" />
       <Path d="M12 22.08V12" />
-    </Svg>
-  );
-}
-
-function PlusIcon({ color, size = 16 }: { color: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M12 5v14M5 12h14" />
     </Svg>
   );
 }
@@ -1124,7 +1105,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                         activeOpacity={0.7}
                         hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                       >
-                        <TrashIcon color={c.danger} />
+                        <TrashIcon color={c.danger} size={14} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -1200,7 +1181,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     <PencilIcon color={c.textSub} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openSlideModal(() => setDeleteTarget(p))}>
-                    <TrashIcon color={c.danger} />
+                    <TrashIcon color={c.danger} size={14} />
                   </TouchableOpacity>
                 </View>
               </View>

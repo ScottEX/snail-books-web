@@ -11,27 +11,10 @@ import { modalCardAnimation, modalClose } from '../sharedStyles';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
+import BackArrow from '../components/icons/BackArrow';
+import CameraIcon from '../components/icons/CameraIcon';
 
-/* ========== SVG ICONS ========== */
-
-function CameraIcon({ color = '#fff', size = 12 }: { color?: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-      <Path d="M12 10a4 4 0 100 8 4 4 0 000-8z" />
-    </Svg>
-  );
-}
-
-function ArrowLeft({ color = '#fff' }: { color?: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M19 12H5" />
-      <Path d="M10 5l-7 7 7 7" />
-    </Svg>
-  );
-}
-
+/* ========== MAIN SCREEN ========== */
 function ChevronRight({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
@@ -776,12 +759,12 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           {/* Floating nav — back + title on top of cover */}
           <View style={st.coverNav}>
             <TouchableOpacity onPress={onBack} style={st.coverBackBtn}>
-              <ArrowLeft color="#fff" />
+              <BackArrow color="#fff" />
             </TouchableOpacity>
             <Text style={st.coverTitle}>{t('editProfile')}</Text>
           </View>
           <View style={st.coverOverlay}>
-            <CameraIcon color="#fff" size={14} />
+            <CameraIcon color="#fff" size={14} strokeWidth={2} />
             <Text style={st.coverOverlayText}>{t('editCover')}</Text>
           </View>
 
