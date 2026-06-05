@@ -1441,13 +1441,13 @@ function getStyles(colors: ThemeColors) {
     sectionTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 8 },
     sectionTitleText: { fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase', color: colors.textSub } as any,
     sectionTitleLine: { flex: 1, height: 1, backgroundColor: withAlpha(colors.textMain, 0.08) },
-    // Auth security (SSO + timeout)
+    // Auth security (SSO + timeout) — authRow paddingHorizontal:0 to match iconRow
     authCard: {
       marginTop: 4, backgroundColor: colors.surface,
       borderRadius: 12, paddingVertical: 2,
     },
     authRow: {
-      flexDirection: 'column', paddingVertical: 14, paddingHorizontal: 14, gap: 10,
+      flexDirection: 'column', paddingVertical: 14, paddingHorizontal: 0, gap: 10,
     },
     authHeaderRow: {
       flexDirection: 'row', alignItems: 'center', gap: 10,
@@ -1461,7 +1461,7 @@ function getStyles(colors: ThemeColors) {
     iconShield: { backgroundColor: withAlpha(colors.primary, 0.12) },
     iconClock: { backgroundColor: 'rgba(255,180,80,0.12)' },
     capsuleRow: {
-      flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 2, flexWrap: 'wrap',
+      flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 2, flexWrap: 'wrap', marginLeft: 42,
     },
     capsule: {
       paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14,
