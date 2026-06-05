@@ -126,15 +126,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
         <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtn}>
           <BackArrow color={c.textMain} />
         </TouchableOpacity>
-        <View style={{ alignItems: 'center' }}>
-          <Text style={styles.headerTitle}>{t('procDetail')}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
-            <Text style={styles.headerDate}>
-              {t('procNowBatch').replace('{n}', String(batch.batch_number))}
-            </Text>
-            <Text style={styles.headerDate}>{batch.date}</Text>
-          </View>
-        </View>
+        <Text style={styles.headerTitle}>{t('procDetail')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -144,6 +136,14 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
         contentContainerStyle={styles.bodyContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Batch info — moved out of header */}
+        <View style={styles.batchInfo}>
+          <Text style={styles.batchLabel}>
+            {t('procNowBatch').replace('{n}', String(batch.batch_number))}
+          </Text>
+          <Text style={styles.batchDate}>{batch.date}</Text>
+        </View>
+
         {/* Info card */}
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
@@ -293,13 +293,22 @@ const getStyles = (c: ThemeColors) => {
       fontWeight: FONTS.subBold.weight,
       color: c.textMain,
     },
-    headerDate: {
+    batchInfo: {
+      marginBottom: 16,
+    },
+    batchLabel: {
+      fontSize: FONTS.subBold.size,
+      fontWeight: FONTS.subBold.weight,
+      color: c.textMain,
+    },
+    batchDate: {
       fontSize: FONTS.micro.size,
       color: c.textSub,
+      marginTop: 2,
     },
     body: {
       flex: 1,
-      marginTop: 110, // space for absolute glass header (title + batch-row sub-line)
+      marginTop: 88, // space for slim glass header (title only, no batch row)
     },
     bodyContent: {
       paddingHorizontal: 16,
