@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from './api/client';
 import { getCurrentUserId } from './utils/storage';
-import { useLang } from './i18n';
 
 // ═══════════════════════════════════════════
 // 三方案主题色值定义
@@ -199,11 +198,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
     return theme1;
   });
 
-  // Pulled from LangContext so we can apply the server-preferred
-  // language when this provider mounts. (useLang is a hook — must be
-  // called at the top level of the component, not inside the effect.)
-  const { setLang: applyLang } = useLang();
-
   const setTheme = useCallback((themeId: string) => {
     const t = THEMES[themeId];
     if (!t) return;
@@ -213,20 +207,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
     api.saveTheme(themeId).catch(() => {});
   }, []);
 
-  // On mount, pull theme AND language from server (per-user). If not
-  // logged in yet, keep localStorage value. The mount listener fires
-  // every time App.tsx bumps appKey (i.e. on every login / logout /
-  // session-kicked), so the subtree always reflects the current
-  // user's server-side preferences.
+  // On mount, pull the current user's server-side theme preference
+  // and apply it. If not logged in yet, keep localStorage value. The
+  // mount listener fires every time App.tsx bumps appKey (i.e. on
+  // every login / logout / session-kicked), so the subtree always
+  // reflects the current user's server-side theme preference.
+  //
+  // Note: language is intentionally NOT pulled here anymore. Language
+  // is per-device (localStorage), not per-user — the user picks it on
+  // the login screen and it carries through their session and back
+  // to the login screen on logout. See i18n.tsx for the LangContext
+  // that owns the lang state, and LangProvider's setLang in
+  // LoginScreen/HomeScreen for the user-facing switcher.
   useEffect(() => {
     // CRITICAL: short-circuit when there is no user. Otherwise this
-    // useEffect would call api.getLang() / api.getTheme() with no
-    // session, hit 401, and the 401 handler would dispatch
-    // 'app:user-change' again, which would bump appKey and re-mount
-    // us — creating the infinite-remount loop that made the login
-    // screen flicker. By returning early here, the 401 still clears
-    // the user (and the SessionKickedModal still shows) but no extra
-    // remount is triggered.
+    // useEffect would call api.getTheme() with no session, hit 401,
+    // and the 401 handler would dispatch 'app:user-change' again,
+    // which would bump appKey and re-mount us — creating the
+    // infinite-remount loop that made the login screen flicker. By
+    // returning early here, the 401 still clears the user (and the
+    // SessionKickedModal still shows) but no extra remount is
+    // triggered.
     if (typeof localStorage === 'undefined' || !localStorage.getItem('user')) {
       return;
     }
@@ -241,22 +242,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
     }).catch(() => {
       // Not logged in or network error — keep current (localStorage) theme
     });
-    // Pull language so a new user signing in sees THEIR preferred
-    // language, not the previous user's localStorage value. We use
-    // applyLang from LangContext (instead of the standalone setLang
-    // from i18n.ts) so the new value is written into LangContext
-    // state and every useContext(LangContext) subscriber re-renders
-    // with the new language — that's what makes the top status bar
-    // and other lang consumers update on user change.
-    api.getLang().then((resp: any) => {
-      if (cancelled) return;
-      const serverLang = resp?.lang;
-      if (serverLang) applyLang(serverLang);
-    }).catch(() => {
-      // Not logged in or network error — keep current (localStorage) lang
-    });
     return () => { cancelled = true; };
-  }, [applyLang]);
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, colors: theme.colors, setTheme, allThemes: Object.values(THEMES) }}>

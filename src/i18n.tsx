@@ -1289,37 +1289,16 @@ export function setLang(lang: string, callback?: () => void) {
   if (!I18N[lang]) return;
   curLang = lang;
   if (typeof localStorage !== 'undefined') localStorage.setItem('lang', lang);
-  // Save to backend so language follows the user across devices
-  try {
-    fetch('/api/settings/lang', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lang }),
-    }).catch(() => {});
-  } catch {}
+  // NOTE: language is per-device (not per-user) — we do NOT push to
+  // the server here. The picked language lives in localStorage, the
+  // login screen's lang selector uses it as its default on next
+  // render, and it carries through the user's session and back to
+  // the login screen on logout. See the LangProvider in this file
+  // and the layout in App.tsx.
   callback?.();
 }
 
 export const langs: [string, string][] = [['zh-CN', '简'], ['zh-TW', '繁'], ['en', 'EN']];
-
-// Internal helper: apply lang to runtime (curLang + localStorage +
-// server). Used by both the standalone setLang() and the LangProvider
-// setLang below. Kept here (not in client.ts) to avoid a circular
-// import — i18n.tsx ↔ client.ts would otherwise both depend on each
-// other and the live bindings would briefly see undefined `api` during
-// module init. (The standalone setLang() above historically also used
-// a raw fetch() for the same reason.)
-function _applyLangToRuntime(lang: string) {
-  curLang = lang;
-  if (typeof localStorage !== 'undefined') localStorage.setItem('lang', lang);
-  try {
-    fetch('/api/settings/lang', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lang }),
-    }).catch(() => {});
-  } catch {}
-}
 
 // ═══════════════════════════════════════════
 // LangContext — single source of truth for the current language
@@ -1329,11 +1308,18 @@ function _applyLangToRuntime(lang: string) {
 //   curLang is a module-level `let`. Mutating it via the standalone
 //   setLang() below does NOT trigger a React re-render — components
 //   that did `useState(getLang())` capture the value at mount time
-//   and keep showing the OLD user's language after a new user signs
-//   in. To make all subscribers update, we expose a context whose
-//   value is backed by useState, and a wrapper setLang that performs
-//   the React update + side effects (curLang, localStorage, server
-//   persistence) in one call.
+//   and keep showing the OLD language after the user switches
+//   languages. To make all subscribers update, we expose a context
+//   whose value is backed by useState, and a wrapper setLang that
+//   performs the React update + side effects (curLang, localStorage)
+//   in one call.
+//
+// Language is per-DEVICE (not per-user). The picked language lives
+// in localStorage, the login screen's lang selector uses it as its
+// default on next render, and it carries through the user's
+// session and back to the login screen on logout. We intentionally
+// do NOT persist to the server — different accounts sharing the
+// same browser share the same UI language.
 //
 // Layering in App.tsx:
 //   <LangProvider>          ← mounts once, holds lang state, never re-mounts
@@ -1344,15 +1330,14 @@ function _applyLangToRuntime(lang: string) {
 //     </ThemeProvider>
 //   </LangProvider>
 //
-// The standalone setLang() export is kept for any non-React callers
-// and is also reused inside the provider via _applyLangToRuntime().
+// The standalone setLang() export above is kept for any non-React
+// callers.
 //
-// LangProvider does NOT pull the server-side language itself. The
-// pull is owned by ThemeProvider's mount effect, which (a) already
-// imports api for the theme pull, (b) re-mounts via appKey++ on every
-// login / logout / session-kicked, and (c) would otherwise leave us
-// with a duplicate api import and a circular i18n ↔ client module
-// reference.
+// LangProvider does NOT pull the server-side language — the user
+// picks the language on the login screen and it carries forward via
+// localStorage. This keeps the per-device invariant and avoids a
+// duplicate api import that would create a circular i18n ↔ client
+// module reference.
 
 interface LangContextValue {
   lang: string;
@@ -1367,16 +1352,15 @@ const LangContext = createContext<LangContextValue>({
 export function LangProvider({ children }: { children: React.ReactNode }) {
   // Initial value: whatever the standalone getLang() reports (which
   // reads from localStorage, then navigator.language as a fallback).
-  // The post-login server-side language is delivered by
-  // ThemeProvider's mount effect calling applyLang() from this
-  // context (which writes through the same _applyLangToRuntime
-  // helper as the standalone setLang).
+  // This is the language the user picked the last time they were on
+  // the login screen (or the browser default for a fresh device).
   const [lang, setLangState] = useState<string>(getLang());
 
   const setLang = useCallback((newLang: string, callback?: () => void) => {
     if (!I18N[newLang]) return;
-    setLangState(newLang);                              // 1) trigger re-render
-    _applyLangToRuntime(newLang);                       // 2) side effects (curLang, localStorage, server)
+    setLangState(newLang);                                     // 1) trigger re-render
+    curLang = newLang;                                         // 2) keep t() in sync
+    try { localStorage.setItem('lang', newLang); } catch {}    // 3) persist locally (login screen's next-render default)
     callback?.();
   }, []);
 
