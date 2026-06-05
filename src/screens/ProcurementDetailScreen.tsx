@@ -226,6 +226,10 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
             <Text style={styles.infoLabel}>{t('expenseCategory')}</Text>
             <Text style={styles.infoValue}>{batch.category}</Text>
           </View>
+          <View style={[styles.infoRow, { borderBottomWidth: 0, paddingTop: 0 }]}>
+            <Text style={styles.infoLabel}>{t('procOperator')}</Text>
+            <Text style={styles.infoValue}>{(() => { try { return localStorage.getItem('user') || '—'; } catch { return '—'; } })()}</Text>
+          </View>
         </View>
 
         {/* Images */}
