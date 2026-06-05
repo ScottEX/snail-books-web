@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { t } from '../i18n';
+import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -64,9 +64,10 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} activeOpacity={0.7}><BackArrow color={c.textMain} /></TouchableOpacity>
+          <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtnAbs}>
+            <BackArrow color={c.textMain} />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('procOrderItems')}</Text>
-          <View style={{ width: 44 }} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: c.textSub }}>—</Text>
@@ -119,15 +120,22 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
   // Note is auto-generated from procNowBatch, not user-entered — rebuild with i18n
   const noteLabel = t('procNowBatch').replace('{n}', String(batch.batch_number));
 
+  // Date formatting matching ExpenseHistoryScreen fmtExpDate
+  const formatDateLocale = (d: string) => {
+    const [y, m, day] = d.split('-');
+    const l = getLang();
+    if (l.startsWith('en')) { const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${months[+m-1]} ${+day}, ${y}`; }
+    return `${y}年${+m}月${+day}日`;
+  };
+
   return (
     <View style={styles.container}>
       {/* Header — absolute, glass */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtn}>
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtnAbs}>
           <BackArrow color={c.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('procDetail')}</Text>
-        <View style={{ width: 44 }} />
       </View>
 
       {/* Body — scrolls under header */}
@@ -141,7 +149,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
           <Text style={styles.batchLabel}>
             {t('procNowBatch').replace('{n}', String(batch.batch_number))}
           </Text>
-          <Text style={styles.batchDate}>{batch.date}</Text>
+          <Text style={styles.batchDate}>{formatDateLocale(batch.date)}</Text>
         </View>
 
         {/* Info card */}
@@ -288,6 +296,22 @@ const getStyles = (c: ThemeColors) => {
       backgroundColor: c.bg,
     },
     ...hdr,
+    // Override header to center title (back button is absolute)
+    header: {
+      ...hdr.header,
+      justifyContent: 'center' as const,
+    },
+    backBtnAbs: {
+      position: 'absolute' as const,
+      left: 16,
+      width: 44, height: 44, borderRadius: 22,
+      backgroundColor: withAlpha(c.bg, 0.30),
+      justifyContent: 'center' as const, alignItems: 'center' as const,
+      // @ts-ignore
+      backdropFilter: 'saturate(200%) blur(30px)',
+      borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
+      zIndex: 1,
+    },
     headerTitle: {
       fontSize: FONTS.subBold.size,
       fontWeight: FONTS.subBold.weight,
@@ -308,7 +332,7 @@ const getStyles = (c: ThemeColors) => {
     },
     body: {
       flex: 1,
-      marginTop: 88, // space for slim glass header (title only, no batch row)
+      marginTop: 100, // space for glass header + clearance
     },
     bodyContent: {
       paddingHorizontal: 16,
