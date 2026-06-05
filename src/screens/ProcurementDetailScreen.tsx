@@ -237,7 +237,13 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
 
         {/* Items */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('procOrderItems')}</Text>
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>{t('procOrderItems')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+              <Text style={styles.totalLabel}>{t('procTotal')}</Text>
+              <Text style={styles.totalAmt}>¥{batch.total.toFixed(2)}</Text>
+            </View>
+          </View>
           <View style={styles.itemsCard}>
             {items.map((item, idx) => {
               const name = item.name || item.product_name || `${t('procProduct')}#${item.product_id}`;
@@ -251,12 +257,6 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
               );
             })}
           </View>
-        </View>
-
-        {/* Total */}
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>{t('procTotal')}</Text>
-          <Text style={styles.totalAmt}>¥{batch.total.toFixed(2)}</Text>
         </View>
 
         {/* Download overlay (during PDF generation) */}
@@ -400,15 +400,29 @@ const getStyles = (c: ThemeColors) => {
     section: {
       marginBottom: 16,
     },
+    sectionTitleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      marginBottom: 10,
+    },
     sectionTitle: {
       fontSize: FONTS.micro.size,
       fontWeight: '600',
       color: c.textSub,
       textTransform: 'uppercase',
       letterSpacing: 0.5,
-      marginBottom: 10,
     },
-    // Thumbnails
+    totalLabel: {
+      fontSize: FONTS.micro.size,
+      color: c.textSub,
+      marginRight: 6,
+    },
+    totalAmt: {
+      fontSize: FONTS.body.size,
+      fontWeight: '700' as const,
+      color: c.primary,
+    },
     thumb: {
       width: 72,
       height: 72,
@@ -449,25 +463,6 @@ const getStyles = (c: ThemeColors) => {
       color: c.textMain,
       minWidth: 72,
       textAlign: 'right' as const,
-    },
-    // Total
-    totalRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 4,
-      paddingVertical: 12,
-      marginBottom: 16,
-    },
-    totalLabel: {
-      fontSize: FONTS.subBold.size,
-      fontWeight: FONTS.subBold.weight,
-      color: c.textMain,
-    },
-    totalAmt: {
-      fontSize: FONTS.h2.size,
-      fontWeight: '700' as const,
-      color: c.primary,
     },
     // Download overlay (PDF generation)
     downloadOverlay: {
