@@ -15,7 +15,7 @@ import DailyRevenueHistory from './DailyRevenueHistory';
 import ProcurementDetailScreen from './ProcurementDetailScreen';
 import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
-import ThemePicker from '../components/ThemePicker';
+import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 
 function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
@@ -32,8 +32,6 @@ function DateErrorHint({ trigger, message, colors }: { trigger: number; message:
   if (!show) return null;
   return <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'left', marginTop: 2 }}>{message}</Text>;
 }
-import { modalCardAnimation, modalClose } from '../sharedStyles';
-
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
@@ -63,11 +61,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  // ── Modal slide-from-top animation ──
-  const modalAnim = useRef(new Animated.Value(0)).current;
-  const modalFade = useRef(new Animated.Value(0)).current;
-  const openModal = (show: () => void) => { show(); modalAnim.setValue(-300); modalFade.setValue(0); Animated.parallel([Animated.spring(modalAnim,{toValue:0,useNativeDriver:true,bounciness:4,speed:14}),Animated.timing(modalFade,{toValue:1,duration:200,useNativeDriver:true})]).start(); };
-  const closeModal = (hide: () => void) => { Animated.parallel([Animated.timing(modalAnim,{toValue:-300,duration:180,useNativeDriver:true}),Animated.timing(modalFade,{toValue:0,duration:180,useNativeDriver:true})]).start(()=>hide()); };
   const [showReconHistory, setShowReconHistory] = useState(false);
   const [showExpenseHistory, setShowExpenseHistory] = useState(false);
   const [showDailyHistory, setShowDailyHistory] = useState(false);
@@ -457,7 +450,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
-    closeModal(() => setShowBgModal(false));
+    setShowBgModal(false);
   };
   const handleBgReset = async () => {
     setUploadingBg(true);
@@ -468,7 +461,19 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
-    closeModal(() => setShowBgModal(false));
+    setShowBgModal(false);
+  };
+
+  const handleBgOpacityChange = (v: number) => {
+    setBgOpacity(v);
+    try {
+      const uid = localStorage.getItem('user_id');
+      localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(v));
+    } catch {}
+    clearTimeout((window as any).__bgOpacityTimer);
+    (window as any).__bgOpacityTimer = setTimeout(() => {
+      api.saveBackgroundSettings({ opacity: v }).catch(() => {});
+    }, 500);
   };
 
   const styles = useMemo(() => getStyles(colors), [colors]);
@@ -511,10 +516,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{usr}</Text>
           </TouchableOpacity>
           <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => openModal(() => setShowBgModal(true))} style={{ marginRight: 8 }}>
+            <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
               <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => openModal(() => setShowLogoutModal(true))}>
+            <TouchableOpacity onPress={() => setShowLogoutModal(true)}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
             </TouchableOpacity>
             <View style={styles.langRow}>
@@ -823,97 +828,16 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     </View>
       )}  {/* end page-content conditional */}
 
-      {/* Background settings modal */}
-      {showBgModal && (
-        <Animated.View style={[styles.modalOverlay, { opacity: modalFade }]}>
-          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalAnim }] }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('bgSettings')}</Text>
-              <TouchableOpacity onPress={() => closeModal(() => setShowBgModal(false))}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.modalBodyBg}>
-              <Text style={styles.modalHint}>{t('bgHint')}</Text>
-
-              {/* ── Theme Picker ── */}
-              <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
-                <ThemePicker />
-              </View>
-
-              {/* Opacity slider */}
-              <View style={{ marginTop: 20 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('opacity')}</Text>
-                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.primary }}>{Math.round(bgOpacity * 100)}%</Text>
-                </View>
-                <View style={{ position: 'relative', height: 32, justifyContent: 'center' }}>
-                  {/* track background */}
-                  <View style={{
-                    position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2,
-                    backgroundColor: colors.secondary,
-                  }} />
-                  {/* active track fill */}
-                  <View style={{
-                    position: 'absolute', left: 0, height: 4, borderRadius: 2,
-                    width: `${bgOpacity * 100}%`,
-                    backgroundColor: colors.primary,
-                  }} />
-                  <input
-                    type="range"
-                    className="glass-slider"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={bgOpacity}
-                    onChange={(e: any) => {
-                      const v = parseFloat(e.target.value);
-                      setBgOpacity(v);
-                      try {
-                        const uid = localStorage.getItem('user_id');
-                        localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(v));
-                      } catch {}
-                      // Debounced save to server
-                      clearTimeout((window as any).__bgOpacityTimer);
-                      (window as any).__bgOpacityTimer = setTimeout(() => {
-                        api.saveBackgroundSettings({ opacity: v }).catch(() => {});
-                      }, 500);
-                    }}
-                    style={{
-                      width: '100%', height: 32, opacity: 0, cursor: 'pointer',
-                      margin: 0, position: 'relative', zIndex: 1,
-                    }}
-                  />
-                </View>
-                {/* tick labels */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>0</Text>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>50</Text>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>100</Text>
-                </View>
-              </View>
-
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-                <TouchableOpacity
-                  style={[styles.bgBtn, styles.bgBtnOutline]}
-                  disabled={uploadingBg}
-                  onPress={() => fileRef.current?.click()}
-                >
-                  <Text style={styles.bgBtnOutlineText}>{uploadingBg ? t('uploading') : t('chooseImage')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.bgBtn, styles.bgBtnDanger]}
-                  disabled={uploadingBg}
-                  onPress={handleBgReset}
-                >
-                  <Text style={styles.bgBtnDangerText}>{t('resetDefault')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
-        </Animated.View>
-      )}
+      <ThemePickerModal
+        visible={showBgModal}
+        onClose={() => setShowBgModal(false)}
+        showCoverTools
+        coverOpacity={bgOpacity}
+        onCoverOpacityChange={handleBgOpacityChange}
+        onChooseCover={() => fileRef.current?.click()}
+        onResetCover={handleBgReset}
+        coverUploading={uploadingBg}
+      />
 
       {/* Shared modal */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
@@ -1128,32 +1052,6 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   navLabel: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.3 },
   navLabelActive: { color: colors.textMain },
-  // Background settings modal
-  modalOverlay: {
-    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
-    zIndex: 200, backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center', alignItems: 'center',
-  },
-  modalCard: {
-    backgroundColor: colors.surface, borderRadius: 16, width: 340, maxWidth: '90%',
-    overflow: 'hidden' as const,
-    // @ts-ignore
-    ...modalCardAnimation,
-  },
-  modalHeader: {
-    backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 14,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
-  modalClose: { ...modalClose, },
-  modalBodyBg: { padding: 24 },
-  modalHint: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
-  bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  bgBtnOutline: { borderWidth: 1, borderColor: colors.primary },
-  bgBtnOutlineText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
-  bgBtnDanger: { borderWidth: 1, borderColor: withAlpha(colors.primary, 0.2), backgroundColor: withAlpha(colors.primary, 0.06) },
-  bgBtnDangerText: { fontSize: FONTS.micro.size, color: colors.primary, fontWeight: FONTS.micro.weight },
-
   /* ── Daily Revenue (每日营收) ── */
   revCard: {
     backgroundColor: withAlpha(colors.surface, 0.65), borderRadius: 14,
