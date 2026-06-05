@@ -10,6 +10,7 @@ import Toast from '../components/Toast';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import ModalOverlay from '../components/ModalOverlay';
 
 /* ========== SVG ICONS ========== */
 
@@ -979,9 +980,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       />
 
       {/* ── Change Password Modal ── */}
-      {showPwModal && createPortal(
-        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowPwModal(false)}>
-          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
+      <ModalOverlay visible={showPwModal} onClose={() => setShowPwModal(false)}>
+        <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changePassword')}</Text>
               <TouchableOpacity onPress={() => setShowPwModal(false)}>
@@ -1029,15 +1029,12 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                 </TouchableOpacity>
               </View>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>,
-        document.body
-      )}
+        </View>
+      </ModalOverlay>
 
       {/* ── Change Email Modal ── */}
-      {showEmailModal && createPortal(
-        <TouchableOpacity style={mo.overlay} activeOpacity={1} onPress={() => setShowEmailModal(false)}>
-          <TouchableOpacity style={mo.card} activeOpacity={1} onPress={() => {}}>
+      <ModalOverlay visible={showEmailModal} onClose={() => setShowEmailModal(false)}>
+        <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changeEmail')}</Text>
               <TouchableOpacity onPress={() => setShowEmailModal(false)}>
@@ -1101,10 +1098,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                 </>
               )}
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>,
-        document.body
-      )}
+        </View>
+      </ModalOverlay>
 
       {/* ====== AVATAR CROP MODAL (portal) ====== */}
       {cropSrc !== '' && !showResult && createPortal(
@@ -1425,11 +1420,6 @@ function getStyles(colors: ThemeColors) {
 
 function getMo(colors: ThemeColors) {
   return StyleSheet.create({
-    overlay: {
-      position: 'fixed' as any, inset: 0,
-      backgroundColor: 'rgba(0,0,0,0.3)',
-      justifyContent: 'center', alignItems: 'center', zIndex: 500,
-    },
     card: {
       backgroundColor: colors.surface, borderRadius: 16,
       width: 340, maxWidth: '90%', overflow: 'hidden' as any,
