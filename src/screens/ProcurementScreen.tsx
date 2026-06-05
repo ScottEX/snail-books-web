@@ -10,6 +10,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 import Toast from '../components/Toast';
+import ConfirmModal from '../components/ConfirmModal';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = '现金' | '微信' | '支付宝';
@@ -1264,68 +1265,25 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </Animated.View>
       )}
 
-      {/* ── Delete confirmation modal ── */}
-      {deleteTarget && (
-        <Animated.View style={[styles.modalOverlay, { opacity: modalOverlayFade }]}>
-          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('procDeleteProduct') || '删除商品'}</Text>
-              <TouchableOpacity onPress={() => closeSlideModal(() => setDeleteTarget(null))}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={[styles.modalBody, { gap: 16 }]}>
-              <View style={styles.modalDeleteBox}>
-                <Text style={styles.modalDeleteText}>
-                  {t('procDeleteProductConfirm').split('{name}')[0]}
-                  <Text style={{ color: c.primary, fontWeight: '600' }}>{deleteTarget.name}</Text>
-                  {t('procDeleteProductConfirm').split('{name}')[1]}
-                  {' '}{t('procDeleteProductWarning')}
-                </Text>
-              </View>
-              <View style={styles.modalBtnRow}>
-                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setDeleteTarget(null))}>
-                  <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.primary }]} onPress={confirmDelete}>
-                  <Text style={styles.modalBtnConfirmText}>{t('delete') || '删除'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
-        </Animated.View>
-      )}
+      {/* ── Delete confirmation modal (product) ── */}
+      <ConfirmModal
+        visible={deleteTarget !== null}
+        title={t('procDeleteProduct') || '删除商品'}
+        message={<>{t('procDeleteProductConfirm').split('{name}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{deleteTarget?.name}</Text>{t('procDeleteProductConfirm').split('{name}')[1]}{' '}{t('procDeleteProductWarning')}</>}
+        confirmLabel={t('delete')}
+        onConfirm={() => confirmDelete()}
+        onCancel={() => closeSlideModal(() => setDeleteTarget(null))}
+      />
 
       {/* ── Delete batch confirmation modal ── */}
-      {deleteBatchTarget && (
-        <Animated.View style={[styles.modalOverlay, { opacity: modalOverlayFade }]}>
-          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('procDeleteBatch')}</Text>
-              <TouchableOpacity onPress={() => closeSlideModal(() => setDeleteBatchTarget(null))}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={[styles.modalBody, { gap: 16 }]}>
-              <View style={styles.modalDeleteBox}>
-                <Text style={styles.modalDeleteText}>
-                  {t('procDeleteBatchConfirmV2').split('{batch}')[0]}
-                  <Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(deleteBatchTarget.batch_number))}</Text>
-                  {t('procDeleteBatchConfirmV2').split('{batch}')[1]}
-                </Text>
-              </View>
-              <View style={styles.modalBtnRow}>
-                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setDeleteBatchTarget(null))}>
-                  <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.primary }]} onPress={confirmDeleteBatch}>
-                  <Text style={styles.modalBtnConfirmText}>{t('delete') || '删除'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
-        </Animated.View>
-      )}
+      <ConfirmModal
+        visible={deleteBatchTarget !== null}
+        title={t('procDeleteBatch')}
+        message={<>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(deleteBatchTarget?.batch_number ?? ''))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>}
+        confirmLabel={t('delete')}
+        onConfirm={() => confirmDeleteBatch()}
+        onCancel={() => closeSlideModal(() => setDeleteBatchTarget(null))}
+      />
 
       {/* ── Order Drawer (slides up) ── */}
       {showDrawer && (

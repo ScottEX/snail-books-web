@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom';
 import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import ModalOverlay from '../components/ModalOverlay';
+import ConfirmModal from '../components/ConfirmModal';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
@@ -753,7 +755,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 
       {/* ====== DIVIDEND MODAL ====== */}
       {showDividend && (
-        <ModalOverlay styles={mo} onClose={() => setShowDividend(false)}>
+        <ModalOverlay overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDividend(false)}>
           <View style={mo.modalCard} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -825,40 +827,18 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       )}
 
       {/* ====== DELETE MODAL ====== */}
-      {showDelete !== null && (
-        <ModalOverlay styles={mo} onClose={() => setShowDelete(null)}>
-          <View style={[mo.modalCard, { maxWidth: 320 }]} onStartShouldSetResponder={() => true}>
-            <View style={mo.header}>
-              <View>
-                <Text style={mo.title}>{t('confirmDeleteRecord')}</Text>
-                <Text style={mo.sub}>{t('irreversible')}</Text>
-              </View>
-              <TouchableOpacity onPress={() => setShowDelete(null)}>
-                <Text style={mo.close}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ padding: 20, gap: 16 }}>
-              <View style={moBody.deleteBox}>
-                <Text style={moBody.deleteText}>
-                  {t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{translateDividendNote(showDelete, grouped[showDelete]?.[0]?.date)}</Text>{t('allDividendRecords')}
-                </Text>
-              </View>
-              <View style={moBody.btnRow}>
-                <TouchableOpacity style={moBody.cancelBtn} onPress={() => setShowDelete(null)}>
-                  <Text style={moBody.cancelBtnText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={moBody.deleteConfirmBtn} onPress={handleDelete}>
-                  <Text style={moBody.confirmBtnText}>{t('confirmDeleteRecord')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </ModalOverlay>
-      )}
+      <ConfirmModal
+        visible={showDelete !== null}
+        title={t('confirmDeleteRecord')}
+        message={<>{t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{translateDividendNote(showDelete, grouped[showDelete ?? '']?.[0]?.date)}</Text>{t('allDividendRecords')}</>}
+        confirmLabel={t('confirmDeleteRecord')}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(null)}
+      />
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
       {showDetail && (
-        <ModalOverlay styles={mo} onClose={() => setShowDetail(null)}>
+        <ModalOverlay overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -937,7 +917,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
       {showOrg && (
-        <ModalOverlay styles={mo} onClose={() => setShowOrg(false)}>
+        <ModalOverlay overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowOrg(false)}>
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -1098,35 +1078,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 function getRoleKey(name: string): string {
   const map: Record<string, string> = { '张安武': 'chairman', '江宽': 'ceo', '蓝柳富': 'janitor' };
   return map[name] || 'janitor';
-}
-
-/* ========== MODAL OVERLAY ========== */
-
-function ModalOverlay({ children, styles, onClose }: {
-  children: React.ReactNode;
-  styles: ReturnType<typeof getMo>;
-  onClose: () => void;
-}) {
-  const anim = useRef(new Animated.Value(-300)).current;
-  const fade = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(anim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start();
-  }, []);
-  const close = () => {
-    Animated.parallel([
-      Animated.timing(anim, { toValue: -300, duration: 180, useNativeDriver: true }),
-      Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
-    ]).start(onClose);
-  };
-  return (
-    <Animated.View style={[styles.overlay, { opacity: fade }]}>
-      <TouchableOpacity style={styles.backdrop} onPress={close} activeOpacity={1} />
-      <Animated.View style={[styles.content, { transform: [{ translateY: anim }] }]}>{children}</Animated.View>
-    </Animated.View>
-  );
 }
 
 /* ========== TABLE GROUP ========== */
