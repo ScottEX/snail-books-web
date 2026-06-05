@@ -1277,7 +1277,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <View style={[styles.modalBody, { gap: 16 }]}>
               <View style={styles.modalDeleteBox}>
                 <Text style={styles.modalDeleteText}>
-                  {t('procDeleteProductConfirm').replace('{name}', deleteTarget.name)}{' '}{t('procDeleteProductWarning')}
+                  {t('procDeleteProductConfirm').split('{name}')[0]}
+                  <Text style={{ color: c.primary, fontWeight: '600' }}>{deleteTarget.name}</Text>
+                  {t('procDeleteProductConfirm').split('{name}')[1]}
+                  {' '}{t('procDeleteProductWarning')}
                 </Text>
               </View>
               <View style={styles.modalBtnRow}>
