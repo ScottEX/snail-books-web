@@ -299,7 +299,7 @@ const getStyles = (c: ThemeColors) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: c.bg,
+      // No background — let HomeScreen bgLayer show through header area
     },
     ...hdr,
     // Only this screen: transparent header — home bg shows through, blur stays
@@ -323,6 +323,7 @@ const getStyles = (c: ThemeColors) => {
     body: {
       flex: 1,
       marginTop: 100, // space for glass header + clearance
+      backgroundColor: c.bg, // bg moved from container so header area stays transparent
     },
     bodyContent: {
       paddingHorizontal: 16,
