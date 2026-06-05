@@ -1020,7 +1020,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     position: 'relative' as const, zIndex: 101,
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: withAlpha(colors.bg, 0.55),
+    backgroundColor: 'transparent',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
