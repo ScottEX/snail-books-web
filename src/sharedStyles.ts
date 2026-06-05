@@ -38,7 +38,7 @@ export const historyHeader = (colors: ThemeColors) => ({
     position: 'absolute' as const, top: 36, left: 0, right: 0, zIndex: 90,
     flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
     paddingTop: 20, paddingBottom: 8, paddingHorizontal: 16,
-    backgroundColor: withAlpha(colors.bg, 0.55),
+    backgroundColor: 'transparent',
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
