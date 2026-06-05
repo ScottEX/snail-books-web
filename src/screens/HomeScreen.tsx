@@ -490,18 +490,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     canvas.style.width = rect.width + 'px';
     canvas.style.height = rect.height + 'px';
     const s = bgCropState.current;
-    // Width: 80% of stage, capped at 480 to keep preview manageable on wide screens
-    s.cropW = Math.min(Math.round(rect.width * 0.8), 480);
-    // Viewport-adaptive aspect ratio: match the actual fullscreen background display
-    // Mobile (e.g. 375x812) → ~2.17, Desktop (1920x1080) → ~0.56
+    // Source of truth: actual viewport ratio (matches the fullscreen background display).
+    // The OUTPUT must use this ratio — never cap it down to fit the modal stage.
     s.cropRatio = window.innerHeight / window.innerWidth;
-    s.cropH = Math.round(s.cropW * s.cropRatio);
-    // Cap cropH so it never overflows the stage vertically (with some padding)
-    const maxH = Math.round(rect.height * 0.7);
-    if (s.cropH > maxH) {
-      s.cropH = maxH;
-      s.cropRatio = s.cropH / s.cropW;
-    }
+    // Fit the guide inside the stage while preserving the viewport ratio.
+    // cropW is the tighter of: (a) stage width, (b) stage height / ratio.
+    // This way the guide is always fully visible AND the output keeps the real ratio.
+    s.cropW = Math.min(rect.width, rect.height / s.cropRatio);
+    s.cropH = s.cropW * s.cropRatio;
     const guide = bgGuideRef.current;
     if (guide) {
       guide.style.width = s.cropW + 'px';
