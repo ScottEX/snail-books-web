@@ -94,7 +94,10 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
     }
   };
 
-  const openPreview = (url: string) => {
+  const openPreview = (idx: number) => {
+    // Use full-size image for preview, not the 128×128 thumbnail
+    const url = images[idx] || thumbImgs[idx];
+    if (!url) return;
     setPreviewImage(url);
     previewFade.setValue(0);
     Animated.timing(previewFade, { toValue: 1, duration: 150, useNativeDriver: true }).start();
@@ -105,11 +108,15 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
   };
 
   const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
+  const images: string[] = batch.images || [];
   const items = batch.items || [];
 
   // Map DB payment_method values ('现金','微信','支付宝') to i18n keys
   const PAY_MAP: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
   const paymentLabel = t(PAY_MAP[batch.payment_method] || batch.payment_method);
+
+  // Note is auto-generated from procNowBatch, not user-entered — rebuild with i18n
+  const noteLabel = t('procNowBatch').replace('{n}', String(batch.batch_number));
 
   return (
     <View style={styles.container}>
@@ -142,7 +149,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
           {batch.note ? (
             <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
               <Text style={styles.infoLabel}>{t('procNoteOptional')}</Text>
-              <Text style={styles.infoValue}>{batch.note}</Text>
+              <Text style={styles.infoValue}>{noteLabel}</Text>
             </View>
           ) : null}
         </View>
@@ -153,7 +160,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
             <Text style={styles.sectionTitle}>{t('procImages')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
               {thumbImgs.map((img: string, i: number) => (
-                <TouchableOpacity key={i} onPress={() => openPreview(img)} activeOpacity={0.8}>
+                <TouchableOpacity key={i} onPress={() => openPreview(i)} activeOpacity={0.8}>
                   <Image
                     source={{ uri: img }}
                     style={styles.thumb}
