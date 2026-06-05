@@ -124,7 +124,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
-        try { await api.saveLang(getLang()); } catch {}
+        // NOTE: do NOT save getLang() here. At this point localStorage
+        // may still hold the PREVIOUS user's language (the one who
+        // was last signed in on this browser). Saving it now would
+        // overwrite the NEW user's server-side language preference.
+        // Instead, App.tsx dispatches 'app:user-change' from onLogin
+        // → ThemeProvider remounts → api.getLang() pulls the real
+        // per-user language → setLang() writes curLang + localStorage
+        // and the fire-and-forget PUT back is a no-op.
         onLogin();
       } else if (r.need_verify) {
         setEmail(r.email); setStep('verify'); setMsg(''); setMsgKey('');
