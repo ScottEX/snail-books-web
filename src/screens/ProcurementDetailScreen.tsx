@@ -64,10 +64,11 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtnAbs}>
+          <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtn}>
             <BackArrow color={c.textMain} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('procOrderItems')}</Text>
+          <View style={{ width: 44 }} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: c.textSub }}>—</Text>
@@ -132,10 +133,11 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
     <View style={styles.container}>
       {/* Header — absolute, glass */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtnAbs}>
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtn}>
           <BackArrow color={c.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('procDetail')}</Text>
+        <View style={{ width: 44 }} />
       </View>
 
       {/* Body — scrolls under header */}
@@ -296,25 +298,9 @@ const getStyles = (c: ThemeColors) => {
       backgroundColor: c.bg,
     },
     ...hdr,
-    // Override header to center title (back button is absolute)
-    header: {
-      ...hdr.header,
-      justifyContent: 'center' as const,
-    },
-    backBtnAbs: {
-      position: 'absolute' as const,
-      left: 16,
-      width: 44, height: 44, borderRadius: 22,
-      backgroundColor: withAlpha(c.bg, 0.30),
-      justifyContent: 'center' as const, alignItems: 'center' as const,
-      // @ts-ignore
-      backdropFilter: 'saturate(200%) blur(30px)',
-      borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
-      zIndex: 1,
-    },
     headerTitle: {
-      fontSize: FONTS.subBold.size,
-      fontWeight: FONTS.subBold.weight,
+      fontSize: FONTS.body.size,
+      fontWeight: '400' as const,
       color: c.textMain,
     },
     batchInfo: {
