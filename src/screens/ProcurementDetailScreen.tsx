@@ -127,10 +127,13 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
           <BackArrow color={c.textMain} />
         </TouchableOpacity>
         <View style={{ alignItems: 'center' }}>
-          <Text style={styles.headerTitle}>
-            {t('procNowBatch').replace('{n}', String(batch.batch_number))}
-          </Text>
-          <Text style={styles.headerDate}>{batch.date}</Text>
+          <Text style={styles.headerTitle}>{t('procDetail')}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+            <Text style={styles.headerDate}>
+              {t('procNowBatch').replace('{n}', String(batch.batch_number))}
+            </Text>
+            <Text style={styles.headerDate}>{batch.date}</Text>
+          </View>
         </View>
         <View style={{ width: 44 }} />
       </View>
@@ -143,12 +146,12 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
       >
         {/* Info card */}
         <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
+          <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>{t('procPaymentMethod')}</Text>
             <Text style={styles.infoValue}>{paymentLabel}</Text>
           </View>
           {batch.note ? (
-            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+            <View style={styles.infoBlock}>
               <Text style={styles.infoLabel}>{t('procNoteOptional')}</Text>
               <Text style={styles.infoValue}>{noteLabel}</Text>
             </View>
@@ -159,7 +162,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
         {thumbImgs.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('procImages')}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {thumbImgs.map((img: string, i: number) => (
                 <TouchableOpacity key={i} onPress={() => openPreview(i)} activeOpacity={0.8}>
                   <Image
@@ -293,11 +296,10 @@ const getStyles = (c: ThemeColors) => {
     headerDate: {
       fontSize: FONTS.micro.size,
       color: c.textSub,
-      marginTop: 2,
     },
     body: {
       flex: 1,
-      marginTop: 100, // space for absolute glass header (top:36 + paddingVertical:14 + title)
+      marginTop: 110, // space for absolute glass header (title + batch-row sub-line)
     },
     bodyContent: {
       paddingHorizontal: 16,
@@ -309,22 +311,18 @@ const getStyles = (c: ThemeColors) => {
       borderRadius: 12,
       padding: 16,
       marginBottom: 16,
+      gap: 16,
     },
-    infoRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 8,
-      borderBottomWidth: 0.5,
-      borderBottomColor: withAlpha(c.textMain, 0.06),
+    infoBlock: {
+      gap: 4,
     },
     infoLabel: {
-      fontSize: FONTS.sub.size,
+      fontSize: FONTS.micro.size,
       color: c.textSub,
     },
     infoValue: {
-      fontSize: FONTS.sub.size,
-      fontWeight: '500',
+      fontSize: FONTS.subBold.size,
+      fontWeight: FONTS.subBold.weight,
       color: c.textMain,
     },
     // Section
