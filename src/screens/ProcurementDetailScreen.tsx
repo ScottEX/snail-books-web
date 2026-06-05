@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
   ActivityIndicator, Image,
@@ -24,6 +24,7 @@ interface BatchRecord {
   batch_number: number;
   date: string;
   payment_method: string;
+  category: string;
   total: number;
   note?: string;
   images?: string[];
@@ -79,6 +80,18 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
   const [previewOpacity, setPreviewOpacity] = useState(1);
   const touchStartX = useRef(0);
+  const [timerSec, setTimerSec] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (downloading) {
+      setTimerSec(0);
+      timerRef.current = setInterval(() => setTimerSec(s => s + 1), 1000);
+    } else {
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [downloading]);
 
   if (!batch) {
     return (
@@ -153,9 +166,6 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
   const PAY_MAP: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
   const paymentLabel = t(PAY_MAP[batch.payment_method] || batch.payment_method);
 
-  // Note is auto-generated from procNowBatch, not user-entered — rebuild with i18n
-  const noteLabel = t('procNowBatch').replace('{n}', String(batch.batch_number));
-
   // Date formatting matching ExpenseHistoryScreen fmtExpDate
   const formatDateLocale = (d: string) => {
     const [y, m, day] = d.split('-');
@@ -174,20 +184,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
           </View>
         </TouchableOpacity>
         <Text style={styles.title}>{t('procDetail')}</Text>
-        {/* Action buttons: download / edit / delete */}
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading}>
-            <DownloadIcon color={c.primary} />
-          </TouchableOpacity>
-          {onEdit && (
-            <TouchableOpacity onPress={onEdit} activeOpacity={0.6} style={styles.actionBtn}>
-              <EditIcon color={c.primary} />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity onPress={handleDelete} activeOpacity={0.6} style={styles.actionBtn} disabled={deleting}>
-            <TrashIcon color={c.danger} />
-          </TouchableOpacity>
-        </View>
+        <View style={{ width: 44 }} />
       </View>
 
       {/* Body — scrolls under header */}
@@ -196,12 +193,27 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
         contentContainerStyle={styles.bodyContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Batch info — moved out of header */}
-        <View style={styles.batchInfo}>
-          <Text style={styles.batchLabel}>
-            {t('procNowBatch').replace('{n}', String(batch.batch_number))}
-          </Text>
-          <Text style={styles.batchDate}>{formatDateLocale(batch.date)}</Text>
+        {/* Batch info — with action buttons on the right */}
+        <View style={styles.batchInfoRow}>
+          <View>
+            <Text style={styles.batchLabel}>
+              {t('procNowBatch').replace('{n}', String(batch.batch_number))}
+            </Text>
+            <Text style={styles.batchDate}>{formatDateLocale(batch.date)}</Text>
+          </View>
+          <View style={styles.batchActions}>
+            <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading}>
+              <DownloadIcon color={c.primary} />
+            </TouchableOpacity>
+            {onEdit && (
+              <TouchableOpacity onPress={onEdit} activeOpacity={0.6} style={styles.actionBtn}>
+                <EditIcon color={c.primary} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={handleDelete} activeOpacity={0.6} style={styles.actionBtn} disabled={deleting}>
+              <TrashIcon color={c.danger} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Info card */}
@@ -210,12 +222,10 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
             <Text style={styles.infoLabel}>{t('procPaymentMethod')}</Text>
             <Text style={styles.infoValue}>{paymentLabel}</Text>
           </View>
-          {batch.note ? (
-            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
-              <Text style={styles.infoLabel}>{t('procNoteOptional')}</Text>
-              <Text style={styles.infoValue}>{noteLabel}</Text>
-            </View>
-          ) : null}
+          <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+            <Text style={styles.infoLabel}>{t('expenseCategory')}</Text>
+            <Text style={styles.infoValue}>{batch.category}</Text>
+          </View>
         </View>
 
         {/* Images */}
@@ -259,18 +269,19 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
           </View>
         </View>
 
-        {/* Download overlay (during PDF generation) */}
-        {downloading && (
-          <View style={styles.downloadOverlay}>
-            <View style={styles.downloadOverlayCard}>
-              <ActivityIndicator size="small" color={c.primary} />
-              <Text style={styles.downloadOverlayText}>{t('procGeneratingPDF')}</Text>
-            </View>
-          </View>
-        )}
-
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Full-screen loading mask (PDF generation) */}
+      {downloading && (
+        <View style={styles.loadingMask}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="small" color={c.primary} />
+            <Text style={styles.loadingTitle}>{t('procGeneratingPDF')}</Text>
+            <Text style={styles.loadingTimer}>{timerSec}s</Text>
+          </View>
+        </View>
+      )}
 
       {/* Fullscreen image preview — swipe left/right, arrows, counter (matches ExpenseHistoryScreen) */}
       {previewData && (
@@ -337,11 +348,6 @@ const getStyles = (c: ThemeColors) => {
       // No background — let HomeScreen bgLayer show through header area
     },
     ...hdr,
-    // Action buttons row (replaces spacer)
-    headerActions: {
-      flexDirection: 'row' as const,
-      gap: 4,
-    },
     actionBtn: {
       width: 36, height: 36, borderRadius: 18,
       backgroundColor: withAlpha(c.bg, 0.30),
@@ -350,8 +356,16 @@ const getStyles = (c: ThemeColors) => {
       backdropFilter: 'saturate(200%) blur(30px)',
       borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
     },
-    batchInfo: {
+    batchInfoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
       marginBottom: 16,
+    },
+    batchActions: {
+      flexDirection: 'row' as const,
+      gap: 8,
+      marginTop: 2,
     },
     batchLabel: {
       fontSize: FONTS.subBold.size,
@@ -464,31 +478,33 @@ const getStyles = (c: ThemeColors) => {
       minWidth: 72,
       textAlign: 'right' as const,
     },
-    // Download overlay (PDF generation)
-    downloadOverlay: {
-      position: 'absolute',
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.06)',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10,
-      borderRadius: 12,
+    // Full-screen loading mask (PDF generation)
+    loadingMask: {
+      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      alignItems: 'center', justifyContent: 'center',
+      zIndex: 998,
     },
-    downloadOverlayCard: {
+    loadingCard: {
       backgroundColor: c.surface,
-      paddingVertical: 16,
-      paddingHorizontal: 28,
-      borderRadius: 12,
+      paddingVertical: 24,
+      paddingHorizontal: 36,
+      borderRadius: 16,
       alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 8,
+      minWidth: 200,
     },
-    downloadOverlayText: {
-      fontSize: FONTS.micro.size,
-      color: c.textSub,
-      marginTop: 10,
+    loadingTitle: {
+      fontSize: FONTS.body.size,
+      fontWeight: '600' as const,
+      color: c.textMain,
+      marginTop: 14,
+    },
+    loadingTimer: {
+      fontSize: FONTS.h1.size,
+      fontWeight: '700' as const,
+      color: c.primary,
+      marginTop: 6,
+      fontVariant: ['tabular-nums'] as any,
     },
     // Preview — matches ExpenseHistoryScreen exactly
     previewOverlay: {
