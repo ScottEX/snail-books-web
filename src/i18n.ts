@@ -278,6 +278,7 @@ const I18N: Record<string, Record<string, string>> = {
     atLeastOneFee: '至少输入一个平台的手续费',
     errDateFuture: '不能选择未来的日期',
     errDateRange: '结束日期必须晚于开始日期',
+    errDateRangeTooLong: '日期范围不能超过 24 个月',
     errAmountPositive: '金额必须大于0',
     // Revenue cards
     cumulativeRevenue: '累计营收',
@@ -686,6 +687,7 @@ const I18N: Record<string, Record<string, string>> = {
     atLeastOneFee: '至少輸入一個平台的手續費',
     errDateFuture: '不能選擇未來的日期',
     errDateRange: '結束日期必須晚於開始日期',
+    errDateRangeTooLong: '日期範圍不能超過 24 個月',
     errAmountPositive: '金額必須大於0',
     // Revenue cards
     cumulativeRevenue: '累計營收',
@@ -1093,6 +1095,7 @@ const I18N: Record<string, Record<string, string>> = {
     atLeastOneFee: 'Please enter at least one platform fee',
     errDateFuture: 'Cannot select a future date',
     errDateRange: 'End date must be after start date',
+    errDateRangeTooLong: 'Date range cannot exceed 24 months',
     errAmountPositive: 'Amount must be greater than 0',
     // Revenue cards
     cumulativeRevenue: 'Cumulative Revenue',
