@@ -214,7 +214,14 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
           <TouchableOpacity style={styles.previewClose} onPress={closePreview} activeOpacity={0.7}>
             <Text style={styles.previewCloseText}>✕</Text>
           </TouchableOpacity>
-          <Image source={{ uri: previewImage }} style={styles.previewImage} resizeMode="contain" />
+          {React.createElement('img', {
+            src: previewImage,
+            decoding: 'async' as any,
+            style: {
+              maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain',
+            },
+            alt: 'preview',
+          })}
         </Animated.View>
       )}
     </View>
@@ -241,7 +248,7 @@ const getStyles = (c: ThemeColors) => {
     },
     body: {
       flex: 1,
-      marginTop: 80, // space for absolute header
+      marginTop: 100, // space for absolute glass header (top:36 + paddingVertical:14 + title)
     },
     bodyContent: {
       paddingHorizontal: 16,
@@ -408,10 +415,6 @@ const getStyles = (c: ThemeColors) => {
       fontSize: 18,
       color: '#fff',
       fontWeight: '300',
-    },
-    previewImage: {
-      width: '90%',
-      height: '70%',
     },
   });
 };

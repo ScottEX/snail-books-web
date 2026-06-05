@@ -915,7 +915,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
 
       {/* Bottom Nav — hidden when history screens or cart drawer are active */}
-      {!showProfile && !showExpenseHistory && !showDailyHistory && !showReconHistory && !showCartDrawer && (
+      {!showProfile && !showExpenseHistory && !showDailyHistory && !showReconHistory && !showProcDetail && !showCartDrawer && (
       <View style={styles.bottomNav}>
         {([
           { id: 'expense', icon: NavIconAdd },
