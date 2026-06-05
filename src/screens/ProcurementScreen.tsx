@@ -416,7 +416,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   // button area by giving the ScrollView itself paddingHorizontal: 16 + boxSizing: 'border-box';
   // the webkit scrollbar paints on the padding box edge (the card's rightmost 2px), well clear
   // of the +/- buttons (which live in the content area, 16px inset from that edge).
-  useEffect(() => { /* intentionally empty: webkit scrollbar hiding is not possible from JS */ }, [showItemsModal]);
   const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
   const [detailTotal, setDetailTotal] = useState(0);
   const [detailBatchId, setDetailBatchId] = useState(0);
