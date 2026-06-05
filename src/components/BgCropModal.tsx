@@ -369,10 +369,13 @@ export default function BgCropModal({
         </View>
       )}
 
-      {/* Preview — shows the cropped result before upload */}
+      {/* Preview — shows the cropped result before upload. Action
+          buttons live INSIDE the card so the user sees the image and
+          the 重新裁剪 / 确认使用 buttons in one place, matching the
+          cover-crop preview style. */}
       {phase === 'preview' && cropDataUrl !== '' && (
         <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', padding: 24 } as any}>
-          <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360 } as any}>
+          <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360, width: '100%' } as any}>
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' } as any}>✓</Text>
             </View>
@@ -385,6 +388,29 @@ export default function BgCropModal({
               }}
               alt=""
             />
+            {/* Action buttons — inside the card, right under the image */}
+            <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 4 } as any}>
+              <TouchableOpacity
+                style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
+                onPress={() => {
+                  setPhase('cropping');
+                  setMsg('');
+                  // Preview 阶段 canvas/stage/view 不在 DOM 中（refs 变 null），
+                  // 切回 cropping 后新元素挂载，imageSrc 没变所以 useEffect 不重跑，
+                  // 必须手动重 setup canvas 尺寸 + 重新绘制。fitImage 不调，保留
+                  // 用户的 scale/position/rotation/flip 微调。
+                  setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 60);
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('recrop') || '再编辑'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6', justifyContent: 'center', alignItems: 'center' } as any}
+                onPress={handleConfirm}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{t('confirmUse') || '确认使用'}</Text>
+              </TouchableOpacity>
+            </View>
             <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' } as any}>{t('bgResultHint') || '确认使用此图片，或返回再编辑'}</Text>
           </View>
         </View>
@@ -448,31 +474,6 @@ export default function BgCropModal({
               <Text style={{ fontSize: 10, color: '#fff' } as any}>✓</Text>
             </View>
             <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{confirmLabel || t('useThisBg')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {phase === 'preview' && (
-        <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0 } as any}>
-          <TouchableOpacity
-            style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
-            onPress={() => {
-              setPhase('cropping');
-              setMsg('');
-              // Preview 阶段 canvas/stage/view 不在 DOM 中（refs 变 null），
-              // 切回 cropping 后新元素挂载，useEffect 依赖是 [src] 不会重跑，
-              // 必须手动重 setup canvas 尺寸 + 重新绘制。fitImage 不调，保留
-              // 用户的 scale/position/rotation/flip 微调。
-              setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 60);
-            }}
-          >
-            <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('recrop') || '再编辑'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6', justifyContent: 'center', alignItems: 'center' } as any}
-            onPress={handleConfirm}
-          >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{t('confirmUse') || '确认使用'}</Text>
           </TouchableOpacity>
         </View>
       )}
