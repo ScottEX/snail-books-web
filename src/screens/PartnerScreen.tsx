@@ -24,18 +24,7 @@ function translateName(name: string): string {
   return key ? t(key) : name;
 }
 
-function formatDate(dateStr: string): string {
-  if (!dateStr) return dateStr;
-  const parts = dateStr.split('-');
-  if (parts.length !== 3) return dateStr;
-  const [y, m, d] = parts;
-  const lang = getLang();
-  if (lang === 'en') {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
-  }
-  return `${y}年${m}月${d}日`;
-}
+import { formatDate } from '../utils/format';
 
 function translateDividendNote(note: string | null, date?: string): string {
   if (!note) return '';

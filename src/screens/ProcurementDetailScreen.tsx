@@ -4,12 +4,13 @@ import {
   ActivityIndicator, Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { t, getLang } from '../i18n';
+import { t } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import { formatDate } from '../utils/format';
 
 interface BatchItem {
   name?: string;
@@ -167,14 +168,6 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
   const PAY_MAP: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
   const paymentLabel = t(PAY_MAP[batch.payment_method] || batch.payment_method);
 
-  // Date formatting matching ExpenseHistoryScreen fmtExpDate
-  const formatDateLocale = (d: string) => {
-    const [y, m, day] = d.split('-');
-    const l = getLang();
-    if (l.startsWith('en')) { const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${months[+m-1]} ${+day}, ${y}`; }
-    return `${y}年${+m}月${+day}日`;
-  };
-
   return (
     <View style={styles.container}>
       {/* Header — absolute, glass */}
@@ -200,7 +193,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
             <Text style={styles.batchLabel}>
               {t('procNowBatch').replace('{n}', String(batch.batch_number))}
             </Text>
-            <Text style={styles.batchDate}>{formatDateLocale(batch.date)}</Text>
+            <Text style={styles.batchDate}>{formatDate(batch.date)}</Text>
           </View>
           <View style={styles.batchActions}>
             <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading}>

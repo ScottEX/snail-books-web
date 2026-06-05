@@ -11,6 +11,7 @@ import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 import Toast from '../components/Toast';
 import ConfirmModal from '../components/ConfirmModal';
+import { formatDate } from '../utils/format';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = '现金' | '微信' | '支付宝';
@@ -526,17 +527,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       }
     },
   })).current;
-
-  // ── Date formatting ──
-  const formatDateLocale = useCallback((d: string) => {
-    const l = getLang();
-    const [y, m, day] = d.split('-');
-    if (l.startsWith('en')) {
-      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      return `${months[+m - 1]} ${+day}, ${y}`;
-    }
-    return `${y}年${+m}月${+day}日`;
-  }, []);
 
   const todayStr = () => new Date().toISOString().slice(0, 10);
 
@@ -1309,7 +1299,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
                   <View style={styles.dateCatValue}>
-                    <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{formatDateLocale(orderDate)}</Text>
+                    <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{formatDate(orderDate)}</Text>
                     {React.createElement('input', {
                       ref: orderDateInputRef,
                       type: 'date', defaultValue: orderDate, max: todayStr(),

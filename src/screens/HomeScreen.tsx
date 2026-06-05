@@ -433,7 +433,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     }
   };
 
-  const formatDate = (d: string) => (d || '').slice(5, 16);
 
   const todayStr = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
 
