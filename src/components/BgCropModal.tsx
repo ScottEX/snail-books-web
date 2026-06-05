@@ -456,7 +456,15 @@ export default function BgCropModal({
         <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0 } as any}>
           <TouchableOpacity
             style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
-            onPress={() => { setPhase('cropping'); setMsg(''); }}
+            onPress={() => {
+              setPhase('cropping');
+              setMsg('');
+              // Preview 阶段 canvas/stage/view 不在 DOM 中（refs 变 null），
+              // 切回 cropping 后新元素挂载，useEffect 依赖是 [src] 不会重跑，
+              // 必须手动重 setup canvas 尺寸 + 重新绘制。fitImage 不调，保留
+              // 用户的 scale/position/rotation/flip 微调。
+              setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 60);
+            }}
           >
             <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('recrop') || '再编辑'}</Text>
           </TouchableOpacity>
