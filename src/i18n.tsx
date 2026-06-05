@@ -168,6 +168,17 @@ const I18N: Record<string, Record<string, string>> = {
     bgResultHint: '将作为首页全屏背景',
     loading: '加载中...',
     noRecords: '暂无记录',
+    // Avatar & cover crop modal (ProfileScreen — distinct from the
+    // BgCropModal group above because the user-facing copy is
+    // different: "Adjust Avatar" vs "Edit Background", and these
+    // modals have an extra "Preview in different sizes" hint)
+    avatarCropTitle: '调整头像',
+    useThisAvatar: '使用此头像',
+    avatarUpdated: '头像已更新',
+    avatarSizeHint: '在不同场景下的显示效果',
+    coverCropTitle: '编辑封面',
+    useThisCover: '使用此封面',
+    coverUpdated: '封面已更新',
     // Profile
     editProfile: '个人中心',
     editCover: '更换封面',
@@ -584,6 +595,14 @@ const I18N: Record<string, Record<string, string>> = {
     bgResultHint: '將作為首頁全屏背景',
     loading: '載入中...',
     noRecords: '暫無記錄',
+    // Avatar & cover crop modal
+    avatarCropTitle: '調整頭像',
+    useThisAvatar: '使用此頭像',
+    avatarUpdated: '頭像已更新',
+    avatarSizeHint: '在不同場景下的顯示效果',
+    coverCropTitle: '編輯封面',
+    useThisCover: '使用此封面',
+    coverUpdated: '封面已更新',
     // Profile
     editProfile: '個人中心',
     editCover: '更換封面',
@@ -1003,6 +1022,14 @@ const I18N: Record<string, Record<string, string>> = {
     bgResultHint: 'Will be used as fullscreen home background',
     loading: 'Loading...',
     noRecords: 'No records yet',
+    // Avatar & cover crop modal
+    avatarCropTitle: 'Adjust Avatar',
+    useThisAvatar: 'Use This Avatar',
+    avatarUpdated: 'Avatar Updated',
+    avatarSizeHint: 'Preview in different sizes',
+    coverCropTitle: 'Edit Cover',
+    useThisCover: 'Use This Cover',
+    coverUpdated: 'Cover Updated',
     // Profile
     editProfile: 'Profile',
     editCover: 'Change Cover',

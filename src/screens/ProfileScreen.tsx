@@ -1211,7 +1211,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       {cropSrc !== '' && !showResult && createPortal(
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) setCropSrc(''); }}>
           <View style={cropS.header as any}>
-            <Text style={cropS.title}>调整头像</Text>
+            <Text style={cropS.title}>{t('avatarCropTitle')}</Text>
             <TouchableOpacity onPress={() => setCropSrc('')} style={cropS.closeBtn as any}>
               <Text style={cropS.closeBtnText}>✕</Text>
             </TouchableOpacity>
@@ -1233,7 +1233,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </View>
             </View>
             <View style={cropS.pill as any} pointerEvents="none" data-pill="true">
-              <Text style={cropS.pillText}>拖动移动 · 双指缩放</Text>
+              <Text style={cropS.pillText}>{t('cropPill')}</Text>
             </View>
           </View>
           <View style={cropS.toolbar as any}>
@@ -1256,24 +1256,24 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M3 12a9 9 0 109-9H9m0 0l3 3m-3-3l3-3" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>旋转</Text>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{t('cropRotate')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { cropState.current.flipX = !cropState.current.flipX; drawCrop(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>翻转</Text>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{t('cropFlip')}</Text>
             </TouchableOpacity>
           </View>
           <View style={cropS.actions as any}>
             <TouchableOpacity style={cropS.cancelBtn as any} onPress={() => setCropSrc('')}>
-              <Text style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>取消</Text>
+              <Text style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={cropS.confirmBtn as any} onPress={confirmCrop}>
               <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 }}>
                 <Text style={{ fontSize: 10, color: '#fff' }}>✓</Text>
               </View>
-              <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>使用此头像</Text>
+              <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{t('useThisAvatar')}</Text>
             </TouchableOpacity>
           </View>
           {cropMsg !== '' && (
@@ -1290,7 +1290,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <View style={cropS.resultBadge as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
             </View>
-            <Text style={cropS.resultLabel}>头像已更新</Text>
+            <Text style={cropS.resultLabel}>{t('avatarUpdated')}</Text>
             <View style={cropS.sizePreviews as any}>
               {[80, 48, 32].map((size) => (
                 <View key={size} style={{ alignItems: 'center', gap: 6 }}>
@@ -1299,13 +1299,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                 </View>
               ))}
             </View>
-            <Text style={cropS.resultSub}>在不同场景下的显示效果</Text>
+            <Text style={cropS.resultSub}>{t('avatarSizeHint')}</Text>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
               <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setShowResult(false); }}>
-                <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>重新裁剪</Text>
+                <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('recrop')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={cropS.saveBtn as any} onPress={doUpload}>
-                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>确认使用</Text>
+                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1317,7 +1317,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       {coverCropSrc !== '' && !coverShowResult && createPortal(
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverCropSrc(''); setCoverCropResult(''); } }}>
           <View style={cropS.header as any}>
-            <Text style={cropS.title}>编辑封面</Text>
+            <Text style={cropS.title}>{t('coverCropTitle')}</Text>
             <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={cropS.closeBtn as any}>
               <Text style={cropS.closeBtnText}>✕</Text>
             </TouchableOpacity>
@@ -1333,6 +1333,11 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                 <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '33.3%' } as any} />
                 <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '66.6%' } as any} />
               </View>
+            </View>
+            {/* Hint pill — mirrors the avatar crop modal's "drag · pinch to zoom" hint
+                so the user knows the cover stage supports the same gestures. */}
+            <View style={cropS.pill as any} pointerEvents="none" data-pill="true">
+              <Text style={cropS.pillText}>{t('cropPill')}</Text>
             </View>
           </View>
           <View style={cropS.toolbar as any}>
@@ -1355,24 +1360,24 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M3 12a9 9 0 109-9H9m0 0l3 3m-3-3l3-3" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>旋转</Text>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{t('cropRotate')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { coverCropState.current.flipX = !coverCropState.current.flipX; coverDrawCrop(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>翻转</Text>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{t('cropFlip')}</Text>
             </TouchableOpacity>
           </View>
           <View style={cropS.actions as any}>
             <TouchableOpacity style={cropS.cancelBtn as any} onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }}>
-              <Text style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>取消</Text>
+              <Text style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={cropS.confirmBtn as any} onPress={coverConfirmCrop}>
               <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 }}>
                 <Text style={{ fontSize: 10, color: '#fff' }}>✓</Text>
               </View>
-              <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>使用此封面</Text>
+              <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{t('useThisCover')}</Text>
             </TouchableOpacity>
           </View>
           {coverCropMsg !== '' && (
@@ -1389,14 +1394,14 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <View style={cropS.resultBadge as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
             </View>
-            <Text style={cropS.resultLabel}>封面已更新</Text>
+            <Text style={cropS.resultLabel}>{t('coverUpdated')}</Text>
             {coverCropResult ? <img src={coverCropResult} width={240} height={Math.round(240 * coverCropState.current.cropRatio)} style={{ borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} /> : null}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
               <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setCoverShowResult(false); }}>
-                <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>重新裁剪</Text>
+                <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('recrop')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={cropS.saveBtn as any} onPress={coverDoUpload}>
-                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>确认使用</Text>
+                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
               </TouchableOpacity>
             </View>
           </View>
