@@ -150,6 +150,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   headerTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.textMain },
   headerBadge: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 20, paddingHorizontal: 12, paddingVertical: 3 },
   headerBadgeText: { fontSize: FONTS.microBold.size, color: c.primary, fontWeight: FONTS.microBold.weight },
+  headerComingSoon: { fontSize: FONTS.micro.size, color: c.textSub },
   statRow: { flexDirection: 'row' as const, gap: 6 },
   statPill: { flex: 1, backgroundColor: withAlpha(c.textMain, 0.04), borderRadius: 10, padding: 10, alignItems: 'center' as const },
   statNum: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
@@ -321,7 +322,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histPayBadge: { alignSelf: 'flex-start' as const, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: withAlpha(c.primary, 0.08), borderRadius: 12, marginTop: 4 },
   histPayText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.primary },
   histAmount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary, marginTop: 8 },
-  histImages: { flexDirection: 'row' as const, gap: 4, marginTop: 6 },
+  histImages: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 4, marginTop: 6 },
 
   // Success
   successOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
@@ -941,8 +942,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               <BoxIcon color={c.primary} />
               <Text style={styles.headerTitle}>{t('procTitle')}</Text>
             </View>
-            <View style={styles.headerBadge}>
-              <Text style={styles.headerBadgeText}>{t('procNowBatch').replace('{n}', String(stats.batch_count + 1))}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.headerComingSoon}>{t('procComingSoon')}</Text>
+              <View style={styles.headerBadge}>
+                <Text style={styles.headerBadgeText}>{t('procNowBatch').replace('{n}', String(stats.batch_count + 1))}</Text>
+              </View>
             </View>
           </View>
           <View style={styles.statRow}>
@@ -1491,7 +1495,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                           <View style={{ flex: 1 }}>
                             <Text style={styles.itemsRowName}>{i.product.name}</Text>
                             <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
-                              ¥{i.product.price.toFixed(2)} · {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
+                              ¥{i.product.price.toFixed(2)}
+                            </Text>
+                            <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, marginTop: 2 }}>
+                              {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
                             </Text>
                           </View>
                           <View style={styles.qtyRow}>
