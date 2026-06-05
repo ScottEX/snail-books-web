@@ -236,7 +236,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
             <Text style={styles.infoLabel}>{t('procPaymentMethod')}</Text>
             <Text style={styles.infoValue}>{paymentLabel}</Text>
           </View>
-          <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+          <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t('expenseCategory')}</Text>
             <Text style={styles.infoValue}>{batch.category}</Text>
           </View>
@@ -314,7 +314,9 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
             <View style={styles.deleteBody}>
               <View style={styles.deleteWarningBox}>
                 <Text style={styles.deleteWarningText}>
-                  {t('procDeleteBatchConfirm').replace('{n}', String(batch.batch_number))}
+                  {t('procDeleteBatchConfirmV2').split('{batch}')[0]}
+                  <Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
+                  {t('procDeleteBatchConfirmV2').split('{batch}')[1]}
                 </Text>
               </View>
               <View style={styles.deleteBtnRow}>
@@ -597,7 +599,7 @@ const getStyles = (c: ThemeColors) => {
       fontSize: FONTS.sub.size, fontWeight: '600', color: c.textMain,
     },
     deleteBtnConfirm: {
-      flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: c.danger, alignItems: 'center',
+      flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: c.primary, alignItems: 'center',
     },
     deleteBtnConfirmText: {
       fontSize: FONTS.sub.size, fontWeight: '600', color: c.surface,
