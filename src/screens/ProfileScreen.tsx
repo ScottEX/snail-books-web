@@ -905,50 +905,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
         </View>
 
-        {/* ── Section: Sign-in Security ── */}
-        <View style={st.section}>
-          <View style={st.sectionTitleRow}>
-            <Text style={st.sectionTitleText}>{t('authSettingsTitle')}</Text>
-            <View style={st.sectionTitleLine} />
-          </View>
-          <View style={st.authCard}>
-            {/* SSO row */}
-            <View style={st.authRow}>
-              <View style={st.authSwitchRow}>
-                <Text style={st.authLabel}>{t('ssoLabel')}</Text>
-                <Switch
-                  value={enforceSingleSession === 1}
-                  onValueChange={toggleEnforceSingleSession}
-                  trackColor={{ false: withAlpha(colors.textMain, 0.18), true: colors.primary }}
-                  thumbColor="#fff"
-                />
-              </View>
-              <Text style={st.authDesc}>{t('ssoDesc')}</Text>
-            </View>
-            <View style={st.divider} />
-            {/* Session timeout row */}
-            <View style={st.authRow}>
-              <Text style={st.authLabel}>{t('sessionTimeoutLabel')}</Text>
-              <View style={st.capsuleRow}>
-                {[1, 2, 6, 24].map(h => {
-                  const active = sessionTimeoutHours === h;
-                  return (
-                    <TouchableOpacity
-                      key={h}
-                      activeOpacity={0.7}
-                      style={[st.capsule, active && st.capsuleActive]}
-                      onPress={() => pickTimeout(h)}
-                    >
-                      <Text style={[st.capsuleText, active && st.capsuleTextActive]}>{h}h</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <Text style={st.authDesc}>{t('sessionTimeoutDesc')}</Text>
-            </View>
-          </View>
-        </View>
-
         {/* ── Section: Preferences ── */}
         <View style={st.section}>
           <View style={st.sectionTitleRow}>
@@ -983,6 +939,62 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               <Text style={st.iconLabel}>{t('themeLabel')}</Text>
               <Text style={st.badge}>{getLang() === 'zh-TW' ? (theme as any).nameTw || theme.nameZh : getLang() === 'en' ? (theme as any).nameEn || theme.nameZh : theme.nameZh}</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── Section: Sign-in Security ── */}
+        <View style={st.section}>
+          <View style={st.sectionTitleRow}>
+            <Text style={st.sectionTitleText}>{t('authSettingsTitle')}</Text>
+            <View style={st.sectionTitleLine} />
+          </View>
+          <View style={st.authCard}>
+            {/* SSO row */}
+            <View style={st.authRow}>
+              <View style={st.authHeaderRow}>
+                <View style={[st.iconWrap, st.iconShield]}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                </View>
+                <Text style={st.authLabel}>{t('ssoLabel')}</Text>
+                <Switch
+                  value={enforceSingleSession === 1}
+                  onValueChange={toggleEnforceSingleSession}
+                  trackColor={{ false: withAlpha(colors.textMain, 0.18), true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+              <Text style={st.authDesc}>{t('ssoDesc')}</Text>
+            </View>
+            <View style={st.divider} />
+            {/* Session timeout row */}
+            <View style={st.authRow}>
+              <View style={st.authHeaderRow}>
+                <View style={[st.iconWrap, st.iconClock]}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffb450" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </View>
+                <Text style={st.authLabel}>{t('sessionTimeoutLabel')}</Text>
+              </View>
+              <View style={st.capsuleRow}>
+                {[1, 2, 6, 24].map(h => {
+                  const active = sessionTimeoutHours === h;
+                  return (
+                    <TouchableOpacity
+                      key={h}
+                      activeOpacity={0.7}
+                      style={[st.capsule, active && st.capsuleActive]}
+                      onPress={() => pickTimeout(h)}
+                    >
+                      <Text style={[st.capsuleText, active && st.capsuleTextActive]}>{h}h</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={st.authDesc}>{t('sessionTimeoutDesc')}</Text>
+            </View>
           </View>
         </View>
 
@@ -1435,17 +1447,19 @@ function getStyles(colors: ThemeColors) {
       borderRadius: 12, paddingVertical: 2,
     },
     authRow: {
-      flexDirection: 'column', paddingVertical: 14, paddingHorizontal: 14, gap: 8,
+      flexDirection: 'column', paddingVertical: 14, paddingHorizontal: 14, gap: 10,
     },
-    authSwitchRow: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    authHeaderRow: {
+      flexDirection: 'row', alignItems: 'center', gap: 10,
     },
     authLabel: {
-      fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain,
+      fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textMain, flex: 1,
     },
     authDesc: {
-      fontSize: 12, color: colors.textSub, lineHeight: 16,
+      fontSize: 12, color: colors.textSub, lineHeight: 16, marginLeft: 42,
     },
+    iconShield: { backgroundColor: withAlpha(colors.primary, 0.12) },
+    iconClock: { backgroundColor: 'rgba(255,180,80,0.12)' },
     capsuleRow: {
       flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 2, flexWrap: 'wrap',
     },
