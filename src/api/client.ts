@@ -79,6 +79,12 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
       if (body?.message) kickMsg = body.message;
     } catch {}
     localStorage.removeItem('user');
+    // Notify App.tsx that the user was cleared so it can re-evaluate page
+    // state (login vs home) without a hard reload. App.tsx is a pure SPA
+    // with no router, so URL changes alone don't re-render anything.
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('app:user-change'));
+    }
     // If kicked by another device, let SessionKickedModal handle the UI.
     // The modal's confirm/close button will redirect to /login — we intentionally
     // do NOT redirect here so the user actually sees the modal.
