@@ -249,7 +249,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
             <Text style={styles.sectionTitle}>{t('procOrderItems')}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+            <View style={styles.totalWrap}>
               <Text style={styles.totalLabel}>{t('procTotal')}</Text>
               <Text style={styles.totalAmt}>¥{batch.total.toFixed(2)}</Text>
             </View>
@@ -461,10 +461,16 @@ const getStyles = (c: ThemeColors) => {
       color: c.textSub,
       marginRight: 6,
     },
+    totalWrap: {
+      flexDirection: 'row', alignItems: 'baseline',
+      marginRight: 16, // compensate itemsCard paddingHorizontal
+    },
     totalAmt: {
       fontSize: FONTS.body.size,
       fontWeight: '700' as const,
       color: c.primary,
+      minWidth: 72,
+      textAlign: 'right' as const,
     },
     thumb: {
       width: 72,
