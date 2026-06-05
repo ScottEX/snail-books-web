@@ -736,7 +736,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{t('issueProportional')}</Text>
-                <Text style={mo.sub}>{t('autoByShare')}</Text>
+                <Text style={[mo.sub, { color: colors.textSub }]}>{t('autoByShare')}</Text>
               </View>
               <TouchableOpacity onPress={() => setShowDividend(false)}>
                 <Text style={mo.close}>✕</Text>
@@ -1200,9 +1200,9 @@ const getMoBody = (colors: ThemeColors) => StyleSheet.create({
   previewName: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
   previewAmt: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textMain },
   btnRow: { flexDirection: 'row', gap: 12, paddingTop: 4 },
-  cancelBtn: { flex: 1, backgroundColor: colors.bg, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  cancelBtn: { flex: 1, backgroundColor: colors.bg, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
   cancelBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
-  confirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  confirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
   confirmBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.surface },
   deleteConfirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   deleteBox: { backgroundColor: withAlpha(colors.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' },
