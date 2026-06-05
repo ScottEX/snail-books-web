@@ -77,6 +77,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
   const [previewOpacity, setPreviewOpacity] = useState(1);
   const touchStartX = useRef(0);
@@ -134,7 +135,6 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
 
   const handleDelete = async () => {
     if (!batch || deleting) return;
-    if (!window.confirm(t('procDeleteBatchConfirm').replace('{n}', String(batch.batch_number)))) return;
     setDeleting(true);
     try {
       await api.deleteProcurementBatch(batch.id);
@@ -210,7 +210,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
                 <EditIcon color={c.primary} />
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={handleDelete} activeOpacity={0.6} style={styles.actionBtn} disabled={deleting}>
+            <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.6} style={styles.actionBtn} disabled={deleting}>
               <TrashIcon color={c.danger} />
             </TouchableOpacity>
           </View>
@@ -279,6 +279,35 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
             <ActivityIndicator size="small" color={c.primary} />
             <Text style={styles.loadingTitle}>{t('procGeneratingPDF')}</Text>
             <Text style={styles.loadingTimer}>{timerSec}s</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <View style={styles.deleteOverlay}>
+          <View style={styles.deleteCard}>
+            <View style={styles.deleteHeader}>
+              <Text style={styles.deleteTitle}>{t('procDeleteBatch')}</Text>
+              <TouchableOpacity onPress={() => setShowDeleteConfirm(false)}>
+                <Text style={styles.deleteClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.deleteBody}>
+              <View style={styles.deleteWarningBox}>
+                <Text style={styles.deleteWarningText}>
+                  {t('procDeleteBatchConfirm').replace('{n}', String(batch.batch_number))}
+                </Text>
+              </View>
+              <View style={styles.deleteBtnRow}>
+                <TouchableOpacity style={styles.deleteBtnCancel} onPress={() => setShowDeleteConfirm(false)}>
+                  <Text style={styles.deleteBtnCancelText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.deleteBtnConfirm} onPress={() => { setShowDeleteConfirm(false); handleDelete(); }}>
+                  <Text style={styles.deleteBtnConfirmText}>{t('delete')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </View>
       )}
@@ -505,6 +534,48 @@ const getStyles = (c: ThemeColors) => {
       color: c.primary,
       marginTop: 6,
       fontVariant: ['tabular-nums'] as any,
+    },
+    // Delete confirmation modal
+    deleteOverlay: {
+      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.3)', zIndex: 999,
+      justifyContent: 'center', alignItems: 'center',
+    },
+    deleteCard: {
+      backgroundColor: c.surface, borderRadius: 16, width: 340, maxWidth: '90%', overflow: 'hidden',
+    },
+    deleteHeader: {
+      backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14,
+      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    },
+    deleteTitle: {
+      fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface,
+    },
+    deleteClose: {
+      fontSize: 18, color: c.surface, fontWeight: '300',
+    },
+    deleteBody: { padding: 24 },
+    deleteWarningBox: {
+      backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center',
+    },
+    deleteWarningText: {
+      fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center',
+    },
+    deleteBtnRow: {
+      flexDirection: 'row', gap: 8, marginTop: 16, width: '100%',
+    },
+    deleteBtnCancel: {
+      flex: 1, paddingVertical: 13, borderRadius: 10,
+      backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center',
+    },
+    deleteBtnCancelText: {
+      fontSize: FONTS.sub.size, fontWeight: '600', color: c.textMain,
+    },
+    deleteBtnConfirm: {
+      flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: c.danger, alignItems: 'center',
+    },
+    deleteBtnConfirmText: {
+      fontSize: FONTS.sub.size, fontWeight: '600', color: c.surface,
     },
     // Preview — matches ExpenseHistoryScreen exactly
     previewOverlay: {
