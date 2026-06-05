@@ -39,23 +39,43 @@ function BackArrow({ color }: { color: string }) {
   );
 }
 
-function DocIcon({ color }: { color: string }) {
+function DownloadIcon({ color }: { color: string }) {
   return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <Path d="M14 2v6h6" />
-      <Path d="M8 13h2" />
-      <Path d="M8 17h6" />
-      <Path d="M14 13h2" />
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <Path d="M7 10l5 5 5-5" />
+      <Path d="M12 15V3" />
     </Svg>
   );
 }
 
-export default function ProcurementDetailScreen({ batch, onBack }: { batch: BatchRecord | null; onBack: () => void }) {
+function TrashIcon({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M3 6h18" />
+      <Path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <Path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <Path d="M10 11v6" />
+      <Path d="M14 11v6" />
+    </Svg>
+  );
+}
+
+function EditIcon({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <Path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </Svg>
+  );
+}
+
+export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void }) {
   const { colors: c } = useTheme();
   const styles = useMemo(() => getStyles(c), [c]);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
   const [previewOpacity, setPreviewOpacity] = useState(1);
   const touchStartX = useRef(0);
@@ -96,6 +116,19 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
       window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!batch || deleting) return;
+    if (!window.confirm(t('procDeleteBatchConfirm').replace('{n}', String(batch.batch_number)))) return;
+    setDeleting(true);
+    try {
+      await api.deleteProcurementBatch(batch.id);
+      onBack();
+    } catch (err) {
+      console.error('[procurement] delete error:', err);
+      setDeleting(false);
     }
   };
 
@@ -141,7 +174,20 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
           </View>
         </TouchableOpacity>
         <Text style={styles.title}>{t('procDetail')}</Text>
-        <View style={{ width: 44 }} />
+        {/* Action buttons: download / edit / delete */}
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading}>
+            <DownloadIcon color={c.primary} />
+          </TouchableOpacity>
+          {onEdit && (
+            <TouchableOpacity onPress={onEdit} activeOpacity={0.6} style={styles.actionBtn}>
+              <EditIcon color={c.primary} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={handleDelete} activeOpacity={0.6} style={styles.actionBtn} disabled={deleting}>
+            <TrashIcon color={c.danger} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Body — scrolls under header */}
@@ -207,24 +253,13 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
           </View>
         </View>
 
-        {/* Total + Download */}
+        {/* Total */}
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>{t('procTotal')}</Text>
           <Text style={styles.totalAmt}>¥{batch.total.toFixed(2)}</Text>
         </View>
 
-        <TouchableOpacity
-          style={[styles.downloadBtn, downloading && { opacity: 0.7 }]}
-          onPress={downloadPDF}
-          disabled={downloading}
-          activeOpacity={0.7}
-        >
-          <DocIcon color={c.surface} />
-          <Text style={styles.downloadText}>
-            {downloading ? `⏳ ${t('procGenerating')}` : downloaded ? `✅ ${t('procSaved')}` : `📥 ${t('procDownloadPDF')}`}
-          </Text>
-        </TouchableOpacity>
-
+        {/* Download overlay (during PDF generation) */}
         {downloading && (
           <View style={styles.downloadOverlay}>
             <View style={styles.downloadOverlayCard}>
@@ -302,6 +337,19 @@ const getStyles = (c: ThemeColors) => {
       // No background — let HomeScreen bgLayer show through header area
     },
     ...hdr,
+    // Action buttons row (replaces spacer)
+    headerActions: {
+      flexDirection: 'row' as const,
+      gap: 4,
+    },
+    actionBtn: {
+      width: 36, height: 36, borderRadius: 18,
+      backgroundColor: withAlpha(c.bg, 0.30),
+      justifyContent: 'center' as const, alignItems: 'center' as const,
+      // @ts-ignore
+      backdropFilter: 'saturate(200%) blur(30px)',
+      borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
+    },
     batchInfo: {
       marginBottom: 16,
     },
@@ -335,7 +383,7 @@ const getStyles = (c: ThemeColors) => {
       flexDirection: 'row' as const,
       justifyContent: 'space-between' as const,
       alignItems: 'center' as const,
-      paddingVertical: 8,
+      paddingVertical: 10,
       borderBottomWidth: 0.5,
       borderBottomColor: withAlpha(c.textMain, 0.06),
     },
@@ -421,22 +469,7 @@ const getStyles = (c: ThemeColors) => {
       fontWeight: '700' as const,
       color: c.primary,
     },
-    // Download
-    downloadBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      paddingVertical: 14,
-      borderRadius: 12,
-      backgroundColor: c.primary,
-      marginBottom: 8,
-    },
-    downloadText: {
-      fontSize: FONTS.body.size,
-      fontWeight: '600',
-      color: c.surface,
-    },
+    // Download overlay (PDF generation)
     downloadOverlay: {
       position: 'absolute',
       top: 0, left: 0, right: 0, bottom: 0,
@@ -462,7 +495,6 @@ const getStyles = (c: ThemeColors) => {
       color: c.textSub,
       marginTop: 10,
     },
-    // Preview
     // Preview — matches ExpenseHistoryScreen exactly
     previewOverlay: {
       position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,

@@ -364,7 +364,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════
-export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void }) {
+export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, onEditBatchRef }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; onEditBatchRef?: React.MutableRefObject<((batch: BatchRecord) => void) | null> }) {
   const { colors: c } = useTheme();
   const styles = useMemo(() => getStyles(c), [c]);
 
@@ -886,6 +886,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
     ]).start();
   };
+
+  // Expose edit function to parent via ref (for ProcurementDetailScreen edit button)
+  useEffect(() => {
+    if (onEditBatchRef) onEditBatchRef.current = openEditBatch;
+  }, [onEditBatchRef]);
 
   // Confirm delete batch + cascade
   const confirmDeleteBatch = async () => {

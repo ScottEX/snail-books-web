@@ -73,6 +73,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [showDailyHistory, setShowDailyHistory] = useState(false);
   const [showProcDetail, setShowProcDetail] = useState(false);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
+  const editProcurementRef = useRef<((batch: any) => void) | null>(null);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [last7Records, setLast7Records] = useState<any[]>([]);
@@ -492,7 +493,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         {(onBack) => <ReconHistoryScreen onBack={onBack} />}
       </SlideScreen>
       <SlideScreen visible={showProcDetail} onClose={() => { setShowProcDetail(false); setProcDetailBatch(null); }}>
-        {(onBack) => <ProcurementDetailScreen batch={procDetailBatch} onBack={onBack} />}
+        {(onBack) => <ProcurementDetailScreen batch={procDetailBatch} onBack={onBack} onEdit={() => {
+          setShowProcDetail(false);
+          setTimeout(() => editProcurementRef.current?.(procDetailBatch), 150);
+        }} />}
       </SlideScreen>
 
       {/* Header */}
@@ -530,7 +534,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} onProfile={() => setShowProfile(true)} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); setShowProcDetail(true); }} />
+          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); setShowProcDetail(true); }} onEditBatchRef={editProcurementRef} />
         ) : (
           <>
             {/* Underlying tab content */}
