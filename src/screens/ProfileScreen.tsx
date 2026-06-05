@@ -9,6 +9,7 @@ import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 import ThemePickerModal from '../components/ThemePickerModal';
+import BgCropModal from '../components/BgCropModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
 import BackArrow from '../components/icons/BackArrow';
@@ -56,6 +57,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [showBgCrop, setShowBgCrop] = useState(false);
   const [emailStep, setEmailStep] = useState<'input' | 'code'>('input');
   const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
@@ -218,6 +220,15 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       setCoverUrl(''); setCoverKey(k => k + 1);
     } catch {}
     finally { setCoverUploading(false); }
+  };
+
+  // Theme button is "set background image" (per user clarification). After
+  // the BgCropModal emits a cropped blob, upload it to the same
+  // /api/settings/background endpoint that HomeScreen uses.
+  // BgCropModal handles its own uploading indicator — no local state needed.
+  const handleBgCropConfirm = async (blob: Blob) => {
+    const file = new File([blob], 'background.jpg', { type: blob.type || 'image/jpeg' });
+    await api.uploadBackground(file);
   };
 
   const handleSignatureSave = async () => {
@@ -1044,9 +1055,17 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         showCoverTools
         coverOpacity={coverOpacity}
         onCoverOpacityChange={handleCoverOpacityChange}
-        onChooseCover={() => coverInputRef.current?.click()}
+        onChooseCover={() => { setShowThemeModal(false); setShowBgCrop(true); }}
         onResetCover={handleCoverReset}
         coverUploading={coverUploading}
+      />
+
+      <BgCropModal
+        visible={showBgCrop}
+        onClose={() => setShowBgCrop(false)}
+        onConfirm={handleBgCropConfirm}
+        title={t('bgSettings') || '主题设置'}
+        confirmLabel={t('useThisBg') || '使用此图片'}
       />
 
       {/* ── Change Password Modal ── */}

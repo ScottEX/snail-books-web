@@ -1,0 +1,413 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { createPortal } from 'react-dom';
+import { t } from '../i18n';
+
+interface BgCropModalProps {
+  visible: boolean;
+  onClose: () => void;
+  /** Called with a JPEG Blob after the user confirms the crop.
+   *  Caller is responsible for upload + any post-upload state updates. */
+  onConfirm: (blob: Blob) => void | Promise<void>;
+  /** Optional crop aspect ratio (height/width). Default: viewport ratio,
+   *  so the cropped image fills the fullscreen background without black
+   *  bars or distortion. Clamped to [0.5, 2.4] to match existing UX. */
+  aspectRatio?: number;
+  /** Title shown in the header. */
+  title?: string;
+  /** Label of the confirm button. */
+  confirmLabel?: string;
+}
+
+/** Fullscreen crop modal used by the background image flow.
+ *  Originally embedded in HomeScreen; extracted so ProfileScreen's
+ *  "主题" button (which sets the background image) can use the same
+ *  crop experience. Output aspect ratio is viewport-adaptive by
+ *  default — the cropped image is intended to fill the screen. */
+export default function BgCropModal({
+  visible, onClose, onConfirm, aspectRatio,
+  title, confirmLabel,
+}: BgCropModalProps) {
+  const [src, setSrc] = useState('');
+  const [msg, setMsg] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const guideRef = useRef<HTMLDivElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const stateRef = useRef({
+    x: 0, y: 0, scale: 1, rotation: 0, flipX: false, minScale: 1, maxScale: 8,
+    cropW: 320, cropH: 0, cropRatio: 9 / 16,
+    drag: { active: false, sx: 0, sy: 0, ox: 0, oy: 0 },
+    pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
+  });
+
+  // ── Open the file picker whenever the modal becomes visible ──
+  useEffect(() => {
+    if (visible && !src) {
+      // Defer to next tick so the modal paints before the system dialog opens
+      const t = setTimeout(() => fileRef.current?.click(), 0);
+      return () => clearTimeout(t);
+    }
+  }, [visible]);
+
+  // ── Reset internal state on close ──
+  useEffect(() => {
+    if (!visible) {
+      setSrc(''); setMsg(''); setUploading(false);
+    }
+  }, [visible]);
+
+  const close = () => {
+    setSrc(''); setMsg(''); setUploading(false);
+    onClose();
+  };
+
+  // ── File selection ──
+  const handleFileSelect = (e: any) => {
+    const file = e.target?.files?.[0];
+    try { e.target.value = ''; } catch {}
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = ev.target?.result as string;
+      setSrc(data);
+      setMsg('');
+      const img = document.createElement('img') as HTMLImageElement;
+      img.onload = () => {
+        imgRef.current = img;
+        setupCanvas();
+        fitImage();
+        drawCrop();
+      };
+      img.src = data;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ── Canvas / crop geometry ──
+  const setupCanvas = () => {
+    const stage = stageRef.current;
+    const canvas = canvasRef.current;
+    if (!stage || !canvas) return;
+    const rect = stage.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    const s = stateRef.current;
+    if (aspectRatio != null) {
+      s.cropRatio = Math.max(0.5, Math.min(2.4, aspectRatio));
+    } else {
+      s.cropRatio = window.innerHeight / window.innerWidth;
+    }
+    s.cropW = Math.min(rect.width, rect.height / s.cropRatio);
+    s.cropH = s.cropW * s.cropRatio;
+    const guide = guideRef.current;
+    if (guide) {
+      guide.style.width = s.cropW + 'px';
+      guide.style.height = s.cropH + 'px';
+    }
+  };
+
+  const fitImage = () => {
+    const img = imgRef.current;
+    if (!img) return;
+    const s = stateRef.current;
+    const sw = s.cropW / img.naturalWidth;
+    const sh = s.cropH / img.naturalHeight;
+    s.scale = Math.max(sw, sh) * 1.05;
+    s.minScale = Math.max(sw, sh);
+    s.x = 0; s.y = 0; s.rotation = 0; s.flipX = false;
+  };
+
+  const clampCrop = () => {
+    const img = imgRef.current;
+    if (!img) return;
+    const s = stateRef.current;
+    const hw = (img.naturalWidth * s.scale) / 2;
+    const hh = (img.naturalHeight * s.scale) / 2;
+    const hrh = s.cropH / 2, hrw = s.cropW / 2;
+    const maxX = hw - hrw, maxY = hh - hrh;
+    s.x = maxX > 0 ? Math.max(-maxX, Math.min(maxX, s.x)) : 0;
+    s.y = maxY > 0 ? Math.max(-maxY, Math.min(maxY, s.y)) : 0;
+  };
+
+  const drawCrop = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    const img = imgRef.current;
+    if (!ctx || !img || !canvas) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const s = stateRef.current;
+    ctx.save();
+    ctx.translate(canvas.width / 2 + s.x, canvas.height / 2 + s.y);
+    ctx.rotate(s.rotation * Math.PI / 180);
+    if (s.flipX) ctx.scale(-1, 1);
+    ctx.scale(s.scale, s.scale);
+    ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+    ctx.restore();
+  };
+
+  const zoomCrop = (delta: number, cx: number, cy: number) => {
+    const s = stateRef.current;
+    const newScale = Math.max(s.minScale, Math.min(s.maxScale, s.scale * (1 + delta)));
+    const sd = newScale / s.scale;
+    s.x = cx + (s.x - cx) * sd;
+    s.y = cy + (s.y - cy) * sd;
+    s.scale = newScale;
+    clampCrop();
+    drawCrop();
+  };
+
+  // ── Imperative event binding (drag / pinch / wheel) ──
+  useEffect(() => {
+    if (!src) return;
+    const stage = stageRef.current;
+    const canvas = canvasRef.current;
+    if (!stage || !canvas) return;
+    setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 60);
+
+    let frameId = 0;
+    const scheduleDraw = () => {
+      if (!frameId) frameId = requestAnimationFrame(() => { frameId = 0; drawCrop(); });
+    };
+    const toLocal = (clientX: number, clientY: number) => {
+      const r = stage.getBoundingClientRect();
+      return { x: clientX - r.left - canvas.width / 2, y: clientY - r.top - canvas.height / 2 };
+    };
+    const guide = guideRef.current;
+    const setGuideActive = (active: boolean) => {
+      if (!guide) return;
+      guide.style.borderColor = active ? '#fff' : 'rgba(255,255,255,0.8)';
+      guide.style.boxShadow = active
+        ? '0 0 0 9999px rgba(0,0,0,0.62)'
+        : '0 0 0 9999px rgba(0,0,0,0.55)';
+    };
+    const onResize = () => { setupCanvas(); clampCrop(); drawCrop(); };
+    window.addEventListener('resize', onResize);
+    const onMD = (e: MouseEvent) => {
+      const s = stateRef.current; s.drag.active = true;
+      s.drag.sx = e.clientX; s.drag.sy = e.clientY;
+      s.drag.ox = s.x; s.drag.oy = s.y;
+      setGuideActive(true);
+    };
+    const onMM = (e: MouseEvent) => {
+      const s = stateRef.current; if (!s.drag.active) return;
+      s.x = s.drag.ox + (e.clientX - s.drag.sx);
+      s.y = s.drag.oy + (e.clientY - s.drag.sy);
+      clampCrop(); scheduleDraw();
+    };
+    const onMU = () => { stateRef.current.drag.active = false; setGuideActive(false); };
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const p = toLocal(e.clientX, e.clientY);
+      zoomCrop(e.deltaY > 0 ? -0.08 : 0.08, p.x, p.y);
+    };
+    const getDist = (ts: TouchList) =>
+      Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
+    const onTS = (e: TouchEvent) => {
+      e.preventDefault();
+      const s = stateRef.current;
+      if (e.touches.length === 1) {
+        s.drag.active = true;
+        s.drag.sx = e.touches[0].clientX; s.drag.sy = e.touches[0].clientY;
+        s.drag.ox = s.x; s.drag.oy = s.y;
+        setGuideActive(true);
+      } else if (e.touches.length === 2) {
+        s.drag.active = false; setGuideActive(false);
+        s.pinch.active = true;
+        s.pinch.startDist = getDist(e.touches);
+        s.pinch.startScale = s.scale;
+        const r = stage.getBoundingClientRect();
+        s.pinch.midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left - canvas.width / 2;
+        s.pinch.midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top - canvas.height / 2;
+      }
+    };
+    const onTM = (e: TouchEvent) => {
+      e.preventDefault();
+      const s = stateRef.current;
+      if (s.drag.active && e.touches.length === 1) {
+        s.x = s.drag.ox + (e.touches[0].clientX - s.drag.sx);
+        s.y = s.drag.oy + (e.touches[0].clientY - s.drag.sy);
+        clampCrop(); scheduleDraw();
+      } else if (s.pinch.active && e.touches.length === 2) {
+        const d = getDist(e.touches);
+        const ns = Math.max(s.minScale, Math.min(s.maxScale, s.pinch.startScale * (d / s.pinch.startDist)));
+        const sd = ns / s.scale;
+        s.x = s.pinch.midX + (s.x - s.pinch.midX) * sd;
+        s.y = s.pinch.midY + (s.y - s.pinch.midY) * sd;
+        s.scale = ns; clampCrop(); scheduleDraw();
+      }
+    };
+    const onTE = (e: TouchEvent) => {
+      const s = stateRef.current;
+      if (e.touches.length < 2) s.pinch.active = false;
+      if (e.touches.length === 0) { s.drag.active = false; setGuideActive(false); }
+    };
+    canvas.addEventListener('mousedown', onMD);
+    window.addEventListener('mousemove', onMM);
+    window.addEventListener('mouseup', onMU);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    canvas.addEventListener('touchstart', onTS, { passive: false });
+    canvas.addEventListener('touchmove', onTM, { passive: false });
+    canvas.addEventListener('touchend', onTE);
+    canvas.addEventListener('touchcancel', onTE);
+    return () => {
+      canvas.removeEventListener('mousedown', onMD);
+      window.removeEventListener('mousemove', onMM);
+      window.removeEventListener('mouseup', onMU);
+      canvas.removeEventListener('wheel', onWheel);
+      canvas.removeEventListener('touchstart', onTS);
+      canvas.removeEventListener('touchmove', onTM);
+      canvas.removeEventListener('touchend', onTE);
+      canvas.removeEventListener('touchcancel', onTE);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [src]);
+
+  // ── Render result blob to confirm callback ──
+  const confirmCrop = async () => {
+    try {
+      const img = imgRef.current;
+      if (!img) { setMsg(t('imgNotLoaded')); return; }
+      const s = stateRef.current;
+      const outW = 1280;
+      const outH = Math.max(320, Math.round(outW * s.cropRatio));
+      const output = document.createElement('canvas');
+      output.width = outW; output.height = outH;
+      const octx = output.getContext('2d')!;
+      const outScale = outW / s.cropW;
+      octx.translate(outW / 2 + s.x * outScale, outH / 2 + s.y * outScale);
+      octx.rotate(s.rotation * Math.PI / 180);
+      if (s.flipX) octx.scale(-1, 1);
+      octx.scale(s.scale * outScale, s.scale * outScale);
+      octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+      const blob: Blob = await new Promise((resolve, reject) => {
+        output.toBlob((b) => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/jpeg', 0.92);
+      });
+      setUploading(true);
+      try {
+        await onConfirm(blob);
+        // Caller is responsible for closing on success; close on our end too
+        setSrc(''); setMsg(''); setUploading(false);
+        onClose();
+      } catch (e: any) {
+        setMsg(e?.message || t('uploadFailed'));
+        setUploading(false);
+      }
+    } catch {
+      setMsg(t('cropFailed'));
+      setUploading(false);
+    }
+  };
+
+  if (!visible) return null;
+
+  return createPortal(
+    <div
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any}
+      onClick={(e: any) => { if (e.target === e.currentTarget) close(); }}
+    >
+      {/* Hidden file input — opened by useEffect when modal becomes visible */}
+      <input ref={fileRef as any} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileSelect} />
+
+      {/* Header */}
+      <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any}>
+        <Text style={{ fontSize: 14, fontWeight: '600' as any, color: '#fff', letterSpacing: -0.2 }}>{title || t('editBg')}</Text>
+        <TouchableOpacity onPress={close} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' } as any}>
+          <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 } as any}>✕</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Stage */}
+      {src !== '' && (
+        <View style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' } as any} ref={stageRef as any}>
+          <canvas
+            ref={canvasRef as any}
+            style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' } as any}
+          />
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any} pointerEvents="none">
+            <View
+              style={{ borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative', transition: 'border-color 0.2s', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any}
+              ref={guideRef as any}
+            >
+              <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '33.3%' } as any} />
+              <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '66.6%' } as any} />
+              <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '33.3%' } as any} />
+              <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '66.6%' } as any} />
+            </View>
+          </View>
+          <View style={{ position: 'absolute', bottom: 8, left: '50%', transform: [{ translateX: -75 }] as any, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, paddingVertical: 4, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' } as any} pointerEvents="none">
+            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' } as any}>{t('cropPill')}</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Toolbar (only when an image is loaded) */}
+      {src !== '' && (
+        <View style={{ paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', flexShrink: 0 } as any}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
+            <input
+              type="range" min="0" max="100" defaultValue={0}
+              onChange={(e: any) => {
+                const s = stateRef.current;
+                const tt = Number(e.target.value) / 100;
+                s.scale = s.minScale + (s.maxScale - s.minScale) * tt * 0.5;
+                s.scale = Math.max(s.minScale, s.scale);
+                clampCrop(); drawCrop();
+              }}
+              style={{ flex: 1, height: 3, appearance: 'none', cursor: 'pointer', accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+            />
+            <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
+          </View>
+          <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.12)', marginHorizontal: 10 } as any} />
+          <TouchableOpacity
+            style={{ paddingVertical: 6, paddingHorizontal: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
+            onPress={() => { stateRef.current.rotation = (stateRef.current.rotation + 90) % 360; drawCrop(); }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M3 12a9 9 0 109-9H9m0 0l3 3m-3-3l3-3" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '500' } as any}>{t('cropRotate')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ paddingVertical: 6, paddingHorizontal: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
+            onPress={() => { stateRef.current.flipX = !stateRef.current.flipX; drawCrop(); }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '500' } as any}>{t('cropFlip')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Actions */}
+      <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0 } as any}>
+        <TouchableOpacity
+          style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
+          onPress={close}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('cancel')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ flex: 2, padding: 11, borderRadius: 12, backgroundColor: uploading ? 'rgba(91,91,214,0.5)' : '#5B5BD6', justifyContent: 'center', alignItems: 'center', flexDirection: 'row' } as any}
+          onPress={confirmCrop}
+          disabled={uploading || !src}
+        >
+          <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 } as any}>
+            <Text style={{ fontSize: 10, color: '#fff' } as any}>{uploading ? '⏳' : '✓'}</Text>
+          </View>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{uploading ? t('uploading') : (confirmLabel || t('useThisBg'))}</Text>
+        </TouchableOpacity>
+      </View>
+      {msg !== '' && (
+        <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: '500' } as any}>{msg}</Text>
+      )}
+    </div>,
+    document.body
+  );
+}
