@@ -1306,14 +1306,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <View style={[styles.modalBody, { gap: 16 }]}>
               <View style={styles.modalDeleteBox}>
                 <Text style={styles.modalDeleteText}>
-                  {t('procDeleteBatchConfirm').replace('{n}', String(deleteBatchTarget.batch_number))}
+                  {t('procDeleteBatchConfirmV2').split('{batch}')[0]}
+                  <Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(deleteBatchTarget.batch_number))}</Text>
+                  {t('procDeleteBatchConfirmV2').split('{batch}')[1]}
                 </Text>
               </View>
               <View style={styles.modalBtnRow}>
                 <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setDeleteBatchTarget(null))}>
                   <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.danger }]} onPress={confirmDeleteBatch}>
+                <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.primary }]} onPress={confirmDeleteBatch}>
                   <Text style={styles.modalBtnConfirmText}>{t('delete') || '删除'}</Text>
                 </TouchableOpacity>
               </View>
