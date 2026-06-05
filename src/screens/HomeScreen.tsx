@@ -312,6 +312,22 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
   useEffect(() => { loadAvatar(); }, []);
 
+  // Cross-screen bg sync: ProfileScreen theme button uploads a new
+  // background and dispatches 'bg-changed' so we refresh here. The
+  // background is rendered by HomeScreen, not ProfileScreen, so this
+  // is the only way the change becomes visible.
+  useEffect(() => {
+    const onBgChanged = (e: any) => {
+      const url = e?.detail?.url;
+      if (typeof url === 'string') {
+        setBgImage(url);
+        setBgVersion(v => v + 1);
+      }
+    };
+    window.addEventListener('bg-changed', onBgChanged);
+    return () => window.removeEventListener('bg-changed', onBgChanged);
+  }, []);
+
   // Load background image — user-specific
   useEffect(() => {
     api.getBackground().then((r: any) => {

@@ -222,12 +222,21 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   // Theme button is "set background image" (per user clarification).
   // ThemePickerModal self-contains the crop flow; we receive the
-  // cropped File via onCoverImagePicked and just upload to the same
-  // /api/settings/background endpoint HomeScreen uses.
+  // cropped File via onCoverImagePicked and upload to the same
+  // /api/settings/background endpoint HomeScreen uses. The background
+  // is actually rendered by HomeScreen, so we broadcast a 'bg-changed'
+  // event for HomeScreen to refresh its bgImage state when the user
+  // switches back.
   const handleCoverImagePicked = async (file: File) => {
     setCoverUploading(true);
     try {
-      await api.uploadBackground(file);
+      const r: any = await api.uploadBackground(file);
+      if (r?.url) {
+        try { localStorage.setItem('bg-image', r.url); } catch {}
+        window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: r.url } }));
+      } else { throw new Error('upload-failed'); }
+    } catch (err) {
+      setToast(t('uploadFailedShort'));
     } finally {
       setCoverUploading(false);
     }
@@ -239,9 +248,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     setCoverUploading(true);
     try {
       await api.resetBackground();
-    } finally {
-      setCoverUploading(false);
-    }
+      try { localStorage.removeItem('bg-image'); } catch {}
+      window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg' } }));
+    } catch (err) { /* ignore */ }
+    finally { setCoverUploading(false); }
   };
 
   const handleSignatureSave = async () => {
