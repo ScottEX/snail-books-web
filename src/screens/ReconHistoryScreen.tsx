@@ -7,7 +7,7 @@ import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
-import { fmtAmt } from '../utils/format';
+import { fmtAmtFull } from '../utils/format';
 
 const PAGE_SIZE = 10;
 
@@ -201,24 +201,24 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmt(r.channel_total)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmtFull(r.channel_total)}</Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('cardBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmt(r.card_balance)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmtFull(r.card_balance)}</Text>
           </View>
         </View>
         {/* Col 2: 当前结余 / 现金 */}
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('currentBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmt(r.real_total)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmtFull(r.real_total)}</Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('cashBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmt(r.cash_balance)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmtFull(r.cash_balance)}</Text>
           </View>
         </View>
         {/* Col 3: 账面差额 / 在途资金 */}
@@ -226,13 +226,13 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookDiff')}</Text>
             <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
-              {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
+              {r.diff >= 0 ? '+' : ''}{fmtAmtFull(Math.abs(r.diff))}
             </Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('fundsInTransit')}</Text>
-            <Text style={[st.cardPairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmt(r.channel_total)}</Text>
+            <Text style={[st.cardPairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmtFull(r.channel_total)}</Text>
           </View>
         </View>
       </View>
@@ -269,24 +269,24 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View style={st.pairCol}>
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('bookBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmt(r.channel_total)}</Text>
+                <Text style={st.pairVal}>{fmtAmtFull(r.channel_total)}</Text>
               </View>
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('cardBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmt(r.card_balance)}</Text>
+                <Text style={st.pairVal}>{fmtAmtFull(r.card_balance)}</Text>
               </View>
             </View>
             {/* Group 2: 当前结余 / 现金 */}
             <View style={st.pairCol}>
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('currentBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmt(r.real_total)}</Text>
+                <Text style={st.pairVal}>{fmtAmtFull(r.real_total)}</Text>
               </View>
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('cashBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmt(r.cash_balance)}</Text>
+                <Text style={st.pairVal}>{fmtAmtFull(r.cash_balance)}</Text>
               </View>
             </View>
             {/* Group 3: 账面差额 / 在途资金 */}
@@ -294,13 +294,13 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('bookDiff')}</Text>
                 <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
-                  {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
+                  {r.diff >= 0 ? '+' : ''}{fmtAmtFull(Math.abs(r.diff))}
                 </Text>
               </View>
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('fundsInTransit')}</Text>
-                <Text style={[st.pairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmt(r.channel_total)}</Text>
+                <Text style={[st.pairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmtFull(r.channel_total)}</Text>
               </View>
             </View>
           </View>
@@ -315,7 +315,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             ].map((ch, i) => (
               <View key={i} style={st.chanRow}>
                 <Text style={st.chanLabel}>{ch.label}</Text>
-                <Text style={st.chanVal}>{fmtAmt(ch.value)}</Text>
+                <Text style={st.chanVal}>{fmtAmtFull(ch.value)}</Text>
               </View>
             ))}
           </View>

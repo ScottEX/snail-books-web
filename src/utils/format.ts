@@ -11,6 +11,11 @@ export function fmtAmt(n: number): string {
   return '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+/** Format amount with ¥ prefix, full digits + thousands separator, no 万/萬/K unit. */
+export function fmtAmtFull(n: number): string {
+  return '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 /** Format ISO date string (yyyy-mm-dd) to locale-aware display: en→"Jun 5, 2026", zh→"2026年06月05日" */
 export function formatDate(dateStr: string): string {
   if (!dateStr) return dateStr;
