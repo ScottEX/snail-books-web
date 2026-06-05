@@ -6,6 +6,14 @@ import { t } from '../i18n';
 interface BgCropModalProps {
   visible: boolean;
   onClose: () => void;
+  /** DataURL of the image to crop. When this changes from '' to a data
+   *  URL, the modal loads it into the canvas. When cleared, the canvas
+   *  is reset. The file picker lives in the parent (ThemePickerModal),
+   *  so BgCropModal does NOT open the system file dialog itself. */
+  imageSrc: string;
+  /** Called when the modal wants to clear the image (e.g. on close /
+   *  cancel / recrop reset). Parent should set imageSrc back to ''. */
+  onClearImage: () => void;
   /** Called with a JPEG Blob after the user confirms the crop.
    *  Caller is responsible for upload + any post-upload state updates. */
   onConfirm: (blob: Blob) => void | Promise<void>;
@@ -25,8 +33,8 @@ interface BgCropModalProps {
  *  crop experience. Output aspect ratio is viewport-adaptive by
  *  default — the cropped image is intended to fill the screen. */
 export default function BgCropModal({
-  visible, onClose, onConfirm, aspectRatio,
-  title, confirmLabel,
+  visible, onClose, imageSrc, onClearImage,
+  onConfirm, aspectRatio, title, confirmLabel,
 }: BgCropModalProps) {
   // ── Internal crop state machine ──
   //   cropping → user is adjusting the crop
@@ -41,7 +49,6 @@ export default function BgCropModal({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const guideRef = useRef<HTMLDivElement | null>(null);
-  const fileRef = useRef<HTMLInputElement | null>(null);
   const stateRef = useRef({
     x: 0, y: 0, scale: 1, rotation: 0, flipX: false, minScale: 1, maxScale: 8,
     cropW: 320, cropH: 0, cropRatio: 9 / 16,
@@ -49,14 +56,26 @@ export default function BgCropModal({
     pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
   });
 
-  // ── Open the file picker whenever the modal becomes visible ──
+  // ── Load image into canvas whenever parent passes a new imageSrc ──
+  // The file picker is owned by the parent (ThemePickerModal); this
+  // modal just renders whatever imageSrc it is given. Going from '' →
+  // dataURL loads the image; dataURL → '' clears the canvas.
   useEffect(() => {
-    if (visible && !src) {
-      // Defer to next tick so the modal paints before the system dialog opens
-      const t = setTimeout(() => fileRef.current?.click(), 0);
-      return () => clearTimeout(t);
+    if (!imageSrc) {
+      setSrc('');
+      imgRef.current = null;
+      return;
     }
-  }, [visible]);
+    setSrc(imageSrc);
+    const img = new Image() as HTMLImageElement;
+    img.onload = () => {
+      imgRef.current = img;
+      // Wait one tick for the cropping-stage View to mount + canvas to
+      // have measurable dimensions, then size the crop guide + fit.
+      setTimeout(() => { setupCanvas(); fitImage(); drawCrop(); }, 0);
+    };
+    img.src = imageSrc;
+  }, [imageSrc]);
 
   // ── Reset internal state on close ──
   useEffect(() => {
@@ -67,29 +86,8 @@ export default function BgCropModal({
 
   const close = () => {
     setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
+    onClearImage();
     onClose();
-  };
-
-  // ── File selection ──
-  const handleFileSelect = (e: any) => {
-    const file = e.target?.files?.[0];
-    try { e.target.value = ''; } catch {}
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const data = ev.target?.result as string;
-      setSrc(data);
-      setMsg('');
-      const img = document.createElement('img') as HTMLImageElement;
-      img.onload = () => {
-        imgRef.current = img;
-        setupCanvas();
-        fitImage();
-        drawCrop();
-      };
-      img.src = data;
-    };
-    reader.readAsDataURL(file);
   };
 
   // ── Canvas / crop geometry ──
@@ -328,15 +326,17 @@ export default function BgCropModal({
   };
 
   if (!visible) return null;
+  // Don't render the modal shell until an image has been picked —
+  // otherwise the user sees an empty "crop" frame before they've even
+  // chosen a photo. The parent owns the file picker and sets imageSrc
+  // before setting visible=true.
+  if (imageSrc === '') return null;
 
   return createPortal(
     <div
       style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any}
       onClick={(e: any) => { if (e.target === e.currentTarget) close(); }}
     >
-      {/* Hidden file input — opened by useEffect when modal becomes visible */}
-      <input ref={fileRef as any} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileSelect} />
-
       {/* Header */}
       <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any}>
         <Text style={{ fontSize: 14, fontWeight: '600' as any, color: '#fff', letterSpacing: -0.2 }}>{title || t('editBg')}</Text>

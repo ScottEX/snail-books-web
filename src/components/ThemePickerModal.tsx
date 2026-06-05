@@ -64,6 +64,14 @@ export default function ThemePickerModal({
   const slide = useRef(new Animated.Value(-300)).current;
   const [show, setShow] = React.useState(false);
   const [showCrop, setShowCrop] = useState(false);
+  // imageSrc is the dataURL the user picked via the file input. It is
+  // passed to BgCropModal, which loads it into the canvas. The file
+  // picker lives HERE (not inside BgCropModal) so that clicking the
+  // "选择图片" button opens the system file dialog immediately, before
+  // the crop modal is rendered — the user should not see a crop modal
+  // appear before they've even picked an image.
+  const [imageSrc, setImageSrc] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -83,10 +91,32 @@ export default function ThemePickerModal({
   }, [visible]);
 
   const handleClose = () => {
+    setShowCrop(false);
+    setImageSrc('');
     Animated.parallel([
       Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: true }),
       Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
     ]).start(() => { setShow(false); onClose(); });
+  };
+
+  // File picker lives here. Clicking the "选择图片" button triggers
+  // the system file dialog directly; we DON'T show the crop modal
+  // first. Once the user picks a file, we convert it to a dataURL and
+  // then open the crop modal.
+  const handlePickImage = () => fileInputRef.current?.click();
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    try { e.target.value = ''; } catch {}
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = ev.target?.result as string;
+      if (typeof data === 'string' && data.startsWith('data:')) {
+        setImageSrc(data);
+        setShowCrop(true);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   if (!show) return null;
@@ -163,7 +193,7 @@ export default function ThemePickerModal({
               <TouchableOpacity
                 style={[styles.bgBtn, styles.bgBtnOutline]}
                 disabled={coverUploading}
-                onPress={() => setShowCrop(true)}
+                onPress={handlePickImage}
               >
                 <Text style={styles.bgBtnOutlineText}>{coverUploading ? t('uploading') : t('chooseImage')}</Text>
               </TouchableOpacity>
@@ -180,12 +210,22 @@ export default function ThemePickerModal({
       </Animated.View>
 
       {/* ── Background image crop modal (self-contained) ──
-          Triggered by the "选择图片" button above. The full crop + preview +
-          upload flow is handled inside BgCropModal; we just forward the
-          final blob up via onCoverImagePicked. */}
+          The file picker is rendered HERE (see hidden <input> below);
+          the user picks an image and only then do we open BgCropModal
+          with the resulting dataURL. BgCropModal just renders whatever
+          imageSrc it's given — it does NOT open a file dialog itself. */}
+      <input
+        ref={fileInputRef as any}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileSelected}
+      />
       <BgCropModal
         visible={showCrop}
-        onClose={() => setShowCrop(false)}
+        onClose={() => { setShowCrop(false); setImageSrc(''); }}
+        imageSrc={imageSrc}
+        onClearImage={() => setImageSrc('')}
         onConfirm={async (blob) => {
           if (!onCoverImagePicked) return;
           const file = new File([blob], 'background.jpg', { type: blob.type || 'image/jpeg' });
@@ -194,6 +234,7 @@ export default function ThemePickerModal({
           // upload, ThemePickerModal stays open and resets its crop state
           // for the next interaction.
           setShowCrop(false);
+          setImageSrc('');
         }}
       />
     </Animated.View>,
