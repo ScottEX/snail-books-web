@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  ActivityIndicator, Image, Animated,
+  ActivityIndicator, Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
@@ -56,8 +56,9 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
   const styles = useMemo(() => getStyles(c), [c]);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const previewFade = useState(new Animated.Value(0))[0];
+  const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
+  const [previewOpacity, setPreviewOpacity] = useState(1);
+  const touchStartX = useRef(0);
 
   if (!batch) {
     return (
@@ -95,16 +96,16 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
   };
 
   const openPreview = (idx: number) => {
-    // Use full-size image for preview, not the 128×128 thumbnail
-    const url = images[idx] || thumbImgs[idx];
-    if (!url) return;
-    setPreviewImage(url);
-    previewFade.setValue(0);
-    Animated.timing(previewFade, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+    setPreviewData({ images: images.length ? images : thumbImgs, idx });
+    setPreviewOpacity(1);
   };
 
-  const closePreview = () => {
-    Animated.timing(previewFade, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setPreviewImage(null));
+  const navPreview = (newIdx: number) => {
+    setPreviewOpacity(0);
+    setTimeout(() => {
+      setPreviewData(prev => prev ? { ...prev, idx: newIdx } : null);
+      setPreviewOpacity(1);
+    }, 150);
   };
 
   const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
@@ -219,21 +220,58 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Image preview overlay */}
-      {previewImage && (
-        <Animated.View style={[styles.previewOverlay, { opacity: previewFade }]}>
-          <TouchableOpacity style={styles.previewClose} onPress={closePreview} activeOpacity={0.7}>
-            <Text style={styles.previewCloseText}>✕</Text>
+      {/* Fullscreen image preview — swipe left/right, arrows, counter (matches ExpenseHistoryScreen) */}
+      {previewData && (
+        <View style={styles.previewOverlay}
+          onTouchStart={(e: any) => { touchStartX.current = e.nativeEvent.pageX || e.nativeEvent.touches?.[0]?.pageX || 0; }}
+          onTouchEnd={(e: any) => {
+            const endX = e.nativeEvent.pageX || e.nativeEvent.changedTouches?.[0]?.pageX || 0;
+            const dx = endX - touchStartX.current;
+            if (Math.abs(dx) > 60) {
+              if (dx < 0 && previewData.idx < previewData.images.length - 1) {
+                navPreview(previewData.idx + 1);
+              } else if (dx > 0 && previewData.idx > 0) {
+                navPreview(previewData.idx - 1);
+              }
+            }
+          }}>
+          <TouchableOpacity style={styles.previewClose}
+            onPress={() => setPreviewData(null)}
+            activeOpacity={0.7}>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.surface} strokeWidth={2} strokeLinecap="round">
+              <Path d="M18 6L6 18M6 6l12 12" />
+            </Svg>
           </TouchableOpacity>
+          {previewData.images.length > 1 && previewData.idx > 0 && (
+            <TouchableOpacity style={styles.previewArrowLeft}
+              onPress={() => navPreview(previewData.idx - 1)}
+              activeOpacity={0.7}>
+              <Text style={styles.previewArrowText}>{'\u2039'}</Text>
+            </TouchableOpacity>
+          )}
+          {previewData.images.length > 1 && previewData.idx < previewData.images.length - 1 && (
+            <TouchableOpacity style={styles.previewArrowRight}
+              onPress={() => navPreview(previewData.idx + 1)}
+              activeOpacity={0.7}>
+              <Text style={styles.previewArrowText}>{'\u203A'}</Text>
+            </TouchableOpacity>
+          )}
           {React.createElement('img', {
-            src: previewImage,
+            src: previewData.images[previewData.idx],
+            key: previewData.idx,
             decoding: 'async' as any,
             style: {
               maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain',
+              opacity: previewOpacity,
+              // @ts-ignore
+              transition: 'opacity 0.2s ease',
             },
             alt: 'preview',
           })}
-        </Animated.View>
+          {previewData.images.length > 1 && (
+            <Text style={styles.previewCounter}>{previewData.idx + 1} / {previewData.images.length}</Text>
+          )}
+        </View>
       )}
     </View>
   );
@@ -404,28 +442,34 @@ const getStyles = (c: ThemeColors) => {
       marginTop: 10,
     },
     // Preview
+    // Preview — matches ExpenseHistoryScreen exactly
     previewOverlay: {
-      position: 'absolute',
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.92)',
-      zIndex: 200,
-      alignItems: 'center',
-      justifyContent: 'center',
+      position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
+      backgroundColor: 'rgba(0,0,0,0.85)',
+      alignItems: 'center' as const, justifyContent: 'center' as const,
     },
     previewClose: {
-      position: 'absolute',
-      top: 44, right: 16,
-      width: 36, height: 36,
-      borderRadius: 18,
+      position: 'absolute' as const, top: 48, right: 20, zIndex: 10,
+      width: 36, height: 36, borderRadius: 18,
       backgroundColor: 'rgba(255,255,255,0.15)',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 201,
+      alignItems: 'center' as const, justifyContent: 'center' as const,
     },
-    previewCloseText: {
-      fontSize: 18,
-      color: '#fff',
-      fontWeight: '300',
+    previewArrowLeft: {
+      position: 'absolute' as const, left: 16, top: '50%' as any, zIndex: 10,
+      width: 40, height: 40, borderRadius: 20, marginTop: -20,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center' as const, justifyContent: 'center' as const,
+    },
+    previewArrowRight: {
+      position: 'absolute' as const, right: 16, top: '50%' as any, zIndex: 10,
+      width: 40, height: 40, borderRadius: 20, marginTop: -20,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center' as const, justifyContent: 'center' as const,
+    },
+    previewArrowText: { fontSize: FONTS.amount.size, fontWeight: '300' as const, color: c.surface, marginTop: -2 },
+    previewCounter: {
+      position: 'absolute' as const, bottom: 60, zIndex: 10,
+      fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: 'rgba(255,255,255,0.7)',
     },
   });
 };
