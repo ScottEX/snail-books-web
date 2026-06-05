@@ -1,0 +1,417 @@
+import React, { useState, useMemo } from 'react';
+import {
+  View, Text, TouchableOpacity, ScrollView, StyleSheet,
+  ActivityIndicator, Image, Animated,
+} from 'react-native';
+import Svg, { Path } from 'react-native-svg';
+import { t } from '../i18n';
+import { api } from '../api/client';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
+import { historyHeader } from '../sharedStyles';
+
+interface BatchItem {
+  name?: string;
+  product_name?: string;
+  product_id?: number;
+  quantity: number;
+  subtotal?: number;
+  unit_price?: number;
+}
+
+interface BatchRecord {
+  id: number;
+  batch_number: number;
+  date: string;
+  payment_method: string;
+  total: number;
+  note?: string;
+  images?: string[];
+  thumb_images?: string[];
+  items: BatchItem[];
+}
+
+function BackArrow({ color }: { color: string }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M15 18l-6-6 6-6" />
+    </Svg>
+  );
+}
+
+function DocIcon({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <Path d="M14 2v6h6" />
+      <Path d="M8 13h2" />
+      <Path d="M8 17h6" />
+      <Path d="M14 13h2" />
+    </Svg>
+  );
+}
+
+export default function ProcurementDetailScreen({ batch, onBack }: { batch: BatchRecord | null; onBack: () => void }) {
+  const { colors: c } = useTheme();
+  const styles = useMemo(() => getStyles(c), [c]);
+  const [downloading, setDownloading] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const previewFade = useState(new Animated.Value(0))[0];
+
+  if (!batch) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} activeOpacity={0.7}><BackArrow color={c.textMain} /></TouchableOpacity>
+          <Text style={styles.headerTitle}>{t('procOrderItems')}</Text>
+          <View style={{ width: 44 }} />
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: c.textSub }}>—</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const downloadPDF = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const resp = await fetch(`/api/procurement-batches/${batch.id}/pdf`);
+      if (!resp.ok) throw new Error('Download failed');
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `procurement_${batch.id}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+      setDownloaded(true);
+      setTimeout(() => setDownloaded(false), 2000);
+    } catch {
+      window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const openPreview = (url: string) => {
+    setPreviewImage(url);
+    previewFade.setValue(0);
+    Animated.timing(previewFade, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+  };
+
+  const closePreview = () => {
+    Animated.timing(previewFade, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setPreviewImage(null));
+  };
+
+  const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
+  const items = batch.items || [];
+
+  return (
+    <View style={styles.container}>
+      {/* Header — absolute, glass */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtn}>
+          <BackArrow color={c.textMain} />
+        </TouchableOpacity>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={styles.headerTitle}>
+            {t('procNowBatch').replace('{n}', String(batch.batch_number))}
+          </Text>
+          <Text style={styles.headerDate}>{batch.date}</Text>
+        </View>
+        <View style={{ width: 44 }} />
+      </View>
+
+      {/* Body — scrolls under header */}
+      <ScrollView
+        style={styles.body}
+        contentContainerStyle={styles.bodyContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Info card */}
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>{t('procPaymentMethod')}</Text>
+            <Text style={styles.infoValue}>{batch.payment_method}</Text>
+          </View>
+          {batch.note ? (
+            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+              <Text style={styles.infoLabel}>{t('procNoteOptional')}</Text>
+              <Text style={styles.infoValue}>{batch.note}</Text>
+            </View>
+          ) : null}
+        </View>
+
+        {/* Images */}
+        {thumbImgs.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('procImages') || '凭证'}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
+              {thumbImgs.map((img: string, i: number) => (
+                <TouchableOpacity key={i} onPress={() => openPreview(img)} activeOpacity={0.8}>
+                  <Image
+                    source={{ uri: img }}
+                    style={styles.thumb}
+                  />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Items */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('procOrderItems')}</Text>
+          <View style={styles.itemsCard}>
+            {items.map((item, idx) => {
+              const name = item.name || item.product_name || `商品#${item.product_id}`;
+              const subtotal = item.subtotal ?? (item.unit_price ?? 0) * item.quantity;
+              return (
+                <View key={idx} style={[styles.itemRow, idx < items.length - 1 && styles.itemRowBorder]}>
+                  <Text style={styles.itemName} numberOfLines={1}>{name}</Text>
+                  <Text style={styles.itemQty}>×{item.quantity}</Text>
+                  <Text style={styles.itemAmt}>¥{(subtotal || 0).toFixed(2)}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Total + Download */}
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>{t('procTotal')}</Text>
+          <Text style={styles.totalAmt}>¥{batch.total.toFixed(2)}</Text>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.downloadBtn, downloading && { opacity: 0.7 }]}
+          onPress={downloadPDF}
+          disabled={downloading}
+          activeOpacity={0.7}
+        >
+          <DocIcon color={c.surface} />
+          <Text style={styles.downloadText}>
+            {downloading ? '⏳ 生成中...' : downloaded ? '✅ 已保存' : '📥 下载 PDF'}
+          </Text>
+        </TouchableOpacity>
+
+        {downloading && (
+          <View style={styles.downloadOverlay}>
+            <View style={styles.downloadOverlayCard}>
+              <ActivityIndicator size="small" color={c.primary} />
+              <Text style={styles.downloadOverlayText}>正在生成进货单…</Text>
+            </View>
+          </View>
+        )}
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+
+      {/* Image preview overlay */}
+      {previewImage && (
+        <Animated.View style={[styles.previewOverlay, { opacity: previewFade }]}>
+          <TouchableOpacity style={styles.previewClose} onPress={closePreview} activeOpacity={0.7}>
+            <Text style={styles.previewCloseText}>✕</Text>
+          </TouchableOpacity>
+          <Image source={{ uri: previewImage }} style={styles.previewImage} resizeMode="contain" />
+        </Animated.View>
+      )}
+    </View>
+  );
+}
+
+const getStyles = (c: ThemeColors) => {
+  const hdr = historyHeader(c);
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.bg,
+    },
+    ...hdr,
+    headerTitle: {
+      fontSize: FONTS.subBold.size,
+      fontWeight: FONTS.subBold.weight,
+      color: c.textMain,
+    },
+    headerDate: {
+      fontSize: FONTS.micro.size,
+      color: c.textSub,
+      marginTop: 2,
+    },
+    body: {
+      flex: 1,
+      marginTop: 80, // space for absolute header
+    },
+    bodyContent: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    // Info card
+    infoCard: {
+      backgroundColor: c.surface,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 8,
+      borderBottomWidth: 0.5,
+      borderBottomColor: withAlpha(c.textMain, 0.06),
+    },
+    infoLabel: {
+      fontSize: FONTS.sub.size,
+      color: c.textSub,
+    },
+    infoValue: {
+      fontSize: FONTS.sub.size,
+      fontWeight: '500',
+      color: c.textMain,
+    },
+    // Section
+    section: {
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      fontSize: FONTS.micro.size,
+      fontWeight: '600',
+      color: c.textSub,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginBottom: 10,
+    },
+    // Thumbnails
+    thumb: {
+      width: 72,
+      height: 72,
+      borderRadius: 8,
+      marginRight: 8,
+      borderWidth: 0.5,
+      borderColor: withAlpha(c.textMain, 0.08),
+    },
+    // Items card
+    itemsCard: {
+      backgroundColor: c.surface,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 4,
+    },
+    itemRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+    },
+    itemRowBorder: {
+      borderBottomWidth: 0.5,
+      borderBottomColor: withAlpha(c.textMain, 0.06),
+    },
+    itemName: {
+      flex: 1,
+      fontSize: FONTS.sub.size,
+      color: c.textMain,
+    },
+    itemQty: {
+      fontSize: FONTS.sub.size,
+      color: c.textSub,
+      marginRight: 16,
+    },
+    itemAmt: {
+      fontSize: FONTS.sub.size,
+      fontWeight: '600' as const,
+      color: c.textMain,
+      minWidth: 72,
+      textAlign: 'right' as const,
+    },
+    // Total
+    totalRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+      paddingVertical: 12,
+      marginBottom: 16,
+    },
+    totalLabel: {
+      fontSize: FONTS.subBold.size,
+      fontWeight: FONTS.subBold.weight,
+      color: c.textMain,
+    },
+    totalAmt: {
+      fontSize: FONTS.h2.size,
+      fontWeight: '700' as const,
+      color: c.primary,
+    },
+    // Download
+    downloadBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 14,
+      borderRadius: 12,
+      backgroundColor: c.primary,
+      marginBottom: 8,
+    },
+    downloadText: {
+      fontSize: FONTS.body.size,
+      fontWeight: '600',
+      color: c.surface,
+    },
+    downloadOverlay: {
+      position: 'absolute',
+      top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.06)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 10,
+      borderRadius: 12,
+    },
+    downloadOverlayCard: {
+      backgroundColor: c.surface,
+      paddingVertical: 16,
+      paddingHorizontal: 28,
+      borderRadius: 12,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+    },
+    downloadOverlayText: {
+      fontSize: FONTS.micro.size,
+      color: c.textSub,
+      marginTop: 10,
+    },
+    // Preview
+    previewOverlay: {
+      position: 'absolute',
+      top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.92)',
+      zIndex: 200,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    previewClose: {
+      position: 'absolute',
+      top: 44, right: 16,
+      width: 36, height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 201,
+    },
+    previewCloseText: {
+      fontSize: 18,
+      color: '#fff',
+      fontWeight: '300',
+    },
+    previewImage: {
+      width: '90%',
+      height: '70%',
+    },
+  });
+};

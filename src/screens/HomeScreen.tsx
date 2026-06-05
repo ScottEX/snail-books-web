@@ -12,6 +12,7 @@ import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
+import ProcurementDetailScreen from './ProcurementDetailScreen';
 import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
 import ThemePicker from '../components/ThemePicker';
@@ -70,6 +71,8 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [showReconHistory, setShowReconHistory] = useState(false);
   const [showExpenseHistory, setShowExpenseHistory] = useState(false);
   const [showDailyHistory, setShowDailyHistory] = useState(false);
+  const [showProcDetail, setShowProcDetail] = useState(false);
+  const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [last7Records, setLast7Records] = useState<any[]>([]);
@@ -488,6 +491,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <SlideScreen visible={showReconHistory} onClose={() => setShowReconHistory(false)}>
         {(onBack) => <ReconHistoryScreen onBack={onBack} />}
       </SlideScreen>
+      <SlideScreen visible={showProcDetail} onClose={() => { setShowProcDetail(false); setProcDetailBatch(null); }}>
+        {(onBack) => <ProcurementDetailScreen batch={procDetailBatch} onBack={onBack} />}
+      </SlideScreen>
 
       {/* Header */}
       <View style={styles.header}>
@@ -519,12 +525,12 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       </View>
 
       {/* Page content — hidden when history screen is active */}
-      {!showProfile && !showExpenseHistory && !showDailyHistory && !showReconHistory && (
+      {!showProfile && !showExpenseHistory && !showDailyHistory && !showReconHistory && !showProcDetail && (
       <View style={styles.page}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} onProfile={() => setShowProfile(true)} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} />
+          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); setShowProcDetail(true); }} />
         ) : (
           <>
             {/* Underlying tab content */}

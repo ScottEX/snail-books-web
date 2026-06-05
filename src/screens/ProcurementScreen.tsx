@@ -364,7 +364,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════
-export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onDrawerOpen?: () => void; onDrawerClose?: () => void }) {
+export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void }) {
   const { colors: c } = useTheme();
   const styles = useMemo(() => getStyles(c), [c]);
 
@@ -416,11 +416,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   // button area by giving the ScrollView itself paddingHorizontal: 16 + boxSizing: 'border-box';
   // the webkit scrollbar paints on the padding box edge (the card's rightmost 2px), well clear
   // of the +/- buttons (which live in the content area, 16px inset from that edge).
-  const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
-  const [detailTotal, setDetailTotal] = useState(0);
-  const [detailBatchId, setDetailBatchId] = useState(0);
-  const [downloadingPDF, setDownloadingPDF] = useState(false);
-  const [pdfDone, setPdfDone] = useState(false);
+  // detailItems, detailTotal, detailBatchId, downloadingPDF, pdfDone — removed with history detail modal (moved to ProcurementDetailScreen)
 
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
@@ -463,8 +459,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const itemsModalAnim = useRef(new Animated.Value(0)).current;
   const itemsModalOverlayAnim = useRef(new Animated.Value(0)).current;
   const openItemsModal = () => {
-    setDetailItems(cartItems.map(i => ({ name: i.product.name, quantity: i.quantity, subtotal: i.subtotal })));
-    setDetailTotal(cartTotal);
     setItemsModalIsCart(true);
     setItemsModalView('items');
     setProductPickerSearch('');
@@ -483,44 +477,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     ]).start(() => setShowItemsModal(false));
   };
 
-  const downloadPDF = async (batchId: number) => {
-    if (downloadingPDF) return;
-    setDownloadingPDF(true);
-    try {
-      const resp = await fetch(`/api/procurement-batches/${batchId}/pdf`);
-      if (!resp.ok) throw new Error('Download failed');
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `procurement_${batchId}.pdf`; a.click();
-      URL.revokeObjectURL(url);
-      setPdfDone(true);
-      setTimeout(() => setPdfDone(false), 2000);
-    } catch (e: any) {
-      window.open(`/api/procurement-batches/${batchId}/pdf`, '_blank');
-    } finally {
-      setDownloadingPDF(false);
-    }
-  };
-
   // ── History Detail ──
   const openHistoryDetail = (batch: BatchRecord) => {
-    setDetailItems(batch.items.map((item: any) => ({
-      name: item.name || item.product_name || `商品#${item.product_id}`,
-      quantity: item.quantity,
-      subtotal: item.subtotal || item.unit_price * item.quantity || 0,
-    })));
-    setDetailTotal(batch.total);
-    setDetailBatchId(batch.id);
-    setItemsModalIsCart(false);
-    setItemsModalView('items');
-    setShowItemsModal(true);
-    itemsModalAnim.setValue(-300);
-    itemsModalOverlayAnim.setValue(0);
-    Animated.parallel([
-      Animated.spring(itemsModalAnim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(itemsModalOverlayAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start();
+    onProcurementDetail?.(batch);
   };
 
   // ── Drawer animation ──
@@ -1576,7 +1535,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                   <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
                 </TouchableOpacity>
               </>
-            ) : itemsModalIsCart ? (
+            ) : (
               // ── Cart edit view (with +/- qty) ──
               <>
                 <View style={styles.itemsModalBodyWrap}>
@@ -1634,44 +1593,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                     <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
                   </TouchableOpacity>
                 </View>
-              </>
-            ) : (
-              // ── History detail view (read-only) ──
-              <>
-                <View style={styles.itemsModalBodyWrap}>
-                  <ScrollView
-                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 16, boxSizing: 'border-box' } as any}
-                  >
-                    {detailItems.map((item, idx, arr) => (
-                      <View key={idx} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
-                        <Text style={styles.itemsRowName}>{item.name}</Text>
-                        <Text style={styles.itemsRowQty}>×{item.quantity}</Text>
-                        <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
-                      </View>
-                    ))}
-                  </ScrollView>
-                </View>
-                <View style={styles.itemsTotalRow}>
-                  <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
-                  <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
-                </View>
-                <TouchableOpacity
-                  style={{ marginHorizontal: 16, marginBottom: 16, paddingVertical: 12, borderRadius: 8, backgroundColor: downloadingPDF ? c.secondary : c.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, opacity: downloadingPDF ? 0.7 : 1 }}
-                  onPress={() => downloadPDF(detailBatchId)}
-                  disabled={downloadingPDF}
-                >
-                  <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>
-                    {downloadingPDF ? '⏳ 生成中...' : pdfDone ? '✅ 已保存' : '📥 下载 PDF'}
-                  </Text>
-                </TouchableOpacity>
-                {downloadingPDF && (
-                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 16, alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                    <View style={{ backgroundColor: c.surface, paddingVertical: 16, paddingHorizontal: 28, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, alignItems: 'center' }}>
-                      <ActivityIndicator size="small" color={c.primary} />
-                      <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 10 }}>正在生成进货单…</Text>
-                    </View>
-                  </View>
-                )}
               </>
             )}
           </Animated.View>
