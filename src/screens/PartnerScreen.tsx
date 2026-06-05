@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { createPortal } from 'react-dom';
-import { t, setLang, getLang, langs } from '../i18n';
+import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
@@ -85,7 +85,9 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   const [divRoundNum, setDivRoundNum] = useState(0);
   const [divPreview, setDivPreview] = useState<any[]>([]);
   const [filter, setFilter] = useState('all');
-  const [lang, setLangState] = useState(getLang());
+  // Pulled from LangContext — re-renders on LangContext value change
+  // instead of capturing curLang at mount.
+  const { setLang: setLangState } = useLang();
 
   const [toast, setToast] = useState('');
   const [cropMsg, setCropMsg] = useState('');  // inline feedback inside crop modal
@@ -238,7 +240,9 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   };
 
   const switchLang = (l: string) => {
-    setLang(l);
+    // setLangState (from LangContext) writes curLang + localStorage +
+    // server AND triggers a re-render — replacing the old
+    // two-step `setLang(l); setLangState(l);`.
     setLangState(l);
     loadData();
   };

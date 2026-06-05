@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
-import { t, setLang, getLang, langs } from '../i18n';
+import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -22,7 +22,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [msg, setMsg] = useState('');
   const [msgKey, setMsgKey] = useState('');
   const [msgOk, setMsgOk] = useState(false);
-  const [lang, setLangState] = useState(getLang());
+  // Pulled from LangContext so the lang state follows the current
+  // user across login / logout / session-kicked (re-renders on
+  // LangContext value change instead of capturing curLang at mount).
+  const { lang, setLang: setLangState } = useLang();
   const displayMsg = msgKey ? t(msgKey) : msg;
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
@@ -238,7 +241,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   };
 
   const switchLang = (l: string) => {
-    setLang(l);
+    // setLangState (from LangContext) writes curLang + localStorage +
+    // server AND triggers a re-render of every useContext(LangContext)
+    // subscriber — replacing the old two-step `setLang(l); setLangState(l);`.
     setLangState(l);
     setMsg('');
     setMsgKey('');

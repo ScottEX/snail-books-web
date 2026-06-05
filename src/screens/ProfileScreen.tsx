@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput, Switch } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Defs, LinearGradient as SVGGradient, Stop, Rect } from 'react-native-svg';
-import { t, getLang, setLang } from '../i18n';
+import { t, getLang, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -37,7 +37,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [coverUploading, setCoverUploading] = useState(false);
   const [toast, setToast] = useState('');
 
-  const [lang, setLangState] = useState(getLang());
+  // Pulled from LangContext — re-renders on LangContext value change
+  // instead of capturing curLang at mount.
+  const { setLang: setLangState } = useLang();
 
   const username = useMemo(() => {
     try { return getCurrentUser(); } catch { return ''; }
@@ -955,7 +957,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               <Text style={st.iconLabel}>{t('language')}</Text>
               <View style={{ flexDirection: 'row' }}>
                 {(['zh-CN','zh-TW','en'] as const).map(l => (
-                  <TouchableOpacity key={l} onPress={() => { setLang(l); setLangState(l); onLangChange?.(); }}>
+                  <TouchableOpacity key={l} onPress={() => { setLangState(l); onLangChange?.(); }}>
                     <Text style={[st.langBtn, getLang() === l && st.langBtnActive]}>
                       {l === 'zh-CN' ? '简' : l === 'zh-TW' ? '繁' : 'EN'}
                     </Text>

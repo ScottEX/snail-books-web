@@ -1,3 +1,5 @@
+import React, { createContext, useContext, useState, useCallback } from 'react';
+
 const I18N: Record<string, Record<string, string>> = {
   'zh-CN': {
     appTitle: '蓝姐螺蛳粉',
@@ -1299,3 +1301,92 @@ export function setLang(lang: string, callback?: () => void) {
 }
 
 export const langs: [string, string][] = [['zh-CN', '简'], ['zh-TW', '繁'], ['en', 'EN']];
+
+// Internal helper: apply lang to runtime (curLang + localStorage +
+// server). Used by both the standalone setLang() and the LangProvider
+// setLang below. Kept here (not in client.ts) to avoid a circular
+// import — i18n.tsx ↔ client.ts would otherwise both depend on each
+// other and the live bindings would briefly see undefined `api` during
+// module init. (The standalone setLang() above historically also used
+// a raw fetch() for the same reason.)
+function _applyLangToRuntime(lang: string) {
+  curLang = lang;
+  if (typeof localStorage !== 'undefined') localStorage.setItem('lang', lang);
+  try {
+    fetch('/api/settings/lang', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang }),
+    }).catch(() => {});
+  } catch {}
+}
+
+// ═══════════════════════════════════════════
+// LangContext — single source of truth for the current language
+// ═══════════════════════════════════════════
+//
+// Why this exists:
+//   curLang is a module-level `let`. Mutating it via the standalone
+//   setLang() below does NOT trigger a React re-render — components
+//   that did `useState(getLang())` capture the value at mount time
+//   and keep showing the OLD user's language after a new user signs
+//   in. To make all subscribers update, we expose a context whose
+//   value is backed by useState, and a wrapper setLang that performs
+//   the React update + side effects (curLang, localStorage, server
+//   persistence) in one call.
+//
+// Layering in App.tsx:
+//   <LangProvider>          ← mounts once, holds lang state, never re-mounts
+//     <SessionKickedModal/> ← outside ThemeProvider so appKey++ does not
+//     <ThemeProvider key={appKey}>  unmount the modal (preserves visible
+//       <LoginScreen/>      state for the "signed in elsewhere" flow)
+//       <HomeScreen/>
+//     </ThemeProvider>
+//   </LangProvider>
+//
+// The standalone setLang() export is kept for any non-React callers
+// and is also reused inside the provider via _applyLangToRuntime().
+//
+// LangProvider does NOT pull the server-side language itself. The
+// pull is owned by ThemeProvider's mount effect, which (a) already
+// imports api for the theme pull, (b) re-mounts via appKey++ on every
+// login / logout / session-kicked, and (c) would otherwise leave us
+// with a duplicate api import and a circular i18n ↔ client module
+// reference.
+
+interface LangContextValue {
+  lang: string;
+  setLang: (lang: string, callback?: () => void) => void;
+}
+
+const LangContext = createContext<LangContextValue>({
+  lang: 'zh-CN',
+  setLang: () => {},
+});
+
+export function LangProvider({ children }: { children: React.ReactNode }) {
+  // Initial value: whatever the standalone getLang() reports (which
+  // reads from localStorage, then navigator.language as a fallback).
+  // The post-login server-side language is delivered by
+  // ThemeProvider's mount effect calling applyLang() from this
+  // context (which writes through the same _applyLangToRuntime
+  // helper as the standalone setLang).
+  const [lang, setLangState] = useState<string>(getLang());
+
+  const setLang = useCallback((newLang: string, callback?: () => void) => {
+    if (!I18N[newLang]) return;
+    setLangState(newLang);                              // 1) trigger re-render
+    _applyLangToRuntime(newLang);                       // 2) side effects (curLang, localStorage, server)
+    callback?.();
+  }, []);
+
+  return (
+    <LangContext.Provider value={{ lang, setLang }}>
+      {children}
+    </LangContext.Provider>
+  );
+}
+
+export function useLang() {
+  return useContext(LangContext);
+}

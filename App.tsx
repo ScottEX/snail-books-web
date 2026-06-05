@@ -3,6 +3,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SessionKickedModal from './src/components/SessionKickedModal';
 import { ThemeProvider } from './src/theme';
+import { LangProvider } from './src/i18n';
 
 export default function App() {
   const [page, setPage] = useState<'login' | 'home'>(() => {
@@ -30,15 +31,22 @@ export default function App() {
   }, []);
 
   // Listen for user state changes (401 handler, login, logout).
-  // Re-evaluate page AND bump appKey so the subtree remounts and
-  // ThemeProvider re-pulls the new user's lang/theme from server.
+  // Re-evaluate page AND bump appKey so the ThemeProvider subtree
+  // remounts and ThemeProvider re-pulls the new user's lang/theme
+  // from server. The 401 handler also dispatches 'app:user-change'
+  // (to clear the stale localStorage.user and show
+  // SessionKickedModal). When that fires, ThemeProvider remounts
+  // and its useEffect sees localStorage.user is empty (just cleared
+  // by 401) and short-circuits, so no second fetch is made — this
+  // breaks the loop that caused the login-screen flicker on the
+  // previous attempt.
   //
-  // The 401 handler also dispatches 'app:user-change' (to clear the
-  // stale localStorage.user and show SessionKickedModal). When that
-  // fires, ThemeProvider remounts and its useEffect sees
-  // localStorage.user is empty (just cleared by 401) and short-
-  // circuits, so no second fetch is made — this breaks the loop that
-  // caused the login-screen flicker on the previous attempt.
+  // IMPORTANT: SessionKickedModal sits OUTSIDE the keyed
+  // <ThemeProvider> subtree. If it were inside, the appKey++ would
+  // unmount the modal instance and reset its useState(visible) to
+  // false, swallowing the kick notification. Keeping it outside
+  // preserves visible=true across the remount and the modal
+  // continues to display after the page flips back to 'login'.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const onUserChange = () => {
@@ -50,23 +58,27 @@ export default function App() {
   }, []);
 
   return (
-    <ThemeProvider key={appKey}>
+    <LangProvider>
+      {/* SessionKickedModal is rendered outside the keyed ThemeProvider
+          subtree so its visible state survives the user-change remount. */}
       <SessionKickedModal />
-      {page === 'login' && <LoginScreen onLogin={() => {
-        // Dispatch first so ThemeProvider's listener fires in the
-        // same tick and pulls the new user's lang/theme. Then
-        // switch to the home page.
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('app:user-change'));
-        }
-        setPage('home');
-      }} />}
-      {page === 'home' && <HomeScreen onLogout={() => {
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('app:user-change'));
-        }
-        setPage('login');
-      }} />}
-    </ThemeProvider>
+      <ThemeProvider key={appKey}>
+        {page === 'login' && <LoginScreen onLogin={() => {
+          // Dispatch first so ThemeProvider's listener fires in the
+          // same tick and pulls the new user's lang/theme. Then
+          // switch to the home page.
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('app:user-change'));
+          }
+          setPage('home');
+        }} />}
+        {page === 'home' && <HomeScreen onLogout={() => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('app:user-change'));
+          }
+          setPage('login');
+        }} />}
+      </ThemeProvider>
+    </LangProvider>
   );
 }

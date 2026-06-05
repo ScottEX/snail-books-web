@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from './api/client';
 import { getCurrentUserId } from './utils/storage';
-import { setLang } from './i18n';
+import { useLang } from './i18n';
 
 // ═══════════════════════════════════════════
 // 三方案主题色值定义
@@ -199,6 +199,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
     return theme1;
   });
 
+  // Pulled from LangContext so we can apply the server-preferred
+  // language when this provider mounts. (useLang is a hook — must be
+  // called at the top level of the component, not inside the effect.)
+  const { setLang: applyLang } = useLang();
+
   const setTheme = useCallback((themeId: string) => {
     const t = THEMES[themeId];
     if (!t) return;
@@ -237,26 +242,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
       // Not logged in or network error — keep current (localStorage) theme
     });
     // Pull language so a new user signing in sees THEIR preferred
-    // language, not the previous user's localStorage value. i18n's
-    // setLang() writes the curLang global + localStorage; React
-    // child components mounted after this point will useState
-    // (getLang()) and read the updated value.
+    // language, not the previous user's localStorage value. We use
+    // applyLang from LangContext (instead of the standalone setLang
+    // from i18n.ts) so the new value is written into LangContext
+    // state and every useContext(LangContext) subscriber re-renders
+    // with the new language — that's what makes the top status bar
+    // and other lang consumers update on user change.
     api.getLang().then((resp: any) => {
       if (cancelled) return;
       const serverLang = resp?.lang;
-      // setLang is from i18n.ts — writes curLang + localStorage and
-      // also fires a fire-and-forget PUT (no-op since we just pulled
-      // the same value). i18n's setLang() validates the key against
-      // its own I18N map and silently rejects unknown languages.
-      // CurLang is consumed by t() at render time, so as long as
-      // child components re-mount after this (which they do, because
-      // appKey bumped in App.tsx), they'll see the new language.
-      if (serverLang) setLang(serverLang);
+      if (serverLang) applyLang(serverLang);
     }).catch(() => {
       // Not logged in or network error — keep current (localStorage) lang
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [applyLang]);
 
   return (
     <ThemeContext.Provider value={{ theme, colors: theme.colors, setTheme, allThemes: Object.values(THEMES) }}>

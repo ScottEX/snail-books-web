@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animated, Image } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { t, setLang, getLang, langs } from '../i18n';
+import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -53,7 +53,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [chart, setChart] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [procurements, setProcurements] = useState<any[]>([]);
-  const [lang, setLangState] = useState(getLang());
+  // Pulled from LangContext — re-renders on LangContext value change
+  // instead of capturing curLang at mount (so a new user's server-
+  // side language actually reaches the lang selector).
+  const { lang, setLang: setLangState } = useLang();
 
   // Add form
   const [txType, setTxType] = useState('expense');
@@ -545,7 +548,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             </TouchableOpacity>
             <View style={styles.langRow}>
               {langs.map(([l, label]) => (
-                <TouchableOpacity key={l} onPress={() => { setLang(l, loadData); setLangState(l); }}>
+                <TouchableOpacity key={l} onPress={() => { setLangState(l, loadData); }}>
                   <Text style={[styles.langBtn, lang === l && styles.langActive]}>{label}</Text>
                 </TouchableOpacity>
               ))}
