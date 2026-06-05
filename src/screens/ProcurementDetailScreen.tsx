@@ -146,12 +146,12 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
       >
         {/* Info card */}
         <View style={styles.infoCard}>
-          <View style={styles.infoBlock}>
+          <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t('procPaymentMethod')}</Text>
             <Text style={styles.infoValue}>{paymentLabel}</Text>
           </View>
           {batch.note ? (
-            <View style={styles.infoBlock}>
+            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
               <Text style={styles.infoLabel}>{t('procNoteOptional')}</Text>
               <Text style={styles.infoValue}>{noteLabel}</Text>
             </View>
@@ -311,18 +311,22 @@ const getStyles = (c: ThemeColors) => {
       borderRadius: 12,
       padding: 16,
       marginBottom: 16,
-      gap: 16,
     },
-    infoBlock: {
-      gap: 4,
+    infoRow: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'center' as const,
+      paddingVertical: 8,
+      borderBottomWidth: 0.5,
+      borderBottomColor: withAlpha(c.textMain, 0.06),
     },
     infoLabel: {
-      fontSize: FONTS.micro.size,
+      fontSize: FONTS.sub.size,
       color: c.textSub,
     },
     infoValue: {
-      fontSize: FONTS.subBold.size,
-      fontWeight: FONTS.subBold.weight,
+      fontSize: FONTS.sub.size,
+      fontWeight: '500' as const,
       color: c.textMain,
     },
     // Section
