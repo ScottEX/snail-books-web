@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  ActivityIndicator, Image,
+  ActivityIndicator, Image, Animated,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -93,6 +93,20 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [downloading]);
+
+  // Delete modal animation
+  const deleteOverlayOpacity = useRef(new Animated.Value(0)).current;
+  const deleteCardTranslateY = useRef(new Animated.Value(20)).current;
+  useEffect(() => {
+    if (showDeleteConfirm) {
+      deleteOverlayOpacity.setValue(0);
+      deleteCardTranslateY.setValue(20);
+      Animated.parallel([
+        Animated.timing(deleteOverlayOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.timing(deleteCardTranslateY, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [showDeleteConfirm]);
 
   if (!batch) {
     return (
@@ -289,8 +303,8 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
 
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
-        <View style={styles.deleteOverlay}>
-          <View style={styles.deleteCard}>
+        <Animated.View style={[styles.deleteOverlay, { opacity: deleteOverlayOpacity }]}>
+          <Animated.View style={[styles.deleteCard, { transform: [{ translateY: deleteCardTranslateY }] }]}>
             <View style={styles.deleteHeader}>
               <Text style={styles.deleteTitle}>{t('procDeleteBatch')}</Text>
               <TouchableOpacity onPress={() => setShowDeleteConfirm(false)}>
@@ -312,8 +326,8 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       )}
 
       {/* Fullscreen image preview — swipe left/right, arrows, counter (matches ExpenseHistoryScreen) */}
@@ -430,18 +444,16 @@ const getStyles = (c: ThemeColors) => {
       flexDirection: 'row' as const,
       justifyContent: 'space-between' as const,
       alignItems: 'center' as const,
-      paddingVertical: 10,
+      minHeight: 42,
       borderBottomWidth: 0.5,
       borderBottomColor: withAlpha(c.textMain, 0.06),
     },
     infoLabel: {
       fontSize: FONTS.sub.size,
-      lineHeight: 20,
       color: c.textSub,
     },
     infoValue: {
       fontSize: FONTS.sub.size,
-      lineHeight: 20,
       fontWeight: '500' as const,
       color: c.textMain,
     },
@@ -461,6 +473,7 @@ const getStyles = (c: ThemeColors) => {
       color: c.textSub,
       textTransform: 'uppercase',
       letterSpacing: 0.5,
+      marginBottom: 10,
     },
     totalLabel: {
       fontSize: FONTS.micro.size,
