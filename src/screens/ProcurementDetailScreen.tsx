@@ -146,7 +146,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
         {/* Images */}
         {thumbImgs.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('procImages') || '凭证'}</Text>
+            <Text style={styles.sectionTitle}>{t('procImages')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
               {thumbImgs.map((img: string, i: number) => (
                 <TouchableOpacity key={i} onPress={() => openPreview(img)} activeOpacity={0.8}>
@@ -165,7 +165,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
           <Text style={styles.sectionTitle}>{t('procOrderItems')}</Text>
           <View style={styles.itemsCard}>
             {items.map((item, idx) => {
-              const name = item.name || item.product_name || `商品#${item.product_id}`;
+              const name = item.name || item.product_name || `${t('procProduct')}#${item.product_id}`;
               const subtotal = item.subtotal ?? (item.unit_price ?? 0) * item.quantity;
               return (
                 <View key={idx} style={[styles.itemRow, idx < items.length - 1 && styles.itemRowBorder]}>
@@ -192,7 +192,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
         >
           <DocIcon color={c.surface} />
           <Text style={styles.downloadText}>
-            {downloading ? '⏳ 生成中...' : downloaded ? '✅ 已保存' : '📥 下载 PDF'}
+            {downloading ? `⏳ ${t('procGenerating')}` : downloaded ? `✅ ${t('procSaved')}` : `📥 ${t('procDownloadPDF')}`}
           </Text>
         </TouchableOpacity>
 
@@ -200,7 +200,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
           <View style={styles.downloadOverlay}>
             <View style={styles.downloadOverlayCard}>
               <ActivityIndicator size="small" color={c.primary} />
-              <Text style={styles.downloadOverlayText}>正在生成进货单…</Text>
+              <Text style={styles.downloadOverlayText}>{t('procGeneratingPDF')}</Text>
             </View>
           </View>
         )}
