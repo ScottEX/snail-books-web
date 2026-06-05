@@ -9,6 +9,7 @@ import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
+import { getCurrentUser } from '../utils/storage';
 
 const PAGE_SIZE = 10;
 
@@ -143,7 +144,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Current user for displaying who filled each record
-  const currentUser = (() => { try { return localStorage.getItem('user') || ''; } catch { return ''; } })();
+  const currentUser = getCurrentUser();
 
   // Render a single transaction row (FlatList item) — uses thumb_images for the
   // 48×48 list tile (fast, ~5-10KB) and falls back to full-size images for old

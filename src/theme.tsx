@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from './api/client';
+import { getCurrentUserId } from './utils/storage';
 
 // ═══════════════════════════════════════════
 // 三方案主题色值定义
@@ -132,7 +133,7 @@ export const THEME_STORAGE_KEY = 'snail-books-theme';
 
 function getThemeKey(): string {
   try {
-    const uid = localStorage.getItem('user_id');
+    const uid = getCurrentUserId();
     return uid ? `snail-books-theme-${uid}` : 'snail-books-theme';
   } catch { return 'snail-books-theme'; }
 }

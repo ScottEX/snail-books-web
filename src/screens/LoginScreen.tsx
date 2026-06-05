@@ -5,6 +5,7 @@ import { t, setLang, getLang, langs } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { getCurrentUser } from '../utils/storage';
 
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
@@ -42,7 +43,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         // Restore remember preference for this saved user
         setRemember(localStorage.getItem('remember_me') === 'true');
       }
-      if (localStorage.getItem('user')) onLogin();
+      if (getCurrentUser()) onLogin();
     }
   }, []);
 

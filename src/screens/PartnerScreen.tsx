@@ -27,6 +27,7 @@ function translateName(name: string): string {
 import { formatDate } from '../utils/format';
 import PlusIcon from '../components/icons/PlusIcon';
 import MinusIcon from '../components/icons/MinusIcon';
+import { getCurrentUserId } from '../utils/storage';
 
 function translateDividendNote(note: string | null, date?: string): string {
   if (!note) return '';
@@ -255,7 +256,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   };
 
   const loadAvatar = async () => {
-    const uid = localStorage.getItem('user_id');
+    const uid = getCurrentUserId();
     if (!uid) return;
     try {
       const resp = await fetch(`/api/users/avatar?user_id=${uid}`);

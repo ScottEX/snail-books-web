@@ -13,6 +13,7 @@ import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
 import ProcurementDetailScreen from './ProcurementDetailScreen';
+import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
 import ThemePickerModal from '../components/ThemePickerModal';
@@ -83,7 +84,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   });
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
-      const uid = localStorage.getItem('user_id');
+      const uid = getCurrentUserId();
       const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
       const saved = localStorage.getItem(key);
       return saved !== null ? parseFloat(saved) : 0.5;
@@ -285,7 +286,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   useEffect(() => { loadData(); }, [loadData]);
 
   const loadAvatar = async () => {
-    const uid = localStorage.getItem('user_id');
+    const uid = getCurrentUserId();
     if (!uid) return;
     const CACHE_KEY = 'cached_avatar_b64';
     // Serve from cache immediately to avoid flash
@@ -325,13 +326,13 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       if (r?.opacity !== null && r?.opacity !== undefined) {
         setBgOpacity(r.opacity);
         try {
-          const uid = localStorage.getItem('user_id');
+          const uid = getCurrentUserId();
           localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(r.opacity));
         } catch {}
       } else {
         // Migration: push localStorage opacity to server if not saved yet
         try {
-          const uid = localStorage.getItem('user_id');
+          const uid = getCurrentUserId();
           const local = localStorage.getItem(uid ? `bg-opacity-${uid}` : 'bg-opacity');
           if (local !== null) {
             const v = parseFloat(local);
@@ -466,7 +467,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const handleBgOpacityChange = (v: number) => {
     setBgOpacity(v);
     try {
-      const uid = localStorage.getItem('user_id');
+      const uid = getCurrentUserId();
       localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(v));
     } catch {}
     clearTimeout((window as any).__bgOpacityTimer);
@@ -476,7 +477,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   };
 
   const styles = useMemo(() => getStyles(colors), [colors]);
-  const usr = useMemo(() => { try { return localStorage.getItem('user') || '用户'; } catch { return '用户'; } }, []);
+  const usr = useMemo(() => getCurrentUser() || '用户', []);
 
   return (
     <View style={styles.container}>

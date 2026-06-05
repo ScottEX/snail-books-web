@@ -13,6 +13,7 @@ import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
 import BackArrow from '../components/icons/BackArrow';
 import CameraIcon from '../components/icons/CameraIcon';
+import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 
 /* ========== MAIN SCREEN ========== */
 function ChevronRight({ color }: { color: string }) {
@@ -39,7 +40,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [lang, setLangState] = useState(getLang());
 
   const username = useMemo(() => {
-    try { return localStorage.getItem('user') || ''; } catch { return ''; }
+    try { return getCurrentUser(); } catch { return ''; }
   }, []);
   const [email, setEmail] = useState('');
   const [signature, setSignature] = useState('');
@@ -103,7 +104,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   // Load avatar (cached to avoid flash)
   const CACHE_KEY_AVATAR = 'cached_avatar_b64';
   const loadAvatar = async () => {
-    const uid = localStorage.getItem('user_id');
+    const uid = getCurrentUserId();
     if (!uid) return;
     // Serve from cache immediately
     try {
@@ -133,7 +134,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     } catch {}
     // Load cover opacity from localStorage
     try {
-      const uid = localStorage.getItem('user_id');
+      const uid = getCurrentUserId();
       const saved = localStorage.getItem(uid ? `cover-opacity-${uid}` : 'cover-opacity');
       if (saved !== null) setCoverOpacity(parseFloat(saved));
     } catch {}
@@ -175,7 +176,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const handleCoverOpacityChange = (v: number) => {
     setCoverOpacity(v);
     try {
-      const uid = localStorage.getItem('user_id');
+      const uid = getCurrentUserId();
       localStorage.setItem(uid ? `cover-opacity-${uid}` : 'cover-opacity', String(v));
     } catch {}
   };
@@ -734,7 +735,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         {/* Cover Image — nav & controls overlaid on top */}
         <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
-            <Image source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (localStorage.getItem('user_id') || '0') + '&v=' + coverKey }} style={[st.coverImg, { opacity: coverOpacity }]} />
+            <Image source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }} style={[st.coverImg, { opacity: coverOpacity }]} />
           ) : (
             <View style={st.coverGradient}>
               <Svg width="100%" height="100%" viewBox="0 0 360 180" preserveAspectRatio="none">

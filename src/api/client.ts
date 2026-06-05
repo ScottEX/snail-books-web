@@ -1,4 +1,5 @@
 import { getLang } from '../i18n';
+import { getCurrentUser } from '../utils/storage';
 
 function getApiBase(): string {
   // Allow override via localStorage for development/testing
@@ -21,7 +22,7 @@ function startIdleTimer() {
   if (idleTimer) return;
   idleTimer = setInterval(() => {
     // Only check when user is logged in (has user in localStorage)
-    if (!localStorage.getItem('user')) return;
+    if (!getCurrentUser()) return;
     if (Date.now() - lastActivity > IDLE_MS) {
       localStorage.removeItem('user');
       window.location.href = '/login';

@@ -13,6 +13,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import { formatDate } from '../utils/format';
 import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
+import { getCurrentUser } from '../utils/storage';
 
 interface BatchItem {
   name?: string;
@@ -204,7 +205,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
           </View>
           <View style={[styles.infoRow, { borderBottomWidth: 0, paddingTop: 0 }]}>
             <Text style={styles.infoLabel}>{t('procOperator')}</Text>
-            <Text style={styles.infoValue}>{(() => { try { return localStorage.getItem('user') || '—'; } catch { return '—'; } })()}</Text>
+            <Text style={styles.infoValue}>{getCurrentUser() || '—'}</Text>
           </View>
         </View>
 

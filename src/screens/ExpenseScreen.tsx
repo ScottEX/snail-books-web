@@ -11,6 +11,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 import { fmtAmt as fmt } from '../utils/format';
+import { getCurrentUser } from '../utils/storage';
 
 /* ── helpers ── */
 const fmtInt = (n: number) => n.toLocaleString();
@@ -307,7 +308,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     if (isFuture(recDate)) { setToast(t('errDateFuture')); return; }
     try {
       const today = new Date().toISOString().slice(0, 10); // 对账日期 = 今天
-      const username = localStorage.getItem('user') || '';
+      const username = getCurrentUser();
       await api.createReconciliation({
         date: today,
         bill_date: recDate,
