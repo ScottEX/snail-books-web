@@ -107,6 +107,10 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
   const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
   const items = batch.items || [];
 
+  // Map DB payment_method values ('现金','微信','支付宝') to i18n keys
+  const PAY_MAP: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
+  const paymentLabel = t(PAY_MAP[batch.payment_method] || batch.payment_method);
+
   return (
     <View style={styles.container}>
       {/* Header — absolute, glass */}
@@ -133,7 +137,7 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t('procPaymentMethod')}</Text>
-            <Text style={styles.infoValue}>{batch.payment_method}</Text>
+            <Text style={styles.infoValue}>{paymentLabel}</Text>
           </View>
           {batch.note ? (
             <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
