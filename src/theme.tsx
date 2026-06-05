@@ -132,7 +132,7 @@ export const THEMES: Record<string, Theme> = {
 export const DEFAULT_THEME_ID = 'burgundy-warm';
 export const THEME_STORAGE_KEY = 'snail-books-theme';
 
-function getThemeKey(): string {
+export function getThemeKey(): string {
   try {
     const uid = getCurrentUserId();
     return uid ? `snail-books-theme-${uid}` : 'snail-books-theme';

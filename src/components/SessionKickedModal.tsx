@@ -1,22 +1,61 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme, ThemeColors, withAlpha } from '../theme';
-import { FONTS } from '../theme';
+import { THEMES, DEFAULT_THEME_ID, getThemeKey, ThemeColors, withAlpha, FONTS } from '../theme';
 import { t } from '../i18n';
 import { onSessionKicked } from '../api/client';
 import ModalOverlay from './ModalOverlay';
+
+/**
+ * Read the per-user theme id from localStorage and resolve it to
+ * ThemeColors. Falls back to DEFAULT_THEME_ID ('burgundy-warm') if
+ * the stored id is missing or unknown — same fallback ThemeProvider
+ * uses internally, so the modal and the rest of the app agree on
+ * what "no theme set" looks like.
+ *
+ * This module sits OUTSIDE the keyed <ThemeProvider> subtree (see
+ * App.tsx), so useTheme() here would only ever return the default
+ * ThemeContext value (theme1, burgundy-red). Instead we read the
+ * theme id directly from localStorage — the same place ThemeProvider
+ * writes when the user picks a theme — so the modal renders in the
+ * current user's actual theme at the moment the kick fires.
+ */
+function readStoredColors(): ThemeColors {
+  try {
+    const key = getThemeKey();
+    const id = localStorage.getItem(key) || DEFAULT_THEME_ID;
+    return THEMES[id]?.colors ?? THEMES[DEFAULT_THEME_ID].colors;
+  } catch {
+    return THEMES[DEFAULT_THEME_ID].colors;
+  }
+}
 
 /** Standardized "your account was signed in elsewhere" modal.
  *  Triggered by the api client when a 401 with code=session_kicked is received.
  *  Single confirm button + ✕ close — both close the modal AND redirect to /login. */
 export default function SessionKickedModal() {
-  const { colors: c } = useTheme();
-  const styles = getStyles(c);
+  // Mount-time snapshot: in case the user already had a theme set in
+  // localStorage from a previous session before the app booted.
+  const [colors, setColors] = useState<ThemeColors>(readStoredColors);
+  const styles = getStyles(colors);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     return onSessionKicked(() => setVisible(true));
   }, []);
+
+  // Re-read the stored theme each time the modal becomes visible.
+  // The modal mounts once at app boot (visible=false), but the user
+  // may sign in and pick a different theme long after that. We don't
+  // need to track theme changes in real time — the kick is the only
+  // moment this UI is shown, and at that moment localStorage already
+  // holds the user's final choice (ThemeProvider writes it on every
+  // setTheme). Reading here, instead of at mount, guarantees we
+  // show the most recent theme.
+  useEffect(() => {
+    if (visible) {
+      setColors(readStoredColors());
+    }
+  }, [visible]);
 
   const handleClose = () => {
     setVisible(false);
