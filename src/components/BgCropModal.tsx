@@ -166,8 +166,17 @@ export default function BgCropModal({
   };
 
   // ── Imperative event binding (drag / pinch / wheel) ──
+  // Dependency is [src, phase] so that re-entering the cropping phase
+  // (e.g. via "再编辑") also re-binds events to the freshly mounted
+  // canvas. Previously deps were [src] only, so the new canvas
+  // mounted after the preview phase had no event listeners — drag,
+  // pinch, and wheel were all dead.
   useEffect(() => {
     if (!src) return;
+    // Only bind when the crop UI is actually visible. The preview
+    // phase mounts a different View (just an <img>) so there is no
+    // canvas to bind to; trying to bind would silently no-op.
+    if (phase !== 'cropping') return;
     const stage = stageRef.current;
     const canvas = canvasRef.current;
     if (!stage || !canvas) return;
@@ -269,7 +278,7 @@ export default function BgCropModal({
       canvas.removeEventListener('touchcancel', onTE);
       window.removeEventListener('resize', onResize);
     };
-  }, [src]);
+  }, [src, phase]);
 
   // ── Render result blob. Two paths:
   //   - 'cropping' phase (first confirm click) → render to blob + dataURL,
@@ -388,7 +397,10 @@ export default function BgCropModal({
               }}
               alt=""
             />
-            {/* Action buttons — inside the card, right under the image */}
+            {/* Hint text — sits ABOVE the action buttons, matching the
+                avatar-result preview style. */}
+            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' } as any}>{t('bgResultHint') || '确认使用此图片，或返回再编辑'}</Text>
+            {/* Action buttons — inside the card, under the hint text */}
             <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 4 } as any}>
               <TouchableOpacity
                 style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
@@ -396,10 +408,11 @@ export default function BgCropModal({
                   setPhase('cropping');
                   setMsg('');
                   // Preview 阶段 canvas/stage/view 不在 DOM 中（refs 变 null），
-                  // 切回 cropping 后新元素挂载，imageSrc 没变所以 useEffect 不重跑，
-                  // 必须手动重 setup canvas 尺寸 + 重新绘制。fitImage 不调，保留
-                  // 用户的 scale/position/rotation/flip 微调。
-                  setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 60);
+                  // 切回 cropping 后新元素挂载。src useEffect 依赖是
+                  // [src, phase] 会重跑（含 setupCanvas + 绑事件），这里
+                  // 再 setTimeout 0 跑一次 setupCanvas + drawCrop 让图片
+                  // 立即可见（不等 src useEffect 内的 60ms setTimeout）。
+                  setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 0);
                 }}
               >
                 <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('recrop') || '再编辑'}</Text>
@@ -411,7 +424,6 @@ export default function BgCropModal({
                 <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{t('confirmUse') || '确认使用'}</Text>
               </TouchableOpacity>
             </View>
-            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' } as any}>{t('bgResultHint') || '确认使用此图片，或返回再编辑'}</Text>
           </View>
         </View>
       )}
