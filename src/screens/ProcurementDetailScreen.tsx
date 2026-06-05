@@ -64,10 +64,12 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtn}>
-            <BackArrow color={c.textMain} />
+          <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+            <View style={styles.backBtn}>
+              <BackArrow color={c.textMain} />
+            </View>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('procOrderItems')}</Text>
+          <Text style={styles.title}>{t('procOrderItems')}</Text>
           <View style={{ width: 44 }} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -133,10 +135,12 @@ export default function ProcurementDetailScreen({ batch, onBack }: { batch: Batc
     <View style={styles.container}>
       {/* Header — absolute, glass */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={styles.backBtn}>
-          <BackArrow color={c.textMain} />
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+          <View style={styles.backBtn}>
+            <BackArrow color={c.textMain} />
+          </View>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('procDetail')}</Text>
+        <Text style={styles.title}>{t('procDetail')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -298,11 +302,6 @@ const getStyles = (c: ThemeColors) => {
       backgroundColor: c.bg,
     },
     ...hdr,
-    headerTitle: {
-      fontSize: FONTS.body.size,
-      fontWeight: '400' as const,
-      color: c.textMain,
-    },
     batchInfo: {
       marginBottom: 16,
     },
