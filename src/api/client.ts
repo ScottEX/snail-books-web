@@ -1,6 +1,19 @@
 import { getLang } from '../i18n';
 import { getCurrentUser } from '../utils/storage';
 
+// ── Session-kicked event bus ──
+// The api layer is not a React component, so it cannot render a modal directly.
+// Expose a tiny pub/sub so SessionKickedModal (mounted at App level) can subscribe.
+type SessionKickedListener = () => void;
+const _sessionKickedListeners = new Set<SessionKickedListener>();
+export function onSessionKicked(fn: SessionKickedListener): () => void {
+  _sessionKickedListeners.add(fn);
+  return () => { _sessionKickedListeners.delete(fn); };
+}
+function _emitSessionKicked() {
+  _sessionKickedListeners.forEach((fn) => { try { fn(); } catch { /* ignore */ } });
+}
+
 function getApiBase(): string {
   // Allow override via localStorage for development/testing
   if (typeof localStorage !== 'undefined') {
@@ -66,17 +79,12 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
       if (body?.message) kickMsg = body.message;
     } catch {}
     localStorage.removeItem('user');
-    // If kicked by another device, show alert (window.alert is the simplest
-    // cross-screen channel; the page will be replaced by /login anyway).
-    if (kickCode === 'session_kicked' && typeof window !== 'undefined') {
-      try {
-        const { t } = await import('../i18n');
-        window.alert(t('sessionKickedToast') || kickMsg || 'Signed in elsewhere');
-      } catch {
-        window.alert(kickMsg || 'Signed in elsewhere');
-      }
-    }
-    if (window.location.pathname !== '/login') {
+    // If kicked by another device, let SessionKickedModal handle the UI.
+    // The modal's confirm/close button will redirect to /login — we intentionally
+    // do NOT redirect here so the user actually sees the modal.
+    if (kickCode === 'session_kicked') {
+      _emitSessionKicked();
+    } else if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
       window.location.replace('/login');
     }
     return new Promise(() => {});

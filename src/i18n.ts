@@ -421,6 +421,8 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: '超时时间',
     sessionTimeoutDesc: '超过该时长未操作自动退出',
     sessionKickedToast: '您的账号在其他设备登录，当前会话已退出',
+    sessionKickedTitle: '账号已退出',
+    sessionKickedButton: '我知道了',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -839,6 +841,8 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: '超時時間',
     sessionTimeoutDesc: '超過該時長未操作自動退出',
     sessionKickedToast: '您的帳號在其他裝置登入，當前工作階段已退出',
+    sessionKickedTitle: '帳號已登出',
+    sessionKickedButton: '我知道了',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -1256,6 +1260,8 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: 'Session timeout',
     sessionTimeoutDesc: 'Auto sign-out after this idle period',
     sessionKickedToast: 'Signed in elsewhere. This session was ended.',
+    sessionKickedTitle: 'Signed out',
+    sessionKickedButton: 'OK',
   },
 };
 

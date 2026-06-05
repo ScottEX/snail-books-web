@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import SessionKickedModal from './src/components/SessionKickedModal';
 import { ThemeProvider } from './src/theme';
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
+      <SessionKickedModal />
       {page === 'login' && <LoginScreen onLogin={() => setPage('home')} />}
       {page === 'home' && <HomeScreen onLogout={() => setPage('login')} />}
     </ThemeProvider>
