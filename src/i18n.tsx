@@ -179,6 +179,7 @@ const I18N: Record<string, Record<string, string>> = {
     coverCropTitle: '编辑封面',
     useThisCover: '使用此封面',
     coverUpdated: '封面已更新',
+    coverHint: '将作为个人中心顶部封面展示',
     // Profile
     editProfile: '个人中心',
     editCover: '更换封面',
@@ -603,6 +604,7 @@ const I18N: Record<string, Record<string, string>> = {
     coverCropTitle: '編輯封面',
     useThisCover: '使用此封面',
     coverUpdated: '封面已更新',
+    coverHint: '將作為個人中心頂部封面展示',
     // Profile
     editProfile: '個人中心',
     editCover: '更換封面',
@@ -1030,6 +1032,7 @@ const I18N: Record<string, Record<string, string>> = {
     coverCropTitle: 'Edit Cover',
     useThisCover: 'Use This Cover',
     coverUpdated: 'Cover Updated',
+    coverHint: 'Will be displayed as your profile banner',
     // Profile
     editProfile: 'Profile',
     editCover: 'Change Cover',

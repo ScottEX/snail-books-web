@@ -1396,6 +1396,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             </View>
             <Text style={cropS.resultLabel}>{t('coverUpdated')}</Text>
             {coverCropResult ? <img src={coverCropResult} width={240} height={Math.round(240 * coverCropState.current.cropRatio)} style={{ borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} /> : null}
+            <Text style={cropS.resultSub}>{t('coverHint')}</Text>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
               <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setCoverShowResult(false); }}>
                 <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('recrop')}</Text>
