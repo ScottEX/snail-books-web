@@ -157,6 +157,16 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
   const PAY_MAP: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
   const paymentLabel = t(PAY_MAP[batch.payment_method] || batch.payment_method);
 
+  // Map DB category values to i18n keys. Frontend submits t('procPurchase')
+  // which yields the current-language string ('采购'/'採購'/'Procurement'),
+  // so the DB holds a mix of all three. Map them all back to 'goods'.
+  const CATEGORY_MAP: Record<string, string> = {
+    '采购': 'goods',
+    '採購': 'goods',
+    'Procurement': 'goods',
+  };
+  const categoryLabel = t(CATEGORY_MAP[batch.category] || batch.category);
+
   return (
     <View style={styles.container}>
       {/* Header — absolute, glass */}
@@ -207,7 +217,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t('expenseCategory')}</Text>
-            <Text style={styles.infoValue}>{batch.category}</Text>
+            <Text style={styles.infoValue}>{categoryLabel}</Text>
           </View>
           <View style={[styles.infoRow, { borderBottomWidth: 0, paddingTop: 0 }]}>
             <Text style={styles.infoLabel}>{t('procOperator')}</Text>
