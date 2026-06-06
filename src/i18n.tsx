@@ -221,7 +221,7 @@ const I18N: Record<string, Record<string, string>> = {
     salary: '薪资',
     goods: '采购',
     // Expense category — internal key (DB stores this now)
-    wages: '人工工资',
+    wages: '工资',
     expenseCategory: '支出分类',
     paymentMethod: '支付方式',
     payCash: '现金',

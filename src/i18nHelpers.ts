@@ -49,7 +49,6 @@ const LEGACY_CAT_TO_KEY: Array<[string, string]> = [
   ['饿了吗外卖', 'eleme'],
   ['美团外卖', 'meituan'],
   // expense
-  ['人工工资', 'wages'],
   ['日常', 'daily'],
   ['房租', 'rent'],
   ['薪资', 'salary'],
