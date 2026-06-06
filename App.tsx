@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import PdfPreviewPage from './src/screens/PdfPreviewPage';
 import SessionKickedModal from './src/components/SessionKickedModal';
 import { ThemeProvider } from './src/theme';
 import { LangProvider } from './src/i18n';
@@ -21,6 +22,47 @@ export default function App() {
   // curLang / theme via useState(getLang()) at mount would keep
   // showing the old user's settings after a new user signs in.
   const [appKey, setAppKey] = useState(0);
+
+  // Hash-route preview-pdf?  We use hash routing (not history.pushState)
+  // because the SPA shell never sees the file:// fallback for unknown
+  // paths — the server only ever serves index.html. Hash changes are
+  // picked up via 'hashchange' and don't collide with HomeScreen's
+  // existing popstate listener (which handles browser-back over the
+  // pageStack). Reading window.location.hash here is safe during SSR-
+  // style checks because we guard with `typeof window !== 'undefined'`.
+  const [previewRoute, setPreviewRoute] = useState<{ id: number; number: number } | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
+    if (!m) return null;
+    const qs = window.location.hash.split('?')[1] || '';
+    const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
+    return { id: parseInt(m[1], 10), number: num };
+  });
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onHashChange = () => {
+      const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
+      if (m) {
+        const qs = window.location.hash.split('?')[1] || '';
+        const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
+        setPreviewRoute({ id: parseInt(m[1], 10), number: num });
+      } else {
+        setPreviewRoute(null);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+  const closePreview = () => {
+    if (typeof window !== 'undefined') {
+      // Drop the hash without leaving the page. Using
+      // history.pushState + replaceState keeps the browser back
+      // stack clean: back from a fresh empty hash lands on the
+      // previous page in the SPA, not on the previous URL.
+      history.pushState(null, '', window.location.pathname + window.location.search);
+      setPreviewRoute(null);
+    }
+  };
 
   // 全局排版：字体家族 + 数字等宽（内联样式覆盖 Tailwind）
   useEffect(() => {
@@ -72,12 +114,22 @@ export default function App() {
           }
           setPage('home');
         }} />}
-        {page === 'home' && <HomeScreen onLogout={() => {
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new Event('app:user-change'));
-          }
-          setPage('login');
-        }} />}
+        {page === 'home' && (
+          previewRoute ? (
+            <PdfPreviewPage
+              batchId={previewRoute.id}
+              batchNumber={previewRoute.number}
+              onBack={closePreview}
+            />
+          ) : (
+            <HomeScreen onLogout={() => {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new Event('app:user-change'));
+              }
+              setPage('login');
+            }} />
+          )
+        )}
       </ThemeProvider>
     </LangProvider>
   );

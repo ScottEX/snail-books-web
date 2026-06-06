@@ -102,28 +102,23 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
     if (downloading) return;
     setDownloading(true);
     try {
-      const resp = await fetch(`/api/procurement-batches/${batch.id}/pdf`);
-      if (!resp.ok) throw new Error('Download failed');
-      const blob = await resp.blob();
-      // iOS Safari 13+ has a short blob URL lifetime: the moment the
-      // download finishes, the blob: URL is invalid, so sharing the
-      // page state to WeChat hands WeChat a dead link. Instead, use
-      // the Web Share API (iOS 14+ / Android Chrome 75+) to hand the
-      // raw PDF bytes to the share sheet — WeChat receives a real
-      // PDF attachment, not a link. Fallback to opening the server
-      // URL on browsers without navigator.canShare({files}).
-      const file = new File([blob], `procurement_${batch.id}.pdf`, { type: 'application/pdf' });
-      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: `procurement_${batch.id}` });
-        setDownloaded(true);
-        setTimeout(() => setDownloaded(false), 2000);
-      } else {
-        // Fallback for desktop / older iOS: open the real server URL
-        // in a new tab. Cookie-authenticated, so Safari fetches the
-        // PDF and either downloads it or displays it inline.
-        window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');
-      }
+      // Jump to the dedicated PDF preview page (hash route handled by
+      // App.tsx). The preview page itself fetches the share-link token
+      // and embeds the PDF in an iframe. From there the user can
+      // download, share via Web Share API, or copy a public 24h link.
+      //
+      // Why a separate page rather than the in-place download/share
+      // pattern we had before: that pattern broke in two ways —
+      //   1) desktop Chrome's "always download PDFs" config meant
+      //      download would trigger immediately with no chance to preview
+      //   2) iOS Safari's short blob URL lifetime + share sheet meant
+      //      the share target (WeChat) got a dead blob: link instead
+      //      of a real PDF attachment.
+      // A preview page decouples "see the PDF" from "share/save it"
+      // and gives us one consistent UX across browsers.
+      window.location.hash = `#/preview-pdf?id=${batch.id}&number=${batch.batch_number}`;
     } catch {
+      // Fallback: open the login-required PDF endpoint in a new tab
       window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');
     } finally {
       setDownloading(false);
