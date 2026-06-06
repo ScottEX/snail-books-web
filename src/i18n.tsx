@@ -450,6 +450,10 @@ const I18N: Record<string, Record<string, string>> = {
     shareFailed: '分享失败',
     pdfNotSupported: '当前浏览器不支持 PDF 内嵌显示，请用下载按钮保存到本地',
     goBack: '返回',
+    saveImage: '保存图片',
+    downloadPdf: '下载PDF',
+    emailAction: '邮件',
+    emailBodyExtra: '（链接 24 小时内有效）',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -892,6 +896,10 @@ const I18N: Record<string, Record<string, string>> = {
     shareFailed: '分享失敗',
     pdfNotSupported: '當前瀏覽器不支援 PDF 內嵌顯示，請用下載按鈕儲存到本地',
     goBack: '返回',
+    saveImage: '儲存圖片',
+    downloadPdf: '下載PDF',
+    emailAction: '郵件',
+    emailBodyExtra: '（連結 24 小時內有效）',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -1333,6 +1341,10 @@ const I18N: Record<string, Record<string, string>> = {
     shareFailed: 'Share failed',
     pdfNotSupported: 'PDF preview is not supported in this browser. Use the download button to save it locally.',
     goBack: 'Go back',
+    saveImage: 'Save image',
+    downloadPdf: 'Download PDF',
+    emailAction: 'Email',
+    emailBodyExtra: '(link valid for 24h)',
   },
 };
 
