@@ -104,10 +104,24 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
     try {
       const resp = await fetch(`/api/procurement-batches/${batch.id}/pdf`);
       if (!resp.ok) throw new Error('Download failed');
+      // Parse the server's Content-Disposition filename* (RFC 5987 UTF-8
+      // encoded) so the downloaded file uses the same Chinese name
+      // ("第5次进货.pdf") the backend generated. Falls back to the
+      // ASCII filename= or a generic name if the header is missing.
+      // This is what makes the iOS share sheet (WeChat etc.) treat
+      // the file as a real PDF attachment instead of a bare link.
+      const cd = resp.headers.get('content-disposition') || '';
+      const utf8 = cd.match(/filename\*=UTF-8''([^;]+)/i);
+      const ascii = cd.match(/filename="?([^";]+)"?/i);
+      const filename = utf8
+        ? decodeURIComponent(utf8[1])
+        : (ascii ? ascii[1] : `procurement_${batch.id}.pdf`);
       const blob = await resp.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = `procurement_${batch.id}.pdf`; a.click();
+      a.href = url;
+      a.download = filename;
+      a.click();
       URL.revokeObjectURL(url);
       setDownloaded(true);
       setTimeout(() => setDownloaded(false), 2000);
