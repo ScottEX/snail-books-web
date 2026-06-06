@@ -37,12 +37,11 @@ interface BatchRecord {
   items: BatchItem[];
 }
 
-function DownloadIcon({ color }: { color: string }) {
+function ViewIcon({ color }: { color: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <Path d="M7 10l5 5 5-5" />
-      <Path d="M12 15V3" />
+      <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <Path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
     </Svg>
   );
 }
@@ -187,7 +186,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
           </View>
           <View style={styles.batchActions}>
             <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading}>
-              <DownloadIcon color={c.primary} />
+              <ViewIcon color={c.primary} />
             </TouchableOpacity>
             {onEdit && (
               <TouchableOpacity onPress={onEdit} activeOpacity={0.6} style={styles.actionBtn}>
