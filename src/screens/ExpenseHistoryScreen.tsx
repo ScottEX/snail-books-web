@@ -35,7 +35,7 @@ function ExpenseEmptyIcon({ color }: { color: string }) {
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <Path d="M14 2v6h6" />
-      <circle cx="10" cy="12" r="3" />
+      <Circle cx="10" cy="12" r="3" />
       <Path d="M8 12h4" />
       <Path d="M9 17h6" />
       <Path d="M9 20h4" />
@@ -170,7 +170,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
               <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
             </View>
           </View>
-          <Text style={st.amount}>-¥{e.amount.toFixed(2)}</Text>
+          <Text style={st.amount}>-¥{Number(e.amount || 0).toFixed(2)}</Text>
         </View>
         {currentUser ? (
           <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
