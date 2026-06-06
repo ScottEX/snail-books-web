@@ -1310,7 +1310,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Platform fee entry bottom sheet */}
       {showFeeSheet && (
         <ModalOverlay onClose={() => setShowFeeSheet(false)}>
-          <View style={st.feeSheet} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { maxWidth: 620 }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
               <TouchableOpacity onPress={() => setShowFeeSheet(false)}>
@@ -1357,10 +1357,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 6 }}>
                     <Text style={{ flex: 1, minWidth: 96, maxWidth: '38%', fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }} numberOfLines={1}>{t(row.k)}</Text>
-                    <Text style={{ width: 70, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left' }}>
+                    <Text style={{ width: 70, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'right' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 70, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left' }}>
+                    <Text style={{ width: 70, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'right' }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
