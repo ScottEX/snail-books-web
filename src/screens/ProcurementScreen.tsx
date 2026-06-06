@@ -471,7 +471,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const openDrawer = () => {
     setShowDrawer(true);
     onDrawerOpen?.();
-    if (!orderNote) setOrderNote(t('procNowBatch').replace('{n}', String(stats.batch_count + 1)));
     Animated.parallel([
       Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
       Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
@@ -1381,10 +1380,19 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 </TouchableOpacity>
               </View>
 
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
+                <View style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.03) }}>
+                  <Text style={{ fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight }}>
+                    {t('procNowBatch').replace('{n}', String(editingBatchId !== null ? editingBatchNumber : stats.batch_count + 1))}
+                  </Text>
+                </View>
+              </View>
+
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procNoteOptional')}</Text>
                 <TextInput style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' } as any}
-                  value={orderNote} onChangeText={setOrderNote} placeholder={t('procNowBatch').replace('{n}', String(stats.batch_count + 1))} placeholderTextColor={c.textSub} />
+                  value={orderNote} onChangeText={setOrderNote} placeholder={t('procNotePlaceholder')} placeholderTextColor={c.textSub} />
               </View>
 
               {/* Total + Submit moved to drawer footer */}
