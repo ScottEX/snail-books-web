@@ -1341,8 +1341,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {/* Column headers */}
               <View style={{ flexDirection: 'row', marginBottom: 10, gap: 6, paddingHorizontal: 2 }}>
                 <Text style={{ flex: 1, minWidth: 100, maxWidth: 220, flexShrink: 1, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight }}></Text>
-                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feePreview')}</Text>
+                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeCurrent')}</Text>
                 <Text style={{ width: 76, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeEntry')}</Text>
               </View>
 
