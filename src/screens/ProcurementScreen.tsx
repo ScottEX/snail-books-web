@@ -1124,7 +1124,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               <View style={styles.histBody}>
                 <View style={styles.histRow}>
                   <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
-                  <Text style={styles.histRowVal}>{batch.items?.length || 0} 种</Text>
+                  <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
                 </View>
                 <View style={styles.histRow}>
                   <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
