@@ -1,5 +1,3 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-
 const I18N: Record<string, Record<string, string>> = {
   'zh-CN': {
     appTitle: '蓝姐螺蛳粉',
@@ -91,12 +89,11 @@ const I18N: Record<string, Record<string, string>> = {
     noProcurement: '暂无进货',
     confirmDelete: '确认删除？',
     delete: '删除',
-    done: '完成',
     initialApr2024: '2024年4月 · 初始出资',
     midJan2025: '2025年1月 · 追加投资',
     navHome: '首页',
     backHome: '返回首页',
-    partnerTitle: '柳味探秘科技合伙人',
+    partnerTitle: '蓝姐螺蛳粉合伙人资产',
     issueProportional: '发起比例分红',
     autoByShare: '按股权穿透比例自动分配',
     totalToPool: '拟向红利池注入的总金额 (元)',
@@ -149,73 +146,12 @@ const I18N: Record<string, Record<string, string>> = {
     bgHint: '选择一张图片作为首页背景',
     opacity: '透明度',
     uploading: '上传中...',
-    chooseImage: '选择图片',
-    resetDefault: '恢复默认',
     themePicker: '主题方案',
-    // Background crop modal
-    editBg: '编辑背景图',
-    useThisBg: '使用此背景图',
-    bgUpdated: '背景图已更新',
-    cropPill: '拖动移动 · 双指缩放',
-    cropRotate: '旋转',
-    cropFlip: '翻转',
-    recrop: '重新裁剪',
-    confirmUse: '确认使用',
-    imgNotLoaded: '图片未加载',
-    cropFailed: '裁切失败，请重试',
-    uploadFailed: '上传失败，请重试',
-    uploadFailedShort: '上传失败',
-    bgResultHint: '将作为首页全屏背景',
     loading: '加载中...',
     noRecords: '暂无记录',
-    // Avatar & cover crop modal (ProfileScreen — distinct from the
-    // BgCropModal group above because the user-facing copy is
-    // different: "Adjust Avatar" vs "Edit Background", and these
-    // modals have an extra "Preview in different sizes" hint)
-    avatarCropTitle: '调整头像',
-    useThisAvatar: '使用此头像',
-    avatarUpdated: '头像已更新',
-    avatarSizeHint: '在不同场景下的显示效果',
-    coverCropTitle: '编辑封面',
-    useThisCover: '使用此封面',
-    coverUpdated: '封面已更新',
-    coverHint: '将作为个人中心顶部封面展示',
-    // Profile
-    editProfile: '个人中心',
-    editCover: '更换封面',
-    editAvatar: '更换头像',
-    displayName: '用户名称',
-    profileEmail: '电子邮箱',
-    signatureLabel: '个性签名',
-    signatureHint: '用一句话介绍自己...',
-    signaturePlaceholder: '这个人很懒，什么都没留下...',
-    changePassword: '修改密码',
-    changeEmail: '更换邮箱',
-    oldPassword: '当前密码',
-    confirmNewPassword: '确认新密码',
-    newEmail: '新邮箱',
-    pwChanged: '密码修改成功',
-    emailChanged: '邮箱修改成功',
-    errOldPwRequired: '请输入当前密码',
-    sendCode: '发送验证码',
-    enterCode: '输入验证码',
-    codeSent: '验证码已发送',
-    verifying: '验证中...',
-    accountInfo: '账号信息',
-    securitySettings: '安全设置',
-    preferences: '偏好设置',
-    dangerZone: '危险操作',
-    language: '语言',
-    themeLabel: '主题',
-    langZh: '简体中文',
-    langTw: '繁體中文',
-    langEn: 'English',
-    stampPrefixBurgundy: '以此身，阅尽这',
-    stampPrefixObsidian: '时序轮转，流光已掷下第',
-    stampPrefixTeal: '星霜未歇，我们已共渡',
-    stampSuffixBurgundy: '日的晨昏与烟火。',
-    stampSuffixObsidian: '道鞭影。',
-    stampSuffixTeal: '次潮落潮生。',
+    back: '返回',
+    chooseImage: '选择图片',
+    resetDefault: '恢复默认',
     // Expense screen (记账)
     billDate: '账单日期',
     physicalCount: '实盘录入',
@@ -227,9 +163,6 @@ const I18N: Record<string, Record<string, string>> = {
     flashSale: '闪购',
     tuan: '团购',
     jd: '京东',
-    // Income categories — internal keys (DB stores these now)
-    eleme: '饿了吗外卖',
-    otherIncome: '其他收入',
     reconciledBy: '对账人',
     filledBy: '填写人',
     filter: '筛选',
@@ -237,8 +170,6 @@ const I18N: Record<string, Record<string, string>> = {
     apply: '应用',
     reset: '重置',
     filterDate: '日期',
-    expenseDate: '支出日期',
-    revenueDate: '营收日期',
     filterCategory: '支出分类',
     reconComplete: '对账完成',
     addBtn: '添加',
@@ -265,19 +196,6 @@ const I18N: Record<string, Record<string, string>> = {
     rent: '房租',
     salary: '薪资',
     goods: '采购',
-    // Expense categories — internal keys (DB stores these now)
-    materials: '原材料进货',
-    utilities: '水电煤气',
-    wages: '人工工资',
-    tools: '设备/工具',
-    renovation: '装修',
-    training: '培训/证件',
-    cleaning: '卫生/清洁',
-    tableware: '餐具/纸巾',
-    packaging: '包装/打包',
-    advertising: '广告/推广',
-    misc: '杂项/烟酒',
-    other: '其他',
     expenseCategory: '支出分类',
     paymentMethod: '支付方式',
     payCash: '现金',
@@ -310,7 +228,6 @@ const I18N: Record<string, Record<string, string>> = {
     atLeastOneFee: '至少输入一个平台的手续费',
     errDateFuture: '不能选择未来的日期',
     errDateRange: '结束日期必须晚于开始日期',
-    errDateRangeTooLong: '日期范围不能超过 24 个月',
     errAmountPositive: '金额必须大于0',
     // Revenue cards
     cumulativeRevenue: '累计营收',
@@ -381,8 +298,7 @@ const I18N: Record<string, Record<string, string>> = {
     procSearchHistory: '搜索批次号、日期…',
     procSearchProducts: '搜索产品名、供应商…',
     procAll: '全部',
-    procBatchCount: '历史批次',
-    procComingSoon: '即将',
+    procBatchCount: '采购批次',
     procCumulative: '累计货款',
     procMargin: '货款利润率',
     procUniqueItems: '本单品类',
@@ -399,12 +315,9 @@ const I18N: Record<string, Record<string, string>> = {
     procOrderItems: '进货明细',
     procTotal: '本次合计',
     procNoteOptional: '可选备注',
-    procOperator: '经办人',
     procSubmit: '提交进货单',
     procSubmitted: '进货单已提交',
     procSubmittedMsg: '本次进货记录已保存',
-    procUpdated: '进货单已更新',
-    procUpdatedMsg: '本次进货记录已更新',
     procContinue: '继续进货',
     procViewRecords: '查看记录',
     procNoHistory: '暂无进货记录',
@@ -416,13 +329,6 @@ const I18N: Record<string, Record<string, string>> = {
     procEmptyProductsHint: '点击上方「+ 添加产品」开始维护产品目录',
     procThisBatch: '本次货款',
     procNowBatch: '第{n}次进货',
-    procProduct: '商品',
-    procImages: '凭证预览',
-    procDetail: '进货详情',
-    procDownloadPDF: '下载 PDF',
-    procGenerating: '生成中...',
-    procSaved: '已保存',
-    procGeneratingPDF: '正在生成进货单…',
     procProductMgmt: '产品维护',
     procAddProduct: '添加产品',
     procEditProduct: '编辑产品',
@@ -434,42 +340,11 @@ const I18N: Record<string, Record<string, string>> = {
     procDeleteProduct: '删除产品',
     procDeleteProductConfirm: '确定删除「{name}」？',
     procDeleteProductWarning: '删除后历史批次中该商品将无法显示名称。',
-    procEditBatch: '编辑第{n}次进货',
-    procDeleteBatch: '删除批次',
-    procDeleteBatchConfirm: '确定删除第{n}次进货？关联的支出记录也会一并删除。',
-    procDeleteBatchConfirmV2: '确定删除「{batch}」？关联的支出记录也会一并删除。',
-    procBatchUpdated: '批次已更新',
-    procBatchDeleted: '批次已删除',
     procManageProducts: '管理产品',
     procPurchase: '采购',
     procTitle: '进货管理',
     copyright: '© 2026 柳味探秘 · 经营查询 · 版权所有',
     procViewDetail: '查看明细',
-    authSettingsTitle: '登录安全',
-    ssoLabel: '单设备登录',
-    ssoDesc: '最多一台设备同时登录',
-    sessionTimeoutLabel: '超时时间',
-    sessionTimeoutDesc: '超过该时长未操作自动退出',
-    sessionKickedToast: '您的账号在其他设备登录，当前会话已退出',
-    sessionKickedTitle: '账号已退出',
-    sessionKickedButton: '我知道了',
-    procPdfTitle: '进货单 #{n}',
-    pdfPreview: 'PDF 预览',
-    download: '下载',
-    downloading: '下载中…',
-    share: '分享',
-    shareLink: '分享链接',
-    copyLink: '复制链接',
-    linkCopied: '链接已复制',
-    pdfLoading: '加载 PDF 中…',
-    pdfLoadFailed: 'PDF 加载失败',
-    shareFailed: '分享失败',
-    pdfNotSupported: '当前浏览器不支持 PDF 内嵌显示，请用下载按钮保存到本地',
-    goBack: '返回',
-    saveImage: '保存图片',
-    downloadPdf: '下载PDF',
-    emailAction: '邮件',
-    emailBodyExtra: '（链接 24 小时内有效）',
   },
   'zh-TW': {
     appTitle: '藍姐螺螄粉',
@@ -558,12 +433,11 @@ const I18N: Record<string, Record<string, string>> = {
     noProcurement: '暫無進貨',
     confirmDelete: '確認刪除？',
     delete: '刪除',
-    done: '完成',
     initialApr2024: '2024年4月 · 初始出資',
     midJan2025: '2025年1月 · 追加投資',
     navHome: '首頁',
     backHome: '返回首頁',
-    partnerTitle: '柳味探秘科技合夥人',
+    partnerTitle: '藍姐螺螄粉合夥人資產',
     issueProportional: '發起比例分紅',
     autoByShare: '按股權穿透比例自動分配',
     totalToPool: '擬向紅利池注入的總金額 (元)',
@@ -613,67 +487,8 @@ const I18N: Record<string, Record<string, string>> = {
     opacity: '透明度',
     uploading: '上傳中...',
     themePicker: '主題方案',
-    // Background crop modal
-    editBg: '編輯背景圖',
-    useThisBg: '使用此背景圖',
-    bgUpdated: '背景圖已更新',
-    cropPill: '拖動移動 · 雙指縮放',
-    cropRotate: '旋轉',
-    cropFlip: '翻轉',
-    recrop: '重新裁剪',
-    confirmUse: '確認使用',
-    imgNotLoaded: '圖片未加載',
-    cropFailed: '裁切失敗，請重試',
-    uploadFailed: '上傳失敗，請重試',
-    uploadFailedShort: '上傳失敗',
-    bgResultHint: '將作為首頁全屏背景',
     loading: '載入中...',
     noRecords: '暫無記錄',
-    // Avatar & cover crop modal
-    avatarCropTitle: '調整頭像',
-    useThisAvatar: '使用此頭像',
-    avatarUpdated: '頭像已更新',
-    avatarSizeHint: '在不同場景下的顯示效果',
-    coverCropTitle: '編輯封面',
-    useThisCover: '使用此封面',
-    coverUpdated: '封面已更新',
-    coverHint: '將作為個人中心頂部封面展示',
-    // Profile
-    editProfile: '個人中心',
-    editCover: '更換封面',
-    editAvatar: '更換頭像',
-    displayName: '用戶名稱',
-    profileEmail: '電子郵箱',
-    signatureLabel: '個性簽名',
-    signatureHint: '用一句話介紹自己...',
-    signaturePlaceholder: '這個人很懶，什麼都沒留下...',
-    changePassword: '修改密碼',
-    changeEmail: '更換郵箱',
-    oldPassword: '當前密碼',
-    confirmNewPassword: '確認新密碼',
-    newEmail: '新郵箱',
-    pwChanged: '密碼修改成功',
-    emailChanged: '郵箱修改成功',
-    errOldPwRequired: '請輸入當前密碼',
-    sendCode: '發送驗證碼',
-    enterCode: '輸入驗證碼',
-    codeSent: '驗證碼已發送',
-    verifying: '驗證中...',
-    accountInfo: '帳號資訊',
-    securitySettings: '安全設定',
-    preferences: '偏好設定',
-    dangerZone: '危險操作',
-    language: '語言',
-    themeLabel: '主題',
-    langZh: '簡體中文',
-    langTw: '繁體中文',
-    langEn: 'English',
-    stampPrefixBurgundy: '以此身，閱盡這',
-    stampPrefixObsidian: '時序輪轉，流光已擲下第',
-    stampPrefixTeal: '星霜未歇，我們已共渡',
-    stampSuffixBurgundy: '日的晨昏與煙火。',
-    stampSuffixObsidian: '道鞭影。',
-    stampSuffixTeal: '次潮落潮生。',
     back: '返回',
     chooseImage: '選擇圖片',
     resetDefault: '恢復默認',
@@ -688,9 +503,6 @@ const I18N: Record<string, Record<string, string>> = {
     flashSale: '閃購',
     tuan: '團購',
     jd: '京東',
-    // Income categories — internal keys (DB stores these now)
-    eleme: '餓了嗎外賣',
-    otherIncome: '其他收入',
     reconciledBy: '對賬人',
     filledBy: '填寫人',
     filter: '篩選',
@@ -698,8 +510,6 @@ const I18N: Record<string, Record<string, string>> = {
     apply: '應用',
     reset: '重置',
     filterDate: '日期',
-    expenseDate: '支出日期',
-    revenueDate: '营收日期',
     filterCategory: '支出分類',
     reconComplete: '對賬完成',
     addBtn: '添加',
@@ -726,19 +536,6 @@ const I18N: Record<string, Record<string, string>> = {
     rent: '房租',
     salary: '薪資',
     goods: '採購',
-    // Expense categories — internal keys (DB stores these now)
-    materials: '原材料進貨',
-    utilities: '水電煤氣',
-    wages: '工資',
-    tools: '設備/工具',
-    renovation: '裝修',
-    training: '培訓/證件',
-    cleaning: '衛生/清潔',
-    tableware: '餐具/紙巾',
-    packaging: '包裝/打包',
-    advertising: '廣告/推廣',
-    misc: '雜項/煙酒',
-    other: '其他',
     expenseCategory: '支出分類',
     paymentMethod: '支付方式',
     payCash: '現金',
@@ -772,7 +569,6 @@ const I18N: Record<string, Record<string, string>> = {
     atLeastOneFee: '至少輸入一個平台的手續費',
     errDateFuture: '不能選擇未來的日期',
     errDateRange: '結束日期必須晚於開始日期',
-    errDateRangeTooLong: '日期範圍不能超過 24 個月',
     errAmountPositive: '金額必須大於0',
     // Revenue cards
     cumulativeRevenue: '累計營收',
@@ -843,8 +639,7 @@ const I18N: Record<string, Record<string, string>> = {
     procSearchHistory: '搜尋批次號、日期…',
     procSearchProducts: '搜尋產品名、供應商…',
     procAll: '全部',
-    procBatchCount: '歷史批次',
-    procComingSoon: '即將',
+    procBatchCount: '採購批次',
     procCumulative: '累計貨款',
     procMargin: '貨款利潤率',
     procUniqueItems: '本單品類',
@@ -861,12 +656,9 @@ const I18N: Record<string, Record<string, string>> = {
     procOrderItems: '進貨明細',
     procTotal: '本次合計',
     procNoteOptional: '可選備註',
-    procOperator: '經辦人',
     procSubmit: '提交進貨單',
     procSubmitted: '進貨單已提交',
     procSubmittedMsg: '本次進貨記錄已儲存',
-    procUpdated: '進貨單已更新',
-    procUpdatedMsg: '本次進貨記錄已更新',
     procContinue: '繼續進貨',
     procViewRecords: '檢視記錄',
     procNoHistory: '暫無進貨記錄',
@@ -878,13 +670,6 @@ const I18N: Record<string, Record<string, string>> = {
     procEmptyProductsHint: '點擊上方「+ 添加產品」開始維護產品目錄',
     procThisBatch: '本次貨款',
     procNowBatch: '第{n}次進貨',
-    procProduct: '商品',
-    procImages: '憑證預覽',
-    procDetail: '進貨詳情',
-    procDownloadPDF: '下載 PDF',
-    procGenerating: '生成中...',
-    procSaved: '已儲存',
-    procGeneratingPDF: '正在生成進貨單…',
     procProductMgmt: '產品維護',
     procAddProduct: '添加產品',
     procEditProduct: '編輯產品',
@@ -896,42 +681,11 @@ const I18N: Record<string, Record<string, string>> = {
     procDeleteProduct: '刪除產品',
     procDeleteProductConfirm: '確定刪除「{name}」？',
     procDeleteProductWarning: '刪除後歷史批次中該商品將無法顯示名稱。',
-    procEditBatch: '編輯第{n}次進貨',
-    procDeleteBatch: '刪除批次',
-    procDeleteBatchConfirm: '確定刪除第{n}次進貨？關聯的支出記錄也會一併刪除。',
-    procDeleteBatchConfirmV2: '確定刪除「{batch}」？關聯的支出記錄也會一併刪除。',
-    procBatchUpdated: '批次已更新',
-    procBatchDeleted: '批次已刪除',
     procManageProducts: '管理產品',
     procPurchase: '採購',
     procTitle: '進貨管理',
     copyright: '© 2026 柳味探秘 · 經營查詢 · 版權所有',
     procViewDetail: '檢視明細',
-    authSettingsTitle: '登入安全',
-    ssoLabel: '單一裝置登入',
-    ssoDesc: '最多一台裝置同時登入',
-    sessionTimeoutLabel: '超時時間',
-    sessionTimeoutDesc: '超過該時長未操作自動退出',
-    sessionKickedToast: '您的帳號在其他裝置登入，當前工作階段已退出',
-    sessionKickedTitle: '帳號已登出',
-    sessionKickedButton: '我知道了',
-    procPdfTitle: '進貨單 #{n}',
-    pdfPreview: 'PDF 預覽',
-    download: '下載',
-    downloading: '下載中…',
-    share: '分享',
-    shareLink: '分享連結',
-    copyLink: '複製連結',
-    linkCopied: '連結已複製',
-    pdfLoading: '載入 PDF 中…',
-    pdfLoadFailed: 'PDF 載入失敗',
-    shareFailed: '分享失敗',
-    pdfNotSupported: '當前瀏覽器不支援 PDF 內嵌顯示，請用下載按鈕儲存到本地',
-    goBack: '返回',
-    saveImage: '儲存圖片',
-    downloadPdf: '下載PDF',
-    emailAction: '郵件',
-    emailBodyExtra: '（連結 24 小時內有效）',
   },
   en: {
     appTitle: "Lan's Luosifen",
@@ -1020,12 +774,11 @@ const I18N: Record<string, Record<string, string>> = {
     noProcurement: 'No procurement',
     confirmDelete: 'Confirm delete?',
     delete: 'Delete',
-    done: 'Done',
     initialApr2024: 'Apr 2024 · Initial Capital',
     midJan2025: 'Jan 2025 · Additional Capital',
     navHome: 'Home',
     backHome: 'Back to Home',
-    partnerTitle: 'LiuWei TanMi Technology Partners',
+    partnerTitle: "Lan's Luosifen · Partner Capital",
     issueProportional: 'Issue Proportional Dividend',
     autoByShare: 'Auto-distribute by share ratio',
     totalToPool: 'Total amount to dividend pool (¥)',
@@ -1074,67 +827,8 @@ const I18N: Record<string, Record<string, string>> = {
     opacity: 'Opacity',
     uploading: 'Uploading...',
     themePicker: 'Theme',
-    // Background crop modal
-    editBg: 'Edit Background',
-    useThisBg: 'Use This Background',
-    bgUpdated: 'Background Updated',
-    cropPill: 'Drag · Pinch to zoom',
-    cropRotate: 'Rotate',
-    cropFlip: 'Flip',
-    recrop: 'Re-crop',
-    confirmUse: 'Confirm',
-    imgNotLoaded: 'Image not loaded',
-    cropFailed: 'Crop failed, please retry',
-    uploadFailed: 'Upload failed, please retry',
-    uploadFailedShort: 'Upload failed',
-    bgResultHint: 'Will be used as fullscreen home background',
     loading: 'Loading...',
     noRecords: 'No records yet',
-    // Avatar & cover crop modal
-    avatarCropTitle: 'Adjust Avatar',
-    useThisAvatar: 'Use This Avatar',
-    avatarUpdated: 'Avatar Updated',
-    avatarSizeHint: 'Preview in different sizes',
-    coverCropTitle: 'Edit Cover',
-    useThisCover: 'Use This Cover',
-    coverUpdated: 'Cover Updated',
-    coverHint: 'Will be displayed as your profile banner',
-    // Profile
-    editProfile: 'Profile',
-    editCover: 'Change Cover',
-    editAvatar: 'Change Avatar',
-    displayName: 'Username',
-    profileEmail: 'Email Address',
-    signatureLabel: 'Signature',
-    signatureHint: 'Say something about yourself...',
-    signaturePlaceholder: 'This person is lazy and left nothing...',
-    changePassword: 'Change Password',
-    changeEmail: 'Change Email',
-    oldPassword: 'Current Password',
-    confirmNewPassword: 'Confirm New Password',
-    newEmail: 'New Email',
-    pwChanged: 'Password changed',
-    emailChanged: 'Email changed',
-    errOldPwRequired: 'Please enter current password',
-    sendCode: 'Send Code',
-    enterCode: 'Enter code',
-    verifying: 'Verifying...',
-    accountInfo: 'Account Info',
-    securitySettings: 'Security Settings',
-    preferences: 'Preferences',
-    dangerZone: 'Danger Zone',
-    language: 'Language',
-    themeLabel: 'Theme',
-    langZh: '简体中文',
-    langTw: '繁體中文',
-    langEn: 'English',
-    stampPrefixBurgundy: 'In this body, I have witnessed',
-    stampPrefixObsidian: 'The light has cast its',
-    stampPrefixTeal: 'Under starry frost, we have weathered',
-    stampSuffixBurgundy: ' dawns and dusks of mortal life.',
-    stampSuffixObsidian: ' lash upon these seasons.',
-    stampSuffixTeal: ' tides of rise and fall.',
-    // Expense screen
     back: 'Back',
     chooseImage: 'Choose Image',
     resetDefault: 'Reset to Default',
@@ -1149,9 +843,6 @@ const I18N: Record<string, Record<string, string>> = {
     flashSale: 'Flash Sale',
     tuan: 'Group Buy',
     jd: 'JD.com',
-    // Income categories — internal keys (DB stores these now)
-    eleme: 'Eleme',
-    otherIncome: 'Other Income',
     reconciledBy: 'Reconciled by',
     filledBy: 'Filled by',
     filter: 'Filter',
@@ -1159,8 +850,6 @@ const I18N: Record<string, Record<string, string>> = {
     apply: 'Apply',
     reset: 'Reset',
     filterDate: 'Date',
-    expenseDate: 'Expense Date',
-    revenueDate: 'Revenue Date',
     filterCategory: 'Category',
     reconComplete: 'Complete Recon',
     addBtn: 'Add',
@@ -1187,19 +876,6 @@ const I18N: Record<string, Record<string, string>> = {
     rent: 'Rent',
     salary: 'Salary',
     goods: 'Procurement',
-    // Expense categories — internal keys (DB stores these now)
-    materials: 'Raw Materials',
-    utilities: 'Utilities',
-    wages: 'Wages',
-    tools: 'Equipment',
-    renovation: 'Renovation',
-    training: 'Training',
-    cleaning: 'Cleaning',
-    tableware: 'Tableware',
-    packaging: 'Packaging',
-    advertising: 'Advertising',
-    misc: 'Sundries',
-    other: 'Other',
     expenseCategory: 'Category',
     paymentMethod: 'Payment Method',
     payCash: 'Cash',
@@ -1233,7 +909,6 @@ const I18N: Record<string, Record<string, string>> = {
     atLeastOneFee: 'Please enter at least one platform fee',
     errDateFuture: 'Cannot select a future date',
     errDateRange: 'End date must be after start date',
-    errDateRangeTooLong: 'Date range cannot exceed 24 months',
     errAmountPositive: 'Amount must be greater than 0',
     // Revenue cards
     cumulativeRevenue: 'Cumulative Revenue',
@@ -1304,8 +979,7 @@ const I18N: Record<string, Record<string, string>> = {
     procSearchHistory: 'Search batch#, date…',
     procSearchProducts: 'Search name, supplier…',
     procAll: 'All',
-    procBatchCount: 'Past Batches',
-    procComingSoon: 'Coming Soon',
+    procBatchCount: 'Batches',
     procCumulative: 'Total Spent',
     procMargin: 'Margin',
     procUniqueItems: 'Items',
@@ -1322,12 +996,9 @@ const I18N: Record<string, Record<string, string>> = {
     procOrderItems: 'Items',
     procTotal: 'Total',
     procNoteOptional: 'Note (optional)',
-    procOperator: 'Operator',
     procSubmit: 'Submit Order',
     procSubmitted: 'Order Submitted',
     procSubmittedMsg: 'Procurement order saved',
-    procUpdated: 'Order Updated',
-    procUpdatedMsg: 'Procurement order updated',
     procContinue: 'Continue',
     procViewRecords: 'View Records',
     procNoHistory: 'No procurement records',
@@ -1339,13 +1010,6 @@ const I18N: Record<string, Record<string, string>> = {
     procEmptyProductsHint: 'Tap "+ Add Product" above to start building your catalog',
     procThisBatch: 'This Batch',
     procNowBatch: 'Batch #{n}',
-    procProduct: 'Product',
-    procImages: 'Voucher Preview',
-    procDetail: 'Procurement Detail',
-    procDownloadPDF: 'Download PDF',
-    procGenerating: 'Generating...',
-    procSaved: 'Saved',
-    procGeneratingPDF: 'Generating purchase order...',
     procProductMgmt: 'Products',
     procAddProduct: 'Add Product',
     procEditProduct: 'Edit Product',
@@ -1357,42 +1021,11 @@ const I18N: Record<string, Record<string, string>> = {
     procDeleteProduct: 'Delete Product',
     procDeleteProductConfirm: 'Delete "{name}"?',
     procDeleteProductWarning: 'Historical batches will no longer display the product name.',
-    procEditBatch: 'Edit Batch #{n}',
-    procDeleteBatch: 'Delete Batch',
-    procDeleteBatchConfirm: 'Delete Batch #{n}? The linked expense record will also be removed.',
-    procDeleteBatchConfirmV2: 'Delete "{batch}"? The linked expense record will also be removed.',
-    procBatchUpdated: 'Batch updated',
-    procBatchDeleted: 'Batch deleted',
     procManageProducts: 'Manage Products',
     procPurchase: 'Procurement',
     procTitle: 'Procurement',
     copyright: '© 2026 LiuWei TanMi · Business Dashboard · All Rights Reserved',
     procViewDetail: 'View Details',
-    authSettingsTitle: 'Sign-in Security',
-    ssoLabel: 'Single-device sign-in',
-    ssoDesc: 'Only one device can stay signed in at a time',
-    sessionTimeoutLabel: 'Session timeout',
-    sessionTimeoutDesc: 'Auto sign-out after this idle period',
-    sessionKickedToast: 'Signed in elsewhere. This session was ended.',
-    sessionKickedTitle: 'Signed out',
-    sessionKickedButton: 'OK',
-    procPdfTitle: 'Order #{n}',
-    pdfPreview: 'PDF Preview',
-    download: 'Download',
-    downloading: 'Downloading…',
-    share: 'Share',
-    shareLink: 'Share link',
-    copyLink: 'Copy link',
-    linkCopied: 'Link copied',
-    pdfLoading: 'Loading PDF…',
-    pdfLoadFailed: 'Failed to load PDF',
-    shareFailed: 'Share failed',
-    pdfNotSupported: 'PDF preview is not supported in this browser. Use the download button to save it locally.',
-    goBack: 'Go back',
-    saveImage: 'Save image',
-    downloadPdf: 'Download PDF',
-    emailAction: 'Email',
-    emailBodyExtra: '(link valid for 24h)',
   },
 };
 
@@ -1418,88 +1051,15 @@ export function setLang(lang: string, callback?: () => void) {
   if (!I18N[lang]) return;
   curLang = lang;
   if (typeof localStorage !== 'undefined') localStorage.setItem('lang', lang);
-  // NOTE: language is per-device (not per-user) — we do NOT push to
-  // the server here. The picked language lives in localStorage, the
-  // login screen's lang selector uses it as its default on next
-  // render, and it carries through the user's session and back to
-  // the login screen on logout. See the LangProvider in this file
-  // and the layout in App.tsx.
+  // Save to backend so language follows the user across devices
+  try {
+    fetch('/api/settings/lang', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang }),
+    }).catch(() => {});
+  } catch {}
   callback?.();
 }
 
 export const langs: [string, string][] = [['zh-CN', '简'], ['zh-TW', '繁'], ['en', 'EN']];
-
-// ═══════════════════════════════════════════
-// LangContext — single source of truth for the current language
-// ═══════════════════════════════════════════
-//
-// Why this exists:
-//   curLang is a module-level `let`. Mutating it via the standalone
-//   setLang() below does NOT trigger a React re-render — components
-//   that did `useState(getLang())` capture the value at mount time
-//   and keep showing the OLD language after the user switches
-//   languages. To make all subscribers update, we expose a context
-//   whose value is backed by useState, and a wrapper setLang that
-//   performs the React update + side effects (curLang, localStorage)
-//   in one call.
-//
-// Language is per-DEVICE (not per-user). The picked language lives
-// in localStorage, the login screen's lang selector uses it as its
-// default on next render, and it carries through the user's
-// session and back to the login screen on logout. We intentionally
-// do NOT persist to the server — different accounts sharing the
-// same browser share the same UI language.
-//
-// Layering in App.tsx:
-//   <LangProvider>          ← mounts once, holds lang state, never re-mounts
-//     <SessionKickedModal/> ← outside ThemeProvider so appKey++ does not
-//     <ThemeProvider key={appKey}>  unmount the modal (preserves visible
-//       <LoginScreen/>      state for the "signed in elsewhere" flow)
-//       <HomeScreen/>
-//     </ThemeProvider>
-//   </LangProvider>
-//
-// The standalone setLang() export above is kept for any non-React
-// callers.
-//
-// LangProvider does NOT pull the server-side language — the user
-// picks the language on the login screen and it carries forward via
-// localStorage. This keeps the per-device invariant and avoids a
-// duplicate api import that would create a circular i18n ↔ client
-// module reference.
-
-interface LangContextValue {
-  lang: string;
-  setLang: (lang: string, callback?: () => void) => void;
-}
-
-const LangContext = createContext<LangContextValue>({
-  lang: 'zh-CN',
-  setLang: () => {},
-});
-
-export function LangProvider({ children }: { children: React.ReactNode }) {
-  // Initial value: whatever the standalone getLang() reports (which
-  // reads from localStorage, then navigator.language as a fallback).
-  // This is the language the user picked the last time they were on
-  // the login screen (or the browser default for a fresh device).
-  const [lang, setLangState] = useState<string>(getLang());
-
-  const setLang = useCallback((newLang: string, callback?: () => void) => {
-    if (!I18N[newLang]) return;
-    setLangState(newLang);                                     // 1) trigger re-render
-    curLang = newLang;                                         // 2) keep t() in sync
-    try { localStorage.setItem('lang', newLang); } catch {}    // 3) persist locally (login screen's next-render default)
-    callback?.();
-  }, []);
-
-  return (
-    <LangContext.Provider value={{ lang, setLang }}>
-      {children}
-    </LangContext.Provider>
-  );
-}
-
-export function useLang() {
-  return useContext(LangContext);
-}

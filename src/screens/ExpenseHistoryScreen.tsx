@@ -4,31 +4,13 @@ import {
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
-import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
-import { getCurrentUser } from '../utils/storage';
 
 const PAGE_SIZE = 10;
-
-const todayStr = () => new Date().toISOString().split('T')[0];
-const defaultFromDate = () => {
-  const d = new Date();
-  d.setDate(d.getDate() - 30);
-  return d.toISOString().split('T')[0];
-};
-const isFuture = (d: string) => d > todayStr();
-// Strict calendar months between two ISO dates (YYYY-MM-DD)
-function monthsBetween(from: string, to: string): number {
-  const [fy, fm, fd] = from.split('-').map(Number);
-  const [ty, tm, td] = to.split('-').map(Number);
-  let m = (ty - fy) * 12 + (tm - fm);
-  if (td < fd) m -= 1;
-  return m;
-}
 
 function ExpenseEmptyIcon({ color }: { color: string }) {
   return (
@@ -62,7 +44,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [records, setRecords] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [totalAll, setTotalAll] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
@@ -74,14 +55,14 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const filDateToRef = useRef<HTMLInputElement>(null);
   const [showFilter, setShowFilter] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
-  const [filDateFrom, setFilDateFrom] = useState(defaultFromDate());
-  const [filDateTo, setFilDateTo] = useState(todayStr());
+  const [filDateFrom, setFilDateFrom] = useState('');
+  const [filDateTo, setFilDateTo] = useState('');
   useEffect(() => { if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; }, [filDateFrom]);
   useEffect(() => { if (filDateToRef.current) filDateToRef.current.value = filDateTo; }, [filDateTo]);
   const [filCategories, setFilCategories] = useState<string[]>([]);
   // Track active filters (snapshot at last apply) — compare strings to avoid object deps
-  const [appliedFrom, setAppliedFrom] = useState(defaultFromDate());
-  const [appliedTo, setAppliedTo] = useState(todayStr());
+  const [appliedFrom, setAppliedFrom] = useState('');
+  const [appliedTo, setAppliedTo] = useState('');
   const [appliedCats, setAppliedCats] = useState('');
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
@@ -102,10 +83,20 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     return f;
   }, [appliedFrom, appliedTo, appliedCats]);
 
-  // i18n mapping for category & payment. Helper handles both internal keys
-  // (new data) and legacy Chinese substrings (old data, with/without emoji).
-  const trCat = (s: string) => trCategory(s);
-  const trPay = (s: string) => trPayment(s);
+  // i18n mapping for category & payment from API raw strings
+  const trCat = (s: string) => {
+    if (s.includes('日常')) return t('daily');
+    if (s.includes('房租')) return t('rent');
+    if (s.includes('薪资')) return t('salary');
+    if (s.includes('采购')) return t('goods');
+    return s;
+  };
+  const trPay = (s: string) => {
+    if (s.includes('微信')) return t('payWechat');
+    if (s.includes('支付宝') || s.includes('Alipay')) return t('payAlipay');
+    if (s.includes('现金')) return t('payCash');
+    return s;
+  };
   const fmtExpDate = (d: string) => {
     const [y, m, day] = d.split('-');
     const l = getLang();
@@ -120,7 +111,10 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     try { const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; } catch { return []; }
   };
 
+  const todayStr = () => new Date().toISOString().split('T')[0];
   const isFuture = (d: string) => d > todayStr();
+
+  // Reset future-date error when filter panel opens
   useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
 
   // Fetch one page from server (with current filters)
@@ -135,7 +129,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       setPage(pg);
       pageRef.current = pg;
       setTotal(tx.total || 0);
-      setTotalAll(tx.total_all ?? tx.total ?? 0);
       setHasMore(pg < (tx.pages || 1));
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
@@ -150,7 +143,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Current user for displaying who filled each record
-  const currentUser = getCurrentUser();
+  const currentUser = (() => { try { return localStorage.getItem('user') || ''; } catch { return ''; } })();
 
   // Render a single transaction row (FlatList item) — uses thumb_images for the
   // 48×48 list tile (fast, ~5-10KB) and falls back to full-size images for old
@@ -232,10 +225,6 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const rangeInvalid = useMemo(() =>
     !!(filDateFrom && filDateTo && filDateFrom > filDateTo),
     [filDateFrom, filDateTo]);
-  // 24-month max-span guard (strict calendar months)
-  const rangeTooLong = useMemo(() =>
-    !!(filDateFrom && filDateTo && !rangeInvalid && monthsBetween(filDateFrom, filDateTo) > 24),
-    [filDateFrom, filDateTo, rangeInvalid]);
 
   const navPreview = (newIdx: number) => {
     setPreviewOpacity(0);
@@ -254,7 +243,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             <Text style={st.backArrow}>{'\u2039'}</Text>
           </View>
         </TouchableOpacity>
-        <Text style={st.title}>{t('expenseHistory')} ({total}/{totalAll})</Text>
+        <Text style={st.title}>{t('expenseHistory')} ({total})</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => {
             if (!showFilter) {
               filterAnim.setValue(0);
@@ -287,10 +276,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           <View style={st.filterContent}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
-            {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
             {/* Date range */}
             <View style={st.filterField}>
-              <Text style={st.filterLabel}>{t('expenseDate')}</Text>
+              <Text style={st.filterLabel}>{t('filterDate')}</Text>
               <View style={st.filterDateRange}>
                 <View style={st.filterDateWrap}>
                   {filDateFrom ? (
@@ -334,27 +322,21 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
             {/* Actions */}
             <View style={st.filterActions}>
               <TouchableOpacity style={st.filterResetBtn} onPress={() => {
-                const dFrom = defaultFromDate();
-                const dTo = todayStr();
-                setFilDateFrom(dFrom);
-                setFilDateTo(dTo);
-                setFilCategories([]);
-                setAppliedFrom(dFrom);
-                setAppliedTo(dTo);
-                setAppliedCats('');
+                setFilDateFrom(''); setFilDateTo(''); setFilCategories([]);
+                setAppliedFrom(''); setAppliedTo(''); setAppliedCats('');
               }} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[st.filterApplyBtn, (rangeInvalid || rangeTooLong) && st.filterApplyBtnDisabled]}
-                disabled={rangeInvalid || rangeTooLong}
+                style={[st.filterApplyBtn, rangeInvalid && st.filterApplyBtnDisabled]}
+                disabled={rangeInvalid}
                 onPress={() => {
                   setAppliedFrom(filDateFrom);
                   setAppliedTo(filDateTo);
                   setAppliedCats(filCategories.join(','));
                   setShowFilter(false);
                 }} activeOpacity={0.8}>
-                <Text style={[st.filterApplyBtnText, (rangeInvalid || rangeTooLong) && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
+                <Text style={[st.filterApplyBtnText, rangeInvalid && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
           </View>
