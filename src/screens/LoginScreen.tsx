@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
-import { t, setLang, getLang, langs } from '../i18n';
+import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { getCurrentUser } from '../utils/storage';
 
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
@@ -21,7 +22,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [msg, setMsg] = useState('');
   const [msgKey, setMsgKey] = useState('');
   const [msgOk, setMsgOk] = useState(false);
-  const [lang, setLangState] = useState(getLang());
+  // Pulled from LangContext so the lang state follows the current
+  // user across login / logout / session-kicked (re-renders on
+  // LangContext value change instead of capturing curLang at mount).
+  const { lang, setLang: setLangState } = useLang();
   const displayMsg = msgKey ? t(msgKey) : msg;
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
@@ -42,7 +46,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         // Restore remember preference for this saved user
         setRemember(localStorage.getItem('remember_me') === 'true');
       }
-      if (localStorage.getItem('user')) onLogin();
+      if (getCurrentUser()) onLogin();
     }
   }, []);
 
@@ -123,7 +127,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
-        try { await api.saveLang(getLang()); } catch {}
+        // NOTE: do NOT save getLang() here. At this point localStorage
+        // may still hold the PREVIOUS user's language (the one who
+        // was last signed in on this browser). Saving it now would
+        // overwrite the NEW user's server-side language preference.
+        // Instead, App.tsx dispatches 'app:user-change' from onLogin
+        // → ThemeProvider remounts → api.getLang() pulls the real
+        // per-user language → setLang() writes curLang + localStorage
+        // and the fire-and-forget PUT back is a no-op.
         onLogin();
       } else if (r.need_verify) {
         setEmail(r.email); setStep('verify'); setMsg(''); setMsgKey('');
@@ -230,7 +241,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   };
 
   const switchLang = (l: string) => {
-    setLang(l);
+    // setLangState (from LangContext) writes curLang + localStorage +
+    // server AND triggers a re-render of every useContext(LangContext)
+    // subscriber — replacing the old two-step `setLang(l); setLangState(l);`.
     setLangState(l);
     setMsg('');
     setMsgKey('');
