@@ -363,11 +363,12 @@ function ShareAction({
 const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
   return StyleSheet.create({
+    // Page wrapper — fills the SlideScreen slot. No backgroundColor here
+    // so the page below (HomeScreen bgLayer) shows through the frosted
+    // header. Viewer area below has its own c.bg so the white PDF iframe
+    // is anchored to a known surface color.
     container: {
-      position: 'absolute',
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: c.bg,
-      zIndex: 200,
+      flex: 1,
     },
     ...hdr,
     // Right-side share button — 44×44 frosted glass circle, mirrors backBtn

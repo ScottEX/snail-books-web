@@ -14,6 +14,7 @@ import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
 import ProcurementDetailScreen from './ProcurementDetailScreen';
+import PdfPreviewPage from './PdfPreviewPage';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
@@ -36,7 +37,17 @@ function DateErrorHint({ trigger, message, colors }: { trigger: number; message:
 }
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
-export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
+export default function HomeScreen({
+  onLogout,
+  previewRoute,
+  onClosePreview,
+}: {
+  onLogout: () => void;
+  /** URL-driven PDF preview (parses #/preview-pdf?… in App.tsx). */
+  previewRoute?: { id: number; number: number } | null;
+  /** Cleared when the user dismisses the preview — App.tsx drops the hash. */
+  onClosePreview?: () => void;
+}) {
   const { colors } = useTheme();
   const [tab, setTabState] = useState<Tab>(() => {
     try { return (localStorage.getItem('active_tab') as Tab) || 'expense'; }
@@ -74,14 +85,17 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   // Replaces the old editProcurementRef pattern, which suffered from
   // stale-ref-to-unmounted-instance when proc detail closed.
   const [pendingEditBatch, setPendingEditBatch] = useState<any>(null);
+  // Holds the active PDF preview target. Pushed onto pageStack as
+  // 'pdf' via the useEffect below whenever App.tsx sees a matching
+  // hash. Cleared on popPage so a fresh push always starts clean.
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   // iOS-style push/pop nav: pageStack is the single source of truth
-  // for which sub-screen (profile / recon / expense / daily / proc)
+  // for which sub-screen (profile / recon / expense / daily / proc / pdf)
   // is on top of HomeScreen. pushPage() opens one (280ms slide-in);
   // popPage() reverses it (250ms slide-out via the `removing` flag).
   // The `s.includes(p) ? s : ...` guard prevents pushing the same
   // page twice while it's still on the stack.
-  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc';
+  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf';
   // Hydrate pageStack from history.state so a refresh lands the user
   // back on the same sub-page they were viewing. Fall back to [] for
   // a cold load (state is null) or a hostile/missing history.state.
@@ -90,6 +104,21 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       const s = (history.state as any)?.stack;
       return Array.isArray(s) ? (s as SubPage[]) : [];
     } catch { return []; }
+  });
+  // Hydrate pdfPreview from the URL hash on mount. The push effect
+  // (below) reads the same prop on every refresh, but pdfPreview
+  // itself is local state, so we seed it from the hash before the
+  // effect can push 'pdf' onto the stack. Without this, a refresh
+  // on the PDF URL would mount PdfPreviewPage with batchId=0.
+  const [pdfPreview, setPdfPreview] = useState<{ id: number; number: number } | null>(() => {
+    if (previewRoute) return previewRoute;
+    try {
+      const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
+      if (!m) return null;
+      const qs = window.location.hash.split('?')[1] || '';
+      const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
+      return { id: parseInt(m[1], 10), number: num };
+    } catch { return null; }
   });
   // Mirror of pageStack for synchronous reads inside the popstate
   // listener and popPage itself. The closure values from useState
@@ -122,8 +151,30 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       // Per-page payload cleanup so a fresh push of the same page
       // never sees stale data from a previous open.
       if (top === 'proc') setProcDetailBatch(null);
+      if (top === 'pdf') {
+        setPdfPreview(null);
+        // Mirror the dismissal back up to App.tsx so the URL hash
+        // is dropped (a back-out of PDF should clear the URL too).
+        onClosePreview?.();
+      }
     }, 280);
   };
+
+  // Sync the URL-driven PDF preview route with our pageStack.
+  // App.tsx owns the hash; this effect turns the prop into a push.
+  // Guard: if 'pdf' is already on the stack, don't push again — the
+  // user might be reloading on the same URL.
+  useEffect(() => {
+    if (previewRoute) {
+      setPdfPreview(previewRoute);
+      setPageStack(s => s.includes('pdf') ? s : [...s, 'pdf']);
+    }
+    // When previewRoute goes null we DON'T pop here — popPage's
+    // own cleanup (above) handles it via onClosePreview, which is
+    // what flips previewRoute back to null in App.tsx. This avoids
+    // a "pop → effect → pop" loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewRoute]);
   // Browser back / iOS swipe-back: when a sub-page is on the stack,
   // pop it (iOS-style "back one level" semantics). When the stack
   // is empty, the back gesture closes the app as usual.
@@ -612,6 +663,19 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               popPage();
               setPendingEditBatch(procDetailBatch);
             }}
+          />
+        );
+      case 'pdf':
+        // Renders inside the same SlideScreen wrapper as 'proc' /
+        // 'profile' / etc. — that gives PDF preview the same 280ms
+        // push animation AND lets the frosted header read the
+        // HomeScreen bgLayer through the transparent header area
+        // (matching ProcurementDetailScreen's header exactly).
+        return (
+          <PdfPreviewPage
+            batchId={pdfPreview?.id ?? 0}
+            batchNumber={pdfPreview?.number ?? 0}
+            onBack={onBack}
           />
         );
     }

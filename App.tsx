@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
-import PdfPreviewPage from './src/screens/PdfPreviewPage';
 import SessionKickedModal from './src/components/SessionKickedModal';
 import { ThemeProvider } from './src/theme';
 import { LangProvider } from './src/i18n';
+
+// Parse a #/preview-pdf?… hash into { id, number } or null.
+// The PdfPreview page now lives inside HomeScreen's pageStack
+// (see HomeScreen.renderSubPage → 'pdf') so it inherits the same
+// SlideScreen push/pop animation + frosted header as every other
+// sub-page. App.tsx only owns the URL → route-state bridge.
+function readPreviewHash(): { id: number; number: number } | null {
+  if (typeof window === 'undefined') return null;
+  const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
+  if (!m) return null;
+  const qs = window.location.hash.split('?')[1] || '';
+  const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
+  return { id: parseInt(m[1], 10), number: num };
+}
 
 export default function App() {
   const [page, setPage] = useState<'login' | 'home'>(() => {
@@ -30,26 +43,10 @@ export default function App() {
   // existing popstate listener (which handles browser-back over the
   // pageStack). Reading window.location.hash here is safe during SSR-
   // style checks because we guard with `typeof window !== 'undefined'`.
-  const [previewRoute, setPreviewRoute] = useState<{ id: number; number: number } | null>(() => {
-    if (typeof window === 'undefined') return null;
-    const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
-    if (!m) return null;
-    const qs = window.location.hash.split('?')[1] || '';
-    const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
-    return { id: parseInt(m[1], 10), number: num };
-  });
+  const [previewRoute, setPreviewRoute] = useState<{ id: number; number: number } | null>(readPreviewHash);
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const onHashChange = () => {
-      const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
-      if (m) {
-        const qs = window.location.hash.split('?')[1] || '';
-        const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
-        setPreviewRoute({ id: parseInt(m[1], 10), number: num });
-      } else {
-        setPreviewRoute(null);
-      }
-    };
+    const onHashChange = () => setPreviewRoute(readPreviewHash());
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
@@ -115,20 +112,16 @@ export default function App() {
           setPage('home');
         }} />}
         {page === 'home' && (
-          previewRoute ? (
-            <PdfPreviewPage
-              batchId={previewRoute.id}
-              batchNumber={previewRoute.number}
-              onBack={closePreview}
-            />
-          ) : (
-            <HomeScreen onLogout={() => {
+          <HomeScreen
+            onLogout={() => {
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new Event('app:user-change'));
               }
               setPage('login');
-            }} />
-          )
+            }}
+            previewRoute={previewRoute}
+            onClosePreview={closePreview}
+          />
         )}
       </ThemeProvider>
     </LangProvider>
