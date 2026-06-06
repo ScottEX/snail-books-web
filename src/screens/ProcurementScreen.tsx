@@ -348,7 +348,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════
-export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, onEditBatchRef }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; onEditBatchRef?: React.MutableRefObject<((batch: BatchRecord) => void) | null> }) {
+export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void }) {
   const { colors: c } = useTheme();
   const styles = useMemo(() => getStyles(c), [c]);
 
@@ -861,9 +861,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   };
 
   // Expose edit function to parent via ref (for ProcurementDetailScreen edit button)
+  // External edit signal from ProcurementDetailScreen. Always runs on
+  // the freshly-mounted instance (the one whose parent just flipped
+  // setShowProcDetail(false)), so openEditBatch's setState calls all
+  // land on a live component — no stale ref, no unmounted setState.
   useEffect(() => {
-    if (onEditBatchRef) onEditBatchRef.current = openEditBatch;
-  }, [onEditBatchRef]);
+    if (pendingEditBatch) {
+      openEditBatch(pendingEditBatch);
+      onPendingEditConsumed?.();
+    }
+  }, [pendingEditBatch, onPendingEditConsumed]);
 
   // Confirm delete batch + cascade
   const confirmDeleteBatch = async () => {

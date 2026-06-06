@@ -71,7 +71,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [showDailyHistory, setShowDailyHistory] = useState(false);
   const [showProcDetail, setShowProcDetail] = useState(false);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
-  const editProcurementRef = useRef<((batch: any) => void) | null>(null);
+  // External signal for ProcurementScreen.edit flow. When set, the
+  // newly-mounted ProcurementScreen instance (page content remounts
+  // right after setShowProcDetail(false)) will pick it up via a
+  // useEffect and call openEditBatch on itself. Replaces the old
+  // editProcurementRef pattern, which suffered from stale-ref-to-
+  // unmounted-instance when proc detail closed (the old instance
+  // set its own setState, which React dropped — drawer never opened).
+  const [pendingEditBatch, setPendingEditBatch] = useState<any>(null);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   // PR1 of page-stack migration: add the stack + helpers. The 5 booleans
@@ -541,10 +548,13 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <SlideScreen visible={showReconHistory} onClose={() => setShowReconHistory(false)}>
         {(onBack) => <ReconHistoryScreen onBack={onBack} />}
       </SlideScreen>
-      <SlideScreen visible={showProcDetail} onClose={() => { setShowProcDetail(false); setProcDetailBatch(null); }}>
+      <SlideScreen visible={showProcDetail} onClose={() => { setShowProcDetail(false); setProcDetailBatch(null); setPendingEditBatch(null); }}>
         {(onBack) => <ProcurementDetailScreen batch={procDetailBatch} onBack={onBack} onEdit={() => {
+          // Set the external signal; the new ProcurementScreen instance
+          // (which mounts when setShowProcDetail(false) re-renders page
+          // content) will pick this up and call its own openEditBatch.
           setShowProcDetail(false);
-          setTimeout(() => editProcurementRef.current?.(procDetailBatch), 150);
+          setPendingEditBatch(procDetailBatch);
         }} />}
       </SlideScreen>
 
@@ -583,7 +593,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} onProfile={() => setShowProfile(true)} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); setShowProcDetail(true); }} onEditBatchRef={editProcurementRef} />
+          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); setShowProcDetail(true); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} />
         ) : (
           <>
             {/* Underlying tab content */}
