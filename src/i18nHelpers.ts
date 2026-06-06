@@ -8,9 +8,7 @@
 //   in the same column. The fix is two-sided:
 //
 //     1. Forms now store INTERNAL KEYS (see i18n.tsx for the canonical set):
-//        expense cats: daily/rent/salary/goods/materials/utilities/wages/
-//          tools/renovation/training/cleaning/tableware/packaging/
-//          advertising/misc/other
+//        expense cats: daily/rent/salary/goods/wages
 //        income cats: dineIn/meituan/eleme/meituanTuan/jd/otherIncome
 //        payment methods: payCash/payWechat/payAlipay
 //        transaction type: income/expense
@@ -34,10 +32,7 @@ import { t } from './i18n';
 // as legacy (Chinese) data and normalized via LEGACY_CAT_TO_KEY.
 const CAT_KEYS = new Set<string>([
   // expense
-  'daily', 'rent', 'salary', 'goods',
-  'materials', 'utilities', 'wages', 'tools',
-  'renovation', 'training', 'cleaning', 'tableware',
-  'packaging', 'advertising', 'misc', 'other',
+  'daily', 'rent', 'salary', 'goods', 'wages',
   // income
   'dineIn', 'meituan', 'eleme', 'meituanTuan', 'jd', 'otherIncome',
 ]);
@@ -53,26 +48,14 @@ const LEGACY_CAT_TO_KEY: Array<[string, string]> = [
   ['美团团购', 'meituanTuan'],
   ['饿了吗外卖', 'eleme'],
   ['美团外卖', 'meituan'],
-  // expense (longer/more specific first)
-  ['原材料进货', 'materials'],
-  ['水电煤气', 'utilities'],
+  // expense
   ['人工工资', 'wages'],
-  ['设备/工具', 'tools'],
-  ['培训/证件', 'training'],
-  ['卫生/清洁', 'cleaning'],
-  ['餐具/纸巾', 'tableware'],
-  ['包装/打包', 'packaging'],
-  ['广告/推广', 'advertising'],
-  ['杂项/烟酒', 'misc'],
-  // shorter expense
   ['日常', 'daily'],
   ['房租', 'rent'],
   ['薪资', 'salary'],
   ['采购', 'goods'],
-  ['装修', 'renovation'],
   ['堂食', 'dineIn'],
   ['京东', 'jd'],
-  ['其他', 'other'],
 ];
 
 const LEGACY_PAY_TO_KEY: Array<[string, string]> = [
