@@ -1388,13 +1388,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.sectionLabel, { marginBottom: 4 }]}>{t('procNoteOptional')}</Text>
-                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginBottom: 2 }}>{t('procNoteHintPhone')}</Text>
-                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginBottom: 6 }}>{t('procNoteHintAddress')}</Text>
-                  <TextInput style={{ height: 70, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none', textAlignVertical: 'top' } as any}
-                    value={orderNote} onChangeText={setOrderNote} placeholder="" placeholderTextColor={c.textSub} multiline />
-                </View>
+                <Text style={[styles.sectionLabel, { marginBottom: 0, marginTop: 9 }]}>{t('procNoteOptional')}</Text>
+                <TextInput style={{ flex: 1, height: 70, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none', textAlignVertical: 'top' } as any}
+                  value={orderNote} onChangeText={setOrderNote} placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`} placeholderTextColor={c.textSub} multiline />
               </View>
 
               {/* Total + Submit moved to drawer footer */}
