@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
+import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -155,17 +156,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
 
   // Map DB payment_method values ('现金','微信','支付宝') to i18n keys
   const PAY_MAP: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
-  const paymentLabel = t(PAY_MAP[batch.payment_method] || batch.payment_method);
-
-  // Map DB category values to i18n keys. Frontend submits t('procPurchase')
-  // which yields the current-language string ('采购'/'採購'/'Procurement'),
-  // so the DB holds a mix of all three. Map them all back to 'goods'.
-  const CATEGORY_MAP: Record<string, string> = {
-    '采购': 'goods',
-    '採購': 'goods',
-    'Procurement': 'goods',
-  };
-  const categoryLabel = t(CATEGORY_MAP[batch.category] || batch.category);
+  const paymentLabel = trPayment(batch.payment_method);
 
   return (
     <View style={styles.container}>
@@ -217,7 +208,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t('expenseCategory')}</Text>
-            <Text style={styles.infoValue}>{categoryLabel}</Text>
+            <Text style={styles.infoValue}>{trCategory(batch.category)}</Text>
           </View>
           <View style={[styles.infoRow, { borderBottomWidth: 0, paddingTop: 0 }]}>
             <Text style={styles.infoLabel}>{t('procOperator')}</Text>

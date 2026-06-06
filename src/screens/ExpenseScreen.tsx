@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
+import { catKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
@@ -434,15 +435,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         page++;
       }
       setExpenses(allExpenses);
-      // Compute category totals
+      // Compute category totals. catKey() normalizes legacy Chinese
+      // substrings (e.g. '📦 原材料进货') to internal keys for matching.
       let daily = 0, rent = 0, salary = 0, goods = 0;
       allExpenses.forEach((e: any) => {
-        const cat = e.category || '';
+        const k = catKey(e.category || '');
         const amt = e.amount || 0;
-        if (cat.includes('日常')) daily += amt;
-        else if (cat.includes('房租')) rent += amt;
-        else if (cat.includes('薪资')) salary += amt;
-        else if (cat.includes('采购')) goods += amt;
+        if (k === 'daily') daily += amt;
+        else if (k === 'rent') rent += amt;
+        else if (k === 'salary') salary += amt;
+        else if (k === 'goods') goods += amt;
       });
       setExpCatTotals({ daily, rent, salary, goods });
     } catch { setToast(t('toastLoadFailed')); }

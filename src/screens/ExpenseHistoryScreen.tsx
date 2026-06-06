@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
+import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -101,20 +102,10 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     return f;
   }, [appliedFrom, appliedTo, appliedCats]);
 
-  // i18n mapping for category & payment from API raw strings
-  const trCat = (s: string) => {
-    if (s.includes('日常')) return t('daily');
-    if (s.includes('房租')) return t('rent');
-    if (s.includes('薪资')) return t('salary');
-    if (s.includes('采购')) return t('goods');
-    return s;
-  };
-  const trPay = (s: string) => {
-    if (s.includes('微信')) return t('payWechat');
-    if (s.includes('支付宝') || s.includes('Alipay')) return t('payAlipay');
-    if (s.includes('现金')) return t('payCash');
-    return s;
-  };
+  // i18n mapping for category & payment. Helper handles both internal keys
+  // (new data) and legacy Chinese substrings (old data, with/without emoji).
+  const trCat = (s: string) => trCategory(s);
+  const trPay = (s: string) => trPayment(s);
   const fmtExpDate = (d: string) => {
     const [y, m, day] = d.split('-');
     const l = getLang();

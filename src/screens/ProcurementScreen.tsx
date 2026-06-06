@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
+import { trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -1128,7 +1129,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 </View>
                 <View style={styles.histRow}>
                   <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
-                  <Text style={styles.histRowVal}>{batch.payment_method}</Text>
+                  <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
                 </View>
                 {batch.note ? (
                   <View style={styles.histRow}>
