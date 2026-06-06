@@ -105,12 +105,24 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
       const resp = await fetch(`/api/procurement-batches/${batch.id}/pdf`);
       if (!resp.ok) throw new Error('Download failed');
       const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `procurement_${batch.id}.pdf`; a.click();
-      URL.revokeObjectURL(url);
-      setDownloaded(true);
-      setTimeout(() => setDownloaded(false), 2000);
+      // iOS Safari 13+ has a short blob URL lifetime: the moment the
+      // download finishes, the blob: URL is invalid, so sharing the
+      // page state to WeChat hands WeChat a dead link. Instead, use
+      // the Web Share API (iOS 14+ / Android Chrome 75+) to hand the
+      // raw PDF bytes to the share sheet — WeChat receives a real
+      // PDF attachment, not a link. Fallback to opening the server
+      // URL on browsers without navigator.canShare({files}).
+      const file = new File([blob], `procurement_${batch.id}.pdf`, { type: 'application/pdf' });
+      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: `procurement_${batch.id}` });
+        setDownloaded(true);
+        setTimeout(() => setDownloaded(false), 2000);
+      } else {
+        // Fallback for desktop / older iOS: open the real server URL
+        // in a new tab. Cookie-authenticated, so Safari fetches the
+        // PDF and either downloads it or displays it inline.
+        window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');
+      }
     } catch {
       window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');
     } finally {
