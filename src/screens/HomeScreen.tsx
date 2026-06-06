@@ -80,8 +80,20 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   // by any UI; the next PRs will switch each sub-screen over one at a time.
   type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc';
   const [pageStack, setPageStack] = useState<SubPage[]>([]);
-  const pushPage = (p: SubPage) => setPageStack(s => [...s, p]);
-  const popPage = () => setPageStack(s => s.slice(0, -1));
+  // Animation coordination: when popping, mark the top as 'removing' so
+  // its SlideScreen's visible flips to false and its 250ms exit animation
+  // plays. After the animation, the actual stack pop happens.
+  const [removing, setRemoving] = useState<SubPage | null>(null);
+  const pushPage = (p: SubPage) => setPageStack(s => s.includes(p) ? s : [...s, p]);
+  const popPage = () => {
+    if (pageStack.length === 0) return;
+    const top = pageStack[pageStack.length - 1];
+    setRemoving(top);
+    setTimeout(() => {
+      setPageStack(s => s.slice(0, -1));
+      setRemoving(null);
+    }, 280);
+  };
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
@@ -517,7 +529,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
 
       {/* History screen overlay — renders on top of background, main content hidden */}
-      <SlideScreen visible={showProfile} onClose={() => setShowProfile(false)} top={48}>
+      <SlideScreen visible={pageStack.includes('profile') && removing !== 'profile'} onClose={popPage} top={48}>
         {(onBack) => <ProfileScreen onBack={onBack} onLogout={onLogout} onLangChange={() => loadData()} onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }} />}
       </SlideScreen>
       <SlideScreen visible={showExpenseHistory} onClose={() => setShowExpenseHistory(false)}>
@@ -539,7 +551,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerInner}>
-          <TouchableOpacity onPress={() => setShowProfile(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <TouchableOpacity onPress={() => pushPage('profile')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={{ width: 32, height: 32, borderRadius: 16 }} />
             ) : (
