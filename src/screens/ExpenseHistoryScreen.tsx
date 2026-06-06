@@ -177,7 +177,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         ) : null}
         <View style={st.rowBottom}>
           <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
-          {e.note ? (
+          {e.proc_batch_number ? (
+            <Text style={st.note} numberOfLines={1}>{t('procNowBatch').replace('{n}', String(e.proc_batch_number))}</Text>
+          ) : e.note ? (
             <Text style={st.note} numberOfLines={1}>{e.note}</Text>
           ) : (
             <View style={{ flex: 1 }} />
