@@ -66,23 +66,17 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [showReconHistory, setShowReconHistory] = useState(false);
-  const [showExpenseHistory, setShowExpenseHistory] = useState(false);
-  const [showDailyHistory, setShowDailyHistory] = useState(false);
-  const [showProcDetail, setShowProcDetail] = useState(false);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
   const editProcurementRef = useRef<((batch: any) => void) | null>(null);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  // PR1 of page-stack migration: add the stack + helpers. The 5 booleans
-  // above (showProfile, showReconHistory, etc.) are still the source of
-  // truth for visibility. The stack starts empty and is currently unused
-  // by any UI; the next PRs will switch each sub-screen over one at a time.
+  // iOS-style push/pop nav: pageStack is the single source of truth for
+  // which sub-screens (profile / recon / expense / daily / proc) are
+  // currently on top of HomeScreen. pushPage() opens one with the standard
+  // 280ms slide-in; popPage() reverses it with a 250ms slide-out via the
+  // `removing` flag. The `s.includes(p) ? s : ...` guard prevents the
+  // same page from being pushed twice while it's still on the stack.
   type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc';
   const [pageStack, setPageStack] = useState<SubPage[]>([]);
-  // Animation coordination: when popping, mark the top as 'removing' so
-  // its SlideScreen's visible flips to false and its 250ms exit animation
-  // plays. After the animation, the actual stack pop happens.
   const [removing, setRemoving] = useState<SubPage | null>(null);
   const pushPage = (p: SubPage) => setPageStack(s => s.includes(p) ? s : [...s, p]);
   const popPage = () => {
@@ -92,6 +86,9 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setTimeout(() => {
       setPageStack(s => s.slice(0, -1));
       setRemoving(null);
+      // Clean up per-page payload so a fresh push of the same page
+      // never sees stale data from a previous open.
+      if (top === 'proc') setProcDetailBatch(null);
     }, 280);
   };
   const [last7Records, setLast7Records] = useState<any[]>([]);
@@ -532,19 +529,22 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <SlideScreen visible={pageStack.includes('profile') && removing !== 'profile'} onClose={popPage} top={48}>
         {(onBack) => <ProfileScreen onBack={onBack} onLogout={onLogout} onLangChange={() => loadData()} onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }} />}
       </SlideScreen>
-      <SlideScreen visible={showExpenseHistory} onClose={() => setShowExpenseHistory(false)}>
+      <SlideScreen visible={pageStack.includes('expense') && removing !== 'expense'} onClose={popPage}>
         {(onBack) => <ExpenseHistoryScreen onBack={onBack} />}
       </SlideScreen>
-      <SlideScreen visible={showDailyHistory} onClose={() => setShowDailyHistory(false)}>
+      <SlideScreen visible={pageStack.includes('daily') && removing !== 'daily'} onClose={popPage}>
         {(onBack) => <DailyRevenueHistory onBack={onBack} />}
       </SlideScreen>
-      <SlideScreen visible={showReconHistory} onClose={() => setShowReconHistory(false)}>
+      <SlideScreen visible={pageStack.includes('recon') && removing !== 'recon'} onClose={popPage}>
         {(onBack) => <ReconHistoryScreen onBack={onBack} />}
       </SlideScreen>
-      <SlideScreen visible={showProcDetail} onClose={() => { setShowProcDetail(false); setProcDetailBatch(null); }}>
+      <SlideScreen visible={pageStack.includes('proc') && removing !== 'proc'} onClose={popPage}>
         {(onBack) => <ProcurementDetailScreen batch={procDetailBatch} onBack={onBack} onEdit={() => {
-          setShowProcDetail(false);
-          setTimeout(() => editProcurementRef.current?.(procDetailBatch), 150);
+          // popPage triggers the 280ms slide-out; wait it out before
+          // opening ProcurementScreen's edit modal so the two animations
+          // never overlap on screen (matches iOS push/pop discipline).
+          popPage();
+          setTimeout(() => editProcurementRef.current?.(procDetailBatch), 280);
         }} />}
       </SlideScreen>
 
@@ -577,18 +577,18 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </View>
       </View>
 
-      {/* Page content — hidden when history screen is active */}
-      {!showProfile && !showExpenseHistory && !showDailyHistory && !showReconHistory && !showProcDetail && (
+      {/* Page content — hidden whenever any sub-page is on the stack */}
+      {pageStack.length === 0 && (
       <View style={styles.page}>
         {tab === 'partner' ? (
-          <PartnerScreen onBack={() => setTab('list')} onProfile={() => setShowProfile(true)} />
+          <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); setShowProcDetail(true); }} onEditBatchRef={editProcurementRef} />
+          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} onEditBatchRef={editProcurementRef} />
         ) : (
           <>
             {/* Underlying tab content */}
             {tab === 'expense' ? (
-              <ExpenseScreen onReconHistory={() => setShowReconHistory(true)} onExpenseHistory={() => setShowExpenseHistory(true)} />
+              <ExpenseScreen onReconHistory={() => pushPage('recon')} onExpenseHistory={() => pushPage('expense')} />
             ) : (
               <>
                 {/* Tab Content */}
@@ -760,7 +760,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                         <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>{t('revHistory')}</Text>
                       </View>
                       <TouchableOpacity
-                        onPress={() => { setShowDailyHistory(true); }}
+                        onPress={() => pushPage('daily')}
                         activeOpacity={0.7}
                         style={{ marginLeft: 'auto' }}
                       >
@@ -887,7 +887,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
 
       {/* Bottom Nav — hidden when history screens or cart drawer are active */}
-      {!showProfile && !showExpenseHistory && !showDailyHistory && !showReconHistory && !showProcDetail && !showCartDrawer && (
+      {pageStack.length === 0 && !showCartDrawer && (
       <View style={styles.bottomNav}>
         {([
           { id: 'expense', icon: NavIconAdd },
@@ -905,9 +905,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 Animated.spring(navScaleAnims[i], { toValue: 1, useNativeDriver: false, speed: 20, bounciness: 14 }),
               ]).start();
               setTab(id as Tab);
-              setShowReconHistory(false);
-              setShowExpenseHistory(false);
-              setShowDailyHistory(false);
+              // Switching tabs swaps the underlying page, so any open
+              // sub-page is dropped instantly (no exit animation —
+              // they're going to a different context anyway).
+              setPageStack([]);
+              setRemoving(null);
             }}
           >
             <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>
