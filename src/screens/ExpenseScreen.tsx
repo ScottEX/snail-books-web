@@ -308,7 +308,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const submitRecon = useCallback(async () => {
     if (isFuture(recDate)) { setToast(t('errDateFuture')); return; }
     try {
-      const today = new Date().toISOString().slice(0, 10); // 对账日期 = 今天
+      const today = new Date().toISOString().slice(0, 10);
       const username = getCurrentUser();
       await api.createReconciliation({
         date: today,
@@ -340,7 +340,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     toNum(jd) !== toNum(initReconValues.current.jd) ||
     toNum(tuan) !== toNum(initReconValues.current.tuan);
 
-  /* ── 模块二：平台手续费 ── */
   const now = new Date();
   const thisYear = now.getFullYear();
   const thisMonth = now.getMonth() + 1;

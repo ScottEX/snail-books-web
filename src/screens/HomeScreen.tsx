@@ -696,7 +696,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
                 <View style={{ paddingBottom: 120, paddingTop: 4 }}>
-                  {/* ── 每日营收录入卡片 ── */}
                   <View style={styles.revCard}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -851,7 +850,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                     </View>
                   </View>
 
-                  {/* ── 近7天记录 ── */}
                   <View style={{ marginTop: 20 }}>
                     <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
