@@ -1339,11 +1339,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
 
               {/* Column headers */}
-              <View style={{ flexDirection: 'row', marginBottom: 10, gap: 8, paddingHorizontal: 2 }}>
-                <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight }}></Text>
-                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feeCurrent')}</Text>
-                <Text style={{ width: 72, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeEntry')}</Text>
+              <View style={{ flexDirection: 'row', marginBottom: 10, gap: 6, paddingHorizontal: 2 }}>
+                <Text style={{ flex: 1, minWidth: 96, maxWidth: '38%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight }}></Text>
+                <Text style={{ width: 70, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feePreview')}</Text>
+                <Text style={{ width: 70, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: 66, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeEntry')}</Text>
               </View>
 
               {/* Fee rows */}
@@ -1355,16 +1355,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               ] as const).map((row) => {
                 const inputNum = toNum(row.val);
                 return (
-                  <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
-                    <Text style={{ flex: 1, maxWidth: '30%', fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }} numberOfLines={1}>{t(row.k)}</Text>
-                    <Text style={{ width: 80, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left' }}>
+                  <View key={row.k} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 6 }}>
+                    <Text style={{ flex: 1, minWidth: 96, maxWidth: '38%', fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }} numberOfLines={1}>{t(row.k)}</Text>
+                    <Text style={{ width: 70, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left' }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 80, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left' }}>
+                    <Text style={{ width: 70, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left' }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 72, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
+                      style={{ width: 66, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
                       value={row.val} onChangeText={(v: string) => row.set(fmtDecInput(v))}
                       keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub}
                     />
