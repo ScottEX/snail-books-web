@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from './api/client';
-import { getCurrentUserId } from './utils/storage';
 
 // ═══════════════════════════════════════════
 // 三方案主题色值定义
@@ -35,12 +34,7 @@ export interface Theme {
   id: string;
   name: string;
   nameZh: string;
-  nameTw: string;
-  nameEn: string;
   description: string;
-  descZh: string;
-  descTw: string;
-  descEn: string;
   colors: ThemeColors;
 }
 
@@ -49,12 +43,7 @@ const theme1: Theme = {
   id: 'burgundy-warm',
   name: 'Burgundy & Warm Sand',
   nameZh: '勃艮第红与暖沙白',
-  nameTw: '勃艮第紅與暖沙白',
-  nameEn: 'Burgundy & Warm Sand',
   description: '温润、沉稳、经典',
-  descZh: '温润、沉稳、经典',
-  descTw: '溫潤、沈穩、經典',
-  descEn: 'Warm, Steady, Classic',
   colors: {
     bg: '#F9F7F4',
     surface: '#FFFFFF',
@@ -75,12 +64,7 @@ const theme2: Theme = {
   id: 'obsidian-gold',
   name: 'Obsidian & Gold',
   nameZh: '曜石黑与流沙金',
-  nameTw: '曜石黑與流沙金',
-  nameEn: 'Obsidian & Gold',
   description: '极简、冷峻、绝对专业',
-  descZh: '极简、冷峻、绝对专业',
-  descTw: '極簡、冷峻、絕對專業',
-  descEn: 'Minimal, Crisp, Professional',
   colors: {
     bg: '#F3F4F6',
     surface: '#FFFFFF',
@@ -101,12 +85,7 @@ const theme3: Theme = {
   id: 'deep-teal',
   name: 'Deep Teal & Oat',
   nameZh: '深空青与燕麦色',
-  nameTw: '深空青與燕麥色',
-  nameEn: 'Deep Teal & Oat',
   description: '现代、清新、克制',
-  descZh: '现代、清新、克制',
-  descTw: '現代、清新、克制',
-  descEn: 'Modern, Fresh, Restrained',
   colors: {
     bg: '#F4F5F4',
     surface: '#FFFFFF',
@@ -131,9 +110,9 @@ export const THEMES: Record<string, Theme> = {
 export const DEFAULT_THEME_ID = 'burgundy-warm';
 export const THEME_STORAGE_KEY = 'snail-books-theme';
 
-export function getThemeKey(): string {
+function getThemeKey(): string {
   try {
-    const uid = getCurrentUserId();
+    const uid = localStorage.getItem('user_id');
     return uid ? `snail-books-theme-${uid}` : 'snail-books-theme';
   } catch { return 'snail-books-theme'; }
 }
@@ -207,30 +186,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
     api.saveTheme(themeId).catch(() => {});
   }, []);
 
-  // On mount, pull the current user's server-side theme preference
-  // and apply it. If not logged in yet, keep localStorage value. The
-  // mount listener fires every time App.tsx bumps appKey (i.e. on
-  // every login / logout / session-kicked), so the subtree always
-  // reflects the current user's server-side theme preference.
-  //
-  // Note: language is intentionally NOT pulled here anymore. Language
-  // is per-device (localStorage), not per-user — the user picks it on
-  // the login screen and it carries through their session and back
-  // to the login screen on logout. See i18n.tsx for the LangContext
-  // that owns the lang state, and LangProvider's setLang in
-  // LoginScreen/HomeScreen for the user-facing switcher.
+  // On mount, pull theme from server (per-user). If not logged in yet, keep localStorage value.
   useEffect(() => {
-    // CRITICAL: short-circuit when there is no user. Otherwise this
-    // useEffect would call api.getTheme() with no session, hit 401,
-    // and the 401 handler would dispatch 'app:user-change' again,
-    // which would bump appKey and re-mount us — creating the
-    // infinite-remount loop that made the login screen flicker. By
-    // returning early here, the 401 still clears the user (and the
-    // SessionKickedModal still shows) but no extra remount is
-    // triggered.
-    if (typeof localStorage === 'undefined' || !localStorage.getItem('user')) {
-      return;
-    }
     let cancelled = false;
     api.getTheme().then(resp => {
       if (cancelled) return;

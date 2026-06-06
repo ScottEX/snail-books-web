@@ -7,25 +7,12 @@ import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
-import { fmtAmtFull } from '../utils/format';
+import { fmtAmt } from '../utils/format';
 
 const PAGE_SIZE = 10;
 
 const todayStr = () => new Date().toISOString().split('T')[0];
-const defaultFromDate = () => {
-  const d = new Date();
-  d.setDate(d.getDate() - 30);
-  return d.toISOString().split('T')[0];
-};
 const isFuture = (d: string) => d > todayStr();
-// Strict calendar months between two ISO dates (YYYY-MM-DD)
-function monthsBetween(from: string, to: string): number {
-  const [fy, fm, fd] = from.split('-').map(Number);
-  const [ty, tm, td] = to.split('-').map(Number);
-  let m = (ty - fy) * 12 + (tm - fm);
-  if (td < fd) m -= 1;
-  return m;
-}
 
 function ReconEmptyIcon({ color }: { color: string }) {
   return (
@@ -55,7 +42,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [totalAll, setTotalAll] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
@@ -64,6 +50,8 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadingRef = useRef(false);
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
+  const filBillFromRef = useRef<HTMLInputElement>(null);
+  const filBillToRef = useRef<HTMLInputElement>(null);
   const filDateFromRef = useRef<HTMLInputElement>(null);
   const filDateToRef = useRef<HTMLInputElement>(null);
 
@@ -72,17 +60,25 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   const [showFilter, setShowFilter] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
-  const [filDateFrom, setFilDateFrom] = useState(defaultFromDate());
-  const [filDateTo, setFilDateTo] = useState(todayStr());
+  const [filBillFrom, setFilBillFrom] = useState('');
+  const [filBillTo, setFilBillTo] = useState('');
+  const [filDateFrom, setFilDateFrom] = useState('');
+  const [filDateTo, setFilDateTo] = useState('');
+  useEffect(() => { if (filBillFromRef.current) filBillFromRef.current.value = filBillFrom; }, [filBillFrom]);
+  useEffect(() => { if (filBillToRef.current) filBillToRef.current.value = filBillTo; }, [filBillTo]);
   useEffect(() => { if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; }, [filDateFrom]);
   useEffect(() => { if (filDateToRef.current) filDateToRef.current.value = filDateTo; }, [filDateTo]);
   const [filBy, setFilBy] = useState('');
   const [users, setUsers] = useState<{id: number; username: string}[]>([]);
   // Track applied filters (snapshot at last apply)
-  const [appliedFrom, setAppliedFrom] = useState(defaultFromDate());
-  const [appliedTo, setAppliedTo] = useState(todayStr());
+  const [appliedBillFrom, setAppliedBillFrom] = useState('');
+  const [appliedBillTo, setAppliedBillTo] = useState('');
+  const [appliedFrom, setAppliedFrom] = useState('');
+  const [appliedTo, setAppliedTo] = useState('');
   const [appliedBy, setAppliedBy] = useState('');
   const [filterDateError, setFilterDateError] = useState(0);
+  const [filBillFromKey, setFilBillFromKey] = useState(0);
+  const [filBillToKey, setFilBillToKey] = useState(0);
   const [filDateFromKey, setFilDateFromKey] = useState(0);
   const [filDateToKey, setFilDateToKey] = useState(0);
 
@@ -91,12 +87,9 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   // Date range validity — persistent hint while invalid
   const rangeInvalid = useMemo(() =>
+    (!!filBillFrom && !!filBillTo && filBillFrom > filBillTo) ||
     (!!filDateFrom && !!filDateTo && filDateFrom > filDateTo),
-    [filDateFrom, filDateTo]);
-  // 24-month max-span guard (strict calendar months)
-  const rangeTooLong = useMemo(() =>
-    (!!filDateFrom && !!filDateTo && !rangeInvalid && monthsBetween(filDateFrom, filDateTo) > 24),
-    [filDateFrom, filDateTo, rangeInvalid]);
+    [filBillFrom, filBillTo, filDateFrom, filDateTo]);
 
   // Fetch users when filter panel opens
   useEffect(() => {
@@ -108,20 +101,20 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   // Build filter params from applied values
   const getFilterParams = useCallback((): Record<string, string> => {
     const f: Record<string, string> = {};
+    if (appliedBillFrom) f.bill_date_from = appliedBillFrom;
+    if (appliedBillTo) f.bill_date_to = appliedBillTo;
     if (appliedFrom) f.date_from = appliedFrom;
     if (appliedTo) f.date_to = appliedTo;
     if (appliedBy) f.reconciled_by = appliedBy;
     return f;
-  }, [appliedFrom, appliedTo, appliedBy]);
+  }, [appliedBillFrom, appliedBillTo, appliedFrom, appliedTo, appliedBy]);
 
   const resetFilters = () => {
-    const dFrom = defaultFromDate();
-    const dTo = todayStr();
-    setFilDateFrom(dFrom);
-    setFilDateTo(dTo);
+    setFilBillFrom(''); setFilBillTo('');
+    setFilDateFrom(''); setFilDateTo('');
     setFilBy('');
-    setAppliedFrom(dFrom);
-    setAppliedTo(dTo);
+    setAppliedBillFrom(''); setAppliedBillTo('');
+    setAppliedFrom(''); setAppliedTo('');
     setAppliedBy('');
   };
 
@@ -136,7 +129,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       setRecords(prev => reset ? recs : [...prev, ...recs]);
       setPage(pg);
       setTotal(data?.total || 0);
-      setTotalAll(data?.total_all ?? data?.total ?? 0);
       setHasMore(pg < (data?.pages || 1));
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
@@ -144,7 +136,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   }, [getFilterParams]);
 
   // Trigger load when filter params change
-  const filterKey = `${appliedFrom}|${appliedTo}|${appliedBy}`;
+  const filterKey = `${appliedBillFrom}|${appliedBillTo}|${appliedFrom}|${appliedTo}|${appliedBy}`;
   useEffect(() => {
     setRecords([]);
     loadPage(1, true);
@@ -209,24 +201,24 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmtFull(r.channel_total)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.channel_total)}</Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('cardBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmtFull(r.card_balance)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.card_balance)}</Text>
           </View>
         </View>
         {/* Col 2: 当前结余 / 现金 */}
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('currentBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmtFull(r.real_total)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.real_total)}</Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('cashBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmtFull(r.cash_balance)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmt(r.cash_balance)}</Text>
           </View>
         </View>
         {/* Col 3: 账面差额 / 在途资金 */}
@@ -234,13 +226,13 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookDiff')}</Text>
             <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
-              {r.diff >= 0 ? '+' : ''}{fmtAmtFull(Math.abs(r.diff))}
+              {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
             </Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('fundsInTransit')}</Text>
-            <Text style={[st.cardPairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmtFull(r.channel_total)}</Text>
+            <Text style={[st.cardPairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmt(r.channel_total)}</Text>
           </View>
         </View>
       </View>
@@ -277,24 +269,24 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View style={st.pairCol}>
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('bookBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmtFull(r.channel_total)}</Text>
+                <Text style={st.pairVal}>{fmtAmt(r.channel_total)}</Text>
               </View>
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('cardBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmtFull(r.card_balance)}</Text>
+                <Text style={st.pairVal}>{fmtAmt(r.card_balance)}</Text>
               </View>
             </View>
             {/* Group 2: 当前结余 / 现金 */}
             <View style={st.pairCol}>
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('currentBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmtFull(r.real_total)}</Text>
+                <Text style={st.pairVal}>{fmtAmt(r.real_total)}</Text>
               </View>
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('cashBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmtFull(r.cash_balance)}</Text>
+                <Text style={st.pairVal}>{fmtAmt(r.cash_balance)}</Text>
               </View>
             </View>
             {/* Group 3: 账面差额 / 在途资金 */}
@@ -302,13 +294,13 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('bookDiff')}</Text>
                 <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
-                  {r.diff >= 0 ? '+' : ''}{fmtAmtFull(Math.abs(r.diff))}
+                  {r.diff >= 0 ? '+' : ''}{fmtAmt(Math.abs(r.diff))}
                 </Text>
               </View>
               <View style={st.pairDivider} />
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('fundsInTransit')}</Text>
-                <Text style={[st.pairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmtFull(r.channel_total)}</Text>
+                <Text style={[st.pairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmt(r.channel_total)}</Text>
               </View>
             </View>
           </View>
@@ -323,7 +315,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             ].map((ch, i) => (
               <View key={i} style={st.chanRow}>
                 <Text style={st.chanLabel}>{ch.label}</Text>
-                <Text style={st.chanVal}>{fmtAmtFull(ch.value)}</Text>
+                <Text style={st.chanVal}>{fmtAmt(ch.value)}</Text>
               </View>
             ))}
           </View>
@@ -354,7 +346,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <Text style={st.backArrow}>{'\u2039'}</Text>
           </View>
         </TouchableOpacity>
-        <Text style={st.title}>{t('reconHistory')} ({total}/{totalAll})</Text>
+        <Text style={st.title}>{t('reconHistory')} ({total})</Text>
         <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => {
             if (!showFilter) {
               filterAnim.setValue(0);
@@ -386,7 +378,32 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           <View style={st.filterContent}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
-            {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
+            <View style={st.filterField}>
+              <Text style={st.filterLabel}>{t('billDate')}</Text>
+              <View style={st.filterDateRange}>
+                <View style={st.filterDateWrap}>
+                  {filBillFrom ? (
+                    <Text style={st.filterDateText}>{fmtDate(filBillFrom)}</Text>
+                  ) : (
+                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
+                  )}
+                  <input type="date" ref={filBillFromRef} defaultValue={filBillFrom} max={todayISO} key={filBillFromKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { filBillFromRef.current!.value = filBillFrom; setFilBillFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilBillFrom(e.target.value); } }}
+                    style={st.filterDateHidden as any} />
+                </View>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
+                <View style={st.filterDateWrap}>
+                  {filBillTo ? (
+                    <Text style={st.filterDateText}>{fmtDate(filBillTo)}</Text>
+                  ) : (
+                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
+                  )}
+                  <input type="date" ref={filBillToRef} defaultValue={filBillTo} max={todayISO} key={filBillToKey}
+                    onChange={(e: any) => { if (isFuture(e.target.value)) { filBillToRef.current!.value = filBillTo; setFilBillToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilBillTo(e.target.value); } }}
+                    style={st.filterDateHidden as any} />
+                </View>
+              </View>
+            </View>
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('reconDate')}</Text>
               <View style={st.filterDateRange}>
@@ -431,15 +448,17 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[st.filterApplyBtn, (rangeInvalid || rangeTooLong) && st.filterApplyBtnDisabled]}
-                disabled={rangeInvalid || rangeTooLong}
+                style={[st.filterApplyBtn, rangeInvalid && st.filterApplyBtnDisabled]}
+                disabled={rangeInvalid}
                 onPress={() => {
+                  setAppliedBillFrom(filBillFrom);
+                  setAppliedBillTo(filBillTo);
                   setAppliedFrom(filDateFrom);
                   setAppliedTo(filDateTo);
                   setAppliedBy(filBy);
                   setShowFilter(false);
               }} activeOpacity={0.8}>
-                <Text style={[st.filterApplyBtnText, (rangeInvalid || rangeTooLong) && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
+                <Text style={[st.filterApplyBtnText, rangeInvalid && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
           </View>
