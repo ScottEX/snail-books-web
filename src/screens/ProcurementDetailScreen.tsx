@@ -116,7 +116,18 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
       //      of a real PDF attachment.
       // A preview page decouples "see the PDF" from "share/save it"
       // and gives us one consistent UX across browsers.
-      window.location.hash = `#/preview-pdf?id=${batch.id}&number=${batch.batch_number}`;
+      // Use history.pushState (not window.location.hash = '...') so the
+      // URL change does NOT fire popstate. The page's own popstate
+      // listener (HomeScreen) uses popstate as a signal to pop the
+      // current sub-page; a hash-only navigation would otherwise be
+      // interpreted as "user pressed back" and immediately slide the
+      // preview off-screen. hashchange still fires, so App.tsx picks
+      // up the new route via the dedicated hashchange listener.
+      history.pushState(
+        null,
+        '',
+        `#/preview-pdf?id=${batch.id}&number=${batch.batch_number}`,
+      );
     } catch {
       // Fallback: open the login-required PDF endpoint in a new tab
       window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');

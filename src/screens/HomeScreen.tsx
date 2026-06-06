@@ -164,10 +164,21 @@ export default function HomeScreen({
   // App.tsx owns the hash; this effect turns the prop into a push.
   // Guard: if 'pdf' is already on the stack, don't push again — the
   // user might be reloading on the same URL.
+  //
+  // The ignorePopstateUntil ref is set 500ms after a PDF push to
+  // swallow any popstate that may fire as a side effect of the hash
+  // change (Chrome sometimes fires popstate when the hash is rewritten
+  // and the page's own onPopState listener would otherwise interpret
+  // it as a "user pressed back" and pop the just-pushed PDF right
+  // back off the stack). 500ms is a safety window — by then the
+  // hashchange has settled and any real browser-back will be a new
+  // popstate long after the ignore flag has cleared.
+  const ignorePopstateUntil = useRef(0);
   useEffect(() => {
     if (previewRoute) {
       setPdfPreview(previewRoute);
       setPageStack(s => s.includes('pdf') ? s : [...s, 'pdf']);
+      ignorePopstateUntil.current = Date.now() + 500;
     }
     // When previewRoute goes null we DON'T pop here — popPage's
     // own cleanup (above) handles it via onClosePreview, which is
@@ -187,6 +198,10 @@ export default function HomeScreen({
       }
     } catch {}
     const onPopState = () => {
+      // Swallow popstates that arrive within the safety window
+      // after a programmatic PDF hash change. See the
+      // ignorePopstateUntil comment near the push effect.
+      if (Date.now() < ignorePopstateUntil.current) return;
       if (pageStackRef.current.length > 0) {
         popPage();
         // Re-push a sentinel so the next back can also be intercepted.
