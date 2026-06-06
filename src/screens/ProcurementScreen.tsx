@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
-import { trPayment } from '../i18nHelpers';
+import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -18,7 +18,7 @@ import CameraIcon from '../components/icons/CameraIcon';
 import PlusIcon from '../components/icons/PlusIcon';
 
 type SubTab = 'new' | 'history' | 'products';
-type PayMethod = '现金' | '微信' | '支付宝';
+type PayMethod = 'payCash' | 'payWechat' | 'payAlipay';
 
 interface Product { id: number; name: string; spec: string; price: number; supplier: string; note?: string; }
 interface CartItem { product: Product; quantity: number; subtotal: number; }
@@ -54,19 +54,19 @@ function CheckIcon({ color }: { color: string }) {
 }
 // Payment SVG icons — clean, modern design
 const PAY_ICONS: Record<string, (color: string) => React.ReactNode> = {
-  '现金': (color: string) => (
+  payCash: (color: string) => (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Rect x="1" y="4" width="22" height="16" rx="2" />
       <Path d="M1 10h22" />
       <Circle cx="12" cy="12" r="3" />
     </Svg>
   ),
-  '微信': (color: string) => (
+  payWechat: (color: string) => (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z" />
     </Svg>
   ),
-  '支付宝': (color: string) => (
+  payAlipay: (color: string) => (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       <Path d="M9 12l2 2 4-4" />
@@ -127,8 +127,8 @@ const sortByOrder = (a: string, b: string) => {
   return ai - bi;
 };
 
-const PAY_KEYS = ['现金', '微信', '支付宝'] as const;
-const CHIP_ICON_BG: Record<string, string> = { '微信': '#07C160', '支付宝': '#1677FF', '现金': '#333' };
+const PAY_KEYS = ['payCash', 'payWechat', 'payAlipay'] as const;
+const CHIP_ICON_BG: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
 
 // ═══════════════════════════════════════════════
 // Styles
@@ -374,7 +374,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const drawerAnim = useRef(new Animated.Value(0)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const [orderDate, setOrderDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [payMethod, setPayMethod] = useState<PayMethod>('微信');
+  const [payMethod, setPayMethod] = useState<PayMethod>('payWechat');
   const [orderNote, setOrderNote] = useState('');
   const [receipts, setReceipts] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -488,7 +488,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         setEditingBatchId(null); setEditingBatchNumber(0);
         setExistingImageUrls([]); setExistingThumbUrls([]);
         setCart({}); setReceipts([]); setOrderNote('');
-        setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('微信');
+        setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('payWechat');
       }
     });
   };
@@ -778,7 +778,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         const allImages = [...existingImageUrls, ...newImageUrls];
         const allThumbs = [...existingThumbUrls, ...newThumbUrls];
         const r = await api.updateProcurementBatch(editingBatchId, {
-          date: orderDate, payment_method: payMethod, category: t('procPurchase'),
+          date: orderDate, payment_method: payMethod, category: 'goods',
           items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
           images: allImages, thumb_images: allThumbs, note: orderNote,
         });
@@ -790,7 +790,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             setCart({}); setReceipts([]); setOrderNote('');
             setExistingImageUrls([]); setExistingThumbUrls([]);
             setEditingBatchId(null); setEditingBatchNumber(0);
-            setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('微信');
+            setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('payWechat');
             setShowDrawer(false); onDrawerClose?.();
             // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
             setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
@@ -807,7 +807,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       }
       // Create mode (default)
       const r = await api.createProcurementBatch({
-        date: orderDate, payment_method: payMethod, category: t('procPurchase'),
+        date: orderDate, payment_method: payMethod, category: 'goods',
         items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
         images: newImageUrls, thumb_images: newThumbUrls, note: orderNote,
       });
@@ -839,7 +839,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setEditingBatchId(batch.id);
     setEditingBatchNumber(batch.batch_number);
     setOrderDate(batch.date);
-    setPayMethod((batch.payment_method as PayMethod) || '微信');
+    setPayMethod((payKey(batch.payment_method) as PayMethod) || 'payWechat');
     setOrderNote(batch.note || '');
     // Rebuild cart from batch items: look up current product by id
     const newCart: Record<number, number> = {};
@@ -900,7 +900,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   };
 
   const resetOrder = () => {
-    closeSlideModal(() => { setShowSuccess(false); setOrderDate(todayStr()); setPayMethod('微信'); setOrderNote(''); setReceipts([]); });
+    closeSlideModal(() => { setShowSuccess(false); setOrderDate(todayStr()); setPayMethod('payWechat'); setOrderNote(''); setReceipts([]); });
   };
 
   const openAddProduct = () => {
@@ -1301,7 +1301,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     })}
                   </View>
                   <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                  <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{t('procPurchase')}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{t('goods')}</Text>
                 </View>
               </View>
 
@@ -1310,8 +1310,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               <View style={styles.payRow}>
                 {PAY_KEYS.map(pm => {
                   const active = payMethod === pm;
-                  const isWechat = pm === '微信';
-                  const isAlipay = pm === '支付宝';
+                  const isWechat = pm === 'payWechat';
+                  const isAlipay = pm === 'payAlipay';
                   return (
                     <TouchableOpacity key={pm}
                       style={[styles.payChip, active && (isWechat ? styles.payChipOnWechat : isAlipay ? styles.payChipOnAlipay : styles.payChipOn)]}
@@ -1319,7 +1319,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                       <View style={[styles.chipIconCircle, active && { backgroundColor: CHIP_ICON_BG[pm] }]}>
                         {PAY_ICONS[pm](active ? c.surface : c.textSub)}
                       </View>
-                      <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{pm}</Text>
+                      <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{t(pm as any)}</Text>
                     </TouchableOpacity>
                   );
                 })}

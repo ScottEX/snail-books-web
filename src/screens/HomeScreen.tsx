@@ -248,9 +248,11 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setRevDateErr(0);
   }, [revDate]);
 
-  const INCOME_CATS = ['🍜 堂食','🛵 美团外卖','🛵 饿了吗外卖','🎫 美团团购','📦 京东','🔧 其他收入'];
-  const EXPENSE_CATS = ['📦 原材料进货','🏠 房租','⚡ 水电煤气','👨‍🍳 人工工资','🔧 设备/工具','🏗️ 装修','📋 培训/证件','🧹 卫生/清洁','🧻 餐具/纸巾','📦 包装/打包','📢 广告/推广','💊 杂项/烟酒','📝 其他'];
-  const cats = { income: INCOME_CATS, expense: EXPENSE_CATS };
+  // Category internal keys (DB stores these now; helper trCategory handles
+  // translation). Currently unused — the Quick-Add form is rendered in
+  // ExpenseScreen — but kept as the canonical key list for the home tab.
+  const INCOME_CAT_KEYS = ['dineIn','meituan','eleme','meituanTuan','jd','otherIncome'] as const;
+  const EXPENSE_CAT_KEYS = ['materials','rent','utilities','wages','tools','renovation','training','cleaning','tableware','packaging','advertising','misc','other'] as const;
 
   // Daily revenue helpers
   const loadDailyRevs = useCallback(async (p = 1, yr?: number, mo?: number) => {

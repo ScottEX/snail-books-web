@@ -412,8 +412,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [expDate, setExpDate] = useState(todayStr());
   const [expDateErr, setExpDateErr] = useState(0);
   const [expAmount, setExpAmount] = useState('');
-  const [expCategory, setExpCategory] = useState('日常');
-  const [payMethod, setPayMethod] = useState('微信');
+  const [expCategory, setExpCategory] = useState('daily');
+  const [payMethod, setPayMethod] = useState('payWechat');
   const [expNote, setExpNote] = useState('');
   const [expImages, setExpImages] = useState<File[]>([]);
   const [uploadingImg, setUploadingImg] = useState(false);
@@ -555,8 +555,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       });
       clearUrlCache();
       setExpAmount('');
-      setExpCategory('日常');
-      setPayMethod('微信');
+      setExpCategory('daily');
+      setPayMethod('payWechat');
       setExpNote('');
       setExpDate(todayStr());
       setExpImages([]);
@@ -1079,21 +1079,22 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <Text style={st.catSectionTitle}>{t('expenseCategory')}</Text>
               <View style={st.catGridWide}>
                 {(() => {
+                  // Internal keys: 'daily' | 'rent' | 'salary' | 'goods'
+                  // These ARE the i18n keys (key === display key), so no map needed.
                   const icons: Record<string, React.ReactElement> = {
-                    '日常': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2l-2-3H9L7 7H5a2 2 0 00-2 2z"/><Path d="M16 12a4 4 0 11-8 0"/></Svg>,
-                    '房租': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 21h18"/><Path d="M3 10l9-7 9 7"/><Path d="M5 12v7h4v-4h6v4h4v-7"/></Svg>,
-                    '薪资': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="9"/><Path d="M14 8h-3.5a2 2 0 000 4h1a2 2 0 010 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
-                    '采购': <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 7l-3-4H7L4 7v12a2 2 0 002 2h12a2 2 0 002-2V7z"/><Path d="M4 7h16"/><Path d="M9 12h6"/><Path d="M12 9v6"/></Svg>,
+                    daily: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2l-2-3H9L7 7H5a2 2 0 00-2 2z"/><Path d="M16 12a4 4 0 11-8 0"/></Svg>,
+                    rent: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 21h18"/><Path d="M3 10l9-7 9 7"/><Path d="M5 12v7h4v-4h6v4h4v-7"/></Svg>,
+                    salary: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="9"/><Path d="M14 8h-3.5a2 2 0 000 4h1a2 2 0 010 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
+                    goods: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 7l-3-4H7L4 7v12a2 2 0 002 2h12a2 2 0 002-2V7z"/><Path d="M4 7h16"/><Path d="M9 12h6"/><Path d="M12 9v6"/></Svg>,
                   };
-                  const keys: Record<string, string> = { '日常': 'daily', '房租': 'rent', '薪资': 'salary', '采购': 'goods' };
-                  const cats = ['日常', '房租', '薪资', '采购'] as const;
+                  const cats = ['daily', 'rent', 'salary', 'goods'] as const;
                   const mkChip = (cat: string) => {
                     const active = expCategory === cat;
                     return (
                       <TouchableOpacity key={cat} style={[st.catChip, active && st.catChipActive]}
                         onPress={() => setExpCategory(cat)} activeOpacity={0.7}>
                         <View style={[st.chipIconCircle, active && st.chipIconCircleActive]}>{icons[cat]}</View>
-                        <Text style={[st.catChipText, active && st.catChipTextActive]} numberOfLines={1}>{t(keys[cat] as any)}</Text>
+                        <Text style={[st.catChipText, active && st.catChipTextActive]} numberOfLines={1}>{t(cat as any)}</Text>
                       </TouchableOpacity>
                     );
                   };
@@ -1109,17 +1110,17 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
               <View style={st.payGrid}>
                 {(() => {
+                  // Internal keys: 'payCash' | 'payWechat' | 'payAlipay'
                   const payIcons: Record<string, (color: string) => React.ReactNode> = {
-                    '现金': (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
-                    '微信': (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
-                    '支付宝': (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
+                    payCash: (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
+                    payWechat: (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
+                    payAlipay: (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
                   };
-                  const chipIconBg: Record<string, string> = { '微信': '#07C160', '支付宝': '#1677FF', '现金': '#333' };
-                  const keyMap: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
-                  return (['现金', '微信', '支付宝'] as const).map((m) => {
+                  const chipIconBg: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
+                  return (['payCash', 'payWechat', 'payAlipay'] as const).map((m) => {
                     const active = payMethod === m;
-                    const isWechat = m === '微信';
-                    const isAlipay = m === '支付宝';
+                    const isWechat = m === 'payWechat';
+                    const isAlipay = m === 'payAlipay';
                     return (
                       <TouchableOpacity key={m}
                         style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : isAlipay ? st.payChipActiveAlipay : st.payChipActive)]}
@@ -1127,7 +1128,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         <View style={[st.chipIconCircle, active && { backgroundColor: chipIconBg[m] }]}>
                           {payIcons[m](active ? colors.surface : colors.textSub)}
                         </View>
-                        <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(keyMap[m] as any)}</Text>
+                        <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(m as any)}</Text>
                       </TouchableOpacity>
                     );
                   });
