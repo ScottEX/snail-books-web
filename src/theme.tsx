@@ -129,7 +129,6 @@ export const THEMES: Record<string, Theme> = {
 };
 
 export const DEFAULT_THEME_ID = 'burgundy-warm';
-export const THEME_STORAGE_KEY = 'snail-books-theme';
 
 export function getThemeKey(): string {
   try {
@@ -153,12 +152,6 @@ export function withAlpha(hex: string, alpha: number): string {
 // ═══════════════════════════════════════════
 // 排版变量（所有主题通用，不随主题切换）
 // ═══════════════════════════════════════════
-
-export interface FontToken {
-  size: number;
-  weight: '300' | '400' | '500' | '600' | '700' | '800';
-  color: 'textMain' | 'textSub';
-}
 
 export const FONTS = {
   h1:       { size: 24, weight: '600' as const, color: 'textMain' as const },
