@@ -82,12 +82,39 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   // The `s.includes(p) ? s : ...` guard prevents pushing the same
   // page twice while it's still on the stack.
   type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc';
-  const [pageStack, setPageStack] = useState<SubPage[]>([]);
+  // Hydrate pageStack from history.state so a refresh lands the user
+  // back on the same sub-page they were viewing. Fall back to [] for
+  // a cold load (state is null) or a hostile/missing history.state.
+  const [pageStack, setPageStack] = useState<SubPage[]>(() => {
+    try {
+      const s = (history.state as any)?.stack;
+      return Array.isArray(s) ? (s as SubPage[]) : [];
+    } catch { return []; }
+  });
+  // Mirror of pageStack for synchronous reads inside the popstate
+  // listener and popPage itself. The closure values from useState
+  // would be stale when popstate fires back-to-back in <280ms.
+  const pageStackRef = useRef<SubPage[]>([]);
+  useEffect(() => { pageStackRef.current = pageStack; }, [pageStack]);
+  // Persist every change to pageStack back into history.state so a
+  // refresh restores the same sub-page. replaceState (not pushState)
+  // — we don't want each push to add a new history entry; the
+  // popstate listener + the one sentinel entry on mount is enough.
+  useEffect(() => {
+    try {
+      history.replaceState(
+        { app: 'snail-books', stack: pageStack },
+        '',
+        location.href,
+      );
+    } catch {}
+  }, [pageStack]);
   const [removing, setRemoving] = useState<SubPage | null>(null);
   const pushPage = (p: SubPage) => setPageStack(s => s.includes(p) ? s : [...s, p]);
   const popPage = () => {
-    if (pageStack.length === 0) return;
-    const top = pageStack[pageStack.length - 1];
+    const stack = pageStackRef.current;
+    if (stack.length === 0) return;
+    const top = stack[stack.length - 1];
     setRemoving(top);
     setTimeout(() => {
       setPageStack(s => s.slice(0, -1));
@@ -97,6 +124,35 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       if (top === 'proc') setProcDetailBatch(null);
     }, 280);
   };
+  // Browser back / iOS swipe-back: when a sub-page is on the stack,
+  // pop it (iOS-style "back one level" semantics). When the stack
+  // is empty, the back gesture closes the app as usual.
+  useEffect(() => {
+    // Push a sentinel state on mount so the FIRST back press triggers
+    // popstate (otherwise the browser would just exit the SPA).
+    try {
+      if (history.state === null || (history.state as any)?.app !== 'snail-books') {
+        history.pushState({ app: 'snail-books' }, '', location.href);
+      }
+    } catch {}
+    const onPopState = () => {
+      if (pageStackRef.current.length > 0) {
+        popPage();
+        // Re-push a sentinel so the next back can also be intercepted.
+        // Defer one tick so popPage's setState can flush first.
+        setTimeout(() => {
+          try {
+            history.pushState({ app: 'snail-books' }, '', location.href);
+          } catch {}
+        }, 0);
+      }
+      // Stack empty → let the browser handle the back (exit / navigate).
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+    // popPage is stable (reads pageStackRef, which is the ref we just made).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
@@ -526,35 +582,70 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const styles = useMemo(() => getStyles(colors), [colors]);
   const usr = useMemo(() => getCurrentUser() || '用户', []);
 
+  // Renders the body of a sub-page inside a SlideScreen. Adding a new
+  // sub-page means: add a case here + add a push site (call pushPage).
+  // No new <SlideScreen> block, no z-index math, no render-prop wiring.
+  const renderSubPage = (p: SubPage) => (onBack: () => void) => {
+    switch (p) {
+      case 'profile':
+        return (
+          <ProfileScreen
+            onBack={onBack}
+            onLogout={onLogout}
+            onLangChange={() => loadData()}
+            onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
+          />
+        );
+      case 'expense':
+        return <ExpenseHistoryScreen onBack={onBack} />;
+      case 'daily':
+        return <DailyRevenueHistory onBack={onBack} />;
+      case 'recon':
+        return <ReconHistoryScreen onBack={onBack} />;
+      case 'proc':
+        return (
+          <ProcurementDetailScreen
+            batch={procDetailBatch}
+            onBack={onBack}
+            onEdit={() => {
+              // popPage triggers the 280ms slide-out; the new
+              // ProcurementScreen instance (which mounts when pageStack
+              // flips empty) will pick up pendingEditBatch via its
+              // useEffect and call its own openEditBatch — setState
+              // lands on a live component, no stale ref.
+              popPage();
+              setPendingEditBatch(procDetailBatch);
+            }}
+          />
+        );
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Background */}
       <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
 
-      {/* History screen overlay — renders on top of background, main content hidden */}
-      <SlideScreen visible={pageStack.includes('profile') && removing !== 'profile'} onClose={popPage} top={48}>
-        {(onBack) => <ProfileScreen onBack={onBack} onLogout={onLogout} onLangChange={() => loadData()} onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }} />}
-      </SlideScreen>
-      <SlideScreen visible={pageStack.includes('expense') && removing !== 'expense'} onClose={popPage}>
-        {(onBack) => <ExpenseHistoryScreen onBack={onBack} />}
-      </SlideScreen>
-      <SlideScreen visible={pageStack.includes('daily') && removing !== 'daily'} onClose={popPage}>
-        {(onBack) => <DailyRevenueHistory onBack={onBack} />}
-      </SlideScreen>
-      <SlideScreen visible={pageStack.includes('recon') && removing !== 'recon'} onClose={popPage}>
-        {(onBack) => <ReconHistoryScreen onBack={onBack} />}
-      </SlideScreen>
-      <SlideScreen visible={pageStack.includes('proc') && removing !== 'proc'} onClose={popPage}>
-        {(onBack) => <ProcurementDetailScreen batch={procDetailBatch} onBack={onBack} onEdit={() => {
-          // popPage triggers the 280ms slide-out; the new
-          // ProcurementScreen instance (which mounts when pageStack
-          // flips empty) will pick up pendingEditBatch via its
-          // useEffect and call its own openEditBatch — setState
-          // lands on a live component, no stale ref.
-          popPage();
-          setPendingEditBatch(procDetailBatch);
-        }} />}
-      </SlideScreen>
+      {/* Sub-page stack — iOS push/pop with z-index keyed to stack
+          position so the top of the stack always covers what's below.
+          Rendered as a single .map() over pageStack rather than 5
+          hand-written SlideScreens: adding a new sub-page is now one
+          switch case + one push site, not a new <SlideScreen> block. */}
+      {pageStack.map((p, idx) => {
+        const isTop = idx === pageStack.length - 1;
+        return (
+          <SlideScreen
+            key={p}
+            visible={removing !== p}
+            onClose={popPage}
+            stackIndex={idx}
+            isTop={isTop}
+            top={p === 'profile' ? 48 : 0}
+          >
+            {renderSubPage(p)}
+          </SlideScreen>
+        );
+      })}
 
       {/* Header */}
       <View style={styles.header}>
