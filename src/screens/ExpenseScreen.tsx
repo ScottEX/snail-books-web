@@ -392,7 +392,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         year: feeMonth.year, month: feeMonth.month,
         entry_date: feeEntryDate,
         meituan_cashier: mc, meituan_waimai: mw,
-        eleme_waimai: ew, meituan_tuan: mt,
+        shangou_waimai: ew, meituan_tuan: mt,
       });
       if (r?.status === 'ok') {
         setFeeData(r?.data);
@@ -567,9 +567,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   /* ── 卡片摘要数据 ── */
   const feeTotal = feeMonth === 'all'
-    ? allFees.reduce((sum: number, f: any) => sum + (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0), 0)
+    ? allFees.reduce((sum: number, f: any) => sum + (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0), 0)
     : feeData
-    ? ((feeData.meituan_cashier || 0) + (feeData.meituan_waimai || 0) + (feeData.eleme_waimai || 0) + (feeData.meituan_tuan || 0))
+    ? ((feeData.meituan_cashier || 0) + (feeData.meituan_waimai || 0) + (feeData.shangou_waimai || 0) + (feeData.meituan_tuan || 0))
     : 0;
   const lang = getLang();
   const tabCards = useMemo(() => [
@@ -1036,7 +1036,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {([
                 { k: 'meituanCashier', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_cashier || 0), 0) : (feeData?.meituan_cashier || 0), color: colors.info },
                 { k: 'meituanWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_waimai || 0), 0) : (feeData?.meituan_waimai || 0), color: colors.warning },
-                { k: 'shangouWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.eleme_waimai || 0), 0) : (feeData?.eleme_waimai || 0), color: colors.info },
+                { k: 'shangouWaimai', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.shangou_waimai || 0), 0) : (feeData?.shangou_waimai || 0), color: colors.info },
                 { k: 'meituanTuan', v: feeMonth === 'all' ? allFees.reduce((s: number, f: any) => s + (f.meituan_tuan || 0), 0) : (feeData?.meituan_tuan || 0), color: colors.success },
               ] as const).map((p) => (
                 <View key={p.k} style={{ flex: 1, minWidth: '45%', backgroundColor: colors.bg, borderRadius: 10, padding: 10 }}>
@@ -1350,7 +1350,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {([
                 { k: 'meituanCashier', cur: feeData?.meituan_cashier || 0, val: feeMc, set: setFeeMc },
                 { k: 'meituanWaimai', cur: feeData?.meituan_waimai || 0, val: feeMw, set: setFeeMw },
-                { k: 'shangouWaimai', cur: feeData?.eleme_waimai || 0, val: feeEw, set: setFeeEw },
+                { k: 'shangouWaimai', cur: feeData?.shangou_waimai || 0, val: feeEw, set: setFeeEw },
                 { k: 'meituanTuan', cur: feeData?.meituan_tuan || 0, val: feeMt, set: setFeeMt },
               ] as const).map((row) => {
                 const inputNum = toNum(row.val);
@@ -1426,11 +1426,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             </View>
             <ScrollView style={{ flex: 1, paddingHorizontal: 12, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
               {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
-                const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.eleme_waimai || 0) + (f.meituan_tuan || 0);
+                const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
                   { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: colors.info },
                   { label: t('meituanWaimai'), value: f.meituan_waimai || 0, color: colors.warning },
-                  { label: t('shangouWaimai'), value: f.eleme_waimai || 0, color: colors.info },
+                  { label: t('shangouWaimai'), value: f.shangou_waimai || 0, color: colors.info },
                   { label: t('meituanTuan'), value: f.meituan_tuan || 0, color: colors.success },
                 ];
                 return (
