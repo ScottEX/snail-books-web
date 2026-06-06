@@ -1,5 +1,4 @@
 import { getLang } from '../i18n';
-import { getCurrentUser } from '../utils/storage';
 
 // ── Session-kicked event bus ──
 // The api layer is not a React component, so it cannot render a modal directly.
@@ -26,27 +25,9 @@ function getApiBase(): string {
 
 const API_BASE = getApiBase();
 
-// ── Idle timeout: 2 hours no API call → redirect to login ──
-const IDLE_MS = 120 * 60_000; // 120 minutes = 2 hours
-let lastActivity = Date.now();
-let idleTimer: ReturnType<typeof setInterval> | null = null;
-
-function startIdleTimer() {
-  if (idleTimer) return;
-  idleTimer = setInterval(() => {
-    // Only check when user is logged in (has user in localStorage)
-    if (!getCurrentUser()) return;
-    if (Date.now() - lastActivity > IDLE_MS) {
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-  }, 10_000); // check every 10s
-}
-startIdleTimer();
-
-function bumpActivity() {
-  lastActivity = Date.now();
-}
+// Session expiration: 100% backend-driven. When user_sessions.expires_at passes
+// (or session_id gets revoked by another device via SSO), the next API call
+// returns 401 and authFetch below redirects to /login. No frontend timer needed.
 
 function headers(): Record<string, string> {
   const h: Record<string, string> = {
@@ -103,13 +84,11 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     } catch {}
     throw new Error(msg);
   }
-  bumpActivity();
   return resp.json();
 }
 
 export const api = {
   login: (username: string, password: string, remember = false) => {
-    bumpActivity();
     return fetch(API_BASE + '/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Lang': getLang() },
@@ -191,7 +170,6 @@ export const api = {
 
   // Expense image upload — returns { images: [...], thumb_images: [...], has_thumbs: bool }
   uploadExpenseImages: async (files: File[]) => {
-    bumpActivity();
     const form = new FormData();
     files.forEach(f => form.append('files', f));
     const resp = await fetch(API_BASE + '/api/expenses/upload-images', {
@@ -208,7 +186,6 @@ export const api = {
       throw new Error('Unauthorized');
     }
     if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
-    bumpActivity();
     const data = await resp.json();
     return data as { status: 'ok'; images: string[]; thumb_images: string[]; has_thumbs: boolean };
   },
@@ -222,7 +199,6 @@ export const api = {
   // Background image
   getBackground: () => authFetch('/api/settings/background'),
   uploadBackground: async (file: File) => {
-    bumpActivity();
     const form = new FormData();
     form.append('file', file);
     const resp = await fetch(API_BASE + '/api/settings/background', {
@@ -238,7 +214,6 @@ export const api = {
 
   // Avatar
   uploadAvatar: async (form: FormData) => {
-    bumpActivity();
     const resp = await fetch(API_BASE + '/api/users/avatar', {
       method: 'POST',
       headers: headers(),
@@ -252,7 +227,6 @@ export const api = {
   // Profile cover
   getProfileCover: () => authFetch('/api/profile/cover'),
   uploadProfileCover: async (file: File) => {
-    bumpActivity();
     const form = new FormData();
     form.append('file', file);
     const resp = await fetch(API_BASE + '/api/profile/cover', {
@@ -261,7 +235,6 @@ export const api = {
       body: form,
     });
     if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
-    bumpActivity();
     return resp.json();
   },
   resetProfileCover: () => authFetch('/api/profile/cover', { method: 'DELETE' }),
