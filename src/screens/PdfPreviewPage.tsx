@@ -9,6 +9,7 @@ import { FONTS } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
 import BackArrow from '../components/icons/BackArrow';
+import { historyHeader } from '../sharedStyles';
 
 interface Props {
   batchId: number;
@@ -218,23 +219,24 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   return (
     <View style={styles.container}>
-      {/* Top bar: back + title (frosted glass, matches HomeScreen header) */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.7}>
-          <BackArrow color={colors.textMain} />
+      {/* Top bar: back + title + share (frosted glass header, matches ProcurementDetailScreen) */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+          <View style={styles.backBtn}>
+            <BackArrow color={colors.textMain} />
+          </View>
         </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.title} numberOfLines={1}>
-            {t('procPdfTitle').replace('{n}', String(batchNumber))}
-          </Text>
-        </View>
+        <Text style={styles.title} numberOfLines={1}>
+          {t('procPdfTitle').replace('{n}', String(batchNumber))}
+        </Text>
         <TouchableOpacity
           onPress={() => setShareSheetOpen(true)}
-          style={styles.shareBtn}
           activeOpacity={0.7}
           disabled={!tokenUrl}
         >
-          <ShareIconSmall color={colors.textMain} />
+          <View style={[styles.shareBtn, !tokenUrl && styles.shareBtnDisabled]}>
+            <ShareIconSmall color={colors.textMain} />
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -358,37 +360,35 @@ function ShareAction({
   );
 }
 
-const getStyles = (c: ThemeColors) => StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: c.bg,
-    zIndex: 200,
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    paddingTop: Platform.OS === 'web' ? 10 : 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: withAlpha(c.textMain, 0.08),
-    gap: 8,
-  },
-  backBtn: { padding: 6 },
-  title: {
-    fontSize: FONTS.h2.size,
-    fontWeight: FONTS.h2.weight,
-    color: c.textMain,
-  },
-  shareBtn: {
-    padding: 6,
-    borderRadius: 18,
-  },
-  viewer: {
-    flex: 1,
-    backgroundColor: c.bg,
-  },
+const getStyles = (c: ThemeColors) => {
+  const hdr = historyHeader(c);
+  return StyleSheet.create({
+    container: {
+      position: 'absolute',
+      top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: c.bg,
+      zIndex: 200,
+    },
+    ...hdr,
+    // Override title to match ProcurementDetailScreen's plain title (no flex wrap)
+    title: {
+      ...hdr.title,
+    },
+    // Right-side share button — 44×44 frosted glass circle, mirrors backBtn
+    shareBtn: {
+      width: 44, height: 44, borderRadius: 22,
+      backgroundColor: withAlpha(c.bg, 0.30),
+      justifyContent: 'center' as const, alignItems: 'center' as const,
+      // @ts-ignore
+      backdropFilter: 'saturate(200%) blur(30px)',
+      borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
+    },
+    shareBtnDisabled: { opacity: 0.4 },
+    viewer: {
+      flex: 1,
+      backgroundColor: c.bg,
+      marginTop: 100, // space for glass header + clearance (matches ProcurementDetailScreen)
+    },
   iframe: {
     width: '100%',
     height: '100%',
@@ -480,3 +480,4 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     overflow: 'hidden',
   },
 });
+};
