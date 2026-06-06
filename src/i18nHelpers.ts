@@ -9,7 +9,7 @@
 //
 //     1. Forms now store INTERNAL KEYS (see i18n.tsx for the canonical set):
 //        expense cats: daily/rent/salary/goods/wages
-//        income cats: dineIn/meituan/eleme/meituanTuan/jd/otherIncome
+//        income cats: dineIn/meituan/meituanTuan/jd
 //        payment methods: payCash/payWechat/payAlipay
 //        transaction type: income/expense
 //
@@ -34,7 +34,7 @@ const CAT_KEYS = new Set<string>([
   // expense
   'daily', 'rent', 'salary', 'goods', 'wages',
   // income
-  'dineIn', 'meituan', 'eleme', 'meituanTuan', 'jd', 'otherIncome',
+  'dineIn', 'meituan', 'meituanTuan', 'jd',
 ]);
 
 const PAY_KEYS = new Set<string>(['payCash', 'payWechat', 'payAlipay']);
@@ -44,9 +44,7 @@ const PAY_KEYS = new Set<string>(['payCash', 'payWechat', 'payAlipay']);
 // Order matters: more specific (longer) keys first to win substring matches.
 const LEGACY_CAT_TO_KEY: Array<[string, string]> = [
   // income (long, distinctive substrings)
-  ['其他收入', 'otherIncome'],
   ['美团团购', 'meituanTuan'],
-  ['饿了吗外卖', 'eleme'],
   ['美团外卖', 'meituan'],
   // expense
   ['日常', 'daily'],

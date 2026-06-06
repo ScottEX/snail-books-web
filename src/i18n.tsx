@@ -191,9 +191,6 @@ const I18N: Record<string, Record<string, string>> = {
     flashSale: '闪购',
     tuan: '团购',
     jd: '京东',
-    // Income categories — internal keys (DB stores these now)
-    eleme: '饿了吗外卖',
-    otherIncome: '其他收入',
     reconciledBy: '对账人',
     filledBy: '填写人',
     filter: '筛选',
@@ -573,9 +570,6 @@ const I18N: Record<string, Record<string, string>> = {
     flashSale: '閃購',
     tuan: '團購',
     jd: '京東',
-    // Income categories — internal keys (DB stores these now)
-    eleme: '餓了嗎外賣',
-    otherIncome: '其他收入',
     reconciledBy: '對賬人',
     filledBy: '填寫人',
     filter: '篩選',
@@ -955,9 +949,6 @@ const I18N: Record<string, Record<string, string>> = {
     flashSale: 'Flash Sale',
     tuan: 'Group Buy',
     jd: 'JD.com',
-    // Income categories — internal keys (DB stores these now)
-    eleme: 'Eleme',
-    otherIncome: 'Other Income',
     reconciledBy: 'Reconciled by',
     filledBy: 'Filled by',
     filter: 'Filter',
