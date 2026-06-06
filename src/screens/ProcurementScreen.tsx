@@ -1380,19 +1380,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 </TouchableOpacity>
               </View>
 
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
-                <View style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.03) }}>
-                  <Text style={{ fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight }}>
-                    {t('procNowBatch').replace('{n}', String(editingBatchId !== null ? editingBatchNumber : stats.batch_count + 1))}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procNoteOptional')}</Text>
-                <TextInput style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' } as any}
-                  value={orderNote} onChangeText={setOrderNote} placeholder={t('procNotePlaceholder')} placeholderTextColor={c.textSub} />
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+                <Text style={[styles.sectionLabel, { marginBottom: 0, marginTop: 10 }]}>{t('procNoteOptional')}</Text>
+                <TextInput style={{ flex: 1, height: 70, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none', textAlignVertical: 'top' } as any}
+                  value={orderNote} onChangeText={setOrderNote} placeholder={t('procNotePlaceholder')} placeholderTextColor={c.textSub} multiline />
               </View>
 
               {/* Total + Submit moved to drawer footer */}
