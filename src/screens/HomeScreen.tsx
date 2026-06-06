@@ -248,12 +248,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     setRevDateErr(0);
   }, [revDate]);
 
-  // Category internal keys (DB stores these now; helper trCategory handles
-  // translation). Currently unused — the Quick-Add form is rendered in
-  // ExpenseScreen — but kept as the canonical key list for the home tab.
-  const INCOME_CAT_KEYS = ['dineIn','meituan','eleme','meituanTuan','jd','otherIncome'] as const;
-  const EXPENSE_CAT_KEYS = ['materials','rent','utilities','wages','tools','renovation','training','cleaning','tableware','packaging','advertising','misc','other'] as const;
-
   // Daily revenue helpers
   const loadDailyRevs = useCallback(async (p = 1, yr?: number, mo?: number) => {
     setRevLoading(true);
