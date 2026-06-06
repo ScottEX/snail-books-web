@@ -370,24 +370,6 @@ const getStyles = (c: ThemeColors) => {
       zIndex: 200,
     },
     ...hdr,
-    // Override header for PDF preview: tint + extend to top:0 to cover the
-    // status bar. The shared 'transparent' + backdrop-filter only reads as
-    // "frosted glass" when there's textured content behind (e.g. the detail
-    // page sits over HomeScreen's card list). Here the header sits over a
-    // uniform c.bg + a white PDF iframe, so the blur has nothing to show —
-    // giving the entire top area a "all white" look. A semi-transparent tint
-    // restores the glass-card feel.
-    header: {
-      ...hdr.header,
-      top: 0,
-      paddingTop: 56, // 36 (status bar clearance) + 20 (original padding)
-      backgroundColor: withAlpha(c.bg, 0.7),
-      borderBottomColor: 'rgba(0,0,0,0.08)',
-    },
-    // Override title to match ProcurementDetailScreen's plain title (no flex wrap)
-    title: {
-      ...hdr.title,
-    },
     // Right-side share button — 44×44 frosted glass circle, mirrors backBtn
     shareBtn: {
       width: 44, height: 44, borderRadius: 22,
