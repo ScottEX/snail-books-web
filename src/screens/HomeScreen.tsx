@@ -74,6 +74,14 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const editProcurementRef = useRef<((batch: any) => void) | null>(null);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  // PR1 of page-stack migration: add the stack + helpers. The 5 booleans
+  // above (showProfile, showReconHistory, etc.) are still the source of
+  // truth for visibility. The stack starts empty and is currently unused
+  // by any UI; the next PRs will switch each sub-screen over one at a time.
+  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc';
+  const [pageStack, setPageStack] = useState<SubPage[]>([]);
+  const pushPage = (p: SubPage) => setPageStack(s => [...s, p]);
+  const popPage = () => setPageStack(s => s.slice(0, -1));
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
