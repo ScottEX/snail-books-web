@@ -95,8 +95,8 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .viewport{position:fixed;inset:0;padding-top:${NAV_H}px;padding-bottom:${TOOLBAR_H}px;padding-left:env(safe-area-inset-left,0);padding-right:env(safe-area-inset-right,0);overflow:clip;background:var(--bg)}
 .viewport-inner{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center;overflow:visible;position:relative;cursor:grab}
 .viewport-inner.grabbing{cursor:grabbing}
-.doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0;top:12px;touch-action:none;user-select:none;left:50%;width:calc(100% - 16px);max-width:600px}
-.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);width:100%;padding:28px 20px 36px}
+.doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
+.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:28px 24px 36px}
 .doc-brand{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e8e4de}
 .doc-brand-name{font-size:13px;letter-spacing:.35em;color:#333;font-weight:500;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
 .doc-brand-sub{font-size:9px;letter-spacing:.18em;color:#aaa;font-family:'DM Mono',monospace}
@@ -318,8 +318,8 @@ function PortalContent({
     if (!vp || !sheet) return;
     const paper = sheet.querySelector('.doc-paper') as HTMLElement;
     if (!paper) return;
-    const dw = paper.offsetWidth * zi.scale;
-    const dh = paper.offsetHeight * zi.scale;
+    const dw = (paper.offsetWidth + 24) * zi.scale;
+    const dh = (paper.offsetHeight + 24) * zi.scale;
     zi.maxTxCache = Math.max(0, (dw - vp.clientWidth) / 2);
     zi.maxTyCache = Math.max(0, (dh - vp.clientHeight) / 2 + 20);
   }, []);
@@ -340,14 +340,19 @@ function PortalContent({
     zi.zoomTimer = setTimeout(() => zid.classList.remove('show'), 1500);
   }, []);
 
-  // ── Init zoom — paper fills width via CSS, just set initial state
+  // ── Init zoom — fit paper to viewport width (matching pdf-viewer.html)
   const initZoom = useCallback(() => {
+    const vp = vpInnerRef.current;
     const sheet = sheetRef.current;
     const zi = zoomRef.current;
-    if (!sheet) return false;
+    if (!vp || !sheet) return false;
     const paper = sheet.querySelector('.doc-paper') as HTMLElement;
-    if (!paper || !paper.offsetWidth) return false;
-    zi.scale = 1;
+    if (!paper) return false;
+    const vw = vp.clientWidth;
+    if (!vw || vw < 100) return false;
+    const docW = paper.offsetWidth + 24;
+    // Fit paper width to viewport (like opening a PDF in browser)
+    zi.scale = Math.min(1, vw / docW);
     zi.tx = 0;
     zi.ty = 0;
     recalcBounds();
