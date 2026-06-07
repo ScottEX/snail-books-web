@@ -22,6 +22,7 @@ import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
 import DailyRevenuePanel from './home/DailyRevenuePanel';
+import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
@@ -232,6 +233,11 @@ export default function HomeScreen({
       return saved !== null ? parseFloat(saved) : 0.5;
     } catch { return 0.5; }
   });
+
+  // ── 收支总览数据（图表 Tab）──
+  const [businessSummary, setBusinessSummary] = useState<any>({});
+  const [chartExpenses, setChartExpenses] = useState<any[]>([]);
+  const [chartFeeTotal, setChartFeeTotal] = useState(0);
   // Background image crop moved to shared BgCropModal component.
 
   const revForm = useDailyRevenueForm({
@@ -349,6 +355,53 @@ export default function HomeScreen({
     if (tab === 'chart') loadChart();
     if (tab === 'supply') { loadProducts(); }
   }, [tab]);
+
+  // ── 收支总览数据 ──
+  const toDec2Comma = (v: any) => {
+    const n = parseFloat(String(v ?? 0)) || 0;
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  useEffect(() => {
+    // businessSummary
+    api.getBusinessSummary().then((data: any) => {
+      setBusinessSummary(data || {});
+    }).catch(() => {});
+
+    // expenses (for today/month summary cards)
+    (async () => {
+      try {
+        const all: any[] = [];
+        let p = 1;
+        while (true) {
+          const tx: any = await api.getTransactions(p, 100);
+          const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
+          all.push(...exps);
+          if (p >= (tx.pages || 1)) break;
+          p++;
+        }
+        setChartExpenses(all);
+      } catch {}
+    })();
+
+    // platform fees (for month income)
+    api.getPlatformFees().then((all: any) => {
+      const arr = Array.isArray(all) ? all : [];
+      const total = arr.reduce((sum: number, f: any) =>
+        sum + (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0), 0);
+      setChartFeeTotal(total);
+    }).catch(() => {});
+  }, []);
+
+  // Compute chart summary values
+  const todayStr2 = new Date().toISOString().slice(0, 10);
+  const thisMonthPrefix2 = todayStr2.slice(0, 7);
+  const todayExpenseChart = chartExpenses
+    .filter((e: any) => e.date === todayStr2)
+    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
+  const monthExpenseChart = chartExpenses
+    .filter((e: any) => String(e.date || '').startsWith(thisMonthPrefix2))
+    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
 
   // ── Inject glass-slider CSS ──
   useEffect(() => {
@@ -759,7 +812,34 @@ export default function HomeScreen({
               )}
 
               {tab === 'chart' && (
-                <View />
+                <View style={{ paddingBottom: 120, paddingTop: 4 }}>
+                  {/* KPI 三行 */}
+                  <View style={{ paddingHorizontal: 18, marginBottom: 12 }}>
+                    <View style={styles.chartKpiCard}>
+                      <View style={styles.chartKpiRow}>
+                        <View style={styles.chartKpiItem}>
+                          <Text style={styles.chartKpiLabel}>{t('actualReceived')}</Text>
+                          <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.actual_received)}</Text>
+                        </View>
+                        <View style={styles.chartKpiItem}>
+                          <Text style={styles.chartKpiLabel}>{t('receivable')}</Text>
+                          <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.receivable)}</Text>
+                        </View>
+                        <View style={styles.chartKpiItem}>
+                          <Text style={styles.chartKpiLabel}>{t('discountAmount')}</Text>
+                          <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.discount)}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  {/* 6 张收支卡片 */}
+                  <ExpenseSummaryCards
+                    todayExpense={todayExpenseChart}
+                    monthExpense={monthExpenseChart}
+                    todayIncome={0}
+                    monthIncome={chartFeeTotal}
+                  />
+                </View>
               )}
             </ScrollView>
           </>
@@ -963,6 +1043,20 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   barIncome: { backgroundColor: colors.success, height: '100%' },
   barExpense: { backgroundColor: colors.danger, opacity: 0.7, height: '100%' },
   barVal: { fontSize: FONTS.micro.size, color: colors.textSub, width: 90 },
+  // ── Chart KPI cards ──
+  chartKpiCard: {
+    borderRadius: 14, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12, gap: 14,
+    backgroundColor: colors.bg,
+    borderWidth: 0.5, borderColor: colors.secondary,
+    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+  },
+  chartKpiRow: { flexDirection: 'column' as any },
+  chartKpiItem: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 8,
+  },
+  chartKpiLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
+  chartKpiVal: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   // Bottom Nav — glass pill, icons only, 80% transparent
   bottomNav: {
     position: 'fixed' as any,
