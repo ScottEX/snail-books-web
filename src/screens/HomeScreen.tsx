@@ -813,11 +813,11 @@ export default function HomeScreen({
 
               {tab === 'chart' && (
                 <View style={{ paddingBottom: 120, paddingTop: 4 }}>
-                  {/* 收支总览标题 */}
-                  <Text style={[styles.sectionTitle, { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain, paddingTop: 0, paddingBottom: 8 }]}>{t('summary')}</Text>
                   {/* 在手资金玻璃卡片 */}
                   <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartGlassCard}>
+                      {/* @ts-ignore — 收支总览大标题 */}
+                      <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', textShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>{t('summary')}</Text>
                       <View style={{ alignItems: 'flex-start', gap: 4 }}>
                         <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
