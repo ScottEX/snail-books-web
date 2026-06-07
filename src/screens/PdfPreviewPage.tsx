@@ -17,37 +17,46 @@ const MIN_SCALE = 0.5;
 const MAX_SCALE = 4;
 const NAV_H = 56;
 
-const CSS = `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--bg:#141416;--surface:#1E1E22;--surface2:#26262C;--surface3:#2E2E36;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#F0EDE8;--text2:rgba(240,237,232,.5);--text3:rgba(240,237,232,.28);--accent:#C0392B;--accent-dim:rgba(192,57,43,.15);--sans:'Noto Sans SC',sans-serif;--mono:'DM Mono',monospace}
+const getCSS = (c: ThemeColors) => {
+  // Precompute semi-transparent theme colors
+  const r = parseInt(c.bg.slice(1,3),16);
+  const g = parseInt(c.bg.slice(3,5),16);
+  const b = parseInt(c.bg.slice(5,7),16);
+  const btnBg = `rgba(${r},${g},${b},0.30)`;
+  const btnBgActive = `rgba(${r},${g},${b},0.45)`;
+  const accentR = parseInt(c.accent.slice(1,3),16);
+  const accentG = parseInt(c.accent.slice(3,5),16);
+  const accentB = parseInt(c.accent.slice(5,7),16);
+  return `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html.pv-lock{overflow:hidden;touch-action:none}
-.pv-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(20,20,22,.85);backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--line)}
+.pv-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:transparent;backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
 .pv-nav-l{display:flex;align-items:center;gap:10px}
-.pv-back{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
-.pv-back:active{background:var(--surface3)}
-.pv-back svg{width:16px;height:16px;stroke:var(--text);stroke-width:2;fill:none;display:block}
-.pv-title{font-size:15px;font-weight:600;color:var(--text);letter-spacing:.01em}
-.pv-sub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
-.pv-share-btn{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
-.pv-share-btn:active{background:var(--surface3);transform:scale(.92)}
-.pv-share-btn svg{width:16px;height:16px;stroke:var(--text2);stroke-width:2;fill:none}
-.pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;pointer-events:none}
-.pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
+.pv-back{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
+.pv-back:active{background:${btnBgActive}}
+.pv-back svg{width:16px;height:16px;stroke:#2C2626;stroke-width:2;fill:none;display:block}
+.pv-title{font-size:15px;font-weight:600;color:#F0EDE8;letter-spacing:.01em}
+.pv-sub{font-size:10px;color:rgba(240,237,232,0.28);font-family:'DM Mono',monospace;margin-top:1px}
+.pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
+.pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
+.pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:20px;padding:4px 14px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;pointer-events:none}
+.pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:8px;padding:4px 10px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
 .pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:hidden;background:#F9F7F4}
 .pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
 .pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
 .pv-zoom-strip{position:fixed;right:16px;bottom:18px;z-index:95;display:flex;flex-direction:column;gap:6px}
-.pv-zoom-btn{width:40px;height:40px;border-radius:50%;background:rgba(20,20,22,.75);backdrop-filter:blur(12px);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35)}
-.pv-zoom-btn:active{background:var(--surface3);transform:scale(.92)}
-.pv-zoom-btn svg{width:16px;height:16px;stroke:var(--text2);stroke-width:2;fill:none}
-.pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:1px solid var(--line2);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.pv-zoom-btn{width:40px;height:40px;border-radius:50%;background:${btnBg};backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.pv-zoom-btn:active{background:${btnBgActive};transform:scale(.92)}
+.pv-zoom-btn svg{width:16px;height:16px;stroke:rgba(240,237,232,0.5);stroke-width:2;fill:none}
+.pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:0.5px solid rgba(0,0,0,0.10);border-radius:10px;padding:10px 18px;font-size:12px;color:#F0EDE8;display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .pv-toast.on{opacity:1;transform:translate(-50%,0)}
 .pv-intro-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
 .pv-intro{background:#fff;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
 .pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
-.pv-intro-sec{font-size:36px;font-weight:800;font-family:var(--mono)}
+.pv-intro-sec{font-size:36px;font-weight:800;font-family:'DM Mono',monospace}
 .pv-sh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
 .pv-sh-overlay.open{opacity:1;pointer-events:auto}
 .pv-sh{position:absolute;bottom:0;left:0;right:0;max-height:70vh;background:#F9F7F4;border-radius:20px 20px 0 0;padding:16px 16px 24px;transform:translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
@@ -56,7 +65,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
 .pv-err svg{display:block}
 .pv-err-msg{font-size:13px;color:#999}
-.pv-err-btn{padding:10px 28px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.pv-err-btn{padding:10px 28px;border-radius:8px;background:#C0392B;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .pv-err-btn:active{opacity:.8}
 .pv-loading-mask{position:fixed;inset:0;z-index:195;background:rgba(0,0,0,0.4);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
@@ -64,6 +73,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-root{animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
 .pv-root.out{animation:pv-slide-out 250ms cubic-bezier(0.55,0.055,0.675,0.19) both}
 `;
+};
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
   const { colors: c } = useTheme();
@@ -288,7 +298,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   return (
     <View style={st.container}>
       {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
-        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <style dangerouslySetInnerHTML={{ __html: getCSS(c) }} />
 
         {/* Navbar */}
         <div className="pv-nav">
