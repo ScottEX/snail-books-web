@@ -944,8 +944,8 @@ function TableGroup({ title, type, total, items, themeColors, styles, onDelete }
 const getS = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
-  container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 100 },
-  header: { borderBottomWidth: 1, borderBottomColor: colors.bg, paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 0, paddingTop: 16, paddingBottom: 100 },
+  header: { borderBottomWidth: 1, borderBottomColor: colors.bg, paddingBottom: 14, paddingHorizontal: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 8 },
   backArrow: { fontSize: FONTS.h1.size, color: colors.textSub, lineHeight: 22, fontWeight: '300' },
   backText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
@@ -1070,7 +1070,7 @@ const getDs = (colors: ThemeColors) => StyleSheet.create({
 
 const getOrg = (colors: ThemeColors) => StyleSheet.create({
   body: { padding: 20, alignItems: 'center' },
-  node: { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, width: '100%', alignItems: 'center' },
+  node: { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 18, width: '100%', alignItems: 'center' },
   nodeName: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
   nodeRole: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2, fontWeight: FONTS.micro.weight },
   line: { width: 2, height: 24, backgroundColor: colors.secondary },

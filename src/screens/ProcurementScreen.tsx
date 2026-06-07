@@ -138,7 +138,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   container: { flex: 1, position: 'relative' as const },
 
   frostedBlock: {
-    marginHorizontal: 12, marginTop: 4, borderRadius: 16, overflow: 'hidden' as const,
+    marginHorizontal: 0, marginTop: 4, borderRadius: 16, overflow: 'hidden' as const,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     backgroundColor: withAlpha(c.surface, 0.65),
     // @ts-ignore
@@ -174,9 +174,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   subTabCount: { fontSize: 10, fontWeight: '600' as any, color: c.textSub, backgroundColor: withAlpha(c.textMain, 0.06), borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1, minWidth: 18, textAlign: 'center' as any, overflow: 'hidden' as const },
 
   sectionHead: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 4, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub, textTransform: 'uppercase' as const, letterSpacing: 1 },
-  productCard: { marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), overflow: 'hidden' as const },
+  productCard: { marginHorizontal: 0, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), overflow: 'hidden' as const },
   productCardSel: { borderColor: c.primary, borderWidth: 1.5 },
-  prodRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 10, gap: 10 },
+  prodRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, paddingHorizontal: 18, gap: 10 },
   prodInfo: { flex: 1 },
   prodName: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 2 },
   prodSpec: { fontSize: FONTS.micro.size, color: c.textSub },
@@ -281,13 +281,13 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   submitBtnText: { color: c.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   // Product mgmt
-  mgmtRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 12, marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06) },
+  mgmtRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, paddingHorizontal: 18, marginHorizontal: 0, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06) },
   mgmtInfo: { flex: 1 },
   mgmtName: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain },
   mgmtMeta: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 },
   mgmtActions: { flexDirection: 'row' as const, gap: 8 },
   mgmtActionBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.05) },
-  mgmtAddBtn: { marginHorizontal: 12, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: withAlpha(c.primary, 0.06), borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
+  mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: withAlpha(c.primary, 0.06), borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
   // Modal (product add/edit)
