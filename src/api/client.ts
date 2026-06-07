@@ -345,5 +345,9 @@ export const api = {
   getChart: () => authFetch('/api/chart'),
   getStats: () => authFetch('/api/stats'),
 
-  logout: () => fetch(API_BASE + '/logout', { method: 'POST' }).then(() => { localStorage.removeItem('user'); }),
+  // Use authFetch so 401 (session already expired / revoked) routes through the
+  // same handler as other API calls: clear localStorage + redirect to /login.
+  // Bare fetch would call .then() on 4xx and silently clear localStorage without
+  // a redirect, leaving the user on a page that can't fetch anything.
+  logout: () => authFetch('/logout', { method: 'POST' }).then(() => { localStorage.removeItem('user'); }),
 };

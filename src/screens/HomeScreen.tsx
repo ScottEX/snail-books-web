@@ -1089,7 +1089,7 @@ export default function HomeScreen({
       {pageStack.length === 0 && !showCartDrawer && (
       <View style={styles.bottomNav}>
         {([
-          { id: 'expense', icon: NavIconAdd },
+          { id: 'expense', icon: NavIconExpense },
           { id: 'list', icon: NavIconList },
           { id: 'supply', icon: NavIconSupply },
           { id: 'chart', icon: NavIconChart },
@@ -1138,11 +1138,15 @@ function NavIconList({ active, colors }: { active: boolean; colors: ThemeColors 
   );
 }
 
-function NavIconAdd({ active, colors }: { active: boolean; colors: ThemeColors }) {
+function NavIconExpense({ active, colors }: { active: boolean; colors: ThemeColors }) {
+  // Wallet icon — semantic match for "Expense" tab label (avoiding literal `+` ambiguity).
+  // Other tabs use object/silhouette/chart icons; this one represents money-out.
   const c = active ? colors.textMain : colors.textSub;
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
-      <Path d="M12 5v14M5 12h14" />
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M20 12V8H6a2 2 0 010-4h12v4" />
+      <Path d="M4 6v12a2 2 0 002 2h14v-4" />
+      <Path d="M18 12a2 2 0 100 4h4v-4h-4z" />
     </Svg>
   );
 }
