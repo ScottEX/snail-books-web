@@ -86,6 +86,8 @@ export default function SlideScreen({
         zIndex,
         backgroundColor: backgroundColor || 'transparent',
         pointerEvents: isTop ? 'auto' : 'none',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       {children(close)}
