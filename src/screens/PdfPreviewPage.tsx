@@ -316,12 +316,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
   return StyleSheet.create({
-    // Container fills the entire SlideScreen, with a guaranteed opaque background
-    container: {
-      position: 'absolute' as const,
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: c.bg || '#F9F7F4',
-    } as any,
+    // Container fills the SlideScreen. Background provided by SlideScreen's
+    // backgroundColor prop (set per-page in HomeScreen) so the header area
+    // is never transparent even when the viewer content hasn't loaded yet.
+    container: { flex: 1 } as any,
     ...hdr,
     viewer: {
       flex: 1,
