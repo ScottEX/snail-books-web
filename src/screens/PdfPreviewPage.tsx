@@ -103,8 +103,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const dragRef = useRef({ active: false, sx: 0, sy: 0, stx: 0, sty: 0 });
   const pinchRef = useRef({ dist: 0, scale: 1 });
   const lastTapRef = useRef(0);
-  const velRef = useRef({ vx: 0, vy: 0, px: 0, py: 0, pt: 0 });
-  const inertiaRef = useRef(0);
   const rafRef = useRef(0);
   const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -132,30 +130,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     g.tx = Math.max(-mx, Math.min(mx, g.tx));
     g.ty = Math.max(-20, Math.min(my, g.ty));
   }, []);
-
-  const stopInertia = useCallback(() => {
-    if (inertiaRef.current) { cancelAnimationFrame(inertiaRef.current); inertiaRef.current = 0; }
-  }, []);
-
-  const startInertia = useCallback(() => {
-    stopInertia();
-    const FRICTION = 0.92;
-    const THRESHOLD = 0.5;
-    const tick = () => {
-      const v = velRef.current;
-      v.vx *= FRICTION;
-      v.vy *= FRICTION;
-      if (Math.abs(v.vx) < THRESHOLD && Math.abs(v.vy) < THRESHOLD) {
-        clamp(); applyTransform(true);
-        return;
-      }
-      gRef.current.tx -= v.vx;
-      gRef.current.ty -= v.vy;
-      applyTransform(false);
-      inertiaRef.current = requestAnimationFrame(tick);
-    };
-    inertiaRef.current = requestAnimationFrame(tick);
-  }, [stopInertia, clamp, applyTransform]);
 
   const flushZoom = useCallback((animated: boolean) => {
     setZoomPct(Math.round(gRef.current.scale * 100));
@@ -189,33 +163,19 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   useEffect(() => {
     const el = wrapRef.current; if (!el) return;
 
-    const trackVel = (x: number, y: number) => {
-      const now = performance.now();
-      const v = velRef.current;
-      if (v.pt > 0) {
-        const dt = now - v.pt;
-        v.vx = dt > 0 ? ((x - v.px) / dt) * 16 : 0;
-        v.vy = dt > 0 ? ((y - v.py) / dt) * 16 : 0;
-      }
-      v.px = x; v.py = y; v.pt = now;
-    };
-
     const onMD = (e: MouseEvent) => {
       e.preventDefault();
-      stopInertia();
       const g = gRef.current;
       dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.tx, sty: g.ty };
-      velRef.current = { vx: 0, vy: 0, px: e.clientX, py: e.clientY, pt: performance.now() };
     };
     const onMM = (e: MouseEvent) => {
       if (!dragRef.current.active) return;
       const d = dragRef.current;
-      trackVel(e.clientX, e.clientY);
       gRef.current.tx = d.stx + (e.clientX - d.sx);
       gRef.current.ty = d.sty + (e.clientY - d.sy);
       scheduleApply();
     };
-    const onMU = () => { dragRef.current.active = false; startInertia(); };
+    const onMU = () => { dragRef.current.active = false; clamp(); applyTransform(true); };
     const onWh = (e: WheelEvent) => {
       e.preventDefault();
       const g = gRef.current;
@@ -231,7 +191,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
-      stopInertia();
       if (e.touches.length === 1) {
         const now = Date.now();
         if (now - lastTapRef.current < 300) {
@@ -241,7 +200,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         }
         lastTapRef.current = now;
         dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: gRef.current.tx, sty: gRef.current.ty };
-        velRef.current = { vx: 0, vy: 0, px: e.touches[0].clientX, py: e.touches[0].clientY, pt: performance.now() };
       } else if (e.touches.length === 2) {
         pinchRef.current = { dist: dist(e.touches), scale: gRef.current.scale };
       }
@@ -250,7 +208,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       e.preventDefault();
       if (dragRef.current.active && e.touches.length === 1) {
         const d = dragRef.current;
-        trackVel(e.touches[0].clientX, e.touches[0].clientY);
         gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
         gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
         scheduleApply();
@@ -261,7 +218,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       }
     };
     const onTE = (e: TouchEvent) => {
-      if (e.touches.length === 0) { dragRef.current.active = false; startInertia(); }
+      if (e.touches.length === 0) { dragRef.current.active = false; clamp(); applyTransform(true); }
       else if (e.touches.length === 1) { dragRef.current.active = false; }
     };
     el.addEventListener('touchstart', onTS, { passive: false });
@@ -277,7 +234,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       el.removeEventListener('touchmove', onTM);
       el.removeEventListener('touchend', onTE);
     };
-  }, [scheduleApply, clamp, applyTransform, flushZoom, stopInertia, startInertia]);
+  }, [scheduleApply, clamp, applyTransform, flushZoom]);
 
   const doDownload = useCallback(() => {
     const a = document.createElement('a');
