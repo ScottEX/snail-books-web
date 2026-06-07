@@ -33,8 +33,9 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;pointer-events:none}
 .pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
-.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#fff;display:flex;align-items:flex-start;justify-content:center;cursor:grab}
-.pv-vp.grabbing{cursor:grabbing}
+.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#fff;}
+.pv-gesture-layer{position:absolute;inset:0;z-index:10;touch-action:none;cursor:grab}
+.pv-gesture-layer.grabbing{cursor:grabbing}
 .pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
 .pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
@@ -102,6 +103,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, [pdfUrl]);
 
   const vpRef = useRef<HTMLDivElement | null>(null);
+  const gestureRef = useRef<HTMLDivElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const gRef = useRef({ scale: 1, tx: 0, ty: 0 });
   const dragRef = useRef({ active: false, sx: 0, sy: 0, stx: 0, sty: 0 });
@@ -163,13 +165,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   // ── 手势事件 ──
   useEffect(() => {
-    const vp = vpRef.current; if (!vp) return;
+    const gl = gestureRef.current; if (!gl) return;
 
     const onMD = (e: MouseEvent) => {
       e.preventDefault();
       const g = gRef.current;
       dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.scale <= 1 ? 0 : g.tx, sty: g.ty };
-      vp.classList.add('grabbing');
+      gl.classList.add('grabbing');
     };
     const onMM = (e: MouseEvent) => {
       if (!dragRef.current.active) return;
@@ -181,7 +183,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       scheduleApply();
     };
     const onMU = () => {
-      dragRef.current.active = false; vp.classList.remove('grabbing');
+      dragRef.current.active = false; gl.classList.remove('grabbing');
       const g = gRef.current;
       if (g.scale <= 1) { g.tx = 0; g.ty = 0; }
       else clamp();
@@ -194,10 +196,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       clamp(); applyTransform(false); flushZoom(false);
     };
 
-    vp.addEventListener('mousedown', onMD);
+    gl.addEventListener('mousedown', onMD);
     window.addEventListener('mousemove', onMM);
     window.addEventListener('mouseup', onMU);
-    vp.addEventListener('wheel', onWh, { passive: false });
+    gl.addEventListener('wheel', onWh, { passive: false });
 
     const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const onTS = (e: TouchEvent) => {
@@ -212,7 +214,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         lastTapRef.current = now;
         const g = gRef.current;
         dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: g.scale <= 1 ? 0 : g.tx, sty: g.ty };
-        vp.classList.add('grabbing');
+        gl.classList.add('grabbing');
       } else if (e.touches.length === 2) {
         pinchRef.current = { dist: dist(e.touches), scale: gRef.current.scale };
       }
@@ -234,7 +236,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     };
     const onTE = (e: TouchEvent) => {
       if (e.touches.length === 0) {
-        dragRef.current.active = false; vp.classList.remove('grabbing');
+        dragRef.current.active = false; gl.classList.remove('grabbing');
         const g = gRef.current;
         if (g.scale <= 1) { g.tx = 0; g.ty = 0; }
         else clamp();
@@ -242,18 +244,18 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       }
       else if (e.touches.length === 1) { dragRef.current.active = false; }
     };
-    vp.addEventListener('touchstart', onTS, { passive: false });
-    vp.addEventListener('touchmove', onTM, { passive: false });
-    vp.addEventListener('touchend', onTE);
+    gl.addEventListener('touchstart', onTS, { passive: false });
+    gl.addEventListener('touchmove', onTM, { passive: false });
+    gl.addEventListener('touchend', onTE);
 
     return () => {
-      vp.removeEventListener('mousedown', onMD);
+      gl.removeEventListener('mousedown', onMD);
       window.removeEventListener('mousemove', onMM);
       window.removeEventListener('mouseup', onMU);
-      vp.removeEventListener('wheel', onWh);
-      vp.removeEventListener('touchstart', onTS);
-      vp.removeEventListener('touchmove', onTM);
-      vp.removeEventListener('touchend', onTE);
+      gl.removeEventListener('wheel', onWh);
+      gl.removeEventListener('touchstart', onTS);
+      gl.removeEventListener('touchmove', onTM);
+      gl.removeEventListener('touchend', onTE);
     };
   }, [scheduleApply, clamp, applyTransform, flushZoom]);
 
@@ -305,6 +307,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
         {/* PDF Viewport */}
         <div className="pv-vp" ref={vpRef}>
+          <div className="pv-gesture-layer" ref={gestureRef} />
           {pdfLoading && !pdfError && (
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
               <div className="pv-spinner" />
