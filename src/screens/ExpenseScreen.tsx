@@ -408,13 +408,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   backgroundImage: `linear-gradient(90deg, ${bgGrad[0]} 0%, ${bgGrad[1]} 100%)`,
                 },
                 // @ts-ignore — 支出卡片去掉右侧peek
-                i === 1 && { width: 'calc(100vw - 32px)', overflow: 'visible' as const },
+                i === 1 && { width: 'calc(100vw - 32px)' },
                 ]}
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
                 <View style={st.tabInner}>
-                  <Text style={[st.tabTitle, active && st.tabTitleActive]}>
+                  <Text style={[st.tabTitle, active && st.tabTitleActive, i === 1 && { marginBottom: -16 }]}>
                     {tab.title}{i === 1 ? ' ¥' + fmtInt(businessSummary.cumulative_expense || 0) : ''}
                   </Text>
                   {i === 0 && (
@@ -487,7 +487,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   )}
                   </View>
                 {i === 1 && (
-                  <View style={{ marginTop: -16 }}>
+                  <View>
                     {/* Row 1: 日常 | 采购 */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{
