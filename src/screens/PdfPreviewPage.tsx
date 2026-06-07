@@ -278,9 +278,11 @@ function PortalContent({
   // Zoom/pan state (mutable refs for smooth updates)
   const zoomRef = useRef({
     scale: 1, tx: 0, ty: 0,
+    maxTxCache: 0, maxTyCache: 0,
     drag: { active: false as boolean, startX: 0, startY: 0, startTx: 0, startTy: 0 },
     touch: { mode: 'none' as string, startX: 0, startY: 0, startTx: 0, startTy: 0, pinchDist: 0, pinchScale: 0, lastTap: 0 },
     zoomTimer: null as ReturnType<typeof setTimeout> | null,
+    rafId: null as number | null,
   });
 
   // ── Transform helpers ──
@@ -291,9 +293,39 @@ function PortalContent({
     sheet.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
     sheet.style.transform = `translate(calc(-50% + ${zi.tx}px), ${zi.ty}px) scale(${zi.scale})`;
     sheet.style.left = '50%';
-    // Update zoom indicator
     const zid = zoomIndRef.current;
     if (zid) zid.textContent = Math.round(zi.scale * 100) + '%';
+  }, []);
+
+  // Schedule a batched render via RAF (no more than one style write per frame)
+  const scheduleRender = useCallback(() => {
+    const zi = zoomRef.current;
+    if (zi.rafId !== null) return;
+    zi.rafId = requestAnimationFrame(() => {
+      zi.rafId = null;
+      applyTransform(false);
+    });
+  }, [applyTransform]);
+
+  // Recalculate translation bounds (only needed when scale or viewport size changes)
+  const recalcBounds = useCallback(() => {
+    const vp = vpInnerRef.current;
+    const sheet = sheetRef.current;
+    const zi = zoomRef.current;
+    if (!vp || !sheet) return;
+    const paper = sheet.querySelector('.doc-paper') as HTMLElement;
+    if (!paper) return;
+    const dw = (paper.offsetWidth + 24) * zi.scale;
+    const dh = (paper.offsetHeight + 24) * zi.scale;
+    zi.maxTxCache = Math.max(0, (dw - vp.clientWidth) / 2);
+    zi.maxTyCache = Math.max(0, (dh - vp.clientHeight) / 2 + 20);
+  }, []);
+
+  // Fast clamp using cached bounds — no querySelector, no offsetWidth read
+  const clampTranslation = useCallback(() => {
+    const zi = zoomRef.current;
+    zi.tx = Math.max(-zi.maxTxCache, Math.min(zi.maxTxCache, zi.tx));
+    zi.ty = Math.max(-20, Math.min(zi.maxTyCache, zi.ty));
   }, []);
 
   const flashZoom = useCallback(() => {
@@ -303,23 +335,6 @@ function PortalContent({
     zid.classList.add('show');
     if (zi.zoomTimer) clearTimeout(zi.zoomTimer);
     zi.zoomTimer = setTimeout(() => zid.classList.remove('show'), 1500);
-  }, []);
-
-  const clampTranslation = useCallback(() => {
-    const vp = vpInnerRef.current;
-    const sheet = sheetRef.current;
-    const zi = zoomRef.current;
-    if (!vp || !sheet) return;
-    const paper = sheet.querySelector('.doc-paper') as HTMLElement;
-    if (!paper) return;
-    const vw = vp.clientWidth;
-    const vh = vp.clientHeight;
-    const dw = (paper.offsetWidth + 24) * zi.scale;
-    const dh = (paper.offsetHeight + 24) * zi.scale;
-    const maxTx = Math.max(0, (dw - vw) / 2);
-    const maxTy = Math.max(0, (dh - vh) / 2 + 20);
-    zi.tx = Math.max(-maxTx, Math.min(maxTx, zi.tx));
-    zi.ty = Math.max(-20, Math.min(maxTy, zi.ty));
   }, []);
 
   // ── Init zoom (fit to width) ──
@@ -336,9 +351,10 @@ function PortalContent({
     zi.scale = Math.min(1, (vw - 24) / docW);
     zi.tx = 0;
     zi.ty = 0;
+    recalcBounds();
     applyTransform(false);
     return true;
-  }, [applyTransform]);
+  }, [applyTransform, recalcBounds]);
 
   // Retry initZoom until viewport is sized
   useEffect(() => {
@@ -369,7 +385,7 @@ function PortalContent({
       zi.tx = zi.drag.startTx + (e.clientX - zi.drag.startX);
       zi.ty = zi.drag.startTy + (e.clientY - zi.drag.startY);
       clampTranslation();
-      applyTransform(false);
+      scheduleRender();
     };
     const onMouseUp = () => { zi.drag.active = false; vp.classList.remove('grabbing'); };
 
@@ -378,8 +394,9 @@ function PortalContent({
       e.preventDefault();
       const delta = e.deltaY > 0 ? -0.1 : 0.1;
       zi.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, zi.scale + delta));
+      recalcBounds();
       clampTranslation();
-      applyTransform(false);
+      scheduleRender();
       flashZoom();
     };
 
@@ -394,7 +411,7 @@ function PortalContent({
         if (now - tc.lastTap < 300) {
           if (zi.scale > 1.1) { zi.scale = 1; zi.tx = 0; zi.ty = 0; }
           else { zi.scale = 2; }
-          clampTranslation(); applyTransform(true); flashZoom();
+          recalcBounds(); clampTranslation(); applyTransform(true); flashZoom();
           tc.lastTap = 0; return;
         }
         tc.lastTap = now;
@@ -414,11 +431,11 @@ function PortalContent({
       if (tc.mode === 'drag' && e.touches.length === 1) {
         zi.tx = tc.startTx + (e.touches[0].clientX - tc.startX);
         zi.ty = tc.startTy + (e.touches[0].clientY - tc.startY);
-        clampTranslation(); applyTransform(false);
+        clampTranslation(); scheduleRender();
       } else if (tc.mode === 'pinch' && e.touches.length === 2) {
         const dist = getDist(e.touches);
         zi.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, tc.pinchScale * (dist / tc.pinchDist)));
-        clampTranslation(); applyTransform(false); flashZoom();
+        recalcBounds(); clampTranslation(); scheduleRender(); flashZoom();
       }
     };
     const onTouchEnd = (e: TouchEvent) => {
@@ -440,7 +457,7 @@ function PortalContent({
     vp.addEventListener('touchend', onTouchEnd);
 
     // Resize handler
-    const onResize = () => { clampTranslation(); applyTransform(false); };
+    const onResize = () => { recalcBounds(); clampTranslation(); applyTransform(false); };
     window.addEventListener('resize', onResize);
 
     return () => {
@@ -453,7 +470,7 @@ function PortalContent({
       vp.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('resize', onResize);
     };
-  }, [clampTranslation, applyTransform, flashZoom]);
+  }, [clampTranslation, applyTransform, flashZoom, recalcBounds, scheduleRender]);
 
   // ── Actions ──
   const doDownload = useCallback(() => {
@@ -491,17 +508,19 @@ function PortalContent({
   const stepZoom = useCallback((delta: number) => {
     const zi = zoomRef.current;
     zi.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, zi.scale + delta));
+    recalcBounds();
     clampTranslation();
     applyTransform(true);
     flashZoom();
-  }, [clampTranslation, applyTransform, flashZoom]);
+  }, [clampTranslation, applyTransform, flashZoom, recalcBounds]);
 
   const resetZoom = useCallback(() => {
     const zi = zoomRef.current;
     zi.scale = 1; zi.tx = 0; zi.ty = 0;
+    recalcBounds();
     applyTransform(true);
     flashZoom();
-  }, [applyTransform, flashZoom]);
+  }, [applyTransform, flashZoom, recalcBounds]);
 
   const docPaperHTML = buildDocPaperHTML(batch);
 
