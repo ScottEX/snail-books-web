@@ -7,7 +7,6 @@ import {
 } from 'recharts';
 import { t } from '../i18n';
 import { useTheme } from '../theme';
-import { FONTS } from '../theme';
 
 interface Props {
   months: string[];
@@ -35,7 +34,7 @@ const fmtY = (v: number) => {
   return String(Math.round(v));
 };
 
-/** Custom tooltip — dark background matching the chart tab theme */
+/** Custom tooltip — dark popup, always looks good */
 const ChartTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
@@ -96,21 +95,22 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
     .map(([key, value]) => ({ name: t(key as any) || key, value }))
     .sort((a, b) => b.value - a.value);
 
-  // Axes stroke color — subtle white for dark background
-  const axisColor = 'rgba(255,255,255,0.12)';
-  const tickColor = 'rgba(255,255,255,0.35)';
+  // Axes colors — light theme
+  const axisColor = 'rgba(0,0,0,0.08)';
+  const tickColor = 'rgba(0,0,0,0.35)';
+  const subTextColor = colors.textSub;
 
   return (
-    <View style={{ gap: 16, marginTop: 4 }}>
+    <View style={{ gap: 12, marginTop: 0 }}>
       {/* ── 月度利润趋势 ── */}
-      <View style={[chartStyles.card, { backgroundColor: '#1A1A1E' }]}>
-        <Text style={chartStyles.title}>{t('monthlyProfit')}</Text>
+      <View style={[chartStyles.card, { backgroundColor: colors.surface }]}>
+        <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyProfit')}</Text>
         <View style={chartStyles.chartWrap}>
           <ResponsiveContainer width="100%" height={200}>
             <ComposedChart data={profitData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={colors.primary} stopOpacity={0.25} />
+                  <stop offset="0%" stopColor={colors.primary} stopOpacity={0.15} />
                   <stop offset="100%" stopColor={colors.primary} stopOpacity={0} />
                 </linearGradient>
               </defs>
@@ -126,8 +126,8 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
       </View>
 
       {/* ── 月度收支趋势（双线） ── */}
-      <View style={[chartStyles.card, { backgroundColor: '#1A1A1E' }]}>
-        <Text style={chartStyles.title}>{t('monthlyTrend')}</Text>
+      <View style={[chartStyles.card, { backgroundColor: colors.surface }]}>
+        <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyTrend')}</Text>
         <View style={chartStyles.chartWrap}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={lineData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -136,7 +136,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
               <Tooltip content={<ChartTooltip />} />
               <Legend
-                wrapperStyle={{ fontSize: 11, opacity: 0.7, color: '#fff' }}
+                wrapperStyle={{ fontSize: 11, color: subTextColor }}
                 iconType="line"
               />
               <Line type="monotone" dataKey={incomeLabel} stroke={colors.primary} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.primary }} />
@@ -148,8 +148,8 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
 
       {/* ── 支出分类占比（环形图） ── */}
       {donutData.length > 0 && (
-        <View style={[chartStyles.card, { backgroundColor: '#1A1A1E' }]}>
-          <Text style={chartStyles.title}>{t('expenseBreakdown')}</Text>
+        <View style={[chartStyles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[chartStyles.title, { color: subTextColor }]}>{t('expenseBreakdown')}</Text>
           <View style={[chartStyles.chartWrap, { alignItems: 'center' }]}>
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
@@ -175,7 +175,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
               {donutData.map((d, i) => (
                 <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }} />
-                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '500' }}>{d.name}</Text>
+                  <Text style={{ color: subTextColor, fontSize: 11, fontWeight: '500' }}>{d.name}</Text>
                 </View>
               ))}
             </View>
@@ -191,10 +191,9 @@ const chartStyles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(0,0,0,0.06)',
   },
   title: {
-    color: 'rgba(255,255,255,0.65)',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
