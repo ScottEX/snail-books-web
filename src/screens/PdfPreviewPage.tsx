@@ -95,8 +95,8 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .viewport{position:fixed;inset:0;padding-top:${NAV_H}px;padding-bottom:${TOOLBAR_H}px;padding-left:env(safe-area-inset-left,0);padding-right:env(safe-area-inset-right,0);overflow:clip;background:var(--bg)}
 .viewport-inner{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center;overflow:visible;position:relative;cursor:grab}
 .viewport-inner.grabbing{cursor:grabbing}
-.doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
-.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:28px 24px 36px}
+.doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0;top:12px;touch-action:none;user-select:none;left:50%;width:calc(100% - 16px);max-width:520px}
+.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);width:100%;padding:28px 20px 36px}
 .doc-brand{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e8e4de}
 .doc-brand-name{font-size:13px;letter-spacing:.35em;color:#333;font-weight:500;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
 .doc-brand-sub{font-size:9px;letter-spacing:.18em;color:#aaa;font-family:'DM Mono',monospace}
@@ -106,13 +106,10 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .doc-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;font-size:10px;margin-bottom:16px;padding:10px 0;border-top:1px solid #e8e4de;border-bottom:1px solid #e8e4de}
 .doc-meta-label{color:#aaa;margin-bottom:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.05em}
 .doc-meta-value{color:#222;font-weight:500;font-size:10px}
-.doc-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:9.5px}
-.doc-table th{background:#7a1a1a;color:#fff;padding:7px 4px;text-align:left;font-weight:500}
-.doc-table th:nth-child(1){width:34%}
-.doc-table th:nth-child(2){width:20%}
-.doc-table th:nth-child(3){width:17%;text-align:center}
-.doc-table th:nth-child(4){width:12%;text-align:center}
-.doc-table th:last-child{width:17%;text-align:right}
+.doc-table{width:100%;border-collapse:collapse;font-size:9.5px}
+.doc-table th{background:#7a1a1a;color:#fff;padding:7px 4px;text-align:left;font-weight:500;white-space:nowrap}
+.doc-table th:last-child{text-align:right}
+.doc-table th:nth-child(3),.doc-table th:nth-child(4){text-align:center}
 .doc-table td{padding:7px 4px;border-bottom:1px solid #f0ece6;color:#222;vertical-align:middle;word-break:break-all}
 .doc-table td:last-child{text-align:right;font-weight:600;color:#7a1a1a;font-family:'DM Mono',monospace}
 .doc-table td:nth-child(3){text-align:center;font-family:'DM Mono',monospace;color:#555}
@@ -318,8 +315,8 @@ function PortalContent({
     if (!vp || !sheet) return;
     const paper = sheet.querySelector('.doc-paper') as HTMLElement;
     if (!paper) return;
-    const dw = (paper.offsetWidth + 24) * zi.scale;
-    const dh = (paper.offsetHeight + 24) * zi.scale;
+    const dw = paper.offsetWidth * zi.scale;
+    const dh = paper.offsetHeight * zi.scale;
     zi.maxTxCache = Math.max(0, (dw - vp.clientWidth) / 2);
     zi.maxTyCache = Math.max(0, (dh - vp.clientHeight) / 2 + 20);
   }, []);
@@ -340,19 +337,14 @@ function PortalContent({
     zi.zoomTimer = setTimeout(() => zid.classList.remove('show'), 1500);
   }, []);
 
-  // ── Init zoom — fit paper to viewport width (matching pdf-viewer.html)
+  // ── Init zoom — paper naturally fills width, scale=1
   const initZoom = useCallback(() => {
-    const vp = vpInnerRef.current;
     const sheet = sheetRef.current;
     const zi = zoomRef.current;
-    if (!vp || !sheet) return false;
+    if (!sheet) return false;
     const paper = sheet.querySelector('.doc-paper') as HTMLElement;
-    if (!paper) return false;
-    const vw = vp.clientWidth;
-    if (!vw || vw < 100) return false;
-    const docW = paper.offsetWidth + 24;
-    // Fit paper width to viewport (like opening a PDF in browser)
-    zi.scale = Math.min(1, vw / docW);
+    if (!paper || !paper.offsetWidth) return false;
+    zi.scale = 1;
     zi.tx = 0;
     zi.ty = 0;
     recalcBounds();
