@@ -576,8 +576,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       </ScrollView>
 
       {/* ====== DIVIDEND MODAL ====== */}
-      {showDividend && (
-        <ModalOverlay overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDividend(false)}>
+        <ModalOverlay visible={showDividend} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDividend(false)}>
           <View style={mo.modalCard} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -646,7 +645,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
             </View>
           </View>
         </ModalOverlay>
-      )}
 
       {/* ====== DELETE MODAL ====== */}
       <ConfirmModal
@@ -659,8 +657,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       />
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
-      {showDetail && (
-        <ModalOverlay overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
+        <ModalOverlay visible={showDetail} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -735,11 +732,9 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
             </View>
           </View>
         </ModalOverlay>
-      )}
 
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
-      {showOrg && (
-        <ModalOverlay overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowOrg(false)}>
+        <ModalOverlay visible={showOrg} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowOrg(false)}>
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -768,7 +763,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
             </View>
           </View>
         </ModalOverlay>
-      )}
 
       {/* ====== CROP MODAL (portal to body — escapes stacking context, covers nav bar) ====== */}
       {cropSrc !== '' && !showResult && createPortal(

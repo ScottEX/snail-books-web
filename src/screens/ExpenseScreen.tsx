@@ -977,8 +977,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       </ScrollView>
 
       {/* 支出确认弹窗 */}
-      {showExpConfirm && (
-        <ModalOverlay onClose={() => setShowExpConfirm(false)}>
+        <ModalOverlay visible={showExpConfirm} onClose={() => setShowExpConfirm(false)}>
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('expConfirmTitle')}</Text>
@@ -1001,11 +1000,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             </View>
           </View>
         </ModalOverlay>
-      )}
 
       {/* 添加提示弹窗 */}
-      {showToast && (
-        <ModalOverlay onClose={hideToast}>
+        <ModalOverlay visible={showToast} onClose={hideToast}>
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
@@ -1028,10 +1025,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             </View>
           </View>
         </ModalOverlay>
-      )}
       {/* Platform fee entry bottom sheet */}
-      {showFeeSheet && (
-        <ModalOverlay onClose={() => setShowFeeSheet(false)}>
+        <ModalOverlay visible={showFeeSheet} onClose={() => setShowFeeSheet(false)}>
           <View style={[st.feeSheet, { maxWidth: 720 }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
@@ -1104,11 +1099,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             </View>
           </View>
         </ModalOverlay>
-      )}
 
       {/* Fee history bottom sheet — "全部" detail view */}
-      {showFeeHistory && (
-        <ModalOverlay onClose={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
+        <ModalOverlay visible={showFeeHistory} onClose={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
           <View style={[st.feeSheet, { height: Dimensions.get('window').height * 0.75, width: '96%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
@@ -1178,7 +1171,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             </ScrollView>
           </View>
         </ModalOverlay>
-      )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
       {/* Month picker dropdown — animated spring popover */}
       {showFeeMonthPicker && (
