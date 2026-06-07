@@ -216,6 +216,7 @@ const I18N: Record<string, Record<string, string>> = {
     procEmptyProductsTitle: '还没有产品',
     procGenerating: '生成中...',
     procGeneratingPDF: '正在生成进货单…',
+    pdfGenerating: '进货单PDF生成中…',
     procHistory: '进货记录',
     procImages: '凭证预览',
     procMargin: '货款利润率',
@@ -601,6 +602,7 @@ const I18N: Record<string, Record<string, string>> = {
     procEmptyProductsTitle: '還沒有產品',
     procGenerating: '生成中...',
     procGeneratingPDF: '正在生成進貨單…',
+    pdfGenerating: '進貨單PDF生成中…',
     procHistory: '進貨記錄',
     procImages: '憑證預覽',
     procMargin: '貨款利潤率',
@@ -986,6 +988,7 @@ const I18N: Record<string, Record<string, string>> = {
     procEmptyProductsTitle: 'No products yet',
     procGenerating: 'Generating...',
     procGeneratingPDF: 'Generating purchase order...',
+    pdfGenerating: 'Generating purchase order PDF…',
     procHistory: 'History',
     procImages: 'Voucher Preview',
     procMargin: 'Margin',
@@ -1392,6 +1395,7 @@ export type I18nKey =
   | 'procEmptyProductsTitle'
   | 'procGenerating'
   | 'procGeneratingPDF'
+  | 'pdfGenerating'
   | 'procHistory'
   | 'procImages'
   | 'procMargin'

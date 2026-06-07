@@ -309,7 +309,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           {pdfLoading && !pdfError && (
             <div className="pv-intro-overlay">
               <div className="pv-intro on">
-                <div className="pv-intro-text">进货单PDF生成中…</div>
+                <div className="pv-intro-text">{t('pdfGenerating')}</div>
                 <div className="pv-intro-sec" style={{ color: c.accent }}>{introSec}</div>
               </div>
             </div>
