@@ -861,7 +861,6 @@ export default function HomeScreen({
                     </View>
                   </View>
                   {/* 6 张收支卡片 */}
-                  <Text style={[styles.sectionTitle, { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain, paddingVertical: 8 }]}>{t('summary')}</Text>
                   <ExpenseSummaryCards
                     todayExpense={todayExpenseChart}
                     monthExpense={monthExpenseChart}
