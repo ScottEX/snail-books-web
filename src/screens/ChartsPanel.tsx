@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, ResponsiveContainer, Area, ComposedChart,
-  Legend, Label, BarChart, Bar,
+  Legend, BarChart, Bar,
 } from 'recharts';
 import { t } from '../i18n';
 import { useTheme } from '../theme';
@@ -16,17 +16,34 @@ interface Props {
   categories: Record<string, number>;
 }
 
-// Theme-derived palette for donut / bar
-const DONUT_COLORS = [
-  '#7D2329', // burgundy
-  '#B34149', // light red
-  '#D59A53', // gold
-  '#4C7A5D', // green
-  '#4A7299', // blue
-  '#8C8583', // grey
-  '#C5A880', // sand
-  '#9B6B9E', // muted purple
-];
+// ── Category → fixed color mapping (by i18n zh-CN key) ──
+const CAT_COLORS_LIGHT: Record<string, string> = {
+  daily:      '#4A7299', // blue
+  rent:       '#7D2329', // burgundy
+  salary:     '#D59A53', // gold
+  procurement:'#4C7A5D', // green
+  other:      '#8C8583', // grey
+  eleme:      '#B34149', // light red
+  meituan:    '#C5A880', // sand
+  wages:      '#9B6B9E', // purple
+};
+const CAT_COLORS_DARK: Record<string, string> = {
+  daily:      '#6B9AC7',
+  rent:       '#A8454D',
+  salary:     '#E8B86D',
+  procurement:'#6BA87A',
+  other:      '#A8A3A0',
+  eleme:      '#D46B73',
+  meituan:    '#D9C4A0',
+  wages:      '#B88DB8',
+};
+const FALLBACK_COLORS = ['#4A7299','#7D2329','#D59A53','#4C7A5D','#8C8583','#B34149','#C5A880','#9B6B9E'];
+
+function getCatColor(key: string, isLight: boolean, idx: number): string {
+  const map = isLight ? CAT_COLORS_LIGHT : CAT_COLORS_DARK;
+  if (map[key]) return map[key];
+  return FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
+}
 
 /** Compact ¥ formatter */
 const fmtY = (v: number) => {
@@ -37,9 +54,11 @@ const fmtY = (v: number) => {
 /** Custom tooltip — dark popup, always looks good */
 const ChartTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
+  const labelStr = String(label ?? '');
+  const displayLabel = labelStr.includes('月') ? labelStr : labelStr + '月';
   return (
     <View style={tooltipStyles.wrapper}>
-      <Text style={tooltipStyles.label}>{label}</Text>
+      <Text style={tooltipStyles.label}>{displayLabel}</Text>
       {payload.map((p: any, i: number) => (
         <Text key={i} style={[tooltipStyles.value, { color: p.color }]}>
           {p.name}: ¥{Number(p.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -74,6 +93,16 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
   const { colors } = useTheme();
   const [showBar, setShowBar] = useState(false);
 
+  // ── Kill recharts blue focus ring ──
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const style = document.createElement('style');
+    style.textContent =
+      '.recharts-wrapper:focus,.recharts-wrapper:focus-visible,.recharts-surface:focus{outline:none!important;}';
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
   // Build data arrays for recharts
   const incomeLabel = t('income');
   const expenseLabel = t('expense');
@@ -93,63 +122,35 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
   // Donut / bar data — translate category keys
   const donutData = Object.entries(categories)
     .filter(([, v]) => v > 0)
-    .map(([key, value]) => ({ name: t(key as any) || key, value }))
+    .map(([key, value]) => ({ key, name: t(key as any) || key, value }))
     .sort((a, b) => b.value - a.value);
 
   // Axes colors — follow theme
-  const isLight = colors.surface?.toLowerCase?.() !== '#141416'; // rough theme detection
+  const isLight = colors.surface?.toLowerCase?.() !== '#141416';
   const axisColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
   const tickColor = isLight ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.35)';
   const subTextColor = colors.textSub;
   const cardBg = colors.surface;
   const cardBorder = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
 
-  // Shared axis label
+  // Axis hints for title row
   const xLabel = t('chartXAxis');
   const yLabel = t('chartYAxis');
 
   return (
     <View style={{ gap: 12, marginTop: 0 }}>
-      {/* ── 月度利润趋势 ── */}
-      <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
-        <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyProfit')}</Text>
-        <View style={chartStyles.chartWrap}>
-          <ResponsiveContainer width="100%" height={200}>
-            <ComposedChart data={profitData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={colors.primary} stopOpacity={0.15} />
-                  <stop offset="100%" stopColor={colors.primary} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false}>
-                <Label value={xLabel} offset={-6} position="insideBottom" style={{ fill: tickColor, fontSize: 10 }} />
-              </XAxis>
-              <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40}>
-                <Label value={yLabel} angle={-90} offset={2} position="insideLeft" style={{ fill: tickColor, fontSize: 10 }} />
-              </YAxis>
-              <Tooltip content={<ChartTooltip />} />
-              <Area type="monotone" dataKey={profitLabel} stroke="none" fill="url(#profitGrad)" />
-              <Line type="monotone" dataKey={profitLabel} stroke={colors.primary} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.primary }} />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </View>
-      </View>
-
       {/* ── 月度收支趋势（双线） ── */}
       <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
-        <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyTrend')}</Text>
+        <View style={chartStyles.titleRow}>
+          <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyTrend')}</Text>
+          <Text style={[chartStyles.axisHint, { color: tickColor }]}>{xLabel} · {yLabel}</Text>
+        </View>
         <View style={chartStyles.chartWrap}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={lineData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false}>
-                <Label value={xLabel} offset={-6} position="insideBottom" style={{ fill: tickColor, fontSize: 10 }} />
-              </XAxis>
-              <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40}>
-                <Label value={yLabel} angle={-90} offset={2} position="insideLeft" style={{ fill: tickColor, fontSize: 10 }} />
-              </YAxis>
+              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
               <Tooltip content={<ChartTooltip />} />
               <Legend
                 wrapperStyle={{ fontSize: 11, color: subTextColor }}
@@ -162,40 +163,65 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
         </View>
       </View>
 
+      {/* ── 月度利润趋势 ── */}
+      <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+        <View style={chartStyles.titleRow}>
+          <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyProfit')}</Text>
+          <Text style={[chartStyles.axisHint, { color: tickColor }]}>{xLabel} · {yLabel}</Text>
+        </View>
+        <View style={chartStyles.chartWrap}>
+          <ResponsiveContainer width="100%" height={200}>
+            <ComposedChart data={profitData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={colors.primary} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={colors.primary} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
+              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
+              <Tooltip content={<ChartTooltip />} />
+              <Area type="monotone" dataKey={profitLabel} stroke="none" fill="url(#profitGrad)" />
+              <Line type="monotone" dataKey={profitLabel} stroke={colors.primary} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.primary }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </View>
+      </View>
+
       {/* ── 支出分类占比（环形图 / 柱状图切换） ── */}
       {donutData.length > 0 && (
         <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <Text style={[chartStyles.title, { color: subTextColor, marginBottom: 0 }]}>{t('expenseBreakdown')}</Text>
-            <TouchableOpacity
-              onPress={() => setShowBar(!showBar)}
-              activeOpacity={0.7}
-              style={{
-                flexDirection: 'row', alignItems: 'center', gap: 4,
-                paddingHorizontal: 10, paddingVertical: 5,
-                borderRadius: 8,
-                backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
-              }}
-            >
-              <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '600' }}>
-                {showBar ? t('chartSwitchPie') : t('chartSwitchBar')}
-              </Text>
-            </TouchableOpacity>
+          <View style={chartStyles.titleRow}>
+            <Text style={[chartStyles.title, { marginBottom: 0 }]}>{t('expenseBreakdown')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={{ color: tickColor, fontSize: 10 }}>{t('chartSwitchHint')}</Text>
+              <TouchableOpacity
+                onPress={() => setShowBar(!showBar)}
+                activeOpacity={0.7}
+                style={{
+                  paddingHorizontal: 10, paddingVertical: 5,
+                  borderRadius: 8,
+                  backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                }}
+              >
+                <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '600' }}>
+                  {showBar ? t('chartSwitchPie') : t('chartSwitchBar')}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={{ color: subTextColor, fontSize: 10, marginBottom: 8 }}>{t('chartSwitchHint')}</Text>
           <View style={[chartStyles.chartWrap, { alignItems: 'center' }]}>
             <ResponsiveContainer width="100%" height={240}>
               {showBar ? (
                 <BarChart data={donutData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
                   <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40}>
-                    <Label value={yLabel} angle={-90} offset={2} position="insideLeft" style={{ fill: tickColor, fontSize: 10 }} />
-                  </YAxis>
+                  <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
                   <Tooltip content={<ChartTooltip />} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
-                    {donutData.map((_, i) => (
-                      <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                    {donutData.map((d, i) => (
+                      <Cell key={i} fill={getCatColor(d.key, isLight, i)} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -211,8 +237,8 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
                     dataKey="value"
                     stroke="none"
                   >
-                    {donutData.map((_, i) => (
-                      <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                    {donutData.map((d, i) => (
+                      <Cell key={i} fill={getCatColor(d.key, isLight, i)} />
                     ))}
                   </Pie>
                   <Tooltip content={<ChartTooltip />} />
@@ -223,7 +249,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginTop: 8 }}>
               {donutData.map((d, i) => (
                 <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: getCatColor(d.key, isLight, i) }} />
                   <Text style={{ color: subTextColor, fontSize: 11, fontWeight: '500' }}>{d.name}</Text>
                 </View>
               ))}
@@ -242,12 +268,19 @@ const chartStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.06)',
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
   title: {
     fontSize: 13,
     fontWeight: '600',
-    marginBottom: 8,
   },
-  chartWrap: {
-    outline: 'none',
-  } as any,
+  axisHint: {
+    fontSize: 10,
+    fontWeight: '400',
+  },
+  chartWrap: {},
 });
