@@ -357,20 +357,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <div className={`pv-sh-overlay${shareOpen ? ' open' : ''}`} onClick={() => setShareOpen(false)}>
           <div className="pv-sh" onClick={e => e.stopPropagation()}>
             <div className="pv-sh-handle" />
-            <button
-              onClick={() => setShareOpen(false)}
-              style={{
-                position: 'absolute', top: 16, right: 16,
-                width: 28, height: 28, borderRadius: 14,
-                background: '#EEEBE6', border: '1px solid #D1CDC6',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', padding: 0,
-              }}
-            >
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="#888" strokeWidth="2" fill="none">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', padding: '0 8px' }}>
               {[
                 ['微信', '#07c160', 'M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z'],
