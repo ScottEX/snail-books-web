@@ -116,9 +116,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const applyTransform = useCallback((animated: boolean) => {
     const el = wrapRef.current; if (!el) return;
     const g = gRef.current;
-    el.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
+    el.style.transition = animated ? 'transform .5s cubic-bezier(.34,1.56,.64,1)' : 'none';
     el.style.transform = `translate(-50%, 0) translate(${g.tx}px, ${g.ty}px) scale(${g.scale})`;
-    if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 260);
+    if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 510);
   }, []);
 
   const clamp = useCallback(() => {
