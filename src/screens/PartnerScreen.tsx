@@ -21,6 +21,7 @@ import { formatDate } from '../utils/format';
 import PlusIcon from '../components/icons/PlusIcon';
 import MinusIcon from '../components/icons/MinusIcon';
 import { getCurrentUserId } from '../utils/storage';
+import { useCropCanvas } from '../hooks/useCropCanvas';
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
@@ -370,146 +371,36 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
     return Math.max(0, Math.min(100, t * 100));
   };
 
-  // ── Imperative event binding (Canvas needs native DOM events for smooth interaction) ──
+  // ── Pill auto-hide (3s) ──
+  const hidePill = () => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const pill = stage.querySelector('[data-pill]') as HTMLElement;
+    if (pill) pill.style.opacity = '0';
+  };
+
   useEffect(() => {
     if (!cropSrc || showResult) return;
     const stage = stageRef.current;
-    const canvas = canvasRef.current;
-    if (!stage || !canvas) return;
-
-    // This effect runs when the crop modal opens — set up the canvas
-    setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 60);
-
-    let frameId = 0;
-    const scheduleDraw = () => { if (!frameId) frameId = requestAnimationFrame(() => { frameId = 0; drawCrop(); }); };
-
-    const toLocal = (clientX: number, clientY: number) => {
-      const r = stage.getBoundingClientRect();
-      return { x: clientX - r.left - canvas.width / 2, y: clientY - r.top - canvas.height / 2 };
-    };
-
-    // Guide circle active state + pill hide
-    const guide = guideRef.current;
-    const setGuideActive = (active: boolean) => {
-      if (!guide) return;
-      guide.style.borderColor = active ? '#fff' : 'rgba(255,255,255,0.8)';
-      guide.style.boxShadow = active
-        ? '0 0 0 9999px rgba(0,0,0,0.62)'
-        : '0 0 0 9999px rgba(0,0,0,0.55)';
-    };
-
-    // Pill auto-hide (3s) + hide on interaction
-    let pillTimer: any = setTimeout(() => {
+    if (!stage) return;
+    const timer = setTimeout(() => {
       const pill = stage.querySelector('[data-pill]') as HTMLElement;
       if (pill) pill.style.opacity = '0';
     }, 3000);
-    const hidePill = () => {
-      clearTimeout(pillTimer);
-      const pill = stage.querySelector('[data-pill]') as HTMLElement;
-      if (pill) pill.style.opacity = '0';
-    };
-
-    // Window resize
-    const onResize = () => {
-      setupCanvas();
-      clampCrop();
-      drawCrop();
-    };
-    window.addEventListener('resize', onResize);
-
-    // Mouse
-    const onMD = (e: MouseEvent) => {
-      const s = cropState.current;
-      s.drag.active = true;
-      s.drag.sx = e.clientX; s.drag.sy = e.clientY;
-      s.drag.ox = s.x; s.drag.oy = s.y;
-      setGuideActive(true); hidePill();
-    };
-    const onMM = (e: MouseEvent) => {
-      const s = cropState.current;
-      if (!s.drag.active) return;
-      s.x = s.drag.ox + (e.clientX - s.drag.sx);
-      s.y = s.drag.oy + (e.clientY - s.drag.sy);
-      clampCrop();
-      scheduleDraw();
-    };
-    const onMU = () => { cropState.current.drag.active = false; setGuideActive(false); };
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const p = toLocal(e.clientX, e.clientY);
-      zoomCrop(e.deltaY > 0 ? -0.08 : 0.08, p.x, p.y);
-    };
-
-    // Touch
-    const getDist = (ts: TouchList) => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
-    const onTS = (e: TouchEvent) => {
-      e.preventDefault();
-      const s = cropState.current;
-      hidePill();
-      if (e.touches.length === 1) {
-        s.drag.active = true;
-        s.drag.sx = e.touches[0].clientX; s.drag.sy = e.touches[0].clientY;
-        s.drag.ox = s.x; s.drag.oy = s.y;
-        setGuideActive(true);
-      } else if (e.touches.length === 2) {
-        s.drag.active = false;
-        setGuideActive(false);
-        s.pinch.active = true;
-        s.pinch.startDist = getDist(e.touches);
-        s.pinch.startScale = s.scale;
-        const r = stage.getBoundingClientRect();
-        s.pinch.midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left - canvas.width / 2;
-        s.pinch.midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top - canvas.height / 2;
-      }
-    };
-    const onTM = (e: TouchEvent) => {
-      e.preventDefault();
-      const s = cropState.current;
-      if (s.drag.active && e.touches.length === 1) {
-        s.x = s.drag.ox + (e.touches[0].clientX - s.drag.sx);
-        s.y = s.drag.oy + (e.touches[0].clientY - s.drag.sy);
-        clampCrop();
-        scheduleDraw();
-      } else if (s.pinch.active && e.touches.length === 2) {
-        const d = getDist(e.touches);
-        const ns = Math.max(s.minScale, Math.min(s.maxScale, s.pinch.startScale * (d / s.pinch.startDist)));
-        const sd = ns / s.scale;
-        s.x = s.pinch.midX + (s.x - s.pinch.midX) * sd;
-        s.y = s.pinch.midY + (s.y - s.pinch.midY) * sd;
-        s.scale = ns;
-        clampCrop();
-        scheduleDraw();
-      }
-    };
-    const onTE = (e: TouchEvent) => {
-      const s = cropState.current;
-      if (e.touches.length < 2) s.pinch.active = false;
-      if (e.touches.length === 0) { s.drag.active = false; setGuideActive(false); }
-    };
-
-    canvas.addEventListener('mousedown', onMD);
-    window.addEventListener('mousemove', onMM);
-    window.addEventListener('mouseup', onMU);
-    canvas.addEventListener('wheel', onWheel, { passive: false });
-    canvas.addEventListener('touchstart', onTS, { passive: false });
-    canvas.addEventListener('touchmove', onTM, { passive: false });
-    canvas.addEventListener('touchend', onTE);
-    canvas.addEventListener('touchcancel', onTE);
-
-    return () => {
-      canvas.removeEventListener('mousedown', onMD);
-      window.removeEventListener('mousemove', onMM);
-      window.removeEventListener('mouseup', onMU);
-      canvas.removeEventListener('wheel', onWheel);
-      canvas.removeEventListener('touchstart', onTS);
-      canvas.removeEventListener('touchmove', onTM);
-      canvas.removeEventListener('touchend', onTE);
-      canvas.removeEventListener('touchcancel', onTE);
-      window.removeEventListener('resize', onResize);
-      cancelAnimationFrame(frameId);
-      clearTimeout(pillTimer);
-    };
+    return () => clearTimeout(timer);
   }, [cropSrc, showResult]);
+
+  // ── Shared crop event binding (mouse / touch / wheel / resize) ──
+  const onCropSetup = () => { setupCanvas(); clampCrop(); drawCrop(); };
+  useCropCanvas({
+    active: !!cropSrc && !showResult,
+    canvasRef, stageRef, guideRef, stateRef: cropState,
+    scheduleDraw: drawCrop,
+    clampCrop,
+    zoomCrop,
+    onSetup: onCropSetup,
+    onBeforeDrag: hidePill,
+  });
 
   useEffect(() => { loadAvatar(); }, []);
 
