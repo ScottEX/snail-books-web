@@ -414,9 +414,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 activeOpacity={0.7}
               >
                 <View style={st.tabInner}>
-                  <Text style={[st.tabTitle, active && st.tabTitleActive, i === 1 && { marginBottom: -16 }]}>
+                  <View style={i === 1 ? { marginBottom: -16, alignSelf: 'flex-start' } as any : undefined}>
+                  <Text style={[st.tabTitle, active && st.tabTitleActive]}>
                     {tab.title}{i === 1 ? ' ¥' + fmtInt(businessSummary.cumulative_expense || 0) : ''}
                   </Text>
+                  </View>
                   {i === 0 && (
                     <View style={{ flex: 1, gap: 12 }}>
                       {/* Hero: 账面差额 */}
