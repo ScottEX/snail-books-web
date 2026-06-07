@@ -339,6 +339,7 @@ export const api = {
   getBusinessSummary: () => authFetch('/api/business-summary'),
 
   getChart: () => authFetch('/api/chart'),
+  getChartMonthly: () => authFetch('/api/chart/monthly'),
   getStats: () => authFetch('/api/stats'),
 
   // Use authFetch so 401 (session already expired / revoked) routes through the

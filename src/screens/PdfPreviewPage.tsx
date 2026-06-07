@@ -65,10 +65,27 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState('');
   const [zoomVis, setZoomVis] = useState(false);
   const [zoomPct, setZoomPct] = useState(100);
   const [shareOpen, setShareOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
+
+  // Fetch PDF as blob with auth cookies, then create object URL for react-pdf
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(pdfUrl, { credentials: 'include' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        if (!cancelled) setPdfBlobUrl(URL.createObjectURL(blob));
+      } catch (e: any) {
+        if (!cancelled) { setPdfLoading(false); console.error('[pdf] fetch error:', e); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [pdfUrl]);
 
   const vpRef = useRef<HTMLDivElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -267,8 +284,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
             </div>
           )}
           <div className="pv-pdf-wrap" ref={wrapRef} style={{ visibility: pdfLoading ? 'hidden' : 'visible' }}>
+            {pdfBlobUrl && (
             <Document
-              file={pdfUrl}
+              file={pdfBlobUrl}
               onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfLoading(false); }}
               onLoadError={() => setPdfLoading(false)}
               loading={null}
@@ -283,6 +301,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
                 />
               ))}
             </Document>
+            )}
           </div>
         </div>
 
