@@ -89,11 +89,11 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .nav-action.accent-btn{background:rgba(192,57,43,0.12);border-color:rgba(192,57,43,0.25)}
 .nav-action.accent-btn svg{stroke:#C0392B}
 
-.page-pill{position:fixed;top:calc(44px + 71px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;transition:opacity .3s;pointer-events:none}
-.zoom-indicator{position:fixed;top:calc(44px + 71px);right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
+.page-pill{position:fixed;top:calc(44px + 80px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;transition:opacity .3s;pointer-events:none}
+.zoom-indicator{position:fixed;top:calc(44px + 80px);right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .zoom-indicator.show{opacity:1}
 
-.viewport{position:fixed;top:calc(44px + 60px);left:0;right:0;bottom:0;overflow:hidden;background:#fff}
+.viewport{position:fixed;top:calc(44px + 72px);left:0;right:0;bottom:0;overflow:hidden;background:#fff}
 .viewport-inner{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center;overflow:hidden;position:relative;cursor:grab}
 .viewport-inner.grabbing{cursor:grabbing}
 .doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
