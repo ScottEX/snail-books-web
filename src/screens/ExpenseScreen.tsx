@@ -669,7 +669,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         monthIncome={monthIncomeSummary}
       />
       )}
-      <ScrollView style={st.contentScroll} showsVerticalScrollIndicator={false}
+      <ScrollView style={[st.contentScroll, activeTab === 1 && { flex: 0 } as any]} showsVerticalScrollIndicator={false}
         contentContainerStyle={st.contentInner}>
 
         {/* ── 模块一：每日对账 ── */}
@@ -1495,7 +1495,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
 
   /* ── Content ── */
-  contentScroll: { flex: 1, backgroundColor: colors.bg },
+  contentScroll: { flex: 1 },
   contentInner: {
     paddingHorizontal: 18, paddingBottom: 150, gap: 0,
   },
