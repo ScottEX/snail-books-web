@@ -38,7 +38,6 @@ export default function ExpenseSummaryCards({
 
   return (
     <View style={st.wrap}>
-      <Text style={st.sectionTitle}>{t('summary')}</Text>
       <View style={st.grid}>
         {cards.map((c, i) => (
           <View
