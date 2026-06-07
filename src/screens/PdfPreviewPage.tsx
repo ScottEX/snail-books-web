@@ -62,12 +62,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const styles = useMemo(() => getStyles(c), [c]);
 
   const [tokenUrl, setTokenUrl] = useState<string | null>(null);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [iframeError, setIframeError] = useState(false);
   const [shareSheetOpen, setShareSheetOpen] = useState(false);
   const [toast, setToast] = useState('');
 
+  // Step 1: Get the share link
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -78,8 +79,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
             setTokenUrl(r.url);
           } else {
             setError(t('pdfLoadFailed'));
+            setLoading(false);
           }
-          setLoading(false);
         }
       } catch (e: any) {
         if (!cancelled) {
@@ -90,6 +91,49 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     })();
     return () => { cancelled = true; };
   }, [batchId]);
+
+  // Step 2: Pre-fetch the PDF to verify it's reachable and valid
+  useEffect(() => {
+    if (!tokenUrl) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const resp = await fetch(tokenUrl, { credentials: 'same-origin' });
+        if (cancelled) return;
+
+        if (!resp.ok) {
+          let msg = `服务器错误 (${resp.status})`;
+          try {
+            const body = await resp.clone().json();
+            if (body?.message) msg = body.message;
+          } catch {}
+          setError(msg);
+          setLoading(false);
+          return;
+        }
+
+        const ct = resp.headers.get('content-type') || '';
+        if (!ct.includes('pdf')) {
+          setError('服务器返回了非PDF内容');
+          setLoading(false);
+          return;
+        }
+
+        const blob = await resp.blob();
+        if (cancelled) return;
+
+        const blobUrl = URL.createObjectURL(blob);
+        setPdfBlobUrl(blobUrl);
+        setLoading(false);
+      } catch (e: any) {
+        if (!cancelled) {
+          setError(e?.message || '网络错误，无法加载PDF');
+          setLoading(false);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [tokenUrl]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -117,28 +161,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     showToast('链接已复制');
   }, [publicUrl, showToast]);
 
-  const retryPdf = useCallback(() => {
-    setIframeError(false);
-    setLoading(true);
+  const retry = useCallback(() => {
+    setPdfBlobUrl(null);
     setError(null);
     setTokenUrl(null);
-    (async () => {
-      try {
-        const r: any = await api.getProcurementShareLink(batchId);
-        if (r?.url) {
-          setTokenUrl(r.url);
-        } else {
-          setError(t('pdfLoadFailed'));
-        }
-      } catch (e: any) {
-        setError(e?.message || t('pdfLoadFailed'));
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [batchId]);
+    setLoading(true);
+  }, []);
 
-  // Render helpers
+  // ── Header component ──
   const renderHeader = () => (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
@@ -158,7 +188,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <View style={styles.viewer}>
           <View style={styles.centered}>
             <ActivityIndicator color={c.primary} size="large" />
-            <Text style={styles.hintText}>{t('pdfLoading')}</Text>
+            <Text style={styles.hintText}>{tokenUrl ? '正在生成 PDF…' : t('pdfLoading')}</Text>
           </View>
         </View>
       </View>
@@ -172,7 +202,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <View style={styles.viewer}>
           <View style={styles.centered}>
             <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={retryPdf} style={styles.retryBtn} activeOpacity={0.7}>
+            <TouchableOpacity onPress={retry} style={styles.retryBtn} activeOpacity={0.7}>
               <Text style={styles.retryText}>重试</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onBack} style={[styles.retryBtn, { marginTop: 8, backgroundColor: c.secondary }]} activeOpacity={0.7}>
@@ -186,29 +216,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   return (
     <View style={styles.container}>
-      {/* 标题栏 — transparent, frosted glass over HomeScreen bg */}
       {renderHeader()}
 
-      {/* PDF 内嵌 — solid background */}
+      {/* PDF display — uses pre-fetched blob URL, guaranteed valid */}
       <View style={styles.viewer}>
-        {tokenUrl ? (
-          <>
-            {iframeError ? (
-              <View style={styles.centered}>
-                <Text style={styles.errorText}>PDF 加载失败</Text>
-                <TouchableOpacity onPress={retryPdf} style={styles.retryBtn} activeOpacity={0.7}>
-                  <Text style={styles.retryText}>重新加载</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <iframe
-                src={tokenUrl}
-                style={styles.iframe as any}
-                title={`procurement_${batchId}.pdf`}
-                onError={() => setIframeError(true)}
-              />
-            )}
-          </>
+        {pdfBlobUrl ? (
+          <iframe
+            src={pdfBlobUrl}
+            style={styles.iframe as any}
+            title={`procurement_${batchId}.pdf`}
+          />
         ) : null}
       </View>
 
@@ -302,7 +319,6 @@ const getStyles = (c: ThemeColors) => {
   return StyleSheet.create({
     container: { flex: 1, minHeight: '100vh' } as any,
     ...hdr,
-    // Viewer fills area below header — solid background
     viewer: {
       flex: 1,
       minHeight: 'calc(100vh - 100px)' as any,
