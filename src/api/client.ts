@@ -1,5 +1,18 @@
 import { getLang } from '../i18n';
 
+// ── Session-kicked event bus ──
+// The api layer is not a React component, so it cannot render a modal directly.
+// Expose a tiny pub/sub so SessionKickedModal (mounted at App level) can subscribe.
+type SessionKickedListener = () => void;
+const _sessionKickedListeners = new Set<SessionKickedListener>();
+export function onSessionKicked(fn: SessionKickedListener): () => void {
+  _sessionKickedListeners.add(fn);
+  return () => { _sessionKickedListeners.delete(fn); };
+}
+function _emitSessionKicked() {
+  _sessionKickedListeners.forEach((fn) => { try { fn(); } catch { /* ignore */ } });
+}
+
 function getApiBase(): string {
   // Allow override via localStorage for development/testing
   if (typeof localStorage !== 'undefined') {
@@ -12,27 +25,9 @@ function getApiBase(): string {
 
 const API_BASE = getApiBase();
 
-// ── Idle timeout: 2 hours no API call → redirect to login ──
-const IDLE_MS = 120 * 60_000; // 120 minutes = 2 hours
-let lastActivity = Date.now();
-let idleTimer: ReturnType<typeof setInterval> | null = null;
-
-function startIdleTimer() {
-  if (idleTimer) return;
-  idleTimer = setInterval(() => {
-    // Only check when user is logged in (has user in localStorage)
-    if (!localStorage.getItem('user')) return;
-    if (Date.now() - lastActivity > IDLE_MS) {
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-  }, 10_000); // check every 10s
-}
-startIdleTimer();
-
-function bumpActivity() {
-  lastActivity = Date.now();
-}
+// Session expiration: 100% backend-driven. When user_sessions.expires_at passes
+// (or session_id gets revoked by another device via SSO), the next API call
+// returns 401 and authFetch below redirects to /login. No frontend timer needed.
 
 function headers(): Record<string, string> {
   const h: Record<string, string> = {
@@ -61,18 +56,16 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     if (window.location.pathname !== '/login') {
       window.location.replace('/login');
     }
-    return new Promise(() => {});
+    return Promise.reject(new Error(kickMsg || 'Unauthorized'));
   }
   if (!resp.ok) {
     throw new Error(`API error: ${resp.status} ${resp.statusText}`);
   }
-  bumpActivity();
   return resp.json();
 }
 
 export const api = {
   login: (username: string, password: string, remember = false) => {
-    bumpActivity();
     return fetch(API_BASE + '/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Lang': getLang() },
@@ -154,7 +147,6 @@ export const api = {
 
   // Expense image upload — returns { images: [...], thumb_images: [...], has_thumbs: bool }
   uploadExpenseImages: async (files: File[]) => {
-    bumpActivity();
     const form = new FormData();
     files.forEach(f => form.append('files', f));
     const resp = await fetch(API_BASE + '/api/expenses/upload-images', {
@@ -171,7 +163,6 @@ export const api = {
       throw new Error('Unauthorized');
     }
     if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
-    bumpActivity();
     const data = await resp.json();
     return data as { status: 'ok'; images: string[]; thumb_images: string[]; has_thumbs: boolean };
   },
@@ -185,7 +176,6 @@ export const api = {
   // Background image
   getBackground: () => authFetch('/api/settings/background'),
   uploadBackground: async (file: File) => {
-    bumpActivity();
     const form = new FormData();
     form.append('file', file);
     const resp = await fetch(API_BASE + '/api/settings/background', {
@@ -201,7 +191,6 @@ export const api = {
 
   // Avatar
   uploadAvatar: async (form: FormData) => {
-    bumpActivity();
     const resp = await fetch(API_BASE + '/api/users/avatar', {
       method: 'POST',
       headers: headers(),
@@ -211,6 +200,38 @@ export const api = {
     if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
     return resp.json();
   },
+
+  // Profile cover
+  getProfileCover: () => authFetch('/api/profile/cover'),
+  uploadProfileCover: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const resp = await fetch(API_BASE + '/api/profile/cover', {
+      method: 'POST',
+      headers: { 'X-Lang': getLang() },
+      body: form,
+    });
+    if (!resp.ok) throw new Error(`Upload failed (${resp.status})`);
+    return resp.json();
+  },
+  resetProfileCover: () => authFetch('/api/profile/cover', { method: 'DELETE' }),
+
+  // Signature
+  saveSignature: (signature: string) =>
+    authFetch('/api/users/signature', { method: 'POST', body: JSON.stringify({ signature }) }),
+
+  // Profile settings
+  changePassword: (old_password: string, new_password: string) =>
+    authFetch('/api/profile/password', { method: 'POST', body: JSON.stringify({ old_password, new_password }) }),
+  sendEmailCode: (email: string) =>
+    authFetch('/api/profile/email/send-code', { method: 'POST', body: JSON.stringify({ email }) }),
+  verifyEmailCode: (email: string, code: string) =>
+    authFetch('/api/profile/email/verify', { method: 'POST', body: JSON.stringify({ email, code }) }),
+
+  // Auth preferences (single-device login + session timeout)
+  getAuthPrefs: () => authFetch('/api/users/me/auth-prefs'),
+  updateAuthPrefs: (data: { enforce_single_session?: number; session_timeout_hours?: number }) =>
+    authFetch('/api/users/me/auth-prefs', { method: 'PATCH', body: JSON.stringify(data) }),
 
   // Language preference (stored per-user in user_settings)
   getLang: () => authFetch('/api/settings/lang'),
@@ -259,10 +280,6 @@ export const api = {
   addPlatformFeeEntry: (data: any) => authFetch('/api/platform-fees/entry', { method: 'POST', body: JSON.stringify(data) }),
   updatePlatformFee: (id: number, data: any) => authFetch(`/api/platform-fees/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  getProcurements: () => authFetch('/api/procurements'),
-  createProcurement: (data: any) => authFetch('/api/procurements', { method: 'POST', body: JSON.stringify(data) }),
-  deleteProcurement: (id: number) => authFetch(`/api/procurements/${id}`, { method: 'DELETE' }),
-
   // Procurement batches (进货批次)
   getProcurementBatches: (page = 1, perPage = 10) => authFetch(`/api/procurement-batches?page=${page}&per_page=${perPage}`),
   createProcurementBatch: (data: any) => authFetch('/api/procurement-batches', { method: 'POST', body: JSON.stringify(data) }),
@@ -296,7 +313,12 @@ export const api = {
   getBusinessSummary: () => authFetch('/api/business-summary'),
 
   getChart: () => authFetch('/api/chart'),
+  getChartMonthly: () => authFetch('/api/chart/monthly'),
   getStats: () => authFetch('/api/stats'),
 
-  logout: () => fetch(API_BASE + '/logout', { method: 'POST' }).then(() => { localStorage.removeItem('user'); }),
+  // Use authFetch so 401 (session already expired / revoked) routes through the
+  // same handler as other API calls: clear localStorage + redirect to /login.
+  // Bare fetch would call .then() on 4xx and silently clear localStorage without
+  // a redirect, leaving the user on a page that can't fetch anything.
+  logout: () => authFetch('/logout', { method: 'POST' }).then(() => { localStorage.removeItem('user'); }),
 };

@@ -12,28 +12,32 @@ import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
+import ProcurementDetailScreen from './ProcurementDetailScreen';
+import PdfPreviewPage from './PdfPreviewPage';
+import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import SlideScreen from '../components/SlideScreen';
-
-function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
-  const [show, setShow] = React.useState(false);
-  React.useEffect(() => {
-    if (trigger > 0) {
-      setShow(true);
-      const t = setTimeout(() => setShow(false), 3000);
-      return () => clearTimeout(t);
-    } else {
-      setShow(false);
-    }
-  }, [trigger]);
-  if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'left', marginTop: 2 }}>{message}</Text>;
-}
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import ProfileScreen from './ProfileScreen';
+import ThemePickerModal from '../components/ThemePickerModal';
+import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import { useDailyRevenueForm } from './home/useDailyRevenueForm';
+import DailyRevenuePanel from './home/DailyRevenuePanel';
+import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
+import ChartsPanel from './ChartsPanel';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
-export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
-  const { colors, setTheme, allThemes } = useTheme();
+export default function HomeScreen({
+  onLogout,
+  previewRoute,
+  onClosePreview,
+}: {
+  onLogout: () => void;
+  /** URL-driven PDF preview (parses #/preview-pdf?… in App.tsx). */
+  previewRoute?: { id: number; number: number } | null;
+  /** Cleared when the user dismisses the preview — App.tsx drops the hash. */
+  onClosePreview?: () => void;
+}) {
+  const { colors } = useTheme();
   const [tab, setTabState] = useState<Tab>(() => {
     try { return (localStorage.getItem('active_tab') as Tab) || 'expense'; }
     catch { return 'expense'; }
@@ -48,8 +52,10 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [pages, setPages] = useState(1);
   const [chart, setChart] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [procurements, setProcurements] = useState<any[]>([]);
-  const [lang, setLangState] = useState(getLang());
+  // Pulled from LangContext — re-renders on LangContext value change
+  // instead of capturing curLang at mount (so a new user's server-
+  // side language actually reaches the lang selector).
+  const { lang, setLang: setLangState } = useLang();
 
   // Add form
   const [txType, setTxType] = useState('expense');
@@ -59,15 +65,154 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  // ── Modal slide-from-top animation ──
-  const modalAnim = useRef(new Animated.Value(0)).current;
-  const modalFade = useRef(new Animated.Value(0)).current;
-  const openModal = (show: () => void) => { show(); modalAnim.setValue(-300); modalFade.setValue(0); Animated.parallel([Animated.spring(modalAnim,{toValue:0,useNativeDriver:true,bounciness:4,speed:14}),Animated.timing(modalFade,{toValue:1,duration:200,useNativeDriver:true})]).start(); };
-  const closeModal = (hide: () => void) => { Animated.parallel([Animated.timing(modalAnim,{toValue:-300,duration:180,useNativeDriver:true}),Animated.timing(modalFade,{toValue:0,duration:180,useNativeDriver:true})]).start(()=>hide()); };
-  const [showReconHistory, setShowReconHistory] = useState(false);
-  const [showExpenseHistory, setShowExpenseHistory] = useState(false);
-  const [showDailyHistory, setShowDailyHistory] = useState(false);
+  const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
+  // External signal for ProcurementScreen.edit flow. When set, the
+  // newly-mounted ProcurementScreen instance (which mounts when
+  // popPage flips pageStack empty after the 280ms slide-out) will
+  // pick it up via a useEffect and call openEditBatch on itself.
+  // Replaces the old editProcurementRef pattern, which suffered from
+  // stale-ref-to-unmounted-instance when proc detail closed.
+  const [pendingEditBatch, setPendingEditBatch] = useState<any>(null);
+  // Holds the active PDF preview target. Pushed onto pageStack as
+  // 'pdf' via the useEffect below whenever App.tsx sees a matching
+  // hash. Cleared on popPage so a fresh push always starts clean.
   const [showCartDrawer, setShowCartDrawer] = useState(false);
+  // iOS-style push/pop nav: pageStack is the single source of truth
+  // for which sub-screen (profile / recon / expense / daily / proc / pdf)
+  // is on top of HomeScreen. pushPage() opens one (280ms slide-in);
+  // popPage() reverses it (250ms slide-out via the `removing` flag).
+  // The `s.includes(p) ? s : ...` guard prevents pushing the same
+  // page twice while it's still on the stack.
+  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf';
+  // Hydrate pageStack from history.state so a refresh lands the user
+  // back on the same sub-page they were viewing. Fall back to [] for
+  // a cold load (state is null) or a hostile/missing history.state.
+  const [pageStack, setPageStack] = useState<SubPage[]>(() => {
+    try {
+      const s = (history.state as any)?.stack;
+      return Array.isArray(s) ? (s as SubPage[]) : [];
+    } catch { return []; }
+  });
+  // Hydrate pdfPreview from the URL hash on mount. The push effect
+  // (below) reads the same prop on every refresh, but pdfPreview
+  // itself is local state, so we seed it from the hash before the
+  // effect can push 'pdf' onto the stack. Without this, a refresh
+  // on the PDF URL would mount PdfPreviewPage with batchId=0.
+  const [pdfPreview, setPdfPreview] = useState<{ id: number; number: number } | null>(() => {
+    if (previewRoute) return previewRoute;
+    try {
+      const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
+      if (!m) return null;
+      const qs = window.location.hash.split('?')[1] || '';
+      const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
+      return { id: parseInt(m[1], 10), number: num };
+    } catch { return null; }
+  });
+  // Mirror of pageStack for synchronous reads inside the popstate
+  // listener and popPage itself. The closure values from useState
+  // would be stale when popstate fires back-to-back in <280ms.
+  const pageStackRef = useRef<SubPage[]>([]);
+  useEffect(() => { pageStackRef.current = pageStack; }, [pageStack]);
+  // Persist every change to pageStack back into history.state so a
+  // refresh restores the same sub-page. replaceState (not pushState)
+  // — we don't want each push to add a new history entry; the
+  // popstate listener + the one sentinel entry on mount is enough.
+  useEffect(() => {
+    try {
+      history.replaceState(
+        { app: 'snail-books', stack: pageStack },
+        '',
+        location.href,
+      );
+    } catch {}
+  }, [pageStack]);
+  const [removing, setRemoving] = useState<SubPage | null>(null);
+  const pushPage = (p: SubPage) => setPageStack(s => s.includes(p) ? s : [...s, p]);
+  const popPage = () => {
+    const stack = pageStackRef.current;
+    if (stack.length === 0) return;
+    const top = stack[stack.length - 1];
+    setRemoving(top);
+    setTimeout(() => {
+      setPageStack(s => s.slice(0, -1));
+      setRemoving(null);
+      // Per-page payload cleanup so a fresh push of the same page
+      // never sees stale data from a previous open.
+      if (top === 'proc') setProcDetailBatch(null);
+      if (top === 'pdf') {
+        setPdfPreview(null);
+        // Mirror the dismissal back up to App.tsx so the URL hash
+        // is dropped (a back-out of PDF should clear the URL too).
+        onClosePreview?.();
+      }
+    }, 280);
+  };
+
+  // Sync the URL-driven PDF preview route with our pageStack.
+  // App.tsx owns the hash; this effect turns the prop into a push.
+  // Guard: if 'pdf' is already on the stack, don't push again — the
+  // user might be reloading on the same URL.
+  //
+  // The ignorePopstateUntil ref is set 500ms after a PDF push to
+  // swallow any popstate that may fire as a side effect of the hash
+  // change (Chrome sometimes fires popstate when the hash is rewritten
+  // and the page's own onPopState listener would otherwise interpret
+  // it as a "user pressed back" and pop the just-pushed PDF right
+  // back off the stack). 500ms is a safety window — by then the
+  // hashchange has settled and any real browser-back will be a new
+  // popstate long after the ignore flag has cleared.
+  const ignorePopstateUntil = useRef(0);
+  useEffect(() => {
+    if (previewRoute) {
+      setPdfPreview(previewRoute);
+      setPageStack(s => s.includes('pdf') ? s : [...s, 'pdf']);
+      // The ignorePopstateUntil safety window is now a no-op for
+      // in-app nav: ProcurementDetailScreen's eye button uses
+      // onPreview → history.replaceState + pushPage, so neither
+      // hashchange nor popstate fires. The 0ms floor is kept for
+      // any future code path that might still set location.hash
+      // directly, and as a defence-in-depth margin.
+      ignorePopstateUntil.current = 0;
+    }
+    // When previewRoute goes null we DON'T pop here — popPage's
+    // own cleanup (above) handles it via onClosePreview, which is
+    // what flips previewRoute back to null in App.tsx. This avoids
+    // a "pop → effect → pop" loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewRoute]);
+  // Browser back / iOS swipe-back: when a sub-page is on the stack,
+  // pop it (iOS-style "back one level" semantics). When the stack
+  // is empty, the back gesture closes the app as usual.
+  useEffect(() => {
+    // Push a sentinel state on mount so the FIRST back press triggers
+    // popstate (otherwise the browser would just exit the SPA).
+    try {
+      if (history.state === null || (history.state as any)?.app !== 'snail-books') {
+        history.pushState({ app: 'snail-books' }, '', location.href);
+      }
+    } catch {}
+    const onPopState = () => {
+      // Swallow popstates that arrive within the safety window
+      // after a programmatic PDF hash change. See the
+      // ignorePopstateUntil comment near the push effect.
+      if (Date.now() < ignorePopstateUntil.current) return;
+      if (pageStackRef.current.length > 0) {
+        popPage();
+        // Re-push a sentinel so the next back can also be intercepted.
+        // Defer one tick so popPage's setState can flush first.
+        setTimeout(() => {
+          try {
+            history.pushState({ app: 'snail-books' }, '', location.href);
+          } catch {}
+        }, 0);
+      }
+      // Stack empty → let the browser handle the back (exit / navigate).
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+    // popPage is stable (reads pageStackRef, which is the ref we just made).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
@@ -88,117 +233,18 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       return saved !== null ? parseFloat(saved) : 0.5;
     } catch { return 0.5; }
   });
-  const fileRef = useRef<HTMLInputElement | null>(null);
 
-  // Daily revenue states
-  const todayDateStr = () => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  };
-  const yesterdayDateStr = () => {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  };
-  const dayBeforeDateStr = () => {
-    const d = new Date();
-    d.setDate(d.getDate() - 2);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  };
-  const [dailyRevs, setDailyRevs] = useState<any[]>([]);
-  const [revDate, setRevDate] = useState(todayDateStr());
-  const [revDateErr, setRevDateErr] = useState(0);
-  const [revDateKey, setRevDateKey] = useState(0);
-  const isFuture = (d: string) => d > todayDateStr();
-  const [revRevenue, setRevRevenue] = useState('');
-  const [revTurnover, setRevTurnover] = useState('');
-  const [revJD, setRevJD] = useState('');
-  const [revNote, setRevNote] = useState('');
-  const [revPage, setRevPage] = useState(1);
-  const [revPages, setRevPages] = useState(1);
-  const [revYear, setRevYear] = useState(new Date().getFullYear());
-  const [revMonth, setRevMonth] = useState(new Date().getMonth() + 1);
-  const [revLoading, setRevLoading] = useState(false);
-  const [revSaving, setRevSaving] = useState(false);
-  const [showRevMonthPicker, setShowRevMonthPicker] = useState(false);
-  const [editingRevId, setEditingRevId] = useState<number | null>(null);
-  const revPickerRef = useRef<any>(null);
-  const revPickerAnim = useRef(new Animated.Value(0)).current;
-  const revDateInputRef = useRef<HTMLInputElement>(null);
-  const [revPickerPos, setRevPickerPos] = useState({ top: 0, left: 0 });
-  const [yesterdayRev, setYesterdayRev] = useState<any>(null);
-  const [weekRev, setWeekRev] = useState<any>(null);
-  const [revMarkedClosed, setRevMarkedClosed] = useState(false);
+  // ── 收支总览数据（图表 Tab）──
+  const [businessSummary, setBusinessSummary] = useState<any>({});
+  const [chartExpenses, setChartExpenses] = useState<any[]>([]);
+  const [chartFeeTotal, setChartFeeTotal] = useState(0);
+  const [chartMonthly, setChartMonthly] = useState<any>(null);
+  // Background image crop moved to shared BgCropModal component.
 
-  // Quick date helpers
-  const td = todayDateStr();
-  const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate()-1); return fmtDate(d); };
-  const db4Str = () => { const d = new Date(); d.setDate(d.getDate()-2); return fmtDate(d); };
-  const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  const pickDate = (d: string) => { if (d <= td) loadRevForDate(d); };
-
-  // Load existing record for a date (for quick-date pills + date picker)
-  const loadRevForDate = (d: string) => {
-    setRevDate(d);
-    api.getDailyRevenue(1, 1, undefined, undefined, d).then((r: any) => {
-      const rec = r?.records?.[0];
-      if (rec) {
-        setEditingRevId(rec.id);
-        setRevRevenue(String(rec.revenue || ''));
-        setRevTurnover(String(rec.turnover || ''));
-        setRevJD(String(rec.jd_revenue || ''));
-        setRevNote(rec.note || '');
-        setRevMarkedClosed(!!rec.archived);
-      } else {
-        setEditingRevId(null);
-        setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
-        setRevMarkedClosed(false);
-      }
-    }).catch(() => {});
-  };
-
-  // Sync uncontrolled date input when revDate changes externally (quick-date pills)
-  useEffect(() => {
-    if (revDateInputRef.current) revDateInputRef.current.value = revDate;
-    setRevDateErr(0);
-  }, [revDate]);
-
-  const INCOME_CATS = ['🍜 堂食','🛵 美团外卖','🛵 饿了吗外卖','🎫 美团团购','📦 京东','🔧 其他收入'];
-  const EXPENSE_CATS = ['📦 原材料进货','🏠 房租','⚡ 水电煤气','👨‍🍳 人工工资','🔧 设备/工具','🏗️ 装修','📋 培训/证件','🧹 卫生/清洁','🧻 餐具/纸巾','📦 包装/打包','📢 广告/推广','💊 杂项/烟酒','📝 其他'];
-  const cats = { income: INCOME_CATS, expense: EXPENSE_CATS };
-
-  // Daily revenue helpers
-  const loadDailyRevs = useCallback(async (p = 1, yr?: number, mo?: number) => {
-    setRevLoading(true);
-    try {
-      const r = await api.getDailyRevenue(p, 30, yr, mo);
-      setDailyRevs(r?.records || []);
-      setRevPages(r?.pages || 1);
-      setRevPage(r?.page || 1);
-    } catch { setToast(t('toastLoadFailed')); }
-    setRevLoading(false);
-  }, []);
-
-  useEffect(() => { loadDailyRevs(1, revYear, revMonth); }, [revYear, revMonth]);
-
-  // Load yesterday's revenue for card footers
-  useEffect(() => {
-    let cancelled = false;
-    const yd = yesterdayStr();
-    api.getDailyRevenue(1, 1, undefined, undefined, yd).then((r: any) => {
-      if (!cancelled) setYesterdayRev(r.records?.[0] || null);
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  // Load last 30 days aggregated
-  useEffect(() => {
-    let cancelled = false;
-    api.getDailyRevenue(1, 1, undefined, undefined, undefined, 30).then((r: any) => {
-      if (!cancelled) setWeekRev(r?.totals || null);
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
+  const revForm = useDailyRevenueForm({
+    onToast: (msg: string) => setToast(msg),
+    onRefreshLast7: (records: any[]) => setLast7Records(records),
+  });
 
   // Load last 7 days table
   useEffect(() => {
@@ -208,65 +254,6 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
-
-  const submitDailyRev = async () => {
-    const isClosed = revMarkedClosed;
-    if (!isClosed && (!revTurnover || parseFloat(revTurnover) <= 0)) { setToast(t('revTurnover') + ' 不能为空'); return; }
-    setRevSaving(true);
-    try {
-      if (editingRevId) {
-        await api.updateDailyRevenue(editingRevId, {
-          revenue: parseFloat(revRevenue) || 0,
-          turnover: parseFloat(revTurnover) || 0,
-          jd_revenue: parseFloat(revJD) || 0,
-          note: revNote,
-          archived: revMarkedClosed ? 1 : 0,
-        });
-      } else {
-        const r = await api.createDailyRevenue({
-          date: revDate,
-          revenue: parseFloat(revRevenue) || 0,
-          turnover: parseFloat(revTurnover) || 0,
-          jd_revenue: parseFloat(revJD) || 0,
-          note: revNote,
-          archived: revMarkedClosed ? 1 : 0,
-        });
-        if (r.status === 'error') { setToast(r.message); setRevSaving(false); return; }
-      }
-      setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
-      setEditingRevId(null); setRevDate(todayDateStr());
-      setRevMarkedClosed(false);
-      await loadDailyRevs(1, revYear, revMonth);
-      const r = await api.getLast7Days();
-      setLast7Records(r?.records || []);
-    } catch { setToast(t('toastSubmitFailed')); }
-    setRevSaving(false);
-  };
-
-  const startEdit = (rev: any) => {
-    setEditingRevId(rev.id);
-    setRevDate(rev.date);
-    setRevRevenue(String(rev.revenue || ''));
-    setRevTurnover(String(rev.turnover || ''));
-    setRevJD(String(rev.jd_revenue || ''));
-    setRevNote(rev.note || '');
-    setRevMarkedClosed(!!rev.archived);
-  };
-
-  const cancelEdit = () => {
-    setEditingRevId(null);
-    setRevDate(todayDateStr());
-    setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
-    setRevMarkedClosed(false);
-  };
-
-  const deleteDailyRev = async (id: number) => {
-    try { await api.deleteDailyRevenue(id); loadDailyRevs(1, revYear, revMonth); }
-    catch { setToast(t('toastSubmitFailed')); }
-  };
-
-  const fmtDecInput = (s: string) => { s = s.replace(/[^0-9.]/g, ''); return s.startsWith('.') ? '0' + s : s; };
-  const toDec2 = (x: any) => String(parseFloat(x || 0).toFixed(2));
 
   const MONTHS_SHORT = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 
@@ -333,18 +320,65 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
     try { const d = await api.getChart(); setChart(d || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
+  const loadChartMonthly = async () => {
+    try { const d = await api.getChartMonthly(); setChartMonthly(d); } catch { /* silent */ }
+  };
+
   const loadProducts = async () => {
     try { const p = await api.getProducts(); setProducts(p || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
-  const loadProcurements = async () => {
-    try { const p = await api.getProcurements(); setProcurements(p || []); } catch { setToast(t('toastLoadFailed')); }
+  useEffect(() => {
+    if (tab === 'chart') { loadChart(); loadChartMonthly(); }
+    if (tab === 'supply') { loadProducts(); }
+  }, [tab]);
+
+  // ── 收支总览数据 ──
+  const toDec2Comma = (v: any) => {
+    const n = parseFloat(String(v ?? 0)) || 0;
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   useEffect(() => {
-    if (tab === 'chart') loadChart();
-    if (tab === 'supply') { loadProducts(); loadProcurements(); }
-  }, [tab]);
+    // businessSummary
+    api.getBusinessSummary().then((data: any) => {
+      setBusinessSummary(data || {});
+    }).catch(() => {});
+
+    // expenses (for today/month summary cards)
+    (async () => {
+      try {
+        const all: any[] = [];
+        let p = 1;
+        while (true) {
+          const tx: any = await api.getTransactions(p, 100);
+          const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
+          all.push(...exps);
+          if (p >= (tx.pages || 1)) break;
+          p++;
+        }
+        setChartExpenses(all);
+      } catch {}
+    })();
+
+    // platform fees (for month income)
+    api.getPlatformFees().then((all: any) => {
+      const arr = Array.isArray(all) ? all : [];
+      const total = arr.reduce((sum: number, f: any) =>
+        sum + (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0), 0);
+      setChartFeeTotal(total);
+    }).catch(() => {});
+  }, []);
+
+  // Compute chart summary values
+  const todayStr2 = new Date().toISOString().slice(0, 10);
+  const thisMonthPrefix2 = todayStr2.slice(0, 7);
+  const todayExpenseChart = chartExpenses
+    .filter((e: any) => e.date === todayStr2)
+    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
+  const monthExpenseChart = chartExpenses
+    .filter((e: any) => String(e.date || '').startsWith(thisMonthPrefix2))
+    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
 
   // ── Inject glass-slider CSS ──
   useEffect(() => {
@@ -452,7 +486,80 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
   };
 
   const styles = useMemo(() => getStyles(colors), [colors]);
-  const usr = useMemo(() => { try { return localStorage.getItem('user') || '用户'; } catch { return '用户'; } }, []);
+  const usr = useMemo(() => getCurrentUser() || '用户', []);
+
+  // Renders the body of a sub-page inside a SlideScreen. Adding a new
+  // sub-page means: add a case here + add a push site (call pushPage).
+  // No new <SlideScreen> block, no z-index math, no render-prop wiring.
+  const renderSubPage = (p: SubPage) => (onBack: () => void) => {
+    switch (p) {
+      case 'profile':
+        return (
+          <ProfileScreen
+            onBack={onBack}
+            onLogout={onLogout}
+            onLangChange={() => loadData()}
+            onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
+          />
+        );
+      case 'expense':
+        return <ExpenseHistoryScreen onBack={onBack} />;
+      case 'daily':
+        return <DailyRevenueHistory onBack={onBack} />;
+      case 'recon':
+        return <ReconHistoryScreen onBack={onBack} />;
+      case 'proc':
+        return (
+          <ProcurementDetailScreen
+            batch={procDetailBatch}
+            onBack={onBack}
+            onEdit={() => {
+              // popPage triggers the 280ms slide-out; the new
+              // ProcurementScreen instance (which mounts when pageStack
+              // flips empty) will pick up pendingEditBatch via its
+              // useEffect and call its own openEditBatch — setState
+              // lands on a live component, no stale ref.
+              popPage();
+              setPendingEditBatch(procDetailBatch);
+            }}
+            onPreview={(id, number) => {
+              // In-app nav to PDF preview: silent URL update via
+              // replaceState (no popstate, no hashchange) + push
+              // 'pdf' to the pageStack directly. Bypasses App.tsx's
+              // hashchange flow because the popstate that fires from
+              // `location.hash =` on iOS Safari comes too late for
+              // any time-based safety window to absorb — so the page
+              // would pop right back off the stack. Deep linking
+              // (URL hash on app load) still goes through App.tsx's
+              // hashchange listener → previewRoute → the
+              // [previewRoute] useEffect, unchanged.
+              try {
+                history.replaceState(
+                  { app: 'snail-books' },
+                  '',
+                  `#/preview-pdf?id=${id}&number=${number}`,
+                );
+              } catch {}
+              setPdfPreview({ id, number });
+              pushPage('pdf');
+            }}
+          />
+        );
+      case 'pdf':
+        // Renders inside the same SlideScreen wrapper as 'proc' /
+        // 'profile' / etc. — that gives PDF preview the same 280ms
+        // push animation AND lets the frosted header read the
+        // HomeScreen bgLayer through the transparent header area
+        // (matching ProcurementDetailScreen's header exactly).
+        return (
+          <PdfPreviewPage
+            batchId={pdfPreview?.id ?? 0}
+            batchNumber={pdfPreview?.number ?? 0}
+            onBack={onBack}
+          />
+        );
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -490,7 +597,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
             </TouchableOpacity>
             <View style={styles.langRow}>
               {langs.map(([l, label]) => (
-                <TouchableOpacity key={l} onPress={() => { setLang(l, loadData); setLangState(l); }}>
+                <TouchableOpacity key={l} onPress={() => { setLangState(l); loadData(); }}>
                   <Text style={[styles.langBtn, lang === l && styles.langActive]}>{label}</Text>
                 </TouchableOpacity>
               ))}
@@ -516,163 +623,37 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                 {/* Tab Content */}
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
-                <View style={{ paddingBottom: 120, paddingTop: 4 }}>
-                  {/* ── 每日营收录入卡片 ── */}
-                  <View style={styles.revCard}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.textMain} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                          <Path d="M3 3v18h18M7 16l4-8 4 4 4-6" />
-                        </Svg>
-                        <Text style={styles.revTitle}>{t('dailyRevenue')}</Text>
-                      </View>
-                      {/*
-                        editingRevId no longer shows cancel — date selection auto-loads data,
-                        user can modify and save directly without explicit cancel/edit modes.
-                      */}
-                    </View>
+                <View style={{ paddingBottom: 100, paddingTop: 4 }}>
+                  <DailyRevenuePanel
+                    revDate={revForm.revDate}
+                    revRevenue={revForm.revRevenue}
+                    revTurnover={revForm.revTurnover}
+                    revJD={revForm.revJD}
+                    revNote={revForm.revNote}
+                    revDateErr={revForm.revDateErr}
+                    revDateKey={revForm.revDateKey}
+                    revDateInputRef={revForm.revDateInputRef}
+                    revSaving={revForm.revSaving}
+                    revMarkedClosed={revForm.revMarkedClosed}
+                    yesterdayRev={revForm.yesterdayRev}
+                    weekRev={revForm.weekRev}
+                    setRevRevenue={revForm.setRevRevenue}
+                    setRevTurnover={revForm.setRevTurnover}
+                    setRevJD={revForm.setRevJD}
+                    setRevNote={revForm.setRevNote}
+                    setRevMarkedClosed={revForm.setRevMarkedClosed}
+                    setRevDateErr={revForm.setRevDateErr}
+                    setRevDateKey={revForm.setRevDateKey}
+                    loadRevForDate={revForm.loadRevForDate}
+                    submitDailyRev={revForm.submitDailyRev}
+                    todayDateStr={revForm.todayDateStr}
+                    yesterdayDateStr={revForm.yesterdayDateStr}
+                    dayBeforeDateStr={revForm.dayBeforeDateStr}
+                    isFuture={revForm.isFuture}
+                    fmtDecInput={revForm.fmtDecInput}
+                    toDec2={revForm.toDec2}
+                  />
 
-                    {/* Quick date pills + date picker */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                      <View style={{ flexDirection: 'row', gap: 6 }}>
-                        {[{ label: t('revQuickToday'), d: td },
-                          { label: t('revQuickYesterday'), d: yesterdayStr() },
-                          { label: t('revQuickDB4'), d: db4Str() },
-                        ].map(pill => (
-                          <TouchableOpacity key={pill.d} onPress={() => pickDate(pill.d)} activeOpacity={0.7}
-                            style={{
-                              paddingHorizontal: 14, paddingVertical: 8, borderRadius: 22,
-                              backgroundColor: revDate === pill.d ? colors.primary : colors.bg,
-                            }}>
-                            <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: revDate === pill.d ? colors.surface : colors.textSub }}>
-                              {pill.label}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                      <View style={{ position: 'relative' }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>
-                            {revDate.replace(/-/g, '/')}
-                          </Text>
-                          <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>📅</Text>
-                          {React.createElement('input', {
-                            ref: revDateInputRef,
-                            type: 'date', defaultValue: revDate, max: todayDateStr(), key: revDateKey,
-                            onChange: (e: any) => { if (isFuture(e.target.value)) { revDateInputRef.current!.value = revDate; setRevDateKey(k => k + 1); setRevDateErr(c => c + 1); } else { loadRevForDate(e.target.value); } },
-                            style: { position: 'absolute', top: -4, right: 0, bottom: -4, left: 0, opacity: 0.01, cursor: 'pointer' },
-                          })}
-                        </View>
-                        <DateErrorHint trigger={revDateErr} message={t('errDateFuture')} colors={colors} />
-                      </View>
-                    </View>
-
-                    {/* Three input cards */}
-                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
-                      <View style={styles.revInputCard}>
-                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
-                          <Path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-                        </Svg>
-                        <Text style={styles.revInputCardTitle}>{t('revRevenue')}</Text>
-                        <Text style={styles.revInputCardSub}>{t('revRevenueSub')}</Text>
-                        <View style={styles.revInputCardInputWrap}>
-                          <Text style={styles.revInputCardSymbol}>¥</Text>
-                          <TextInput style={styles.revInputCardInput}
-                            value={revRevenue} onChangeText={(v) => setRevRevenue(fmtDecInput(v))}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
-                        </View>
-                        <Text style={styles.revInputCardFooter}>
-                          {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.revenue)}` : t('revYesterdayNA')}
-                        </Text>
-                      </View>
-                      <View style={styles.revInputCard}>
-                        <Text style={{ fontSize: FONTS.sub.size, marginBottom: 6 }}>🛒</Text>
-                        <Text style={styles.revInputCardTitle}>{t('revTurnover')}</Text>
-                        <Text style={styles.revInputCardSub}>{t('revTurnoverSub')}</Text>
-                        <View style={styles.revInputCardInputWrap}>
-                          <Text style={styles.revInputCardSymbol}>¥</Text>
-                          <TextInput style={styles.revInputCardInput}
-                            value={revTurnover} onChangeText={(v) => setRevTurnover(fmtDecInput(v))}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
-                        </View>
-                        <Text style={styles.revInputCardFooter}>
-                          {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.turnover)}` : t('revYesterdayNA')}
-                        </Text>
-                      </View>
-                      <View style={styles.revInputCard}>
-                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
-                          <Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
-                        </Svg>
-                        <Text style={styles.revInputCardTitle}>{t('revJD')}</Text>
-                        <Text style={styles.revInputCardSub}>{t('revJDSub')}</Text>
-                        <View style={styles.revInputCardInputWrap}>
-                          <Text style={styles.revInputCardSymbol}>¥</Text>
-                          <TextInput style={styles.revInputCardInput}
-                            value={revJD} onChangeText={(v) => setRevJD(fmtDecInput(v))}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
-                        </View>
-                        <Text style={styles.revInputCardFooter}>
-                          {t('revYesterdayLabel')} {yesterdayRev && yesterdayRev.jd_revenue > 0 ? `¥${toDec2(yesterdayRev.jd_revenue)}` : t('revYesterdayNA')}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Note */}
-                    <TextInput style={styles.revNoteInput}
-                      value={revNote} onChangeText={setRevNote}
-                      placeholder={t('revNoteHint')} placeholderTextColor={colors.textSub} />
-
-                    {/* Two action buttons */}
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                      <TouchableOpacity
-                        style={[styles.revArchiveBtn, { flex: 2 }, revMarkedClosed && styles.revArchiveBtnDone]}
-                        onPress={() => {
-                          const next = !revMarkedClosed;
-                          setRevMarkedClosed(next);
-                          if (next && !revNote.trim()) { setRevNote(t('revClosedReason')); }
-                        }}
-                        activeOpacity={0.7}>
-                        <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
-                          {revMarkedClosed ? t('revCancelArchive') : t('revMarkArchive')}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.revSubmitBtn, { flex: 4 }, (!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0) || revSaving) && { opacity: 0.5 }]}
-                        onPress={submitDailyRev} disabled={(!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0)) || revSaving}
-                        activeOpacity={0.8}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                          {revSaving ? (
-                            <Text style={styles.revSubmitText}>...</Text>
-                          ) : (
-                            <>
-                              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                                <Path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8" />
-                              </Svg>
-                              <Text style={styles.revSubmitText}>{revDate === todayDateStr() ? t('revSaveToday') : revDate === yesterdayDateStr() ? t('revSaveYesterday') : revDate === dayBeforeDateStr() ? t('revSaveDayBefore') : `储存${revDate.slice(5).replace('-', '')}数据`}</Text>
-                            </>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Last 7 days summary */}
-                    <View style={{ marginTop: 14, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}>
-                      <View style={{ alignItems: 'flex-start' }}>
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekRevenue')}</Text>
-                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
-                      </View>
-                      <View style={{ alignItems: 'center' }}>
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekTurnover')}</Text>
-                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
-                      </View>
-                      <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekJD')}</Text>
-                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* ── 近7天记录 ── */}
                   <View style={{ marginTop: 20 }}>
                     <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -701,7 +682,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <View style={styles.rev7CardTop}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                               <Text style={styles.rev7CardDate}>{rec.date}</Text>
-                              {rec.date === todayDateStr() && (
+                              {rec.date === revForm.todayDateStr() && (
                                 <View style={styles.rev7TodayTag}>
                                   <Text style={styles.rev7TodayTagText}>{t('today')}</Text>
                                 </View>
@@ -726,7 +707,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                           <View style={styles.rev7CardAmounts}>
                             <View style={styles.rev7CardAmtCol}>
                               {rec.revenue > 0 ? (
-                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.revenue)}</Text>
+                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{revForm.toDec2(rec.revenue)}</Text>
                               ) : (
                                 <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
                                   <Path d="M4 6h16" />
@@ -736,7 +717,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                             </View>
                             <View style={styles.rev7CardAmtCol}>
                               {rec.turnover > 0 ? (
-                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.turnover)}</Text>
+                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{revForm.toDec2(rec.turnover)}</Text>
                               ) : (
                                 <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
                                   <Path d="M4 6h16" />
@@ -746,7 +727,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
                             </View>
                             <View style={styles.rev7CardAmtCol}>
                               {rec.jd_revenue > 0 ? (
-                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.jd_revenue)}</Text>
+                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{revForm.toDec2(rec.jd_revenue)}</Text>
                               ) : (
                                 <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
                                   <Path d="M4 6h16" />
@@ -783,7 +764,76 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
               )}
 
               {tab === 'chart' && (
-                <View />
+                <View style={{ paddingBottom: 100, paddingTop: 4 }}>
+                  {/* 在手资金玻璃卡片 */}
+                  <View style={{ marginBottom: 12 }}>
+                    <View style={styles.chartGlassCard}>
+                      {/* @ts-ignore — 收支总览大标题 */}
+                      <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', textShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>{t('summary')}</Text>
+                      <View style={{ alignItems: 'flex-start', gap: 2 }}>
+                        <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                          <Text style={styles.chartGlassSymbol}>¥</Text>
+                          <Text style={styles.chartGlassValue}>
+                            {toDec2Comma(businessSummary.cash_on_hand || 0)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <View style={styles.chartGlassSubCard}>
+                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeRevenue')}</Text>
+                          <Text style={styles.chartGlassSubValue}>
+                            {'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}
+                          </Text>
+                        </View>
+                        <View style={styles.chartGlassSubCard}>
+                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeExpense')}</Text>
+                          <Text style={styles.chartGlassSubValue}>
+                            {'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  {/* KPI 三行 */}
+                  <View style={{ marginBottom: 12 }}>
+                    <View style={styles.chartKpiCard}>
+                      <View style={styles.chartKpiRow}>
+                        <View style={styles.chartKpiItem}>
+                          <Text style={styles.chartKpiLabel}>{t('actualReceived')}</Text>
+                          <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.actual_received)}</Text>
+                        </View>
+                        <View style={styles.chartKpiItem}>
+                          <Text style={styles.chartKpiLabel}>{t('receivable')}</Text>
+                          <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.receivable)}</Text>
+                        </View>
+                        <View style={styles.chartKpiItem}>
+                          <Text style={styles.chartKpiLabel}>{t('discountAmount')}</Text>
+                          <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.discount)}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  {/* 6 张收支卡片 */}
+                  <ExpenseSummaryCards
+                    todayExpense={todayExpenseChart}
+                    monthExpense={monthExpenseChart}
+                    todayIncome={0}
+                    monthIncome={chartFeeTotal}
+                  />
+                  {/* 图表：月度趋势 + 分类占比 */}
+                  {chartMonthly && (
+                    <View style={{ marginTop: 16 }}>
+                    <ChartsPanel
+                      months={chartMonthly.months || []}
+                      income={chartMonthly.income || []}
+                      expense={chartMonthly.expense || []}
+                      profit={chartMonthly.profit || []}
+                      categories={chartMonthly.categories || {}}
+                    />
+                    </View>
+                  )}
+                </View>
               )}
             </ScrollView>
           </>
@@ -957,7 +1007,7 @@ export default function HomeScreen({ onLogout }: { onLogout: () => void }) {
       {!showExpenseHistory && !showDailyHistory && !showReconHistory && !showCartDrawer && (
       <View style={styles.bottomNav}>
         {([
-          { id: 'expense', icon: NavIconAdd },
+          { id: 'expense', icon: NavIconExpense },
           { id: 'list', icon: NavIconList },
           { id: 'supply', icon: NavIconSupply },
           { id: 'chart', icon: NavIconChart },
@@ -1010,11 +1060,15 @@ function NavIconList({ active, colors }: { active: boolean; colors: ThemeColors 
   );
 }
 
-function NavIconAdd({ active, colors }: { active: boolean; colors: ThemeColors }) {
+function NavIconExpense({ active, colors }: { active: boolean; colors: ThemeColors }) {
+  // Wallet icon — semantic match for "Expense" tab label (avoiding literal `+` ambiguity).
+  // Other tabs use object/silhouette/chart icons; this one represents money-out.
   const c = active ? colors.textMain : colors.textSub;
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
-      <Path d="M12 5v14M5 12h14" />
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M20 12V8H6a2 2 0 010-4h12v4" />
+      <Path d="M4 6v12a2 2 0 002 2h14v-4" />
+      <Path d="M18 12a2 2 0 100 4h4v-4h-4z" />
     </Svg>
   );
 }
@@ -1132,6 +1186,58 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   barIncome: { backgroundColor: colors.success, height: '100%' },
   barExpense: { backgroundColor: colors.danger, opacity: 0.7, height: '100%' },
   barVal: { fontSize: FONTS.micro.size, color: colors.textSub, width: 90 },
+  // ── Chart KPI cards ──
+  chartKpiCard: {
+    borderRadius: 14, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12, gap: 14,
+    backgroundColor: colors.bg,
+    borderWidth: 0.5, borderColor: colors.secondary,
+    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+  },
+  chartKpiRow: { flexDirection: 'column' as any },
+  chartKpiItem: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 8,
+  },
+  chartKpiLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
+  chartKpiVal: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
+  // ── Chart glass card (在手资金) ──
+  chartGlassCard: {
+    borderRadius: 14, paddingVertical: 14, paddingHorizontal: 18, gap: 12,
+    // @ts-ignore
+    backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.warning, 0.22)} 100%)`,
+    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
+    // @ts-ignore
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
+  },
+  chartGlassLabel: {
+    fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+    color: 'rgba(255,255,255,0.70)',
+    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+  },
+  chartGlassSymbol: {
+    fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+    color: 'rgba(255,255,255,0.95)',
+    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  },
+  chartGlassValue: {
+    fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
+    color: 'rgba(255,255,255,0.95)',
+    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  },
+  chartGlassSubCard: {
+    flex: 1, backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 10, padding: 14, gap: 6,
+    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.20)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+  },
+  chartGlassSubLabel: {
+    fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+    color: 'rgba(255,255,255,0.70)',
+  },
+  chartGlassSubValue: {
+    fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+    color: 'rgba(255,255,255,0.95)',
+  },
   // Bottom Nav — glass pill, icons only, 80% transparent
   bottomNav: {
     position: 'fixed' as any,
@@ -1163,70 +1269,6 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   navLabel: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.3 },
   navLabelActive: { color: colors.textMain },
-  // Background settings modal
-  modalOverlay: {
-    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
-    zIndex: 200, backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center', alignItems: 'center',
-  },
-  modalCard: {
-    backgroundColor: colors.surface, borderRadius: 16, width: 340, maxWidth: '90%',
-    overflow: 'hidden' as const,
-    // @ts-ignore
-    ...modalCardAnimation,
-  },
-  modalHeader: {
-    backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 14,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
-  modalClose: { ...modalClose, },
-  modalBodyBg: { padding: 24 },
-  modalHint: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
-  bgBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  bgBtnOutline: { borderWidth: 1, borderColor: colors.primary },
-  bgBtnOutlineText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
-  bgBtnDanger: { borderWidth: 1, borderColor: withAlpha(colors.primary, 0.2), backgroundColor: withAlpha(colors.primary, 0.06) },
-  bgBtnDangerText: { fontSize: FONTS.micro.size, color: colors.primary, fontWeight: FONTS.micro.weight },
-
-  /* ── Daily Revenue (每日营收) ── */
-  revCard: {
-    backgroundColor: withAlpha(colors.surface, 0.65), borderRadius: 14,
-    borderWidth: 0.5, borderColor: withAlpha(colors.textMain, 0.08),
-    padding: 18,
-    // @ts-ignore
-    backdropFilter: 'saturate(180%) blur(24px)',
-    // @ts-ignore
-    boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
-  },
-  revTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
-  // Three input cards
-  revInputCard: {
-    flex: 1, backgroundColor: colors.surface, borderRadius: 10,
-    padding: 10, borderWidth: 0.5, borderColor: colors.secondary,
-  },
-  revInputCardTitle: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, marginBottom: 2 },
-  revInputCardSub: { fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 8 },
-  revInputCardInputWrap: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 6 },
-  revInputCardSymbol: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, marginRight: 2, marginBottom: 1 },
-  revInputCardInput: { flex: 1, fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain, padding: 0, outline: 'none' },
-  revInputCardFooter: { fontSize: FONTS.micro.size, color: colors.textSub },
-  revNoteInput: {
-    fontSize: FONTS.sub.size, color: colors.textSub, paddingVertical: 10, paddingHorizontal: 12,
-    backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
-    marginBottom: 14, outline: 'none',
-  },
-  revSubmitBtn: {
-    backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center',
-   },
-  revSubmitText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
-  revArchiveBtn: {
-    backgroundColor: colors.secondary, borderRadius: 12, paddingVertical: 14,
-    alignItems: 'center', justifyContent: 'center', flex: 1,
-  },
-  revArchiveBtnDone: { backgroundColor: withAlpha(colors.primary, 0.1) },
-  revArchiveText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
-  revArchiveTextDone: { color: colors.primary },
   // 7-day card items — same card style as history page
   rev7CardItem: {
     backgroundColor: colors.surface, borderRadius: 12,

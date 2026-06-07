@@ -9,6 +9,9 @@ import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
+import { getCurrentUser } from '../utils/storage';
+import DateErrorHint from '../components/DateErrorHint';
+import BackArrow from '../components/icons/BackArrow';
 
 const PAGE_SIZE = 10;
 
@@ -17,27 +20,12 @@ function ExpenseEmptyIcon({ color }: { color: string }) {
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <Path d="M14 2v6h6" />
-      <circle cx="10" cy="12" r="3" />
+      <Circle cx="10" cy="12" r="3" />
       <Path d="M8 12h4" />
       <Path d="M9 17h6" />
       <Path d="M9 20h4" />
     </Svg>
   );
-}
-
-function DateErrorHint({ trigger, message, colors, textAlign }: { trigger: number; message: string; colors: any; textAlign?: 'left' | 'right' | 'center' }) {
-  const [show, setShow] = React.useState(false);
-  React.useEffect(() => {
-    if (trigger > 0) {
-      setShow(true);
-      const t = setTimeout(() => setShow(false), 3000);
-      return () => clearTimeout(t);
-    } else {
-      setShow(false);
-    }
-  }, [trigger]);
-  if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: textAlign || 'right', marginTop: 2 }}>{message}</Text>;
 }
 
 export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void }) {
@@ -163,14 +151,16 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
               <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
             </View>
           </View>
-          <Text style={st.amount}>-¥{e.amount.toFixed(2)}</Text>
+          <Text style={st.amount}>-¥{Number(e.amount || 0).toFixed(2)}</Text>
         </View>
         {currentUser ? (
           <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
         ) : null}
         <View style={st.rowBottom}>
           <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
-          {e.note ? (
+          {e.proc_batch_number ? (
+            <Text style={st.note} numberOfLines={1}>{t('procNowBatch').replace('{n}', String(e.proc_batch_number))}</Text>
+          ) : e.note ? (
             <Text style={st.note} numberOfLines={1}>{e.note}</Text>
           ) : (
             <View style={{ flex: 1 }} />
@@ -240,7 +230,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <Text style={st.backArrow}>{'\u2039'}</Text>
+            <BackArrow color={colors.primary} />
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('expenseHistory')} ({total})</Text>
@@ -274,7 +264,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
-            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
+            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {/* Date range */}
             <View style={st.filterField}>
@@ -354,7 +344,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         onEndReached={onEndReached}
         onEndReachedThreshold={0.4}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 80 }}
+        contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
         ListEmptyComponent={!loading ? (
           <View style={st.emptyWrap}>
             <View style={st.emptyIcon}><ExpenseEmptyIcon color={colors.textSub} /></View>

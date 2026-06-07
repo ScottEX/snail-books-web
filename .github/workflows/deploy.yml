@@ -29,6 +29,13 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:web
+      - name: 清理旧的构建文件
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: rm -rf /opt/snail-books-backend-staging/static/web-build/dist
       - name: 部署前端静态文件到测试服务器
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -36,7 +43,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: dist/
-          target: /opt/snail-books-web-staging/
+          target: /opt/snail-books-backend-staging/static/web-build/
           strip_components: 0
       - name: 部署完成
         run: echo "✅ 前端静态文件已部署到测试服务器"

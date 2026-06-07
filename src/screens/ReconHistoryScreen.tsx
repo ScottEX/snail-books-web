@@ -7,7 +7,9 @@ import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
-import { fmtAmt } from '../utils/format';
+import { fmtAmtFull } from '../utils/format';
+import DateErrorHint from '../components/DateErrorHint';
+import BackArrow from '../components/icons/BackArrow';
 
 const PAGE_SIZE = 10;
 
@@ -21,21 +23,6 @@ function ReconEmptyIcon({ color }: { color: string }) {
       <Path d="M9 12l2 2 4-4" />
     </Svg>
   );
-}
-
-function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
-  const [show, setShow] = React.useState(false);
-  React.useEffect(() => {
-    if (trigger > 0) {
-      setShow(true);
-      const t = setTimeout(() => setShow(false), 3000);
-      return () => clearTimeout(t);
-    } else {
-      setShow(false);
-    }
-  }, [trigger]);
-  if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{message}</Text>;
 }
 
 export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
@@ -343,7 +330,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <Text style={st.backArrow}>{'\u2039'}</Text>
+            <BackArrow color={colors.primary} />
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')} ({total})</Text>
@@ -376,7 +363,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
-            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
+            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('billDate')}</Text>
@@ -526,7 +513,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   tapHint: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center', marginTop: 2 },
   /* Modal */
   mask: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 200, justifyContent: 'center', alignItems: 'center',
   },
   maskBg: {

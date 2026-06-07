@@ -154,7 +154,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   container: { flex: 1, position: 'relative' as const },
 
   frostedBlock: {
-    marginHorizontal: 12, marginTop: 4, borderRadius: 16, overflow: 'hidden' as const,
+    marginHorizontal: 0, marginTop: 4, borderRadius: 16, overflow: 'hidden' as const,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     backgroundColor: withAlpha(c.surface, 0.65),
     // @ts-ignore
@@ -172,7 +172,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   statNum: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   statLbl: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 3 },
 
-  searchSection: { paddingHorizontal: 16, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
+  searchSection: { paddingHorizontal: 18, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
   searchInput: { paddingHorizontal: 12, paddingVertical: 9, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
   filterRow: { flexDirection: 'row' as const, gap: 6, marginTop: 8 },
   filterChip: { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12) },
@@ -188,10 +188,10 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   subTabTextOn: { color: c.primary, fontWeight: FONTS.subBold.weight },
   subTabCount: { fontSize: 10, fontWeight: '600' as any, color: c.textSub, backgroundColor: withAlpha(c.textMain, 0.06), borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1, minWidth: 18, textAlign: 'center' as any, overflow: 'hidden' as const },
 
-  sectionHead: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub, textTransform: 'uppercase' as const, letterSpacing: 1 },
-  productCard: { marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), overflow: 'hidden' as const },
+  sectionHead: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 4, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub, textTransform: 'uppercase' as const, letterSpacing: 1 },
+  productCard: { marginHorizontal: 0, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), overflow: 'hidden' as const },
   productCardSel: { borderColor: c.primary, borderWidth: 1.5 },
-  prodRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 10, gap: 10 },
+  prodRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, paddingHorizontal: 18, gap: 10 },
   prodInfo: { flex: 1 },
   prodName: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 2 },
   prodSpec: { fontSize: FONTS.micro.size, color: c.textSub },
@@ -240,7 +240,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   drawerClose: { width: 30, height: 30, borderRadius: 15, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const, justifyContent: 'center' as const },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
-  drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 16, paddingVertical: 10, paddingBottom: 24 },
+  drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 18, paddingVertical: 10, paddingBottom: 24 },
 
   // Date row (all 4 elements inline)
   dateCatRow: { marginBottom: 12 },
@@ -277,12 +277,16 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
-  itemsModalBody: { padding: 16 },
-  itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10 },
+  // No horizontal padding here — ScrollView applies its own paddingHorizontal: 18 so that the
+  // webkit scrollbar (which paints on the padding-box edge) lands in the rightmost 2px gutter
+  // and never overlaps the +/- buttons in the content area.
+  itemsModalBodyWrap: { flex: 1, minHeight: 0, paddingTop: 12, paddingBottom: 4 },
+  itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.06) },
+  itemsRowLast: { borderBottomWidth: 0 },
   itemsRowName: { flex: 1, fontSize: FONTS.sub.size, color: c.textMain },
   itemsRowQty: { fontSize: FONTS.micro.size, color: c.textSub, marginRight: 12, width: 48, textAlign: 'right' as const },
   itemsRowAmt: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, width: 80, textAlign: 'right' as const },
-  itemsTotalRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingTop: 14, marginTop: 8, borderTopWidth: 1, borderTopColor: withAlpha(c.textMain, 0.12) },
+  itemsTotalRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingVertical: 14, paddingHorizontal: 18, marginTop: 6, borderTopWidth: 1, borderTopColor: withAlpha(c.textMain, 0.12) },
   itemsTotalLabel: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsTotal: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.primary },
 
@@ -292,13 +296,13 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   submitBtnText: { color: c.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   // Product mgmt
-  mgmtRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 12, marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06) },
+  mgmtRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, paddingHorizontal: 18, marginHorizontal: 0, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06) },
   mgmtInfo: { flex: 1 },
   mgmtName: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain },
   mgmtMeta: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 },
   mgmtActions: { flexDirection: 'row' as const, gap: 8 },
   mgmtActionBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.05) },
-  mgmtAddBtn: { marginHorizontal: 12, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: withAlpha(c.primary, 0.06), borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
+  mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: withAlpha(c.primary, 0.06), borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
   // Modal (product add/edit)
@@ -320,7 +324,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   modalDeleteText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' as const },
 
   // History
-  historyList: { padding: 12, paddingBottom: 100 },
+  historyList: { paddingVertical: 12, paddingBottom: 100 },
   historyCard: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), marginBottom: 10, overflow: 'hidden' as const },
   histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
   histNo: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary },
@@ -393,8 +397,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
-  const [detailItems, setDetailItems] = useState<Array<{ name: string; quantity: number; subtotal: number }>>([]);
-  const [detailTotal, setDetailTotal] = useState(0);
+  const [itemsModalIsCart, setItemsModalIsCart] = useState(false);
+  const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
+  const [productPickerSearch, setProductPickerSearch] = useState('');
+
+  // Note: webkit scrollbar cannot be hidden via React/JS — its ::-webkit-scrollbar pseudo-elements
+  // are not addressable. We accept the scrollbar exists and instead position it OUT of the +/-
+  // button area by giving the ScrollView itself paddingHorizontal: 18 + boxSizing: 'border-box';
+  // the webkit scrollbar paints on the padding box edge (the card's rightmost 2px), well clear
+  // of the +/- buttons (which live in the content area, 16px inset from that edge).
+  // detailItems, detailTotal, detailBatchId, downloadingPDF, pdfDone — removed with history detail modal (moved to ProcurementDetailScreen)
 
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
@@ -472,7 +484,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const openDrawer = () => {
     setShowDrawer(true);
     onDrawerOpen?.();
-    if (!orderNote) setOrderNote(t('procNowBatch').replace('{n}', String(stats.batch_count + 1)));
     Animated.parallel([
       Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
       Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
@@ -906,7 +917,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }}>
             {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
                 <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>
@@ -990,15 +1001,36 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
           onEndReached={filteredBatches.length < histTotal ? loadMoreHistory : undefined}
           onEndReachedThreshold={0.4}
           renderItem={({ item: batch }) => (
-            <TouchableOpacity style={styles.historyCard} onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
-              <View style={styles.histHead}>
-                <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
-                <Text style={styles.histDate}>{batch.date}</Text>
-              </View>
+            <View style={styles.historyCard}>
+              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
+                <View style={styles.histHead}>
+                  <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <Text style={styles.histDate}>{batch.date}</Text>
+                    <View style={styles.histActions}>
+                      <TouchableOpacity
+                        style={styles.histActionBtn}
+                        onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <PencilIcon color={c.textSub} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.histActionBtn}
+                        onPress={(e) => { e.stopPropagation?.(); openSlideModal(() => setDeleteBatchTarget(batch)); }}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <TrashIcon color={c.danger} size={14} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
               <View style={styles.histBody}>
                 <View style={styles.histRow}>
                   <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
-                  <Text style={styles.histRowVal}>{batch.items?.length || 0} 种</Text>
+                  <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
                 </View>
                 <View style={styles.histRow}>
                   <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
@@ -1246,10 +1278,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                 </TouchableOpacity>
               </View>
 
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procNoteOptional')}</Text>
-                <TextInput style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' } as any}
-                  value={orderNote} onChangeText={setOrderNote} placeholder={t('procNowBatch').replace('{n}', String(stats.batch_count + 1))} placeholderTextColor={c.textSub} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
+                <Text style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight }}>
+                  {t('procNowBatch').replace('{n}', String(editingBatchId !== null ? editingBatchNumber : stats.batch_count + 1))}
+                </Text>
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+                <Text style={[styles.sectionLabel, { marginBottom: 0, marginTop: 9 }]}>{t('procNoteOptional')}</Text>
+                <TextInput style={{ flex: 1, height: 70, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none', textAlignVertical: 'top' } as any}
+                  value={orderNote} onChangeText={setOrderNote} placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`} placeholderTextColor={c.textSub} multiline />
               </View>
 
               {/* Total + Submit moved to drawer footer */}
@@ -1277,19 +1316,132 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                 <Text style={styles.itemsModalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView style={[styles.itemsModalBody, { flex: 1 }]}>
-              {detailItems.map((item, idx) => (
-                <View key={idx} style={styles.itemsRow}>
-                  <Text style={styles.itemsRowName}>{item.name}</Text>
-                  <Text style={styles.itemsRowQty}>×{item.quantity}</Text>
-                  <Text style={styles.itemsRowAmt}>¥{item.subtotal.toFixed(2)}</Text>
+            {itemsModalIsCart && itemsModalView === 'products' ? (
+              // ── Product picker view ──
+              <>
+                <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8 }}>
+                  <TextInput
+                    value={productPickerSearch}
+                    onChangeText={setProductPickerSearch}
+                    placeholder={t('procSearchProducts')}
+                    placeholderTextColor={c.textSub}
+                    style={{
+                      paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8, fontSize: FONTS.sub.size,
+                      color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.04), outline: 'none',
+                    } as any}
+                  />
                 </View>
-              ))}
-            </ScrollView>
-            <View style={[styles.itemsTotalRow, { paddingHorizontal: 16, paddingBottom: 12 }]}>
-              <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
-              <Text style={styles.itemsTotal}>¥{detailTotal.toFixed(2)}</Text>
-            </View>
+                <View style={styles.itemsModalBodyWrap}>
+                  <ScrollView
+                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 18, boxSizing: 'border-box' } as any}
+                  >
+                    {products
+                      .filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch))
+                      .map((p, idx, arr) => {
+                        const qty = cart[p.id] || 0;
+                        return (
+                          <View key={p.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.itemsRowName}>{p.name}</Text>
+                            <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
+                              {p.spec} · ¥{p.price.toFixed(2)}
+                            </Text>
+                          </View>
+                          <View style={styles.qtyRow}>
+                            <TouchableOpacity
+                              style={[styles.qtyBtn, styles.qtyBtnMinus]}
+                              onPress={() => updateQty(p.id, -1)}
+                            >
+                              <Text style={styles.qtyBtnMinusText}>−</Text>
+                            </TouchableOpacity>
+                            <Text style={styles.qtyNum}>{qty}</Text>
+                            <TouchableOpacity
+                              style={[styles.qtyBtn, styles.qtyBtnPlus]}
+                              onPress={() => updateQty(p.id, 1)}
+                            >
+                              <Text style={styles.qtyBtnPlusText}>+</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  {products.filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch)).length === 0 && (
+                    <View style={{ padding: 24, alignItems: 'center' }}>
+                      <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
+                    </View>
+                  )}
+                  </ScrollView>
+                </View>
+                <TouchableOpacity
+                  style={{ marginHorizontal: 16, marginBottom: 16, marginTop: 4, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
+                  onPress={() => setItemsModalView('items')}
+                >
+                  <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              // ── Cart edit view (with +/- qty) ──
+              <>
+                <View style={styles.itemsModalBodyWrap}>
+                  <ScrollView
+                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 18, boxSizing: 'border-box' } as any}
+                  >
+                    {cartItems.length === 0 ? (
+                      <View style={{ padding: 24, alignItems: 'center' }}>
+                        <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
+                      </View>
+                    ) : (
+                      cartItems.map((i, idx, arr) => (
+                        <View key={i.product.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.itemsRowName}>{i.product.name}</Text>
+                            <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
+                              ¥{i.product.price.toFixed(2)}
+                            </Text>
+                            <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, marginTop: 2 }}>
+                              {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
+                            </Text>
+                          </View>
+                          <View style={styles.qtyRow}>
+                            <TouchableOpacity
+                              style={[styles.qtyBtn, styles.qtyBtnMinus]}
+                              onPress={() => updateQty(i.product.id, -1)}
+                            >
+                              <Text style={styles.qtyBtnMinusText}>−</Text>
+                            </TouchableOpacity>
+                            <Text style={styles.qtyNum}>{i.quantity}</Text>
+                            <TouchableOpacity
+                              style={[styles.qtyBtn, styles.qtyBtnPlus]}
+                              onPress={() => updateQty(i.product.id, 1)}
+                            >
+                              <Text style={styles.qtyBtnPlusText}>+</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ))
+                    )}
+                  </ScrollView>
+                </View>
+                <View style={styles.itemsTotalRow}>
+                  <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
+                  <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16, paddingTop: 4 }}>
+                  <TouchableOpacity
+                    style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08), alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
+                    onPress={() => setItemsModalView('products')}
+                  >
+                    <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.primary }}>+ {t('procAddProduct')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
+                    onPress={closeItemsModal}
+                  >
+                    <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </Animated.View>
         </Animated.View>
       )}

@@ -7,6 +7,8 @@ import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
+import DateErrorHint from '../components/DateErrorHint';
+import BackArrow from '../components/icons/BackArrow';
 
 const PAGE_SIZE = 10;
 
@@ -22,21 +24,6 @@ function RevenueEmptyIcon({ color }: { color: string }) {
       <circle cx="17" cy="8" r="1.2" fill={color} stroke="none" />
     </Svg>
   );
-}
-
-function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
-  const [show, setShow] = React.useState(false);
-  React.useEffect(() => {
-    if (trigger > 0) {
-      setShow(true);
-      const t = setTimeout(() => setShow(false), 3000);
-      return () => clearTimeout(t);
-    } else {
-      setShow(false);
-    }
-  }, [trigger]);
-  if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{message}</Text>;
 }
 
 export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) {
@@ -147,7 +134,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <Text style={st.backArrow}>{'\u2039'}</Text>
+            <BackArrow color={colors.primary} />
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('revHistoryBtn')} [{total}/{allTotal}]</Text>
@@ -186,7 +173,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
-            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
+            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('filterDate')}</Text>
@@ -241,7 +228,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 166 : 112, paddingHorizontal: 16, paddingBottom: 80 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 166 : 112, paddingHorizontal: 16, paddingBottom: 100 }}>
         {loading ? (
           <View style={st.loading}>
             <ActivityIndicator size="large" color={colors.primary} />
