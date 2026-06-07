@@ -11,7 +11,10 @@ interface Props {
 }
 
 const NAV_TOP = 44;
-const NAV_H = 56;
+const NAV_PAD_T = 20;
+const NAV_PAD_B = 8;
+const NAV_BTN = 44;
+const NAV_TOTAL = NAV_PAD_T + NAV_BTN + NAV_PAD_B; // 72
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
   const { colors: c } = useTheme();
@@ -23,20 +26,26 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     <View style={styles.container}>
       {createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#141416' }}>
-          {/* back button */}
+          {/* Navbar — exact match to procurement detail header */}
           <div style={{
             position: 'fixed', top: NAV_TOP, left: 0, right: 0, zIndex: 100,
-            height: NAV_H, display: 'flex', alignItems: 'center',
-            padding: '0 16px', background: 'transparent',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: `${NAV_PAD_T}px 16px ${NAV_PAD_B}px`,
+            background: 'transparent',
+            backdropFilter: 'saturate(200%) blur(30px)',
+            WebkitBackdropFilter: 'saturate(200%) blur(30px)',
+            borderBottom: '0.5px solid rgba(0,0,0,0.06)',
           }}>
             <button
               onClick={onBack}
               style={{
-                width: 44, height: 44, borderRadius: 22,
+                width: NAV_BTN, height: NAV_BTN, borderRadius: NAV_BTN / 2,
                 background: 'rgba(255,255,255,0.30)',
+                backdropFilter: 'saturate(200%) blur(30px)',
+                WebkitBackdropFilter: 'saturate(200%) blur(30px)',
                 border: '0.5px solid rgba(0,0,0,0.10)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', padding: 0,
+                cursor: 'pointer', padding: 0, flexShrink: 0,
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -44,10 +53,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
                 <path d="M15 18l-6-6 6-6"/>
               </svg>
             </button>
-            <div style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: 500, color: '#2C2626' }}>
+            <div style={{ fontSize: 16, fontWeight: 500, color: '#2C2626' }}>
               {title}
             </div>
-            <div style={{ width: 44 }} />
+            <div style={{ width: NAV_BTN, flexShrink: 0 }} />
           </div>
 
           {/* PDF iframe */}
@@ -55,7 +64,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
             src={pdfUrl}
             style={{
               position: 'fixed',
-              top: NAV_TOP + NAV_H,
+              top: NAV_TOP + NAV_TOTAL,
               left: 0, right: 0, bottom: 0,
               border: 'none',
               background: '#525659',
