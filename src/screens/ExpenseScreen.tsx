@@ -1387,7 +1387,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* ── Content ── */
   contentScroll: { flex: 1 },
   contentInner: {
-    paddingHorizontal: 18, paddingBottom: 150, gap: 0,
+    paddingHorizontal: 0, paddingBottom: 150, gap: 0,
   },
   moduleWrap: {
     width: '100%',

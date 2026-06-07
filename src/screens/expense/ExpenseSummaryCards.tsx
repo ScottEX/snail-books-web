@@ -73,7 +73,6 @@ const getSt = (colors: ThemeColors) =>
   StyleSheet.create({
     wrap: {
       marginBottom: 12,
-      paddingHorizontal: 18,
     },
     sectionTitle: {
       fontSize: FONTS.subBold.size,
@@ -93,7 +92,7 @@ const getSt = (colors: ThemeColors) =>
       backgroundColor: colors.bg,
       borderRadius: 12,
       paddingVertical: 10,
-      paddingHorizontal: 12,
+      paddingHorizontal: 18,
       borderWidth: 0.5,
       borderColor: colors.secondary,
       // @ts-ignore
