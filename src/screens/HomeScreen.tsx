@@ -51,7 +51,6 @@ export default function HomeScreen({
   const [pages, setPages] = useState(1);
   const [chart, setChart] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [procurements, setProcurements] = useState<any[]>([]);
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount (so a new user's server-
   // side language actually reaches the lang selector).
@@ -346,13 +345,9 @@ export default function HomeScreen({
     try { const p = await api.getProducts(); setProducts(p || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
-  const loadProcurements = async () => {
-    try { const p = await api.getProcurements(); setProcurements(p || []); } catch { setToast(t('toastLoadFailed')); }
-  };
-
   useEffect(() => {
     if (tab === 'chart') loadChart();
-    if (tab === 'supply') { loadProducts(); loadProcurements(); }
+    if (tab === 'supply') { loadProducts(); }
   }, [tab]);
 
   // ── Inject glass-slider CSS ──
