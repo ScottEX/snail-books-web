@@ -818,7 +818,7 @@ export default function HomeScreen({
                     <View style={styles.chartGlassCard}>
                       {/* @ts-ignore — 收支总览大标题 */}
                       <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', textShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>{t('summary')}</Text>
-                      <View style={{ alignItems: 'flex-start', gap: 4 }}>
+                      <View style={{ alignItems: 'flex-start', gap: 2 }}>
                         <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                           <Text style={styles.chartGlassSymbol}>¥</Text>
@@ -1089,7 +1089,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   chartKpiVal: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   // ── Chart glass card (在手资金) ──
   chartGlassCard: {
-    borderRadius: 14, paddingVertical: 20, paddingHorizontal: 18, gap: 12,
+    borderRadius: 14, paddingVertical: 14, paddingHorizontal: 18, gap: 12,
     // @ts-ignore
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.warning, 0.22)} 100%)`,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
