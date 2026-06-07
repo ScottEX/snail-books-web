@@ -72,7 +72,6 @@ export default function ExpenseSummaryCards({
 const getSt = (colors: ThemeColors) =>
   StyleSheet.create({
     wrap: {
-      marginBottom: 12,
     },
     sectionTitle: {
       fontSize: FONTS.subBold.size,
