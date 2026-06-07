@@ -67,7 +67,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [iframeError, setIframeError] = useState(false);
   const [shareSheetOpen, setShareSheetOpen] = useState(false);
   const [toast, setToast] = useState('');
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,15 +90,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     })();
     return () => { cancelled = true; };
   }, [batchId]);
-
-  // Listen for iframe load errors
-  useEffect(() => {
-    if (!tokenUrl || !iframeRef.current) return;
-    const iframe = iframeRef.current;
-    const onError = () => setIframeError(true);
-    iframe.addEventListener('error', onError);
-    return () => iframe.removeEventListener('error', onError);
-  }, [tokenUrl]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -132,8 +122,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     setLoading(true);
     setError(null);
     setTokenUrl(null);
-    // Re-trigger the API call by re-mounting the effect via batchId change
-    // Use a zero-delay to ensure state is flushed first
     (async () => {
       try {
         const r: any = await api.getProcurementShareLink(batchId);
@@ -150,9 +138,12 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     })();
   }, [batchId]);
 
+  // Hardcoded solid background — bypasses RN Web flex/Animated.View layout quirks
+  const bgColor = c.bg || '#F9F7F4';
+
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: bgColor } as any]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
             <View style={styles.backBtn}><BackArrow color={c.textMain} /></View>
@@ -172,7 +163,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   if (error) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: bgColor } as any]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
             <View style={styles.backBtn}><BackArrow color={c.textMain} /></View>
@@ -194,7 +185,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: bgColor } as any]}>
       {/* 标题栏 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
@@ -219,10 +210,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
               </View>
             ) : (
               <iframe
-                ref={iframeRef as any}
                 src={tokenUrl}
                 style={styles.iframe as any}
                 title={`procurement_${batchId}.pdf`}
+                onError={() => setIframeError(true)}
+                onLoad={() => setIframeError(false)}
               />
             )}
           </>
@@ -316,9 +308,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
   return StyleSheet.create({
-    // Container fills the SlideScreen. Background provided by SlideScreen's
-    // backgroundColor prop (set per-page in HomeScreen) so the header area
-    // is never transparent even when the viewer content hasn't loaded yet.
+    // Flex fills the SlideScreen; inline backgroundColor overrides ensure opacity
     container: { flex: 1 } as any,
     ...hdr,
     viewer: {
