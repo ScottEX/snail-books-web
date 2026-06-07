@@ -505,30 +505,36 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     <View style={styles.container}>
       {renderHeader()}
 
-      {/* Viewport */}
-      <div ref={viewportRef as any} style={styles.viewport as any}>
-        {/* Page pill — inside viewport for correct absolute positioning */}
+      {/* Viewport — use View so RN StyleSheet resolves correctly */}
+      <View ref={viewportRef as any} style={styles.viewport}>
+        {/* Page pill */}
         <View style={styles.pagePill} pointerEvents="none">
           <Text style={styles.pagePillText}>{pagePill}</Text>
         </View>
 
-        {/* Zoom indicator — inside viewport */}
+        {/* Zoom indicator */}
         <View style={[styles.zoomInd, zoomVisible && styles.zoomIndShow as any]} pointerEvents="none">
           <Text style={styles.zoomIndText}>{zoomPercent}</Text>
         </View>
 
-        <div style={styles.viewportInner as any}>
-          <div
+        <View style={styles.viewportInner as any}>
+          <View
             ref={sheetRef as any}
             style={styles.docSheet as any}
           >
+            {/* doc-paper needs dangerouslySetInnerHTML → use raw div with inline styles */}
             <div
-              style={styles.docPaper as any}
+              style={{
+                background: '#fff', borderRadius: 4,
+                boxShadow: '0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3)',
+                overflow: 'hidden', width: 340,
+                padding: '28px 24px 36px',
+              }}
               dangerouslySetInnerHTML={{ __html: docHTML }}
             />
-          </div>
-        </div>
-      </div>
+          </View>
+        </View>
+      </View>
 
       {/* Zoom buttons strip */}
       <View style={styles.zoomStrip}>
@@ -650,9 +656,10 @@ const getStyles = (c: ThemeColors) => {
     zoomIndShow: { opacity: 1 } as any,
     zoomIndText: { fontSize: 11, color: 'rgba(240,237,232,0.5)', fontFamily: '"DM Mono", monospace' },
 
-    // Viewport — dark background, between header (top:80) and toolbar (bottom:72)
+    // Viewport — dark background full container, padding pushes content below header
     viewport: {
-      position: 'absolute' as any, top: 80, left: 0, right: 0, bottom: 72, zIndex: 1,
+      position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 72, zIndex: 1,
+      paddingTop: 80, paddingBottom: 12,
       overflow: 'hidden' as any,
       backgroundColor: '#141416',
     } as any,
