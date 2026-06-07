@@ -944,7 +944,7 @@ function TableGroup({ title, type, total, items, themeColors, styles, onDelete }
 const getS = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
-  container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 },
+  container: { maxWidth: 1024, alignSelf: 'center', width: '100%', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 100 },
   header: { borderBottomWidth: 1, borderBottomColor: colors.bg, paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 8 },
   backArrow: { fontSize: FONTS.h1.size, color: colors.textSub, lineHeight: 22, fontWeight: '300' },
