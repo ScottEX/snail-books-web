@@ -814,7 +814,7 @@ export default function HomeScreen({
               {tab === 'chart' && (
                 <View style={{ paddingBottom: 120, paddingTop: 4 }}>
                   {/* 在手资金玻璃卡片 */}
-                  <View style={{ paddingHorizontal: 18, marginBottom: 12 }}>
+                  <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartGlassCard}>
                       <View style={{ alignItems: 'flex-start', gap: 4 }}>
                         <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
@@ -842,7 +842,7 @@ export default function HomeScreen({
                     </View>
                   </View>
                   {/* KPI 三行 */}
-                  <View style={{ paddingHorizontal: 18, marginBottom: 12 }}>
+                  <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartKpiCard}>
                       <View style={styles.chartKpiRow}>
                         <View style={styles.chartKpiItem}>

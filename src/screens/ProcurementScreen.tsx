@@ -157,7 +157,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   statNum: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   statLbl: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 3 },
 
-  searchSection: { paddingHorizontal: 16, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
+  searchSection: { paddingHorizontal: 18, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
   searchInput: { paddingHorizontal: 12, paddingVertical: 9, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
   filterRow: { flexDirection: 'row' as const, gap: 6, marginTop: 8 },
   filterChip: { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12) },
@@ -173,7 +173,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   subTabTextOn: { color: c.primary, fontWeight: FONTS.subBold.weight },
   subTabCount: { fontSize: 10, fontWeight: '600' as any, color: c.textSub, backgroundColor: withAlpha(c.textMain, 0.06), borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1, minWidth: 18, textAlign: 'center' as any, overflow: 'hidden' as const },
 
-  sectionHead: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub, textTransform: 'uppercase' as const, letterSpacing: 1 },
+  sectionHead: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 4, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub, textTransform: 'uppercase' as const, letterSpacing: 1 },
   productCard: { marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), overflow: 'hidden' as const },
   productCardSel: { borderColor: c.primary, borderWidth: 1.5 },
   prodRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 10, gap: 10 },
@@ -225,7 +225,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   drawerClose: { width: 30, height: 30, borderRadius: 15, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const, justifyContent: 'center' as const },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
-  drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 16, paddingVertical: 10, paddingBottom: 24 },
+  drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 18, paddingVertical: 10, paddingBottom: 24 },
 
   // Date row (all 4 elements inline)
   dateCatRow: { marginBottom: 12 },
@@ -262,7 +262,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
-  // No horizontal padding here — ScrollView applies its own paddingHorizontal: 16 so that the
+  // No horizontal padding here — ScrollView applies its own paddingHorizontal: 18 so that the
   // webkit scrollbar (which paints on the padding-box edge) lands in the rightmost 2px gutter
   // and never overlaps the +/- buttons in the content area.
   itemsModalBodyWrap: { flex: 1, minHeight: 0, paddingTop: 12, paddingBottom: 4 },
@@ -271,7 +271,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsRowName: { flex: 1, fontSize: FONTS.sub.size, color: c.textMain },
   itemsRowQty: { fontSize: FONTS.micro.size, color: c.textSub, marginRight: 12, width: 48, textAlign: 'right' as const },
   itemsRowAmt: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, width: 80, textAlign: 'right' as const },
-  itemsTotalRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingVertical: 14, paddingHorizontal: 16, marginTop: 6, borderTopWidth: 1, borderTopColor: withAlpha(c.textMain, 0.12) },
+  itemsTotalRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingVertical: 14, paddingHorizontal: 18, marginTop: 6, borderTopWidth: 1, borderTopColor: withAlpha(c.textMain, 0.12) },
   itemsTotalLabel: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsTotal: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.primary },
 
@@ -398,7 +398,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   // Note: webkit scrollbar cannot be hidden via React/JS — its ::-webkit-scrollbar pseudo-elements
   // are not addressable. We accept the scrollbar exists and instead position it OUT of the +/-
-  // button area by giving the ScrollView itself paddingHorizontal: 16 + boxSizing: 'border-box';
+  // button area by giving the ScrollView itself paddingHorizontal: 18 + boxSizing: 'border-box';
   // the webkit scrollbar paints on the padding box edge (the card's rightmost 2px), well clear
   // of the +/- buttons (which live in the content area, 16px inset from that edge).
   // detailItems, detailTotal, detailBatchId, downloadingPDF, pdfDone — removed with history detail modal (moved to ProcurementDetailScreen)
@@ -1432,7 +1432,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             {itemsModalIsCart && itemsModalView === 'products' ? (
               // ── Product picker view ──
               <>
-                <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
+                <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8 }}>
                   <TextInput
                     value={productPickerSearch}
                     onChangeText={setProductPickerSearch}
@@ -1446,7 +1446,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 </View>
                 <View style={styles.itemsModalBodyWrap}>
                   <ScrollView
-                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 16, boxSizing: 'border-box' } as any}
+                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 18, boxSizing: 'border-box' } as any}
                   >
                     {products
                       .filter(p => !productPickerSearch || p.name.includes(productPickerSearch) || (p.supplier || '').includes(productPickerSearch))
@@ -1497,7 +1497,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               <>
                 <View style={styles.itemsModalBodyWrap}>
                   <ScrollView
-                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 16, boxSizing: 'border-box' } as any}
+                    style={{ flex: 1, minHeight: 0, paddingHorizontal: 18, boxSizing: 'border-box' } as any}
                   >
                     {cartItems.length === 0 ? (
                       <View style={{ padding: 24, alignItems: 'center' }}>
@@ -1539,7 +1539,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
                   <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
                 </View>
-                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }}>
+                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16, paddingTop: 4 }}>
                   <TouchableOpacity
                     style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08), alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
                     onPress={() => setItemsModalView('products')}

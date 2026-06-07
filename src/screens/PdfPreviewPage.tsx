@@ -74,7 +74,7 @@ const STYLE_CSS = `
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);touch-action:none}
 
-.navbar{position:fixed;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(20,20,22,.85);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--line)}
+.navbar{position:fixed;top:44px;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(20,20,22,.85);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--line)}
 .nav-left{display:flex;align-items:center;gap:10px}
 .nav-back{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .nav-back:active{background:var(--surface3)}
@@ -88,11 +88,11 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .nav-action.accent-btn{background:var(--accent-dim);border-color:rgba(192,57,43,.3)}
 .nav-action.accent-btn svg{stroke:var(--accent)}
 
-.page-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;transition:opacity .3s;pointer-events:none}
-.zoom-indicator{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
+.page-pill{position:fixed;top:calc(44px + ${NAV_H + 12}px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;transition:opacity .3s;pointer-events:none}
+.zoom-indicator{position:fixed;top:calc(44px + ${NAV_H + 12}px);right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .zoom-indicator.show{opacity:1}
 
-.viewport{position:fixed;inset:0;padding-top:${NAV_H}px;padding-bottom:${TOOLBAR_H}px;overflow:hidden;background:var(--bg)}
+.viewport{position:fixed;top:calc(44px + ${NAV_H}px);left:0;right:0;bottom:0;overflow:hidden;background:var(--bg)}
 .viewport-inner{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center;overflow:hidden;position:relative;cursor:grab}
 .viewport-inner.grabbing{cursor:grabbing}
 .doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
