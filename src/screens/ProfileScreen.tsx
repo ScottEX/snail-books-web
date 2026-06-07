@@ -1287,7 +1287,7 @@ function getStyles(colors: ThemeColors) {
       justifyContent: 'center', alignItems: 'center',
     },
     coverTitle: {
-      fontSize: FONTS.body.size, fontWeight: '600', color: '#fff',
+      fontSize: 15, fontWeight: '600', color: '#fff',
       textShadow: '0 1px 3px rgba(0,0,0,0.4)',
     } as any,
     coverOverlay: {

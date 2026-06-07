@@ -92,7 +92,6 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
             </View>
           </TouchableOpacity>
           <Text style={styles.title}>{t('procOrderItems')}</Text>
-          <View style={{ width: 44 }} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: c.textSub }}>—</Text>
@@ -184,7 +183,6 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
           </View>
         </TouchableOpacity>
         <Text style={styles.title}>{t('procDetail')}</Text>
-        <View style={{ width: 44 }} />
       </View>
 
       {/* Body — scrolls under header */}

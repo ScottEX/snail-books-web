@@ -36,7 +36,7 @@ export const modalClose = {
 export const historyHeader = (colors: ThemeColors) => ({
   header: {
     position: 'absolute' as const, top: 36, left: 0, right: 0, zIndex: 90,
-    flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const,
+    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12,
     paddingTop: 20, paddingBottom: 8, paddingHorizontal: 16,
     backgroundColor: 'transparent',
     // @ts-ignore
@@ -44,7 +44,7 @@ export const historyHeader = (colors: ThemeColors) => ({
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   backBtn: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 36, height: 36, borderRadius: 18,
     backgroundColor: withAlpha(colors.bg, 0.30),
     justifyContent: 'center' as const, alignItems: 'center' as const,
     // @ts-ignore
@@ -56,7 +56,7 @@ export const historyHeader = (colors: ThemeColors) => ({
     marginTop: -2, marginLeft: -1,
   },
   title: {
-    fontSize: FONTS.body.size, fontWeight: '400' as const, color: colors.textMain,
+    flex: 1, fontSize: 15, fontWeight: '600' as const, color: '#F0EDE8',
   },
   filterBtn: {
     width: 44, height: 44, borderRadius: 22,
