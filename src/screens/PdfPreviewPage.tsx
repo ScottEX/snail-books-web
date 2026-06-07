@@ -92,7 +92,7 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .zoom-indicator{position:fixed;top:calc(44px + ${NAV_H + 12}px);right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .zoom-indicator.show{opacity:1}
 
-.viewport{position:fixed;top:calc(44px + ${NAV_H}px);left:0;right:0;bottom:0;overflow:hidden;background:var(--bg)}
+.viewport{position:fixed;top:calc(44px + ${NAV_H}px);left:0;right:0;bottom:0;overflow:hidden;background:#fff}
 .viewport-inner{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center;overflow:hidden;position:relative;cursor:grab}
 .viewport-inner.grabbing{cursor:grabbing}
 .doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
