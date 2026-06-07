@@ -90,10 +90,10 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
     [profitLabel]: profit[i],
   }));
 
-  // Donut data
+  // Donut data — translate category keys
   const donutData = Object.entries(categories)
     .filter(([, v]) => v > 0)
-    .map(([name, value]) => ({ name, value }))
+    .map(([key, value]) => ({ name: t(key as any) || key, value }))
     .sort((a, b) => b.value - a.value);
 
   // Axes stroke color — subtle white for dark background
@@ -101,7 +101,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
   const tickColor = 'rgba(255,255,255,0.35)';
 
   return (
-    <View style={{ gap: 16, marginTop: 16 }}>
+    <View style={{ gap: 16, marginTop: 4 }}>
       {/* ── 月度利润趋势 ── */}
       <View style={[chartStyles.card, { backgroundColor: '#1A1A1E' }]}>
         <Text style={chartStyles.title}>{t('monthlyProfit')}</Text>
