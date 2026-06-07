@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  Image, ActivityIndicator, StyleSheet, Animated, PanResponder
+  FlatList, Image, ActivityIndicator, StyleSheet, Animated, PanResponder
 } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -15,18 +15,18 @@ import ConfirmModal from '../components/ConfirmModal';
 import { formatDate } from '../utils/format';
 import TrashIcon from '../components/icons/TrashIcon';
 import CameraIcon from '../components/icons/CameraIcon';
-import { useProcurementCart, Product, CartItem } from './procurement/useProcurementCart';
-import BatchHistoryList from './procurement/BatchHistoryList';
-import ProductManagement from './procurement/ProductManagement';
+import PlusIcon from '../components/icons/PlusIcon';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = 'payCash' | 'payWechat' | 'payAlipay';
 
+interface Product { id: number; name: string; spec: string; price: number; supplier: string; note?: string; }
+interface CartItem { product: Product; quantity: number; subtotal: number; }
 interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; thumb_images?: string[]; note: string; items: any[]; }
 interface ProcStats { total_spent: number; total_income: number; batch_count: number; margin_pct: number; }
 
 // ═══════════════════════════════════════════════
-// SVG Icons (local — only those still used by main component)
+// SVG Icons (local)
 // ═══════════════════════════════════════════════
 
 function CartIcon({ color }: { color: string }) {
@@ -81,6 +81,13 @@ function BoxIcon({ color }: { color: string }) {
     </Svg>
   );
 }
+function ChevronDownIcon({ color, size = 14 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M6 9l6 6 6-6" />
+    </Svg>
+  );
+}
 // Empty state SVG icons — 48px, thin stroke
 function EmptyCartIcon({ color }: { color: string }) {
   return (
@@ -88,6 +95,23 @@ function EmptyCartIcon({ color }: { color: string }) {
       <Path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
       <Path d="M3 6h18" />
       <Path d="M16 10a4 4 0 0 1-8 0" />
+    </Svg>
+  );
+}
+function EmptyClipboardIcon({ color }: { color: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <Path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z" />
+    </Svg>
+  );
+}
+function EmptyBoxIcon({ color }: { color: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <Path d="M3.27 6.96L12 12.01l8.73-5.05" />
+      <Path d="M12 22.08V12" />
     </Svg>
   );
 }
@@ -226,6 +250,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   chipIconCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const, justifyContent: 'center' as const, marginRight: 4 },
   chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
 
+  // Upload (expense page style)
+  // Image upload — now in sharedStyles
+
   // Items row
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
 
@@ -235,6 +262,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
+  // No horizontal padding here — ScrollView applies its own paddingHorizontal: 16 so that the
+  // webkit scrollbar (which paints on the padding-box edge) lands in the rightmost 2px gutter
+  // and never overlaps the +/- buttons in the content area.
   itemsModalBodyWrap: { flex: 1, minHeight: 0, paddingTop: 12, paddingBottom: 4 },
   itemsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.06) },
   itemsRowLast: { borderBottomWidth: 0 },
@@ -249,6 +279,51 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   submitBtn: { backgroundColor: c.primary, borderRadius: 12, paddingVertical: 15, alignItems: 'center' as const, marginTop: 16 },
   submitBtnDisabled: { opacity: 0.45 },
   submitBtnText: { color: c.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
+
+  // Product mgmt
+  mgmtRow: { flexDirection: 'row' as const, alignItems: 'center' as const, padding: 12, marginHorizontal: 12, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06) },
+  mgmtInfo: { flex: 1 },
+  mgmtName: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain },
+  mgmtMeta: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 },
+  mgmtActions: { flexDirection: 'row' as const, gap: 8 },
+  mgmtActionBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.05) },
+  mgmtAddBtn: { marginHorizontal: 12, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: withAlpha(c.primary, 0.06), borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
+  mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
+
+  // Modal (product add/edit)
+  modalOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 400, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center' as const, alignItems: 'center' as const },
+  modalCard: { backgroundColor: c.surface, borderRadius: 16, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
+    // @ts-ignore
+    ...modalCardAnimation, },
+  modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
+  modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
+  modalClose: { ...modalClose, },
+  modalBody: { padding: 24 },
+  modalInput: { paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 10, outline: 'none' },
+  modalBtnRow: { flexDirection: 'row' as const, gap: 8, marginTop: 10, width: '100%' as any },
+  modalBtnCancel: { flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const },
+  modalBtnCancelText: { fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight },
+  modalBtnConfirm: { flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: c.primary, alignItems: 'center' as const },
+  modalBtnConfirmText: { fontSize: FONTS.subBold.size, color: c.surface, fontWeight: FONTS.subBold.weight },
+  modalDeleteBox: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' as const },
+  modalDeleteText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' as const },
+
+  // History
+  historyList: { padding: 12, paddingBottom: 100 },
+  historyCard: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), marginBottom: 10, overflow: 'hidden' as const },
+  histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
+  histNo: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary },
+  histDate: { fontSize: FONTS.micro.size, color: c.textSub },
+  histActions: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
+  histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
+  histBody: { padding: 10 },
+  histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
+  histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
+  histRowVal: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textMain },
+  histPayBadge: { alignSelf: 'flex-start' as const, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: withAlpha(c.primary, 0.08), borderRadius: 12, marginTop: 4 },
+  histPayText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.primary },
+  histAmount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary, marginTop: 8 },
+  histImages: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 4, marginTop: 6 },
 
   // Success
   successOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
@@ -267,6 +342,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
   emptyTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: c.textSub, marginBottom: 6 },
   emptyHint: { fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center' as const, paddingHorizontal: 40, lineHeight: 20 },
+  loadingWrap: { paddingVertical: 20, alignItems: 'center' as const },
+  contentArea: { flex: 1, paddingBottom: 100 },
 });
 
 // ═══════════════════════════════════════════════
@@ -287,6 +364,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     try { localStorage.setItem('snail_proc_tab', subTab); } catch {}
   }, [subTab]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [cart, setCart] = useState<Record<number, number>>({});
   const [search, setSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('全部');
   const [editingPrice, setEditingPrice] = useState<number | null>(null);
@@ -318,6 +396,13 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
   const [productPickerSearch, setProductPickerSearch] = useState('');
 
+  // Note: webkit scrollbar cannot be hidden via React/JS — its ::-webkit-scrollbar pseudo-elements
+  // are not addressable. We accept the scrollbar exists and instead position it OUT of the +/-
+  // button area by giving the ScrollView itself paddingHorizontal: 16 + boxSizing: 'border-box';
+  // the webkit scrollbar paints on the padding box edge (the card's rightmost 2px), well clear
+  // of the +/- buttons (which live in the content area, 16px inset from that edge).
+  // detailItems, detailTotal, detailBatchId, downloadingPDF, pdfDone — removed with history detail modal (moved to ProcurementDetailScreen)
+
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
   const [successIsEdit, setSuccessIsEdit] = useState(false);
@@ -331,10 +416,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [histTotal, setHistTotal] = useState(0);
   const [loadingHist, setLoadingHist] = useState(false);
 
-  // ── Cart (extracted hook) ──
-  const { cart, setCart, cartItems, cartTotal, cartCount, updateQty, clearCart } = useProcurementCart(products);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '', note: '' });
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
-  // ── Shared slide-from-top animation for success modal ──
+  // ── Shared slide-from-top animation for product/delete/success modals ──
   const modalSlide = useRef(new Animated.Value(0)).current;
   const modalOverlayFade = useRef(new Animated.Value(0)).current;
   const openSlideModal = (show: () => void) => {
@@ -481,7 +568,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   useEffect(() => { loadProducts(); loadStats(); }, [loadProducts, loadStats]);
 
   // Sync uncontrolled date input when orderDate changes externally
-  const orderDateInputRef = useRef<HTMLInputElement>(null);
+  // Load shared cart from server on mount
+  useEffect(() => {
+    api.getCart().then((data: any) => {
+      if (Array.isArray(data)) {
+        const map: Record<number, number> = {};
+        data.forEach((item: any) => { map[item.product_id] = item.quantity; });
+        setCart(map);
+      }
+    }).catch(() => {});
+  }, []);
+
   useEffect(() => { if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; }, [orderDate]);
 
   // Preload history total on mount so the tab badge shows correct count immediately
@@ -552,12 +649,45 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       if (!map[sup]) map[sup] = [];
       map[sup].push(p);
     });
+    // Sort section heads by SUPPLIER_ORDER, unknown suppliers at end
     const sortedMap: [string, Product[]][] = Object.entries(map).sort(([a], [b]) => sortByOrder(a, b));
     return sortedMap;
   }, [filteredProducts]);
 
   // section head display name
   const supplierLabel = (sup: string) => displaySupplier(sup) || t('procAll');
+
+  const cartItems: CartItem[] = useMemo(() => {
+    return Object.entries(cart)
+      .filter(([_, qty]) => qty > 0)
+      .map(([pid, qty]) => {
+        const product = products.find(p => p.id === Number(pid));
+        if (!product) return null;
+        return { product, quantity: qty, subtotal: product.price * qty };
+      }).filter(Boolean) as CartItem[];
+  }, [cart, products]);
+
+  const cartTotal = useMemo(() => cartItems.reduce((s, i) => s + i.subtotal, 0), [cartItems]);
+  const cartCount = cartItems.length;
+
+  const updateQty = (pid: number, delta: number) => {
+    setCart(prev => {
+      const newQty = Math.max(0, (prev[pid] || 0) + delta);
+      if (newQty === 0) {
+        api.removeFromCart(pid).catch(() => {});
+        const next = { ...prev };
+        delete next[pid];
+        return next;
+      }
+      api.addToCart(pid, newQty).catch(() => {});
+      return { ...prev, [pid]: newQty };
+    });
+  };
+
+  const clearCart = () => {
+    setCart({});
+    api.clearCart().catch(() => {});
+  };
 
   const startEditPrice = (pid: number) => {
     const p = products.find(x => x.id === pid);
@@ -592,6 +722,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   };
 
   const urlCache = useRef<Map<File, string>>(new Map());
+  const orderDateInputRef = useRef<HTMLInputElement>(null);
   const getPreviewUrl = (file: File) => {
     if (!urlCache.current.has(file)) {
       urlCache.current.set(file, URL.createObjectURL(file));
@@ -636,6 +767,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           return;
         }
         newImageUrls = result.images || [];
+        // Prefer server-generated thumb URLs; fall back to full-size images if PIL is disabled
         newThumbUrls = (result.thumb_images && result.thumb_images.length > 0)
           ? result.thumb_images
           : newImageUrls;
@@ -659,6 +791,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             setEditingBatchId(null); setEditingBatchNumber(0);
             setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('payWechat');
             setShowDrawer(false); onDrawerClose?.();
+            // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
             setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
             setSuccessIsEdit(true);
             openSlideModal(() => setShowSuccess(true));
@@ -718,6 +851,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setReceipts([]);
     setExistingImageUrls(batch.images || []);
     setExistingThumbUrls(batch.thumb_images || []);
+    // Open the same drawer the new-batch flow uses
     setShowDrawer(true);
     onDrawerOpen?.();
     Animated.parallel([
@@ -726,7 +860,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     ]).start();
   };
 
-  // External edit signal from ProcurementDetailScreen
+  // Expose edit function to parent via ref (for ProcurementDetailScreen edit button)
+  // External edit signal from ProcurementDetailScreen. Always runs on
+  // the freshly-mounted instance (the one whose parent just flipped
+  // setShowProcDetail(false)), so openEditBatch's setState calls all
+  // land on a live component — no stale ref, no unmounted setState.
   useEffect(() => {
     if (pendingEditBatch) {
       openEditBatch(pendingEditBatch);
@@ -742,6 +880,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     try {
       const r = await api.deleteProcurementBatch(targetId);
       if (r?.status === 'ok') {
+        // Skip toast — Modal close + Toast mount on same frame crashes RN Web layout (same as password-change fix 1d06376)
+        // Refresh history list and stats
         loadHistory();
         loadStats();
       } else {
@@ -760,6 +900,42 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   const resetOrder = () => {
     closeSlideModal(() => { setShowSuccess(false); setOrderDate(todayStr()); setPayMethod('payWechat'); setOrderNote(''); setReceipts([]); });
+  };
+
+  const openAddProduct = () => {
+    setEditingProduct(null);
+    setProdForm({ name: '', spec: '', price: '', supplier: '', note: '' });
+    openSlideModal(() => setShowProductModal(true));
+  };
+  const openEditProduct = (p: Product) => {
+    setEditingProduct(p);
+    setProdForm({ name: p.name, spec: p.spec, price: String(p.price), supplier: p.supplier, note: p.note || '' });
+    openSlideModal(() => setShowProductModal(true));
+  };
+  const saveProduct = async () => {
+    if (!prodForm.name) return;
+    const data = { name: prodForm.name, spec: prodForm.spec, price: parseFloat(prodForm.price) || 0, supplier: prodForm.supplier, note: prodForm.note };
+    try {
+      editingProduct ? await api.updateProduct({ ...data, id: editingProduct.id }) : await api.createProduct(data);
+      closeSlideModal(() => setShowProductModal(false));
+      loadProducts();
+    } catch {
+      setToastMsg(t('toastSubmitFailed'));
+      setShowToast(true);
+    }
+  };
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await api.deleteProduct(deleteTarget.id);
+      // Clean orphan cart entries for deleted product
+      setCart(prev => { const cp = { ...prev }; delete cp[deleteTarget.id]; return cp; });
+      loadProducts();
+    } catch {
+      setToastMsg(t('toastSubmitFailed'));
+      setShowToast(true);
+    }
+    closeSlideModal(() => setDeleteTarget(null));
   };
 
   return (
@@ -910,27 +1086,176 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </View>
       )}
 
-      {/* ── History (extracted) ── */}
+      {/* ── History ── */}
       {subTab === 'history' && (
-        <BatchHistoryList
-          batches={filteredBatches}
-          loading={loadingHist}
-          total={histTotal}
-          onViewDetail={openHistoryDetail}
-          onEdit={openEditBatch}
-          onDelete={(batch) => openSlideModal(() => setDeleteBatchTarget(batch))}
-          onLoadMore={loadMoreHistory}
+        <FlatList
+          data={filteredBatches}
+          keyExtractor={item => String(item.id)}
+          contentContainerStyle={styles.historyList}
+          onEndReached={filteredBatches.length < histTotal ? loadMoreHistory : undefined}
+          onEndReachedThreshold={0.4}
+          renderItem={({ item: batch }) => (
+            <View style={styles.historyCard}>
+              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ padding: 12 }}>
+                <View style={styles.histHead}>
+                  <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <Text style={styles.histDate}>{batch.date}</Text>
+                    <View style={styles.histActions}>
+                      <TouchableOpacity
+                        style={styles.histActionBtn}
+                        onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <PencilIcon color={c.textSub} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.histActionBtn}
+                        onPress={(e) => { e.stopPropagation?.(); openSlideModal(() => setDeleteBatchTarget(batch)); }}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <TrashIcon color={c.danger} size={14} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              <View style={styles.histBody}>
+                <View style={styles.histRow}>
+                  <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
+                  <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
+                </View>
+                <View style={styles.histRow}>
+                  <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
+                  <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
+                </View>
+                {batch.note ? (
+                  <View style={styles.histRow}>
+                    <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
+                    <Text style={styles.histRowVal}>{batch.note}</Text>
+                  </View>
+                ) : null}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
+                  <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
+                </View>
+                {(() => {
+                  // Prefer 128×128 thumb URLs (fast), fall back to full-size for old data
+                  const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
+                  return thumbImgs.length > 0 && (
+                    <View style={styles.histImages}>
+                      {thumbImgs.map((img: string, i: number) => (
+                        <Image key={i} source={{ uri: img }}
+                          style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
+                      ))}
+                    </View>
+                  );
+                })()}
+              </View>
+              </TouchableOpacity>
+            </View>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyWrap}>
+              <View style={styles.emptyIconWrap}><EmptyClipboardIcon color={c.textSub} /></View>
+              <Text style={styles.emptyTitle}>{t('procEmptyHistoryTitle')}</Text>
+              <Text style={styles.emptyHint}>{t('procEmptyHistoryHint')}</Text>
+            </View>
+          }
+          ListFooterComponent={loadingHist ? <View style={styles.loadingWrap}><ActivityIndicator color={c.primary} /></View> : null}
         />
       )}
 
-      {/* ── Product Mgmt (extracted) ── */}
+      {/* ── Product Mgmt ── */}
       {subTab === 'products' && (
-        <ProductManagement
-          products={filteredMgmtProducts}
-          suppliers={suppliers}
-          onRefresh={loadProducts}
-        />
+        <ScrollView style={styles.contentArea}>
+          <TouchableOpacity style={styles.mgmtAddBtn} onPress={openAddProduct}>
+            <PlusIcon color={c.primary} />
+            <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
+          </TouchableOpacity>
+          {filteredMgmtProducts.length === 0 ? (
+            <View style={styles.emptyWrap}>
+              <View style={styles.emptyIconWrap}><EmptyBoxIcon color={c.textSub} /></View>
+              <Text style={styles.emptyTitle}>{t('procEmptyProductsTitle')}</Text>
+              <Text style={styles.emptyHint}>{t('procEmptyProductsHint')}</Text>
+            </View>
+          ) : (
+            [...filteredMgmtProducts].sort((a, b) => b.id - a.id).map(p => (
+              <View key={p.id} style={styles.mgmtRow}>
+                <View style={styles.mgmtInfo}>
+                  <Text style={styles.mgmtName}>{p.name}</Text>
+                  <Text style={styles.mgmtMeta}>{p.supplier} · {p.spec} · ¥{p.price.toFixed(2)}</Text>
+                </View>
+                <View style={styles.mgmtActions}>
+                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openEditProduct(p)}>
+                    <PencilIcon color={c.textSub} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openSlideModal(() => setDeleteTarget(p))}>
+                    <TrashIcon color={c.danger} size={14} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
+        </ScrollView>
       )}
+
+      {/* ── Product Modal ── */}
+      {showProductModal && (
+        <Animated.View style={[styles.modalOverlay, { opacity: modalOverlayFade }]}>
+          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{editingProduct ? t('procEditProduct') : t('procAddProduct')}</Text>
+              <TouchableOpacity onPress={() => closeSlideModal(() => setShowProductModal(false))}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalBody}>
+              <TextInput style={styles.modalInput} placeholder={t('procProductName')} placeholderTextColor={c.textSub} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
+              <TextInput style={styles.modalInput} placeholder={t('procProductSpec')} placeholderTextColor={c.textSub} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
+              <View style={[styles.modalInput, { position: 'relative', justifyContent: 'center' }]}>
+                <Text style={{ fontSize: FONTS.sub.size, color: prodForm.supplier ? c.textMain : c.textSub }}>
+                  {prodForm.supplier || t('procProductSupplier')}
+                </Text>
+                <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, justifyContent: 'center' }}>
+                  <ChevronDownIcon color={c.textSub} />
+                </View>
+                {React.createElement('select', {
+                  value: prodForm.supplier,
+                  onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
+                  style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.01, cursor: 'pointer' } as any,
+                },
+                  <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
+                  suppliers.filter((s: string) => s !== '全部').map((s: string) => (
+                    React.createElement('option', { key: s, value: s }, s)
+                  ))
+                )}
+              </View>
+              <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: v }))} keyboardType="numeric" />
+              <TextInput style={styles.modalInput} placeholder={t('procProductNote')} placeholderTextColor={c.textSub} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setShowProductModal(false))}>
+                  <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalBtnConfirm} onPress={saveProduct}>
+                  <Text style={styles.modalBtnConfirmText}>{t('procSubmit')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animated.View>
+        </Animated.View>
+      )}
+
+      {/* ── Delete confirmation modal (product) ── */}
+      <ConfirmModal
+        visible={deleteTarget !== null}
+        title={t('procDeleteProduct') || '删除商品'}
+        message={<>{t('procDeleteProductConfirm').split('{name}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{deleteTarget?.name}</Text>{t('procDeleteProductConfirm').split('{name}')[1]}{' '}{t('procDeleteProductWarning')}</>}
+        confirmLabel={t('delete')}
+        onConfirm={() => confirmDelete()}
+        onCancel={() => closeSlideModal(() => setDeleteTarget(null))}
+      />
 
       {/* ── Delete batch confirmation modal ── */}
       <ConfirmModal
@@ -1047,7 +1372,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 {uploading && <ActivityIndicator color={c.primary} style={{ marginLeft: 8 }} />}
               </View>
 
-              {/* Items row */}
+              {/* Items row — matching 近7天 pattern: label left, theme button right */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
                 <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
                 <TouchableOpacity onPress={openItemsModal} activeOpacity={0.7}>
@@ -1067,8 +1392,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 <TextInput style={{ flex: 1, height: 70, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none', textAlignVertical: 'top' } as any}
                   value={orderNote} onChangeText={setOrderNote} placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`} placeholderTextColor={c.textSub} multiline />
               </View>
+
+              {/* Total + Submit moved to drawer footer */}
             </ScrollView>
-            {/* Footer: Total + Submit */}
+            {/* Footer: Total + Submit — fixed at drawer bottom, above nav bar */}
             <View style={styles.drawerFooter}>
               <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
                 <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
