@@ -63,7 +63,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
           {/* PDF iframe — browser native PDF viewer */}
           <iframe
-            src={pdfUrl + '#view=FitH'}
+            src={pdfUrl + '#view=Fit'}
             style={{
               position: 'fixed',
               top: VIEWPORT_TOP,
