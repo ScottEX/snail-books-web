@@ -827,7 +827,7 @@ export default function HomeScreen({
                           </Text>
                         </View>
                       </View>
-                      <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
                         <View style={styles.chartGlassSubCard}>
                           <Text style={styles.chartGlassSubLabel}>{t('cumulativeRevenue')}</Text>
                           <Text style={styles.chartGlassSubValue}>
