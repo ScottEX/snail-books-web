@@ -59,7 +59,7 @@ export const historyHeader = (colors: ThemeColors) => ({
     flex: 1, fontSize: 15, fontWeight: '600' as const, color: '#F0EDE8',
   },
   filterBtn: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 36, height: 36, borderRadius: 18,
     justifyContent: 'center' as const, alignItems: 'center' as const,
     backgroundColor: withAlpha(colors.bg, 0.30),
     // @ts-ignore
