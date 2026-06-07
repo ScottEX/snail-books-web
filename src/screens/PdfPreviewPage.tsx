@@ -55,6 +55,8 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-sh-handle{width:36px;height:4px;background:#D1CDC6;border-radius:2px;margin:0 auto 16px}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text2);font-size:14px;text-align:center;padding:40px}
 .pv-err-btn{padding:8px 20px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;cursor:pointer}
+@keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.pv-root{animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
 `;
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
@@ -273,7 +275,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   return (
     <View style={st.container}>
-      {createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
+      {createPortal(<div className="pv-root" style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
         {/* Navbar */}
