@@ -76,6 +76,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [pdfError, setPdfError] = useState('');
   const [zoomVis, setZoomVis] = useState(false);
   const [zoomPct, setZoomPct] = useState(100);
+  const [pageW, setPageW] = useState(340);
   const [shareOpen, setShareOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
 
@@ -149,12 +150,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, [clamp, applyTransform]);
 
   const initZoom = useCallback(() => {
-    const vp = vpRef.current, el = wrapRef.current;
-    if (!vp || !el) return;
-    const vw = vp.clientWidth;
-    const cw = el.scrollWidth || 340;
-    const fit = Math.min(1, (vw - 24) / (cw + 24));
-    gRef.current = { scale: fit, tx: 0, ty: 0 };
+    const vp = vpRef.current;
+    if (!vp) return;
+    setPageW(vp.clientWidth);
+    gRef.current = { scale: 1, tx: 0, ty: 0 };
     applyTransform(false);
   }, [applyTransform]);
 
@@ -313,7 +312,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
                 <Page
                   key={p}
                   pageNumber={p}
-                  width={340}
+                  width={pageW}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                 />
