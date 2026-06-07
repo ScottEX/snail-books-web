@@ -644,7 +644,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
   return StyleSheet.create({
-    container: { flex: 1 } as any,
+    container: { flex: 1, backgroundColor: c.bg } as any,
     ...hdr,
     zoomPill: {
       position: 'absolute', top: 100, left: '50%',
@@ -679,8 +679,7 @@ const getStyles = (c: ThemeColors) => {
     viewport: {
       flex: 1,
       marginTop: 100,
-      marginBottom: 0,
-      backgroundColor: '#141416',
+      backgroundColor: c.bg,
       overflow: 'hidden',
     } as any,
     // Bottom toolbar
