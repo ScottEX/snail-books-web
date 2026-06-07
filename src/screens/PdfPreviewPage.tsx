@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  View, Text, TouchableOpacity, ActivityIndicator,
-  StyleSheet, Platform,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import Svg, { Path, Line, Rect, Circle } from 'react-native-svg';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -85,10 +82,14 @@ const ZoomOutSvg = React.memo(({ color }: { color: string }) => (
   </Svg>
 ));
 
-/* ── Helpers ── */
+/* ── Constants ── */
+const HEADER_H = 80; // header bottom position (top:36 + padTop:20 + padBottom:8 + some margin)
+const TOOLBAR_H = 72;
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 4.0;
+const DOC_PAPER_W = 340;
 
+/* ── Helpers ── */
 function formatDateCN(raw: string): string {
   try {
     const d = new Date(raw + 'T00:00:00');
@@ -100,10 +101,15 @@ function fmtMoney(v: number): string {
   return `¥${v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function buildDocumentHTML(batch: BatchData): string {
+/**
+ * Build ONLY the doc-paper inner HTML — no <html>, <head>, <body> wrappers.
+ * The outer <div className="doc-paper"> is rendered directly in JSX with
+ * dangerouslySetInnerHTML for this content.
+ */
+function buildDocPaperHTML(batch: BatchData): string {
   const batchNo = `2026-${String(batch.batch_number).padStart(4, '0')}`;
   const dateStr = formatDateCN(batch.date);
-  const payLabel = (t as any)('pay' + batch.payment_method.charAt(0).toUpperCase() + batch.payment_method.slice(1)) || batch.payment_method;
+  const payLabel = batch.payment_method;
   const itemCount = batch.items.length;
   const totalQty = batch.items.reduce((s, it) => s + (it.quantity || 0), 0);
 
@@ -112,48 +118,14 @@ function buildDocumentHTML(batch: BatchData): string {
     rowsHTML += `<tr><td>${it.product_name}</td><td>${it.spec || ''}</td><td>${fmtMoney(it.unit_price)}</td><td>${it.quantity}</td><td>${fmtMoney(it.subtotal)}</td></tr>`;
   });
 
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans SC',-apple-system,sans-serif;background:transparent;display:flex;justify-content:center;padding:12px 0}
-.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:28px 24px 36px}
-.doc-brand{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e8e4de}
-.doc-brand-name{font-size:13px;letter-spacing:.35em;color:#333;font-weight:500;margin-bottom:3px}
-.doc-brand-sub{font-size:9px;letter-spacing:.18em;color:#aaa;font-family:'DM Mono',monospace}
-.doc-heading{text-align:center;margin-bottom:18px}
-.doc-heading h1{font-size:22px;font-weight:700;letter-spacing:.3em;color:#C0392B;margin-bottom:3px}
-.doc-heading p{font-size:8px;letter-spacing:.15em;color:#aaa;font-family:'DM Mono',monospace}
-.doc-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;font-size:10px;margin-bottom:16px;padding:10px 0;border-top:1px solid #e8e4de;border-bottom:1px solid #e8e4de}
-.doc-meta-label{color:#aaa;margin-bottom:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.05em}
-.doc-meta-value{color:#222;font-weight:500;font-size:10px}
-.doc-table{width:100%;border-collapse:collapse;font-size:9.5px}
-.doc-table th{background:#7a1a1a;color:#fff;padding:7px 6px;text-align:left;font-weight:500}
-.doc-table th:last-child{text-align:right}
-.doc-table th:nth-child(3),.doc-table th:nth-child(4){text-align:center}
-.doc-table td{padding:7px 6px;border-bottom:1px solid #f0ece6;color:#222;vertical-align:middle}
-.doc-table td:last-child{text-align:right;font-weight:600;color:#7a1a1a;font-family:'DM Mono',monospace}
-.doc-table td:nth-child(3){text-align:center;font-family:'DM Mono',monospace;color:#555}
-.doc-table td:nth-child(4){text-align:center;font-family:'DM Mono',monospace;color:#333}
-.doc-table tr:nth-child(even) td{background:#faf9f7}
-.doc-table tr:last-child td{border-bottom:none}
-.doc-totals{margin-top:16px;padding-top:12px;border-top:2px solid #e8e4de}
-.doc-total-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:5px}
-.doc-total-row span:first-child{color:#888}
-.doc-total-row span:last-child{font-family:'DM Mono',monospace;color:#333}
-.doc-total-row.grand{margin-top:8px;padding-top:8px;border-top:1px solid #e8e4de}
-.doc-total-row.grand span:first-child{font-size:12px;font-weight:600;color:#222}
-.doc-total-row.grand span:last-child{font-size:16px;font-weight:700;color:#7a1a1a;font-family:'DM Mono',monospace}
-.doc-footer{margin-top:24px;text-align:center;padding-top:14px;border-top:1px solid #ede9e3}
-.doc-footer p{font-size:8px;color:#bbb;letter-spacing:.08em;font-family:'DM Mono',monospace;line-height:1.8}
-.doc-note{margin-top:12px;padding:8px 10px;background:#faf9f7;border-radius:4px;font-size:9px;color:#888;font-family:'DM Mono',monospace}
-</style></head><body><div class="doc-paper">
+  return `
 <div class="doc-brand"><div class="doc-brand-name">柳 味 探 秘 科 技</div><div class="doc-brand-sub">LIUWEI TECHNOLOGY · 餐饮供应链管理</div></div>
 <div class="doc-heading"><h1>进 货 单</h1><p>PURCHASE ORDER / RECEIPT</p></div>
 <div class="doc-meta"><div class="doc-meta-item"><div class="doc-meta-label">NO.</div><div class="doc-meta-value">${batchNo}</div></div><div class="doc-meta-item"><div class="doc-meta-label">日期</div><div class="doc-meta-value">${dateStr}</div></div><div class="doc-meta-item"><div class="doc-meta-label">支付</div><div class="doc-meta-value">${payLabel}</div></div></div>
 <table class="doc-table"><thead><tr><th>品名</th><th>规格</th><th>单价</th><th>数量</th><th>小计</th></tr></thead><tbody>${rowsHTML}</tbody></table>
 <div class="doc-totals"><div class="doc-total-row"><span>商品种类</span><span>${itemCount} 种</span></div><div class="doc-total-row"><span>总件数</span><span>${totalQty} 件</span></div><div class="doc-total-row grand"><span>合计货款</span><span>${fmtMoney(batch.total)}</span></div></div>
 ${batch.note ? `<div class="doc-note">📝 ${batch.note}</div>` : ''}
-<div class="doc-footer"><p>${batch.operator ? `经办人：${batch.operator} · ` : ''}柳味探秘科技 · 餐饮供应链管理系统<br>本单据由系统自动生成，具有法律效力</p></div>
-</div></body></html>`;
+<div class="doc-footer"><p>${batch.operator ? `经办人：${batch.operator} · ` : ''}柳味探秘科技 · 餐饮供应链管理系统<br>本单据由系统自动生成，具有法律效力</p></div>`;
 }
 
 /* ═══════════════════════ PdfPreviewPage ═══════════════════════ */
@@ -170,7 +142,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [toastIcon, setToastIcon] = useState('');
 
   // Zoom / pan state
-  const [pagePill, setPagePill] = useState('第 1 页 / 共 1 页');
+  const [pagePill] = useState('第 1 页 / 共 1 页');
   const [zoomPercent, setZoomPercent] = useState('100%');
   const [zoomVisible, setZoomVisible] = useState(false);
   const scaleRef = useRef(1);
@@ -178,6 +150,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const tyRef = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const viewportInnerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ active: false, startX: 0, startY: 0, startTx: 0, startTy: 0 });
   const touchRef = useRef({ mode: 'none' as string, startX: 0, startY: 0, startTx: 0, startTy: 0, pinchDist: 0, pinchScale: 0, lastTap: 0 });
   const zoomTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -206,27 +179,25 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     return () => { cancelled = true; };
   }, [batchId]);
 
-  // Apply zoom/pan transform to the sheet element
+  /* ── Transform helpers (mirrors pdf-viewer.html exactly) ── */
+
   const applyTransform = useCallback((animated: boolean) => {
     const sheet = sheetRef.current;
     if (!sheet) return;
     sheet.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
     sheet.style.transform = `translate(calc(-50% + ${txRef.current}px), ${tyRef.current}px) scale(${scaleRef.current})`;
-    // @ts-ignore
     sheet.style.left = '50%';
     setZoomPercent(Math.round(scaleRef.current * 100) + '%');
   }, []);
 
-  // Flash zoom indicator
   const flashZoom = useCallback(() => {
     setZoomVisible(true);
     if (zoomTimerRef.current) clearTimeout(zoomTimerRef.current);
     zoomTimerRef.current = setTimeout(() => setZoomVisible(false), 1500);
   }, []);
 
-  // Clamp translation
   const clampTranslation = useCallback(() => {
-    const vp = viewportRef.current;
+    const vp = viewportInnerRef.current;
     const sheet = sheetRef.current;
     if (!vp || !sheet) return;
     const paper = sheet.querySelector('.doc-paper') as HTMLElement;
@@ -241,29 +212,29 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     tyRef.current = Math.max(-20, Math.min(maxTy, tyRef.current));
   }, []);
 
-  // Fit on load — retry until viewport has dimensions
+  // Fit to viewport width on load — retry until viewport has dimensions
   useEffect(() => {
     if (!batch) return;
     let attempts = 0;
     const tryFit = () => {
-      const vp = viewportRef.current;
+      const vp = viewportInnerRef.current;
       const sheet = sheetRef.current;
       if (!vp || !sheet) return;
       const paper = sheet.querySelector('.doc-paper') as HTMLElement;
       if (!paper) return;
       const vw = vp.clientWidth;
       if (!vw || vw < 100) {
-        // Viewport not sized yet — retry
-        if (attempts++ < 10) setTimeout(tryFit, 150);
+        if (attempts++ < 15) setTimeout(tryFit, 150);
         return;
       }
       const docW = paper.offsetWidth + 24;
+      // Fit paper width to viewport width (like opening a PDF in browser)
       scaleRef.current = Math.min(1, (vw - 24) / docW);
       txRef.current = 0;
       tyRef.current = 0;
       applyTransform(false);
     };
-    setTimeout(tryFit, 200);
+    setTimeout(tryFit, 100);
   }, [batch, applyTransform]);
 
   // Handle window resize
@@ -273,7 +244,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     return () => window.removeEventListener('resize', onResize);
   }, [clampTranslation, applyTransform]);
 
-  // ── Zoom controls ──
+  /* ── Zoom controls ── */
   const stepZoom = useCallback((delta: number) => {
     scaleRef.current = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleRef.current + delta));
     clampTranslation();
@@ -289,10 +260,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     flashZoom();
   }, [applyTransform, flashZoom]);
 
-  // ── Mouse drag & wheel on viewport (via effect) ──
+  /* ── Mouse drag & wheel — attached to raw div (reference pattern) ── */
+
   useEffect(() => {
-    const vp = viewportRef.current;
-    if (!vp) return;
+    const vpInner = viewportInnerRef.current;
+    if (!vpInner || !batch) return;
 
     const onMouseDown = (e: MouseEvent) => {
       dragRef.current = {
@@ -300,7 +272,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         startX: e.clientX, startY: e.clientY,
         startTx: txRef.current, startTy: tyRef.current,
       };
-      vp.style.cursor = 'grabbing';
+      vpInner.style.cursor = 'grabbing';
     };
     const onMouseMove = (e: MouseEvent) => {
       if (!dragRef.current.active) return;
@@ -311,7 +283,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     };
     const onMouseUp = () => {
       dragRef.current.active = false;
-      vp.style.cursor = 'grab';
+      vpInner.style.cursor = 'grab';
     };
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -322,22 +294,23 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       flashZoom();
     };
 
-    vp.addEventListener('mousedown', onMouseDown);
+    vpInner.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
-    vp.addEventListener('wheel', onWheel, { passive: false });
+    vpInner.addEventListener('wheel', onWheel, { passive: false });
     return () => {
-      vp.removeEventListener('mousedown', onMouseDown);
+      vpInner.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
-      vp.removeEventListener('wheel', onWheel);
+      vpInner.removeEventListener('wheel', onWheel);
     };
   }, [clampTranslation, applyTransform, flashZoom, batch]);
 
-  // ── Touch events ──
+  /* ── Touch events — attached to raw div ── */
+
   useEffect(() => {
-    const vp = viewportRef.current;
-    if (!vp) return;
+    const vpInner = viewportInnerRef.current;
+    if (!vpInner || !batch) return;
 
     const getDist = (t: TouchList) => {
       const dx = t[0].clientX - t[1].clientX;
@@ -351,7 +324,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       if (e.touches.length === 1) {
         const now = Date.now();
         if (now - tc.lastTap < 300) {
-          // Double tap → toggle zoom
           if (scaleRef.current > 1.1) { scaleRef.current = 1; txRef.current = 0; tyRef.current = 0; }
           else { scaleRef.current = 2; }
           clampTranslation();
@@ -366,7 +338,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         tc.startY = e.touches[0].clientY;
         tc.startTx = txRef.current;
         tc.startTy = tyRef.current;
-        vp.style.cursor = 'grabbing';
+        vpInner.style.cursor = 'grabbing';
       } else if (e.touches.length === 2) {
         tc.mode = 'pinch';
         tc.pinchDist = getDist(e.touches);
@@ -393,7 +365,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
     const onTouchEnd = (e: TouchEvent) => {
       const tc = touchRef.current;
-      if (e.touches.length === 0) { tc.mode = 'none'; vp.style.cursor = 'grab'; }
+      if (e.touches.length === 0) { tc.mode = 'none'; vpInner.style.cursor = 'grab'; }
       else if (e.touches.length === 1 && tc.mode === 'pinch') {
         tc.mode = 'drag';
         tc.startX = e.touches[0].clientX;
@@ -403,27 +375,26 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       }
     };
 
-    vp.addEventListener('touchstart', onTouchStart, { passive: false });
-    vp.addEventListener('touchmove', onTouchMove, { passive: false });
-    vp.addEventListener('touchend', onTouchEnd);
+    vpInner.addEventListener('touchstart', onTouchStart, { passive: false });
+    vpInner.addEventListener('touchmove', onTouchMove, { passive: false });
+    vpInner.addEventListener('touchend', onTouchEnd);
     return () => {
-      vp.removeEventListener('touchstart', onTouchStart);
-      vp.removeEventListener('touchmove', onTouchMove);
-      vp.removeEventListener('touchend', onTouchEnd);
+      vpInner.removeEventListener('touchstart', onTouchStart);
+      vpInner.removeEventListener('touchmove', onTouchMove);
+      vpInner.removeEventListener('touchend', onTouchEnd);
     };
   }, [clampTranslation, applyTransform, flashZoom, batch]);
 
-  // ── Toast ──
+  /* ── Toast ── */
   const showToast = useCallback((icon: string, msg: string) => {
     setToastIcon(icon);
     setToast(msg);
     setTimeout(() => setToast(''), 2200);
   }, []);
 
-  // ── Actions ──
+  /* ── Actions ── */
   const doDownload = useCallback(() => {
     showToast('⬇️', 'PDF 下载中…');
-    // Trigger server PDF download
     if (typeof window !== 'undefined') {
       const a = document.createElement('a');
       a.href = `/api/procurement-batches/${batchId}/pdf`;
@@ -453,24 +424,63 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     showToast('📤', `已发送至 ${platform}`);
   }, [doDownload, copyLink, publicUrl, batchId, showToast]);
 
-  // ── Header ──
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-        <View style={styles.backBtn}><BackArrow color={c.textMain} /></View>
-      </TouchableOpacity>
-      <Text style={styles.title} numberOfLines={1}>
-        {t('procPdfTitle').replace('{n}', String(batchNumber))}
-      </Text>
-      <View style={{ width: 44 }} />
-    </View>
-  );
+  /* ── Title bar ── */
+  const title = t('procPdfTitle').replace('{n}', String(batchNumber));
 
-  // ── Loading ──
+  /* ── Document CSS (injected once) ── */
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const id = 'pdf-doc-styles';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+*{box-sizing:border-box;margin:0;padding:0}
+.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:${DOC_PAPER_W}px;padding:28px 24px 36px}
+.doc-brand{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e8e4de}
+.doc-brand-name{font-size:13px;letter-spacing:.35em;color:#333;font-weight:500;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
+.doc-brand-sub{font-size:9px;letter-spacing:.18em;color:#aaa;font-family:'DM Mono',monospace}
+.doc-heading{text-align:center;margin-bottom:18px}
+.doc-heading h1{font-size:22px;font-weight:700;letter-spacing:.3em;color:#C0392B;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
+.doc-heading p{font-size:8px;letter-spacing:.15em;color:#aaa;font-family:'DM Mono',monospace}
+.doc-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;font-size:10px;margin-bottom:16px;padding:10px 0;border-top:1px solid #e8e4de;border-bottom:1px solid #e8e4de}
+.doc-meta-label{color:#aaa;margin-bottom:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.05em}
+.doc-meta-value{color:#222;font-weight:500;font-size:10px}
+.doc-table{width:100%;border-collapse:collapse;font-size:9.5px}
+.doc-table th{background:#7a1a1a;color:#fff;padding:7px 6px;text-align:left;font-weight:500}
+.doc-table th:last-child{text-align:right}
+.doc-table th:nth-child(3),.doc-table th:nth-child(4){text-align:center}
+.doc-table td{padding:7px 6px;border-bottom:1px solid #f0ece6;color:#222;vertical-align:middle}
+.doc-table td:last-child{text-align:right;font-weight:600;color:#7a1a1a;font-family:'DM Mono',monospace}
+.doc-table td:nth-child(3){text-align:center;font-family:'DM Mono',monospace;color:#555}
+.doc-table td:nth-child(4){text-align:center;font-family:'DM Mono',monospace;color:#333}
+.doc-table tr:nth-child(even) td{background:#faf9f7}
+.doc-table tr:last-child td{border-bottom:none}
+.doc-totals{margin-top:16px;padding-top:12px;border-top:2px solid #e8e4de}
+.doc-total-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:5px}
+.doc-total-row span:first-child{color:#888}
+.doc-total-row span:last-child{font-family:'DM Mono',monospace;color:#333}
+.doc-total-row.grand{margin-top:8px;padding-top:8px;border-top:1px solid #e8e4de}
+.doc-total-row.grand span:first-child{font-size:12px;font-weight:600;color:#222}
+.doc-total-row.grand span:last-child{font-size:16px;font-weight:700;color:#7a1a1a;font-family:'DM Mono',monospace}
+.doc-footer{margin-top:24px;text-align:center;padding-top:14px;border-top:1px solid #ede9e3}
+.doc-footer p{font-size:8px;color:#bbb;letter-spacing:.08em;font-family:'DM Mono',monospace;line-height:1.8}
+.doc-note{margin-top:12px;padding:8px 10px;background:#faf9f7;border-radius:4px;font-size:9px;color:#888;font-family:'DM Mono',monospace}
+`;
+    document.head.appendChild(style);
+  }, []);
+
+  /* ── Loading state ── */
   if (loading) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+            <View style={styles.backBtn}><Text style={styles.backArrow}>‹</Text></View>
+          </TouchableOpacity>
+          <Text style={styles.title} numberOfLines={1}>{title}</Text>
+          <View style={{ width: 44 }} />
+        </View>
         <View style={styles.viewerArea}>
           <View style={styles.centered}>
             <ActivityIndicator color={c.primary} size="large" />
@@ -481,11 +491,17 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     );
   }
 
-  // ── Error ──
+  /* ── Error state ── */
   if (error || !batch) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+            <View style={styles.backBtn}><Text style={styles.backArrow}>‹</Text></View>
+          </TouchableOpacity>
+          <Text style={styles.title} numberOfLines={1}>{title}</Text>
+          <View style={{ width: 44 }} />
+        </View>
         <View style={styles.viewerArea}>
           <View style={styles.centered}>
             <Text style={styles.errorText}>{error || '数据加载失败'}</Text>
@@ -498,58 +514,102 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     );
   }
 
-  // ── Main ──
-  const docHTML = buildDocumentHTML(batch);
+  /* ── Main content ── */
+
+  const docPaperHTML = buildDocPaperHTML(batch);
 
   return (
     <View style={styles.container}>
-      {renderHeader()}
+      {/* Header — z-index 90 ensures it sits above viewport */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+          <View style={styles.backBtn}><BackArrow color={c.textMain} /></View>
+        </TouchableOpacity>
+        <Text style={styles.title} numberOfLines={1}>{title}</Text>
+        <View style={{ width: 44 }} />
+      </View>
 
-      {/* Viewport — use View so RN StyleSheet resolves correctly */}
-      <View ref={viewportRef as any} style={styles.viewport}>
-        {/* Page pill */}
-        <View style={styles.pagePill} pointerEvents="none">
-          <Text style={styles.pagePillText}>{pagePill}</Text>
-        </View>
+      {/* Viewport — raw div, starts below header */}
+      <div
+        ref={viewportRef}
+        style={{
+          position: 'absolute', top: HEADER_H, left: 0, right: 0, bottom: TOOLBAR_H,
+          overflow: 'hidden', backgroundColor: '#141416', zIndex: 1,
+        }}
+      >
+        {/* Page pill — relative to viewport */}
+        <div
+          style={{
+            position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 90,
+            backgroundColor: 'rgba(0,0,0,.55)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,.12)', borderRadius: 20,
+            padding: '4px 14px', fontSize: 11, fontFamily: '"DM Mono", monospace',
+            color: 'rgba(240,237,232,.5)', pointerEvents: 'none',
+          }}
+        >
+          {pagePill}
+        </div>
 
-        {/* Zoom indicator */}
-        <View style={[styles.zoomInd, zoomVisible && styles.zoomIndShow as any]} pointerEvents="none">
-          <Text style={styles.zoomIndText}>{zoomPercent}</Text>
-        </View>
+        {/* Zoom indicator — relative to viewport */}
+        <div
+          style={{
+            position: 'absolute', top: 12, right: 16, zIndex: 90,
+            backgroundColor: 'rgba(0,0,0,.55)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,.12)', borderRadius: 8,
+            padding: '4px 10px', fontSize: 11, fontFamily: '"DM Mono", monospace',
+            color: 'rgba(240,237,232,.5)',
+            opacity: zoomVisible ? 1 : 0, transition: 'opacity .25s', pointerEvents: 'none',
+          }}
+        >
+          {zoomPercent}
+        </div>
 
-        <View style={styles.viewportInner as any}>
-          <View
-            ref={sheetRef as any}
-            style={styles.docSheet as any}
+        {/* Viewport inner — raw div for gesture events */}
+        <div
+          ref={viewportInnerRef}
+          style={{
+            width: '100%', height: '100%',
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+            overflow: 'hidden', position: 'relative', cursor: 'grab',
+          }}
+        >
+          {/* Doc sheet — raw div, absolute positioning with transform */}
+          <div
+            ref={sheetRef}
+            style={{
+              position: 'absolute',
+              transformOrigin: 'center top',
+              willChange: 'transform',
+              padding: '0 12px',
+              top: 12,
+              touchAction: 'none',
+              userSelect: 'none',
+              left: '50%',
+              transform: `translate(calc(-50% + 0px), 0px) scale(1)`,
+            }}
           >
-            {/* doc-paper needs dangerouslySetInnerHTML → use raw div with inline styles */}
+            {/* Doc paper — raw div with dangerouslySetInnerHTML for inner content only */}
             <div
-              style={{
-                background: '#fff', borderRadius: 4,
-                boxShadow: '0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3)',
-                overflow: 'hidden', width: 340,
-                padding: '28px 24px 36px',
-              }}
-              dangerouslySetInnerHTML={{ __html: docHTML }}
+              className="doc-paper"
+              dangerouslySetInnerHTML={{ __html: docPaperHTML }}
             />
-          </View>
-        </View>
-      </View>
+          </div>
+        </div>
+      </div>
 
-      {/* Zoom buttons strip */}
-      <View style={styles.zoomStrip}>
-        <TouchableOpacity style={styles.zoomBtn} onPress={() => stepZoom(0.25)} activeOpacity={0.7}>
-          <ZoomInSvg color="rgba(240,237,232,0.5)" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.zoomBtn} onPress={resetZoom} activeOpacity={0.7}>
-          <ZoomResetSvg color="rgba(240,237,232,0.5)" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.zoomBtn} onPress={() => stepZoom(-0.25)} activeOpacity={0.7}>
-          <ZoomOutSvg color="rgba(240,237,232,0.5)" />
-        </TouchableOpacity>
-      </View>
+      {/* Zoom buttons strip — above toolbar */}
+      <div
+        style={{
+          position: 'absolute', right: 16, bottom: TOOLBAR_H + 12, zIndex: 95,
+          display: 'flex', flexDirection: 'column', gap: 6,
+        }}
+      >
+        <View style={styles.zoomBtn}><TouchableOpacity onPress={() => stepZoom(0.25)} activeOpacity={0.7} style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}><ZoomInSvg color="rgba(240,237,232,0.5)" /></TouchableOpacity></View>
+        <View style={styles.zoomBtn}><TouchableOpacity onPress={resetZoom} activeOpacity={0.7} style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}><ZoomResetSvg color="rgba(240,237,232,0.5)" /></TouchableOpacity></View>
+        <View style={styles.zoomBtn}><TouchableOpacity onPress={() => stepZoom(-0.25)} activeOpacity={0.7} style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}><ZoomOutSvg color="rgba(240,237,232,0.5)" /></TouchableOpacity></View>
+      </div>
 
-      {/* Bottom toolbar */}
+      {/* Bottom toolbar — at bottom of container */}
       <View style={styles.toolbar}>
         <TouchableOpacity style={styles.toolBtn} onPress={doDownload} activeOpacity={0.7}>
           <DownloadSvg color="rgba(240,237,232,0.5)" />
@@ -574,9 +634,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
       {/* Share sheet */}
       {shareSheetOpen && (
-        <View style={styles.sheetOverlay as any}>
+        <View style={styles.sheetOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setShareSheetOpen(false)} />
-          <View style={styles.sheet as any}>
+          <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>分享进货单</Text>
             <View style={styles.sheetGrid}>
@@ -590,7 +650,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
                 ['保存图片', '#2e8b57', 'M3 3h18v18H3zM21 15l-5-5L5 21M8.5 8.5a1.5 1.5 0 100 .01'],
                 ['更多', '#3a3a48', 'M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M19 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M5 12m-1 0a1 1 0 102 0 1 1 0 10-2 0'],
               ] as [string, string, string][]).map(([label, bg, d]) => (
-                <TouchableOpacity key={label} style={styles.sheetItem} onPress={() => shareAction(label)} activeOpacity={0.7}>
+                <TouchableOpacity key={label} style={styles.sheetItem as any} onPress={() => shareAction(label)} activeOpacity={0.7}>
                   <View style={[styles.sheetIcon, { backgroundColor: bg }]}>
                     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.8}>
                       <Path d={d} />
@@ -611,7 +671,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       {toast ? (
         <View style={styles.toastWrap} pointerEvents="none">
           <View style={styles.toastBox}>
-            <Text style={styles.toastIcon}>{toastIcon}</Text>
+            <Text style={styles.toastIconText}>{toastIcon}</Text>
             <Text style={styles.toastText}>{toast}</Text>
           </View>
         </View>
@@ -622,13 +682,20 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
 const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
+  // Boost header z-index so it sits ABOVE the raw-div viewport
+  const boostedHeader = {
+    ...hdr.header,
+    zIndex: 100, // was 90, ensure it's well above viewport's zIndex: 1
+  };
   return StyleSheet.create({
-    container: { flex: 1, minHeight: '100vh' } as any,
-    ...hdr,
+    container: { flex: 1, minHeight: '100vh' as any },
+    header: boostedHeader as any,
+    backBtn: hdr.backBtn as any,
+    backArrow: hdr.backArrow as any,
+    title: hdr.title as any,
+
     viewerArea: {
-      flex: 1,
-      backgroundColor: '#141416',
-      marginTop: 100,
+      flex: 1, backgroundColor: '#141416', marginTop: HEADER_H,
     } as any,
     centered: { flex: 1, alignItems: 'center' as const, justifyContent: 'center' as const, padding: 24 },
     hintText: { fontSize: FONTS.body.size, color: 'rgba(240,237,232,0.5)', marginTop: 12 },
@@ -636,76 +703,21 @@ const getStyles = (c: ThemeColors) => {
     retryBtn: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.primary, borderRadius: 10 },
     retryText: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight as any, color: '#fff' },
 
-    // Page pill — relative to viewport
-    pagePill: {
-      position: 'absolute' as any, top: -12, left: '50%', transform: 'translateX(-50%)' as any, zIndex: 90,
-      backgroundColor: 'rgba(0,0,0,.55)', backdropFilter: 'blur(12px)' as any,
-      borderWidth: 1, borderColor: 'rgba(255,255,255,.12)', borderRadius: 20,
-      paddingVertical: 4, paddingHorizontal: 14,
-    } as any,
-    pagePillText: { fontSize: 11, color: 'rgba(240,237,232,0.5)', fontFamily: '"DM Mono", monospace' },
-
-    // Zoom indicator — relative to viewport
-    zoomInd: {
-      position: 'absolute' as any, top: -12, right: 16, zIndex: 90,
-      backgroundColor: 'rgba(0,0,0,.55)', backdropFilter: 'blur(12px)' as any,
-      borderWidth: 1, borderColor: 'rgba(255,255,255,.12)', borderRadius: 8,
-      paddingVertical: 4, paddingHorizontal: 10,
-      opacity: 0, transition: 'opacity .25s' as any, pointerEvents: 'none' as any,
-    } as any,
-    zoomIndShow: { opacity: 1 } as any,
-    zoomIndText: { fontSize: 11, color: 'rgba(240,237,232,0.5)', fontFamily: '"DM Mono", monospace' },
-
-    // Viewport — dark background full container, padding pushes content below header
-    viewport: {
-      position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 72, zIndex: 1,
-      paddingTop: 80, paddingBottom: 12,
-      overflow: 'hidden' as any,
-      backgroundColor: '#141416',
-    } as any,
-    viewportInner: {
-      width: '100%', height: '100%',
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-      overflow: 'hidden', position: 'relative', cursor: 'grab',
-    } as any,
-
-    // Document sheet — positioned absolute, centered via left:50% + translate
-    docSheet: {
-      position: 'absolute' as any,
-      transformOrigin: 'center top' as any,
-      willChange: 'transform' as any,
-      paddingHorizontal: 12,
-      top: 12,
-      touchAction: 'none' as any,
-      userSelect: 'none' as any,
-    } as any,
-    docPaper: {
-      background: '#fff', borderRadius: 4,
-      boxShadow: '0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3)',
-      overflow: 'hidden', width: 340,
-      padding: '28px 24px 36px',
-    } as any,
-
-    // Zoom buttons strip — relative to container, above toolbar
-    zoomStrip: {
-      position: 'absolute' as any, right: 16, bottom: 84, zIndex: 95,
-      display: 'flex', flexDirection: 'column', gap: 6,
-    } as any,
+    // Zoom buttons
     zoomBtn: {
       width: 40, height: 40, borderRadius: 20,
-      backgroundColor: 'rgba(20,20,22,.75)', backdropFilter: 'blur(12px)' as any,
+      backgroundColor: 'rgba(20,20,22,.75)',
       borderWidth: 1, borderColor: 'rgba(255,255,255,.12)',
       alignItems: 'center' as const, justifyContent: 'center' as const,
-      boxShadow: '0 2px 12px rgba(0,0,0,.35)',
-    } as any,
+      boxShadow: '0 2px 12px rgba(0,0,0,.35)' as any,
+      overflow: 'hidden' as any,
+    },
 
     // Toolbar — at bottom of container
     toolbar: {
       position: 'absolute' as any, bottom: 0, left: 0, right: 0, zIndex: 100,
-      height: 72,
+      height: TOOLBAR_H,
       backgroundColor: 'rgba(20,20,22,.88)',
-      backdropFilter: 'blur(20px) saturate(1.5)' as any,
-      borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,.07)',
       flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-around' as const,
       paddingBottom: 8,
     } as any,
@@ -713,7 +725,7 @@ const getStyles = (c: ThemeColors) => {
     toolBtn: { flex: 1, alignItems: 'center' as const, gap: 4, maxWidth: 90, paddingVertical: 8 } as any,
     toolSep: { width: 1, height: 36, backgroundColor: 'rgba(255,255,255,.07)', flexShrink: 0 },
 
-    // Share sheet — covers entire container
+    // Share sheet
     sheetOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 150, backgroundColor: 'rgba(0,0,0,.6)', justifyContent: 'flex-end' as const } as any,
     sheet: { backgroundColor: '#1E1E22', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 32 } as any,
     sheetHandle: { width: 36, height: 4, backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 2, alignSelf: 'center' as const, marginTop: 12, marginBottom: 16 },
@@ -726,9 +738,9 @@ const getStyles = (c: ThemeColors) => {
     sheetCancelText: { fontSize: 14, fontWeight: '500' as const, color: 'rgba(240,237,232,0.5)' },
 
     // Toast — above toolbar
-    toastWrap: { position: 'absolute' as any, bottom: 84, left: '50%', transform: 'translateX(-50%)' as any, alignItems: 'center' as const, zIndex: 200 } as any,
-    toastBox: { backgroundColor: 'rgba(30,30,34,.95)', backdropFilter: 'blur(16px)' as any, borderWidth: 0.5, borderColor: 'rgba(255,255,255,.12)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 18, flexDirection: 'row' as const, gap: 8, whiteSpace: 'nowrap' as any } as any,
-    toastIcon: { fontSize: 14 },
+    toastWrap: { position: 'absolute' as any, bottom: TOOLBAR_H + 12, left: '50%', transform: 'translateX(-50%)' as any, alignItems: 'center' as const, zIndex: 200 } as any,
+    toastBox: { backgroundColor: 'rgba(30,30,34,.95)', borderWidth: 0.5, borderColor: 'rgba(255,255,255,.12)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 18, flexDirection: 'row' as const, gap: 8 } as any,
+    toastIconText: { fontSize: 14 },
     toastText: { fontSize: 12, color: '#F0EDE8' },
   });
 };
