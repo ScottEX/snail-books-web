@@ -774,7 +774,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         )}
 
         {/* ── 模块三：支出明细 ── */}
-        {activeTab === 2 && (
+        {activeTab === 1 && (
         <FadeInView style={st.moduleWrap}>
           <View style={st.card}>
             {/* 录入台 */}

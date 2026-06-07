@@ -813,6 +813,34 @@ export default function HomeScreen({
 
               {tab === 'chart' && (
                 <View style={{ paddingBottom: 120, paddingTop: 4 }}>
+                  {/* 在手资金玻璃卡片 */}
+                  <View style={{ paddingHorizontal: 18, marginBottom: 12 }}>
+                    <View style={styles.chartGlassCard}>
+                      <View style={{ alignItems: 'flex-start', gap: 4 }}>
+                        <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                          <Text style={styles.chartGlassSymbol}>¥</Text>
+                          <Text style={styles.chartGlassValue}>
+                            {toDec2Comma(businessSummary.cash_on_hand || 0)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                        <View style={styles.chartGlassSubCard}>
+                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeRevenue')}</Text>
+                          <Text style={styles.chartGlassSubValue}>
+                            {'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}
+                          </Text>
+                        </View>
+                        <View style={styles.chartGlassSubCard}>
+                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeExpense')}</Text>
+                          <Text style={styles.chartGlassSubValue}>
+                            {'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
                   {/* KPI 三行 */}
                   <View style={{ paddingHorizontal: 18, marginBottom: 12 }}>
                     <View style={styles.chartKpiCard}>
@@ -1057,6 +1085,44 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   chartKpiLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
   chartKpiVal: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
+  // ── Chart glass card (在手资金) ──
+  chartGlassCard: {
+    borderRadius: 14, paddingVertical: 20, paddingHorizontal: 18, gap: 12,
+    // @ts-ignore
+    backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.warning, 0.22)} 100%)`,
+    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
+    // @ts-ignore
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
+  },
+  chartGlassLabel: {
+    fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+    color: 'rgba(255,255,255,0.70)',
+    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+  },
+  chartGlassSymbol: {
+    fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+    color: 'rgba(255,255,255,0.95)',
+    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  },
+  chartGlassValue: {
+    fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
+    color: 'rgba(255,255,255,0.95)',
+    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  },
+  chartGlassSubCard: {
+    flex: 1, backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 10, padding: 14, gap: 6,
+    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.20)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+  },
+  chartGlassSubLabel: {
+    fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
+    color: 'rgba(255,255,255,0.70)',
+  },
+  chartGlassSubValue: {
+    fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
+    color: 'rgba(255,255,255,0.95)',
+  },
   // Bottom Nav — glass pill, icons only, 80% transparent
   bottomNav: {
     position: 'fixed' as any,
