@@ -485,8 +485,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   return (
     <View style={styles.container}>
-      {/* ══════ 内容区背景（防止透明透底） ══════ */}
-      <View style={styles.contentBg} />
       {/* ══════ 标题栏（保持不变） ══════ */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
@@ -646,11 +644,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
   return StyleSheet.create({
-    container: { flex: 1 } as any,
-    contentBg: {
-      position: 'absolute', top: 100, left: 0, right: 0, bottom: 0,
-      backgroundColor: '#141416',
-    } as any,
+    container: { flex: 1, backgroundColor: '#141416' } as any,
     ...hdr,
     zoomPill: {
       position: 'absolute', top: 100, left: '50%',
