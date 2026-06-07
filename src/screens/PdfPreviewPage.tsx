@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useTheme, ThemeColors } from '../theme';
-import { t } from '../i18n';
+import { t, getLang } from '../i18n';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
@@ -44,10 +44,10 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:1px solid var(--line2);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .pv-toast.on{opacity:1;transform:translate(-50%,0)}
 .pv-intro-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
-.pv-intro{background:rgba(20,20,22,.82);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px 28px;display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+.pv-intro{background:#fff;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
-.pv-intro-text{color:rgba(255,255,255,.78);font-size:13px;font-weight:500;text-align:center;line-height:1.8;white-space:nowrap}
-.pv-intro-sec{font-size:28px;font-weight:700;font-family:var(--mono);transition:color .4s}
+.pv-intro-text{color:#999;font-size:12px;text-align:center;white-space:nowrap}
+.pv-intro-sec{font-size:36px;font-weight:800;font-family:var(--mono);color:#333}
 .pv-sh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
 .pv-sh-overlay.open{opacity:1;pointer-events:auto}
 .pv-sh{position:absolute;bottom:0;left:0;right:0;max-height:70vh;background:#F9F7F4;border-radius:20px 20px 0 0;padding:16px 16px 24px;transform:translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
@@ -74,14 +74,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [pageW, setPageW] = useState(340);
   const [shareOpen, setShareOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
-  const [introSec, setIntroSec] = useState(3);
+  const [introSec, setIntroSec] = useState(1);
 
   // Fetch PDF as blob with auth cookies, then create object URL for react-pdf
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(pdfUrl, { credentials: 'include' });
+        const res = await fetch(pdfUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const blob = await res.blob();
         if (blob.size === 0) throw new Error('Empty PDF (0 bytes)');
@@ -104,13 +104,12 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
 
-  // intro countdown (3 → 1), color fades per second
+  // intro elapsed counter (1 → 2 → 3 …), ticks while PDF loads
   useEffect(() => {
-    if (introSec <= 0) return;
-    const t = setTimeout(() => setIntroSec(s => s - 1), 1000);
+    if (!pdfLoading || pdfError) return;
+    const t = setTimeout(() => setIntroSec(s => s + 1), 1000);
     return () => clearTimeout(t);
-  }, [introSec]);
-  const introColor = ['#E89C7B', '#D46A4A', '#C0392B'][introSec - 1] || '#C0392B';
+  }, [introSec, pdfLoading, pdfError]);
 
   const applyTransform = useCallback((animated: boolean) => {
     const el = wrapRef.current; if (!el) return;
@@ -297,12 +296,12 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
         {/* PDF Viewport */}
         <div className="pv-vp">
-          {/* Intro countdown toast — centered, replaces spinner */}
-          {pdfLoading && !pdfError && introSec > 0 && (
+          {/* Intro elapsed toast — centered, shows while PDF loads */}
+          {pdfLoading && !pdfError && (
             <div className="pv-intro-overlay">
               <div className="pv-intro on">
-                <div className="pv-intro-text">双指缩放 · 拖拽移动<br/>双击还原比例</div>
-                <div className="pv-intro-sec" style={{ color: introColor }}>{introSec}</div>
+                <div className="pv-intro-text">进货单PDF生成中…</div>
+                <div className="pv-intro-sec">{introSec}</div>
               </div>
             </div>
           )}
