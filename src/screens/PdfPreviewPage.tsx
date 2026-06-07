@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { createPortal } from 'react-dom';
 import { useTheme, ThemeColors } from '../theme';
 import { t } from '../i18n';
 
@@ -9,8 +10,8 @@ interface Props {
   onBack: () => void;
 }
 
-const HEADER_H = 56;
-const HEADER_TOP = 44;
+const NAV_TOP = 44;
+const NAV_H = 56;
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
   const { colors: c } = useTheme();
@@ -19,73 +20,55 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const pdfUrl = `/api/procurement-batches/${batchId}/pdf#view=FitH`;
 
   return (
-    <View style={styles.root}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.5}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
-        <View style={styles.titleWrap}>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-        </View>
-        <View style={styles.headerRight} />
-      </View>
+    <View style={styles.container}>
+      {createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#141416' }}>
+          {/* back button */}
+          <div style={{
+            position: 'fixed', top: NAV_TOP, left: 0, right: 0, zIndex: 100,
+            height: NAV_H, display: 'flex', alignItems: 'center',
+            padding: '0 16px', background: 'transparent',
+          }}>
+            <button
+              onClick={onBack}
+              style={{
+                width: 44, height: 44, borderRadius: 22,
+                background: 'rgba(255,255,255,0.30)',
+                border: '0.5px solid rgba(0,0,0,0.10)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', padding: 0,
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="#2C2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+            <div style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: 500, color: '#2C2626' }}>
+              {title}
+            </div>
+            <div style={{ width: 44 }} />
+          </div>
 
-      {/* PDF iframe — absolute fill below header */}
-      <iframe
-        src={pdfUrl}
-        style={{
-          position: 'absolute',
-          top: HEADER_TOP + HEADER_H,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          border: 'none',
-          background: '#525659',
-        }}
-        title="PDF Preview"
-      />
+          {/* PDF iframe */}
+          <iframe
+            src={pdfUrl}
+            style={{
+              position: 'fixed',
+              top: NAV_TOP + NAV_H,
+              left: 0, right: 0, bottom: 0,
+              border: 'none',
+              background: '#525659',
+            }}
+            title="PDF Preview"
+          />
+        </div>,
+        document.body,
+      )}
     </View>
   );
 }
 
 const getStyles = (c: ThemeColors) => StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#141416',
-  },
-  header: {
-    height: HEADER_H,
-    marginTop: HEADER_TOP,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    backgroundColor: 'transparent',
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.30)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 20,
-    color: '#2C2626',
-    lineHeight: 22,
-  },
-  titleWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#2C2626',
-  },
-  headerRight: {
-    width: 44,
-  },
+  container: { flex: 1 },
 });
