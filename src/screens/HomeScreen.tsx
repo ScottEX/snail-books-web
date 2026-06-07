@@ -23,6 +23,7 @@ import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
 import DailyRevenuePanel from './home/DailyRevenuePanel';
 import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
+import ChartsPanel from './ChartsPanel';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
@@ -238,6 +239,7 @@ export default function HomeScreen({
   const [businessSummary, setBusinessSummary] = useState<any>({});
   const [chartExpenses, setChartExpenses] = useState<any[]>([]);
   const [chartFeeTotal, setChartFeeTotal] = useState(0);
+  const [chartMonthly, setChartMonthly] = useState<any>(null);
   // Background image crop moved to shared BgCropModal component.
 
   const revForm = useDailyRevenueForm({
@@ -347,12 +349,16 @@ export default function HomeScreen({
     try { const d = await api.getChart(); setChart(d || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
+  const loadChartMonthly = async () => {
+    try { const d = await api.getChartMonthly(); setChartMonthly(d); } catch { /* silent */ }
+  };
+
   const loadProducts = async () => {
     try { const p = await api.getProducts(); setProducts(p || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
   useEffect(() => {
-    if (tab === 'chart') loadChart();
+    if (tab === 'chart') { loadChart(); loadChartMonthly(); }
     if (tab === 'supply') { loadProducts(); }
   }, [tab]);
 
@@ -870,6 +876,16 @@ export default function HomeScreen({
                     monthIncome={chartFeeTotal}
                   />
                 </View>
+              )}
+              {/* 图表：月度趋势 + 分类占比 */}
+              {chartMonthly && (
+                <ChartsPanel
+                  months={chartMonthly.months || []}
+                  income={chartMonthly.income || []}
+                  expense={chartMonthly.expense || []}
+                  profit={chartMonthly.profit || []}
+                  categories={chartMonthly.categories || {}}
+                />
               )}
             </ScrollView>
           </>

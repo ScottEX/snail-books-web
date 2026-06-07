@@ -257,6 +257,9 @@ const I18N: Record<string, Record<string, string>> = {
     procurement: '进货',
     profileEmail: '电子邮箱',
     profit: '利润',
+    monthlyProfit: '月度利润',
+    monthlyTrend: '月度收支趋势',
+    expenseBreakdown: '支出分类占比',
     pwHint: '8位以上，含字母+数字+特殊字符',
     receivable: '应收总额',
     reconComplete: '对账完成',
@@ -634,6 +637,9 @@ const I18N: Record<string, Record<string, string>> = {
     procurement: '進貨',
     profileEmail: '電子郵箱',
     profit: '利潤',
+    monthlyProfit: '月度利潤',
+    monthlyTrend: '月度收支趨勢',
+    expenseBreakdown: '支出分類佔比',
     pwHint: '8位以上，含字母+數字+特殊字符',
     receivable: '應收總額',
     reconComplete: '對賬完成',
@@ -1011,6 +1017,9 @@ const I18N: Record<string, Record<string, string>> = {
     procurement: 'Purchase',
     profileEmail: 'Email Address',
     profit: 'Profit',
+    monthlyProfit: 'Monthly Profit',
+    monthlyTrend: 'Monthly Trend',
+    expenseBreakdown: 'Expense Breakdown',
     pwHint: '8+ chars, letter + number + special',
     receivable: 'Total Receivable',
     reconComplete: 'Complete Recon',
@@ -1256,6 +1265,7 @@ export type I18nKey =
   | 'expenseDate'
   | 'expenseHistory'
   | 'expenseNote'
+  | 'expenseBreakdown'
   | 'feeAllMonths'
   | 'feeCurrent'
   | 'feeDetail'
@@ -1309,6 +1319,8 @@ export type I18nKey =
   | 'monthExpense'
   | 'monthIncome'
   | 'monthProfit'
+  | 'monthlyProfit'
+  | 'monthlyTrend'
   | 'nameJiang'
   | 'nameLan'
   | 'nameZhang'
