@@ -104,7 +104,7 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .doc-heading h1{font-size:22px;font-weight:700;letter-spacing:.3em;color:#C0392B;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
 .doc-heading p{font-size:8px;letter-spacing:.15em;color:#aaa;font-family:'DM Mono',monospace}
 .doc-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;font-size:10px;margin-bottom:16px;padding:10px 0;border-top:1px solid #e8e4de;border-bottom:1px solid #e8e4de}
-.doc-sheet{position:absolute;transform-origin:center top;will-change:transform;top:12px;touch-action:none;user-select:none;width:100%}
+.doc-sheet{position:absolute;transform-origin:center top;will-change:transform;left:0;right:0;top:12px;touch-action:none;user-select:none}
 .doc-paper{width:100%;padding:28px 20px 36px;overflow:hidden}
 .doc-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:9.5px}
 .doc-table th{background:#7a1a1a;color:#fff;padding:7px 4px;text-align:left;font-weight:500}
@@ -288,14 +288,13 @@ function PortalContent({
     rafId: null as number | null,
   });
 
-  // Apply transform — centered, sheet fills width via CSS
+  // Apply transform — transform-origin:center handles centering automatically
   const applyTransform = useCallback((animated: boolean) => {
     const sheet = sheetRef.current;
     const zi = zoomRef.current;
     if (!sheet) return;
     sheet.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
-    sheet.style.transform = `translate(calc(-50% + ${zi.tx}px), ${zi.ty}px) scale(${zi.scale})`;
-    sheet.style.left = '50%';
+    sheet.style.transform = `translate(${zi.tx}px, ${zi.ty}px) scale(${zi.scale})`;
     const zid = zoomIndRef.current;
     if (zid) zid.textContent = Math.round(zi.scale * 100) + '%';
   }, []);
@@ -340,18 +339,14 @@ function PortalContent({
     zi.zoomTimer = setTimeout(() => zid.classList.remove('show'), 1500);
   }, []);
 
-  // ── Init zoom — fit paper to viewport (exactly matching pdf-viewer.html)
+  // ── Init zoom — sheet fills viewport, scale=1 starts at 100%
   const initZoom = useCallback(() => {
-    const vp = vpInnerRef.current;
     const sheet = sheetRef.current;
     const zi = zoomRef.current;
-    if (!vp || !sheet) return false;
+    if (!sheet) return false;
     const paper = sheet.querySelector('.doc-paper') as HTMLElement;
     if (!paper) return false;
-    const vw = vp.clientWidth;
-    const docW = paper.offsetWidth + 24;
-    const fit = (vw - 24) / docW;
-    zi.scale = Math.min(1, fit);
+    zi.scale = 1;
     zi.tx = 0;
     zi.ty = 0;
     recalcBounds();
