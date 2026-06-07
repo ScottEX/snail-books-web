@@ -53,8 +53,12 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-sh{position:absolute;bottom:0;left:0;right:0;max-height:70vh;background:#F9F7F4;border-radius:20px 20px 0 0;padding:16px 16px 24px;transform:translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
 .pv-sh-overlay.open .pv-sh{transform:translateY(0)}
 .pv-sh-handle{width:36px;height:4px;background:#D1CDC6;border-radius:2px;margin:0 auto 16px}
-.pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text2);font-size:14px;text-align:center;padding:40px}
-.pv-err-btn{padding:8px 20px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;cursor:pointer}
+.pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
+.pv-err svg{display:block}
+.pv-err-msg{font-size:13px;color:#999}
+.pv-err-btn{padding:10px 28px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.pv-err-btn:active{opacity:.8}
+.pv-loading-mask{position:fixed;inset:0;z-index:195;background:rgba(0,0,0,.08);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .pv-root{animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
@@ -305,6 +309,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
         {/* PDF Viewport */}
         <div className="pv-vp">
+          {/* Mask — blocks interaction while PDF loads */}
+          {pdfLoading && !pdfError && <div className="pv-loading-mask" />}
           {/* Intro elapsed toast — centered, shows while PDF loads */}
           {pdfLoading && !pdfError && (
             <div className="pv-intro-overlay">
@@ -316,9 +322,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           )}
           {pdfError && (
             <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
-              <div>⚠️ PDF 加载失败</div>
-              <div style={{ fontSize: 11, color: 'var(--text3)' }}>{pdfError}</div>
-              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); }}>重试</button>
+              <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round">
+                <circle cx="24" cy="24" r="20" stroke="#e0dcd5" strokeWidth="1.5" fill="#f5f2eb" />
+                <line x1="24" y1="14" x2="24" y2="28" />
+                <circle cx="24" cy="33" r="1.5" fill="#999" stroke="none" />
+              </svg>
+              <div>{t('pdfLoadFailed')}</div>
+              <div className="pv-err-msg">{pdfError}</div>
+              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); setIntroSec(1); }}>{t('retry')}</button>
             </div>
           )}
           <div className="pv-pdf-wrap" ref={wrapRef} style={{ visibility: pdfLoading ? 'hidden' : 'visible' }}>
