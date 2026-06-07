@@ -537,7 +537,6 @@ function PortalContent({
         </div>
         <div className="nav-title-wrap">
           <div className="nav-title">{title}</div>
-          <div className="nav-sub">#{String(batch.batch_number).padStart(4, '0')}</div>
         </div>
         <div className="nav-right">
           <div className="nav-action" onClick={doDownload}>
