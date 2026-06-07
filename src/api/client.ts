@@ -74,7 +74,7 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     } else if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
       window.location.replace('/login');
     }
-    return new Promise(() => {});
+    return Promise.reject(new Error(kickMsg || 'Unauthorized'));
   }
   if (!resp.ok) {
     let msg = `API error: ${resp.status} ${resp.statusText}`;

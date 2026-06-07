@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { createPortal } from 'react-dom';
 import { t } from '../i18n';
+import { useCropCanvas } from '../hooks/useCropCanvas';
 
 interface BgCropModalProps {
   visible: boolean;
@@ -171,120 +172,17 @@ export default function BgCropModal({
     drawCrop();
   };
 
-  // ── Imperative event binding (drag / pinch / wheel) ──
-  // Dependency is [src, phase] so that re-entering the cropping phase
-  // (e.g. via "再编辑") also re-binds events to the freshly mounted
-  // canvas. Previously deps were [src] only, so the new canvas
-  // mounted after the preview phase had no event listeners — drag,
-  // pinch, and wheel were all dead.
-  useEffect(() => {
-    if (!src) return;
-    // Only bind when the crop UI is actually visible. The preview
-    // phase mounts a different View (just an <img>) so there is no
-    // canvas to bind to; trying to bind would silently no-op.
-    if (phase !== 'cropping') return;
-    const stage = stageRef.current;
-    const canvas = canvasRef.current;
-    if (!stage || !canvas) return;
-    setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 60);
-
-    let frameId = 0;
-    const scheduleDraw = () => {
-      if (!frameId) frameId = requestAnimationFrame(() => { frameId = 0; drawCrop(); });
-    };
-    const toLocal = (clientX: number, clientY: number) => {
-      const r = stage.getBoundingClientRect();
-      return { x: clientX - r.left - canvas.width / 2, y: clientY - r.top - canvas.height / 2 };
-    };
-    const guide = guideRef.current;
-    const setGuideActive = (active: boolean) => {
-      if (!guide) return;
-      guide.style.borderColor = active ? '#fff' : 'rgba(255,255,255,0.8)';
-      guide.style.boxShadow = active
-        ? '0 0 0 9999px rgba(0,0,0,0.62)'
-        : '0 0 0 9999px rgba(0,0,0,0.55)';
-    };
-    const onResize = () => { setupCanvas(); clampCrop(); drawCrop(); };
-    window.addEventListener('resize', onResize);
-    const onMD = (e: MouseEvent) => {
-      const s = stateRef.current; s.drag.active = true;
-      s.drag.sx = e.clientX; s.drag.sy = e.clientY;
-      s.drag.ox = s.x; s.drag.oy = s.y;
-      setGuideActive(true);
-    };
-    const onMM = (e: MouseEvent) => {
-      const s = stateRef.current; if (!s.drag.active) return;
-      s.x = s.drag.ox + (e.clientX - s.drag.sx);
-      s.y = s.drag.oy + (e.clientY - s.drag.sy);
-      clampCrop(); scheduleDraw();
-    };
-    const onMU = () => { stateRef.current.drag.active = false; setGuideActive(false); };
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const p = toLocal(e.clientX, e.clientY);
-      zoomCrop(e.deltaY > 0 ? -0.08 : 0.08, p.x, p.y);
-    };
-    const getDist = (ts: TouchList) =>
-      Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
-    const onTS = (e: TouchEvent) => {
-      e.preventDefault();
-      const s = stateRef.current;
-      if (e.touches.length === 1) {
-        s.drag.active = true;
-        s.drag.sx = e.touches[0].clientX; s.drag.sy = e.touches[0].clientY;
-        s.drag.ox = s.x; s.drag.oy = s.y;
-        setGuideActive(true);
-      } else if (e.touches.length === 2) {
-        s.drag.active = false; setGuideActive(false);
-        s.pinch.active = true;
-        s.pinch.startDist = getDist(e.touches);
-        s.pinch.startScale = s.scale;
-        const r = stage.getBoundingClientRect();
-        s.pinch.midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left - canvas.width / 2;
-        s.pinch.midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top - canvas.height / 2;
-      }
-    };
-    const onTM = (e: TouchEvent) => {
-      e.preventDefault();
-      const s = stateRef.current;
-      if (s.drag.active && e.touches.length === 1) {
-        s.x = s.drag.ox + (e.touches[0].clientX - s.drag.sx);
-        s.y = s.drag.oy + (e.touches[0].clientY - s.drag.sy);
-        clampCrop(); scheduleDraw();
-      } else if (s.pinch.active && e.touches.length === 2) {
-        const d = getDist(e.touches);
-        const ns = Math.max(s.minScale, Math.min(s.maxScale, s.pinch.startScale * (d / s.pinch.startDist)));
-        const sd = ns / s.scale;
-        s.x = s.pinch.midX + (s.x - s.pinch.midX) * sd;
-        s.y = s.pinch.midY + (s.y - s.pinch.midY) * sd;
-        s.scale = ns; clampCrop(); scheduleDraw();
-      }
-    };
-    const onTE = (e: TouchEvent) => {
-      const s = stateRef.current;
-      if (e.touches.length < 2) s.pinch.active = false;
-      if (e.touches.length === 0) { s.drag.active = false; setGuideActive(false); }
-    };
-    canvas.addEventListener('mousedown', onMD);
-    window.addEventListener('mousemove', onMM);
-    window.addEventListener('mouseup', onMU);
-    canvas.addEventListener('wheel', onWheel, { passive: false });
-    canvas.addEventListener('touchstart', onTS, { passive: false });
-    canvas.addEventListener('touchmove', onTM, { passive: false });
-    canvas.addEventListener('touchend', onTE);
-    canvas.addEventListener('touchcancel', onTE);
-    return () => {
-      canvas.removeEventListener('mousedown', onMD);
-      window.removeEventListener('mousemove', onMM);
-      window.removeEventListener('mouseup', onMU);
-      canvas.removeEventListener('wheel', onWheel);
-      canvas.removeEventListener('touchstart', onTS);
-      canvas.removeEventListener('touchmove', onTM);
-      canvas.removeEventListener('touchend', onTE);
-      canvas.removeEventListener('touchcancel', onTE);
-      window.removeEventListener('resize', onResize);
-    };
-  }, [src, phase]);
+  // ── Shared crop event binding (mouse / touch / wheel / resize) ──
+  // Extracted to useCropCanvas hook — also used by ProfileScreen and PartnerScreen.
+  const onCropSetup = () => { setupCanvas(); clampCrop(); drawCrop(); };
+  useCropCanvas({
+    active: !!src && phase === 'cropping',
+    canvasRef, stageRef, guideRef, stateRef,
+    scheduleDraw: drawCrop,
+    clampCrop,
+    zoomCrop,
+    onSetup: onCropSetup,
+  });
 
   // ── Render result blob. Two paths:
   //   - 'cropping' phase (first confirm click) → render to blob + dataURL,
