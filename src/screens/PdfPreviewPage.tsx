@@ -35,7 +35,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-zi.on{opacity:1}
 .pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;cursor:grab}
 .pv-vp.grabbing{cursor:grabbing}
-.pv-pdf-wrap{position:absolute;top:12px;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
+.pv-pdf-wrap{position:absolute;top:12px;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
 .pv-pdf-wrap canvas{display:block;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);border-radius:4px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
 .pv-tb{position:fixed;bottom:0;left:0;right:0;z-index:100;height:${TOOLBAR_H}px;background:rgba(20,20,22,.88);backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px}
@@ -116,9 +116,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const el = wrapRef.current; if (!el) return;
     const g = gRef.current;
     el.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
-    el.style.transform = `translate(${g.tx}px, ${g.ty}px) scale(${g.scale})`;
-    el.style.left = '50%';
-    el.style.marginLeft = '0px';
+    el.style.transform = `translate(-50%, 0) translate(${g.tx}px, ${g.ty}px) scale(${g.scale})`;
     if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 260);
   }, []);
 

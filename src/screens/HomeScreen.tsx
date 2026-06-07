@@ -818,7 +818,7 @@ export default function HomeScreen({
               )}
 
               {tab === 'chart' && (
-                <View style={{ paddingBottom: 120, paddingTop: 4 }}>
+                <View style={{ paddingBottom: 200, paddingTop: 4 }}>
                   {/* 在手资金玻璃卡片 */}
                   <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartGlassCard}>
@@ -875,17 +875,17 @@ export default function HomeScreen({
                     todayIncome={0}
                     monthIncome={chartFeeTotal}
                   />
+                  {/* 图表：月度趋势 + 分类占比 */}
+                  {chartMonthly && (
+                    <ChartsPanel
+                      months={chartMonthly.months || []}
+                      income={chartMonthly.income || []}
+                      expense={chartMonthly.expense || []}
+                      profit={chartMonthly.profit || []}
+                      categories={chartMonthly.categories || {}}
+                    />
+                  )}
                 </View>
-              )}
-              {/* 图表：月度趋势 + 分类占比 */}
-              {chartMonthly && (
-                <ChartsPanel
-                  months={chartMonthly.months || []}
-                  income={chartMonthly.income || []}
-                  expense={chartMonthly.expense || []}
-                  profit={chartMonthly.profit || []}
-                  categories={chartMonthly.categories || {}}
-                />
               )}
             </ScrollView>
           </>
