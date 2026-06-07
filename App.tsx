@@ -3,6 +3,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SessionKickedModal from './src/components/SessionKickedModal';
 import { ThemeProvider } from './src/theme';
+import { LangProvider } from './src/i18n';
 
 // Parse a #/preview-pdf?… hash into { id, number } or null.
 // The PdfPreview page now lives inside HomeScreen's pageStack
@@ -66,6 +67,33 @@ export default function App() {
     const el = document.documentElement;
     el.style.fontFamily = '"Inter", -apple-system, "PingFang SC", sans-serif';
     el.style.fontVariantNumeric = 'tabular-nums';
+  }, []);
+
+  // Listen for user state changes (401 handler, login, logout).
+  // Re-evaluate page AND bump appKey so the ThemeProvider subtree
+  // remounts and ThemeProvider re-pulls the new user's lang/theme
+  // from server. The 401 handler also dispatches 'app:user-change'
+  // (to clear the stale localStorage.user and show
+  // SessionKickedModal). When that fires, ThemeProvider remounts
+  // and its useEffect sees localStorage.user is empty (just cleared
+  // by 401) and short-circuits, so no second fetch is made — this
+  // breaks the loop that caused the login-screen flicker on the
+  // previous attempt.
+  //
+  // IMPORTANT: SessionKickedModal sits OUTSIDE the keyed
+  // <ThemeProvider> subtree. If it were inside, the appKey++ would
+  // unmount the modal instance and reset its useState(visible) to
+  // false, swallowing the kick notification. Keeping it outside
+  // preserves visible=true across the remount and the modal
+  // continues to display after the page flips back to 'login'.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onUserChange = () => {
+      setAppKey((k) => k + 1);
+      setPage(localStorage.getItem('user') ? 'home' : 'login');
+    };
+    window.addEventListener('app:user-change', onUserChange);
+    return () => window.removeEventListener('app:user-change', onUserChange);
   }, []);
 
   return (
