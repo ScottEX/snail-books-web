@@ -57,7 +57,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-vp-inner.grabbing{cursor:grabbing}
 
 /* Document sheet */
-.pv-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
+.pv-sheet{position:absolute;left:50%;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
 .pv-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:0;font-family:'Noto Sans SC',sans-serif}
 .pv-inner{border:1px solid #7D2329;padding:32px 36px 28px;min-height:256mm;box-sizing:border-box;position:relative}
 .pv-co{text-align:center;margin-bottom:20px}
