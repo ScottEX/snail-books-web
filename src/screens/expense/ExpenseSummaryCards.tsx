@@ -30,9 +30,9 @@ export default function ExpenseSummaryCards({
   const cards = [
     { label: t('todayIncome'), value: todayIncome, color: colors.success, isProfit: false },
     { label: t('todayExpense'), value: todayExpense, color: colors.danger, isProfit: false },
-    { label: t('todayProfit'), value: todayProfit, color: todayProfit >= 0 ? colors.success : colors.danger, isProfit: true },
     { label: t('monthIncome'), value: monthIncome, color: colors.success, isProfit: false },
     { label: t('monthExpense'), value: monthExpense, color: colors.danger, isProfit: false },
+    { label: t('todayProfit'), value: todayProfit, color: todayProfit >= 0 ? colors.success : colors.danger, isProfit: true },
     { label: t('monthProfit'), value: monthProfit, color: monthProfit >= 0 ? colors.success : colors.danger, isProfit: true },
   ];
 
