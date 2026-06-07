@@ -47,24 +47,26 @@ function fmtMoney(v: number): string {
 }
 
 function buildDocPaperHTML(batch: BatchData): string {
-  const batchNo = `2026-${String(batch.batch_number).padStart(4, '0')}`;
   const dateStr = formatDateCN(batch.date);
-  const payLabel = batch.payment_method;
-  const itemCount = batch.items.length;
-  const totalQty = batch.items.reduce((s, it) => s + (it.quantity || 0), 0);
+  const genDate = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+  const batchLabel = `第${batch.batch_number}次进货`;
 
   let rowsHTML = '';
   batch.items.forEach(it => {
     rowsHTML += `<tr><td>${it.product_name}</td><td>${it.spec || ''}</td><td>${fmtMoney(it.unit_price)}</td><td>${it.quantity}</td><td>${fmtMoney(it.subtotal)}</td></tr>`;
   });
 
-  return `<div class="doc-brand"><div class="doc-brand-name">柳 味 探 秘 科 技</div><div class="doc-brand-sub">LIUWEI TECHNOLOGY · 餐饮供应链管理</div></div>
+  const totalRow = `<tr class="doc-total-row"><td colspan="4">合计货款</td><td>${fmtMoney(batch.total)}</td></tr>`;
+  const noteHTML = batch.note ? `<div class="doc-note">${batch.note}</div>` : '';
+
+  return `<div class="doc-v2-inner">
+<div class="doc-brand"><div class="doc-brand-name">柳 味 探 秘 科 技</div><div class="doc-brand-sub">LIUWEI TECHNOLOGY · 餐饮供应链管理</div></div>
 <div class="doc-heading"><h1>进 货 单</h1><p>PURCHASE ORDER / RECEIPT</p></div>
-<div class="doc-meta"><div class="doc-meta-item"><div class="doc-meta-label">NO.</div><div class="doc-meta-value">${batchNo}</div></div><div class="doc-meta-item"><div class="doc-meta-label">日期</div><div class="doc-meta-value">${dateStr}</div></div><div class="doc-meta-item"><div class="doc-meta-label">支付</div><div class="doc-meta-value">${payLabel}</div></div></div>
-<table class="doc-table"><thead><tr><th>品名</th><th>规格</th><th>单价</th><th>数量</th><th>小计</th></tr></thead><tbody>${rowsHTML}</tbody></table>
-<div class="doc-totals"><div class="doc-total-row"><span>商品种类</span><span>${itemCount} 种</span></div><div class="doc-total-row"><span>总件数</span><span>${totalQty} 件</span></div><div class="doc-total-row grand"><span>合计货款</span><span>${fmtMoney(batch.total)}</span></div></div>
-${batch.note ? `<div class="doc-note">📝 ${batch.note}</div>` : ''}
-<div class="doc-footer"><p>${batch.operator ? `经办人：${batch.operator} · ` : ''}柳味探秘科技 · 餐饮供应链管理系统<br>本单据由系统自动生成，具有法律效力</p></div>`;
+<div class="doc-meta"><div><span class="doc-meta-label">日期</span> <span class="doc-meta-value">${dateStr}</span></div><div><span class="doc-meta-label">支付</span> <span class="doc-meta-value">${batch.payment_method}</span></div><div><span class="doc-meta-label">分类</span> <span class="doc-meta-value">${batch.category || '采购'}</span></div><div><span class="doc-meta-label">批次</span> <span class="doc-meta-value">${batchLabel}</span></div></div>
+<table class="doc-table"><thead><tr><th>品名</th><th>规格</th><th>单价</th><th>数量</th><th>小计</th></tr></thead><tbody>${rowsHTML}${totalRow}</tbody></table>
+${noteHTML}
+<div class="doc-footer"><span>经办人：${batch.operator || '—'}</span><span>生成日期：${genDate}</span><div class="doc-seal"><div class="doc-seal-inner">柳味探秘</div></div></div>
+</div>`;
 }
 
 /* ═══════════════ Styles (injected as CSS string) ═══════════════ */
@@ -96,36 +98,32 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .viewport-inner{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center;overflow:hidden;position:relative;cursor:grab}
 .viewport-inner.grabbing{cursor:grabbing}
 .doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
-.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:28px 24px 36px}
-.doc-brand{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e8e4de}
-.doc-brand-name{font-size:13px;letter-spacing:.35em;color:#333;font-weight:500;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
-.doc-brand-sub{font-size:9px;letter-spacing:.18em;color:#aaa;font-family:'DM Mono',monospace}
-.doc-heading{text-align:center;margin-bottom:18px}
-.doc-heading h1{font-size:22px;font-weight:700;letter-spacing:.3em;color:#C0392B;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
-.doc-heading p{font-size:8px;letter-spacing:.15em;color:#aaa;font-family:'DM Mono',monospace}
-.doc-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;font-size:10px;margin-bottom:16px;padding:10px 0;border-top:1px solid #e8e4de;border-bottom:1px solid #e8e4de}
-.doc-meta-label{color:#aaa;margin-bottom:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.05em}
-.doc-meta-value{color:#222;font-weight:500;font-size:10px}
-.doc-table{width:100%;border-collapse:collapse;font-size:9.5px}
-.doc-table th{background:#7a1a1a;color:#fff;padding:7px 6px;text-align:left;font-weight:500}
-.doc-table th:last-child{text-align:right}
-.doc-table th:nth-child(3),.doc-table th:nth-child(4){text-align:center}
-.doc-table td{padding:7px 6px;border-bottom:1px solid #f0ece6;color:#222;vertical-align:middle}
-.doc-table td:last-child{text-align:right;font-weight:600;color:#7a1a1a;font-family:'DM Mono',monospace}
-.doc-table td:nth-child(3){text-align:center;font-family:'DM Mono',monospace;color:#555}
-.doc-table td:nth-child(4){text-align:center;font-family:'DM Mono',monospace;color:#333}
-.doc-table tr:nth-child(even) td{background:#faf9f7}
-.doc-table tr:last-child td{border-bottom:none}
-.doc-totals{margin-top:16px;padding-top:12px;border-top:2px solid #e8e4de}
-.doc-total-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:5px}
-.doc-total-row span:first-child{color:#888}
-.doc-total-row span:last-child{font-family:'DM Mono',monospace;color:#333}
-.doc-total-row.grand{margin-top:8px;padding-top:8px;border-top:1px solid #e8e4de}
-.doc-total-row.grand span:first-child{font-size:12px;font-weight:600;color:#222}
-.doc-total-row.grand span:last-child{font-size:16px;font-weight:700;color:#7a1a1a;font-family:'DM Mono',monospace}
-.doc-footer{margin-top:24px;text-align:center;padding-top:14px;border-top:1px solid #ede9e3}
-.doc-footer p{font-size:8px;color:#bbb;letter-spacing:.08em;font-family:'DM Mono',monospace;line-height:1.8}
-.doc-note{margin-top:12px;padding:8px 10px;background:#faf9f7;border-radius:4px;font-size:9px;color:#888;font-family:'DM Mono',monospace}
+.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:28px 16px 28px}
+.doc-v2-inner{border:1px solid #7D2329;padding:24px 16px 20px}
+.doc-brand{text-align:center;margin-bottom:16px}
+.doc-brand-name{font-size:11px;font-weight:500;color:#2C2626;letter-spacing:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
+.doc-brand-sub{font-size:8px;color:#8C8583;letter-spacing:1px;margin-top:2px;font-family:'DM Mono',monospace}
+.doc-heading{text-align:center;border-top:1px solid #7D2329;border-bottom:1px solid #7D2329;padding:10px 0;margin-bottom:16px}
+.doc-heading h1{font-size:18px;font-weight:700;color:#7D2329;letter-spacing:6px;font-family:'Noto Sans SC',-apple-system,sans-serif}
+.doc-heading p{font-size:9px;color:#8C8583;letter-spacing:1px;margin-top:2px;font-family:'DM Mono',monospace}
+.doc-meta{display:flex;justify-content:space-between;font-size:9px;margin-bottom:16px;gap:4px}
+.doc-meta>div{flex:1;text-align:center}
+.doc-meta-label{color:#8C8583;font-size:8px}
+.doc-meta-value{font-weight:500;display:block;margin-top:1px}
+.doc-table{width:100%;border-collapse:collapse;font-size:9px}
+.doc-table th{background:#7D2329;color:#fff;padding:8px 4px;text-align:center;font-weight:500;font-size:9px;letter-spacing:1px}
+.doc-table th:first-child{text-align:left;padding-left:8px}
+.doc-table td{padding:8px 4px;text-align:center;border-bottom:1px solid #EAE5E0;color:#2C2626;vertical-align:middle}
+.doc-table td:first-child{text-align:left;padding-left:8px;font-weight:500}
+.doc-table td:last-child{font-weight:600;font-family:'DM Mono',monospace}
+.doc-table tr:last-child td:not(.doc-total-row td){border-bottom:1px solid #EAE5E0}
+.doc-total-row td{border-bottom:none!important;font-size:14px;font-weight:700;color:#7D2329;padding:14px 4px}
+.doc-total-row td:last-child{font-size:16px}
+.doc-note{margin-top:12px;padding:8px 0;font-size:9px;color:#8C8583;border-top:1px dashed #EAE5E0}
+.doc-footer{margin-top:16px;display:flex;justify-content:space-between;align-items:flex-end;font-size:9px;color:#8C8583;position:relative;padding-top:10px;border-top:1px dashed #EAE5E0}
+.doc-footer span{white-space:nowrap}
+.doc-seal{position:absolute;bottom:-4px;right:-4px;width:44px;height:44px;transform:rotate(-15deg);pointer-events:none}
+.doc-seal-inner{width:44px;height:44px;border-radius:50%;border:1.5px solid rgba(125,35,41,0.25);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:rgba(125,35,41,0.35);letter-spacing:1px}
 
 .toolbar{position:fixed;bottom:0;left:0;right:0;z-index:100;height:${TOOLBAR_H}px;background:rgba(20,20,22,.88);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px}
 .tool-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:12px;cursor:pointer;transition:all .15s;border:none;background:none;flex:1;max-width:90px}
