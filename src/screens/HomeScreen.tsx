@@ -677,7 +677,7 @@ export default function HomeScreen({
                 {/* Tab Content */}
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
-                <View style={{ paddingBottom: 120, paddingTop: 4 }}>
+                <View style={{ paddingBottom: 100, paddingTop: 4 }}>
                   <DailyRevenuePanel
                     revDate={revForm.revDate}
                     revRevenue={revForm.revRevenue}

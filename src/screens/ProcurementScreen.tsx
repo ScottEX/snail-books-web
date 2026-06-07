@@ -1011,7 +1011,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }}>
             {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
                 <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>

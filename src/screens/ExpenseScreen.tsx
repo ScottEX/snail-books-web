@@ -1146,7 +1146,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ flex: 1, paddingHorizontal: 12, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, paddingHorizontal: 12, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
               {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
@@ -1390,7 +1390,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* ── Content ── */
   contentScroll: { flex: 1 },
   contentInner: {
-    paddingHorizontal: 0, paddingBottom: 150, gap: 0,
+    paddingHorizontal: 0, paddingBottom: 100, gap: 0,
   },
   moduleWrap: {
     width: '100%',
