@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
-import Svg, { Path, Line, Rect, Circle } from 'react-native-svg';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { View, StyleSheet } from 'react-native';
+import { createPortal } from 'react-dom';
+import { useTheme, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
-import BackArrow from '../components/icons/BackArrow';
-import { historyHeader } from '../sharedStyles';
 
 interface Props {
   batchId: number;
@@ -31,65 +29,12 @@ interface BatchData {
   }>;
 }
 
-/* ── Icons ── */
-const DownloadSvg = React.memo(({ color }: { color: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-    <Path d="M7 10l5 5 5-5" />
-    <Line x1="12" y1="15" x2="12" y2="3" />
-  </Svg>
-));
-
-const ShareSvg = React.memo(({ color }: { color: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
-    <Path d="M16 6l-4-4-4 4" />
-    <Line x1="12" y1="2" x2="12" y2="15" />
-  </Svg>
-));
-
-const LinkSvg = React.memo(({ color }: { color: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-    <Path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-  </Svg>
-));
-
-const PrinterSvg = React.memo(({ color }: { color: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M6 9V2h12v7" />
-    <Path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
-    <Rect x="6" y="14" width="12" height="8" />
-  </Svg>
-));
-
-const ZoomInSvg = React.memo(({ color }: { color: string }) => (
-  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round">
-    <Line x1="12" y1="5" x2="12" y2="19" />
-    <Line x1="5" y1="12" x2="19" y2="12" />
-  </Svg>
-));
-
-const ZoomResetSvg = React.memo(({ color }: { color: string }) => (
-  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round">
-    <Path d="M3.5 3.5l4 4M20.5 3.5l-4 4M20.5 20.5l-4-4M3.5 20.5l4-4" />
-  </Svg>
-));
-
-const ZoomOutSvg = React.memo(({ color }: { color: string }) => (
-  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round">
-    <Line x1="5" y1="12" x2="19" y2="12" />
-  </Svg>
-));
-
 /* ── Constants ── */
-const HEADER_H = 80; // header bottom position (top:36 + padTop:20 + padBottom:8 + some margin)
 const TOOLBAR_H = 72;
+const NAV_H = 56;
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 4.0;
-const DOC_PAPER_W = 340;
 
-/* ── Helpers ── */
 function formatDateCN(raw: string): string {
   try {
     const d = new Date(raw + 'T00:00:00');
@@ -101,11 +46,6 @@ function fmtMoney(v: number): string {
   return `¥${v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-/**
- * Build ONLY the doc-paper inner HTML — no <html>, <head>, <body> wrappers.
- * The outer <div className="doc-paper"> is rendered directly in JSX with
- * dangerouslySetInnerHTML for this content.
- */
 function buildDocPaperHTML(batch: BatchData): string {
   const batchNo = `2026-${String(batch.batch_number).padStart(4, '0')}`;
   const dateStr = formatDateCN(batch.date);
@@ -118,8 +58,7 @@ function buildDocPaperHTML(batch: BatchData): string {
     rowsHTML += `<tr><td>${it.product_name}</td><td>${it.spec || ''}</td><td>${fmtMoney(it.unit_price)}</td><td>${it.quantity}</td><td>${fmtMoney(it.subtotal)}</td></tr>`;
   });
 
-  return `
-<div class="doc-brand"><div class="doc-brand-name">柳 味 探 秘 科 技</div><div class="doc-brand-sub">LIUWEI TECHNOLOGY · 餐饮供应链管理</div></div>
+  return `<div class="doc-brand"><div class="doc-brand-name">柳 味 探 秘 科 技</div><div class="doc-brand-sub">LIUWEI TECHNOLOGY · 餐饮供应链管理</div></div>
 <div class="doc-heading"><h1>进 货 单</h1><p>PURCHASE ORDER / RECEIPT</p></div>
 <div class="doc-meta"><div class="doc-meta-item"><div class="doc-meta-label">NO.</div><div class="doc-meta-value">${batchNo}</div></div><div class="doc-meta-item"><div class="doc-meta-label">日期</div><div class="doc-meta-value">${dateStr}</div></div><div class="doc-meta-item"><div class="doc-meta-label">支付</div><div class="doc-meta-value">${payLabel}</div></div></div>
 <table class="doc-table"><thead><tr><th>品名</th><th>规格</th><th>单价</th><th>数量</th><th>小计</th></tr></thead><tbody>${rowsHTML}</tbody></table>
@@ -128,315 +67,36 @@ ${batch.note ? `<div class="doc-note">📝 ${batch.note}</div>` : ''}
 <div class="doc-footer"><p>${batch.operator ? `经办人：${batch.operator} · ` : ''}柳味探秘科技 · 餐饮供应链管理系统<br>本单据由系统自动生成，具有法律效力</p></div>`;
 }
 
-/* ═══════════════════════ PdfPreviewPage ═══════════════════════ */
+/* ═══════════════ Styles (injected as CSS string) ═══════════════ */
 
-export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
-  const { colors: c } = useTheme();
-  const styles = useMemo(() => getStyles(c), [c]);
+const STYLE_CSS = `
+:root{--bg:#141416;--surface:#1E1E22;--surface2:#26262C;--surface3:#2E2E36;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#F0EDE8;--text2:rgba(240,237,232,.5);--text3:rgba(240,237,232,.28);--accent:#C0392B;--accent2:#8B2020;--accent-dim:rgba(192,57,43,.15);--sans:'Noto Sans SC',sans-serif;--mono:'DM Mono',monospace;--serif:'Lora',serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);touch-action:none}
 
-  const [batch, setBatch] = useState<BatchData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [shareSheetOpen, setShareSheetOpen] = useState(false);
-  const [toast, setToast] = useState('');
-  const [toastIcon, setToastIcon] = useState('');
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(20,20,22,.85);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--line)}
+.nav-left{display:flex;align-items:center;gap:10px}
+.nav-back{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
+.nav-back:active{background:var(--surface3)}
+.nav-back svg{width:16px;height:16px;stroke:var(--text);stroke-width:2;fill:none;display:block}
+.nav-title{font-size:15px;font-weight:600;color:var(--text);letter-spacing:.01em}
+.nav-sub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+.nav-right{display:flex;align-items:center;gap:6px}
+.nav-action{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative}
+.nav-action:active{background:var(--surface3);transform:scale(.93)}
+.nav-action svg{width:16px;height:16px;stroke:var(--text2);stroke-width:1.8;fill:none}
+.nav-action.accent-btn{background:var(--accent-dim);border-color:rgba(192,57,43,.3)}
+.nav-action.accent-btn svg{stroke:var(--accent)}
 
-  // Zoom / pan state
-  const [pagePill] = useState('第 1 页 / 共 1 页');
-  const [zoomPercent, setZoomPercent] = useState('100%');
-  const [zoomVisible, setZoomVisible] = useState(false);
-  const scaleRef = useRef(1);
-  const txRef = useRef(0);
-  const tyRef = useRef(0);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const viewportInnerRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef({ active: false, startX: 0, startY: 0, startTx: 0, startTy: 0 });
-  const touchRef = useRef({ mode: 'none' as string, startX: 0, startY: 0, startTx: 0, startTy: 0, pinchDist: 0, pinchScale: 0, lastTap: 0 });
-  const zoomTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+.page-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;transition:opacity .3s;pointer-events:none}
+.zoom-indicator{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
+.zoom-indicator.show{opacity:1}
 
-  // Fetch batch data
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data: any = await api.getProcurementBatchDetail(batchId);
-        if (!cancelled) {
-          if (data && data.items) {
-            setBatch(data);
-          } else {
-            setError('未找到进货单数据');
-          }
-          setLoading(false);
-        }
-      } catch (e: any) {
-        if (!cancelled) {
-          setError(e?.message || '加载进货单失败');
-          setLoading(false);
-        }
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [batchId]);
-
-  /* ── Transform helpers (mirrors pdf-viewer.html exactly) ── */
-
-  const applyTransform = useCallback((animated: boolean) => {
-    const sheet = sheetRef.current;
-    if (!sheet) return;
-    sheet.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
-    sheet.style.transform = `translate(calc(-50% + ${txRef.current}px), ${tyRef.current}px) scale(${scaleRef.current})`;
-    sheet.style.left = '50%';
-    setZoomPercent(Math.round(scaleRef.current * 100) + '%');
-  }, []);
-
-  const flashZoom = useCallback(() => {
-    setZoomVisible(true);
-    if (zoomTimerRef.current) clearTimeout(zoomTimerRef.current);
-    zoomTimerRef.current = setTimeout(() => setZoomVisible(false), 1500);
-  }, []);
-
-  const clampTranslation = useCallback(() => {
-    const vp = viewportInnerRef.current;
-    const sheet = sheetRef.current;
-    if (!vp || !sheet) return;
-    const paper = sheet.querySelector('.doc-paper') as HTMLElement;
-    if (!paper) return;
-    const vw = vp.clientWidth;
-    const vh = vp.clientHeight;
-    const dw = (paper.offsetWidth + 24) * scaleRef.current;
-    const dh = (paper.offsetHeight + 24) * scaleRef.current;
-    const maxTx = Math.max(0, (dw - vw) / 2);
-    const maxTy = Math.max(0, (dh - vh) / 2 + 20);
-    txRef.current = Math.max(-maxTx, Math.min(maxTx, txRef.current));
-    tyRef.current = Math.max(-20, Math.min(maxTy, tyRef.current));
-  }, []);
-
-  // Fit to viewport width on load — retry until viewport has dimensions
-  useEffect(() => {
-    if (!batch) return;
-    let attempts = 0;
-    const tryFit = () => {
-      const vp = viewportInnerRef.current;
-      const sheet = sheetRef.current;
-      if (!vp || !sheet) return;
-      const paper = sheet.querySelector('.doc-paper') as HTMLElement;
-      if (!paper) return;
-      const vw = vp.clientWidth;
-      if (!vw || vw < 100) {
-        if (attempts++ < 15) setTimeout(tryFit, 150);
-        return;
-      }
-      const docW = paper.offsetWidth + 24;
-      // Fit paper width to viewport width (like opening a PDF in browser)
-      scaleRef.current = Math.min(1, (vw - 24) / docW);
-      txRef.current = 0;
-      tyRef.current = 0;
-      applyTransform(false);
-    };
-    setTimeout(tryFit, 100);
-  }, [batch, applyTransform]);
-
-  // Handle window resize
-  useEffect(() => {
-    const onResize = () => { clampTranslation(); applyTransform(false); };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [clampTranslation, applyTransform]);
-
-  /* ── Zoom controls ── */
-  const stepZoom = useCallback((delta: number) => {
-    scaleRef.current = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleRef.current + delta));
-    clampTranslation();
-    applyTransform(true);
-    flashZoom();
-  }, [clampTranslation, applyTransform, flashZoom]);
-
-  const resetZoom = useCallback(() => {
-    scaleRef.current = 1;
-    txRef.current = 0;
-    tyRef.current = 0;
-    applyTransform(true);
-    flashZoom();
-  }, [applyTransform, flashZoom]);
-
-  /* ── Mouse drag & wheel — attached to raw div (reference pattern) ── */
-
-  useEffect(() => {
-    const vpInner = viewportInnerRef.current;
-    if (!vpInner || !batch) return;
-
-    const onMouseDown = (e: MouseEvent) => {
-      dragRef.current = {
-        active: true,
-        startX: e.clientX, startY: e.clientY,
-        startTx: txRef.current, startTy: tyRef.current,
-      };
-      vpInner.style.cursor = 'grabbing';
-    };
-    const onMouseMove = (e: MouseEvent) => {
-      if (!dragRef.current.active) return;
-      txRef.current = dragRef.current.startTx + (e.clientX - dragRef.current.startX);
-      tyRef.current = dragRef.current.startTy + (e.clientY - dragRef.current.startY);
-      clampTranslation();
-      applyTransform(false);
-    };
-    const onMouseUp = () => {
-      dragRef.current.active = false;
-      vpInner.style.cursor = 'grab';
-    };
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -0.1 : 0.1;
-      scaleRef.current = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleRef.current + delta));
-      clampTranslation();
-      applyTransform(false);
-      flashZoom();
-    };
-
-    vpInner.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    vpInner.addEventListener('wheel', onWheel, { passive: false });
-    return () => {
-      vpInner.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      vpInner.removeEventListener('wheel', onWheel);
-    };
-  }, [clampTranslation, applyTransform, flashZoom, batch]);
-
-  /* ── Touch events — attached to raw div ── */
-
-  useEffect(() => {
-    const vpInner = viewportInnerRef.current;
-    if (!vpInner || !batch) return;
-
-    const getDist = (t: TouchList) => {
-      const dx = t[0].clientX - t[1].clientX;
-      const dy = t[0].clientY - t[1].clientY;
-      return Math.sqrt(dx * dx + dy * dy);
-    };
-
-    const onTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      const tc = touchRef.current;
-      if (e.touches.length === 1) {
-        const now = Date.now();
-        if (now - tc.lastTap < 300) {
-          if (scaleRef.current > 1.1) { scaleRef.current = 1; txRef.current = 0; tyRef.current = 0; }
-          else { scaleRef.current = 2; }
-          clampTranslation();
-          applyTransform(true);
-          flashZoom();
-          tc.lastTap = 0;
-          return;
-        }
-        tc.lastTap = now;
-        tc.mode = 'drag';
-        tc.startX = e.touches[0].clientX;
-        tc.startY = e.touches[0].clientY;
-        tc.startTx = txRef.current;
-        tc.startTy = tyRef.current;
-        vpInner.style.cursor = 'grabbing';
-      } else if (e.touches.length === 2) {
-        tc.mode = 'pinch';
-        tc.pinchDist = getDist(e.touches);
-        tc.pinchScale = scaleRef.current;
-      }
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
-      const tc = touchRef.current;
-      if (tc.mode === 'drag' && e.touches.length === 1) {
-        txRef.current = tc.startTx + (e.touches[0].clientX - tc.startX);
-        tyRef.current = tc.startTy + (e.touches[0].clientY - tc.startY);
-        clampTranslation();
-        applyTransform(false);
-      } else if (tc.mode === 'pinch' && e.touches.length === 2) {
-        const dist = getDist(e.touches);
-        scaleRef.current = Math.max(MIN_SCALE, Math.min(MAX_SCALE, tc.pinchScale * (dist / tc.pinchDist)));
-        clampTranslation();
-        applyTransform(false);
-        flashZoom();
-      }
-    };
-
-    const onTouchEnd = (e: TouchEvent) => {
-      const tc = touchRef.current;
-      if (e.touches.length === 0) { tc.mode = 'none'; vpInner.style.cursor = 'grab'; }
-      else if (e.touches.length === 1 && tc.mode === 'pinch') {
-        tc.mode = 'drag';
-        tc.startX = e.touches[0].clientX;
-        tc.startY = e.touches[0].clientY;
-        tc.startTx = txRef.current;
-        tc.startTy = tyRef.current;
-      }
-    };
-
-    vpInner.addEventListener('touchstart', onTouchStart, { passive: false });
-    vpInner.addEventListener('touchmove', onTouchMove, { passive: false });
-    vpInner.addEventListener('touchend', onTouchEnd);
-    return () => {
-      vpInner.removeEventListener('touchstart', onTouchStart);
-      vpInner.removeEventListener('touchmove', onTouchMove);
-      vpInner.removeEventListener('touchend', onTouchEnd);
-    };
-  }, [clampTranslation, applyTransform, flashZoom, batch]);
-
-  /* ── Toast ── */
-  const showToast = useCallback((icon: string, msg: string) => {
-    setToastIcon(icon);
-    setToast(msg);
-    setTimeout(() => setToast(''), 2200);
-  }, []);
-
-  /* ── Actions ── */
-  const doDownload = useCallback(() => {
-    showToast('⬇️', 'PDF 下载中…');
-    if (typeof window !== 'undefined') {
-      const a = document.createElement('a');
-      a.href = `/api/procurement-batches/${batchId}/pdf`;
-      a.download = `procurement_${batchId}.pdf`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    }
-    setShareSheetOpen(false);
-  }, [batchId, showToast]);
-
-  const publicUrl = typeof window !== 'undefined' ? window.location.href : '';
-
-  const copyLink = useCallback(() => {
-    if (typeof navigator !== 'undefined') {
-      navigator.clipboard.writeText(publicUrl).catch(() => {});
-    }
-    showToast('🔗', '链接已复制到剪贴板');
-  }, [publicUrl, showToast]);
-
-  const shareAction = useCallback((platform: string) => {
-    setShareSheetOpen(false);
-    if (platform === '下载PDF') { doDownload(); return; }
-    if (platform === '复制链接') { copyLink(); return; }
-    if (platform === '邮件') {
-      window.location.href = `mailto:?subject=procurement_${batchId}.pdf&body=${encodeURIComponent(publicUrl)}`;
-      return;
-    }
-    showToast('📤', `已发送至 ${platform}`);
-  }, [doDownload, copyLink, publicUrl, batchId, showToast]);
-
-  /* ── Title bar ── */
-  const title = t('procPdfTitle').replace('{n}', String(batchNumber));
-
-  /* ── Document CSS (injected once) ── */
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const id = 'pdf-doc-styles';
-    if (document.getElementById(id)) return;
-    const style = document.createElement('style');
-    style.id = id;
-    style.textContent = `
-*{box-sizing:border-box;margin:0;padding:0}
-.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:${DOC_PAPER_W}px;padding:28px 24px 36px}
+.viewport{position:fixed;inset:0;padding-top:${NAV_H}px;padding-bottom:${TOOLBAR_H}px;overflow:hidden;background:var(--bg)}
+.viewport-inner{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center;overflow:hidden;position:relative;cursor:grab}
+.viewport-inner.grabbing{cursor:grabbing}
+.doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
+.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:28px 24px 36px}
 .doc-brand{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e8e4de}
 .doc-brand-name{font-size:13px;letter-spacing:.35em;color:#333;font-weight:500;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
 .doc-brand-sub{font-size:9px;letter-spacing:.18em;color:#aaa;font-family:'DM Mono',monospace}
@@ -466,281 +126,508 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 .doc-footer{margin-top:24px;text-align:center;padding-top:14px;border-top:1px solid #ede9e3}
 .doc-footer p{font-size:8px;color:#bbb;letter-spacing:.08em;font-family:'DM Mono',monospace;line-height:1.8}
 .doc-note{margin-top:12px;padding:8px 10px;background:#faf9f7;border-radius:4px;font-size:9px;color:#888;font-family:'DM Mono',monospace}
-`;
-    document.head.appendChild(style);
-  }, []);
 
-  /* ── Loading state ── */
+.toolbar{position:fixed;bottom:0;left:0;right:0;z-index:100;height:${TOOLBAR_H}px;background:rgba(20,20,22,.88);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px}
+.tool-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:12px;cursor:pointer;transition:all .15s;border:none;background:none;flex:1;max-width:90px}
+.tool-btn:active{background:var(--surface2);transform:scale(.95)}
+.tool-btn svg{width:20px;height:20px;stroke:var(--text2);stroke-width:1.7;fill:none}
+.tool-btn span{font-size:10px;color:var(--text3);font-family:var(--sans);white-space:nowrap}
+.tool-btn.highlight svg{stroke:var(--accent)}
+.tool-btn.highlight span{color:var(--accent)}
+.tool-sep{width:1px;height:36px;background:var(--line);flex-shrink:0}
+
+.zoom-strip{position:fixed;right:16px;bottom:${TOOLBAR_H + 18}px;z-index:95;display:flex;flex-direction:column;gap:6px}
+.zoom-btn{width:40px;height:40px;border-radius:50%;background:rgba(20,20,22,.75);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.zoom-btn:active{background:var(--surface3);transform:scale(.92)}
+.zoom-btn svg{width:16px;height:16px;stroke:var(--text2);stroke-width:2;fill:none}
+
+.toast{position:fixed;bottom:${TOOLBAR_H + 16}px;left:50%;transform:translateX(-50%);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line2);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1}
+
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150;display:flex;align-items:flex-end}
+.sheet-overlay.hidden{display:none}
+.sheet{width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 32px;animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.sheet-handle{width:36px;height:4px;background:var(--line2);border-radius:2px;margin:12px auto 16px}
+.sheet-title{font-size:13px;font-weight:600;color:var(--text2);text-align:center;margin-bottom:16px;letter-spacing:.04em}
+.sheet-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:0 8px;margin-bottom:16px}
+.sheet-action{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:12px 4px;transition:all .15s;border:none;background:none}
+.sheet-action:active{transform:scale(.95)}
+.sheet-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.sheet-icon svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:1.8}
+.sheet-action span{font-size:11px;color:var(--text2)}
+.sheet-cancel{margin:0 16px;padding:14px;border-radius:14px;background:var(--surface2);border:0.5px solid var(--line2);text-align:center;cursor:pointer;font-size:14px;font-weight:500;color:var(--text2)}
+.sheet-cancel:active{background:var(--surface3)}
+`;
+
+/* ═══════════════════════ PdfPreviewPage ═══════════════════════ */
+
+export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
+  const { colors: c } = useTheme();
+  const styles = useMemo(() => getStyles(c), [c]);
+
+  const [batch, setBatch] = useState<BatchData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const portalReady = useRef(false);
+
+  // Fetch batch data
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data: any = await api.getProcurementBatchDetail(batchId);
+        if (!cancelled) {
+          if (data && data.items) {
+            setBatch(data);
+          } else {
+            setError('未找到进货单数据');
+          }
+          setLoading(false);
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setError(e?.message || '加载进货单失败');
+          setLoading(false);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [batchId]);
+
+  const title = t('procPdfTitle').replace('{n}', String(batchNumber));
+
+  // Loading / Error states — rendered inside RN View
   if (loading) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-            <View style={styles.backBtn}><Text style={styles.backArrow}>‹</Text></View>
-          </TouchableOpacity>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          <View style={{ width: 44 }} />
-        </View>
-        <View style={styles.viewerArea}>
-          <View style={styles.centered}>
-            <ActivityIndicator color={c.primary} size="large" />
-            <Text style={styles.hintText}>加载进货单数据…</Text>
-          </View>
+        <View style={styles.loadingWrap}>
+          <View style={styles.spinner} />
         </View>
       </View>
     );
   }
 
-  /* ── Error state ── */
   if (error || !batch) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-            <View style={styles.backBtn}><Text style={styles.backArrow}>‹</Text></View>
-          </TouchableOpacity>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          <View style={{ width: 44 }} />
-        </View>
-        <View style={styles.viewerArea}>
-          <View style={styles.centered}>
-            <Text style={styles.errorText}>{error || '数据加载失败'}</Text>
-            <TouchableOpacity onPress={onBack} style={styles.retryBtn} activeOpacity={0.7}>
-              <Text style={styles.retryText}>{t('goBack')}</Text>
-            </TouchableOpacity>
+        <View style={styles.errWrap}>
+          <View style={styles.errTextWrap}>
+            <span style={{ fontSize: 16, color: c.textSub }}>{error || '数据加载失败'}</span>
+          </View>
+          <View style={{ marginTop: 16 }}>
+            <View
+              onClick={onBack}
+              style={{ padding: '10px 20px', backgroundColor: c.primary, borderRadius: 10, cursor: 'pointer', display: 'inline-block' }}
+            >
+              <span style={{ color: '#fff', fontSize: 14 }}>{t('goBack')}</span>
+            </View>
           </View>
         </View>
       </View>
     );
   }
 
-  /* ── Main content ── */
+  // Main content — rendered via createPortal to document.body
+  // This completely bypasses React Native's view hierarchy, ensuring:
+  // - dangerouslySetInnerHTML works (real DOM)
+  // - Event listeners attach to real DOM elements
+  // - CSS positioning is relative to the viewport (not RN's animated containers)
+
+  return createPortal(
+    <PortalContent
+      batch={batch}
+      batchId={batchId}
+      title={title}
+      onBack={onBack}
+      onReady={() => { portalReady.current = true; }}
+    />,
+    document.body
+  );
+}
+
+/* ═══════════════════════ PortalContent (pure HTML/CSS/JS in a portal) ═══════════════════════ */
+
+function PortalContent({
+  batch, batchId, title, onBack, onReady,
+}: {
+  batch: BatchData;
+  batchId: number;
+  title: string;
+  onBack: () => void;
+  onReady: () => void;
+}) {
+  // Refs for DOM elements
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const vpInnerRef = useRef<HTMLDivElement>(null);
+  const zoomIndRef = useRef<HTMLDivElement>(null);
+  const toastRef = useRef<HTMLDivElement>(null);
+  const sheetOverlayRef = useRef<HTMLDivElement>(null);
+
+  // Zoom/pan state (mutable refs for smooth updates)
+  const zoomRef = useRef({
+    scale: 1, tx: 0, ty: 0,
+    drag: { active: false as boolean, startX: 0, startY: 0, startTx: 0, startTy: 0 },
+    touch: { mode: 'none' as string, startX: 0, startY: 0, startTx: 0, startTy: 0, pinchDist: 0, pinchScale: 0, lastTap: 0 },
+    zoomTimer: null as ReturnType<typeof setTimeout> | null,
+  });
+
+  // ── Transform helpers ──
+  const applyTransform = useCallback((animated: boolean) => {
+    const sheet = sheetRef.current;
+    const zi = zoomRef.current;
+    if (!sheet) return;
+    sheet.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
+    sheet.style.transform = `translate(calc(-50% + ${zi.tx}px), ${zi.ty}px) scale(${zi.scale})`;
+    sheet.style.left = '50%';
+    // Update zoom indicator
+    const zid = zoomIndRef.current;
+    if (zid) zid.textContent = Math.round(zi.scale * 100) + '%';
+  }, []);
+
+  const flashZoom = useCallback(() => {
+    const zid = zoomIndRef.current;
+    const zi = zoomRef.current;
+    if (!zid) return;
+    zid.classList.add('show');
+    if (zi.zoomTimer) clearTimeout(zi.zoomTimer);
+    zi.zoomTimer = setTimeout(() => zid.classList.remove('show'), 1500);
+  }, []);
+
+  const clampTranslation = useCallback(() => {
+    const vp = vpInnerRef.current;
+    const sheet = sheetRef.current;
+    const zi = zoomRef.current;
+    if (!vp || !sheet) return;
+    const paper = sheet.querySelector('.doc-paper') as HTMLElement;
+    if (!paper) return;
+    const vw = vp.clientWidth;
+    const vh = vp.clientHeight;
+    const dw = (paper.offsetWidth + 24) * zi.scale;
+    const dh = (paper.offsetHeight + 24) * zi.scale;
+    const maxTx = Math.max(0, (dw - vw) / 2);
+    const maxTy = Math.max(0, (dh - vh) / 2 + 20);
+    zi.tx = Math.max(-maxTx, Math.min(maxTx, zi.tx));
+    zi.ty = Math.max(-20, Math.min(maxTy, zi.ty));
+  }, []);
+
+  // ── Init zoom (fit to width) ──
+  const initZoom = useCallback(() => {
+    const vp = vpInnerRef.current;
+    const sheet = sheetRef.current;
+    const zi = zoomRef.current;
+    if (!vp || !sheet) return false;
+    const paper = sheet.querySelector('.doc-paper') as HTMLElement;
+    if (!paper) return false;
+    const vw = vp.clientWidth;
+    if (!vw || vw < 100) return false;
+    const docW = paper.offsetWidth + 24;
+    zi.scale = Math.min(1, (vw - 24) / docW);
+    zi.tx = 0;
+    zi.ty = 0;
+    applyTransform(false);
+    return true;
+  }, [applyTransform]);
+
+  // Retry initZoom until viewport is sized
+  useEffect(() => {
+    let attempts = 0;
+    const tryFit = () => {
+      if (initZoom()) {
+        onReady();
+        return;
+      }
+      if (attempts++ < 20) setTimeout(tryFit, 100);
+    };
+    setTimeout(tryFit, 50);
+  }, [initZoom, onReady]);
+
+  // ── Gesture setup ──
+  useEffect(() => {
+    const vp = vpInnerRef.current;
+    if (!vp) return;
+    const zi = zoomRef.current;
+
+    // Mouse drag
+    const onMouseDown = (e: MouseEvent) => {
+      zi.drag = { active: true, startX: e.clientX, startY: e.clientY, startTx: zi.tx, startTy: zi.ty };
+      vp.classList.add('grabbing');
+    };
+    const onMouseMove = (e: MouseEvent) => {
+      if (!zi.drag.active) return;
+      zi.tx = zi.drag.startTx + (e.clientX - zi.drag.startX);
+      zi.ty = zi.drag.startTy + (e.clientY - zi.drag.startY);
+      clampTranslation();
+      applyTransform(false);
+    };
+    const onMouseUp = () => { zi.drag.active = false; vp.classList.remove('grabbing'); };
+
+    // Wheel
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      zi.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, zi.scale + delta));
+      clampTranslation();
+      applyTransform(false);
+      flashZoom();
+    };
+
+    // Touch
+    const getDist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      const tc = zi.touch;
+      if (e.touches.length === 1) {
+        const now = Date.now();
+        if (now - tc.lastTap < 300) {
+          if (zi.scale > 1.1) { zi.scale = 1; zi.tx = 0; zi.ty = 0; }
+          else { zi.scale = 2; }
+          clampTranslation(); applyTransform(true); flashZoom();
+          tc.lastTap = 0; return;
+        }
+        tc.lastTap = now;
+        tc.mode = 'drag';
+        tc.startX = e.touches[0].clientX; tc.startY = e.touches[0].clientY;
+        tc.startTx = zi.tx; tc.startTy = zi.ty;
+        vp.classList.add('grabbing');
+      } else if (e.touches.length === 2) {
+        tc.mode = 'pinch';
+        tc.pinchDist = getDist(e.touches);
+        tc.pinchScale = zi.scale;
+      }
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const tc = zi.touch;
+      if (tc.mode === 'drag' && e.touches.length === 1) {
+        zi.tx = tc.startTx + (e.touches[0].clientX - tc.startX);
+        zi.ty = tc.startTy + (e.touches[0].clientY - tc.startY);
+        clampTranslation(); applyTransform(false);
+      } else if (tc.mode === 'pinch' && e.touches.length === 2) {
+        const dist = getDist(e.touches);
+        zi.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, tc.pinchScale * (dist / tc.pinchDist)));
+        clampTranslation(); applyTransform(false); flashZoom();
+      }
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      const tc = zi.touch;
+      if (e.touches.length === 0) { tc.mode = 'none'; vp.classList.remove('grabbing'); }
+      else if (e.touches.length === 1 && tc.mode === 'pinch') {
+        tc.mode = 'drag';
+        tc.startX = e.touches[0].clientX; tc.startY = e.touches[0].clientY;
+        tc.startTx = zi.tx; tc.startTy = zi.ty;
+      }
+    };
+
+    vp.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    vp.addEventListener('wheel', onWheel, { passive: false });
+    vp.addEventListener('touchstart', onTouchStart, { passive: false });
+    vp.addEventListener('touchmove', onTouchMove, { passive: false });
+    vp.addEventListener('touchend', onTouchEnd);
+
+    // Resize handler
+    const onResize = () => { clampTranslation(); applyTransform(false); };
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      vp.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      vp.removeEventListener('wheel', onWheel);
+      vp.removeEventListener('touchstart', onTouchStart);
+      vp.removeEventListener('touchmove', onTouchMove);
+      vp.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [clampTranslation, applyTransform, flashZoom]);
+
+  // ── Actions ──
+  const doDownload = useCallback(() => {
+    showToast('⬇️', 'PDF 下载中…');
+    const a = document.createElement('a');
+    a.href = `/api/procurement-batches/${batchId}/pdf`;
+    a.download = `procurement_${batchId}.pdf`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    closeSheet();
+  }, [batchId]);
+
+  const copyLink = useCallback(() => {
+    navigator.clipboard?.writeText(window.location.href).catch(() => {});
+    showToast('🔗', '链接已复制到剪贴板');
+  }, []);
+
+  const showToast = useCallback((icon: string, text: string) => {
+    const t = toastRef.current;
+    if (!t) return;
+    t.querySelector('.toast-icon')!.textContent = icon;
+    t.querySelector('.toast-text')!.textContent = text;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }, []);
+
+  const openSheet = useCallback(() => {
+    sheetOverlayRef.current?.classList.remove('hidden');
+  }, []);
+
+  const closeSheet = useCallback(() => {
+    sheetOverlayRef.current?.classList.add('hidden');
+  }, []);
+
+  // ── Zoom button handlers ──
+  const stepZoom = useCallback((delta: number) => {
+    const zi = zoomRef.current;
+    zi.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, zi.scale + delta));
+    clampTranslation();
+    applyTransform(true);
+    flashZoom();
+  }, [clampTranslation, applyTransform, flashZoom]);
+
+  const resetZoom = useCallback(() => {
+    const zi = zoomRef.current;
+    zi.scale = 1; zi.tx = 0; zi.ty = 0;
+    applyTransform(true);
+    flashZoom();
+  }, [applyTransform, flashZoom]);
 
   const docPaperHTML = buildDocPaperHTML(batch);
 
+  // Render the entire viewer as raw HTML in the portal
   return (
-    <View style={styles.container}>
-      {/* Header — z-index 90 ensures it sits above viewport */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-          <View style={styles.backBtn}><BackArrow color={c.textMain} /></View>
-        </TouchableOpacity>
-        <Text style={styles.title} numberOfLines={1}>{title}</Text>
-        <View style={{ width: 44 }} />
-      </View>
-
-      {/* Viewport — raw div, starts below header */}
-      <div
-        ref={viewportRef}
-        style={{
-          position: 'absolute', top: HEADER_H, left: 0, right: 0, bottom: TOOLBAR_H,
-          overflow: 'hidden', backgroundColor: '#141416', zIndex: 1,
-        }}
-      >
-        {/* Page pill — relative to viewport */}
-        <div
-          style={{
-            position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 90,
-            backgroundColor: 'rgba(0,0,0,.55)', backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,.12)', borderRadius: 20,
-            padding: '4px 14px', fontSize: 11, fontFamily: '"DM Mono", monospace',
-            color: 'rgba(240,237,232,.5)', pointerEvents: 'none',
-          }}
-        >
-          {pagePill}
+    <div className="pdfv" style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
+      {/* Navbar */}
+      <div className="navbar">
+        <div className="nav-left">
+          <div className="nav-back" onClick={onBack}>
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
+          </div>
+          <div className="nav-title-wrap">
+            <div className="nav-title">{title}</div>
+            <div className="nav-sub">#{String(batch.batch_number).padStart(4, '0')}</div>
+          </div>
         </div>
-
-        {/* Zoom indicator — relative to viewport */}
-        <div
-          style={{
-            position: 'absolute', top: 12, right: 16, zIndex: 90,
-            backgroundColor: 'rgba(0,0,0,.55)', backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,.12)', borderRadius: 8,
-            padding: '4px 10px', fontSize: 11, fontFamily: '"DM Mono", monospace',
-            color: 'rgba(240,237,232,.5)',
-            opacity: zoomVisible ? 1 : 0, transition: 'opacity .25s', pointerEvents: 'none',
-          }}
-        >
-          {zoomPercent}
-        </div>
-
-        {/* Viewport inner — raw div for gesture events */}
-        <div
-          ref={viewportInnerRef}
-          style={{
-            width: '100%', height: '100%',
-            display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-            overflow: 'hidden', position: 'relative', cursor: 'grab',
-          }}
-        >
-          {/* Doc sheet — raw div, absolute positioning with transform */}
-          <div
-            ref={sheetRef}
-            style={{
-              position: 'absolute',
-              transformOrigin: 'center top',
-              willChange: 'transform',
-              padding: '0 12px',
-              top: 12,
-              touchAction: 'none',
-              userSelect: 'none',
-              left: '50%',
-              transform: `translate(calc(-50% + 0px), 0px) scale(1)`,
-            }}
-          >
-            {/* Doc paper — raw div with dangerouslySetInnerHTML for inner content only */}
-            <div
-              className="doc-paper"
-              dangerouslySetInnerHTML={{ __html: docPaperHTML }}
-            />
+        <div className="nav-right">
+          <div className="nav-action" onClick={doDownload}>
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </div>
         </div>
       </div>
 
-      {/* Zoom buttons strip — above toolbar */}
-      <div
-        style={{
-          position: 'absolute', right: 16, bottom: TOOLBAR_H + 12, zIndex: 95,
-          display: 'flex', flexDirection: 'column', gap: 6,
-        }}
-      >
-        <View style={styles.zoomBtn}><TouchableOpacity onPress={() => stepZoom(0.25)} activeOpacity={0.7} style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}><ZoomInSvg color="rgba(240,237,232,0.5)" /></TouchableOpacity></View>
-        <View style={styles.zoomBtn}><TouchableOpacity onPress={resetZoom} activeOpacity={0.7} style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}><ZoomResetSvg color="rgba(240,237,232,0.5)" /></TouchableOpacity></View>
-        <View style={styles.zoomBtn}><TouchableOpacity onPress={() => stepZoom(-0.25)} activeOpacity={0.7} style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}><ZoomOutSvg color="rgba(240,237,232,0.5)" /></TouchableOpacity></View>
+      {/* Page pill */}
+      <div className="page-pill">第 1 页 / 共 1 页</div>
+
+      {/* Zoom indicator */}
+      <div className="zoom-indicator" ref={zoomIndRef}>100%</div>
+
+      {/* Viewport */}
+      <div className="viewport">
+        <div className="viewport-inner" ref={vpInnerRef}>
+          <div className="doc-sheet" ref={sheetRef}>
+            <div className="doc-paper" dangerouslySetInnerHTML={{ __html: docPaperHTML }} />
+          </div>
+        </div>
       </div>
 
-      {/* Bottom toolbar — at bottom of container */}
-      <View style={styles.toolbar}>
-        <TouchableOpacity style={styles.toolBtn} onPress={doDownload} activeOpacity={0.7}>
-          <DownloadSvg color="rgba(240,237,232,0.5)" />
-          <Text style={styles.toolLabel}>下载</Text>
-        </TouchableOpacity>
-        <View style={styles.toolSep} />
-        <TouchableOpacity style={styles.toolBtn} onPress={() => setShareSheetOpen(true)} activeOpacity={0.7}>
-          <ShareSvg color="rgba(240,237,232,0.5)" />
-          <Text style={styles.toolLabel}>分享</Text>
-        </TouchableOpacity>
-        <View style={styles.toolSep} />
-        <TouchableOpacity style={styles.toolBtn} onPress={copyLink} activeOpacity={0.7}>
-          <LinkSvg color="rgba(240,237,232,0.5)" />
-          <Text style={styles.toolLabel}>复制链接</Text>
-        </TouchableOpacity>
-        <View style={styles.toolSep} />
-        <TouchableOpacity style={styles.toolBtn} onPress={() => window.print()} activeOpacity={0.7}>
-          <PrinterSvg color="#C0392B" />
-          <Text style={[styles.toolLabel, { color: '#C0392B' }]}>打印</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Zoom buttons */}
+      <div className="zoom-strip">
+        <div className="zoom-btn" onClick={() => stepZoom(0.25)}>
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div className="zoom-btn" onClick={resetZoom}>
+          <svg viewBox="0 0 24 24"><path d="M3.5 3.5l4 4M20.5 3.5l-4 4M20.5 20.5l-4-4M3.5 20.5l4-4"/></svg>
+        </div>
+        <div className="zoom-btn" onClick={() => stepZoom(-0.25)}>
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+      </div>
 
-      {/* Share sheet */}
-      {shareSheetOpen && (
-        <View style={styles.sheetOverlay}>
-          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setShareSheetOpen(false)} />
-          <View style={styles.sheet}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>分享进货单</Text>
-            <View style={styles.sheetGrid}>
-              {([
-                ['微信', '#07C160', 'M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z'],
-                ['朋友圈', '#fa9d3b', 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32'],
-                ['短信', '#4a90d9', 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'],
-                ['邮件', '#e06060', 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6'],
-                ['下载PDF', '#6c6c80', 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3'],
-                ['复制链接', '#5a5aaa', 'M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71'],
-                ['保存图片', '#2e8b57', 'M3 3h18v18H3zM21 15l-5-5L5 21M8.5 8.5a1.5 1.5 0 100 .01'],
-                ['更多', '#3a3a48', 'M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M19 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M5 12m-1 0a1 1 0 102 0 1 1 0 10-2 0'],
-              ] as [string, string, string][]).map(([label, bg, d]) => (
-                <TouchableOpacity key={label} style={styles.sheetItem as any} onPress={() => shareAction(label)} activeOpacity={0.7}>
-                  <View style={[styles.sheetIcon, { backgroundColor: bg }]}>
-                    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.8}>
-                      <Path d={d} />
-                    </Svg>
-                  </View>
-                  <Text style={styles.sheetItemLabel}>{label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity onPress={() => setShareSheetOpen(false)} style={styles.sheetCancel} activeOpacity={0.7}>
-              <Text style={styles.sheetCancelText}>取消</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+      {/* Bottom toolbar */}
+      <div className="toolbar">
+        <button className="tool-btn" onClick={doDownload}>
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>下载</span>
+        </button>
+        <div className="tool-sep" />
+        <button className="tool-btn" onClick={openSheet}>
+          <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          <span>分享</span>
+        </button>
+        <div className="tool-sep" />
+        <button className="tool-btn" onClick={copyLink}>
+          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          <span>复制链接</span>
+        </button>
+        <div className="tool-sep" />
+        <button className="tool-btn highlight" onClick={() => window.print()}>
+          <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          <span>打印</span>
+        </button>
+      </div>
 
       {/* Toast */}
-      {toast ? (
-        <View style={styles.toastWrap} pointerEvents="none">
-          <View style={styles.toastBox}>
-            <Text style={styles.toastIconText}>{toastIcon}</Text>
-            <Text style={styles.toastText}>{toast}</Text>
-          </View>
-        </View>
-      ) : null}
-    </View>
+      <div className="toast" ref={toastRef}>
+        <span className="toast-icon" />
+        <span className="toast-text" />
+      </div>
+
+      {/* Share sheet overlay */}
+      <div className="sheet-overlay hidden" ref={sheetOverlayRef} onClick={(e) => { if (e.target === sheetOverlayRef.current) closeSheet(); }}>
+        <div className="sheet">
+          <div className="sheet-handle" />
+          <div className="sheet-title">分享进货单</div>
+          <div className="sheet-actions">
+            {(['微信','#07c160','M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z'],
+            ['朋友圈','#fa9d3b','M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32'],
+            ['短信','#4a90d9','M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'],
+            ['邮件','#e06060','M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6'],
+            ['下载PDF','#6c6c80','M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3'],
+            ['复制链接','#5a5aaa','M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71'],
+            ['保存图片','#2e8b57','M3 3h18v18H3zM21 15l-5-5L5 21M8.5 8.5a1.5 1.5 0 100 .01'],
+            ['更多','#3a3a48','M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M19 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M5 12m-1 0a1 1 0 102 0 1 1 0 10-2 0'],
+          ] as [string,string,string][]).map(([label, bg, d]) => (
+            <button key={label} className="sheet-action" onClick={() => { closeSheet(); showToast('📤', `已发送至 ${label}`); }}>
+              <div className="sheet-icon" style={{ backgroundColor: bg }}>
+                <svg viewBox="0 0 24 24"><path d={d} /></svg>
+              </div>
+              <span>{label}</span>
+            </button>
+          ))}
+          </div>
+          <div className="sheet-cancel" onClick={closeSheet}>取消</div>
+        </div>
+      </div>
+
+      {/* Injected stylesheet */}
+      <style dangerouslySetInnerHTML={{ __html: STYLE_CSS }} />
+    </div>
   );
 }
 
-const getStyles = (c: ThemeColors) => {
-  const hdr = historyHeader(c);
-  // Boost header z-index so it sits ABOVE the raw-div viewport
-  const boostedHeader = {
-    ...hdr.header,
-    zIndex: 100, // was 90, ensure it's well above viewport's zIndex: 1
-  };
-  return StyleSheet.create({
-    container: { flex: 1, minHeight: '100vh' as any },
-    header: boostedHeader as any,
-    backBtn: hdr.backBtn as any,
-    backArrow: hdr.backArrow as any,
-    title: hdr.title as any,
+/* ═══════════════════════ RN styles (for loading/error states) ═══════════════════════ */
 
-    viewerArea: {
-      flex: 1, backgroundColor: '#141416', marginTop: HEADER_H,
-    } as any,
-    centered: { flex: 1, alignItems: 'center' as const, justifyContent: 'center' as const, padding: 24 },
-    hintText: { fontSize: FONTS.body.size, color: 'rgba(240,237,232,0.5)', marginTop: 12 },
-    errorText: { fontSize: FONTS.body.size, color: c.danger, textAlign: 'center' as const, marginBottom: 16 },
-    retryBtn: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.primary, borderRadius: 10 },
-    retryText: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight as any, color: '#fff' },
-
-    // Zoom buttons
-    zoomBtn: {
-      width: 40, height: 40, borderRadius: 20,
-      backgroundColor: 'rgba(20,20,22,.75)',
-      borderWidth: 1, borderColor: 'rgba(255,255,255,.12)',
-      alignItems: 'center' as const, justifyContent: 'center' as const,
-      boxShadow: '0 2px 12px rgba(0,0,0,.35)' as any,
-      overflow: 'hidden' as any,
-    },
-
-    // Toolbar — at bottom of container
-    toolbar: {
-      position: 'absolute' as any, bottom: 0, left: 0, right: 0, zIndex: 100,
-      height: TOOLBAR_H,
-      backgroundColor: 'rgba(20,20,22,.88)',
-      flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-around' as const,
-      paddingBottom: 8,
-    } as any,
-    toolLabel: { fontSize: 10, color: 'rgba(240,237,232,0.28)' },
-    toolBtn: { flex: 1, alignItems: 'center' as const, gap: 4, maxWidth: 90, paddingVertical: 8 } as any,
-    toolSep: { width: 1, height: 36, backgroundColor: 'rgba(255,255,255,.07)', flexShrink: 0 },
-
-    // Share sheet
-    sheetOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 150, backgroundColor: 'rgba(0,0,0,.6)', justifyContent: 'flex-end' as const } as any,
-    sheet: { backgroundColor: '#1E1E22', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 32 } as any,
-    sheetHandle: { width: 36, height: 4, backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 2, alignSelf: 'center' as const, marginTop: 12, marginBottom: 16 },
-    sheetTitle: { fontSize: 13, fontWeight: '600' as const, color: 'rgba(240,237,232,0.5)', textAlign: 'center' as const, marginBottom: 16, letterSpacing: 0.5 },
-    sheetGrid: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, paddingHorizontal: 8, marginBottom: 16 } as any,
-    sheetItem: { flexBasis: '25%' as any, alignItems: 'center' as const, paddingVertical: 12, gap: 8 } as any,
-    sheetIcon: { width: 50, height: 50, borderRadius: 14, justifyContent: 'center' as const, alignItems: 'center' as const } as any,
-    sheetItemLabel: { fontSize: 11, color: 'rgba(240,237,232,0.5)' },
-    sheetCancel: { marginHorizontal: 16, paddingVertical: 14, borderRadius: 14, backgroundColor: '#26262C', borderWidth: 0.5, borderColor: 'rgba(255,255,255,.12)', alignItems: 'center' as const } as any,
-    sheetCancelText: { fontSize: 14, fontWeight: '500' as const, color: 'rgba(240,237,232,0.5)' },
-
-    // Toast — above toolbar
-    toastWrap: { position: 'absolute' as any, bottom: TOOLBAR_H + 12, left: '50%', transform: 'translateX(-50%)' as any, alignItems: 'center' as const, zIndex: 200 } as any,
-    toastBox: { backgroundColor: 'rgba(30,30,34,.95)', borderWidth: 0.5, borderColor: 'rgba(255,255,255,.12)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 18, flexDirection: 'row' as const, gap: 8 } as any,
-    toastIconText: { fontSize: 14 },
-    toastText: { fontSize: 12, color: '#F0EDE8' },
-  });
-};
+const getStyles = (c: ThemeColors) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#141416',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  loadingWrap: {
+    alignItems: 'center' as const,
+    gap: 12,
+  },
+  spinner: {
+    width: 36, height: 36, borderRadius: 18,
+    borderWidth: 3, borderColor: 'rgba(240,237,232,.15)',
+    borderTopColor: c.primary,
+  } as any,
+  errWrap: {
+    alignItems: 'center' as const,
+    padding: 24,
+  },
+  errTextWrap: {
+    marginBottom: 8,
+  },
+});
