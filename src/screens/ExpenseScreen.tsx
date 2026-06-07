@@ -1313,8 +1313,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabCard: {
-    // @ts-ignore — 对齐内容卡片宽度，右侧留 14px peek
-    width: 'calc(100% - 14px)', height: 210,
+    // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
+    width: 'calc(100vw - 61px)', height: 210,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
