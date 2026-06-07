@@ -31,7 +31,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;pointer-events:none}
 .pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
-.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#fff}
+.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#F9F7F4}
 .pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
 .pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
