@@ -74,9 +74,10 @@ const STYLE_CSS = `
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);touch-action:none}
 
-.navbar{position:fixed;top:44px;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 16px 8px;background:transparent;backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
-.nav-left{display:flex;align-items:center}
-.nav-title-wrap{position:absolute;left:50%;transform:translateX(-50%);text-align:center}
+.navbar{position:fixed;top:44px;left:0;right:0;z-index:100;display:flex;align-items:center;padding:20px 16px 8px;background:transparent;backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
+.nav-left{flex:1;display:flex;align-items:center}
+.nav-right{flex:1;display:flex;align-items:center;justify-content:flex-end}
+.nav-title-wrap{flex:0 0 auto;text-align:center}
 .nav-back{width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,0.30);backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .nav-back:active{background:rgba(255,255,255,0.45)}
 .nav-back svg{width:20px;height:20px;stroke:#2C2626;stroke-width:1.5;fill:none;display:block}
