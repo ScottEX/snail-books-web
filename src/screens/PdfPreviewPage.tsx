@@ -58,33 +58,40 @@ html.pv-lock{overflow:hidden;touch-action:none}
 
 /* Document sheet */
 .pv-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
-.pv-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:28px 24px 36px;font-family:var(--sans)}
-.pv-brand{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e8e4de;color:#333;font-size:13px;letter-spacing:.35em;font-weight:500}
-.pv-brand-sub{font-size:9px;letter-spacing:.18em;color:#aaa;font-family:var(--mono)}
-.pv-head{text-align:center;margin-bottom:18px}
-.pv-head h1{font-size:22px;font-weight:700;letter-spacing:.3em;color:var(--accent);margin-bottom:3px}
-.pv-head p{font-size:8px;letter-spacing:.15em;color:#aaa;font-family:var(--mono)}
-.pv-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;font-size:10px;margin-bottom:16px;padding:10px 0;border-top:1px solid #e8e4de;border-bottom:1px solid #e8e4de}
-.pv-meta-label{color:#aaa;margin-bottom:2px;font-family:var(--mono);font-size:8px;letter-spacing:.05em}
-.pv-meta-value{color:#222;font-weight:500;font-size:10px}
-.pv-table{width:100%;border-collapse:collapse;font-size:9.5px}
-.pv-table th{background:#7a1a1a;color:#fff;padding:7px 6px;text-align:left;font-weight:500}
-.pv-table th:last-child{text-align:right}
-.pv-table th:nth-child(3),.pv-table th:nth-child(4){text-align:center}
-.pv-table td{padding:7px 6px;border-bottom:1px solid #f0ece6;color:#222;vertical-align:middle}
-.pv-table td:last-child{text-align:right;font-weight:600;color:#7a1a1a;font-family:var(--mono)}
-.pv-table td:nth-child(3){text-align:center;font-family:var(--mono);color:#555}
-.pv-table td:nth-child(4){text-align:center;font-family:var(--mono);color:#333}
-.pv-table tr:nth-child(even) td{background:#faf9f7}
-.pv-table tr:last-child td{border-bottom:none}
-.pv-totals{margin-top:16px;padding-top:12px;border-top:2px solid #e8e4de}
-.pv-tot-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:5px}
-.pv-tot-row span:first-child{color:#888}
-.pv-tot-row span:last-child{font-family:var(--mono);color:#333}
-.pv-tot-grand{margin-top:8px;padding-top:8px;border-top:1px solid #e8e4de}
-.pv-tot-grand span:first-child{font-size:12px;font-weight:600;color:#222}
-.pv-tot-grand span:last-child{font-size:16px;font-weight:700;color:#7a1a1a}
-.pv-foot{margin-top:24px;text-align:center;padding-top:14px;border-top:1px solid #ede9e3;font-size:8px;color:#bbb;letter-spacing:.08em;font-family:var(--mono);line-height:1.8}
+.pv-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:0;font-family:'Noto Sans SC',sans-serif}
+.pv-inner{border:1px solid #7D2329;padding:32px 36px 28px;min-height:256mm;box-sizing:border-box;position:relative}
+.pv-co{text-align:center;margin-bottom:20px}
+.pv-co-name{font-size:13px;font-weight:500;color:#2C2626;letter-spacing:3px}
+.pv-co-sub{font-size:9px;color:#8C8583;letter-spacing:1px;margin-top:2px}
+.pv-title-block{text-align:center;border-top:1px solid #7D2329;border-bottom:1px solid #7D2329;padding:12px 0;margin-bottom:24px}
+.pv-title-block .t{font-size:20px;font-weight:700;color:#7D2329;letter-spacing:8px}
+.pv-title-block .s{font-size:10px;color:#8C8583;letter-spacing:1px;margin-top:2px}
+.pv-meta-row{display:flex;justify-content:space-between;margin-bottom:22px;font-size:11px;padding:0 4px;gap:12px}
+.pv-meta-row>div{flex:1}
+.pv-meta-row .lbl{color:#8C8583}
+.pv-meta-row .val{font-weight:500}
+.pv-table{width:100%;border-collapse:collapse;font-size:12px}
+.pv-table thead th{background:#7D2329;color:#fff;font-weight:500;padding:10px 12px;text-align:center;font-size:11px;letter-spacing:1px}
+.pv-table thead th:first-child{text-align:left;padding-left:16px}
+.pv-table tbody td{padding:11px 12px;text-align:center;border-bottom:1px solid #EAE5E0}
+.pv-table tbody td:first-child{text-align:left;padding-left:16px;font-weight:500}
+.pv-table tbody td:last-child{font-weight:600}
+.pv-table tbody tr:last-child td{border-bottom:2px solid #7D2329}
+.pv-table .pv-total-row td{font-size:16px;font-weight:700;color:#7D2329;padding:16px 12px;border-bottom:none}
+.pv-table .pv-total-row td:last-child{font-size:18px}
+.pv-imgs{margin-top:28px;padding-top:16px;border-top:1px dashed #EAE5E0}
+.pv-imgs-label{font-size:10px;color:#8C8583;letter-spacing:1px;margin-bottom:10px}
+.pv-imgs-grid{display:flex;gap:8px;flex-wrap:wrap}
+.pv-imgs-grid img{width:100px;height:75px;object-fit:cover;border-radius:3px}
+.pv-divider{border-bottom:1px dashed #EAE5E0;margin:12px 0}
+.pv-footer{margin-top:16px;display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;color:#8C8583;position:relative}
+.pv-footer .note{max-width:50%;line-height:1.6;font-size:10px}
+.pv-footer .sigs{display:flex;gap:24px;font-size:12px;color:#2C2626;flex-shrink:0;white-space:nowrap;margin-left:auto}
+.pv-footer .sigs span{font-weight:500}
+.pv-seal{position:absolute;bottom:-8px;right:-16px;width:72px;height:72px;transform:rotate(-15deg);pointer-events:none}
+.pv-seal-round{width:72px;height:72px;border-radius:50%;border:2.5px solid rgba(125,35,41,0.25);display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative}
+.pv-seal-text{font-family:'Noto Serif SC','Noto Sans SC',serif;font-size:15px;font-weight:700;color:rgba(125,35,41,0.35);letter-spacing:2px;line-height:1}
+.pv-seal-sub{font-family:'Inter',sans-serif;font-size:6.5px;font-weight:600;color:rgba(125,35,41,0.2);letter-spacing:1px;margin-top:2px}
 
 /* Toolbar */
 .pv-tb{position:fixed;bottom:0;left:0;right:0;z-index:100;height:${TOOLBAR_H}px;background:rgba(20,20,22,.88);backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px}
@@ -140,30 +147,40 @@ function fmtMoney(n: number): string {
 }
 
 function buildDocHTML(b: BatchData): string {
+  const now = new Date();
+  const genDate = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+
   const itemsRows = b.items.map(it =>
     `<tr><td>${escapeHtml(it.product_name)}</td><td>${escapeHtml(it.spec || '')}</td><td>${fmtMoney(it.unit_price)}</td><td>${it.quantity}</td><td>${fmtMoney(it.subtotal)}</td></tr>`
   ).join('');
-  const itemCount = b.items.length;
-  const totalQty = b.items.reduce((s, it) => s + it.quantity, 0);
 
-  return `
-<div class="pv-brand">柳 味 探 秘 科 技<div class="pv-brand-sub">LIUWEI TECHNOLOGY · 餐饮供应链管理</div></div>
-<div class="pv-head"><h1>进 货 单</h1><p>PURCHASE ORDER / RECEIPT</p></div>
-<div class="pv-meta">
-  <div><div class="pv-meta-label">NO.</div><div class="pv-meta-value">2026-${String(b.batch_number).padStart(4, '0')}</div></div>
-  <div><div class="pv-meta-label">日期</div><div class="pv-meta-value">${formatDate(b.date)}</div></div>
-  <div><div class="pv-meta-label">支付</div><div class="pv-meta-value">${b.payment_method || '微信'}</div></div>
+  const paymentLabel = (b.payment_method === 'cash') ? '现金' : (b.payment_method === 'wechat' ? '微信' : (b.payment_method || '微信'));
+  const noteRaw = '';
+  const noteHtml = noteRaw ? `<div class="note">备注：${escapeHtml(noteRaw)}</div>` : '';
+
+  return `<div class="pv-inner">
+<div class="pv-co"><div class="pv-co-name">柳 味 探 秘 科 技</div><div class="pv-co-sub">LIUWEI TECHNOLOGY · 餐饮供应链管理</div></div>
+<div class="pv-title-block"><div class="t">进 货 单</div><div class="s">PURCHASE ORDER / RECEIPT</div></div>
+<div class="pv-meta-row">
+  <div><span class="lbl">日期</span> <span class="val">${formatDate(b.date)}</span></div>
+  <div><span class="lbl">支付</span> <span class="val">${paymentLabel}</span></div>
+  <div><span class="lbl">类别</span> <span class="val">商品</span></div>
+  <div><span class="lbl">批次</span> <span class="val">#${b.batch_number}</span></div>
 </div>
 <table class="pv-table">
 <thead><tr><th>品名</th><th>规格</th><th>单价</th><th>数量</th><th>小计</th></tr></thead>
-<tbody>${itemsRows}</tbody>
+<tbody>
+${itemsRows}
+<tr class="pv-total-row"><td colspan="4" style="text-align:right;padding-right:20px;">合计（人民币）</td><td>${fmtMoney(b.total)}</td></tr>
+</tbody>
 </table>
-<div class="pv-totals">
-  <div class="pv-tot-row"><span>商品种类</span><span>${itemCount} 种</span></div>
-  <div class="pv-tot-row"><span>总件数</span><span>${totalQty} 件</span></div>
-  <div class="pv-tot-row pv-tot-grand"><span>合计货款</span><span>${fmtMoney(b.total)}</span></div>
+<div class="pv-divider"></div>
+<div class="pv-footer">
+  ${noteHtml}
+  <div class="sigs"><span>操作员：${escapeHtml(b.operator || '')}</span><span>生成日期：${genDate}</span></div>
+  <div class="pv-seal"><div class="pv-seal-round"><div class="pv-seal-text">柳味探秘</div><div class="pv-seal-sub">LIUWEI</div></div></div>
 </div>
-<div class="pv-foot">柳味探秘科技 · 餐饮供应链管理系统<br>本单据由系统自动生成，具有法律效力</div>`;
+</div>`;
 }
 
 function escapeHtml(s: string): string {
