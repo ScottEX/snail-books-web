@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
+import Hammer from 'hammerjs';
 import { useTheme, ThemeColors } from '../theme';
 import { t } from '../i18n';
 
@@ -31,9 +32,10 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;pointer-events:none}
 .pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
-.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#fff}
-.pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
-.pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
+.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#fff;touch-action:none}
+.pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.pv-pdf-wrap *{pointer-events:none}
+.pv-pdf-wrap canvas{display:block;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
 .pv-tb{position:fixed;bottom:0;left:0;right:0;z-index:100;height:${TOOLBAR_H}px;background:rgba(20,20,22,.88);backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px}
 .pv-tb-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:12px;cursor:pointer;transition:all .15s;border:none;background:none;flex:1;max-width:90px}
@@ -98,11 +100,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     return () => { cancelled = true; };
   }, [pdfUrl]);
 
+  const vpRef = useRef<HTMLDivElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const gRef = useRef({ scale: 1, tx: 0, ty: 0 });
-  const dragRef = useRef({ active: false, sx: 0, sy: 0, stx: 0, sty: 0 });
-  const pinchRef = useRef({ dist: 0, scale: 1 });
-  const lastTapRef = useRef(0);
   const rafRef = useRef(0);
   const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -118,10 +118,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, []);
 
   const clamp = useCallback(() => {
-    const el = wrapRef.current;
-    if (!el) return;
+    const vp = vpRef.current, el = wrapRef.current;
+    if (!vp || !el) return;
     const g = gRef.current;
-    const vp = el.parentElement; if (!vp) return;
     const cw = el.scrollWidth * g.scale;
     const ch = el.scrollHeight * g.scale;
     const vw = vp.clientWidth, vh = vp.clientHeight;
@@ -147,9 +146,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, [clamp, applyTransform]);
 
   const initZoom = useCallback(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const vp = el.parentElement; if (!vp) return;
+    const vp = vpRef.current;
+    if (!vp) return;
     setPageW(vp.clientWidth);
     gRef.current = { scale: 1, tx: 0, ty: 0 };
     applyTransform(false);
@@ -159,80 +157,53 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (!pdfLoading && wrapRef.current) setTimeout(initZoom, 100);
   }, [pdfLoading, initZoom]);
 
-  // ── 手势事件 ──
+  // ── Hammer.js 手势 ──
   useEffect(() => {
-    const el = wrapRef.current; if (!el) return;
+    const vp = vpRef.current; if (!vp) return;
+    const mc = new Hammer.Manager(vp, { touchAction: 'none' });
 
-    const onMD = (e: MouseEvent) => {
-      e.preventDefault();
-      const g = gRef.current;
-      dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.tx, sty: g.ty };
-    };
-    const onMM = (e: MouseEvent) => {
-      if (!dragRef.current.active) return;
-      const d = dragRef.current;
-      gRef.current.tx = d.stx + (e.clientX - d.sx);
-      gRef.current.ty = d.sty + (e.clientY - d.sy);
+    const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0 });
+    const pinch = new Hammer.Pinch();
+    const tap = new Hammer.Tap({ taps: 2, interval: 300, threshold: 10, posThreshold: 30 });
+    mc.add([pan, pinch, tap]);
+
+    let g0 = { scale: 1, tx: 0, ty: 0 };
+
+    mc.on('panstart', () => { g0 = { ...gRef.current }; });
+    mc.on('panmove', (e) => {
+      gRef.current.tx = g0.tx + e.deltaX;
+      gRef.current.ty = g0.ty + e.deltaY;
       scheduleApply();
-    };
-    const onMU = () => { dragRef.current.active = false; clamp(); applyTransform(true); };
+    });
+    mc.on('panend', () => { clamp(); applyTransform(true); });
+
+    mc.on('pinchstart', () => { g0 = { ...gRef.current }; });
+    mc.on('pinchmove', (e) => {
+      gRef.current.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g0.scale * e.scale));
+      gRef.current.tx = g0.tx;
+      gRef.current.ty = g0.ty;
+      clamp(); applyTransform(false); flushZoom(false);
+    });
+    mc.on('pinchend', () => { clamp(); applyTransform(true); flushZoom(true); });
+
+    mc.on('tap', () => {
+      const ns = gRef.current.scale > 1.1 ? 1 : 2;
+      gRef.current.scale = ns; gRef.current.tx = 0; gRef.current.ty = 0;
+      clamp(); applyTransform(true); flushZoom(true);
+    });
+
+    // 鼠标滚轮缩放
     const onWh = (e: WheelEvent) => {
       e.preventDefault();
       const g = gRef.current;
       g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + (e.deltaY > 0 ? -0.08 : 0.08)));
       clamp(); applyTransform(false); flushZoom(false);
     };
-
-    el.addEventListener('mousedown', onMD);
-    window.addEventListener('mousemove', onMM);
-    window.addEventListener('mouseup', onMU);
-    el.addEventListener('wheel', onWh, { passive: false });
-
-    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-    const onTS = (e: TouchEvent) => {
-      e.preventDefault();
-      if (e.touches.length === 1) {
-        const now = Date.now();
-        if (now - lastTapRef.current < 300) {
-          const ns = gRef.current.scale > 1.1 ? 1 : 2;
-          gRef.current.scale = ns; gRef.current.tx = 0; gRef.current.ty = 0;
-          clamp(); applyTransform(true); flushZoom(true); lastTapRef.current = 0; return;
-        }
-        lastTapRef.current = now;
-        dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: gRef.current.tx, sty: gRef.current.ty };
-      } else if (e.touches.length === 2) {
-        pinchRef.current = { dist: dist(e.touches), scale: gRef.current.scale };
-      }
-    };
-    const onTM = (e: TouchEvent) => {
-      e.preventDefault();
-      if (dragRef.current.active && e.touches.length === 1) {
-        const d = dragRef.current;
-        gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
-        gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
-        scheduleApply();
-      } else if (e.touches.length === 2 && pinchRef.current.dist > 0) {
-        const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchRef.current.scale * (dist(e.touches) / pinchRef.current.dist)));
-        gRef.current.scale = ns;
-        clamp(); applyTransform(false); flushZoom(false);
-      }
-    };
-    const onTE = (e: TouchEvent) => {
-      if (e.touches.length === 0) { dragRef.current.active = false; clamp(); applyTransform(true); }
-      else if (e.touches.length === 1) { dragRef.current.active = false; }
-    };
-    el.addEventListener('touchstart', onTS, { passive: false });
-    el.addEventListener('touchmove', onTM, { passive: false });
-    el.addEventListener('touchend', onTE);
+    vp.addEventListener('wheel', onWh, { passive: false });
 
     return () => {
-      el.removeEventListener('mousedown', onMD);
-      window.removeEventListener('mousemove', onMM);
-      window.removeEventListener('mouseup', onMU);
-      el.removeEventListener('wheel', onWh);
-      el.removeEventListener('touchstart', onTS);
-      el.removeEventListener('touchmove', onTM);
-      el.removeEventListener('touchend', onTE);
+      mc.destroy();
+      vp.removeEventListener('wheel', onWh);
     };
   }, [scheduleApply, clamp, applyTransform, flushZoom]);
 
@@ -283,7 +254,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <div className={`pv-zi${zoomVis ? ' on' : ''}`}>{zoomPct}%</div>
 
         {/* PDF Viewport */}
-        <div className="pv-vp">
+        <div className="pv-vp" ref={vpRef}>
           {pdfLoading && !pdfError && (
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
               <div className="pv-spinner" />
