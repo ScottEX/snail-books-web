@@ -16,7 +16,6 @@ import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedSt
 import { fmtAmt as fmt } from '../utils/format';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
-import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
 
 /* ── helpers ── */
 const fmtInt = (n: number) => n.toLocaleString();
@@ -102,12 +101,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [activeTab, setActiveTabState] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('expense_active_tab');
-      return saved !== null ? parseInt(saved, 10) : 1; // default to 营业 (index 1)
-    } catch { return 1; }
+      return saved !== null ? parseInt(saved, 10) : 0;
+    } catch { return 0; }
   });
   const setActiveTab = (i: number) => {
     setActiveTabState(i);
-    if (i === 2) setExpDateErr(0);
+    if (i === 1) setExpDateErr(0);
     try { localStorage.setItem('expense_active_tab', String(i)); } catch {}
   };
   const [showToast, setShowToast] = useState(false);
@@ -132,7 +131,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
       scrollTimerRef.current = setTimeout(() => {
         const idx = Math.round(scrollElRef.current!.scrollLeft / 310);
-        setActiveTab(Math.min(2, Math.max(0, idx)));
+        setActiveTab(Math.min(1, Math.max(0, idx)));
       }, 150);
     };
     el?.addEventListener('scroll', onNativeScroll, { passive: true });
@@ -384,9 +383,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const lang = getLang();
   const tabCards = useMemo(() => [
     { gradient: [withAlpha(colors.success, 0.22), withAlpha(colors.info, 0.22)], gradientActive: [withAlpha(colors.success, 0.48), withAlpha(colors.info, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
-    { gradient: [withAlpha(colors.primary, 0.22), withAlpha(colors.warning, 0.22)], gradientActive: [withAlpha(colors.primary, 0.48), withAlpha(colors.warning, 0.48)], title: '收支总览', stat: feeTotal, statFmt: fmt(feeTotal), statColor: colors.textMain, prefix: '' },
     { gradient: [withAlpha(colors.danger, 0.22), withAlpha(colors.primary, 0.22)], gradientActive: [withAlpha(colors.danger, 0.48), withAlpha(colors.primary, 0.48)], title: t('tabExpense'), stat: businessSummary.cumulative_expense || 0, statFmt: fmt(businessSummary.cumulative_expense || 0), statColor: colors.textMain, prefix: '' },
-  ], [diff, feeTotal, businessSummary.cumulative_expense, colors, lang]);
+  ], [diff, businessSummary.cumulative_expense, colors, lang]);
 
   const st = useMemo(() => getSt(colors), [colors]);
 
@@ -497,74 +495,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       </View>
                     </View>
                   )}
-                  {i === 1 && (
-                    <View style={{ flex: 1, gap: 12 }}>
-                      {/* Hero: 在手资金 */}
-                      <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
-                        {/* @ts-ignore */}
-                        <Text style={{
-                          fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
-                          color: 'rgba(255,255,255,0.70)',
-                          textShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                        } as any}>{t('cashOnHand')}</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                          {/* @ts-ignore */}
-                          <Text style={{
-                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-                            color: (() => {
-                              const v = businessSummary.cash_on_hand || 0;
-                              return v > 0 ? colors.primary : v < 0 ? colors.danger : colors.textMain;
-                            })(),
-                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                          } as any}>¥</Text>
-                          {/* @ts-ignore */}
-                          <Text style={{
-                            fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
-                            color: (() => {
-                              const v = businessSummary.cash_on_hand || 0;
-                              return v > 0 ? colors.primary : v < 0 ? colors.danger : colors.textMain;
-                            })(),
-                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                          } as any}>{toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
-                        </View>
-                      </View>
-                      {/* Sub-cards: 累計營收 | 累計支出 */}
-                      <View style={{ flexDirection: 'row', gap: 10 }}>
-                        <View style={{
-                          flex: 1, backgroundColor: withAlpha(colors.warning, 0.15),
-                          borderRadius: 10, padding: 14, gap: 6,
-                          borderWidth: 0.5, borderColor: withAlpha(colors.warning, 0.30),
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                        } as any}>
-                          <Text style={{
-                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
-                            color: 'rgba(255,255,255,0.70)',
-                          }}>{t('cumulativeRevenue')}</Text>
-                          <Text style={{
-                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-                            color: 'rgba(255,255,255,0.95)',
-                          }}>{'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}</Text>
-                        </View>
-                        <View style={{
-                          flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
-                          borderRadius: 10, padding: 14, gap: 6,
-                          borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                        } as any}>
-                          <Text style={{
-                            fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
-                            color: 'rgba(255,255,255,0.70)',
-                          }}>{t('cumulativeExpense')}</Text>
-                          <Text style={{
-                            fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-                            color: 'rgba(255,255,255,0.95)',
-                          }}>{'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}</Text>
-                        </View>
-                      </View>
-                    </View>
-                  )}
-                </View>
-                {i === 2 && (
+                  </View>
+                {i === 1 && (
                   <View>
                     {/* Row 1: 日常 | 采购 */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -640,36 +572,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ScrollView>
       </View>
 
-      {/* ══════ 内容区（FadeIn 切换） ══════ */}
-      {activeTab === 1 && (
-      <View style={{ paddingHorizontal: 18, marginBottom: 12 }}>
-        <View style={st.card}>
-          <View style={st.kpiRow}>
-            <View style={st.kpiItem}>
-              <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
-              <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.actual_received)}</Text>
-            </View>
-            <View style={st.kpiItem}>
-              <Text style={st.kpiLabel}>{t('receivable')}</Text>
-              <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.receivable)}</Text>
-            </View>
-            <View style={st.kpiItem}>
-              <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
-              <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.discount)}</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-      )}
-      {activeTab === 1 && (
-      <ExpenseSummaryCards
-        todayExpense={todayExpenseSummary}
-        monthExpense={monthExpenseSummary}
-        todayIncome={todayIncomeSummary}
-        monthIncome={monthIncomeSummary}
-      />
-      )}
-      <ScrollView style={[st.contentScroll, activeTab === 1 && { flex: 0 } as any]} showsVerticalScrollIndicator={false}
+      <ScrollView style={st.contentScroll} showsVerticalScrollIndicator={false}
         contentContainerStyle={st.contentInner}>
 
         {/* ── 模块一：每日对账 ── */}
