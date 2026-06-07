@@ -655,24 +655,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         {/* ── 模块一：每日对账 ── */}
         {activeTab === 0 && (
         <FadeInView style={st.moduleWrap}>
-          {/* Revenue KPI cards */}
-          <View style={st.card}>
-            <View style={st.kpiRow}>
-              <View style={st.kpiItem}>
-                <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
-                <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.actual_received)}</Text>
-              </View>
-              <View style={st.kpiItem}>
-                <Text style={st.kpiLabel}>{t('receivable')}</Text>
-                <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.receivable)}</Text>
-              </View>
-              <View style={st.kpiItem}>
-                <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
-                <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.discount)}</Text>
-              </View>
-            </View>
-          </View>
-
           {/* Platform fees card */}
           <View style={[st.card, { marginTop: 12 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
@@ -755,7 +737,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           </View>
 
           {/* 日记账 */}
-          <View style={st.card}>
+          <View style={[st.card, { marginTop: 16 }]}>
             {/* 日期行 */}
             <View style={st.dateRow}>
               <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub }}>{t('billDate')}</Text>
