@@ -178,7 +178,13 @@ export default function HomeScreen({
     if (previewRoute) {
       setPdfPreview(previewRoute);
       setPageStack(s => s.includes('pdf') ? s : [...s, 'pdf']);
-      ignorePopstateUntil.current = Date.now() + 500;
+      // The ignorePopstateUntil safety window is now a no-op for
+      // in-app nav: ProcurementDetailScreen's eye button uses
+      // onPreview → history.replaceState + pushPage, so neither
+      // hashchange nor popstate fires. The 0ms floor is kept for
+      // any future code path that might still set location.hash
+      // directly, and as a defence-in-depth margin.
+      ignorePopstateUntil.current = 0;
     }
     // When previewRoute goes null we DON'T pop here — popPage's
     // own cleanup (above) handles it via onClosePreview, which is
@@ -677,6 +683,27 @@ export default function HomeScreen({
               // lands on a live component, no stale ref.
               popPage();
               setPendingEditBatch(procDetailBatch);
+            }}
+            onPreview={(id, number) => {
+              // In-app nav to PDF preview: silent URL update via
+              // replaceState (no popstate, no hashchange) + push
+              // 'pdf' to the pageStack directly. Bypasses App.tsx's
+              // hashchange flow because the popstate that fires from
+              // `location.hash =` on iOS Safari comes too late for
+              // any time-based safety window to absorb — so the page
+              // would pop right back off the stack. Deep linking
+              // (URL hash on app load) still goes through App.tsx's
+              // hashchange listener → previewRoute → the
+              // [previewRoute] useEffect, unchanged.
+              try {
+                history.replaceState(
+                  { app: 'snail-books' },
+                  '',
+                  `#/preview-pdf?id=${id}&number=${number}`,
+                );
+              } catch {}
+              setPdfPreview({ id, number });
+              pushPage('pdf');
             }}
           />
         );

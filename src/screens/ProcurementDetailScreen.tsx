@@ -56,7 +56,7 @@ function EditIcon({ color }: { color: string }) {
   );
 }
 
-export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void }) {
+export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPreview }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void; onPreview?: (id: number, number: number) => void }) {
   const { colors: c } = useTheme();
   const styles = useMemo(() => getStyles(c), [c]);
   const [downloading, setDownloading] = useState(false);
@@ -116,15 +116,20 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
       //      of a real PDF attachment.
       // A preview page decouples "see the PDF" from "share/save it"
       // and gives us one consistent UX across browsers.
-      // Use `window.location.hash =` (NOT history.pushState) to set the
-      // route: iOS Safari silently no-ops hash-only pushState, so the
-      // `hashchange` event never fires and App.tsx's listener (L47-52)
-      // never picks up the new route, leaving the preview invisible.
-      // Assigning `location.hash` directly fires `hashchange`
-      // reliably on every browser; the popstate side-effect is
-      // absorbed by HomeScreen's 500ms `ignorePopstateUntil` safety
-      // window (L168-175).
-      window.location.hash = `#/preview-pdf?id=${batch.id}&number=${batch.batch_number}`;
+      // Prefer the onPreview callback (HomeScreen) for in-app nav.
+      // It uses history.replaceState to update the URL silently
+      // (no popstate, no hashchange) and pushes 'pdf' to the
+      // pageStack directly — bypassing App.tsx's hashchange flow
+      // entirely. The previous location.hash path broke on iOS
+      // Safari because the popstate from hash assignment fires
+      // AFTER any reasonable safety window, popping the page back
+      // off the stack. Fall back to the hash path for any future
+      // caller that doesn't pass onPreview (e.g. a direct embed).
+      if (onPreview) {
+        onPreview(batch.id, batch.batch_number);
+      } else {
+        window.location.hash = `#/preview-pdf?id=${batch.id}&number=${batch.batch_number}`;
+      }
     } catch {
       // Fallback: open the login-required PDF endpoint in a new tab
       window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');
