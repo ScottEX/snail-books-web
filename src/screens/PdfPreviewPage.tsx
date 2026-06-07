@@ -104,13 +104,16 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .doc-heading h1{font-size:22px;font-weight:700;letter-spacing:.3em;color:#C0392B;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
 .doc-heading p{font-size:8px;letter-spacing:.15em;color:#aaa;font-family:'DM Mono',monospace}
 .doc-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;font-size:10px;margin-bottom:16px;padding:10px 0;border-top:1px solid #e8e4de;border-bottom:1px solid #e8e4de}
-.doc-meta-label{color:#aaa;margin-bottom:2px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.05em}
-.doc-meta-value{color:#222;font-weight:500;font-size:10px}
-.doc-table{width:100%;border-collapse:collapse;font-size:9.5px}
-.doc-table th{background:#7a1a1a;color:#fff;padding:7px 6px;text-align:left;font-weight:500}
-.doc-table th:last-child{text-align:right}
-.doc-table th:nth-child(3),.doc-table th:nth-child(4){text-align:center}
-.doc-table td{padding:7px 6px;border-bottom:1px solid #f0ece6;color:#222;vertical-align:middle}
+.doc-sheet{position:absolute;transform-origin:center top;will-change:transform;top:12px;touch-action:none;user-select:none;width:100%}
+.doc-paper{width:100%;padding:28px 20px 36px;overflow:hidden}
+.doc-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:9.5px}
+.doc-table th{background:#7a1a1a;color:#fff;padding:7px 4px;text-align:left;font-weight:500}
+.doc-table th:nth-child(1){width:35%}
+.doc-table th:nth-child(2){width:18%}
+.doc-table th:nth-child(3){width:18%;text-align:center}
+.doc-table th:nth-child(4){width:12%;text-align:center}
+.doc-table th:last-child{width:17%;text-align:right}
+.doc-table td{padding:7px 4px;border-bottom:1px solid #f0ece6;color:#222;vertical-align:middle;word-break:break-all;overflow-wrap:break-word}
 .doc-table td:last-child{text-align:right;font-weight:600;color:#7a1a1a;font-family:'DM Mono',monospace}
 .doc-table td:nth-child(3){text-align:center;font-family:'DM Mono',monospace;color:#555}
 .doc-table td:nth-child(4){text-align:center;font-family:'DM Mono',monospace;color:#333}
@@ -285,13 +288,14 @@ function PortalContent({
     rafId: null as number | null,
   });
 
-  // Apply transform — using top-left origin (no centering needed, sheet fills width)
+  // Apply transform — centered, sheet fills width via CSS
   const applyTransform = useCallback((animated: boolean) => {
     const sheet = sheetRef.current;
     const zi = zoomRef.current;
     if (!sheet) return;
     sheet.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
-    sheet.style.transform = `translate(${zi.tx}px, ${zi.ty}px) scale(${zi.scale})`;
+    sheet.style.transform = `translate(calc(-50% + ${zi.tx}px), ${zi.ty}px) scale(${zi.scale})`;
+    sheet.style.left = '50%';
     const zid = zoomIndRef.current;
     if (zid) zid.textContent = Math.round(zi.scale * 100) + '%';
   }, []);
@@ -314,7 +318,7 @@ function PortalContent({
     if (!vp || !sheet) return;
     const paper = sheet.querySelector('.doc-paper') as HTMLElement;
     if (!paper) return;
-    const dw = (paper.offsetWidth + 24) * zi.scale;
+    const dw = paper.offsetWidth * zi.scale;
     const dh = (paper.offsetHeight + 24) * zi.scale;
     zi.maxTxCache = Math.max(0, (dw - vp.clientWidth) / 2);
     zi.maxTyCache = Math.max(0, (dh - vp.clientHeight) / 2 + 20);
