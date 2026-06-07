@@ -11,37 +11,16 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 
-// NOTE: 合伙人持股/初始投资/姓名映射硬编码。若后端合伙人变更（增减/改名），
-// 默认值（33%、42900）可能不准确。理想方案是从后端返回并缓存这些映射。
-const partnerShare: Record<string, number> = { '张安武': 0.34, '江宽': 0.33, '蓝柳富': 0.33 };
-const initCapital: Record<string, number> = { '张安武': 44200, '江宽': 42900, '蓝柳富': 42900 };
-const initDate: Record<string, string> = { '张安武': '2024-04-01', '江宽': '2024-04-01', '蓝柳富': '2024-04-01' };
-const addDate: Record<string, string> = { '张安武': '2025-01-21', '江宽': '2025-01-21', '蓝柳富': '2025-01-21' };
-const nameMap: Record<string, string> = { '张安武': 'nameZhang', '江宽': 'nameJiang', '蓝柳富': 'nameLan' };
-
-function translateName(name: string): string {
-  const key = nameMap[name];
-  return key ? t(key) : name;
-}
+import {
+  partnerShare, initCapital, initDate, addDate,
+  translateName, translateDividendNote, getRoleKey,
+  usePartnerData,
+} from './partner/usePartnerData';
 
 import { formatDate } from '../utils/format';
 import PlusIcon from '../components/icons/PlusIcon';
 import MinusIcon from '../components/icons/MinusIcon';
 import { getCurrentUserId } from '../utils/storage';
-
-function translateDividendNote(note: string | null, date?: string): string {
-  if (!note) return '';
-  const m = note.match(/^(?:第(\d+)次分红|第(\d+)次)$/);
-  if (m) {
-    const n = m[1] || m[2];
-    if (date) return t('dividendRoundFmt').replace('{n}', n).replace('{date}', formatDate(date));
-    return t('dividendRoundOnly').replace('{n}', n);
-  }
-  // fallback: old format with embedded date
-  const m2 = note.match(/^第(\d+)次分红 \((.+)\)$/);
-  if (m2) return t('dividendRoundFmt').replace('{n}', m2[1]).replace('{date}', formatDate(m2[2]));
-  return note;
-}
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
@@ -74,9 +53,18 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
 
 
 export default function PartnerScreen({ onBack, onProfile }: { onBack: () => void; onProfile: () => void }) {
-  const [partners, setPartners] = useState<any[]>([]);
-  const [dividends, setDividends] = useState<any[]>([]);
-  const [totalDiv, setTotalDiv] = useState(0);
+  const [toast, setToast] = useState('');
+  const [cropMsg, setCropMsg] = useState('');
+  const {
+    partners,
+    dividends,
+    totalDiv,
+    loadingData,
+    loadData,
+    grouped,
+    groupKeys,
+    getPartnerHistory,
+  } = usePartnerData(setToast);
   const [showDividend, setShowDividend] = useState(false);
   const [showDelete, setShowDelete] = useState<any>(null);
   const [showDetail, setShowDetail] = useState<any>(null);
@@ -89,8 +77,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   // instead of capturing curLang at mount.
   const { setLang: setLangState } = useLang();
 
-  const [toast, setToast] = useState('');
-  const [cropMsg, setCropMsg] = useState('');  // inline feedback inside crop modal
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -175,29 +161,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
     } as any,
   }), [colors]);
 
-  const [loadingData, setLoadingData] = useState(true);
-  const loadData = async () => {
-    try {
-      setLoadingData(true);
-      const p = await api.getPartners();
-      setPartners(p || []);
-      const d = await api.getDividends();
-      setDividends(d || []);
-      setTotalDiv((d || []).reduce((s: number, x: any) => s + x.amount, 0));
-    } catch { setToast(t('toastLoadFailed')); }
-    setLoadingData(false);
-  };
-
-  useEffect(() => { loadData(); }, []);
-
-  const grouped: Record<string, any[]> = {};
-  dividends.forEach((d: any) => {
-    const n = d.note || '---';
-    if (!grouped[n]) grouped[n] = [];
-    grouped[n].push(d);
-  });
-  const groupKeys = Object.keys(grouped);
-
   const calcPreview = (total: number) => {
     setDivPreview(partners.map((p: any) => ({
       name: p.name,
@@ -245,18 +208,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
     // two-step `setLang(l); setLangState(l);`.
     setLangState(l);
     loadData();
-  };
-
-  // Build dividend history for detail modal
-  const getPartnerHistory = (name: string) => {
-    const history: { note: string; amount: number }[] = [];
-    Object.entries(grouped).forEach(([note, items]) => {
-      items.forEach((d: any) => {
-        if (d.partner === name && d.amount > 0)
-          history.push({ note: translateDividendNote(note, d.date), amount: d.amount });
-      });
-    });
-    return history;
   };
 
   const loadAvatar = async () => {
@@ -1053,11 +1004,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
   );
-}
-
-function getRoleKey(name: string): string {
-  const map: Record<string, string> = { '张安武': 'chairman', '江宽': 'ceo', '蓝柳富': 'janitor' };
-  return map[name] || 'janitor';
 }
 
 /* ========== TABLE GROUP ========== */

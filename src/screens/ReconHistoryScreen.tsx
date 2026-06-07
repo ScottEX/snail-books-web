@@ -8,6 +8,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
 import { fmtAmtFull } from '../utils/format';
+import DateErrorHint from '../components/DateErrorHint';
 
 const PAGE_SIZE = 10;
 
@@ -34,21 +35,6 @@ function ReconEmptyIcon({ color }: { color: string }) {
       <Path d="M9 12l2 2 4-4" />
     </Svg>
   );
-}
-
-function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
-  const [show, setShow] = React.useState(false);
-  React.useEffect(() => {
-    if (trigger > 0) {
-      setShow(true);
-      const t = setTimeout(() => setShow(false), 3000);
-      return () => clearTimeout(t);
-    } else {
-      setShow(false);
-    }
-  }, [trigger]);
-  if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{message}</Text>;
 }
 
 export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
@@ -384,7 +370,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         }}>
         <View style={st.filterPanel}>
           <View style={st.filterContent}>
-            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} colors={colors} />
+            <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
             <View style={st.filterField}>

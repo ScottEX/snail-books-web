@@ -4,15 +4,19 @@ import {
 } from 'react-native';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
-import { catKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
+import NumberTicker from '../components/NumberTicker';
+import FadeInView from '../components/FadeInView';
+import DateErrorHint from '../components/DateErrorHint';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 import { fmtAmt as fmt } from '../utils/format';
 import { getCurrentUser } from '../utils/storage';
+import { useExpenseForm } from './expense/useExpenseForm';
+import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
 
 /* ── helpers ── */
 const fmtInt = (n: number) => n.toLocaleString();
@@ -47,63 +51,6 @@ const toDec2Comma = (v: any) => {
 };
 
 /* ═══════════════════════════════════════════════════════════
-   NumberTicker — 数字从 0 平滑滚动到目标值
-   ═══════════════════════════════════════════════════════════ */
-function NumberTicker({ value, duration = 500, style }: {
-  value: number; duration?: number; style?: any;
-}) {
-  const [display, setDisplay] = useState(value);
-  const prevRef = useRef(value);
-  const rafRef = useRef<number>(0);
-
-  useEffect(() => {
-    const from = prevRef.current;
-    prevRef.current = value;
-    const start = performance.now();
-
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / duration, 1);
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - p, 3);
-      setDisplay(from + (value - from) * eased);
-      if (p < 1) rafRef.current = requestAnimationFrame(tick);
-    };
-
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [value, duration]);
-
-  // Always use fmt (now with guaranteed 2 decimal places)
-  const text = fmt(display);
-
-  return <Text style={style}>{text}</Text>;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   FadeInView — 卡片平滑淡入提升 (300ms)
-   ═══════════════════════════════════════════════════════════ */
-function FadeInView({ children, style }: {
-  children: React.ReactNode; style?: any;
-}) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(10)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: false }),
-      Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: false }),
-    ]).start();
-  }, []);
-
-  return (
-    <Animated.View style={[style, { opacity, transform: [{ translateY }] }]}>
-      {children}
-    </Animated.View>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════
    InputWithFocus — 聚焦时边框过渡到品牌红
    ═══════════════════════════════════════════════════════════ */
 function InputWithFocus({ style, inputStyle, ...props }: any) {
@@ -125,24 +72,6 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
       ]}
     />
   );
-}
-
-/* ═══════════════════════════════════════════════════════════
-   DateErrorHint — 未来日期红字提示，2.5s 自动消失
-   ═══════════════════════════════════════════════════════════ */
-function DateErrorHint({ trigger, message, colors, textAlign = 'right' }: { trigger: number; message: string; colors: any; textAlign?: 'left' | 'right' | 'center' }) {
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    if (trigger > 0) {
-      setShow(true);
-      const t = setTimeout(() => setShow(false), 3000);
-      return () => clearTimeout(t);
-    } else {
-      setShow(false);
-    }
-  }, [trigger]);
-  if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, marginTop: 1, textAlign }}>{message}</Text>;
 }
 
 /* ═══════════════════════════════════════════════════════════ */
@@ -408,162 +337,43 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   };
 
   /* ── 模块三：支出 ── */
-  const [expDate, setExpDate] = useState(todayStr());
-  const [expDateErr, setExpDateErr] = useState(0);
-  const [expAmount, setExpAmount] = useState('');
-  const [expCategory, setExpCategory] = useState('daily');
-  const [payMethod, setPayMethod] = useState('payWechat');
-  const [expNote, setExpNote] = useState('');
-  const [expImages, setExpImages] = useState<File[]>([]);
-  const [uploadingImg, setUploadingImg] = useState(false);
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
-  const [loadingExp, setLoadingExp] = useState(false);
-  const [showExpConfirm, setShowExpConfirm] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const expDateInputRef = useRef<HTMLInputElement>(null);
 
-  const loadExpenses = async () => {
-    try {
-      // Load all expense transactions for complete category totals
-      const allExpenses: any[] = [];
-      let page = 1;
-      while (true) {
-        const tx: any = await api.getTransactions(page, 100);
-        const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
-        allExpenses.push(...exps);
-        if (page >= (tx.pages || 1)) break;
-        page++;
-      }
-      setExpenses(allExpenses);
-      // Compute category totals. catKey() normalizes legacy Chinese
-      // substrings (e.g. '📦 原材料进货') to internal keys for matching.
-      let daily = 0, rent = 0, salary = 0, goods = 0;
-      allExpenses.forEach((e: any) => {
-        const k = catKey(e.category || '');
-        const amt = e.amount || 0;
-        if (k === 'daily') daily += amt;
-        else if (k === 'rent') rent += amt;
-        else if (k === 'salary') salary += amt;
-        else if (k === 'goods') goods += amt;
-      });
-      setExpCatTotals({ daily, rent, salary, goods });
-    } catch { setToast(t('toastLoadFailed')); }
-  };
-  useEffect(() => { loadExpenses(); }, []);
+  const {
+    expDate, setExpDate, expDateErr, setExpDateErr,
+    expAmount, setExpAmount,
+    expCategory, setExpCategory,
+    payMethod, setPayMethod,
+    expNote, setExpNote,
+    expImages, setExpImages,
+    uploadingImg,
+    expenses, expCatTotals,
+    loadingExp,
+    showExpConfirm, setShowExpConfirm,
+    handleAddExpense, loadExpenses,
+    handleImageSelect, removeImage,
+    handleExpDateChange, resetForm,
+    isAmountInvalid,
+    fmtDecInput, toDec2Comma, todayStr: _hookTodayStr,
+  } = useExpenseForm({
+    onExpenseHistory,
+    getPreviewUrl,
+    revokePreviewUrl,
+    clearUrlCache,
+    fileInputRef,
+    expDateInputRef,
+    onToast: setToast,
+  });
+
+  const [showImgTip, setShowImgTip] = useState(false);
 
   // Sync uncontrolled date inputs when state changes externally
+  const recDateInputRef = useRef<HTMLInputElement>(null);
+  const feeDateInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { if (recDateInputRef.current) recDateInputRef.current.value = recDate; }, [recDate]);
   useEffect(() => { if (expDateInputRef.current) expDateInputRef.current.value = expDate; }, [expDate]);
   useEffect(() => { if (feeDateInputRef.current) feeDateInputRef.current.value = feeEntryDate; }, [feeEntryDate]);
-
-  // Image upload handlers
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const recDateInputRef = useRef<HTMLInputElement>(null);
-  const expDateInputRef = useRef<HTMLInputElement>(null);
-  const feeDateInputRef = useRef<HTMLInputElement>(null);
-  const [showImgTip, setShowImgTip] = useState(false);
-
-  // Compress image via Canvas: max 1920px, JPEG quality 0.8
-  const compressImage = (file: File): Promise<File> => {
-    return new Promise((resolve, reject) => {
-      // Only compress JPEG/PNG > 500KB
-      if (file.size < 500 * 1024) return resolve(file);
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const MAX = 1920;
-        let { width, height } = img;
-        if (width > MAX || height > MAX) {
-          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
-          else { width = Math.round(width * MAX / height); height = MAX; }
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(file);
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          if (!blob) return resolve(file);
-          const compressed = new File([blob], file.name, { type: 'image/jpeg' });
-          resolve(compressed.size < file.size ? compressed : file);
-        }, 'image/jpeg', 0.8);
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
-      img.src = url;
-    });
-  };
-
-  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    const newFiles: File[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) continue;
-      if (f.size > 10 * 1024 * 1024) continue;
-      if (expImages.some(e => e.name === f.name && e.size === f.size)) continue;
-      // Compress before adding
-      const compressed = await compressImage(f);
-      newFiles.push(compressed);
-    }
-    setExpImages(prev => [...prev, ...newFiles]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const removeImage = (idx: number) => {
-    setExpImages(prev => {
-      if (prev[idx]) revokePreviewUrl(prev[idx]);
-      return prev.filter((_, i) => i !== idx);
-    });
-  };
-
-  const handleAddExpense = async () => {
-    if (!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0) return;
-    if (isFuture(expDate)) { setToast(t('errDateFuture')); return; }
-    setLoadingExp(true);
-    try {
-      // Upload images first if any
-      let imageUrls: string[] = [];
-      let thumbUrls: string[] = [];
-      if (expImages.length > 0) {
-        setUploadingImg(true);
-        const result = await api.uploadExpenseImages(expImages);
-        setUploadingImg(false);
-        if (result.status !== 'ok') {
-          setToast(t('toastSubmitFailed'));
-          setLoadingExp(false);
-          return;
-        }
-        imageUrls = result.images || [];
-        // Use the server-generated thumb URLs for the history list; fall back to
-        // full-size images if the backend didn't return thumbs (PIL disabled).
-        thumbUrls = (result.thumb_images && result.thumb_images.length > 0)
-          ? result.thumb_images
-          : imageUrls;
-      }
-      await api.createTransaction({
-        type: 'expense',
-        amount: parseFloat(expAmount.replace(/,/g, '')),
-        category: expCategory,
-        account: payMethod,
-        note: expNote,
-        date: expDate,
-        images: imageUrls,
-        thumb_images: thumbUrls,
-      });
-      clearUrlCache();
-      setExpAmount('');
-      setExpCategory('daily');
-      setPayMethod('payWechat');
-      setExpNote('');
-      setExpDate(todayStr());
-      setExpImages([]);
-      await loadExpenses();
-      onExpenseHistory?.();
-    } catch { setToast(t('toastSubmitFailed')); }
-    setLoadingExp(false);
-  };
 
   /* ── 卡片摘要数据 ── */
   const feeTotal = feeMonth === 'all'
@@ -579,6 +389,19 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   ], [diff, feeTotal, businessSummary.cumulative_expense, colors, lang]);
 
   const st = useMemo(() => getSt(colors), [colors]);
+
+  // Compute summary card values
+  const today = todayStr();
+  const thisMonthPrefix = today.slice(0, 7); // "YYYY-MM"
+  const todayExpenseSummary = expenses
+    .filter((e: any) => e.date === today)
+    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
+  const monthExpenseSummary = expenses
+    .filter((e: any) => String(e.date || '').startsWith(thisMonthPrefix))
+    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
+  // Income from fees (approximate: use feeTotal for month, prorated for today)
+  const todayIncomeSummary = 0; // Not available from current data
+  const monthIncomeSummary = feeTotal;
 
   /* ── Render ── */
   return (
@@ -818,6 +641,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       </View>
 
       {/* ══════ 内容区（FadeIn 切换） ══════ */}
+      <ExpenseSummaryCards
+        todayExpense={todayExpenseSummary}
+        monthExpense={monthExpenseSummary}
+        todayIncome={todayIncomeSummary}
+        monthIncome={monthIncomeSummary}
+      />
       <ScrollView style={st.contentScroll} showsVerticalScrollIndicator={false}
         contentContainerStyle={st.contentInner}>
 
@@ -857,7 +686,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 })}
               </View>
             </View>
-            <DateErrorHint trigger={recDateErr} message={t('errDateFuture')} colors={colors} />
+            <DateErrorHint trigger={recDateErr} message={t('errDateFuture')} color={colors.danger} />
 
             <View style={st.row2}>
               <View style={st.inputGroup}>
@@ -1221,11 +1050,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       type: 'date',
                       defaultValue: expDate,
                       max: todayStr(),
-                      onChange: (e: any) => { if (isFuture(e.target.value)) { expDateInputRef.current!.value = expDate; setExpDateErr(c => c + 1); } else { setExpDate(e.target.value); } },
+                      onChange: handleExpDateChange,
                       style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                     })}
                   </View>
-                  <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} colors={colors} textAlign="left" />
+                  <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} color={colors.danger} textAlign="left" />
                 </View>
               </View>
               {/* 按钮行 */}
@@ -1237,13 +1066,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <TouchableOpacity
                   style={[st.expBtn, { flex: 1 }]}
                   onPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) > 0) setShowExpConfirm(true); }}
-                  disabled={!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0 || loadingExp}
+                  disabled={isAmountInvalid}
                   activeOpacity={0.8}
                 >
                   <Text style={st.expBtnText}>
                     {loadingExp ? '...' : t('confirmRecord')}
                   </Text>
-                  {(!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0 || loadingExp) && (
+                  {isAmountInvalid && (
                     <View style={st.expBtnMask} />
                   )}
                 </TouchableOpacity>
@@ -1334,7 +1163,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                     })}
                   </View>
-                  <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} colors={colors} />
+                  <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} color={colors.danger} />
                 </View>
               </View>
 

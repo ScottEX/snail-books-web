@@ -14,6 +14,7 @@ import ModalOverlay from '../components/ModalOverlay';
 import BackArrow from '../components/icons/BackArrow';
 import CameraIcon from '../components/icons/CameraIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
+import { useProfileForms } from './profile/useProfileForms';
 
 /* ========== MAIN SCREEN ========== */
 function ChevronRight({ color }: { color: string }) {
@@ -54,18 +55,17 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   // Modals
-  const [showPwModal, setShowPwModal] = useState(false);
-  const [showEmailModal, setShowEmailModal] = useState(false);
+  const {
+    showPwModal, setShowPwModal,
+    showEmailModal, setShowEmailModal,
+    emailStep, setEmailStep,
+    oldPw, setOldPw, newPw, setNewPw, confirmPw, setConfirmPw,
+    newEmail, setNewEmail, emailCode, setEmailCode,
+    modalMsg, setModalMsg, modalLoading,
+    handleChangePw, handleSendCode, handleVerifyEmail, openEmailModal,
+  } = useProfileForms(setToast);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
-  const [emailStep, setEmailStep] = useState<'input' | 'code'>('input');
-  const [oldPw, setOldPw] = useState('');
-  const [newPw, setNewPw] = useState('');
-  const [confirmPw, setConfirmPw] = useState('');
-  const [newEmail, setNewEmail] = useState('');
-  const [emailCode, setEmailCode] = useState('');
-  const [modalMsg, setModalMsg] = useState('');
-  const [modalLoading, setModalLoading] = useState(false);
 
   // Auth prefs (single-device login + session timeout)
   const [enforceSingleSession, setEnforceSingleSession] = useState(1);
@@ -387,66 +387,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       if (resp.status === 'ok') { setShowResult(false); setCropSrc(''); setCropResult(''); setAvatarKey(k => k + 1); try { sessionStorage.removeItem(CACHE_KEY_AVATAR); } catch {} loadAvatar(); onAvatarChange?.(); }
       else { setCropMsg('上传失败'); }
     } catch (e) { setCropMsg('上传失败，请重试'); }
-  };
-
-  // ── Change Password ──
-  const handleChangePw = async () => {
-    setModalMsg('');
-    if (!oldPw) { setModalMsg(t('errOldPwRequired')); return; }
-    if (!newPw) { setModalMsg('请输入新密码'); return; }
-    if (newPw !== confirmPw) { setModalMsg(t('errPwMismatch')); return; }
-    setModalLoading(true);
-    try {
-      const r: any = await api.changePassword(oldPw, newPw);
-      if (r.status === 'ok') {
-        setShowPwModal(false);
-        setOldPw(''); setNewPw(''); setConfirmPw('');
-
-      } else {
-        setModalMsg(r.message || '修改失败');
-      }
-    } catch (e: any) { setModalMsg(e.message || t('errNetworkError')); }
-    setModalLoading(false);
-  };
-
-  // ── Change Email (two-step) ──
-  const handleSendCode = async () => {
-    setModalMsg('');
-    if (!newEmail) { setModalMsg('请输入新邮箱'); return; }
-    setModalLoading(true);
-    try {
-      const r: any = await api.sendEmailCode(newEmail);
-      if (r.status === 'ok') {
-        setEmailStep('code');
-      } else {
-        setModalMsg(r.message || '发送失败');
-      }
-    } catch (e: any) { setModalMsg(e.message || t('errNetworkError')); }
-    setModalLoading(false);
-  };
-
-  const handleVerifyEmail = async () => {
-    setModalMsg('');
-    if (!emailCode) { setModalMsg('请输入验证码'); return; }
-    setModalLoading(true);
-    try {
-      const r: any = await api.verifyEmailCode(newEmail, emailCode);
-      if (r.status === 'ok') {
-        setEmail(newEmail);
-        try { localStorage.setItem('email', newEmail); } catch {}
-        // Reset modal state BEFORE closing to avoid render timing issues
-        setNewEmail(''); setEmailCode(''); setEmailStep('input');
-        setShowEmailModal(false);
-      } else {
-        setModalMsg(r.message || '验证失败');
-      }
-    } catch (e: any) { setModalMsg(e.message || t('errNetworkError')); }
-    setModalLoading(false);
-  };
-
-  const openEmailModal = () => {
-    setShowEmailModal(true);
-    setNewEmail(''); setEmailCode(''); setEmailStep('input'); setModalMsg('');
   };
 
   // ── Imperative crop event binding ──
@@ -1195,7 +1135,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
-                      onPress={handleVerifyEmail}
+                      onPress={() => handleVerifyEmail((newEm: string) => {
+                        setEmail(newEm);
+                        try { localStorage.setItem('email', newEm); } catch {}
+                      })}
                       disabled={modalLoading}
                     >
                       <Text style={mo.confirmText}>{modalLoading ? t('verifying') : '确认'}</Text>

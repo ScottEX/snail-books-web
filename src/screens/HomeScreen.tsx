@@ -20,21 +20,9 @@ import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import { useDailyRevenueForm } from './home/useDailyRevenueForm';
+import DailyRevenuePanel from './home/DailyRevenuePanel';
 
-function DateErrorHint({ trigger, message, colors }: { trigger: number; message: string; colors: any }) {
-  const [show, setShow] = React.useState(false);
-  React.useEffect(() => {
-    if (trigger > 0) {
-      setShow(true);
-      const t = setTimeout(() => setShow(false), 3000);
-      return () => clearTimeout(t);
-    } else {
-      setShow(false);
-    }
-  }, [trigger]);
-  if (!show) return null;
-  return <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'left', marginTop: 2 }}>{message}</Text>;
-}
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
 export default function HomeScreen({
@@ -247,111 +235,10 @@ export default function HomeScreen({
   });
   // Background image crop moved to shared BgCropModal component.
 
-  // Daily revenue states
-  const todayDateStr = () => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  };
-  const yesterdayDateStr = () => {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  };
-  const dayBeforeDateStr = () => {
-    const d = new Date();
-    d.setDate(d.getDate() - 2);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  };
-  const [dailyRevs, setDailyRevs] = useState<any[]>([]);
-  const [revDate, setRevDate] = useState(todayDateStr());
-  const [revDateErr, setRevDateErr] = useState(0);
-  const [revDateKey, setRevDateKey] = useState(0);
-  const isFuture = (d: string) => d > todayDateStr();
-  const [revRevenue, setRevRevenue] = useState('');
-  const [revTurnover, setRevTurnover] = useState('');
-  const [revJD, setRevJD] = useState('');
-  const [revNote, setRevNote] = useState('');
-  const [revPage, setRevPage] = useState(1);
-  const [revPages, setRevPages] = useState(1);
-  const [revYear, setRevYear] = useState(new Date().getFullYear());
-  const [revMonth, setRevMonth] = useState(new Date().getMonth() + 1);
-  const [revLoading, setRevLoading] = useState(false);
-  const [revSaving, setRevSaving] = useState(false);
-  const [showRevMonthPicker, setShowRevMonthPicker] = useState(false);
-  const [editingRevId, setEditingRevId] = useState<number | null>(null);
-  const revPickerRef = useRef<any>(null);
-  const revPickerAnim = useRef(new Animated.Value(0)).current;
-  const revDateInputRef = useRef<HTMLInputElement>(null);
-  const [revPickerPos, setRevPickerPos] = useState({ top: 0, left: 0 });
-  const [yesterdayRev, setYesterdayRev] = useState<any>(null);
-  const [weekRev, setWeekRev] = useState<any>(null);
-  const [revMarkedClosed, setRevMarkedClosed] = useState(false);
-
-  // Quick date helpers
-  const td = todayDateStr();
-  const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate()-1); return fmtDate(d); };
-  const db4Str = () => { const d = new Date(); d.setDate(d.getDate()-2); return fmtDate(d); };
-  const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  const pickDate = (d: string) => { if (d <= td) loadRevForDate(d); };
-
-  // Load existing record for a date (for quick-date pills + date picker)
-  const loadRevForDate = (d: string) => {
-    setRevDate(d);
-    api.getDailyRevenue(1, 1, undefined, undefined, d).then((r: any) => {
-      const rec = r?.records?.[0];
-      if (rec) {
-        setEditingRevId(rec.id);
-        setRevRevenue(String(rec.revenue || ''));
-        setRevTurnover(String(rec.turnover || ''));
-        setRevJD(String(rec.jd_revenue || ''));
-        setRevNote(rec.note || '');
-        setRevMarkedClosed(!!rec.archived);
-      } else {
-        setEditingRevId(null);
-        setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
-        setRevMarkedClosed(false);
-      }
-    }).catch(() => {});
-  };
-
-  // Sync uncontrolled date input when revDate changes externally (quick-date pills)
-  useEffect(() => {
-    if (revDateInputRef.current) revDateInputRef.current.value = revDate;
-    setRevDateErr(0);
-  }, [revDate]);
-
-  // Daily revenue helpers
-  const loadDailyRevs = useCallback(async (p = 1, yr?: number, mo?: number) => {
-    setRevLoading(true);
-    try {
-      const r = await api.getDailyRevenue(p, 30, yr, mo);
-      setDailyRevs(r?.records || []);
-      setRevPages(r?.pages || 1);
-      setRevPage(r?.page || 1);
-    } catch { setToast(t('toastLoadFailed')); }
-    setRevLoading(false);
-  }, []);
-
-  useEffect(() => { loadDailyRevs(1, revYear, revMonth); }, [revYear, revMonth]);
-
-  // Load yesterday's revenue for card footers
-  useEffect(() => {
-    let cancelled = false;
-    const yd = yesterdayStr();
-    api.getDailyRevenue(1, 1, undefined, undefined, yd).then((r: any) => {
-      if (!cancelled) setYesterdayRev(r.records?.[0] || null);
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  // Load last 30 days aggregated
-  useEffect(() => {
-    let cancelled = false;
-    api.getDailyRevenue(1, 1, undefined, undefined, undefined, 30).then((r: any) => {
-      if (!cancelled) setWeekRev(r?.totals || null);
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
+  const revForm = useDailyRevenueForm({
+    onToast: (msg: string) => setToast(msg),
+    onRefreshLast7: (records: any[]) => setLast7Records(records),
+  });
 
   // Load last 7 days table
   useEffect(() => {
@@ -361,65 +248,6 @@ export default function HomeScreen({
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
-
-  const submitDailyRev = async () => {
-    const isClosed = revMarkedClosed;
-    if (!isClosed && (!revTurnover || parseFloat(revTurnover) <= 0)) { setToast(t('revTurnover') + ' 不能为空'); return; }
-    setRevSaving(true);
-    try {
-      if (editingRevId) {
-        await api.updateDailyRevenue(editingRevId, {
-          revenue: parseFloat(revRevenue) || 0,
-          turnover: parseFloat(revTurnover) || 0,
-          jd_revenue: parseFloat(revJD) || 0,
-          note: revNote,
-          archived: revMarkedClosed ? 1 : 0,
-        });
-      } else {
-        const r = await api.createDailyRevenue({
-          date: revDate,
-          revenue: parseFloat(revRevenue) || 0,
-          turnover: parseFloat(revTurnover) || 0,
-          jd_revenue: parseFloat(revJD) || 0,
-          note: revNote,
-          archived: revMarkedClosed ? 1 : 0,
-        });
-        if (r.status === 'error') { setToast(r.message); setRevSaving(false); return; }
-      }
-      setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
-      setEditingRevId(null); setRevDate(todayDateStr());
-      setRevMarkedClosed(false);
-      await loadDailyRevs(1, revYear, revMonth);
-      const r = await api.getLast7Days();
-      setLast7Records(r?.records || []);
-    } catch { setToast(t('toastSubmitFailed')); }
-    setRevSaving(false);
-  };
-
-  const startEdit = (rev: any) => {
-    setEditingRevId(rev.id);
-    setRevDate(rev.date);
-    setRevRevenue(String(rev.revenue || ''));
-    setRevTurnover(String(rev.turnover || ''));
-    setRevJD(String(rev.jd_revenue || ''));
-    setRevNote(rev.note || '');
-    setRevMarkedClosed(!!rev.archived);
-  };
-
-  const cancelEdit = () => {
-    setEditingRevId(null);
-    setRevDate(todayDateStr());
-    setRevRevenue(''); setRevTurnover(''); setRevJD(''); setRevNote('');
-    setRevMarkedClosed(false);
-  };
-
-  const deleteDailyRev = async (id: number) => {
-    try { await api.deleteDailyRevenue(id); loadDailyRevs(1, revYear, revMonth); }
-    catch { setToast(t('toastSubmitFailed')); }
-  };
-
-  const fmtDecInput = (s: string) => { s = s.replace(/[^0-9.]/g, ''); return s.startsWith('.') ? '0' + s : s; };
-  const toDec2 = (x: any) => String(parseFloat(x || 0).toFixed(2));
 
   const MONTHS_SHORT = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 
@@ -769,7 +597,7 @@ export default function HomeScreen({
             </TouchableOpacity>
             <View style={styles.langRow}>
               {langs.map(([l, label]) => (
-                <TouchableOpacity key={l} onPress={() => { setLangState(l, loadData); }}>
+                <TouchableOpacity key={l} onPress={() => { setLangState(l); loadData(); }}>
                   <Text style={[styles.langBtn, lang === l && styles.langActive]}>{label}</Text>
                 </TouchableOpacity>
               ))}
@@ -796,159 +624,35 @@ export default function HomeScreen({
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
                 <View style={{ paddingBottom: 120, paddingTop: 4 }}>
-                  <View style={styles.revCard}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.textMain} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                          <Path d="M3 3v18h18M7 16l4-8 4 4 4-6" />
-                        </Svg>
-                        <Text style={styles.revTitle}>{t('dailyRevenue')}</Text>
-                      </View>
-                      {/*
-                        editingRevId no longer shows cancel — date selection auto-loads data,
-                        user can modify and save directly without explicit cancel/edit modes.
-                      */}
-                    </View>
-
-                    {/* Quick date pills + date picker */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                      <View style={{ flexDirection: 'row', gap: 6 }}>
-                        {[{ label: t('revQuickToday'), d: td },
-                          { label: t('revQuickYesterday'), d: yesterdayStr() },
-                          { label: t('revQuickDB4'), d: db4Str() },
-                        ].map(pill => (
-                          <TouchableOpacity key={pill.d} onPress={() => pickDate(pill.d)} activeOpacity={0.7}
-                            style={{
-                              paddingHorizontal: 14, paddingVertical: 8, borderRadius: 22,
-                              backgroundColor: revDate === pill.d ? colors.primary : colors.bg,
-                            }}>
-                            <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: revDate === pill.d ? colors.surface : colors.textSub }}>
-                              {pill.label}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                      <View style={{ position: 'relative' }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>
-                            {revDate.replace(/-/g, '/')}
-                          </Text>
-                          <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>📅</Text>
-                          {React.createElement('input', {
-                            ref: revDateInputRef,
-                            type: 'date', defaultValue: revDate, max: todayDateStr(), key: revDateKey,
-                            onChange: (e: any) => { if (isFuture(e.target.value)) { revDateInputRef.current!.value = revDate; setRevDateKey(k => k + 1); setRevDateErr(c => c + 1); } else { loadRevForDate(e.target.value); } },
-                            style: { position: 'absolute', top: -4, right: 0, bottom: -4, left: 0, opacity: 0.01, cursor: 'pointer' },
-                          })}
-                        </View>
-                        <DateErrorHint trigger={revDateErr} message={t('errDateFuture')} colors={colors} />
-                      </View>
-                    </View>
-
-                    {/* Three input cards */}
-                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
-                      <View style={styles.revInputCard}>
-                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
-                          <Path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-                        </Svg>
-                        <Text style={styles.revInputCardTitle}>{t('revRevenue')}</Text>
-                        <Text style={styles.revInputCardSub}>{t('revRevenueSub')}</Text>
-                        <View style={styles.revInputCardInputWrap}>
-                          <Text style={styles.revInputCardSymbol}>¥</Text>
-                          <TextInput style={styles.revInputCardInput}
-                            value={revRevenue} onChangeText={(v) => setRevRevenue(fmtDecInput(v))}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
-                        </View>
-                        <Text style={styles.revInputCardFooter}>
-                          {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.revenue)}` : t('revYesterdayNA')}
-                        </Text>
-                      </View>
-                      <View style={styles.revInputCard}>
-                        <Text style={{ fontSize: FONTS.sub.size, marginBottom: 6 }}>🛒</Text>
-                        <Text style={styles.revInputCardTitle}>{t('revTurnover')}</Text>
-                        <Text style={styles.revInputCardSub}>{t('revTurnoverSub')}</Text>
-                        <View style={styles.revInputCardInputWrap}>
-                          <Text style={styles.revInputCardSymbol}>¥</Text>
-                          <TextInput style={styles.revInputCardInput}
-                            value={revTurnover} onChangeText={(v) => setRevTurnover(fmtDecInput(v))}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
-                        </View>
-                        <Text style={styles.revInputCardFooter}>
-                          {t('revYesterdayLabel')} {yesterdayRev ? `¥${toDec2(yesterdayRev.turnover)}` : t('revYesterdayNA')}
-                        </Text>
-                      </View>
-                      <View style={styles.revInputCard}>
-                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 6 }}>
-                          <Path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
-                        </Svg>
-                        <Text style={styles.revInputCardTitle}>{t('revJD')}</Text>
-                        <Text style={styles.revInputCardSub}>{t('revJDSub')}</Text>
-                        <View style={styles.revInputCardInputWrap}>
-                          <Text style={styles.revInputCardSymbol}>¥</Text>
-                          <TextInput style={styles.revInputCardInput}
-                            value={revJD} onChangeText={(v) => setRevJD(fmtDecInput(v))}
-                            keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub} />
-                        </View>
-                        <Text style={styles.revInputCardFooter}>
-                          {t('revYesterdayLabel')} {yesterdayRev && yesterdayRev.jd_revenue > 0 ? `¥${toDec2(yesterdayRev.jd_revenue)}` : t('revYesterdayNA')}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Note */}
-                    <TextInput style={styles.revNoteInput}
-                      value={revNote} onChangeText={setRevNote}
-                      placeholder={t('revNoteHint')} placeholderTextColor={colors.textSub} />
-
-                    {/* Two action buttons */}
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                      <TouchableOpacity
-                        style={[styles.revArchiveBtn, { flex: 2 }, revMarkedClosed && styles.revArchiveBtnDone]}
-                        onPress={() => {
-                          const next = !revMarkedClosed;
-                          setRevMarkedClosed(next);
-                          if (next && !revNote.trim()) { setRevNote(t('revClosedReason')); }
-                        }}
-                        activeOpacity={0.7}>
-                        <Text style={[styles.revArchiveText, revMarkedClosed && styles.revArchiveTextDone]}>
-                          {revMarkedClosed ? t('revCancelArchive') : t('revMarkArchive')}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.revSubmitBtn, { flex: 4 }, (!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0) || revSaving) && { opacity: 0.5 }]}
-                        onPress={submitDailyRev} disabled={(!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0)) || revSaving}
-                        activeOpacity={0.8}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                          {revSaving ? (
-                            <Text style={styles.revSubmitText}>...</Text>
-                          ) : (
-                            <>
-                              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                                <Path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8" />
-                              </Svg>
-                              <Text style={styles.revSubmitText}>{revDate === todayDateStr() ? t('revSaveToday') : revDate === yesterdayDateStr() ? t('revSaveYesterday') : revDate === dayBeforeDateStr() ? t('revSaveDayBefore') : `储存${revDate.slice(5).replace('-', '')}数据`}</Text>
-                            </>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Last 7 days summary */}
-                    <View style={{ marginTop: 14, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}>
-                      <View style={{ alignItems: 'flex-start' }}>
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekRevenue')}</Text>
-                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.revenue) : '0.00'}</Text>
-                      </View>
-                      <View style={{ alignItems: 'center' }}>
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekTurnover')}</Text>
-                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.turnover) : '0.00'}</Text>
-                      </View>
-                      <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 2 }}>{t('revWeekJD')}</Text>
-                        <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain }}>¥{weekRev ? toDec2(weekRev.jd_revenue) : '0.00'}</Text>
-                      </View>
-                    </View>
-                  </View>
+                  <DailyRevenuePanel
+                    revDate={revForm.revDate}
+                    revRevenue={revForm.revRevenue}
+                    revTurnover={revForm.revTurnover}
+                    revJD={revForm.revJD}
+                    revNote={revForm.revNote}
+                    revDateErr={revForm.revDateErr}
+                    revDateKey={revForm.revDateKey}
+                    revDateInputRef={revForm.revDateInputRef}
+                    revSaving={revForm.revSaving}
+                    revMarkedClosed={revForm.revMarkedClosed}
+                    yesterdayRev={revForm.yesterdayRev}
+                    weekRev={revForm.weekRev}
+                    setRevRevenue={revForm.setRevRevenue}
+                    setRevTurnover={revForm.setRevTurnover}
+                    setRevJD={revForm.setRevJD}
+                    setRevNote={revForm.setRevNote}
+                    setRevMarkedClosed={revForm.setRevMarkedClosed}
+                    setRevDateErr={revForm.setRevDateErr}
+                    setRevDateKey={revForm.setRevDateKey}
+                    loadRevForDate={revForm.loadRevForDate}
+                    submitDailyRev={revForm.submitDailyRev}
+                    todayDateStr={revForm.todayDateStr}
+                    yesterdayDateStr={revForm.yesterdayDateStr}
+                    dayBeforeDateStr={revForm.dayBeforeDateStr}
+                    isFuture={revForm.isFuture}
+                    fmtDecInput={revForm.fmtDecInput}
+                    toDec2={revForm.toDec2}
+                  />
 
                   <View style={{ marginTop: 20 }}>
                     <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
@@ -978,7 +682,7 @@ export default function HomeScreen({
                           <View style={styles.rev7CardTop}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                               <Text style={styles.rev7CardDate}>{rec.date}</Text>
-                              {rec.date === todayDateStr() && (
+                              {rec.date === revForm.todayDateStr() && (
                                 <View style={styles.rev7TodayTag}>
                                   <Text style={styles.rev7TodayTagText}>{t('today')}</Text>
                                 </View>
@@ -1003,7 +707,7 @@ export default function HomeScreen({
                           <View style={styles.rev7CardAmounts}>
                             <View style={styles.rev7CardAmtCol}>
                               {rec.revenue > 0 ? (
-                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.revenue)}</Text>
+                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{revForm.toDec2(rec.revenue)}</Text>
                               ) : (
                                 <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
                                   <Path d="M4 6h16" />
@@ -1013,7 +717,7 @@ export default function HomeScreen({
                             </View>
                             <View style={styles.rev7CardAmtCol}>
                               {rec.turnover > 0 ? (
-                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.turnover)}</Text>
+                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{revForm.toDec2(rec.turnover)}</Text>
                               ) : (
                                 <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
                                   <Path d="M4 6h16" />
@@ -1023,7 +727,7 @@ export default function HomeScreen({
                             </View>
                             <View style={styles.rev7CardAmtCol}>
                               {rec.jd_revenue > 0 ? (
-                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{toDec2(rec.jd_revenue)}</Text>
+                                <Text style={[styles.rev7CardAmtVal, { color: colors.textMain }]}>¥{revForm.toDec2(rec.jd_revenue)}</Text>
                               ) : (
                                 <Svg width={24} height={12} viewBox="0 0 24 12" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round">
                                   <Path d="M4 6h16" />
@@ -1295,44 +999,6 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   navLabel: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.3 },
   navLabelActive: { color: colors.textMain },
-  /* ── Daily Revenue (每日营收) ── */
-  revCard: {
-    backgroundColor: withAlpha(colors.surface, 0.65), borderRadius: 14,
-    borderWidth: 0.5, borderColor: withAlpha(colors.textMain, 0.08),
-    padding: 18,
-    // @ts-ignore
-    backdropFilter: 'saturate(180%) blur(24px)',
-    // @ts-ignore
-    boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
-  },
-  revTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
-  // Three input cards
-  revInputCard: {
-    flex: 1, backgroundColor: colors.surface, borderRadius: 10,
-    padding: 10, borderWidth: 0.5, borderColor: colors.secondary,
-  },
-  revInputCardTitle: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, marginBottom: 2 },
-  revInputCardSub: { fontSize: FONTS.micro.size, color: colors.textSub, marginBottom: 8 },
-  revInputCardInputWrap: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 6 },
-  revInputCardSymbol: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, marginRight: 2, marginBottom: 1 },
-  revInputCardInput: { flex: 1, fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain, padding: 0, outline: 'none' },
-  revInputCardFooter: { fontSize: FONTS.micro.size, color: colors.textSub },
-  revNoteInput: {
-    fontSize: FONTS.sub.size, color: colors.textSub, paddingVertical: 10, paddingHorizontal: 12,
-    backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
-    marginBottom: 14, outline: 'none',
-  },
-  revSubmitBtn: {
-    backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center',
-   },
-  revSubmitText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
-  revArchiveBtn: {
-    backgroundColor: colors.secondary, borderRadius: 12, paddingVertical: 14,
-    alignItems: 'center', justifyContent: 'center', flex: 1,
-  },
-  revArchiveBtnDone: { backgroundColor: withAlpha(colors.primary, 0.1) },
-  revArchiveText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
-  revArchiveTextDone: { color: colors.primary },
   // 7-day card items — same card style as history page
   rev7CardItem: {
     backgroundColor: colors.surface, borderRadius: 12,
