@@ -18,15 +18,11 @@ const MAX_SCALE = 4;
 const NAV_H = 56;
 
 const getCSS = (c: ThemeColors) => {
-  // Precompute semi-transparent theme colors
   const r = parseInt(c.bg.slice(1,3),16);
   const g = parseInt(c.bg.slice(3,5),16);
   const b = parseInt(c.bg.slice(5,7),16);
   const btnBg = `rgba(${r},${g},${b},0.30)`;
   const btnBgActive = `rgba(${r},${g},${b},0.45)`;
-  const accentR = parseInt(c.accent.slice(1,3),16);
-  const accentG = parseInt(c.accent.slice(3,5),16);
-  const accentB = parseInt(c.accent.slice(5,7),16);
   return `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html.pv-lock{overflow:hidden;touch-action:none}
 .pv-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:transparent;backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
@@ -34,7 +30,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-back{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .pv-back:active{background:${btnBgActive}}
 .pv-back svg{width:16px;height:16px;stroke:#2C2626;stroke-width:2;fill:none;display:block}
-.pv-title{font-size:15px;font-weight:600;color:#F0EDE8;letter-spacing:.01em}
+.pv-title{font-size:15px;font-weight:600;color:#2C2626;letter-spacing:.01em}
 .pv-sub{font-size:10px;color:rgba(240,237,232,0.28);font-family:'DM Mono',monospace;margin-top:1px}
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
@@ -65,7 +61,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
 .pv-err svg{display:block}
 .pv-err-msg{font-size:13px;color:#999}
-.pv-err-btn{padding:10px 28px;border-radius:8px;background:#C0392B;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.pv-err-btn{padding:10px 28px;border-radius:8px;background:${c.accent};color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .pv-err-btn:active{opacity:.8}
 .pv-loading-mask{position:fixed;inset:0;z-index:195;background:rgba(0,0,0,0.4);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
