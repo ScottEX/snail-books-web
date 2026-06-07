@@ -813,6 +813,8 @@ export default function HomeScreen({
 
               {tab === 'chart' && (
                 <View style={{ paddingBottom: 120, paddingTop: 4 }}>
+                  {/* 收支总览标题 */}
+                  <Text style={[styles.sectionTitle, { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain, paddingTop: 0, paddingBottom: 8 }]}>{t('summary')}</Text>
                   {/* 在手资金玻璃卡片 */}
                   <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartGlassCard}>
