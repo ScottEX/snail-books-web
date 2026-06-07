@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, ActivityIndicator,
   StyleSheet, Platform,
@@ -64,8 +64,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [tokenUrl, setTokenUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [iframeError, setIframeError] = useState(false);
   const [shareSheetOpen, setShareSheetOpen] = useState(false);
   const [toast, setToast] = useState('');
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,6 +91,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     })();
     return () => { cancelled = true; };
   }, [batchId]);
+
+  // Listen for iframe load errors
+  useEffect(() => {
+    if (!tokenUrl || !iframeRef.current) return;
+    const iframe = iframeRef.current;
+    const onError = () => setIframeError(true);
+    iframe.addEventListener('error', onError);
+    return () => iframe.removeEventListener('error', onError);
+  }, [tokenUrl]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -115,6 +126,29 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     try { await navigator.clipboard.writeText(publicUrl); } catch {}
     showToast('链接已复制');
   }, [publicUrl, showToast]);
+
+  const retryPdf = useCallback(() => {
+    setIframeError(false);
+    setLoading(true);
+    setError(null);
+    setTokenUrl(null);
+    // Re-trigger the API call by re-mounting the effect via batchId change
+    // Use a zero-delay to ensure state is flushed first
+    (async () => {
+      try {
+        const r: any = await api.getProcurementShareLink(batchId);
+        if (r?.url) {
+          setTokenUrl(r.url);
+        } else {
+          setError(t('pdfLoadFailed'));
+        }
+      } catch (e: any) {
+        setError(e?.message || t('pdfLoadFailed'));
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [batchId]);
 
   if (loading) {
     return (
@@ -148,8 +182,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         </View>
         <View style={styles.centered}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={onBack} style={styles.retryBtn} activeOpacity={0.7}>
-            <Text style={styles.retryText}>{t('goBack')}</Text>
+          <TouchableOpacity onPress={retryPdf} style={styles.retryBtn} activeOpacity={0.7}>
+            <Text style={styles.retryText}>重试</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onBack} style={[styles.retryBtn, { marginTop: 8, backgroundColor: c.secondary }]} activeOpacity={0.7}>
+            <Text style={[styles.retryText, { color: c.textMain }]}>{t('goBack')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -172,11 +209,23 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       {/* PDF 内嵌 */}
       <View style={styles.viewer}>
         {tokenUrl ? (
-          <iframe
-            src={tokenUrl}
-            style={styles.iframe as any}
-            title={`procurement_${batchId}.pdf`}
-          />
+          <>
+            {iframeError ? (
+              <View style={styles.centered}>
+                <Text style={styles.errorText}>PDF 加载失败</Text>
+                <TouchableOpacity onPress={retryPdf} style={styles.retryBtn} activeOpacity={0.7}>
+                  <Text style={styles.retryText}>重新加载</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <iframe
+                ref={iframeRef as any}
+                src={tokenUrl}
+                style={styles.iframe as any}
+                title={`procurement_${batchId}.pdf`}
+              />
+            )}
+          </>
         ) : null}
       </View>
 
@@ -267,11 +316,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: c.bg } as any,
+    // Container fills the entire SlideScreen, with a guaranteed opaque background
+    container: {
+      position: 'absolute' as const,
+      top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: c.bg || '#F9F7F4',
+    } as any,
     ...hdr,
     viewer: {
       flex: 1,
-      backgroundColor: c.bg,
+      backgroundColor: c.bg || '#F9F7F4',
       marginTop: 100,
     } as any,
     iframe: {
