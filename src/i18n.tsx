@@ -260,6 +260,11 @@ const I18N: Record<string, Record<string, string>> = {
     monthlyProfit: '月度利润',
     monthlyTrend: '月度收支趋势',
     expenseBreakdown: '支出分类占比',
+    chartXAxis: '月份',
+    chartYAxis: '金额（元）',
+    chartSwitchBar: '柱状图',
+    chartSwitchPie: '饼图',
+    chartSwitchHint: '点击切换视图',
     pwHint: '8位以上，含字母+数字+特殊字符',
     receivable: '应收总额',
     reconComplete: '对账完成',
@@ -640,6 +645,11 @@ const I18N: Record<string, Record<string, string>> = {
     monthlyProfit: '月度利潤',
     monthlyTrend: '月度收支趨勢',
     expenseBreakdown: '支出分類佔比',
+    chartXAxis: '月份',
+    chartYAxis: '金額（元）',
+    chartSwitchBar: '柱狀圖',
+    chartSwitchPie: '餅圖',
+    chartSwitchHint: '點擊切換視圖',
     pwHint: '8位以上，含字母+數字+特殊字符',
     receivable: '應收總額',
     reconComplete: '對賬完成',
@@ -1020,6 +1030,11 @@ const I18N: Record<string, Record<string, string>> = {
     monthlyProfit: 'Monthly Profit',
     monthlyTrend: 'Monthly Trend',
     expenseBreakdown: 'Expense Breakdown',
+    chartXAxis: 'Month',
+    chartYAxis: 'Amount (¥)',
+    chartSwitchBar: 'Bar Chart',
+    chartSwitchPie: 'Pie Chart',
+    chartSwitchHint: 'Tap to switch',
     pwHint: '8+ chars, letter + number + special',
     receivable: 'Total Receivable',
     reconComplete: 'Complete Recon',
@@ -1266,6 +1281,11 @@ export type I18nKey =
   | 'expenseHistory'
   | 'expenseNote'
   | 'expenseBreakdown'
+  | 'chartXAxis'
+  | 'chartYAxis'
+  | 'chartSwitchBar'
+  | 'chartSwitchPie'
+  | 'chartSwitchHint'
   | 'feeAllMonths'
   | 'feeCurrent'
   | 'feeDetail'

@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, ResponsiveContainer, Area, ComposedChart,
-  Legend,
+  Legend, Label, BarChart, Bar,
 } from 'recharts';
 import { t } from '../i18n';
 import { useTheme } from '../theme';
@@ -16,7 +16,7 @@ interface Props {
   categories: Record<string, number>;
 }
 
-// Theme-derived palette for donut
+// Theme-derived palette for donut / bar
 const DONUT_COLORS = [
   '#7D2329', // burgundy
   '#B34149', // light red
@@ -72,6 +72,7 @@ const tooltipStyles = StyleSheet.create({
 
 export default function ChartsPanel({ months, income, expense, profit, categories }: Props) {
   const { colors } = useTheme();
+  const [showBar, setShowBar] = useState(false);
 
   // Build data arrays for recharts
   const incomeLabel = t('income');
@@ -89,21 +90,28 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
     [profitLabel]: profit[i],
   }));
 
-  // Donut data — translate category keys
+  // Donut / bar data — translate category keys
   const donutData = Object.entries(categories)
     .filter(([, v]) => v > 0)
     .map(([key, value]) => ({ name: t(key as any) || key, value }))
     .sort((a, b) => b.value - a.value);
 
-  // Axes colors — light theme
-  const axisColor = 'rgba(0,0,0,0.08)';
-  const tickColor = 'rgba(0,0,0,0.35)';
+  // Axes colors — follow theme
+  const isLight = colors.surface?.toLowerCase?.() !== '#141416'; // rough theme detection
+  const axisColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
+  const tickColor = isLight ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.35)';
   const subTextColor = colors.textSub;
+  const cardBg = colors.surface;
+  const cardBorder = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+
+  // Shared axis label
+  const xLabel = t('chartXAxis');
+  const yLabel = t('chartYAxis');
 
   return (
     <View style={{ gap: 12, marginTop: 0 }}>
       {/* ── 月度利润趋势 ── */}
-      <View style={[chartStyles.card, { backgroundColor: colors.surface }]}>
+      <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
         <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyProfit')}</Text>
         <View style={chartStyles.chartWrap}>
           <ResponsiveContainer width="100%" height={200}>
@@ -115,8 +123,12 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
+              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false}>
+                <Label value={xLabel} offset={-6} position="insideBottom" style={{ fill: tickColor, fontSize: 10 }} />
+              </XAxis>
+              <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40}>
+                <Label value={yLabel} angle={-90} offset={2} position="insideLeft" style={{ fill: tickColor, fontSize: 10 }} />
+              </YAxis>
               <Tooltip content={<ChartTooltip />} />
               <Area type="monotone" dataKey={profitLabel} stroke="none" fill="url(#profitGrad)" />
               <Line type="monotone" dataKey={profitLabel} stroke={colors.primary} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.primary }} />
@@ -126,14 +138,18 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
       </View>
 
       {/* ── 月度收支趋势（双线） ── */}
-      <View style={[chartStyles.card, { backgroundColor: colors.surface }]}>
+      <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
         <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyTrend')}</Text>
         <View style={chartStyles.chartWrap}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={lineData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
+              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false}>
+                <Label value={xLabel} offset={-6} position="insideBottom" style={{ fill: tickColor, fontSize: 10 }} />
+              </XAxis>
+              <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40}>
+                <Label value={yLabel} angle={-90} offset={2} position="insideLeft" style={{ fill: tickColor, fontSize: 10 }} />
+              </YAxis>
               <Tooltip content={<ChartTooltip />} />
               <Legend
                 wrapperStyle={{ fontSize: 11, color: subTextColor }}
@@ -146,29 +162,62 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
         </View>
       </View>
 
-      {/* ── 支出分类占比（环形图） ── */}
+      {/* ── 支出分类占比（环形图 / 柱状图切换） ── */}
       {donutData.length > 0 && (
-        <View style={[chartStyles.card, { backgroundColor: colors.surface }]}>
-          <Text style={[chartStyles.title, { color: subTextColor }]}>{t('expenseBreakdown')}</Text>
+        <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={[chartStyles.title, { color: subTextColor, marginBottom: 0 }]}>{t('expenseBreakdown')}</Text>
+            <TouchableOpacity
+              onPress={() => setShowBar(!showBar)}
+              activeOpacity={0.7}
+              style={{
+                flexDirection: 'row', alignItems: 'center', gap: 4,
+                paddingHorizontal: 10, paddingVertical: 5,
+                borderRadius: 8,
+                backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+              }}
+            >
+              <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '600' }}>
+                {showBar ? t('chartSwitchPie') : t('chartSwitchBar')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={{ color: subTextColor, fontSize: 10, marginBottom: 8 }}>{t('chartSwitchHint')}</Text>
           <View style={[chartStyles.chartWrap, { alignItems: 'center' }]}>
             <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
-                <Pie
-                  data={donutData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={85}
-                  paddingAngle={2}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {donutData.map((_, i) => (
-                    <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip content={<ChartTooltip />} />
-              </PieChart>
+              {showBar ? (
+                <BarChart data={donutData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
+                  <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40}>
+                    <Label value={yLabel} angle={-90} offset={2} position="insideLeft" style={{ fill: tickColor, fontSize: 10 }} />
+                  </YAxis>
+                  <Tooltip content={<ChartTooltip />} />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                    {donutData.map((_, i) => (
+                      <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              ) : (
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={85}
+                    paddingAngle={2}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {donutData.map((_, i) => (
+                      <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<ChartTooltip />} />
+                </PieChart>
+              )}
             </ResponsiveContainer>
             {/* Color legend */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginTop: 8 }}>
@@ -199,6 +248,6 @@ const chartStyles = StyleSheet.create({
     marginBottom: 8,
   },
   chartWrap: {
-    // recharts responsive container needs a non-zero width parent
-  },
+    outline: 'none',
+  } as any,
 });

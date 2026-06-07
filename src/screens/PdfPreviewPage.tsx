@@ -15,7 +15,6 @@ interface Props {
 
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 4;
-const TOOLBAR_H = 72;
 const NAV_H = 56;
 
 const CSS = `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -34,32 +33,26 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;pointer-events:none}
 .pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
-.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#F9F7F4}
+.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:hidden;background:#F9F7F4}
 .pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
 .pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
-.pv-tb{position:fixed;bottom:0;left:0;right:0;z-index:100;height:${TOOLBAR_H}px;background:rgba(20,20,22,.88);backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:0 8px 8px}
-.pv-tb-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:12px;cursor:pointer;transition:all .15s;border:none;background:none}
-.pv-tb-btn:active{background:var(--surface2);transform:scale(.95)}
-.pv-tb-btn svg{width:20px;height:20px;stroke:var(--text2);stroke-width:1.7;fill:none}
-.pv-tb-btn span{font-size:10px;color:var(--text3);font-family:var(--sans);white-space:nowrap}
-.pv-tb-btn.hi svg{stroke:var(--accent)}
-.pv-tb-btn.hi span{color:var(--accent)}
-.pv-tb-sep{width:1px;height:36px;background:var(--line);flex-shrink:0}
-.pv-zoom-strip{position:fixed;right:16px;bottom:${TOOLBAR_H + 18}px;z-index:95;display:flex;flex-direction:column;gap:6px}
+.pv-zoom-strip{position:fixed;right:16px;bottom:18px;z-index:95;display:flex;flex-direction:column;gap:6px}
 .pv-zoom-btn{width:40px;height:40px;border-radius:50%;background:rgba(20,20,22,.75);backdrop-filter:blur(12px);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35)}
 .pv-zoom-btn:active{background:var(--surface3);transform:scale(.92)}
 .pv-zoom-btn svg{width:16px;height:16px;stroke:var(--text2);stroke-width:2;fill:none}
-.pv-toast{position:fixed;bottom:${TOOLBAR_H + 16}px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:1px solid var(--line2);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:1px solid var(--line2);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .pv-toast.on{opacity:1;transform:translate(-50%,0)}
-.pv-loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:200}
-.pv-spinner{width:32px;height:32px;border:3px solid var(--line2);border-top-color:var(--text2);border-radius:50%;animation:pv-spin .6s linear infinite}
-@keyframes pv-spin{to{transform:rotate(360deg)}}
+.pv-intro-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
+.pv-intro{background:rgba(20,20,22,.82);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px 28px;display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+.pv-intro.on{opacity:1;transform:translateY(0)}
+.pv-intro-text{color:rgba(255,255,255,.78);font-size:13px;font-weight:500;text-align:center;line-height:1.8;white-space:nowrap}
+.pv-intro-sec{font-size:28px;font-weight:700;font-family:var(--mono);transition:color .4s}
 .pv-sh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
 .pv-sh-overlay.open{opacity:1;pointer-events:auto}
-.pv-sh{position:absolute;bottom:0;left:0;right:0;max-height:70vh;background:var(--surface);border-radius:20px 20px 0 0;padding:16px 16px 24px;transform:translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.pv-sh{position:absolute;bottom:0;left:0;right:0;max-height:70vh;background:#F9F7F4;border-radius:20px 20px 0 0;padding:16px 16px 24px;transform:translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
 .pv-sh-overlay.open .pv-sh{transform:translateY(0)}
-.pv-sh-handle{width:36px;height:4px;background:var(--line2);border-radius:2px;margin:0 auto 16px}
+.pv-sh-handle{width:36px;height:4px;background:#D1CDC6;border-radius:2px;margin:0 auto 16px}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text2);font-size:14px;text-align:center;padding:40px}
 .pv-err-btn{padding:8px 20px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;cursor:pointer}
 `;
@@ -79,6 +72,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [pageW, setPageW] = useState(340);
   const [shareOpen, setShareOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
+  const [introSec, setIntroSec] = useState(3);
 
   // Fetch PDF as blob with auth cookies, then create object URL for react-pdf
   useEffect(() => {
@@ -107,6 +101,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
+
+  // intro countdown (3 → 1), color fades per second
+  useEffect(() => {
+    if (introSec <= 0) return;
+    const t = setTimeout(() => setIntroSec(s => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [introSec]);
+  const introColor = ['#E89C7B', '#D46A4A', '#C0392B'][introSec - 1] || '#C0392B';
 
   const applyTransform = useCallback((animated: boolean) => {
     const el = wrapRef.current; if (!el) return;
@@ -293,9 +295,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
         {/* PDF Viewport */}
         <div className="pv-vp">
-          {pdfLoading && !pdfError && (
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
-              <div className="pv-spinner" />
+          {/* Intro countdown toast — centered, replaces spinner */}
+          {pdfLoading && !pdfError && introSec > 0 && (
+            <div className="pv-intro-overlay">
+              <div className="pv-intro on">
+                <div className="pv-intro-text">双指缩放 · 拖拽移动<br/>双击还原比例</div>
+                <div className="pv-intro-sec" style={{ color: introColor }}>{introSec}</div>
+              </div>
             </div>
           )}
           {pdfError && (
@@ -334,19 +340,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           <div className="pv-zoom-btn" onClick={() => stepZoom(-0.25)}><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /></svg></div>
         </div>
 
-        {/* Toolbar */}
-        <div className="pv-tb">
-          <button className="pv-tb-btn" onClick={doDownload}><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg><span>下载</span></button>
-        </div>
-
         {/* Toast */}
         <div className={`pv-toast${toastMsg ? ' on' : ''}`}>{toastMsg && <><span>{toastMsg.icon}</span><span>{toastMsg.text}</span></>}</div>
 
-        {/* Share sheet */}
+        {/* Share sheet — warm-white background */}
         <div className={`pv-sh-overlay${shareOpen ? ' open' : ''}`} onClick={() => setShareOpen(false)}>
           <div className="pv-sh" onClick={e => e.stopPropagation()}>
             <div className="pv-sh-handle" />
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text2)', textAlign: 'center', marginBottom: 16, letterSpacing: '.04em' }}>分享进货单</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#333', textAlign: 'center', marginBottom: 16, letterSpacing: '.04em' }}>分享进货单</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', padding: '0 8px', marginBottom: 16 }}>
               {[
                 ['微信', '#07c160', 'M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z'],
@@ -364,11 +365,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
                   <div style={{ width: 50, height: 50, borderRadius: 14, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" strokeWidth="1.8" fill="none"><path d={path} /></svg>
                   </div>
-                  <span style={{ fontSize: 11, color: 'var(--text2)' }}>{label}</span>
+                  <span style={{ fontSize: 11, color: '#555' }}>{label}</span>
                 </div>
               ))}
             </div>
-            <div style={{ margin: '8px 16px 0', padding: 14, borderRadius: 14, background: 'var(--surface2)', border: '1px solid var(--line2)', textAlign: 'center', fontSize: 14, fontWeight: 500, color: 'var(--text2)', cursor: 'pointer' }}
+            <div style={{ margin: '8px 16px 0', padding: 14, borderRadius: 14, background: '#EEEBE6', border: '1px solid #D1CDC6', textAlign: 'center', fontSize: 14, fontWeight: 500, color: '#444', cursor: 'pointer' }}
               onClick={() => setShareOpen(false)}>取消</div>
           </div>
         </div>
