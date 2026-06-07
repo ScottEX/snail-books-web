@@ -9,6 +9,7 @@ import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
 import { fmtAmtFull } from '../utils/format';
 import DateErrorHint from '../components/DateErrorHint';
+import BackArrow from '../components/icons/BackArrow';
 
 const PAGE_SIZE = 10;
 
@@ -337,7 +338,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <Text style={st.backArrow}>{'\u2039'}</Text>
+            <BackArrow color={colors.primary} />
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')} ({total}/{totalAll})</Text>

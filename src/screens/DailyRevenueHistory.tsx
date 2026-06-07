@@ -8,6 +8,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
 import DateErrorHint from '../components/DateErrorHint';
+import BackArrow from '../components/icons/BackArrow';
 
 const PAGE_SIZE = 10;
 
@@ -141,7 +142,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <Text style={st.backArrow}>{'\u2039'}</Text>
+            <BackArrow color={colors.primary} />
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('revHistoryBtn')} ({total}/{totalAll})</Text>
