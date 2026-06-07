@@ -54,7 +54,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           <iframe
             src={pdfUrl}
             style={{
-              position: 'fixed', top: 56, left: 0, right: 0, bottom: 0,
+              position: 'fixed', top: 56, left: 0,
+              width: '100%', height: 'calc(100% - 56px)',
               border: 'none', background: '#525659',
             }}
             title="PDF Preview"
