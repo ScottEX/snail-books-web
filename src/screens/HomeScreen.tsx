@@ -818,7 +818,7 @@ export default function HomeScreen({
               )}
 
               {tab === 'chart' && (
-                <View style={{ paddingBottom: 20, paddingTop: 4 }}>
+                <View style={{ paddingBottom: 100, paddingTop: 4 }}>
                   {/* 在手资金玻璃卡片 */}
                   <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartGlassCard}>
