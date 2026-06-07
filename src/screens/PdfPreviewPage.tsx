@@ -46,7 +46,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-intro-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
 .pv-intro{background:#fff;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
-.pv-intro-text{color:#999;font-size:12px;text-align:center;white-space:nowrap}
+.pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
 .pv-intro-sec{font-size:36px;font-weight:800;font-family:var(--mono);color:#333}
 .pv-sh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
 .pv-sh-overlay.open{opacity:1;pointer-events:auto}
@@ -290,7 +290,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <div className="pv-nav">
           <div className="pv-nav-l">
             <div className="pv-back" onClick={handleBack}><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></div>
-            <div><div className="pv-title">{title}</div><div className="pv-sub">NO.2026-{String(batchNumber).padStart(4, '0')}</div></div>
+            <div><div className="pv-title">{title}</div></div>
           </div>
           <div className="pv-share-btn" onClick={() => setShareOpen(true)}>
             <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
