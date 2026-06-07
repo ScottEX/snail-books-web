@@ -26,7 +26,7 @@
 //     as a safety net).
 // ═══════════════════════════════════════════════════════════════
 
-import { t } from './i18n';
+import { t, I18nKey } from './i18n';
 
 // All known category internal keys. Anything outside this set is treated
 // as legacy (Chinese) data and normalized via LEGACY_CAT_TO_KEY.
@@ -93,7 +93,7 @@ function normalizePayment(raw: string): string {
 export function trCategory(raw: string): string {
   if (!raw) return raw;
   const key = normalizeCategory(raw);
-  if (CAT_KEYS.has(key)) return t(key);
+  if (CAT_KEYS.has(key)) return t(key as I18nKey);
   return raw;
 }
 
@@ -101,7 +101,7 @@ export function trCategory(raw: string): string {
 export function trPayment(raw: string): string {
   if (!raw) return raw;
   const key = normalizePayment(raw);
-  if (PAY_KEYS.has(key)) return t(key);
+  if (PAY_KEYS.has(key)) return t(key as I18nKey);
   return raw;
 }
 

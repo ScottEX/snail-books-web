@@ -193,6 +193,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { setToast(t('errFileSize')); e.target.value = ''; return; }
     const reader = new FileReader();
     reader.onload = () => {
       const src = reader.result as string;
@@ -268,6 +269,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { setToast(t('errFileSize')); e.target.value = ''; return; }
     const reader = new FileReader();
     reader.onload = () => {
       const src = reader.result as string;

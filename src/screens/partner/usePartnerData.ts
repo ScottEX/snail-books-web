@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { t } from '../../i18n';
+import { t, I18nKey } from '../../i18n';
 import { api } from '../../api/client';
 import { formatDate } from '../../utils/format';
 
@@ -12,7 +12,7 @@ const nameMap: Record<string, string> = { '张安武': 'nameZhang', '江宽': 'n
 
 export function translateName(name: string): string {
   const key = nameMap[name];
-  return key ? t(key) : name;
+  return key ? t(key as I18nKey) : name;
 }
 
 export function translateDividendNote(note: string | null, date?: string): string {
@@ -28,8 +28,8 @@ export function translateDividendNote(note: string | null, date?: string): strin
   return note;
 }
 
-export function getRoleKey(name: string): string {
-  const map: Record<string, string> = { '张安武': 'chairman', '江宽': 'ceo', '蓝柳富': 'janitor' };
+export function getRoleKey(name: string): I18nKey {
+  const map: Record<string, I18nKey> = { '张安武': 'chairman', '江宽': 'ceo', '蓝柳富': 'janitor' };
   return map[name] || 'janitor';
 }
 

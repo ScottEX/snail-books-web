@@ -95,6 +95,7 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRangeTooLong: '日期范围不能超过 24 个月',
     errEmailInvalid: '邮箱格式不正确',
     errEmptyFields: '请填写所有字段',
+    errFileSize: '图片不能超过10MB',
     errNetworkError: '网络错误，请检查网络后重试',
     errOldPwRequired: '请输入当前密码',
     errPwMismatch: '两次密码不一致',
@@ -161,6 +162,9 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: '美团外卖',
     mid: '追加',
     month: '本月',
+    monthExpense: '本月支出',
+    monthIncome: '本月收入',
+    monthProfit: '本月利润',
     nameJiang: '江宽',
     nameLan: '蓝柳富',
     nameZhang: '张安武',
@@ -330,6 +334,7 @@ const I18N: Record<string, Record<string, string>> = {
     status: '状态',
     subscribedTotal: '认缴总额',
     subtitle: '生活不简单，尽量简单过',
+    summary: '收支总览',
     tabExpense: '支出',
     tabRecon: '对账',
     tabRevenue: '营业',
@@ -339,6 +344,9 @@ const I18N: Record<string, Record<string, string>> = {
     toastLoadFailed: '数据加载失败',
     toastSubmitFailed: '提交失败，请重试',
     today: '今日',
+    todayExpense: '今日支出',
+    todayIncome: '今日收入',
+    todayProfit: '今日利润',
     totalCapital: '合伙初始基金总额',
     totalDividends: '累计分红',
     totalDividendsPaid: '累计分红',
@@ -463,6 +471,7 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRangeTooLong: '日期範圍不能超過 24 個月',
     errEmailInvalid: '郵箱格式不正確',
     errEmptyFields: '請填寫所有字段',
+    errFileSize: '圖片不能超過10MB',
     errNetworkError: '網絡錯誤，請檢查網絡後重試',
     errOldPwRequired: '請輸入當前密碼',
     errPwMismatch: '兩次密碼不一致',
@@ -529,6 +538,9 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: '美團外賣',
     mid: '追加',
     month: '本月',
+    monthExpense: '本月支出',
+    monthIncome: '本月收入',
+    monthProfit: '本月利潤',
     nameJiang: '江寬',
     nameLan: '藍柳富',
     nameZhang: '張安武',
@@ -699,6 +711,7 @@ const I18N: Record<string, Record<string, string>> = {
     status: '狀態',
     subscribedTotal: '認繳總額',
     subtitle: '生活不簡單，盡量簡單過',
+    summary: '收支總覽',
     tabExpense: '支出',
     tabRecon: '對賬',
     tabRevenue: '營業',
@@ -708,6 +721,9 @@ const I18N: Record<string, Record<string, string>> = {
     toastLoadFailed: '資料載入失敗',
     toastSubmitFailed: '提交失敗，請重試',
     today: '今日',
+    todayExpense: '今日支出',
+    todayIncome: '今日收入',
+    todayProfit: '今日利潤',
     totalCapital: '合夥初始基金總額',
     totalDividends: '累計分紅',
     totalDividendsPaid: '累計分紅',
@@ -832,6 +848,7 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRangeTooLong: 'Date range cannot exceed 24 months',
     errEmailInvalid: 'Invalid email format',
     errEmptyFields: 'Please fill all fields',
+    errFileSize: 'Image must be under 10MB',
     errNetworkError: 'Network error, please check your connection',
     errOldPwRequired: 'Please enter current password',
     errPwMismatch: 'Passwords do not match',
@@ -898,6 +915,9 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: 'Meituan Waimai',
     mid: 'Additional',
     month: 'Month',
+    monthExpense: 'Month Expense',
+    monthIncome: 'Month Income',
+    monthProfit: 'Month Profit',
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
     nameZhang: 'Zhang Anwu',
@@ -1068,6 +1088,7 @@ const I18N: Record<string, Record<string, string>> = {
     status: 'Status',
     subscribedTotal: 'Total Subscription',
     subtitle: 'Life is not simple, keep it simple',
+    summary: 'Summary',
     tabExpense: 'Expenses',
     tabRecon: 'Recon',
     tabRevenue: 'Revenue',
@@ -1077,6 +1098,9 @@ const I18N: Record<string, Record<string, string>> = {
     toastLoadFailed: 'Failed to load data',
     toastSubmitFailed: 'Submit failed, please retry',
     today: 'Today',
+    todayExpense: 'Today Expense',
+    todayIncome: 'Today Income',
+    todayProfit: 'Today Profit',
     totalCapital: 'Total Initial Capital',
     totalDividends: 'Total Dividends',
     totalDividendsPaid: 'Total Dividends',
@@ -1116,7 +1140,387 @@ export const langs: [Lang, string][] = [
   ['en', 'EN'],
 ];
 
-export function t(key: string): string {
+// ═══════════════════════════════════════════════════════════════
+// Type-safe i18n key — all 365 zh-CN keys. Use this type for
+// variables that hold i18n keys to catch typos at compile time.
+// For dynamic keys from DB enums, cast with `as I18nKey`.
+// ═══════════════════════════════════════════════════════════════
+export type I18nKey =
+  | 'accountInfo'
+  | 'actualReceived'
+  | 'addFeeEntry'
+  | 'addImage'
+  | 'additional'
+  | 'all'
+  | 'allDividendRecords'
+  | 'amount'
+  | 'amountLabel'
+  | 'any'
+  | 'apply'
+  | 'atLeastOneFee'
+  | 'authSettingsTitle'
+  | 'autoByShare'
+  | 'avatarCropTitle'
+  | 'avatarSizeHint'
+  | 'avatarUpdated'
+  | 'backToLogin'
+  | 'batchLabel'
+  | 'bgHint'
+  | 'bgResultHint'
+  | 'bgSettings'
+  | 'bgUpdated'
+  | 'billDate'
+  | 'bookBalance'
+  | 'bookDiff'
+  | 'byRoundAndInvest'
+  | 'cancel'
+  | 'capitalLedger'
+  | 'cardBalance'
+  | 'cashBalance'
+  | 'cashOnHand'
+  | 'ceo'
+  | 'chairman'
+  | 'changeEmail'
+  | 'changePassword'
+  | 'chooseImage'
+  | 'clear'
+  | 'codeSent'
+  | 'confirm'
+  | 'confirmDelete'
+  | 'confirmDeleteRecord'
+  | 'confirmIssue'
+  | 'confirmLogout'
+  | 'confirmNewPassword'
+  | 'confirmPassword'
+  | 'confirmRecord'
+  | 'confirmUse'
+  | 'copyright'
+  | 'coverCropTitle'
+  | 'coverHint'
+  | 'coverUpdated'
+  | 'cropFailed'
+  | 'cropFlip'
+  | 'cropPill'
+  | 'cropRotate'
+  | 'cumulativeByShare'
+  | 'cumulativeExpense'
+  | 'cumulativeRevenue'
+  | 'currentBalance'
+  | 'daily'
+  | 'dailyRevenue'
+  | 'dangerZone'
+  | 'date'
+  | 'delete'
+  | 'deleteRecord'
+  | 'devCodeLabel'
+  | 'dineIn'
+  | 'discountAmount'
+  | 'displayName'
+  | 'distributedPool'
+  | 'dividend'
+  | 'dividendHistory'
+  | 'dividendRoundFmt'
+  | 'dividendRoundOnly'
+  | 'done'
+  | 'downloadPdf'
+  | 'editBg'
+  | 'editCover'
+  | 'editProfile'
+  | 'email'
+  | 'emailAction'
+  | 'emailBodyExtra'
+  | 'emptyExpenseHint'
+  | 'emptyReconHint'
+  | 'enterAmount'
+  | 'enterCode'
+  | 'entryDate'
+  | 'errDateFuture'
+  | 'errDateRange'
+  | 'errDateRangeTooLong'
+  | 'errEmailInvalid'
+  | 'errEmptyFields'
+  | 'errFileSize'
+  | 'errNetworkError'
+  | 'errOldPwRequired'
+  | 'errPwMismatch'
+  | 'errPwNeedLetter'
+  | 'errPwNeedNumber'
+  | 'errPwNeedSpecial'
+  | 'errPwTooShort'
+  | 'errWrongCredentials'
+  | 'expConfirmMsg'
+  | 'expConfirmTitle'
+  | 'expDate'
+  | 'expense'
+  | 'expenseCategory'
+  | 'expenseDate'
+  | 'expenseHistory'
+  | 'expenseNote'
+  | 'feeAllMonths'
+  | 'feeCurrent'
+  | 'feeDetail'
+  | 'feeEntry'
+  | 'feeHistory'
+  | 'feePreview'
+  | 'feeViewDetail'
+  | 'filledBy'
+  | 'filter'
+  | 'filterCategory'
+  | 'filterDate'
+  | 'flashSale'
+  | 'forgotPassword'
+  | 'forgotSendBtn'
+  | 'forgotStep1'
+  | 'friendlyReminder'
+  | 'fullyPaidBack'
+  | 'fullyPaidBackDetail'
+  | 'fundsInTransit'
+  | 'goBack'
+  | 'goods'
+  | 'imgNotLoaded'
+  | 'income'
+  | 'initial'
+  | 'initialInvest'
+  | 'invest'
+  | 'investComplete'
+  | 'issueDividend'
+  | 'issueProportional'
+  | 'janitor'
+  | 'jd'
+  | 'jokeClosedLoop'
+  | 'jokeRecon'
+  | 'language'
+  | 'linkCopied'
+  | 'loadMore'
+  | 'loading'
+  | 'login'
+  | 'loginBtn'
+  | 'loginPlaceholder'
+  | 'logout'
+  | 'logoutConfirm'
+  | 'lpControl'
+  | 'lpStructure'
+  | 'meituan'
+  | 'meituanCashier'
+  | 'meituanTuan'
+  | 'meituanWaimai'
+  | 'mid'
+  | 'month'
+  | 'monthExpense'
+  | 'monthIncome'
+  | 'monthProfit'
+  | 'nameJiang'
+  | 'nameLan'
+  | 'nameZhang'
+  | 'newEmail'
+  | 'newPassword'
+  | 'noDividendRecords'
+  | 'noRecords'
+  | 'notePlaceholder'
+  | 'oldPassword'
+  | 'opacity'
+  | 'paidInRate'
+  | 'partnerSeats'
+  | 'partnerStructure'
+  | 'partnerTitle'
+  | 'password'
+  | 'payAlipay'
+  | 'payCash'
+  | 'payWechat'
+  | 'paybackProgress'
+  | 'paybackRate'
+  | 'paymentMethod'
+  | 'pdfLoadFailed'
+  | 'pdfLoading'
+  | 'pendingPayback'
+  | 'platformFee'
+  | 'preferences'
+  | 'procAddProduct'
+  | 'procAll'
+  | 'procBatchCount'
+  | 'procBatchLabel'
+  | 'procComingSoon'
+  | 'procConfirmOrder'
+  | 'procContinue'
+  | 'procCumulative'
+  | 'procDeleteBatch'
+  | 'procDeleteBatchConfirm'
+  | 'procDeleteBatchConfirmV2'
+  | 'procDeleteProduct'
+  | 'procDeleteProductConfirm'
+  | 'procDeleteProductWarning'
+  | 'procDetail'
+  | 'procEditBatch'
+  | 'procEditProduct'
+  | 'procEmptyHistoryHint'
+  | 'procEmptyHistoryTitle'
+  | 'procEmptyNewHint'
+  | 'procEmptyNewTitle'
+  | 'procEmptyProductsHint'
+  | 'procEmptyProductsTitle'
+  | 'procGenerating'
+  | 'procGeneratingPDF'
+  | 'procHistory'
+  | 'procImages'
+  | 'procMargin'
+  | 'procNewOrder'
+  | 'procNoteHintAddress'
+  | 'procNoteHintPhone'
+  | 'procNoteLabel'
+  | 'procNoteOptional'
+  | 'procNowBatch'
+  | 'procOperator'
+  | 'procOrderDate'
+  | 'procOrderItems'
+  | 'procPaymentMethod'
+  | 'procPdfTitle'
+  | 'procProduct'
+  | 'procProductMgmt'
+  | 'procProductName'
+  | 'procProductNote'
+  | 'procProductPrice'
+  | 'procProductSpec'
+  | 'procProductSupplier'
+  | 'procPurchase'
+  | 'procSearchHistory'
+  | 'procSearchPlaceholder'
+  | 'procSearchProducts'
+  | 'procSelected'
+  | 'procSubmit'
+  | 'procSubmitted'
+  | 'procSubmittedMsg'
+  | 'procSubtotal'
+  | 'procThisBatch'
+  | 'procTitle'
+  | 'procTotal'
+  | 'procUnit'
+  | 'procUpdated'
+  | 'procUpdatedMsg'
+  | 'procViewDetail'
+  | 'procViewRecords'
+  | 'procurement'
+  | 'profileEmail'
+  | 'profit'
+  | 'pwHint'
+  | 'receivable'
+  | 'reconComplete'
+  | 'reconDate'
+  | 'reconHistory'
+  | 'reconciledBy'
+  | 'recordedBy'
+  | 'recrop'
+  | 'register'
+  | 'registerBtn'
+  | 'rememberMe'
+  | 'rent'
+  | 'resendCode'
+  | 'reset'
+  | 'resetBtn'
+  | 'resetDefault'
+  | 'resetHint'
+  | 'revCancelArchive'
+  | 'revClosedReason'
+  | 'revEmpty'
+  | 'revEmptyHint'
+  | 'revEntered'
+  | 'revHistory'
+  | 'revHistoryBtn'
+  | 'revJD'
+  | 'revJDSub'
+  | 'revMarkArchive'
+  | 'revNotEntered'
+  | 'revNote'
+  | 'revNoteHint'
+  | 'revQuickDB4'
+  | 'revQuickToday'
+  | 'revQuickYesterday'
+  | 'revRevenue'
+  | 'revRevenueSub'
+  | 'revSaveDayBefore'
+  | 'revSaveToday'
+  | 'revSaveYesterday'
+  | 'revSubmit'
+  | 'revTurnover'
+  | 'revTurnoverSub'
+  | 'revWeekJD'
+  | 'revWeekRevenue'
+  | 'revWeekTurnover'
+  | 'revYesterdayLabel'
+  | 'revYesterdayNA'
+  | 'revenue'
+  | 'revenueDate'
+  | 'roundNote'
+  | 'salary'
+  | 'saveImage'
+  | 'securitySettings'
+  | 'sendCode'
+  | 'sessionKickedButton'
+  | 'sessionKickedTitle'
+  | 'sessionKickedToast'
+  | 'sessionTimeoutDesc'
+  | 'sessionTimeoutLabel'
+  | 'shangouWaimai'
+  | 'share'
+  | 'shareCalcResult'
+  | 'shareFailed'
+  | 'shareLink'
+  | 'sharePercent'
+  | 'shareholders'
+  | 'signaturePlaceholder'
+  | 'ssoDesc'
+  | 'ssoLabel'
+  | 'stampPrefixBurgundy'
+  | 'stampPrefixObsidian'
+  | 'stampPrefixTeal'
+  | 'stampSuffixBurgundy'
+  | 'stampSuffixObsidian'
+  | 'stampSuffixTeal'
+  | 'status'
+  | 'subscribedTotal'
+  | 'subtitle'
+  | 'summary'
+  | 'tabExpense'
+  | 'tabRecon'
+  | 'tabRevenue'
+  | 'tapForDetail'
+  | 'themeLabel'
+  | 'themePicker'
+  | 'toastLoadFailed'
+  | 'toastSubmitFailed'
+  | 'today'
+  | 'todayExpense'
+  | 'todayIncome'
+  | 'todayProfit'
+  | 'totalCapital'
+  | 'totalDividends'
+  | 'totalDividendsPaid'
+  | 'totalInvest'
+  | 'totalToPool'
+  | 'tuan'
+  | 'uploadFailed'
+  | 'uploadFailedShort'
+  | 'uploadImage'
+  | 'uploading'
+  | 'useThisAvatar'
+  | 'useThisBg'
+  | 'useThisCover'
+  | 'username'
+  | 'verifyBtn'
+  | 'verifyCode'
+  | 'verifyEmail'
+  | 'verifyNewBodyPost'
+  | 'verifyNewBodyPre'
+  | 'verifyNewEditEmail'
+  | 'verifyNewNoEmail'
+  | 'verifyNewOrSpam'
+  | 'verifyNewResend'
+  | 'verifyNewTitle'
+  | 'verifyNewWrongEmail'
+  | 'verifying'
+  | 'wages'
+  | 'willDelete';
+
+export function t(key: I18nKey): string {
   const lang = (typeof window !== 'undefined' ? (window as any).curLang : null) || 'zh-CN';
   return I18N[lang]?.[key] || I18N['zh-CN']?.[key] || key;
 }
