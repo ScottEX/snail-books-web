@@ -56,7 +56,9 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text2);font-size:14px;text-align:center;padding:40px}
 .pv-err-btn{padding:8px 20px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;cursor:pointer}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .pv-root{animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
+.pv-root.out{animation:pv-slide-out 250ms cubic-bezier(0.55,0.055,0.675,0.19) both}
 `;
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
@@ -75,6 +77,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [shareOpen, setShareOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
   const [introSec, setIntroSec] = useState(1);
+  const [exiting, setExiting] = useState(false);
+
+  const handleBack = useCallback(() => {
+    if (exiting) return;
+    setExiting(true);
+    setTimeout(onBack, 250);
+  }, [exiting, onBack]);
 
   // Fetch PDF as blob with auth cookies, then create object URL for react-pdf
   useEffect(() => {
@@ -274,13 +283,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   return (
     <View style={st.container}>
-      {createPortal(<div className="pv-root" style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
+      {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
         {/* Navbar */}
         <div className="pv-nav">
           <div className="pv-nav-l">
-            <div className="pv-back" onClick={onBack}><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></div>
+            <div className="pv-back" onClick={handleBack}><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></div>
             <div><div className="pv-title">{title}</div><div className="pv-sub">NO.2026-{String(batchNumber).padStart(4, '0')}</div></div>
           </div>
           <div className="pv-share-btn" onClick={() => setShareOpen(true)}>
