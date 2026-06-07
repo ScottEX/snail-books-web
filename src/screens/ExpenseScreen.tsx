@@ -388,19 +388,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const st = useMemo(() => getSt(colors), [colors]);
 
-  // Compute summary card values
-  const today = todayStr();
-  const thisMonthPrefix = today.slice(0, 7); // "YYYY-MM"
-  const todayExpenseSummary = expenses
-    .filter((e: any) => e.date === today)
-    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
-  const monthExpenseSummary = expenses
-    .filter((e: any) => String(e.date || '').startsWith(thisMonthPrefix))
-    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
-  // Income from fees (approximate: use feeTotal for month, prorated for today)
-  const todayIncomeSummary = 0; // Not available from current data
-  const monthIncomeSummary = feeTotal;
-
   /* ── Render ── */
   return (
     <View style={st.root}>
@@ -425,7 +412,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               >
                 <View style={st.tabInner}>
                   <Text style={[st.tabTitle, active && st.tabTitleActive]}>
-                    {tab.title}{i === 2 ? ' ¥' + fmtInt(businessSummary.cumulative_expense || 0) : ''}
+                    {tab.title}{i === 1 ? ' ¥' + fmtInt(businessSummary.cumulative_expense || 0) : ''}
                   </Text>
                   {i === 0 && (
                     <View style={{ flex: 1, gap: 12 }}>
