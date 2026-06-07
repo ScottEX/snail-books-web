@@ -21,13 +21,16 @@ const NAV_H = 56;
 const CSS = `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#141416;--surface:#1E1E22;--surface2:#26262C;--surface3:#2E2E36;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#F0EDE8;--text2:rgba(240,237,232,.5);--text3:rgba(240,237,232,.28);--accent:#C0392B;--accent-dim:rgba(192,57,43,.15);--sans:'Noto Sans SC',sans-serif;--mono:'DM Mono',monospace}
 html.pv-lock{overflow:hidden;touch-action:none}
-.pv-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;padding:0 16px;background:rgba(20,20,22,.85);backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--line)}
+.pv-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(20,20,22,.85);backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--line)}
 .pv-nav-l{display:flex;align-items:center;gap:10px}
 .pv-back{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .pv-back:active{background:var(--surface3)}
 .pv-back svg{width:16px;height:16px;stroke:var(--text);stroke-width:2;fill:none;display:block}
 .pv-title{font-size:15px;font-weight:600;color:var(--text);letter-spacing:.01em}
 .pv-sub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+.pv-share-btn{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.pv-share-btn:active{background:var(--surface3);transform:scale(.92)}
+.pv-share-btn svg{width:16px;height:16px;stroke:var(--text2);stroke-width:2;fill:none}
 .pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;pointer-events:none}
 .pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
@@ -35,8 +38,8 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
 .pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
-.pv-tb{position:fixed;bottom:0;left:0;right:0;z-index:100;height:${TOOLBAR_H}px;background:rgba(20,20,22,.88);backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px}
-.pv-tb-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:12px;cursor:pointer;transition:all .15s;border:none;background:none;flex:1;max-width:90px}
+.pv-tb{position:fixed;bottom:0;left:0;right:0;z-index:100;height:${TOOLBAR_H}px;background:rgba(20,20,22,.88);backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:0 8px 8px}
+.pv-tb-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:12px;cursor:pointer;transition:all .15s;border:none;background:none}
 .pv-tb-btn:active{background:var(--surface2);transform:scale(.95)}
 .pv-tb-btn svg{width:20px;height:20px;stroke:var(--text2);stroke-width:1.7;fill:none}
 .pv-tb-btn span{font-size:10px;color:var(--text3);font-family:var(--sans);white-space:nowrap}
@@ -82,16 +85,12 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     let cancelled = false;
     (async () => {
       try {
-        console.log('[pdf] fetching:', pdfUrl);
         const res = await fetch(pdfUrl, { credentials: 'include' });
-        console.log('[pdf] response:', res.status, res.statusText, 'type:', res.headers.get('content-type'), 'len:', res.headers.get('content-length'));
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const blob = await res.blob();
-        console.log('[pdf] blob size:', blob.size, 'type:', blob.type);
         if (blob.size === 0) throw new Error('Empty PDF (0 bytes)');
-        if (!cancelled) { setPdfBlobUrl(URL.createObjectURL(blob)); console.log('[pdf] blob URL created'); }
+        if (!cancelled) setPdfBlobUrl(URL.createObjectURL(blob));
       } catch (e: any) {
-        console.error('[pdf] fetch error:', e?.message || e);
         if (!cancelled) { setPdfError(e?.message || String(e)); setPdfLoading(false); }
       }
     })();
@@ -248,10 +247,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     toastTimer.current = setTimeout(() => setToastMsg(null), 2200);
   }, []);
 
-  const doCopyLink = useCallback(() => {
-    navigator.clipboard?.writeText(window.location.href).catch(() => {});
-    showToast('🔗', '链接已复制');
-  }, [showToast]);
+  const doDownloadImage = useCallback(() => {
+    const canvas = document.querySelector('.pv-pdf-wrap canvas') as HTMLCanvasElement;
+    if (!canvas) { showToast('⚠️', 'PDF 未渲染'); return; }
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = `procurement_${batchId}.png`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showToast('🖼️', '图片已下载');
+  }, [batchId, showToast]);
 
   const stepZoom = useCallback((delta: number) => {
     const g = gRef.current;
@@ -271,10 +275,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
         {/* Navbar */}
-        <div className="pv-nav"><div className="pv-nav-l">
-          <div className="pv-back" onClick={onBack}><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></div>
-          <div><div className="pv-title">{title}</div><div className="pv-sub">NO.2026-{String(batchNumber).padStart(4, '0')}</div></div>
-        </div></div>
+        <div className="pv-nav">
+          <div className="pv-nav-l">
+            <div className="pv-back" onClick={onBack}><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></div>
+            <div><div className="pv-title">{title}</div><div className="pv-sub">NO.2026-{String(batchNumber).padStart(4, '0')}</div></div>
+          </div>
+          <div className="pv-share-btn" onClick={() => setShareOpen(true)}>
+            <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
+          </div>
+        </div>
 
         {/* Page pill */}
         {numPages > 0 && <div className="pv-pill">第 1 页 / 共 {numPages} 页</div>}
@@ -300,8 +309,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
             {pdfBlobUrl && (
             <Document
               file={pdfBlobUrl}
-              onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfLoading(false); console.log('[pdf] loaded, pages:', n); }}
-              onLoadError={(e) => { console.error('[pdf] Document onLoadError:', e); setPdfError(e?.message || 'PDF 解析失败'); setPdfLoading(false); }}
+              onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfLoading(false); }}
+              onLoadError={(e) => { setPdfError(e?.message || 'PDF 解析失败'); setPdfLoading(false); }}
               loading={null}
             >
               {Array.from({ length: numPages || 1 }, (_, i) => i + 1).map(p => (
@@ -328,12 +337,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         {/* Toolbar */}
         <div className="pv-tb">
           <button className="pv-tb-btn" onClick={doDownload}><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg><span>下载</span></button>
-          <div className="pv-tb-sep" />
-          <button className="pv-tb-btn" onClick={() => setShareOpen(true)}><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg><span>分享</span></button>
-          <div className="pv-tb-sep" />
-          <button className="pv-tb-btn" onClick={doCopyLink}><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" /></svg><span>复制链接</span></button>
-          <div className="pv-tb-sep" />
-          <button className="pv-tb-btn hi" onClick={() => window.print()}><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg><span>打印</span></button>
         </div>
 
         {/* Toast */}
@@ -342,19 +345,22 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         {/* Share sheet */}
         <div className={`pv-sh-overlay${shareOpen ? ' open' : ''}`} onClick={() => setShareOpen(false)}>
           <div className="pv-sh" onClick={e => e.stopPropagation()}>
-            <div className="pv-sh-handle" /><div className="pv-sh-title" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text2)', textAlign: 'center', marginBottom: 16, letterSpacing: '.04em' }}>分享进货单</div>
+            <div className="pv-sh-handle" />
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text2)', textAlign: 'center', marginBottom: 16, letterSpacing: '.04em' }}>分享进货单</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', padding: '0 8px', marginBottom: 16 }}>
               {[
                 ['微信', '#07c160', 'M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z'],
-                ['朋友圈', '#fa9d3b', 'M12 2a10 10 0 100 20 10 10 0 000-20z M7 6.5c0-1.5 1-2.5 2.5-2.5s2.5 1 2.5 2.5-1 2.5-2.5 2.5S7 8 7 6.5z M6 14c1.5-2 4-3 7-3s5.5 1 7 3'],
-                ['短信', '#4a90d9', 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'],
                 ['邮件', '#e06060', 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6'],
                 ['下载PDF', '#6c6c80', 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3'],
-                ['复制链接', '#5a5aaa', 'M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71 M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71'],
-                ['更多', '#3a3a48', 'M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0 M19 12m-1 0a1 1 0 102 0 1 1 0 10-2 0 M5 12m-1 0a1 1 0 102 0 1 1 0 10-2 0'],
+                ['下载图片', '#4a90d9', 'M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z M21 15l-5-5L5 21'],
               ].map(([label, bg, path]) => (
                 <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '12px 8px', cursor: 'pointer', borderRadius: 12 }}
-                  onClick={() => { setShareOpen(false); showToast('📤', `已分享至 ${label}`); }}>
+                  onClick={() => {
+                    setShareOpen(false);
+                    if (label === '下载PDF') doDownload();
+                    else if (label === '下载图片') doDownloadImage();
+                    else showToast('📤', `已分享至 ${label}`);
+                  }}>
                   <div style={{ width: 50, height: 50, borderRadius: 14, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" strokeWidth="1.8" fill="none"><path d={path} /></svg>
                   </div>
