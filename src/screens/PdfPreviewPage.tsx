@@ -229,15 +229,12 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <Text style={styles.title} numberOfLines={1}>
           {t('procPdfTitle').replace('{n}', String(batchNumber))}
         </Text>
-        <TouchableOpacity
-          onPress={() => setShareSheetOpen(true)}
-          activeOpacity={0.7}
-          disabled={!tokenUrl}
-        >
-          <View style={[styles.shareBtn, !tokenUrl && styles.shareBtnDisabled]}>
-            <ShareIconSmall color={colors.textMain} />
-          </View>
-        </TouchableOpacity>
+        {/* Empty 44px right slot, mirrors ProcurementDetailScreen's header
+            so the two screens' title bars are visually identical. The
+            share affordance moved to a floating action button (FAB)
+            below — keeping the header slim avoids covering the iOS
+            status bar. */}
+        <View style={{ width: 44 }} />
       </View>
 
       {/* PDF viewer / loading / error */}
@@ -323,6 +320,22 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           <Text style={styles.toastText}>{toast}</Text>
         </View>
       ) : null}
+
+      {/* Floating share button — bottom-right. The header's share
+          affordance was moved here to keep the title bar height
+          consistent with ProcurementDetailScreen. The FAB only shows
+          once the share-link token has loaded, so the user can't
+          try to share before there's anything to share. */}
+      {tokenUrl ? (
+        <TouchableOpacity
+          onPress={() => setShareSheetOpen(true)}
+          activeOpacity={0.7}
+          style={styles.fab}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <ShareIconSmall color={colors.textMain} />
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
@@ -381,6 +394,22 @@ const getStyles = (c: ThemeColors) => {
       borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
     },
     shareBtnDisabled: { opacity: 0.4 },
+    // Floating share button — bottom-right corner, replaces the
+    // shareBtn that used to sit in the header. Frosted-glass look
+    // matches the rest of the chrome; lifted via box-shadow so it
+    // stays visually separate from the PDF surface underneath.
+    fab: {
+      position: 'absolute' as const,
+      bottom: 24, right: 20,
+      width: 56, height: 56, borderRadius: 28,
+      backgroundColor: withAlpha(c.bg, 0.85),
+      justifyContent: 'center' as const, alignItems: 'center' as const,
+      // @ts-ignore
+      backdropFilter: 'saturate(200%) blur(30px)',
+      borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
+      // @ts-ignore
+      boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+    },
     viewer: {
       flex: 1,
       backgroundColor: c.bg,
