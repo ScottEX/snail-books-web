@@ -332,7 +332,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       window.removeEventListener('mouseup', onMouseUp);
       vp.removeEventListener('wheel', onWheel);
     };
-  }, [clampTranslation, applyTransform, flashZoom]);
+  }, [clampTranslation, applyTransform, flashZoom, batch]);
 
   // ── Touch events ──
   useEffect(() => {
@@ -411,7 +411,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       vp.removeEventListener('touchmove', onTouchMove);
       vp.removeEventListener('touchend', onTouchEnd);
     };
-  }, [clampTranslation, applyTransform, flashZoom]);
+  }, [clampTranslation, applyTransform, flashZoom, batch]);
 
   // ── Toast ──
   const showToast = useCallback((icon: string, msg: string) => {
@@ -505,18 +505,18 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     <View style={styles.container}>
       {renderHeader()}
 
-      {/* Page pill */}
-      <View style={styles.pagePill} pointerEvents="none">
-        <Text style={styles.pagePillText}>{pagePill}</Text>
-      </View>
-
-      {/* Zoom indicator */}
-      <View style={[styles.zoomInd, zoomVisible && styles.zoomIndShow as any]} pointerEvents="none">
-        <Text style={styles.zoomIndText}>{zoomPercent}</Text>
-      </View>
-
       {/* Viewport */}
       <div ref={viewportRef as any} style={styles.viewport as any}>
+        {/* Page pill — inside viewport for correct absolute positioning */}
+        <View style={styles.pagePill} pointerEvents="none">
+          <Text style={styles.pagePillText}>{pagePill}</Text>
+        </View>
+
+        {/* Zoom indicator — inside viewport */}
+        <View style={[styles.zoomInd, zoomVisible && styles.zoomIndShow as any]} pointerEvents="none">
+          <Text style={styles.zoomIndText}>{zoomPercent}</Text>
+        </View>
+
         <div style={styles.viewportInner as any}>
           <div
             ref={sheetRef as any}
@@ -630,18 +630,18 @@ const getStyles = (c: ThemeColors) => {
     retryBtn: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: c.primary, borderRadius: 10 },
     retryText: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight as any, color: '#fff' },
 
-    // Page pill
+    // Page pill — relative to viewport
     pagePill: {
-      position: 'fixed' as any, top: 68, left: '50%', transform: 'translateX(-50%)' as any, zIndex: 90,
+      position: 'absolute' as any, top: -12, left: '50%', transform: 'translateX(-50%)' as any, zIndex: 90,
       backgroundColor: 'rgba(0,0,0,.55)', backdropFilter: 'blur(12px)' as any,
       borderWidth: 1, borderColor: 'rgba(255,255,255,.12)', borderRadius: 20,
       paddingVertical: 4, paddingHorizontal: 14,
     } as any,
     pagePillText: { fontSize: 11, color: 'rgba(240,237,232,0.5)', fontFamily: '"DM Mono", monospace' },
 
-    // Zoom indicator
+    // Zoom indicator — relative to viewport
     zoomInd: {
-      position: 'fixed' as any, top: 68, right: 16, zIndex: 90,
+      position: 'absolute' as any, top: -12, right: 16, zIndex: 90,
       backgroundColor: 'rgba(0,0,0,.55)', backdropFilter: 'blur(12px)' as any,
       borderWidth: 1, borderColor: 'rgba(255,255,255,.12)', borderRadius: 8,
       paddingVertical: 4, paddingHorizontal: 10,
@@ -650,9 +650,9 @@ const getStyles = (c: ThemeColors) => {
     zoomIndShow: { opacity: 1 } as any,
     zoomIndText: { fontSize: 11, color: 'rgba(240,237,232,0.5)', fontFamily: '"DM Mono", monospace' },
 
-    // Viewport — dark background, starts below header (top: 100)
+    // Viewport — dark background, between header (top:80) and toolbar (bottom:72)
     viewport: {
-      position: 'fixed' as any, top: 100, left: 0, right: 0, bottom: 0, zIndex: 1,
+      position: 'absolute' as any, top: 80, left: 0, right: 0, bottom: 72, zIndex: 1,
       overflow: 'hidden' as any,
       backgroundColor: '#141416',
     } as any,
@@ -679,9 +679,9 @@ const getStyles = (c: ThemeColors) => {
       padding: '28px 24px 36px',
     } as any,
 
-    // Zoom buttons strip
+    // Zoom buttons strip — relative to container, above toolbar
     zoomStrip: {
-      position: 'fixed' as any, right: 16, bottom: 90, zIndex: 95,
+      position: 'absolute' as any, right: 16, bottom: 84, zIndex: 95,
       display: 'flex', flexDirection: 'column', gap: 6,
     } as any,
     zoomBtn: {
@@ -692,9 +692,9 @@ const getStyles = (c: ThemeColors) => {
       boxShadow: '0 2px 12px rgba(0,0,0,.35)',
     } as any,
 
-    // Toolbar
+    // Toolbar — at bottom of container
     toolbar: {
-      position: 'fixed' as any, bottom: 0, left: 0, right: 0, zIndex: 100,
+      position: 'absolute' as any, bottom: 0, left: 0, right: 0, zIndex: 100,
       height: 72,
       backgroundColor: 'rgba(20,20,22,.88)',
       backdropFilter: 'blur(20px) saturate(1.5)' as any,
@@ -706,8 +706,8 @@ const getStyles = (c: ThemeColors) => {
     toolBtn: { flex: 1, alignItems: 'center' as const, gap: 4, maxWidth: 90, paddingVertical: 8 } as any,
     toolSep: { width: 1, height: 36, backgroundColor: 'rgba(255,255,255,.07)', flexShrink: 0 },
 
-    // Share sheet
-    sheetOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 150, backgroundColor: 'rgba(0,0,0,.6)', justifyContent: 'flex-end' as const } as any,
+    // Share sheet — covers entire container
+    sheetOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 150, backgroundColor: 'rgba(0,0,0,.6)', justifyContent: 'flex-end' as const } as any,
     sheet: { backgroundColor: '#1E1E22', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 32 } as any,
     sheetHandle: { width: 36, height: 4, backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 2, alignSelf: 'center' as const, marginTop: 12, marginBottom: 16 },
     sheetTitle: { fontSize: 13, fontWeight: '600' as const, color: 'rgba(240,237,232,0.5)', textAlign: 'center' as const, marginBottom: 16, letterSpacing: 0.5 },
@@ -718,8 +718,8 @@ const getStyles = (c: ThemeColors) => {
     sheetCancel: { marginHorizontal: 16, paddingVertical: 14, borderRadius: 14, backgroundColor: '#26262C', borderWidth: 0.5, borderColor: 'rgba(255,255,255,.12)', alignItems: 'center' as const } as any,
     sheetCancelText: { fontSize: 14, fontWeight: '500' as const, color: 'rgba(240,237,232,0.5)' },
 
-    // Toast
-    toastWrap: { position: 'fixed' as any, bottom: 88, left: '50%', transform: 'translateX(-50%)' as any, alignItems: 'center' as const, zIndex: 200 } as any,
+    // Toast — above toolbar
+    toastWrap: { position: 'absolute' as any, bottom: 84, left: '50%', transform: 'translateX(-50%)' as any, alignItems: 'center' as const, zIndex: 200 } as any,
     toastBox: { backgroundColor: 'rgba(30,30,34,.95)', backdropFilter: 'blur(16px)' as any, borderWidth: 0.5, borderColor: 'rgba(255,255,255,.12)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 18, flexDirection: 'row' as const, gap: 8, whiteSpace: 'nowrap' as any } as any,
     toastIcon: { fontSize: 14 },
     toastText: { fontSize: 12, color: '#F0EDE8' },
