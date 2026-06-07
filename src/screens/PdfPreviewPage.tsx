@@ -241,23 +241,29 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     tyRef.current = Math.max(-20, Math.min(maxTy, tyRef.current));
   }, []);
 
-  // Fit on load
+  // Fit on load — retry until viewport has dimensions
   useEffect(() => {
-    if (!batch || !viewportRef.current) return;
-    const timer = setTimeout(() => {
+    if (!batch) return;
+    let attempts = 0;
+    const tryFit = () => {
       const vp = viewportRef.current;
       const sheet = sheetRef.current;
       if (!vp || !sheet) return;
       const paper = sheet.querySelector('.doc-paper') as HTMLElement;
       if (!paper) return;
       const vw = vp.clientWidth;
+      if (!vw || vw < 100) {
+        // Viewport not sized yet — retry
+        if (attempts++ < 10) setTimeout(tryFit, 150);
+        return;
+      }
       const docW = paper.offsetWidth + 24;
       scaleRef.current = Math.min(1, (vw - 24) / docW);
       txRef.current = 0;
       tyRef.current = 0;
       applyTransform(false);
-    }, 100);
-    return () => clearTimeout(timer);
+    };
+    setTimeout(tryFit, 200);
   }, [batch, applyTransform]);
 
   // Handle window resize
@@ -644,10 +650,9 @@ const getStyles = (c: ThemeColors) => {
     zoomIndShow: { opacity: 1 } as any,
     zoomIndText: { fontSize: 11, color: 'rgba(240,237,232,0.5)', fontFamily: '"DM Mono", monospace' },
 
-    // Viewport (dark background, full screen with navbar/toolbar padding)
+    // Viewport — dark background, starts below header (top: 100)
     viewport: {
-      position: 'fixed' as any, inset: 0, zIndex: 1,
-      paddingTop: 56, paddingBottom: 72,
+      position: 'fixed' as any, top: 100, left: 0, right: 0, bottom: 0, zIndex: 1,
       overflow: 'hidden' as any,
       backgroundColor: '#141416',
     } as any,
@@ -702,7 +707,7 @@ const getStyles = (c: ThemeColors) => {
     toolSep: { width: 1, height: 36, backgroundColor: 'rgba(255,255,255,.07)', flexShrink: 0 },
 
     // Share sheet
-    sheetOverlay: { position: 'fixed' as any, inset: 0, zIndex: 150, backgroundColor: 'rgba(0,0,0,.6)', justifyContent: 'flex-end' as const } as any,
+    sheetOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 150, backgroundColor: 'rgba(0,0,0,.6)', justifyContent: 'flex-end' as const } as any,
     sheet: { backgroundColor: '#1E1E22', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 32 } as any,
     sheetHandle: { width: 36, height: 4, backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 2, alignSelf: 'center' as const, marginTop: 12, marginBottom: 16 },
     sheetTitle: { fontSize: 13, fontWeight: '600' as const, color: 'rgba(240,237,232,0.5)', textAlign: 'center' as const, marginBottom: 16, letterSpacing: 0.5 },
