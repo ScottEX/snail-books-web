@@ -17,8 +17,6 @@ const MIN_SCALE = 0.5;
 const MAX_SCALE = 4;
 const TOOLBAR_H = 72;
 const NAV_H = 56;
-const VIEWPORT_TOP = NAV_H;
-const VIEWPORT_BOTTOM = TOOLBAR_H;
 
 const CSS = `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#141416;--surface:#1E1E22;--surface2:#26262C;--surface3:#2E2E36;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#F0EDE8;--text2:rgba(240,237,232,.5);--text3:rgba(240,237,232,.28);--accent:#C0392B;--accent-dim:rgba(192,57,43,.15);--sans:'Noto Sans SC',sans-serif;--mono:'DM Mono',monospace}
@@ -33,9 +31,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;pointer-events:none}
 .pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
-.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#fff;}
-.pv-gesture-layer{position:absolute;inset:0;z-index:10;touch-action:none;cursor:grab}
-.pv-gesture-layer.grabbing{cursor:grabbing}
+.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#fff}
 .pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
 .pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
@@ -102,8 +98,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     return () => { cancelled = true; };
   }, [pdfUrl]);
 
-  const vpRef = useRef<HTMLDivElement | null>(null);
-  const gestureRef = useRef<HTMLDivElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const gRef = useRef({ scale: 1, tx: 0, ty: 0 });
   const dragRef = useRef({ active: false, sx: 0, sy: 0, stx: 0, sty: 0 });
@@ -118,15 +112,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const applyTransform = useCallback((animated: boolean) => {
     const el = wrapRef.current; if (!el) return;
     const g = gRef.current;
-    el.style.transition = animated ? 'transform .5s cubic-bezier(.34,1.56,.64,1)' : 'none';
+    el.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
     el.style.transform = `translate(-50%, 0) translate(${g.tx}px, ${g.ty}px) scale(${g.scale})`;
-    if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 510);
+    if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 260);
   }, []);
 
   const clamp = useCallback(() => {
-    const vp = vpRef.current, el = wrapRef.current;
-    if (!vp || !el) return;
+    const el = wrapRef.current;
+    if (!el) return;
     const g = gRef.current;
+    const vp = el.parentElement; if (!vp) return;
     const cw = el.scrollWidth * g.scale;
     const ch = el.scrollHeight * g.scale;
     const vw = vp.clientWidth, vh = vp.clientHeight;
@@ -152,8 +147,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, [clamp, applyTransform]);
 
   const initZoom = useCallback(() => {
-    const vp = vpRef.current;
-    if (!vp) return;
+    const el = wrapRef.current;
+    if (!el) return;
+    const vp = el.parentElement; if (!vp) return;
     setPageW(vp.clientWidth);
     gRef.current = { scale: 1, tx: 0, ty: 0 };
     applyTransform(false);
@@ -165,30 +161,21 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   // ── 手势事件 ──
   useEffect(() => {
-    const gl = gestureRef.current; if (!gl) return;
+    const el = wrapRef.current; if (!el) return;
 
     const onMD = (e: MouseEvent) => {
       e.preventDefault();
       const g = gRef.current;
-      dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.scale <= 1 ? 0 : g.tx, sty: g.ty };
-      gl.classList.add('grabbing');
+      dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.tx, sty: g.ty };
     };
     const onMM = (e: MouseEvent) => {
       if (!dragRef.current.active) return;
       const d = dragRef.current;
-      const g = gRef.current;
-      if (g.scale <= 1) g.tx = 0;
-      else g.tx = d.stx + (e.clientX - d.sx);
-      g.ty = d.sty + (e.clientY - d.sy);
+      gRef.current.tx = d.stx + (e.clientX - d.sx);
+      gRef.current.ty = d.sty + (e.clientY - d.sy);
       scheduleApply();
     };
-    const onMU = () => {
-      dragRef.current.active = false; gl.classList.remove('grabbing');
-      const g = gRef.current;
-      if (g.scale <= 1) { g.tx = 0; g.ty = 0; }
-      else clamp();
-      applyTransform(true);
-    };
+    const onMU = () => { dragRef.current.active = false; clamp(); applyTransform(true); };
     const onWh = (e: WheelEvent) => {
       e.preventDefault();
       const g = gRef.current;
@@ -196,10 +183,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       clamp(); applyTransform(false); flushZoom(false);
     };
 
-    gl.addEventListener('mousedown', onMD);
+    el.addEventListener('mousedown', onMD);
     window.addEventListener('mousemove', onMM);
     window.addEventListener('mouseup', onMU);
-    gl.addEventListener('wheel', onWh, { passive: false });
+    el.addEventListener('wheel', onWh, { passive: false });
 
     const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const onTS = (e: TouchEvent) => {
@@ -212,9 +199,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           clamp(); applyTransform(true); flushZoom(true); lastTapRef.current = 0; return;
         }
         lastTapRef.current = now;
-        const g = gRef.current;
-        dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: g.scale <= 1 ? 0 : g.tx, sty: g.ty };
-        gl.classList.add('grabbing');
+        dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: gRef.current.tx, sty: gRef.current.ty };
       } else if (e.touches.length === 2) {
         pinchRef.current = { dist: dist(e.touches), scale: gRef.current.scale };
       }
@@ -223,10 +208,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       e.preventDefault();
       if (dragRef.current.active && e.touches.length === 1) {
         const d = dragRef.current;
-        const g = gRef.current;
-        if (g.scale <= 1) g.tx = 0;
-        else g.tx = d.stx + (e.touches[0].clientX - d.sx);
-        g.ty = d.sty + (e.touches[0].clientY - d.sy);
+        gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
+        gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
         scheduleApply();
       } else if (e.touches.length === 2 && pinchRef.current.dist > 0) {
         const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchRef.current.scale * (dist(e.touches) / pinchRef.current.dist)));
@@ -235,27 +218,21 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       }
     };
     const onTE = (e: TouchEvent) => {
-      if (e.touches.length === 0) {
-        dragRef.current.active = false; gl.classList.remove('grabbing');
-        const g = gRef.current;
-        if (g.scale <= 1) { g.tx = 0; g.ty = 0; }
-        else clamp();
-        applyTransform(true);
-      }
+      if (e.touches.length === 0) { dragRef.current.active = false; clamp(); applyTransform(true); }
       else if (e.touches.length === 1) { dragRef.current.active = false; }
     };
-    gl.addEventListener('touchstart', onTS, { passive: false });
-    gl.addEventListener('touchmove', onTM, { passive: false });
-    gl.addEventListener('touchend', onTE);
+    el.addEventListener('touchstart', onTS, { passive: false });
+    el.addEventListener('touchmove', onTM, { passive: false });
+    el.addEventListener('touchend', onTE);
 
     return () => {
-      gl.removeEventListener('mousedown', onMD);
+      el.removeEventListener('mousedown', onMD);
       window.removeEventListener('mousemove', onMM);
       window.removeEventListener('mouseup', onMU);
-      gl.removeEventListener('wheel', onWh);
-      gl.removeEventListener('touchstart', onTS);
-      gl.removeEventListener('touchmove', onTM);
-      gl.removeEventListener('touchend', onTE);
+      el.removeEventListener('wheel', onWh);
+      el.removeEventListener('touchstart', onTS);
+      el.removeEventListener('touchmove', onTM);
+      el.removeEventListener('touchend', onTE);
     };
   }, [scheduleApply, clamp, applyTransform, flushZoom]);
 
@@ -306,8 +283,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <div className={`pv-zi${zoomVis ? ' on' : ''}`}>{zoomPct}%</div>
 
         {/* PDF Viewport */}
-        <div className="pv-vp" ref={vpRef}>
-          <div className="pv-gesture-layer" ref={gestureRef} />
+        <div className="pv-vp">
           {pdfLoading && !pdfError && (
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
               <div className="pv-spinner" />
