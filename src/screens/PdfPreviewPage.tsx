@@ -160,6 +160,17 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .sheet-cancel:active{background:var(--surface3)}
 `;
 
+const SHARE_ITEMS: [string, string, string][] = [
+  ['微信', '#07c160', 'M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z'],
+  ['朋友圈', '#fa9d3b', 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32'],
+  ['短信', '#4a90d9', 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'],
+  ['邮件', '#e06060', 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6'],
+  ['下载PDF', '#6c6c80', 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3'],
+  ['复制链接', '#5a5aaa', 'M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71'],
+  ['保存图片', '#2e8b57', 'M3 3h18v18H3zM21 15l-5-5L5 21M8.5 8.5a1.5 1.5 0 100 .01'],
+  ['更多', '#3a3a48', 'M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M19 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M5 12m-1 0a1 1 0 102 0 1 1 0 10-2 0'],
+];
+
 /* ═══════════════════════ PdfPreviewPage ═══════════════════════ */
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
@@ -215,14 +226,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           <View style={styles.errTextWrap}>
             <span style={{ fontSize: 16, color: c.textSub }}>{error || '数据加载失败'}</span>
           </View>
-          <View style={{ marginTop: 16 }}>
-            <View
+          <div style={{ marginTop: 16 }}>
+            <div
               onClick={onBack}
               style={{ padding: '10px 20px', backgroundColor: c.primary, borderRadius: 10, cursor: 'pointer', display: 'inline-block' }}
             >
               <span style={{ color: '#fff', fontSize: 14 }}>{t('goBack')}</span>
-            </View>
-          </View>
+            </div>
+          </div>
         </View>
       </View>
     );
@@ -578,22 +589,19 @@ function PortalContent({
           <div className="sheet-handle" />
           <div className="sheet-title">分享进货单</div>
           <div className="sheet-actions">
-            {(['微信','#07c160','M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z'],
-            ['朋友圈','#fa9d3b','M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32'],
-            ['短信','#4a90d9','M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'],
-            ['邮件','#e06060','M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6'],
-            ['下载PDF','#6c6c80','M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3'],
-            ['复制链接','#5a5aaa','M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71'],
-            ['保存图片','#2e8b57','M3 3h18v18H3zM21 15l-5-5L5 21M8.5 8.5a1.5 1.5 0 100 .01'],
-            ['更多','#3a3a48','M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M19 12m-1 0a1 1 0 102 0 1 1 0 10-2 0M5 12m-1 0a1 1 0 102 0 1 1 0 10-2 0'],
-          ] as [string,string,string][]).map(([label, bg, d]) => (
-            <button key={label} className="sheet-action" onClick={() => { closeSheet(); showToast('📤', `已发送至 ${label}`); }}>
-              <div className="sheet-icon" style={{ backgroundColor: bg }}>
-                <svg viewBox="0 0 24 24"><path d={d} /></svg>
-              </div>
-              <span>{label}</span>
-            </button>
-          ))}
+            {SHARE_ITEMS.map(function(item) {
+              const label = item[0];
+              const bg = item[1];
+              const d = item[2];
+              return (
+                <button key={label} className="sheet-action" onClick={function() { closeSheet(); showToast('📤', '已发送至 ' + label); }}>
+                  <div className="sheet-icon" style={{ backgroundColor: bg }}>
+                    <svg viewBox="0 0 24 24"><path d={d} /></svg>
+                  </div>
+                  <span>{label}</span>
+                </button>
+              );
+            })}
           </div>
           <div className="sheet-cancel" onClick={closeSheet}>取消</div>
         </div>
