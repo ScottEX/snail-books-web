@@ -5,7 +5,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import { useTheme, ThemeColors } from '../theme';
 import { t } from '../i18n';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface Props {
   batchId: number;
