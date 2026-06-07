@@ -95,8 +95,8 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .viewport{position:fixed;inset:0;padding-top:${NAV_H}px;padding-bottom:${TOOLBAR_H}px;overflow:hidden;background:var(--bg)}
 .viewport-inner{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center;overflow:visible;position:relative;cursor:grab}
 .viewport-inner.grabbing{cursor:grabbing}
-.doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
-.doc-paper{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);overflow:hidden;width:340px;padding:28px 24px 36px}
+.doc-sheet{position:absolute;transform-origin:top left;will-change:transform;top:0;touch-action:none;user-select:none;width:100%}
+.doc-paper{width:100%;padding:28px 16px 36px}
 .doc-brand{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e8e4de}
 .doc-brand-name{font-size:13px;letter-spacing:.35em;color:#333;font-weight:500;margin-bottom:3px;font-family:'Noto Sans SC',-apple-system,sans-serif}
 .doc-brand-sub{font-size:9px;letter-spacing:.18em;color:#aaa;font-family:'DM Mono',monospace}
@@ -285,14 +285,13 @@ function PortalContent({
     rafId: null as number | null,
   });
 
-  // ── Transform helpers ──
+  // Apply transform — using top-left origin (no centering needed, sheet fills width)
   const applyTransform = useCallback((animated: boolean) => {
     const sheet = sheetRef.current;
     const zi = zoomRef.current;
     if (!sheet) return;
     sheet.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
-    sheet.style.transform = `translate(calc(-50% + ${zi.tx}px), ${zi.ty}px) scale(${zi.scale})`;
-    sheet.style.left = '50%';
+    sheet.style.transform = `translate(${zi.tx}px, ${zi.ty}px) scale(${zi.scale})`;
     const zid = zoomIndRef.current;
     if (zid) zid.textContent = Math.round(zi.scale * 100) + '%';
   }, []);
