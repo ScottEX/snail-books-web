@@ -408,7 +408,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   backgroundImage: `linear-gradient(90deg, ${bgGrad[0]} 0%, ${bgGrad[1]} 100%)`,
                 },
                 // @ts-ignore — 支出卡片去掉右侧peek
-                i === 1 && { width: 'calc(100vw - 32px)' },
+                i === 1 && { width: 'calc(100vw - 32px)', overflow: 'visible' as const },
                 ]}
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
