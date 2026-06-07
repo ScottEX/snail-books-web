@@ -877,6 +877,7 @@ export default function HomeScreen({
                   />
                   {/* 图表：月度趋势 + 分类占比 */}
                   {chartMonthly && (
+                    <View style={{ marginTop: 16 }}>
                     <ChartsPanel
                       months={chartMonthly.months || []}
                       income={chartMonthly.income || []}
@@ -884,6 +885,7 @@ export default function HomeScreen({
                       profit={chartMonthly.profit || []}
                       categories={chartMonthly.categories || {}}
                     />
+                    </View>
                   )}
                 </View>
               )}
