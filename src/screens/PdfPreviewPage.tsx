@@ -511,7 +511,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
       {/* Viewport */}
       <div ref={viewportRef as any} style={styles.viewport as any}>
-        <div ref={viewportRef as any} style={styles.viewportInner as any}>
+        <div style={styles.viewportInner as any}>
           <div
             ref={sheetRef as any}
             style={styles.docSheet as any}
