@@ -299,13 +299,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     });
   }, [clampNow]);
 
-  // Animated apply (zoom buttons / double-tap)
+  // Animated apply (zoom buttons / double-tap / snap)
   const applyAnim = useCallback((s: number, cx: number, cy: number) => {
+    // Cancel any pending RAF to avoid conflicting with CSS transition
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
     const el = sheetRef.current;
     if (!el) return;
     el.style.transition = 'transform .25s cubic-bezier(.4,0,.2,1)';
     el.style.transform = `translate(calc(-50% + ${cx}px), ${cy}px) scale(${s})`;
-    // Remove transition after it completes so drag stays instant
     setTimeout(() => { if (el) el.style.transition = 'none'; }, 260);
   }, []);
 
@@ -344,8 +345,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       e.preventDefault();
       const g = gRef.current;
       g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + (e.deltaY > 0 ? -0.1 : 0.1)));
+      boundsRef.current.scale = -1;
       const [s, cx, cy] = clampNow();
-      applyAnim(s, cx, cy);
+      applyDom(s, cx, cy);
       flashZoom();
     };
 
@@ -410,9 +412,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       } else if (tr.mode === 'pinch' && e.touches.length === 2) {
         const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, tr.pinchScale * (dist(e.touches) / tr.pinchDist)));
         g.scale = ns;
-        boundsRef.current.scale = -1; // force recalc on scale change
+        boundsRef.current.scale = -1;
         const [s, cx, cy] = clampNow();
-        applyAnim(s, cx, cy);
+        applyDom(s, cx, cy);
         flashZoom();
       }
     };
