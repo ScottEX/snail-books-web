@@ -92,7 +92,7 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .zoom-indicator{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .zoom-indicator.show{opacity:1}
 
-.viewport{position:fixed;inset:0;padding-top:${NAV_H}px;padding-bottom:${TOOLBAR_H}px;padding-left:env(safe-area-inset-left,0);padding-right:env(safe-area-inset-right,0);overflow:hidden;background:var(--bg)}
+.viewport{position:fixed;inset:0;padding-top:${NAV_H}px;padding-bottom:${TOOLBAR_H}px;padding-left:env(safe-area-inset-left,0);padding-right:env(safe-area-inset-right,0);overflow:clip;background:var(--bg)}
 .viewport-inner{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center;overflow:visible;position:relative;cursor:grab}
 .viewport-inner.grabbing{cursor:grabbing}
 .doc-sheet{position:absolute;transform-origin:center top;will-change:transform;padding:0 12px;top:12px;touch-action:none;user-select:none}
@@ -348,7 +348,7 @@ function PortalContent({
     const vw = vp.clientWidth;
     if (!vw || vw < 100) return false;
     const docW = paper.offsetWidth + 24;
-    zi.scale = Math.min(1, (vw - 24) / docW);
+    zi.scale = Math.min(1, vw / docW);
     zi.tx = 0;
     zi.ty = 0;
     recalcBounds();
