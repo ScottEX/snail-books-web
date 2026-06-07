@@ -31,12 +31,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <View style={styles.headerRight} />
       </View>
 
-      {/* PDF iframe */}
+      {/* PDF iframe — absolute fill below header */}
       <iframe
         src={pdfUrl}
         style={{
-          flex: 1,
-          width: '100%',
+          position: 'absolute',
+          top: HEADER_TOP + HEADER_H,
+          left: 0,
+          right: 0,
+          bottom: 0,
           border: 'none',
           background: '#525659',
         }}
