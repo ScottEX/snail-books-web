@@ -75,9 +75,11 @@ const STYLE_CSS = `
 html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);touch-action:none}
 
 .navbar{position:fixed;top:44px;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 16px 8px;background:transparent;backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
-.nav-back{width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,0.30);backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
+.nav-back{width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,0.30);backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0;margin-top:-2px}
 .nav-back:active{background:rgba(255,255,255,0.45)}
-.nav-title{font-size:16px;font-weight:500;color:#2C2626;letter-spacing:.01em;text-align:center}
+.nav-back svg{width:20px;height:20px;stroke:#2C2626;stroke-width:1.5;fill:none;display:block}
+.nav-title-wrap{text-align:center}
+.nav-title{font-size:16px;font-weight:500;color:#2C2626;letter-spacing:.01em}
 .nav-sub{font-size:10px;color:rgba(0,0,0,0.45);font-family:var(--mono);margin-top:1px}
 .nav-right{display:flex;align-items:center;gap:6px}
 .nav-action{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.30);backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative}
@@ -530,7 +532,9 @@ function PortalContent({
         <div className="nav-back" onClick={onBack}>
           <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>
-        <div className="nav-title">{title}</div>
+        <div className="nav-title-wrap">
+          <div className="nav-title">{title}</div>
+        </div>
         <div style={{ width: 44 }} />
       </div>
 
