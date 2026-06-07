@@ -5,6 +5,7 @@ import { t, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { getCurrentUser } from '../utils/storage';
 
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
@@ -45,7 +46,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         // Restore remember preference for this saved user
         setRemember(localStorage.getItem('remember_me') === 'true');
       }
-      if (localStorage.getItem('user')) onLogin();
+      if (getCurrentUser()) onLogin();
     }
   }, []);
 
@@ -126,7 +127,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
-        try { await api.saveLang(getLang()); } catch {}
+        // NOTE: do NOT save getLang() here. At this point localStorage
+        // may still hold the PREVIOUS user's language (the one who
+        // was last signed in on this browser). Saving it now would
+        // overwrite the NEW user's server-side language preference.
+        // Instead, App.tsx dispatches 'app:user-change' from onLogin
+        // → ThemeProvider remounts → api.getLang() pulls the real
+        // per-user language → setLang() writes curLang + localStorage
+        // and the fire-and-forget PUT back is a no-op.
         onLogin();
       } else if (r.need_verify) {
         setEmail(r.email); setStep('verify'); setMsg(''); setMsgKey('');
@@ -233,7 +241,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   };
 
   const switchLang = (l: string) => {
-    setLang(l);
+    // setLangState (from LangContext) writes curLang + localStorage +
+    // server AND triggers a re-render of every useContext(LangContext)
+    // subscriber — replacing the old two-step `setLang(l); setLangState(l);`.
     setLangState(l);
     setMsg('');
     setMsgKey('');

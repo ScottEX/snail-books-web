@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animated, Image } from 'react-native';
+import { createPortal } from 'react-dom';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { t, setLang, getLang, langs } from '../i18n';
+import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -227,7 +228,7 @@ export default function HomeScreen({
   });
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
-      const uid = localStorage.getItem('user_id');
+      const uid = getCurrentUserId();
       const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
       const saved = localStorage.getItem(key);
       return saved !== null ? parseFloat(saved) : 0.5;
@@ -271,18 +272,46 @@ export default function HomeScreen({
   useEffect(() => { loadData(); }, [loadData]);
 
   const loadAvatar = async () => {
-    const uid = localStorage.getItem('user_id');
+    const uid = getCurrentUserId();
     if (!uid) return;
+    const CACHE_KEY = 'cached_avatar_b64';
+    // Serve from cache immediately to avoid flash
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) setAvatarUrl(cached);
+    } catch {}
     try {
       const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
       if (resp.ok) {
         const blob = await resp.blob();
-        setAvatarUrl(URL.createObjectURL(blob));
+        const reader = new FileReader();
+        reader.onload = () => {
+          const b64 = reader.result as string;
+          setAvatarUrl(b64);
+          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
+        };
+        reader.readAsDataURL(blob);
       }
     } catch {}
   };
 
   useEffect(() => { loadAvatar(); }, []);
+
+  // Cross-screen bg sync: ProfileScreen theme button uploads a new
+  // background and dispatches 'bg-changed' so we refresh here. The
+  // background is rendered by HomeScreen, not ProfileScreen, so this
+  // is the only way the change becomes visible.
+  useEffect(() => {
+    const onBgChanged = (e: any) => {
+      const url = e?.detail?.url;
+      if (typeof url === 'string') {
+        setBgImage(url);
+        setBgVersion(v => v + 1);
+      }
+    };
+    window.addEventListener('bg-changed', onBgChanged);
+    return () => window.removeEventListener('bg-changed', onBgChanged);
+  }, []);
 
   // Load background image — user-specific
   useEffect(() => {
@@ -299,13 +328,13 @@ export default function HomeScreen({
       if (r?.opacity !== null && r?.opacity !== undefined) {
         setBgOpacity(r.opacity);
         try {
-          const uid = localStorage.getItem('user_id');
+          const uid = getCurrentUserId();
           localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(r.opacity));
         } catch {}
       } else {
         // Migration: push localStorage opacity to server if not saved yet
         try {
-          const uid = localStorage.getItem('user_id');
+          const uid = getCurrentUserId();
           const local = localStorage.getItem(uid ? `bg-opacity-${uid}` : 'bg-opacity');
           if (local !== null) {
             const v = parseFloat(local);
@@ -454,25 +483,26 @@ export default function HomeScreen({
     }
   };
 
-  const formatDate = (d: string) => (d || '').slice(5, 16);
 
   const todayStr = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
 
-  const handleBgUpload = async (e: any) => {
-    const file = e.target?.files?.[0];
-    if (!file) return;
+  // Background image crop flow is self-contained inside ThemePickerModal —
+  // it calls onCoverImagePicked(file) after the user confirms in the
+  // BgCropModal preview step. We just upload + refresh local state.
+  const handleCoverImagePicked = async (file: File) => {
     setUploadingBg(true);
     try {
-      const r = await api.uploadBackground(file);
+      const r: any = await api.uploadBackground(file);
       if (r?.url) {
         setBgImage(r.url);
         try { localStorage.setItem('bg-image', r.url); } catch {}
-      }
-      setBgVersion(v => v + 1);
-    } catch (err) { /* ignore */ }
-    setUploadingBg(false);
-    closeModal(() => setShowBgModal(false));
+        setBgVersion(v => v + 1);
+      } else { throw new Error(t('uploadFailedShort')); }
+    } finally {
+      setUploadingBg(false);
+    }
   };
+
   const handleBgReset = async () => {
     setUploadingBg(true);
     try {
@@ -482,8 +512,22 @@ export default function HomeScreen({
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
-    closeModal(() => setShowBgModal(false));
+    setShowBgModal(false);
   };
+
+  const handleBgOpacityChange = (v: number) => {
+    setBgOpacity(v);
+    try {
+      const uid = getCurrentUserId();
+      localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(v));
+    } catch {}
+    clearTimeout((window as any).__bgOpacityTimer);
+    (window as any).__bgOpacityTimer = setTimeout(() => {
+      api.saveBackgroundSettings({ opacity: v }).catch(() => {});
+    }, 500);
+  };
+
+  // Background image crop event binding moved to BgCropModal.
 
   const styles = useMemo(() => getStyles(colors), [colors]);
   const usr = useMemo(() => getCurrentUser() || '用户', []);
@@ -566,33 +610,43 @@ export default function HomeScreen({
       {/* Background */}
       <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
 
-      {/* History screen overlay — renders on top of background, main content hidden */}
-      <SlideScreen visible={showExpenseHistory} onClose={() => setShowExpenseHistory(false)}>
-        {(onBack) => <ExpenseHistoryScreen onBack={onBack} />}
-      </SlideScreen>
-      <SlideScreen visible={showDailyHistory} onClose={() => setShowDailyHistory(false)}>
-        {(onBack) => <DailyRevenueHistory onBack={onBack} />}
-      </SlideScreen>
-      <SlideScreen visible={showReconHistory} onClose={() => setShowReconHistory(false)}>
-        {(onBack) => <ReconHistoryScreen onBack={onBack} />}
-      </SlideScreen>
+      {/* Sub-page stack — iOS push/pop with z-index keyed to stack
+          position so the top of the stack always covers what's below.
+          Rendered as a single .map() over pageStack rather than 5
+          hand-written SlideScreens: adding a new sub-page is now one
+          switch case + one push site, not a new <SlideScreen> block. */}
+      {pageStack.map((p, idx) => {
+        const isTop = idx === pageStack.length - 1;
+        return (
+          <SlideScreen
+            key={p}
+            visible={removing !== p}
+            onClose={popPage}
+            stackIndex={idx}
+            isTop={isTop}
+            top={p === 'profile' ? 48 : 0}
+          >
+            {renderSubPage(p)}
+          </SlideScreen>
+        );
+      })}
 
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerInner}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <TouchableOpacity onPress={() => pushPage('profile')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={{ width: 32, height: 32, borderRadius: 16 }} />
             ) : (
               <Image source={{ uri: '/img/logo.jpg' }} style={{ width: 32, height: 32, borderRadius: 16 }} />
             )}
             <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{usr}</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => openModal(() => setShowBgModal(true))} style={{ marginRight: 8 }}>
+            <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
               <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => openModal(() => setShowLogoutModal(true))}>
+            <TouchableOpacity onPress={() => setShowLogoutModal(true)}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
             </TouchableOpacity>
             <View style={styles.langRow}>
@@ -606,18 +660,18 @@ export default function HomeScreen({
         </View>
       </View>
 
-      {/* Page content — hidden when history screen is active */}
-      {!showExpenseHistory && !showDailyHistory && !showReconHistory && (
+      {/* Page content — hidden whenever any sub-page is on the stack */}
+      {pageStack.length === 0 && (
       <View style={styles.page}>
         {tab === 'partner' ? (
-          <PartnerScreen onBack={() => setTab('list')} />
+          <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} />
+          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} />
         ) : (
           <>
             {/* Underlying tab content */}
             {tab === 'expense' ? (
-              <ExpenseScreen onReconHistory={() => setShowReconHistory(true)} onExpenseHistory={() => setShowExpenseHistory(true)} />
+              <ExpenseScreen onReconHistory={() => pushPage('recon')} onExpenseHistory={() => pushPage('expense')} />
             ) : (
               <>
                 {/* Tab Content */}
@@ -663,7 +717,7 @@ export default function HomeScreen({
                         <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>{t('revHistory')}</Text>
                       </View>
                       <TouchableOpacity
-                        onPress={() => { setShowDailyHistory(true); }}
+                        onPress={() => pushPage('daily')}
                         activeOpacity={0.7}
                         style={{ marginLeft: 'auto' }}
                       >
@@ -844,167 +898,22 @@ export default function HomeScreen({
     </View>
       )}  {/* end page-content conditional */}
 
-      {/* Background settings modal */}
-      {showBgModal && (
-        <Animated.View style={[styles.modalOverlay, { opacity: modalFade }]}>
-          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalAnim }] }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('bgSettings')}</Text>
-              <TouchableOpacity onPress={() => closeModal(() => setShowBgModal(false))}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.modalBodyBg}>
-              <Text style={styles.modalHint}>{t('bgHint')}</Text>
+      <ThemePickerModal
+        visible={showBgModal}
+        onClose={() => setShowBgModal(false)}
+        showCoverTools
+        coverOpacity={bgOpacity}
+        onCoverOpacityChange={handleBgOpacityChange}
+        onCoverImagePicked={handleCoverImagePicked}
+        onResetCover={handleBgReset}
+        coverUploading={uploadingBg}
+      />
 
-              {/* ── Theme Picker ── */}
-              <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 10 }}>{t('themePicker') || '主题'}</Text>
-                {allThemes.map((theme) => {
-                  const isActive = theme.colors.primary === colors.primary;
-                  const previewBg = theme.colors.bg;
-                  return (
-                    <TouchableOpacity
-                      key={theme.id}
-                      onPress={() => setTheme(theme.id)}
-                      style={{
-                        flexDirection: 'row', alignItems: 'center',
-                        padding: 12, borderRadius: 12, marginBottom: 8,
-                        backgroundColor: isActive ? withAlpha(colors.primary, 0.06) : colors.surface,
-                        borderWidth: 1.5,
-                        borderColor: isActive ? colors.primary : colors.secondary,
-                      }}
-                    >
-                      {/* Color preview dots */}
-                      <View style={{ flexDirection: 'row', gap: 4, marginRight: 12 }}>
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.primary }} />
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.bg, borderWidth: 1, borderColor: colors.secondary }} />
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.accent }} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: FONTS.micro.size, fontWeight: isActive ? '700' : '500', color: colors.textSub }}>
-                          {theme.nameZh}
-                        </Text>
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 1 }}>
-                          {theme.description}
-                        </Text>
-                      </View>
-                      {isActive && (
-                        <Text style={{ fontSize: FONTS.sub.size, color: colors.primary }}>✓</Text>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+      {/* Shared modal */}
+      <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
 
-              {/* Opacity slider */}
-              <View style={{ marginTop: 20 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('opacity')}</Text>
-                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.primary }}>{Math.round(bgOpacity * 100)}%</Text>
-                </View>
-                <View style={{ position: 'relative', height: 32, justifyContent: 'center' }}>
-                  {/* track background */}
-                  <View style={{
-                    position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2,
-                    backgroundColor: colors.secondary,
-                  }} />
-                  {/* active track fill */}
-                  <View style={{
-                    position: 'absolute', left: 0, height: 4, borderRadius: 2,
-                    width: `${bgOpacity * 100}%`,
-                    backgroundColor: colors.primary,
-                  }} />
-                  <input
-                    type="range"
-                    className="glass-slider"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={bgOpacity}
-                    onChange={(e: any) => {
-                      const v = parseFloat(e.target.value);
-                      setBgOpacity(v);
-                      try {
-                        const uid = localStorage.getItem('user_id');
-                        localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(v));
-                      } catch {}
-                      // Debounced save to server
-                      clearTimeout((window as any).__bgOpacityTimer);
-                      (window as any).__bgOpacityTimer = setTimeout(() => {
-                        api.saveBackgroundSettings({ opacity: v }).catch(() => {});
-                      }, 500);
-                    }}
-                    style={{
-                      width: '100%', height: 32, opacity: 0, cursor: 'pointer',
-                      margin: 0, position: 'relative', zIndex: 1,
-                    }}
-                  />
-                </View>
-                {/* tick labels */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>0</Text>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>50</Text>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>100</Text>
-                </View>
-              </View>
-
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-                <TouchableOpacity
-                  style={[styles.bgBtn, styles.bgBtnOutline]}
-                  disabled={uploadingBg}
-                  onPress={() => fileRef.current?.click()}
-                >
-                  <Text style={styles.bgBtnOutlineText}>{uploadingBg ? t('uploading') : t('chooseImage')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.bgBtn, styles.bgBtnDanger]}
-                  disabled={uploadingBg}
-                  onPress={handleBgReset}
-                >
-                  <Text style={styles.bgBtnDangerText}>{t('resetDefault')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
-        </Animated.View>
-      )}
-
-      {/* Logout confirmation modal */}
-      {showLogoutModal && (
-        <Animated.View style={[styles.modalOverlay, { opacity: modalFade }]}>
-          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalAnim }] }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('logout')}</Text>
-              <TouchableOpacity onPress={() => closeModal(() => setShowLogoutModal(false))}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ padding: 24, alignItems: 'center', gap: 18 }}>
-              <Text style={{ fontSize: FONTS.body.size, color: colors.textMain, textAlign: 'center' }}>
-                {t('logoutConfirm') || '确定要退出登录吗？'}
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                <TouchableOpacity
-                  style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: colors.secondary }}
-                  onPress={() => closeModal(() => setShowLogoutModal(false))}
-                >
-                  <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', backgroundColor: colors.primary }}
-                  onPress={async () => { await api.logout(); try { localStorage.removeItem('active_tab'); } catch {} onLogout(); }}
-                >
-                  <Text style={{ fontSize: FONTS.subBold.size, color: colors.surface, fontWeight: FONTS.subBold.weight }}>{t('confirmLogout') || '确定退出'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
-        </Animated.View>
-      )}
-
-      {/* Bottom Nav — hidden when history screens or cart drawer are active */}
-      {!showExpenseHistory && !showDailyHistory && !showReconHistory && !showCartDrawer && (
+      {/* Bottom Nav — hidden when any sub-page is on the stack or cart drawer is active */}
+      {pageStack.length === 0 && !showCartDrawer && (
       <View style={styles.bottomNav}>
         {([
           { id: 'expense', icon: NavIconExpense },
@@ -1022,9 +931,11 @@ export default function HomeScreen({
                 Animated.spring(navScaleAnims[i], { toValue: 1, useNativeDriver: false, speed: 20, bounciness: 14 }),
               ]).start();
               setTab(id as Tab);
-              setShowReconHistory(false);
-              setShowExpenseHistory(false);
-              setShowDailyHistory(false);
+              // Switching tabs swaps the underlying page, so any open
+              // sub-page is dropped instantly (no exit animation —
+              // we're going to a different context anyway).
+              setPageStack([]);
+              setRemoving(null);
             }}
           >
             <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>
@@ -1034,14 +945,8 @@ export default function HomeScreen({
         ))}
       </View>
       )}
-      {/* Hidden file input for background upload */}
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={handleBgUpload}
-      />
+      {/* Background image crop handled by shared BgCropModal (rendered below) */}
+
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </View>
   );
@@ -1113,7 +1018,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     position: 'relative' as const, zIndex: 101,
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: withAlpha(colors.bg, 0.55),
+    backgroundColor: 'transparent',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
@@ -1322,3 +1227,4 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   rev7CardNote: { borderTopWidth: 0.5, borderTopColor: colors.secondary, paddingTop: 8, marginTop: 4 },
   rev7CardNoteText: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 16 },
 } as any);
+// Background image crop styles moved to BgCropModal.

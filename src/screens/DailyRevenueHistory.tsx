@@ -13,7 +13,20 @@ import BackArrow from '../components/icons/BackArrow';
 const PAGE_SIZE = 10;
 
 const todayStr = () => new Date().toISOString().split('T')[0];
+const defaultFromDate = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 30);
+  return d.toISOString().split('T')[0];
+};
 const isFuture = (d: string) => d > todayStr();
+// Strict calendar months between two ISO dates (YYYY-MM-DD)
+function monthsBetween(from: string, to: string): number {
+  const [fy, fm, fd] = from.split('-').map(Number);
+  const [ty, tm, td] = to.split('-').map(Number);
+  let m = (ty - fy) * 12 + (tm - fm);
+  if (td < fd) m -= 1;
+  return m;
+}
 
 function RevenueEmptyIcon({ color }: { color: string }) {
   return (
@@ -30,7 +43,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const [records, setRecords] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [allTotal, setAllTotal] = useState(0);
+  const [totalAll, setTotalAll] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
@@ -43,11 +56,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   // Filter state
   const [showFilter, setShowFilter] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
-  const [dateFrom, setDateFrom] = useState(() => {
-    const d = new Date(); d.setMonth(d.getMonth() - 1);
-    return fmtISO(d);
-  });
-  const [dateTo, setDateTo] = useState(() => fmtISO(new Date()));
+  const [dateFrom, setDateFrom] = useState(defaultFromDate());
+  const [dateTo, setDateTo] = useState(todayStr());
   useEffect(() => { if (dateFromRef.current) dateFromRef.current.value = dateFrom; }, [dateFrom]);
   useEffect(() => { if (dateToRef.current) dateToRef.current.value = dateTo; }, [dateTo]);
   const [appliedFrom, setAppliedFrom] = useState(dateFrom);
@@ -63,6 +73,10 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const rangeInvalid = useMemo(() =>
     !!(dateFrom && dateTo && dateFrom > dateTo),
     [dateFrom, dateTo]);
+  // 24-month max-span guard (strict calendar months)
+  const rangeTooLong = useMemo(() =>
+    !!(dateFrom && dateTo && !rangeInvalid && monthsBetween(dateFrom, dateTo) > 24),
+    [dateFrom, dateTo, rangeInvalid]);
 
   // Server-side paginated load
   const loadPage = useCallback(async (pg: number, reset: boolean) => {
@@ -80,6 +94,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       setRecords(prev => reset ? recs : [...prev, ...recs]);
       setPage(pg);
       setTotal(r?.total || 0);
+      setTotalAll(r?.total_all ?? r?.total ?? 0);
       setHasMore(pg < (r?.pages || 1));
     } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
@@ -92,13 +107,6 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
     setRecords([]);
     loadPage(1, true);
   }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Fetch unfiltered total once on mount
-  useEffect(() => {
-    api.getDailyRevenue(1, 1).then((r: any) => {
-      setAllTotal(r?.total || 0);
-    }).catch(() => {});
-  }, []);
 
   // Infinite scroll
   const handleScroll = useCallback((e: any) => {
@@ -137,7 +145,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             <BackArrow color={colors.primary} />
           </View>
         </TouchableOpacity>
-        <Text style={st.title}>{t('revHistoryBtn')} [{total}/{allTotal}]</Text>
+        <Text style={st.title}>{t('revHistoryBtn')} ({total}/{totalAll})</Text>
         <TouchableOpacity
           style={[st.filterBtn, showFilter && st.filterBtnActive]}
           onPress={() => {
@@ -175,8 +183,9 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
           <View style={st.filterContent}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
+            {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
             <View style={st.filterField}>
-              <Text style={st.filterLabel}>{t('filterDate')}</Text>
+              <Text style={st.filterLabel}>{t('revenueDate')}</Text>
               <View style={st.filterDateRange}>
                 <View style={st.filterDateWrap}>
                   {dateFrom ? (
@@ -203,21 +212,24 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             </View>
             <View style={st.filterActions}>
               <TouchableOpacity style={st.filterResetBtn} onPress={() => {
-                const d = new Date(); d.setMonth(d.getMonth() - 1);
-                setDateFrom(fmtISO(d)); setDateTo(fmtISO(new Date()));
-                setAppliedFrom(fmtISO(d)); setAppliedTo(fmtISO(new Date()));
+                const dFrom = defaultFromDate();
+                const dTo = todayStr();
+                setDateFrom(dFrom);
+                setDateTo(dTo);
+                setAppliedFrom(dFrom);
+                setAppliedTo(dTo);
               }} activeOpacity={0.7}>
                 <Text style={st.filterResetBtnText}>{t('reset')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[st.filterApplyBtn, rangeInvalid && st.filterApplyBtnDisabled]}
-                disabled={rangeInvalid}
+                style={[st.filterApplyBtn, (rangeInvalid || rangeTooLong) && st.filterApplyBtnDisabled]}
+                disabled={rangeInvalid || rangeTooLong}
                 onPress={() => {
                   setAppliedFrom(dateFrom);
                   setAppliedTo(dateTo);
                   setShowFilter(false);
                 }} activeOpacity={0.8}>
-                <Text style={[st.filterApplyBtnText, rangeInvalid && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
+                <Text style={[st.filterApplyBtnText, (rangeInvalid || rangeTooLong) && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
           </View>

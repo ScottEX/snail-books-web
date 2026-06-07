@@ -51,15 +51,38 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     headers: mergedHeaders,
   });
   if (resp.status === 401) {
+    // Try to read body to detect specific kick reason before clearing state
+    let kickCode: string | null = null;
+    let kickMsg: string | null = null;
+    try {
+      const body = await resp.clone().json();
+      if (body?.code) kickCode = body.code;
+      if (body?.message) kickMsg = body.message;
+    } catch {}
     localStorage.removeItem('user');
-    // Navigate immediately — this promise never resolves so callers don't render
-    if (window.location.pathname !== '/login') {
+    // Notify App.tsx that the user was cleared so it can re-evaluate page
+    // state (login vs home) without a hard reload. App.tsx is a pure SPA
+    // with no router, so URL changes alone don't re-render anything.
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('app:user-change'));
+    }
+    // If kicked by another device, let SessionKickedModal handle the UI.
+    // The modal's confirm/close button will redirect to /login — we intentionally
+    // do NOT redirect here so the user actually sees the modal.
+    if (kickCode === 'session_kicked') {
+      _emitSessionKicked();
+    } else if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
       window.location.replace('/login');
     }
     return Promise.reject(new Error(kickMsg || 'Unauthorized'));
   }
   if (!resp.ok) {
-    throw new Error(`API error: ${resp.status} ${resp.statusText}`);
+    let msg = `API error: ${resp.status} ${resp.statusText}`;
+    try {
+      const body = await resp.json();
+      if (body.message) msg = body.message;
+    } catch {}
+    throw new Error(msg);
   }
   return resp.json();
 }
@@ -284,7 +307,10 @@ export const api = {
   getProcurementBatches: (page = 1, perPage = 10) => authFetch(`/api/procurement-batches?page=${page}&per_page=${perPage}`),
   createProcurementBatch: (data: any) => authFetch('/api/procurement-batches', { method: 'POST', body: JSON.stringify(data) }),
   getProcurementBatchDetail: (id: number) => authFetch(`/api/procurement-batches/${id}`),
+  updateProcurementBatch: (id: number, data: any) => authFetch(`/api/procurement-batches/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteProcurementBatch: (id: number) => authFetch(`/api/procurement-batches/${id}`, { method: 'DELETE' }),
   getProcurementStats: () => authFetch('/api/procurement-stats'),
+  getProcurementShareLink: (id: number): Promise<{ url: string }> => authFetch(`/api/procurement-batches/${id}/share-link`),
   // Shared cart
   getCart: () => authFetch('/api/procurement-cart'),
   addToCart: (product_id: number, quantity: number) => authFetch('/api/procurement-cart', { method: 'POST', body: JSON.stringify({ product_id, quantity }) }),

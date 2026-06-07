@@ -5,14 +5,20 @@ import {
 } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
+import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 import Toast from '../components/Toast';
+import ConfirmModal from '../components/ConfirmModal';
+import { formatDate } from '../utils/format';
+import TrashIcon from '../components/icons/TrashIcon';
+import CameraIcon from '../components/icons/CameraIcon';
+import PlusIcon from '../components/icons/PlusIcon';
 
 type SubTab = 'new' | 'history' | 'products';
-type PayMethod = '现金' | '微信' | '支付宝';
+type PayMethod = 'payCash' | 'payWechat' | 'payAlipay';
 
 interface Product { id: number; name: string; spec: string; price: number; supplier: string; note?: string; }
 interface CartItem { product: Product; quantity: number; subtotal: number; }
@@ -20,8 +26,9 @@ interface BatchRecord { id: number; batch_number: number; date: string; payment_
 interface ProcStats { total_spent: number; total_income: number; batch_count: number; margin_pct: number; }
 
 // ═══════════════════════════════════════════════
-// SVG Icons
+// SVG Icons (local)
 // ═══════════════════════════════════════════════
+
 function CartIcon({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -38,14 +45,6 @@ function PencilIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-function CameraIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round">
-      <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-      <Circle cx="12" cy="13" r="4" />
-    </Svg>
-  );
-}
 function CheckIcon({ color }: { color: string }) {
   return (
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -55,32 +54,25 @@ function CheckIcon({ color }: { color: string }) {
 }
 // Payment SVG icons — clean, modern design
 const PAY_ICONS: Record<string, (color: string) => React.ReactNode> = {
-  '现金': (color: string) => (
+  payCash: (color: string) => (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Rect x="1" y="4" width="22" height="16" rx="2" />
       <Path d="M1 10h22" />
       <Circle cx="12" cy="12" r="3" />
     </Svg>
   ),
-  '微信': (color: string) => (
+  payWechat: (color: string) => (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z" />
     </Svg>
   ),
-  '支付宝': (color: string) => (
+  payAlipay: (color: string) => (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       <Path d="M9 12l2 2 4-4" />
     </Svg>
   ),
 };
-function TrashIcon({ color }: { color: string }) {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-    </Svg>
-  );
-}
 function BoxIcon({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -124,14 +116,6 @@ function EmptyBoxIcon({ color }: { color: string }) {
   );
 }
 
-function PlusIcon({ color, size = 16 }: { color: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M12 5v14M5 12h14" />
-    </Svg>
-  );
-}
-
 const SUPPLIER_DISPLAY: Record<string, string> = {};
 const SUPPLIER_ORDER = ['蓝姐', '蒙方', '鲜禾', '粉仔', '桂螺'];
 const displaySupplier = (s: string) => SUPPLIER_DISPLAY[s] || s;
@@ -143,8 +127,8 @@ const sortByOrder = (a: string, b: string) => {
   return ai - bi;
 };
 
-const PAY_KEYS = ['现金', '微信', '支付宝'] as const;
-const CHIP_ICON_BG: Record<string, string> = { '微信': '#07C160', '支付宝': '#1677FF', '现金': '#333' };
+const PAY_KEYS = ['payCash', 'payWechat', 'payAlipay'] as const;
+const CHIP_ICON_BG: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
 
 // ═══════════════════════════════════════════════
 // Styles
@@ -167,6 +151,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   headerTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.textMain },
   headerBadge: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 20, paddingHorizontal: 12, paddingVertical: 3 },
   headerBadgeText: { fontSize: FONTS.microBold.size, color: c.primary, fontWeight: FONTS.microBold.weight },
+  headerComingSoon: { fontSize: FONTS.micro.size, color: c.textSub },
   statRow: { flexDirection: 'row' as const, gap: 6 },
   statPill: { flex: 1, backgroundColor: withAlpha(c.textMain, 0.04), borderRadius: 10, padding: 10, alignItems: 'center' as const },
   statNum: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
@@ -329,6 +314,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
   histNo: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary },
   histDate: { fontSize: FONTS.micro.size, color: c.textSub },
+  histActions: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
+  histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
   histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
@@ -336,7 +323,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histPayBadge: { alignSelf: 'flex-start' as const, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: withAlpha(c.primary, 0.08), borderRadius: 12, marginTop: 4 },
   histPayText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.primary },
   histAmount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary, marginTop: 8 },
-  histImages: { flexDirection: 'row' as const, gap: 4, marginTop: 6 },
+  histImages: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 4, marginTop: 6 },
 
   // Success
   successOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
@@ -362,7 +349,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════
-export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onDrawerOpen?: () => void; onDrawerClose?: () => void }) {
+export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void }) {
   const { colors: c } = useTheme();
   const styles = useMemo(() => getStyles(c), [c]);
 
@@ -387,11 +374,19 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const drawerAnim = useRef(new Animated.Value(0)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const [orderDate, setOrderDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [payMethod, setPayMethod] = useState<PayMethod>('微信');
+  const [payMethod, setPayMethod] = useState<PayMethod>('payWechat');
   const [orderNote, setOrderNote] = useState('');
   const [receipts, setReceipts] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Edit mode: when set, the drawer is editing this batch instead of creating a new one
+  const [editingBatchId, setEditingBatchId] = useState<number | null>(null);
+  const [editingBatchNumber, setEditingBatchNumber] = useState<number>(0);
+  // Server-side image URLs kept across edit (new uploads get appended)
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [existingThumbUrls, setExistingThumbUrls] = useState<string[]>([]);
+  // Delete confirmation target (batch record)
+  const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
 
   const [showImgTip, setShowImgTip] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -410,6 +405,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
 
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
+  const [successIsEdit, setSuccessIsEdit] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -448,8 +444,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
   const itemsModalAnim = useRef(new Animated.Value(0)).current;
   const itemsModalOverlayAnim = useRef(new Animated.Value(0)).current;
   const openItemsModal = () => {
-    setDetailItems(cartItems.map(i => ({ name: i.product.name, quantity: i.quantity, subtotal: i.subtotal })));
-    setDetailTotal(cartTotal);
+    setItemsModalIsCart(true);
+    setItemsModalView('items');
+    setProductPickerSearch('');
     setShowItemsModal(true);
     itemsModalAnim.setValue(-300);
     itemsModalOverlayAnim.setValue(0);
@@ -464,20 +461,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       Animated.timing(itemsModalOverlayAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
     ]).start(() => setShowItemsModal(false));
   };
+
+  // ── History Detail ──
   const openHistoryDetail = (batch: BatchRecord) => {
-    setDetailItems(batch.items.map((item: any) => ({
-      name: item.name || item.product_name || `商品#${item.product_id}`,
-      quantity: item.quantity,
-      subtotal: item.subtotal || item.unit_price * item.quantity || 0,
-    })));
-    setDetailTotal(batch.total);
-    setShowItemsModal(true);
-    itemsModalAnim.setValue(-300);
-    itemsModalOverlayAnim.setValue(0);
-    Animated.parallel([
-      Animated.spring(itemsModalAnim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(itemsModalOverlayAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start();
+    onProcurementDetail?.(batch);
   };
 
   // ── Drawer animation ──
@@ -493,7 +480,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     Animated.parallel([
       Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
       Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => { setShowDrawer(false); onDrawerClose?.(); });
+    ]).start(() => {
+      setShowDrawer(false); onDrawerClose?.();
+      // Reset edit state when drawer is closed (in any way)
+      if (editingBatchId !== null) {
+        setEditingBatchId(null); setEditingBatchNumber(0);
+        setExistingImageUrls([]); setExistingThumbUrls([]);
+        setCart({}); setReceipts([]); setOrderNote('');
+        setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('payWechat');
+      }
+    });
   };
 
   const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
@@ -513,17 +509,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       }
     },
   })).current;
-
-  // ── Date formatting ──
-  const formatDateLocale = useCallback((d: string) => {
-    const l = getLang();
-    const [y, m, day] = d.split('-');
-    if (l.startsWith('en')) {
-      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      return `${months[+m - 1]} ${+day}, ${y}`;
-    }
-    return `${y}年${+m}月${+day}日`;
-  }, []);
 
   const todayStr = () => new Date().toISOString().slice(0, 10);
 
@@ -610,6 +595,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       setBatches(data?.records || []); setHistTotal(data?.total || 0); setHistPage(1);
     }).catch(() => {}).finally(() => setLoadingHist(false));
   }, [subTab]);
+
+  // Refetch history list (page 1) — used after edit/delete
+  const loadHistory = useCallback(() => {
+    setLoadingHist(true);
+    api.getProcurementBatches(1).then((data: any) => {
+      setBatches(data?.records || []); setHistTotal(data?.total || 0); setHistPage(1);
+    }).catch(() => {}).finally(() => setLoadingHist(false));
+  }, []);
 
   const loadMoreHistory = () => {
     if (loadingHist) return;
@@ -760,9 +753,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     if (cartItems.length === 0) return;
     setSubmitting(true);
     try {
-      // Upload images first (matching ExpenseScreen pattern)
-      let imageUrls: string[] = [];
-      let thumbUrls: string[] = [];
+      // Upload new images first (matching ExpenseScreen pattern)
+      let newImageUrls: string[] = [];
+      let newThumbUrls: string[] = [];
       if (receipts.length > 0) {
         setUploading(true);
         const result = await api.uploadExpenseImages(receipts);
@@ -773,19 +766,52 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
           setShowToast(true);
           return;
         }
-        imageUrls = result.images || [];
+        newImageUrls = result.images || [];
         // Prefer server-generated thumb URLs; fall back to full-size images if PIL is disabled
-        thumbUrls = (result.thumb_images && result.thumb_images.length > 0)
+        newThumbUrls = (result.thumb_images && result.thumb_images.length > 0)
           ? result.thumb_images
-          : imageUrls;
+          : newImageUrls;
       }
+      // Edit mode: combine existing + new images; call update endpoint
+      if (editingBatchId !== null) {
+        const allImages = [...existingImageUrls, ...newImageUrls];
+        const allThumbs = [...existingThumbUrls, ...newThumbUrls];
+        const r = await api.updateProcurementBatch(editingBatchId, {
+          date: orderDate, payment_method: payMethod, category: 'goods',
+          items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
+          images: allImages, thumb_images: allThumbs, note: orderNote,
+        });
+        if (r?.status === 'ok') {
+          Animated.parallel([
+            Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+            Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+          ]).start(() => {
+            setCart({}); setReceipts([]); setOrderNote('');
+            setExistingImageUrls([]); setExistingThumbUrls([]);
+            setEditingBatchId(null); setEditingBatchNumber(0);
+            setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('payWechat');
+            setShowDrawer(false); onDrawerClose?.();
+            // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
+            setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
+            setSuccessIsEdit(true);
+            openSlideModal(() => setShowSuccess(true));
+            loadHistory();
+            loadStats();
+          });
+        } else {
+          setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+        }
+        setSubmitting(false);
+        return;
+      }
+      // Create mode (default)
       const r = await api.createProcurementBatch({
-        date: orderDate, payment_method: payMethod, category: t('procPurchase'),
+        date: orderDate, payment_method: payMethod, category: 'goods',
         items: cartItems.map(i => ({ product_id: i.product.id, quantity: i.quantity })),
-        images: imageUrls, thumb_images: thumbUrls, note: orderNote,
+        images: newImageUrls, thumb_images: newThumbUrls, note: orderNote,
       });
       if (r?.status === 'ok') {
-        setSuccessTotal(r.total); setSuccessBatch(r.batch_number);
+        setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setSuccessIsEdit(false);
         Animated.parallel([
           Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
           Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
@@ -807,8 +833,73 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
     setSubmitting(false); setUploading(false);
   };
 
+  // Open drawer in edit mode, prefilled from the batch
+  const openEditBatch = (batch: BatchRecord) => {
+    setEditingBatchId(batch.id);
+    setEditingBatchNumber(batch.batch_number);
+    setOrderDate(batch.date);
+    setPayMethod((payKey(batch.payment_method) as PayMethod) || 'payWechat');
+    setOrderNote(batch.note || '');
+    // Rebuild cart from batch items: look up current product by id
+    const newCart: Record<number, number> = {};
+    for (const it of batch.items) {
+      const pid = it.product_id;
+      const qty = it.quantity;
+      if (pid && qty > 0) newCart[pid] = qty;
+    }
+    setCart(newCart);
+    setReceipts([]);
+    setExistingImageUrls(batch.images || []);
+    setExistingThumbUrls(batch.thumb_images || []);
+    // Open the same drawer the new-batch flow uses
+    setShowDrawer(true);
+    onDrawerOpen?.();
+    Animated.parallel([
+      Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
+      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+    ]).start();
+  };
+
+  // Expose edit function to parent via ref (for ProcurementDetailScreen edit button)
+  // External edit signal from ProcurementDetailScreen. Always runs on
+  // the freshly-mounted instance (the one whose parent just flipped
+  // setShowProcDetail(false)), so openEditBatch's setState calls all
+  // land on a live component — no stale ref, no unmounted setState.
+  useEffect(() => {
+    if (pendingEditBatch) {
+      openEditBatch(pendingEditBatch);
+      onPendingEditConsumed?.();
+    }
+  }, [pendingEditBatch, onPendingEditConsumed]);
+
+  // Confirm delete batch + cascade
+  const confirmDeleteBatch = async () => {
+    if (!deleteBatchTarget) return;
+    const targetId = deleteBatchTarget.id;
+    setDeleteBatchTarget(null);
+    try {
+      const r = await api.deleteProcurementBatch(targetId);
+      if (r?.status === 'ok') {
+        // Skip toast — Modal close + Toast mount on same frame crashes RN Web layout (same as password-change fix 1d06376)
+        // Refresh history list and stats
+        loadHistory();
+        loadStats();
+      } else {
+        setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+      }
+    } catch (err) {
+      console.error('[procurement] delete error:', err);
+      setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+    }
+  };
+
+  const removeExistingImage = (i: number) => {
+    setExistingImageUrls(prev => prev.filter((_, idx) => idx !== i));
+    setExistingThumbUrls(prev => prev.filter((_, idx) => idx !== i));
+  };
+
   const resetOrder = () => {
-    closeSlideModal(() => { setShowSuccess(false); setOrderDate(todayStr()); setPayMethod('微信'); setOrderNote(''); setReceipts([]); });
+    closeSlideModal(() => { setShowSuccess(false); setOrderDate(todayStr()); setPayMethod('payWechat'); setOrderNote(''); setReceipts([]); });
   };
 
   const openAddProduct = () => {
@@ -858,8 +949,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               <BoxIcon color={c.primary} />
               <Text style={styles.headerTitle}>{t('procTitle')}</Text>
             </View>
-            <View style={styles.headerBadge}>
-              <Text style={styles.headerBadgeText}>{t('procNowBatch').replace('{n}', String(stats.batch_count + 1))}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.headerComingSoon}>{t('procComingSoon')}</Text>
+              <View style={styles.headerBadge}>
+                <Text style={styles.headerBadgeText}>{t('procNowBatch').replace('{n}', String(stats.batch_count + 1))}</Text>
+              </View>
             </View>
           </View>
           <View style={styles.statRow}>
@@ -1034,7 +1128,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                 </View>
                 <View style={styles.histRow}>
                   <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
-                  <Text style={styles.histRowVal}>{batch.payment_method}</Text>
+                  <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
                 </View>
                 {batch.note ? (
                   <View style={styles.histRow}>
@@ -1059,7 +1153,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                   );
                 })()}
               </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
           )}
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
@@ -1097,7 +1192,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                     <PencilIcon color={c.textSub} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openSlideModal(() => setDeleteTarget(p))}>
-                    <TrashIcon color={c.danger} />
+                    <TrashIcon color={c.danger} size={14} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -1152,34 +1247,25 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
         </Animated.View>
       )}
 
-      {/* ── Delete confirmation modal ── */}
-      {deleteTarget && (
-        <Animated.View style={[styles.modalOverlay, { opacity: modalOverlayFade }]}>
-          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('procDeleteProduct') || '删除商品'}</Text>
-              <TouchableOpacity onPress={() => closeSlideModal(() => setDeleteTarget(null))}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={[styles.modalBody, { gap: 16 }]}>
-              <View style={styles.modalDeleteBox}>
-                <Text style={styles.modalDeleteText}>
-                  {t('procDeleteProductConfirm').replace('{name}', deleteTarget.name)}{' '}{t('procDeleteProductWarning')}
-                </Text>
-              </View>
-              <View style={styles.modalBtnRow}>
-                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setDeleteTarget(null))}>
-                  <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: c.primary }]} onPress={confirmDelete}>
-                  <Text style={styles.modalBtnConfirmText}>{t('delete') || '删除'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
-        </Animated.View>
-      )}
+      {/* ── Delete confirmation modal (product) ── */}
+      <ConfirmModal
+        visible={deleteTarget !== null}
+        title={t('procDeleteProduct') || '删除商品'}
+        message={<>{t('procDeleteProductConfirm').split('{name}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{deleteTarget?.name}</Text>{t('procDeleteProductConfirm').split('{name}')[1]}{' '}{t('procDeleteProductWarning')}</>}
+        confirmLabel={t('delete')}
+        onConfirm={() => confirmDelete()}
+        onCancel={() => closeSlideModal(() => setDeleteTarget(null))}
+      />
+
+      {/* ── Delete batch confirmation modal ── */}
+      <ConfirmModal
+        visible={deleteBatchTarget !== null}
+        title={t('procDeleteBatch')}
+        message={<>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(deleteBatchTarget?.batch_number ?? ''))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>}
+        confirmLabel={t('delete')}
+        onConfirm={() => confirmDeleteBatch()}
+        onCancel={() => closeSlideModal(() => setDeleteBatchTarget(null))}
+      />
 
       {/* ── Order Drawer (slides up) ── */}
       {showDrawer && (
@@ -1190,7 +1276,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
           <Animated.View style={[styles.drawer, { transform: [{ translateY: Animated.add(drawerTranslateY, dragY) }] }]}>
             <View style={styles.drawerHandle} {...panResponder.panHandlers} />
             <View style={styles.drawerHead} {...panResponder.panHandlers}>
-              <Text style={styles.drawerHeadTitle}>{t('procConfirmOrder')}</Text>
+              <Text style={styles.drawerHeadTitle}>
+                {editingBatchId !== null
+                  ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
+                  : t('procConfirmOrder')}
+              </Text>
               <TouchableOpacity style={styles.drawerClose} onPress={closeDrawer}>
                 <Text style={styles.drawerCloseText}>×</Text>
               </TouchableOpacity>
@@ -1201,7 +1291,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                 <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
                   <View style={styles.dateCatValue}>
-                    <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{formatDateLocale(orderDate)}</Text>
+                    <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{formatDate(orderDate)}</Text>
                     {React.createElement('input', {
                       ref: orderDateInputRef,
                       type: 'date', defaultValue: orderDate, max: todayStr(),
@@ -1210,7 +1300,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                     })}
                   </View>
                   <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                  <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{t('procPurchase')}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{t('goods')}</Text>
                 </View>
               </View>
 
@@ -1219,8 +1309,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
               <View style={styles.payRow}>
                 {PAY_KEYS.map(pm => {
                   const active = payMethod === pm;
-                  const isWechat = pm === '微信';
-                  const isAlipay = pm === '支付宝';
+                  const isWechat = pm === 'payWechat';
+                  const isAlipay = pm === 'payAlipay';
                   return (
                     <TouchableOpacity key={pm}
                       style={[styles.payChip, active && (isWechat ? styles.payChipOnWechat : isAlipay ? styles.payChipOnAlipay : styles.payChipOn)]}
@@ -1228,7 +1318,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                       <View style={[styles.chipIconCircle, active && { backgroundColor: CHIP_ICON_BG[pm] }]}>
                         {PAY_ICONS[pm](active ? c.surface : c.textSub)}
                       </View>
-                      <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{pm}</Text>
+                      <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{t(pm as any)}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -1255,6 +1345,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
                   <CameraIcon color={c.textSub} />
                   <Text style={styles.imgAddText}>{t('addImage')}</Text>
                 </TouchableOpacity>
+                {existingImageUrls.map((url, i) => (
+                  <View key={`exist-${i}`} style={styles.imgPreview}>
+                    {React.createElement('img', {
+                      src: url, style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' } as any,
+                    })}
+                    <TouchableOpacity style={styles.imgRemove} onPress={() => removeExistingImage(i)} activeOpacity={0.7}>
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
+                        <Path d="M18 6L6 18M6 6l12 12" />
+                      </Svg>
+                    </TouchableOpacity>
+                  </View>
+                ))}
                 {receipts.map((file, i) => (
                   <View key={`rec-${i}`} style={styles.imgPreview}>
                     {React.createElement('img', {
@@ -1309,9 +1411,20 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
       {/* ── Items Modal (slides from top) ── */}
       {showItemsModal && (
         <Animated.View style={[styles.itemsModalOverlay, { opacity: itemsModalOverlayAnim }]}>
-          <Animated.View style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}>
+          <Animated.View
+            style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}
+          >
             <View style={styles.itemsModalHeader}>
-              <Text style={styles.itemsModalTitle}>{t('procOrderItems')}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {itemsModalIsCart && itemsModalView === 'products' && (
+                  <TouchableOpacity onPress={() => setItemsModalView('items')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Text style={[styles.itemsModalClose, { fontSize: 18 }]}>←</Text>
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.itemsModalTitle}>
+                  {itemsModalIsCart && itemsModalView === 'products' ? t('procAddProduct') : t('procOrderItems')}
+                </Text>
+              </View>
               <TouchableOpacity onPress={closeItemsModal}>
                 <Text style={styles.itemsModalClose}>✕</Text>
               </TouchableOpacity>
@@ -1451,19 +1564,21 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose }: { onD
         <Animated.View style={[styles.successOverlay, { opacity: modalOverlayFade }]}>
           <Animated.View style={[styles.successCard, { transform: [{ translateY: modalSlide }] }]}>
             <CheckIcon color={c.primary} />
-            <Text style={styles.successTitle}>{t('procSubmitted')}</Text>
-            <Text style={styles.successSub}>{t('procSubmittedMsg')}</Text>
+            <Text style={styles.successTitle}>{successIsEdit ? t('procUpdated') : t('procSubmitted')}</Text>
+            <Text style={styles.successSub}>{successIsEdit ? t('procUpdatedMsg') : t('procSubmittedMsg')}</Text>
             <Text style={styles.successAmount}>¥{successTotal.toFixed(2)}</Text>
             <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>
               {t('procNowBatch').replace('{n}', String(successBatch))} · {orderDate} · {payMethod}
             </Text>
             <View style={styles.successBtns}>
-              <TouchableOpacity style={styles.successBtnView} onPress={() => { closeSlideModal(() => setShowSuccess(false)); setSubTab('history'); }}>
+              <TouchableOpacity style={[styles.successBtnView, !successIsEdit && { flex: 1 }]} onPress={() => { closeSlideModal(() => { setShowSuccess(false); setSuccessIsEdit(false); }); setSubTab('history'); }}>
                 <Text style={styles.successBtnViewText}>{t('procViewRecords')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.successBtnNew} onPress={resetOrder}>
-                <Text style={styles.successBtnNewText}>{t('procContinue')}</Text>
-              </TouchableOpacity>
+              {!successIsEdit && (
+                <TouchableOpacity style={styles.successBtnNew} onPress={resetOrder}>
+                  <Text style={styles.successBtnNewText}>{t('procContinue')}</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </Animated.View>
         </Animated.View>

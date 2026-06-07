@@ -2,9 +2,11 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { createPortal } from 'react-dom';
-import { t, setLang, getLang, langs } from '../i18n';
+import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import ModalOverlay from '../components/ModalOverlay';
+import ConfirmModal from '../components/ConfirmModal';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
@@ -50,13 +52,6 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
   );
 }
 
-function IconMinus({ color = '#7D2329', size = 14 }: { color?: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}>
-      <Path strokeLinecap="round" d="M5 12h14" />
-    </Svg>
-  );
-}
 
 export default function PartnerScreen({ onBack, onProfile }: { onBack: () => void; onProfile: () => void }) {
   const [toast, setToast] = useState('');
@@ -79,7 +74,9 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   const [divRoundNum, setDivRoundNum] = useState(0);
   const [divPreview, setDivPreview] = useState<any[]>([]);
   const [filter, setFilter] = useState('all');
-  const [lang, setLangState] = useState(getLang());
+  // Pulled from LangContext — re-renders on LangContext value change
+  // instead of capturing curLang at mount.
+  const { setLang: setLangState } = useLang();
 
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
@@ -207,13 +204,15 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   };
 
   const switchLang = (l: string) => {
-    setLang(l);
+    // setLangState (from LangContext) writes curLang + localStorage +
+    // server AND triggers a re-render — replacing the old
+    // two-step `setLang(l); setLangState(l);`.
     setLangState(l);
     loadData();
   };
 
   const loadAvatar = async () => {
-    const uid = localStorage.getItem('user_id');
+    const uid = getCurrentUserId();
     if (!uid) return;
     try {
       const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
@@ -421,19 +420,15 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 </View>
               </View>
             </View>
-            <TouchableOpacity onPress={() => fileInputRef.current?.click()} style={{ position: 'relative', marginTop: -4 }}>
+            <View style={{ position: 'relative', marginTop: -4 }}>
+            <TouchableOpacity onPress={onProfile}>
               {avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={s.avatar} key={avatarKey} />
               ) : (
                 <Image source={{ uri: '/img/logo.jpg' }} style={s.avatar} />
               )}
-              <View style={s.camBadge}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#fff" strokeWidth="2"/>
-                  <circle cx="12" cy="13" r="4" stroke="#fff" strokeWidth="2"/>
-                </svg>
-              </View>
             </TouchableOpacity>
+            </View>
             <input type="file" accept="image/*" ref={fileInputRef as any}
               style={{ display: 'none' }} onChange={handleAvatarSelect} />
           </View>
@@ -586,7 +581,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{t('issueProportional')}</Text>
-                <Text style={mo.sub}>{t('autoByShare')}</Text>
+                <Text style={[mo.sub, { color: colors.textSub }]}>{t('autoByShare')}</Text>
               </View>
               <TouchableOpacity onPress={() => setShowDividend(false)}>
                 <Text style={mo.close}>✕</Text>
@@ -614,12 +609,12 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                       <Text style={{ fontSize: 14, color: colors.textSub }}>{prefix}</Text>
                       <TouchableOpacity onPress={() => setDivRoundNum(n => Math.max(min, n - 1))} disabled={disabled}
                         style={{ ...btn, backgroundColor: disabled ? 'transparent' : colors.bg, borderWidth: 1, borderColor: disabled ? 'transparent' : colors.primary, opacity: disabled ? 0.25 : 1 }}>
-                        <IconMinus color={colors.primary} size={12} />
+                        <MinusIcon color={colors.primary} size={12} />
                       </TouchableOpacity>
                       <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textMain, minWidth: 18, textAlign: 'center' }}>{divRoundNum}</Text>
                       <TouchableOpacity onPress={() => setDivRoundNum(n => n + 1)}
                         style={{ ...btn, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.primary }}>
-                        <IconPlus color={colors.primary} size={12} />
+                        <PlusIcon color={colors.primary} size={12} />
                       </TouchableOpacity>
                       <Text style={{ fontSize: 14, color: colors.textSub }}>{suffix}</Text>
                     </>);
@@ -652,36 +647,14 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
         </ModalOverlay>
 
       {/* ====== DELETE MODAL ====== */}
-      {showDelete !== null && (
-        <ModalOverlay styles={mo} onClose={() => setShowDelete(null)}>
-          <View style={[mo.modalCard, { maxWidth: 320 }]} onStartShouldSetResponder={() => true}>
-            <View style={mo.header}>
-              <View>
-                <Text style={mo.title}>{t('confirmDeleteRecord')}</Text>
-                <Text style={mo.sub}>{t('irreversible')}</Text>
-              </View>
-              <TouchableOpacity onPress={() => setShowDelete(null)}>
-                <Text style={mo.close}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ padding: 20, gap: 16 }}>
-              <View style={moBody.deleteBox}>
-                <Text style={moBody.deleteText}>
-                  {t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{translateDividendNote(showDelete, grouped[showDelete]?.[0]?.date)}</Text>{t('allDividendRecords')}
-                </Text>
-              </View>
-              <View style={moBody.btnRow}>
-                <TouchableOpacity style={moBody.cancelBtn} onPress={() => setShowDelete(null)}>
-                  <Text style={moBody.cancelBtnText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={moBody.deleteConfirmBtn} onPress={handleDelete}>
-                  <Text style={moBody.confirmBtnText}>{t('confirmDeleteRecord')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </ModalOverlay>
-      )}
+      <ConfirmModal
+        visible={showDelete !== null}
+        title={t('confirmDeleteRecord')}
+        message={<>{t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{translateDividendNote(showDelete, grouped[showDelete ?? '']?.[0]?.date)}</Text>{t('allDividendRecords')}</>}
+        confirmLabel={t('confirmDeleteRecord')}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(null)}
+      />
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
         <ModalOverlay visible={showDetail} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
@@ -1062,9 +1035,9 @@ const getMoBody = (colors: ThemeColors) => StyleSheet.create({
   previewName: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
   previewAmt: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textMain },
   btnRow: { flexDirection: 'row', gap: 12, paddingTop: 4 },
-  cancelBtn: { flex: 1, backgroundColor: colors.bg, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  cancelBtn: { flex: 1, backgroundColor: colors.bg, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
   cancelBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
-  confirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  confirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
   confirmBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.surface },
   deleteConfirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   deleteBox: { backgroundColor: withAlpha(colors.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' },
