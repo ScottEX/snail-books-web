@@ -194,15 +194,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [batch, setBatch] = useState<BatchData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [scale, setScale] = useState(1);
-  const [tx, setTx] = useState(0);
-  const [ty, setTy] = useState(0);
   const [zoomVis, setZoomVis] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
 
   const vpRef = useRef<HTMLDivElement | null>(null);
   const sheetRef = useRef<HTMLDivElement | null>(null);
+  // All mutable gesture state lives in refs — no stale closures
+  const gRef = useRef({ scale: 1, tx: 0, ty: 0 });
   const dragRef = useRef({ active: false, startX: 0, startY: 0, startTx: 0, startTy: 0 });
   const touchRef = useRef({ mode: '' as '' | 'drag' | 'pinch', startX: 0, startY: 0, startTx: 0, startTy: 0, pinchDist: 0, pinchScale: 1, lastTap: 0 });
   const zoomTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -232,7 +231,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     return () => document.documentElement.classList.remove('pv-lock');
   }, []);
 
-  // Init zoom
+  // Init zoom — sets gRef and applies directly
   const initZoom = useCallback(() => {
     const vp = vpRef.current;
     const s = sheetRef.current;
@@ -241,74 +240,73 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (!paper) return;
     const vw = vp.clientWidth;
     const dw = paper.offsetWidth + 24;
-    const fit = (vw - 24) / dw;
-    setScale(Math.min(1, fit));
-    setTx(0);
-    setTy(0);
+    const fit = Math.min(1, (vw - 24) / dw);
+    gRef.current = { scale: fit, tx: 0, ty: 0 };
+    applyDom(fit, 0, 0, false);
   }, []);
 
   useEffect(() => {
-    if (batch && vpRef.current) {
-      setTimeout(initZoom, 80);
-    }
+    if (batch && vpRef.current) setTimeout(initZoom, 80);
   }, [batch, initZoom]);
 
-  // Apply transform
-  const applyTransform = useCallback((s: number, x: number, y: number, ani: boolean) => {
+  // Direct DOM transform — bypass React state
+  const applyDom = useCallback((s: number, x: number, y: number, ani: boolean) => {
     const el = sheetRef.current;
     if (!el) return;
     el.style.transition = ani ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
     el.style.transform = `translate(calc(-50% + ${x}px), ${y}px) scale(${s})`;
   }, []);
 
-  const clamp = useCallback((s: number, x: number, y: number): [number, number, number] => {
+  const clampNow = useCallback((): [number, number, number] => {
     const vp = vpRef.current;
     const sh = sheetRef.current;
-    if (!vp || !sh) return [s, x, y];
+    const g = gRef.current;
+    if (!vp || !sh) return [g.scale, g.tx, g.ty];
     const paper = sh.querySelector('.pv-paper') as HTMLElement;
-    if (!paper) return [s, x, y];
-    const vw = vp.clientWidth;
-    const vh = vp.clientHeight;
-    const dw = (paper.offsetWidth + 24) * s;
-    const dh = (paper.offsetHeight + 24) * s;
+    if (!paper) return [g.scale, g.tx, g.ty];
+    const vw = vp.clientWidth, vh = vp.clientHeight;
+    const dw = (paper.offsetWidth + 24) * g.scale;
+    const dh = (paper.offsetHeight + 24) * g.scale;
     const maxTx = Math.max(0, (dw - vw) / 2);
     const maxTy = Math.max(0, (dh - vh) / 2 + 20);
-    return [s, Math.max(-maxTx, Math.min(maxTx, x)), Math.max(-20, Math.min(maxTy, y))];
+    g.tx = Math.max(-maxTx, Math.min(maxTx, g.tx));
+    g.ty = Math.max(-20, Math.min(maxTy, g.ty));
+    return [g.scale, g.tx, g.ty];
   }, []);
 
-  const flashZoom = useCallback((s: number) => {
+  const flashZoom = useCallback(() => {
     setZoomVis(true);
     clearTimeout(zoomTimer.current);
     zoomTimer.current = setTimeout(() => setZoomVis(false), 1500);
   }, []);
 
-  // Gesture events
+  // ── Mouse / Wheel ── (mount once)
   useEffect(() => {
     const vp = vpRef.current;
     if (!vp) return;
 
-    // Mouse
     const onMD = (e: MouseEvent) => {
-      dragRef.current = { active: true, startX: e.clientX, startY: e.clientY, startTx: tx, startTy: ty };
+      const g = gRef.current;
+      dragRef.current = { active: true, startX: e.clientX, startY: e.clientY, startTx: g.tx, startTy: g.ty };
       vp.classList.add('grabbing');
     };
     const onMM = (e: MouseEvent) => {
       if (!dragRef.current.active) return;
       const d = dragRef.current;
-      const nx = d.startTx + (e.clientX - d.startX);
-      const ny = d.startTy + (e.clientY - d.startY);
-      const [, cx, cy] = clamp(scale, nx, ny);
-      setTx(cx); setTy(cy);
-      applyTransform(scale, cx, cy, false);
+      gRef.current.tx = d.startTx + (e.clientX - d.startX);
+      gRef.current.ty = d.startTy + (e.clientY - d.startY);
+      const [s, cx, cy] = clampNow();
+      applyDom(s, cx, cy, false);
     };
     const onMU = () => { dragRef.current.active = false; vp.classList.remove('grabbing'); };
     const onWh = (e: WheelEvent) => {
       e.preventDefault();
-      const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale + (e.deltaY > 0 ? -0.1 : 0.1)));
-      const [cs, cx, cy] = clamp(ns, tx, ty);
-      setScale(cs); setTx(cx); setTy(cy);
-      applyTransform(cs, cx, cy, false);
-      flashZoom(cs);
+      const g = gRef.current;
+      const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + (e.deltaY > 0 ? -0.1 : 0.1)));
+      g.scale = ns;
+      const [s, cx, cy] = clampNow();
+      applyDom(s, cx, cy, false);
+      flashZoom();
     };
 
     vp.addEventListener('mousedown', onMD);
@@ -321,9 +319,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       window.removeEventListener('mouseup', onMU);
       vp.removeEventListener('wheel', onWh);
     };
-  }, [scale, tx, ty, clamp, applyTransform, flashZoom]);
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Touch events
+  // ── Touch ── (mount once)
   useEffect(() => {
     const vp = vpRef.current;
     if (!vp) return;
@@ -333,14 +331,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
       const tr = touchRef.current;
+      const g = gRef.current;
       if (e.touches.length === 1) {
         const now = Date.now();
         if (now - tr.lastTap < 300) {
-          const ns = scale > 1.1 ? 1 : 2;
-          const [cs, cx, cy] = clamp(ns, 0, 0);
-          setScale(cs); setTx(cx); setTy(cy);
-          applyTransform(cs, cx, cy, true);
-          flashZoom(cs);
+          const ns = g.scale > 1.1 ? 1 : 2;
+          g.scale = ns; g.tx = 0; g.ty = 0;
+          const [s, cx, cy] = clampNow();
+          applyDom(s, cx, cy, true);
+          flashZoom();
           tr.lastTap = 0;
           return;
         }
@@ -348,43 +347,43 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         tr.mode = 'drag';
         tr.startX = e.touches[0].clientX;
         tr.startY = e.touches[0].clientY;
-        tr.startTx = tx;
-        tr.startTy = ty;
+        tr.startTx = g.tx;
+        tr.startTy = g.ty;
         vp.classList.add('grabbing');
       } else if (e.touches.length === 2) {
         tr.mode = 'pinch';
         tr.pinchDist = dist(e.touches);
-        tr.pinchScale = scale;
+        tr.pinchScale = g.scale;
       }
     };
 
     const onTM = (e: TouchEvent) => {
       e.preventDefault();
       const tr = touchRef.current;
+      const g = gRef.current;
       if (tr.mode === 'drag' && e.touches.length === 1) {
-        const nx = tr.startTx + (e.touches[0].clientX - tr.startX);
-        const ny = tr.startTy + (e.touches[0].clientY - tr.startY);
-        const [, cx, cy] = clamp(scale, nx, ny);
-        setTx(cx); setTy(cy);
-        applyTransform(scale, cx, cy, false);
+        g.tx = tr.startTx + (e.touches[0].clientX - tr.startX);
+        g.ty = tr.startTy + (e.touches[0].clientY - tr.startY);
+        const [s, cx, cy] = clampNow();
+        applyDom(s, cx, cy, false);
       } else if (tr.mode === 'pinch' && e.touches.length === 2) {
-        const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, tr.pinchScale * (dist(e.touches) / tr.pinchDist)));
-        const [cs, cx, cy] = clamp(ns, tx, ty);
-        setScale(cs); setTx(cx); setTy(cy);
-        applyTransform(cs, cx, cy, false);
-        flashZoom(cs);
+        g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, tr.pinchScale * (dist(e.touches) / tr.pinchDist)));
+        const [s, cx, cy] = clampNow();
+        applyDom(s, cx, cy, false);
+        flashZoom();
       }
     };
 
     const onTE = (e: TouchEvent) => {
       const tr = touchRef.current;
+      const g = gRef.current;
       if (e.touches.length === 0) { tr.mode = ''; vp.classList.remove('grabbing'); }
       else if (e.touches.length === 1 && tr.mode === 'pinch') {
         tr.mode = 'drag';
         tr.startX = e.touches[0].clientX;
         tr.startY = e.touches[0].clientY;
-        tr.startTx = tx;
-        tr.startTy = ty;
+        tr.startTx = g.tx;
+        tr.startTy = g.ty;
       }
     };
 
@@ -396,7 +395,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       vp.removeEventListener('touchmove', onTM);
       vp.removeEventListener('touchend', onTE);
     };
-  }, [scale, tx, ty, clamp, applyTransform, flashZoom]);
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // Toast
   const showToast = useCallback((icon: string, text: string) => {
@@ -420,30 +419,30 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, [showToast]);
 
   const zoomBy = useCallback((delta: number) => {
-    const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale + delta));
-    const [cs, cx, cy] = clamp(ns, tx, ty);
-    setScale(cs); setTx(cx); setTy(cy);
-    applyTransform(cs, cx, cy, true);
-    flashZoom(cs);
-  }, [scale, tx, ty, clamp, applyTransform, flashZoom]);
+    const g = gRef.current;
+    g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + delta));
+    const [s, cx, cy] = clampNow();
+    applyDom(s, cx, cy, true);
+    flashZoom();
+  }, [clampNow, applyDom, flashZoom]);
 
   const resetZoom = useCallback(() => {
-    const [cs, cx, cy] = clamp(1, 0, 0);
-    setScale(cs); setTx(cx); setTy(cy);
-    applyTransform(cs, cx, cy, true);
-    flashZoom(cs);
-  }, [clamp, applyTransform, flashZoom]);
+    const g = gRef.current;
+    g.scale = 1; g.tx = 0; g.ty = 0;
+    const [s, cx, cy] = clampNow();
+    applyDom(s, cx, cy, true);
+    flashZoom();
+  }, [clampNow, applyDom, flashZoom]);
 
   // Re-apply on resize
   useEffect(() => {
     const onResize = () => {
-      const [cs, cx, cy] = clamp(scale, tx, ty);
-      setTx(cx); setTy(cy);
-      applyTransform(cs || scale, cx, cy, false);
+      const [s, cx, cy] = clampNow();
+      applyDom(s, cx, cy, false);
     };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [scale, tx, ty, clamp, applyTransform]);
+  }, [clampNow, applyDom]);
 
   const docHtml = useMemo(() => batch ? buildDocHTML(batch) : '', [batch]);
 
@@ -487,7 +486,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
               <div className="pv-pill">第 1 页 / 共 1 页</div>
 
               {/* Zoom indicator */}
-              <div className={`pv-zi${zoomVis ? ' on' : ''}`}>{Math.round(scale * 100)}%</div>
+              <div className={`pv-zi${zoomVis ? ' on' : ''}`}>{Math.round(gRef.current.scale * 100)}%</div>
 
               {/* Viewport */}
               <div className="pv-vp">
