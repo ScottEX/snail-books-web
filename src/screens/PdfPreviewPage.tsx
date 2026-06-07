@@ -33,10 +33,10 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;pointer-events:none}
 .pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
-.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;cursor:grab}
+.pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:${TOOLBAR_H}px;overflow:hidden;background:#fff;display:flex;align-items:flex-start;justify-content:center;cursor:grab}
 .pv-vp.grabbing{cursor:grabbing}
-.pv-pdf-wrap{position:absolute;top:12px;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
-.pv-pdf-wrap canvas{display:block;box-shadow:0 4px 20px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);border-radius:4px}
+.pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
+.pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
 .pv-tb{position:fixed;bottom:0;left:0;right:0;z-index:100;height:${TOOLBAR_H}px;background:rgba(20,20,22,.88);backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px}
 .pv-tb-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:12px;cursor:pointer;transition:all .15s;border:none;background:none;flex:1;max-width:90px}
@@ -168,17 +168,25 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const onMD = (e: MouseEvent) => {
       e.preventDefault();
       const g = gRef.current;
-      dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.tx, sty: g.ty };
+      dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.scale <= 1 ? 0 : g.tx, sty: g.ty };
       vp.classList.add('grabbing');
     };
     const onMM = (e: MouseEvent) => {
       if (!dragRef.current.active) return;
       const d = dragRef.current;
-      gRef.current.tx = d.stx + (e.clientX - d.sx);
-      gRef.current.ty = d.sty + (e.clientY - d.sy);
+      const g = gRef.current;
+      if (g.scale <= 1) g.tx = 0;
+      else g.tx = d.stx + (e.clientX - d.sx);
+      g.ty = d.sty + (e.clientY - d.sy);
       scheduleApply();
     };
-    const onMU = () => { dragRef.current.active = false; vp.classList.remove('grabbing'); clamp(); applyTransform(true); };
+    const onMU = () => {
+      dragRef.current.active = false; vp.classList.remove('grabbing');
+      const g = gRef.current;
+      if (g.scale <= 1) { g.tx = 0; g.ty = 0; }
+      else clamp();
+      applyTransform(true);
+    };
     const onWh = (e: WheelEvent) => {
       e.preventDefault();
       const g = gRef.current;
@@ -202,7 +210,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           clamp(); applyTransform(true); flushZoom(true); lastTapRef.current = 0; return;
         }
         lastTapRef.current = now;
-        dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: gRef.current.tx, sty: gRef.current.ty };
+        const g = gRef.current;
+        dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: g.scale <= 1 ? 0 : g.tx, sty: g.ty };
         vp.classList.add('grabbing');
       } else if (e.touches.length === 2) {
         pinchRef.current = { dist: dist(e.touches), scale: gRef.current.scale };
@@ -212,8 +221,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       e.preventDefault();
       if (dragRef.current.active && e.touches.length === 1) {
         const d = dragRef.current;
-        gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
-        gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
+        const g = gRef.current;
+        if (g.scale <= 1) g.tx = 0;
+        else g.tx = d.stx + (e.touches[0].clientX - d.sx);
+        g.ty = d.sty + (e.touches[0].clientY - d.sy);
         scheduleApply();
       } else if (e.touches.length === 2 && pinchRef.current.dist > 0) {
         const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchRef.current.scale * (dist(e.touches) / pinchRef.current.dist)));
@@ -222,7 +233,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       }
     };
     const onTE = (e: TouchEvent) => {
-      if (e.touches.length === 0) { dragRef.current.active = false; vp.classList.remove('grabbing'); clamp(); applyTransform(true); }
+      if (e.touches.length === 0) {
+        dragRef.current.active = false; vp.classList.remove('grabbing');
+        const g = gRef.current;
+        if (g.scale <= 1) { g.tx = 0; g.ty = 0; }
+        else clamp();
+        applyTransform(true);
+      }
       else if (e.touches.length === 1) { dragRef.current.active = false; }
     };
     vp.addEventListener('touchstart', onTS, { passive: false });
