@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, ActivityIndicator,
   StyleSheet, Platform,
@@ -138,24 +138,28 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     })();
   }, [batchId]);
 
-  // Hardcoded solid background — bypasses RN Web flex/Animated.View layout quirks
-  const bgColor = c.bg || '#F9F7F4';
+  // Render helpers
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+        <View style={styles.backBtn}><BackArrow color={c.textMain} /></View>
+      </TouchableOpacity>
+      <Text style={styles.title} numberOfLines={1}>
+        {t('procPdfTitle').replace('{n}', String(batchNumber))}
+      </Text>
+      <View style={{ width: 44 }} />
+    </View>
+  );
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: bgColor } as any]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-            <View style={styles.backBtn}><BackArrow color={c.textMain} /></View>
-          </TouchableOpacity>
-          <Text style={styles.title} numberOfLines={1}>
-            {t('procPdfTitle').replace('{n}', String(batchNumber))}
-          </Text>
-          <View style={{ width: 44 }} />
-        </View>
-        <View style={styles.centered}>
-          <ActivityIndicator color={c.primary} size="large" />
-          <Text style={styles.hintText}>{t('pdfLoading')}</Text>
+      <View style={styles.container}>
+        {renderHeader()}
+        <View style={styles.viewer}>
+          <View style={styles.centered}>
+            <ActivityIndicator color={c.primary} size="large" />
+            <Text style={styles.hintText}>{t('pdfLoading')}</Text>
+          </View>
         </View>
       </View>
     );
@@ -163,41 +167,29 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   if (error) {
     return (
-      <View style={[styles.container, { backgroundColor: bgColor } as any]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-            <View style={styles.backBtn}><BackArrow color={c.textMain} /></View>
-          </TouchableOpacity>
-          <Text style={styles.title}>{t('pdfLoadFailed')}</Text>
-          <View style={{ width: 44 }} />
-        </View>
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={retryPdf} style={styles.retryBtn} activeOpacity={0.7}>
-            <Text style={styles.retryText}>重试</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onBack} style={[styles.retryBtn, { marginTop: 8, backgroundColor: c.secondary }]} activeOpacity={0.7}>
-            <Text style={[styles.retryText, { color: c.textMain }]}>{t('goBack')}</Text>
-          </TouchableOpacity>
+      <View style={styles.container}>
+        {renderHeader()}
+        <View style={styles.viewer}>
+          <View style={styles.centered}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity onPress={retryPdf} style={styles.retryBtn} activeOpacity={0.7}>
+              <Text style={styles.retryText}>重试</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onBack} style={[styles.retryBtn, { marginTop: 8, backgroundColor: c.secondary }]} activeOpacity={0.7}>
+              <Text style={[styles.retryText, { color: c.textMain }]}>{t('goBack')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: bgColor } as any]}>
-      {/* 标题栏 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-          <View style={styles.backBtn}><BackArrow color={c.textMain} /></View>
-        </TouchableOpacity>
-        <Text style={styles.title} numberOfLines={1}>
-          {t('procPdfTitle').replace('{n}', String(batchNumber))}
-        </Text>
-        <View style={{ width: 44 }} />
-      </View>
+    <View style={styles.container}>
+      {/* 标题栏 — transparent, frosted glass over HomeScreen bg */}
+      {renderHeader()}
 
-      {/* PDF 内嵌 */}
+      {/* PDF 内嵌 — solid background */}
       <View style={styles.viewer}>
         {tokenUrl ? (
           <>
@@ -214,7 +206,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
                 style={styles.iframe as any}
                 title={`procurement_${batchId}.pdf`}
                 onError={() => setIframeError(true)}
-                onLoad={() => setIframeError(false)}
               />
             )}
           </>
@@ -307,13 +298,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
 const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
+  const bg = c.bg || '#F9F7F4';
   return StyleSheet.create({
-    // Flex fills the SlideScreen; inline backgroundColor overrides ensure opacity
-    container: { flex: 1 } as any,
+    container: { flex: 1, minHeight: '100vh' } as any,
     ...hdr,
+    // Viewer fills area below header — solid background
     viewer: {
       flex: 1,
-      backgroundColor: c.bg || '#F9F7F4',
+      minHeight: 'calc(100vh - 100px)' as any,
+      backgroundColor: bg,
       marginTop: 100,
     } as any,
     iframe: {

@@ -566,7 +566,6 @@ export default function HomeScreen({
             stackIndex={idx}
             isTop={isTop}
             top={p === 'profile' ? 48 : 0}
-            backgroundColor={p === 'pdf' ? colors.bg : undefined}
           >
             {renderSubPage(p)}
           </SlideScreen>
