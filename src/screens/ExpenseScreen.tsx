@@ -406,7 +406,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={[st.tabCard, active && st.tabCardActive, {
                   // @ts-ignore — 每张卡片独立渐变色
                   backgroundImage: `linear-gradient(90deg, ${bgGrad[0]} 0%, ${bgGrad[1]} 100%)`,
-                }, i === 1 && { width: 'calc(100vw - 50px)' }]}
+                },
+                // @ts-ignore — 支出卡片去掉右侧peek
+                i === 1 && { width: 'calc(100vw - 50px)' },
+                ]}
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
               >
