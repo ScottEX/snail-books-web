@@ -116,18 +116,15 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
       //      of a real PDF attachment.
       // A preview page decouples "see the PDF" from "share/save it"
       // and gives us one consistent UX across browsers.
-      // Use history.pushState (not window.location.hash = '...') so the
-      // URL change does NOT fire popstate. The page's own popstate
-      // listener (HomeScreen) uses popstate as a signal to pop the
-      // current sub-page; a hash-only navigation would otherwise be
-      // interpreted as "user pressed back" and immediately slide the
-      // preview off-screen. hashchange still fires, so App.tsx picks
-      // up the new route via the dedicated hashchange listener.
-      history.pushState(
-        null,
-        '',
-        `#/preview-pdf?id=${batch.id}&number=${batch.batch_number}`,
-      );
+      // Use `window.location.hash =` (NOT history.pushState) to set the
+      // route: iOS Safari silently no-ops hash-only pushState, so the
+      // `hashchange` event never fires and App.tsx's listener (L47-52)
+      // never picks up the new route, leaving the preview invisible.
+      // Assigning `location.hash` directly fires `hashchange`
+      // reliably on every browser; the popstate side-effect is
+      // absorbed by HomeScreen's 500ms `ignorePopstateUntil` safety
+      // window (L168-175).
+      window.location.hash = `#/preview-pdf?id=${batch.id}&number=${batch.batch_number}`;
     } catch {
       // Fallback: open the login-required PDF endpoint in a new tab
       window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');
@@ -197,15 +194,15 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit }: { bat
             <Text style={styles.batchDate}>{formatDate(batch.date)}</Text>
           </View>
           <View style={styles.batchActions}>
-            <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading}>
+            <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <ViewIcon color={c.primary} />
             </TouchableOpacity>
             {onEdit && (
-              <TouchableOpacity onPress={onEdit} activeOpacity={0.6} style={styles.actionBtn}>
+              <TouchableOpacity onPress={onEdit} activeOpacity={0.6} style={styles.actionBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <EditIcon color={c.primary} />
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.6} style={styles.actionBtn} disabled={deleting}>
+            <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.6} style={styles.actionBtn} disabled={deleting} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <TrashIcon color={c.danger} />
             </TouchableOpacity>
           </View>
