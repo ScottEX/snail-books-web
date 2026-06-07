@@ -47,7 +47,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-intro{background:#fff;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
 .pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
-.pv-intro-sec{font-size:36px;font-weight:800;font-family:var(--mono);color:#333}
+.pv-intro-sec{font-size:36px;font-weight:800;font-family:var(--mono)}
 .pv-sh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
 .pv-sh-overlay.open{opacity:1;pointer-events:auto}
 .pv-sh{position:absolute;bottom:0;left:0;right:0;max-height:70vh;background:#F9F7F4;border-radius:20px 20px 0 0;padding:16px 16px 24px;transform:translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
@@ -310,7 +310,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
             <div className="pv-intro-overlay">
               <div className="pv-intro on">
                 <div className="pv-intro-text">进货单PDF生成中…</div>
-                <div className="pv-intro-sec">{introSec}</div>
+                <div className="pv-intro-sec" style={{ color: c.accent }}>{introSec}</div>
               </div>
             </div>
           )}
