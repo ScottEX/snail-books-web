@@ -79,8 +79,8 @@ html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(-
 .nav-title-wrap{position:absolute;left:50%;transform:translateX(-50%);text-align:center}
 .nav-back{width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,0.30);backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .nav-back:active{background:rgba(255,255,255,0.45)}
-.nav-back svg{width:18px;height:18px;stroke:#333;stroke-width:2;fill:none;display:block}
-.nav-title{font-size:15px;font-weight:600;color:#222;letter-spacing:.01em}
+.nav-back svg{width:20px;height:20px;stroke:#2C2626;stroke-width:1.5;fill:none;display:block}
+.nav-title{font-size:16px;font-weight:500;color:#2C2626;letter-spacing:.01em}
 .nav-sub{font-size:10px;color:rgba(0,0,0,0.45);font-family:var(--mono);margin-top:1px}
 .nav-right{display:flex;align-items:center;gap:6px}
 .nav-action{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.30);backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative}
@@ -532,7 +532,7 @@ function PortalContent({
       <div className="navbar">
         <div className="nav-left">
           <div className="nav-back" onClick={onBack}>
-            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
+            <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </div>
         </div>
         <div className="nav-title-wrap">
