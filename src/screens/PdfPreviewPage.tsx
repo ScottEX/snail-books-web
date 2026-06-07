@@ -55,6 +55,13 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:200}
 .pv-spinner{width:32px;height:32px;border:3px solid var(--line2);border-top-color:var(--text2);border-radius:50%;animation:pv-spin .6s linear infinite}
 @keyframes pv-spin{to{transform:rotate(360deg)}}
+.pv-sh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
+.pv-sh-overlay.open{opacity:1;pointer-events:auto}
+.pv-sh{position:absolute;bottom:0;left:0;right:0;max-height:70vh;background:var(--surface);border-radius:20px 20px 0 0;padding:16px 16px 24px;transform:translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.pv-sh-overlay.open .pv-sh{transform:translateY(0)}
+.pv-sh-handle{width:36px;height:4px;background:var(--line2);border-radius:2px;margin:0 auto 16px}
+.pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text2);font-size:14px;text-align:center;padding:40px}
+.pv-err-btn{padding:8px 20px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;cursor:pointer}
 `;
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
@@ -66,6 +73,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
+  const [pdfError, setPdfError] = useState('');
   const [zoomVis, setZoomVis] = useState(false);
   const [zoomPct, setZoomPct] = useState(100);
   const [shareOpen, setShareOpen] = useState(false);
@@ -76,12 +84,17 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     let cancelled = false;
     (async () => {
       try {
+        console.log('[pdf] fetching:', pdfUrl);
         const res = await fetch(pdfUrl, { credentials: 'include' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        console.log('[pdf] response:', res.status, res.statusText, 'type:', res.headers.get('content-type'), 'len:', res.headers.get('content-length'));
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const blob = await res.blob();
-        if (!cancelled) setPdfBlobUrl(URL.createObjectURL(blob));
+        console.log('[pdf] blob size:', blob.size, 'type:', blob.type);
+        if (blob.size === 0) throw new Error('Empty PDF (0 bytes)');
+        if (!cancelled) { setPdfBlobUrl(URL.createObjectURL(blob)); console.log('[pdf] blob URL created'); }
       } catch (e: any) {
-        if (!cancelled) { setPdfLoading(false); console.error('[pdf] fetch error:', e); }
+        console.error('[pdf] fetch error:', e?.message || e);
+        if (!cancelled) { setPdfError(e?.message || String(e)); setPdfLoading(false); }
       }
     })();
     return () => { cancelled = true; };
@@ -278,17 +291,24 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
         {/* PDF Viewport */}
         <div className="pv-vp" ref={vpRef}>
-          {pdfLoading && (
+          {pdfLoading && !pdfError && (
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
               <div className="pv-spinner" />
+            </div>
+          )}
+          {pdfError && (
+            <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
+              <div>⚠️ PDF 加载失败</div>
+              <div style={{ fontSize: 11, color: 'var(--text3)' }}>{pdfError}</div>
+              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); }}>重试</button>
             </div>
           )}
           <div className="pv-pdf-wrap" ref={wrapRef} style={{ visibility: pdfLoading ? 'hidden' : 'visible' }}>
             {pdfBlobUrl && (
             <Document
               file={pdfBlobUrl}
-              onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfLoading(false); }}
-              onLoadError={() => setPdfLoading(false)}
+              onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfLoading(false); console.log('[pdf] loaded, pages:', n); }}
+              onLoadError={(e) => { console.error('[pdf] Document onLoadError:', e); setPdfError(e?.message || 'PDF 解析失败'); setPdfLoading(false); }}
               loading={null}
             >
               {Array.from({ length: numPages || 1 }, (_, i) => i + 1).map(p => (
