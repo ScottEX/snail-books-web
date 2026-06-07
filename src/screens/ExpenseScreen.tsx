@@ -487,7 +487,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   )}
                   </View>
                 {i === 1 && (
-                  <View>
+                  <View style={{ marginTop: -4 }}>
                     {/* Row 1: 日常 | 采购 */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{
