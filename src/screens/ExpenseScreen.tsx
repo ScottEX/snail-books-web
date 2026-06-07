@@ -641,7 +641,25 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       </View>
 
       {/* ══════ 内容区（FadeIn 切换） ══════ */}
-      {activeTab !== 0 && (
+      {activeTab === 1 && (
+      <View style={st.card}>
+        <View style={st.kpiRow}>
+          <View style={st.kpiItem}>
+            <Text style={st.kpiLabel}>{t('actualReceived')}</Text>
+            <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.actual_received)}</Text>
+          </View>
+          <View style={st.kpiItem}>
+            <Text style={st.kpiLabel}>{t('receivable')}</Text>
+            <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.receivable)}</Text>
+          </View>
+          <View style={st.kpiItem}>
+            <Text style={st.kpiLabel}>{t('discountAmount')}</Text>
+            <Text style={st.kpiVal}>{'¥' + toDec2Comma(businessSummary.discount)}</Text>
+          </View>
+        </View>
+      </View>
+      )}
+      {activeTab === 1 && (
       <ExpenseSummaryCards
         todayExpense={todayExpenseSummary}
         monthExpense={monthExpenseSummary}
