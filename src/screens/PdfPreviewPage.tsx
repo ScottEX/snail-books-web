@@ -96,9 +96,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   useEffect(() => {
     if (!tokenUrl) return;
     let cancelled = false;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s — backend has 30s
     (async () => {
       try {
-        const resp = await fetch(tokenUrl, { credentials: 'same-origin' });
+        const resp = await fetch(tokenUrl, {
+          credentials: 'same-origin',
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
         if (cancelled) return;
 
         if (!resp.ok) {
@@ -126,10 +132,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         setPdfBlobUrl(blobUrl);
         setLoading(false);
       } catch (e: any) {
-        if (!cancelled) {
+        clearTimeout(timeoutId);
+        if (cancelled) return;
+        if (e?.name === 'AbortError') {
+          setError('PDF 生成超时，请稍后重试');
+        } else {
           setError(e?.message || '网络错误，无法加载PDF');
-          setLoading(false);
         }
+        setLoading(false);
       }
     })();
     return () => { cancelled = true; };
