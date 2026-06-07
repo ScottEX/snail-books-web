@@ -309,7 +309,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   modalDeleteText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' as const },
 
   // History
-  historyList: { padding: 12, paddingBottom: 100 },
+  historyList: { paddingVertical: 12, paddingBottom: 100 },
   historyCard: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), marginBottom: 10, overflow: 'hidden' as const },
   histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
   histNo: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary },
@@ -1096,7 +1096,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           onEndReachedThreshold={0.4}
           renderItem={({ item: batch }) => (
             <View style={styles.historyCard}>
-              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ padding: 12 }}>
+              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
                 <View style={styles.histHead}>
                   <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
