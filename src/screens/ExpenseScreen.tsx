@@ -384,7 +384,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const lang = getLang();
   const tabCards = useMemo(() => [
     { gradient: [withAlpha(colors.success, 0.22), withAlpha(colors.info, 0.22)], gradientActive: [withAlpha(colors.success, 0.48), withAlpha(colors.info, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
-    { gradient: [withAlpha(colors.primary, 0.22), withAlpha(colors.warning, 0.22)], gradientActive: [withAlpha(colors.primary, 0.48), withAlpha(colors.warning, 0.48)], title: t('tabRevenue'), stat: feeTotal, statFmt: fmt(feeTotal), statColor: colors.textMain, prefix: '' },
+    { gradient: [withAlpha(colors.primary, 0.22), withAlpha(colors.warning, 0.22)], gradientActive: [withAlpha(colors.primary, 0.48), withAlpha(colors.warning, 0.48)], title: '收支总览', stat: feeTotal, statFmt: fmt(feeTotal), statColor: colors.textMain, prefix: '' },
     { gradient: [withAlpha(colors.danger, 0.22), withAlpha(colors.primary, 0.22)], gradientActive: [withAlpha(colors.danger, 0.48), withAlpha(colors.primary, 0.48)], title: t('tabExpense'), stat: businessSummary.cumulative_expense || 0, statFmt: fmt(businessSummary.cumulative_expense || 0), statColor: colors.textMain, prefix: '' },
   ], [diff, feeTotal, businessSummary.cumulative_expense, colors, lang]);
 
@@ -1495,7 +1495,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
 
   /* ── Content ── */
-  contentScroll: { flex: 1 },
+  contentScroll: { flex: 1, backgroundColor: colors.bg },
   contentInner: {
     paddingHorizontal: 18, paddingBottom: 150, gap: 0,
   },
