@@ -75,7 +75,8 @@ const STYLE_CSS = `
 html.pdfv,body.pdfv{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);touch-action:none}
 
 .navbar{position:fixed;top:44px;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 16px 8px;background:transparent;backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
-.nav-left{display:flex;align-items:center;gap:10px}
+.nav-left{display:flex;align-items:center}
+.nav-title-wrap{position:absolute;left:50%;transform:translateX(-50%);text-align:center}
 .nav-back{width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,0.30);backdrop-filter:saturate(200%) blur(30px);-webkit-backdrop-filter:saturate(200%) blur(30px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .nav-back:active{background:rgba(255,255,255,0.45)}
 .nav-back svg{width:18px;height:18px;stroke:#333;stroke-width:2;fill:none;display:block}
@@ -533,10 +534,10 @@ function PortalContent({
           <div className="nav-back" onClick={onBack}>
             <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
           </div>
-          <div className="nav-title-wrap">
-            <div className="nav-title">{title}</div>
-            <div className="nav-sub">#{String(batch.batch_number).padStart(4, '0')}</div>
-          </div>
+        </div>
+        <div className="nav-title-wrap">
+          <div className="nav-title">{title}</div>
+          <div className="nav-sub">#{String(batch.batch_number).padStart(4, '0')}</div>
         </div>
         <div className="nav-right">
           <div className="nav-action" onClick={doDownload}>
