@@ -41,8 +41,11 @@ interface BatchRecord {
 function ViewIcon({ color }: { color: string }) {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <Path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+      <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <Path d="M14 2v6h6" />
+      <Path d="M8 13h4" />
+      <Path d="M8 17h8" />
+      <Path d="M8 9h1" />
     </Svg>
   );
 }
