@@ -98,7 +98,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
     if (typeof document === 'undefined') return;
     const style = document.createElement('style');
     style.textContent =
-      '.recharts-wrapper:focus,.recharts-wrapper:focus-visible,.recharts-surface:focus{outline:none!important;}';
+      '[class*="recharts"]:focus{outline:none!important;}';
     document.head.appendChild(style);
     return () => { document.head.removeChild(style); };
   }, []);
