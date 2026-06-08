@@ -121,6 +121,14 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   const dateInputRef = useRef<HTMLInputElement>(null);
   const urlCache = useRef<Map<File, string>>(new Map());
 
+  const hasChanges = category !== (record.category || 'daily') ||
+    account !== (record.account || 'payWechat') ||
+    amount !== toDec2(record.amount) ||
+    date !== (record.date || record.created_at?.slice(0, 10) || todayStr()) ||
+    note !== (record.note || '') ||
+    JSON.stringify(images) !== JSON.stringify(parseImages(record.images)) ||
+    newFiles.length > 0;
+
   const getPreviewUrl = (file: File) => {
     if (!urlCache.current.has(file)) urlCache.current.set(file, URL.createObjectURL(file));
     return urlCache.current.get(file)!;
@@ -481,9 +489,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
               <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain }}>{t('cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[{ flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', backgroundColor: c.primary }, saving && { opacity: 0.5 }]}
-              onPress={handleSave} disabled={saving} activeOpacity={0.8}>
-              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}>{t('save')}</Text>}
+              style={[{ flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', backgroundColor: c.primary }, (!hasChanges || saving) && { opacity: 0.4 }]}
+              onPress={handleSave} disabled={!hasChanges || saving} activeOpacity={0.8}>
+              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}>{t('confirm')}</Text>}
             </TouchableOpacity>
           </View>
         </View>
