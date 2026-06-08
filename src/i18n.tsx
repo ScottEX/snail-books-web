@@ -1585,13 +1585,15 @@ export type I18nKey =
   | 'willDelete';
 
 export function t(key: I18nKey): string {
-  const lang = (typeof window !== 'undefined' ? (window as any).curLang : null) || 'zh-CN';
+  const lang = (typeof window !== 'undefined'
+    ? ((window as any).curLang || (typeof localStorage !== 'undefined' && localStorage.getItem('lang')) || 'zh-CN')
+    : 'zh-CN') as string;
   return I18N[lang]?.[key] || I18N['zh-CN']?.[key] || key;
 }
 
 export function getLang(): string {
   if (typeof window !== 'undefined') {
-    return (window as any).curLang || 'zh-CN';
+    return (window as any).curLang || (typeof localStorage !== 'undefined' && localStorage.getItem('lang')) || 'zh-CN';
   }
   return 'zh-CN';
 }

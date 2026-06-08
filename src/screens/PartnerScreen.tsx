@@ -164,7 +164,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 
   const calcPreview = (total: number) => {
     setDivPreview(partners.map((p: any) => ({
-      name: p.name,
+      name: translateName(p.name),
       share: (partnerShare[p.name] ?? 0.33) * 100,
       amount: parseFloat((total * (partnerShare[p.name] ?? 0.33)).toFixed(2)),
     })));
@@ -420,7 +420,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 </View>
               </View>
             </View>
-            <View style={{ position: 'relative', marginTop: -4 }}>
+            <View style={{ position: 'relative', marginTop: -4, marginRight: -18 }}>
             <TouchableOpacity onPress={onProfile}>
               {avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={s.avatar} key={avatarKey} />
@@ -624,7 +624,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               <View style={moBody.preview}>
                 <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
                 {(divPreview.length > 0 ? divPreview : partners.map((p: any) => ({
-                  name: p.name,
+                  name: translateName(p.name),
                   share: (partnerShare[p.name] ?? 0.33) * 100,
                   amount: 0,
                 }))).map((item: any) => (
