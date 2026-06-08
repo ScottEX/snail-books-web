@@ -46,6 +46,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-zoom-btn{width:40px;height:40px;border-radius:50%;background:${btnBg};backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35)}
 .pv-zoom-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-zoom-btn svg{width:16px;height:16px;stroke:#2C2626;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.pv-zoom-btn svg text{fill:#2C2626;stroke:none}
 .pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:0.5px solid rgba(0,0,0,0.10);border-radius:10px;padding:10px 18px;font-size:12px;color:#F0EDE8;display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .pv-toast.on{opacity:1;transform:translate(-50%,0)}
 .pv-intro-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
@@ -389,13 +390,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         {/* Zoom buttons */}
         <div className="pv-zoom-strip">
           <div className="pv-zoom-btn" onClick={() => stepZoom(0.25)}>
-            <svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><line x1="14.5" y1="14.5" x2="20" y2="20"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="10" y1="7" x2="10" y2="13"/></svg>
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
           <div className="pv-zoom-btn" onClick={resetZoom}>
-            <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><polyline points="8 21 3 21 3 16"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            <svg viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="700" fill="#2C2626" font-family="system-ui">1x</text></svg>
           </div>
           <div className="pv-zoom-btn" onClick={() => stepZoom(-0.25)}>
-            <svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><line x1="14.5" y1="14.5" x2="20" y2="20"/><line x1="7" y1="10" x2="13" y2="10"/></svg>
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
         </div>
 
