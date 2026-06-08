@@ -127,6 +127,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const rafRef = useRef(0);
   const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const momRef = useRef(0); // momentum animation raf id
+  const velRef = useRef({ vy: 0, ly: 0, lt: 0 }); // velocity tracking
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
 
@@ -155,12 +157,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (!el) return;
     const g = gRef.current;
     const vp = el.parentElement; if (!vp) return;
-    const cw = el.scrollWidth * g.scale;
     const ch = el.scrollHeight * g.scale;
-    const vw = vp.clientWidth, vh = vp.clientHeight;
-    const mx = Math.max(0, (cw - vw) / 2);
+    const vh = vp.clientHeight;
     const scrollH = Math.max(0, ch - vh);
-    g.tx = Math.max(-mx, Math.min(mx, g.tx));
+    g.tx = 0; // lock horizontal
     g.ty = Math.max(-scrollH - 20, Math.min(20, g.ty));
   }, []);
 
@@ -171,25 +171,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     ziTimer.current = setTimeout(() => setZoomVis(false), 1500);
   }, []);
 
-  // Soft clamp — allows overscroll with resistance (30% movement beyond bounds)
-  const softClamp = useCallback(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const g = gRef.current;
-    const vp = el.parentElement; if (!vp) return;
-    const cw = el.scrollWidth * g.scale;
-    const ch = el.scrollHeight * g.scale;
-    const vw = vp.clientWidth, vh = vp.clientHeight;
-    const mx = Math.max(0, (cw - vw) / 2);
-    const scrollH = Math.max(0, ch - vh);
-    const R = 0.3;
-    if (g.tx < -mx) g.tx = -mx + (g.tx + mx) * R;
-    else if (g.tx > mx) g.tx = mx + (g.tx - mx) * R;
-    const topLimit = -scrollH - 20;
-    if (g.ty < topLimit) g.ty = topLimit + (g.ty - topLimit) * R;
-    else if (g.ty > 20) g.ty = 20 + (g.ty - 20) * R;
-  }, []);
-
   const scheduleApply = useCallback(() => {
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(() => {
@@ -197,6 +178,46 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       applyTransform(false);
     });
   }, [applyTransform]);
+
+  // Momentum scroll — continues after finger lifts, decelerates, bounces at bounds
+  const startMomentum = useCallback(() => {
+    const g = gRef.current;
+    let vy = velRef.current.vy * 16; // px/frame (~60fps)
+    if (Math.abs(vy) < 0.5) { clamp(); applyTransform(true); return; }
+
+    const tick = () => {
+      g.ty += vy;
+      vy *= 0.94; // friction
+
+      // Check vertical bounds — if overscrolled, bounce back
+      const el = wrapRef.current;
+      if (el) {
+        const vp = el.parentElement;
+        if (vp) {
+          const ch = el.scrollHeight * g.scale;
+          const vh = vp.clientHeight;
+          const scrollH = Math.max(0, ch - vh);
+          const topLimit = -scrollH - 20;
+          if (g.ty > 20 || g.ty < topLimit) {
+            clamp(); applyTransform(true);
+            momRef.current = 0;
+            return;
+          }
+        }
+      }
+
+      if (Math.abs(vy) < 0.3) {
+        clamp(); applyTransform(true);
+        momRef.current = 0;
+        return;
+      }
+
+      applyTransform(false);
+      momRef.current = requestAnimationFrame(tick);
+    };
+
+    momRef.current = requestAnimationFrame(tick);
+  }, [clamp, applyTransform]);
 
   const initZoom = useCallback(() => {
     const el = wrapRef.current;
@@ -227,19 +248,33 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
     const onMD = (e: MouseEvent) => {
       e.preventDefault();
+      cancelAnimationFrame(momRef.current);
       const g = gRef.current;
-      dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.tx, sty: g.ty };
+      g.tx = 0;
+      dragRef.current = { active: true, sx: 0, sy: e.clientY, stx: 0, sty: g.ty };
+      velRef.current = { vy: 0, ly: e.clientY, lt: performance.now() };
     };
     const onMM = (e: MouseEvent) => {
       if (!dragRef.current.active) return;
       const d = dragRef.current;
-      gRef.current.tx = d.stx + (e.clientX - d.sx);
       gRef.current.ty = d.sty + (e.clientY - d.sy);
+      // track velocity
+      const now = performance.now();
+      const dy = e.clientY - velRef.current.ly;
+      const dt = now - velRef.current.lt;
+      if (dt > 5) velRef.current.vy = dy / dt; // px/ms
+      velRef.current.ly = e.clientY;
+      velRef.current.lt = now;
       scheduleApply();
     };
-    const onMU = () => { dragRef.current.active = false; clamp(); applyTransform(true); };
+    const onMU = () => {
+      if (!dragRef.current.active) return;
+      dragRef.current.active = false;
+      startMomentum();
+    };
     const onWh = (e: WheelEvent) => {
       e.preventDefault();
+      cancelAnimationFrame(momRef.current);
       const g = gRef.current;
       if (e.ctrlKey || e.metaKey) {
         g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + (e.deltaY > 0 ? -0.08 : 0.08)));
@@ -258,6 +293,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
+      cancelAnimationFrame(momRef.current);
       if (e.touches.length === 1) {
         const now = Date.now();
         if (now - lastTapRef.current < 300) {
@@ -266,7 +302,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           clamp(); applyTransform(true); flushZoom(true); lastTapRef.current = 0; return;
         }
         lastTapRef.current = now;
-        dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: gRef.current.tx, sty: gRef.current.ty };
+        gRef.current.tx = 0;
+        dragRef.current = { active: true, sx: 0, sy: e.touches[0].clientY, stx: 0, sty: gRef.current.ty };
+        velRef.current = { vy: 0, ly: e.touches[0].clientY, lt: performance.now() };
       } else if (e.touches.length === 2) {
         pinchRef.current = { dist: dist(e.touches), scale: gRef.current.scale };
       }
@@ -275,8 +313,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       e.preventDefault();
       if (dragRef.current.active && e.touches.length === 1) {
         const d = dragRef.current;
-        gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
         gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
+        // track velocity
+        const now = performance.now();
+        const dy = e.touches[0].clientY - velRef.current.ly;
+        const dt = now - velRef.current.lt;
+        if (dt > 5) velRef.current.vy = dy / dt;
+        velRef.current.ly = e.touches[0].clientY;
+        velRef.current.lt = now;
         scheduleApply();
       } else if (e.touches.length === 2 && pinchRef.current.dist > 0) {
         const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchRef.current.scale * (dist(e.touches) / pinchRef.current.dist)));
@@ -285,7 +329,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       }
     };
     const onTE = (e: TouchEvent) => {
-      if (e.touches.length === 0) { dragRef.current.active = false; clamp(); applyTransform(true); }
+      if (e.touches.length === 0 && dragRef.current.active) { dragRef.current.active = false; startMomentum(); }
       else if (e.touches.length === 1) { dragRef.current.active = false; }
     };
     el.addEventListener('touchstart', onTS, { passive: false });
@@ -301,7 +345,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       el.removeEventListener('touchmove', onTM);
       el.removeEventListener('touchend', onTE);
     };
-  }, [scheduleApply, clamp, applyTransform, flushZoom]);
+  }, [scheduleApply, clamp, applyTransform, flushZoom, startMomentum]);
 
   const doDownload = useCallback(() => {
     const a = document.createElement('a');
