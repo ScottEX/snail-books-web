@@ -502,7 +502,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
       {/* Delete confirm */}
       <ConfirmModal visible={showDeleteConfirm}
         title={t('confirmDeleteRecord')}
-        message="确认删除该笔支出数据，将无法回复"
+        message="确认删除该笔支出数据，将无法恢复"
         confirmLabel={t('delete')} cancelLabel={t('cancel')}
         confirmColor={c.danger}
         onConfirm={() => { setShowDeleteConfirm(false); handleDelete(); }}
