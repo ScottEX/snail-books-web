@@ -177,6 +177,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       </View>
 
       {/* Search bar */}
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
       <View style={st.searchBox}>
         <SearchIcon />
         <TextInput
@@ -306,6 +307,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       <View style={st.footer}>
         <Text style={st.footerText}>{t('totalUsers').replace('{n}', String(total))}</Text>
       </View>
+      </View>
     </View>
   );
 }
@@ -324,7 +326,7 @@ function portalDropdownStyle(c: ThemeColors): React.CSSProperties {
 }
 
 const getStyles = (c: ThemeColors) => StyleSheet.create({
-  root: { flex: 1, backgroundColor: c.bg },
+  root: { flex: 1 },
   statusBar: { height: STATUS_BAR_H },
   // Header
   header: {

@@ -133,7 +133,9 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       <View style={st.root}>
         <View style={st.statusBar} />
         {headerBar}
+        <View style={st.contentArea}>
         <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>{t('loading') || '加载中...'}</Text>
+        </View>
       </View>
     );
   }
@@ -143,7 +145,9 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       <View style={st.root}>
         <View style={st.statusBar} />
         {headerBar}
+        <View style={st.contentArea}>
         <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>User not found</Text>
+        </View>
       </View>
     );
   }
@@ -173,6 +177,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       <View style={st.statusBar} />
       {headerBar}
 
+      <View style={st.contentArea}>
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
         {/* Avatar left, username + status right */}
         <View style={st.avatarSection}>
@@ -298,6 +303,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
         </View>
       </ScrollView>
+      </View>
     </View>
   );
 }
@@ -305,7 +311,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 const STATUS_BAR_H = 48;
 
 const getStyles = (c: ThemeColors) => StyleSheet.create({
-  root: { flex: 1, backgroundColor: c.bg },
+  root: { flex: 1 },
+  contentArea: { flex: 1, backgroundColor: c.bg },
   statusBar: { height: STATUS_BAR_H },
   header: {
     height: 48,
