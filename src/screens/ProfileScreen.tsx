@@ -66,6 +66,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     handleChangePw, handleSendCode, handleVerifyEmail, openEmailModal,
   } = useProfileForms(setToast);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
 
   // Auth prefs (single-device login + session timeout)
@@ -264,6 +266,23 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     if (val === signature) return;
     setSignature(val);
     try { await api.saveSignature(val); } catch {}
+  };
+
+  // ── Delete account ──
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    try {
+      const uid = getCurrentUserId();
+      await api.deleteAccount(uid);
+      localStorage.removeItem('user');
+      setToast(t('deleteAccountSuccess'));
+      setTimeout(() => { window.location.replace('/login'); }, 1500);
+    } catch (err: any) {
+      setToast(err.message || '操作失败，请稍后重试');
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+    }
   };
 
   // ── Avatar upload flow ──
@@ -901,6 +920,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               <Text style={[st.iconLabel, { color: '#e06464' }]}>{t('logout')}</Text>
               <ChevronRight color="#e06464" />
             </TouchableOpacity>
+            <View style={st.rowDivider} />
+            <TouchableOpacity style={st.iconRow} onPress={() => setShowDeleteModal(true)}>
+              <View style={[st.iconWrap, st.iconDanger]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+              </View>
+              <Text style={[st.iconLabel, { color: '#e06464' }]}>{t('deleteAccount')}</Text>
+              <ChevronRight color="#e06464" />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -925,6 +954,40 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
       {/* Shared modals */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
+      {/* Delete account modal */}
+      <ModalOverlay visible={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+        <View style={mo.card}>
+          <View style={mo.header}>
+            <Text style={mo.title}>{t('deleteAccountConfirmTitle')}</Text>
+            <TouchableOpacity onPress={() => setShowDeleteModal(false)}>
+              <Text style={mo.closeBtn}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={mo.body}>
+            <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22, marginBottom: 20 }}>
+              {t('deleteAccountConfirmMsg')}
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                style={[mo.btn, { flex: 1, backgroundColor: colors.bgSub }]}
+                onPress={() => setShowDeleteModal(false)}
+              >
+                <Text style={[mo.btnText, { color: colors.text }]}>{t('cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[mo.btn, { flex: 1, backgroundColor: '#e06464' }]}
+                onPress={handleDeleteAccount}
+                disabled={deleteLoading}
+              >
+                <Text style={[mo.btnText, { color: '#fff' }]}>
+                  {deleteLoading ? '...' : t('deleteAccountBtn')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </ModalOverlay>
+
       <ThemePickerModal
         visible={showThemeModal}
         onClose={() => setShowThemeModal(false)}

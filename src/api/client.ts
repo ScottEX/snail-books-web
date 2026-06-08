@@ -347,4 +347,7 @@ export const api = {
   // Bare fetch would call .then() on 4xx and silently clear localStorage without
   // a redirect, leaving the user on a page that can't fetch anything.
   logout: () => authFetch('/logout', { method: 'POST' }).then(() => { localStorage.removeItem('user'); }),
+
+  // Delete account (self-deletion only, CASCADE cleans up all user data)
+  deleteAccount: (uid: number) => authFetch(`/api/users/${uid}/delete`, { method: 'POST' }),
 };
