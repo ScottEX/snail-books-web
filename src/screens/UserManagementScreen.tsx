@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image } from 'react-native';
+import { createPortal } from 'react-dom';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { t, getLang } from '../i18n';
 
@@ -87,35 +88,77 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
 
   useEffect(() => { fetchUsers(1, search, statusFilter, dateFrom, dateTo); }, []);
 
-  const doSearch = useCallback(() => {
-    setPage(1);
-    fetchUsers(1, search, statusFilter, dateFrom, dateTo);
-  }, [search, statusFilter, dateFrom, dateTo, fetchUsers]);
+  // Debounced search-as-you-type
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [searchText, setSearchText] = useState('');
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      setSearch(searchText);
+      setPage(1);
+      fetchUsers(1, searchText, statusFilter, dateFrom, dateTo);
+    }, 300);
+    return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
+  }, [searchText]);
 
   const applyStatus = useCallback((val: string) => {
+    // Clear pending search debounce and commit immediately
+    if (searchTimer.current) clearTimeout(searchTimer.current);
     setStatusFilter(val);
+    setSearch(searchText);
     setShowStatusDrop(false);
     setPage(1);
-    fetchUsers(1, search, val, dateFrom, dateTo);
-  }, [search, dateFrom, dateTo, fetchUsers]);
+    fetchUsers(1, searchText, val, dateFrom, dateTo);
+  }, [searchText, dateFrom, dateTo, fetchUsers]);
 
   const applyDate = useCallback((df: string, dt: string) => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
     setDateFrom(df);
     setDateTo(dt);
+    setSearch(searchText);
     setShowDateDrop(false);
     setPage(1);
-    fetchUsers(1, search, statusFilter, df, dt);
-  }, [search, statusFilter, fetchUsers]);
+    fetchUsers(1, searchText, statusFilter, df, dt);
+  }, [searchText, statusFilter, fetchUsers]);
 
   const clearDate = useCallback(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
     setDateFrom('');
     setDateTo('');
+    setSearch(searchText);
     setPage(1);
-    fetchUsers(1, search, statusFilter, '', '');
-  }, [search, statusFilter, fetchUsers]);
+    fetchUsers(1, searchText, statusFilter, '', '');
+  }, [searchText, statusFilter, fetchUsers]);
 
   const statusLabel = statusFilter === 'normal' ? t('normalStatus') : statusFilter === 'disabled' ? t('disabledStatus') : t('all');
   const dateLabel = (dateFrom || dateTo) ? `${dateFrom || '…'} - ${dateTo || '…'}` : t('registrationTime');
+
+  // Refs for dropdown positioning via portal
+  const statusChipRef = useRef<HTMLDivElement>(null);
+  const dateChipRef = useRef<HTMLDivElement>(null);
+  const [statusRect, setStatusRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [dateRect, setDateRect] = useState<{ top: number; left: number; width: number } | null>(null);
+
+  const openStatusDrop = useCallback(() => {
+    const el = statusChipRef.current;
+    if (el) { const r = el.getBoundingClientRect(); setStatusRect({ top: r.bottom + 4, left: r.left, width: r.width }); }
+    setShowStatusDrop(true);
+    setShowDateDrop(false);
+  }, []);
+
+  const openDateDrop = useCallback(() => {
+    const el = dateChipRef.current;
+    if (el) { const r = el.getBoundingClientRect(); setDateRect({ top: r.bottom + 4, left: r.left, width: r.width }); }
+    setShowDateDrop(true);
+    setShowStatusDrop(false);
+  }, []);
+
+  const closeDrops = useCallback(() => {
+    setShowStatusDrop(false);
+    setShowDateDrop(false);
+    setStatusRect(null);
+    setDateRect(null);
+  }, []);
 
   return (
     <View style={st.root}>
@@ -140,13 +183,12 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
           style={st.searchInput}
           placeholder={t('searchUser')}
           placeholderTextColor={c.textSub}
-          value={search}
-          onChangeText={setSearch}
-          onSubmitEditing={doSearch}
+          value={searchText}
+          onChangeText={setSearchText}
           returnKeyType="search"
         />
-        {search !== '' && (
-          <TouchableOpacity onPress={() => { setSearch(''); setPage(1); fetchUsers(1, '', statusFilter, dateFrom, dateTo); }}>
+        {searchText !== '' && (
+          <TouchableOpacity onPress={() => { setSearchText(''); }}>
             <Text style={{ fontSize: 14, color: c.textSub, paddingHorizontal: 4 }}>✕</Text>
           </TouchableOpacity>
         )}
@@ -156,65 +198,77 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       <View style={st.filterRow}>
         {/* Status filter */}
         <View style={{ flex: 1 }}>
-          <TouchableOpacity style={st.filterChip} onPress={() => { setShowStatusDrop(!showStatusDrop); setShowDateDrop(false); }} activeOpacity={0.7}>
+          <TouchableOpacity style={st.filterChip} ref={statusChipRef as any} onPress={() => showStatusDrop ? closeDrops() : openStatusDrop()} activeOpacity={0.7}>
             <Text style={[st.filterChipText, statusFilter !== '' && { color: c.primary, fontWeight: '600' }]} numberOfLines={1}>{statusLabel}</Text>
             <CaretDownSvg color={statusFilter !== '' ? c.primary : c.textSub} />
           </TouchableOpacity>
-          {showStatusDrop && (
-            <View style={st.dropdown}>
-              <TouchableOpacity style={st.dropItem} onPress={() => applyStatus('')}>
-                <Text style={[st.dropItemText, statusFilter === '' && { color: c.primary, fontWeight: '600' }]}>{t('all')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={st.dropItem} onPress={() => applyStatus('normal')}>
-                <View style={[st.statusDot, { backgroundColor: c.success }]} />
-                <Text style={[st.dropItemText, statusFilter === 'normal' && { color: c.primary, fontWeight: '600' }]}>{t('normalStatus')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={st.dropItem} onPress={() => applyStatus('disabled')}>
-                <View style={[st.statusDot, { backgroundColor: c.danger }]} />
-                <Text style={[st.dropItemText, statusFilter === 'disabled' && { color: c.primary, fontWeight: '600' }]}>{t('disabledStatus')}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
         {/* Date filter */}
         <View style={{ flex: 1 }}>
-          <TouchableOpacity style={st.filterChip} onPress={() => { setShowDateDrop(!showDateDrop); setShowStatusDrop(false); }} activeOpacity={0.7}>
+          <TouchableOpacity style={st.filterChip} ref={dateChipRef as any} onPress={() => showDateDrop ? closeDrops() : openDateDrop()} activeOpacity={0.7}>
             <Text style={[st.filterChipText, (dateFrom || dateTo) && { color: c.primary, fontWeight: '600' }]} numberOfLines={1}>{dateLabel}</Text>
             <CaretDownSvg color={(dateFrom || dateTo) ? c.primary : c.textSub} />
           </TouchableOpacity>
-          {showDateDrop && (
-            <View style={st.dropdown}>
-              <View style={st.dateRow}>
-                <TextInput
-                  style={st.dateInput}
-                  value={dateFrom}
-                  onChangeText={setDateFrom}
-                  placeholder="2024-01-01"
-                  placeholderTextColor={c.textSub}
-                  maxLength={10}
-                />
-                <Text style={{ color: c.textSub, marginHorizontal: 4 }}>—</Text>
-                <TextInput
-                  style={st.dateInput}
-                  value={dateTo}
-                  onChangeText={setDateTo}
-                  placeholder="2024-12-31"
-                  placeholderTextColor={c.textSub}
-                  maxLength={10}
-                />
-              </View>
-              <View style={st.dateActions}>
-                <TouchableOpacity style={st.dateActionBtn} onPress={clearDate}>
-                  <Text style={st.dateActionText}>{t('reset') || '重置'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[st.dateActionBtn, st.dateActionApply]} onPress={() => applyDate(dateFrom, dateTo)}>
-                  <Text style={[st.dateActionText, { color: '#fff' }]}>{t('apply') || '确定'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
         </View>
       </View>
+
+      {/* Status dropdown portal */}
+      {showStatusDrop && statusRect && createPortal(
+        <div style={{ position: 'fixed', top: statusRect.top, left: statusRect.left, width: statusRect.width, zIndex: 9999 }}>
+          <div style={portalDropdownStyle(c)}>
+            <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus(''); closeDrops(); }}>
+              <Text style={[st.dropItemText, statusFilter === '' && { color: c.primary, fontWeight: '600' }]}>{t('all')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus('normal'); closeDrops(); }}>
+              <View style={[st.statusDot, { backgroundColor: c.success }]} />
+              <Text style={[st.dropItemText, statusFilter === 'normal' && { color: c.primary, fontWeight: '600' }]}>{t('normalStatus')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus('disabled'); closeDrops(); }}>
+              <View style={[st.statusDot, { backgroundColor: c.danger }]} />
+              <Text style={[st.dropItemText, statusFilter === 'disabled' && { color: c.primary, fontWeight: '600' }]}>{t('disabledStatus')}</Text>
+            </TouchableOpacity>
+          </div>
+        </div>,
+        document.body
+      )}
+      {showStatusDrop && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
+
+      {/* Date dropdown portal */}
+      {showDateDrop && dateRect && createPortal(
+        <div style={{ position: 'fixed', top: dateRect.top, left: dateRect.left, width: dateRect.width, zIndex: 9999 }}>
+          <div style={portalDropdownStyle(c)}>
+            <View style={st.dateRow}>
+              <TextInput
+                style={st.dateInput}
+                value={dateFrom}
+                onChangeText={setDateFrom}
+                placeholder="2024-01-01"
+                placeholderTextColor={c.textSub}
+                maxLength={10}
+              />
+              <Text style={{ color: c.textSub, marginHorizontal: 4 }}>—</Text>
+              <TextInput
+                style={st.dateInput}
+                value={dateTo}
+                onChangeText={setDateTo}
+                placeholder="2024-12-31"
+                placeholderTextColor={c.textSub}
+                maxLength={10}
+              />
+            </View>
+            <View style={st.dateActions}>
+              <TouchableOpacity style={st.dateActionBtn} onPress={() => { clearDate(); closeDrops(); }}>
+                <Text style={st.dateActionText}>{t('reset') || '重置'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[st.dateActionBtn, st.dateActionApply]} onPress={() => { applyDate(dateFrom, dateTo); closeDrops(); }}>
+                <Text style={[st.dateActionText, { color: '#fff' }]}>{t('apply') || '确定'}</Text>
+              </TouchableOpacity>
+            </View>
+          </div>
+        </div>,
+        document.body
+      )}
+      {showDateDrop && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
 
       {/* User list */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
@@ -250,7 +304,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
 
       {/* Footer */}
       <View style={st.footer}>
-        <Text style={st.footerText}>{t('totalRecords').replace('{n}', String(total))}</Text>
+        <Text style={st.footerText}>{t('totalUsers').replace('{n}', String(total))}</Text>
       </View>
     </View>
   );
@@ -258,6 +312,16 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
 
 const STATUS_BAR_H = 48;
 const HEADER_H = 48;
+
+function portalDropdownStyle(c: ThemeColors): React.CSSProperties {
+  return {
+    backgroundColor: c.surface,
+    borderRadius: 10,
+    border: `0.5px solid ${withAlpha(c.textMain, 0.08)}`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+    overflow: 'hidden',
+  };
+}
 
 const getStyles = (c: ThemeColors) => StyleSheet.create({
   root: { flex: 1, backgroundColor: c.bg },

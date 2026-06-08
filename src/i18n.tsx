@@ -388,6 +388,7 @@ const I18N: Record<string, Record<string, string>> = {
     tapForDetail: '点击卡片查看详情',
     themeLabel: '主题',
     totalRecords: '共 {n} 条数据',
+    totalUsers: '共 {n} 个用户',
     transactions: '交易记录',
     toastLoadFailed: '数据加载失败',
     toastSubmitFailed: '提交失败，请重试',
@@ -813,6 +814,7 @@ const I18N: Record<string, Record<string, string>> = {
     themeLabel: '主題',
     themePicker: '主題方案',
     totalRecords: '共 {n} 筆資料',
+    totalUsers: '共 {n} 個用戶',
     transactions: '交易記錄',
     toastLoadFailed: '資料載入失敗',
     toastSubmitFailed: '提交失敗，請重試',
@@ -1238,6 +1240,7 @@ const I18N: Record<string, Record<string, string>> = {
     themeLabel: 'Theme',
     themePicker: 'Theme',
     totalRecords: '{n} records total',
+    totalUsers: '{n} users total',
     transactions: 'Transactions',
     toastLoadFailed: 'Failed to load data',
     toastSubmitFailed: 'Submit failed, please retry',
@@ -1660,6 +1663,7 @@ export type I18nKey =
   | 'totalDividendsPaid'
   | 'totalInvest'
   | 'totalRecords'
+  | 'totalUsers'
   | 'totalToPool'
   | 'tuan'
   | 'uploadFailed'
