@@ -329,7 +329,6 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         message={t('deleteUserConfirm') || '确认删除该用户，该用户的所有数据（交易记录、进货记录等）也将一并删除'}
         confirmLabel={t('delete')} cancelLabel={t('cancel')}
         confirmColor={c.danger}
-        loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)} />
     </View>
