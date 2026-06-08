@@ -235,7 +235,10 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             <View style={[styles.amountCard, { backgroundColor: amtBg }]}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.amountLabel}>{t('expTotalAmount')}</Text>
-                <Text style={[styles.amountValue, { color: amtColor }]}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
+                  <Text style={[styles.amountSymbol, { color: amtColor }]}>-¥</Text>
+                  <Text style={[styles.amountValue, { color: amtColor }]}>{Number(record.amount || 0).toFixed(2)}</Text>
+                </View>
               </View>
               {currentUser ? (
                 <View style={styles.amountUser}>
@@ -258,15 +261,31 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                 <Text style={styles.infoValue}>{trPayment(record.account)}</Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{t('date')}</Text>
+                <Text style={styles.infoLabel}>{t('expenseDate')}</Text>
                 <Text style={styles.infoValue}>{(() => {
-                  const s = record.date || record.created_at?.slice(0, 10) || '';
-                  const [y, mm, dd] = s.split('-');
+                  const raw = record.created_at || record.date || '';
+                  if (!raw) return '—';
+                  const d = new Date(raw.endsWith('Z') ? raw : raw + 'Z');
+                  if (isNaN(d.getTime())) {
+                    const s = record.date || raw.slice(0, 10);
+                    const [y, mm, dd] = s.split('-');
+                    if (lang.startsWith('en')) {
+                      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                      return `${months[+mm-1]} ${+dd}, ${y}`;
+                    }
+                    return `${y}年${mm}月${dd}日`;
+                  }
+                  const y = d.getFullYear();
+                  const mo = d.getMonth() + 1;
+                  const day = d.getDate();
+                  const h = String(d.getHours()).padStart(2, '0');
+                  const mi = String(d.getMinutes()).padStart(2, '0');
+                  const s = String(d.getSeconds()).padStart(2, '0');
                   if (lang.startsWith('en')) {
                     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                    return `${months[+mm-1]} ${+dd}, ${y}`;
+                    return `${months[mo-1]} ${day}, ${y} ${h}:${mi}:${s}`;
                   }
-                  return `${y}年${mm}月${dd}日`;
+                  return `${y}年${mo}月${day}日 ${h}:${mi}:${s}`;
                 })()}</Text>
               </View>
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
@@ -275,12 +294,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                   {record.note || (record.proc_batch_number ? t('procNowBatch').replace('{n}', String(record.proc_batch_number)) : '—')}
                 </Text>
               </View>
-              {currentUser ? (
-                <View style={[styles.infoRow, { borderBottomWidth: 0, paddingTop: 0 }]}>
-                  <Text style={styles.infoLabel}>{t('filledBy')}</Text>
-                  <Text style={styles.infoValue}>{currentUser}</Text>
-                </View>
-              ) : null}
             </View>
 
             {displayImgs.length > 0 && (
@@ -513,8 +526,14 @@ const getStyles = (c: ThemeColors) => {
       marginBottom: 4,
     },
     amountValue: {
-      fontSize: 32,
+      fontSize: 36,
       fontWeight: '700' as const,
+    },
+    amountSymbol: {
+      fontSize: 20,
+      fontWeight: '600' as const,
+      marginRight: 2,
+      marginBottom: 2,
     },
     amountUser: {
       alignItems: 'center' as const,
@@ -525,9 +544,9 @@ const getStyles = (c: ThemeColors) => {
       marginBottom: 4,
     },
     amountUsername: {
-      fontSize: FONTS.micro.size,
-      fontWeight: '500' as const,
-      color: c.textSub,
+      fontSize: FONTS.sub.size,
+      fontWeight: '600' as const,
+      color: c.textMain,
       maxWidth: 72,
     },
     // Info card
