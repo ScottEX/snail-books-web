@@ -20,6 +20,7 @@ import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
 import UserManagementScreen from './UserManagementScreen';
+import UserDetailScreen from './UserDetailScreen';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
@@ -81,13 +82,14 @@ export default function HomeScreen({
   // 'pdf' via the useEffect below whenever App.tsx sees a matching
   // hash. Cleared on popPage so a fresh push always starts clean.
   const [showCartDrawer, setShowCartDrawer] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: number; username: string; email: string; avatar: string; is_disabled: boolean } | null>(null);
   // iOS-style push/pop nav: pageStack is the single source of truth
   // for which sub-screen (profile / recon / expense / daily / proc / pdf)
   // is on top of HomeScreen. pushPage() opens one (280ms slide-in);
   // popPage() reverses it (250ms slide-out via the `removing` flag).
   // The `s.includes(p) ? s : ...` guard prevents pushing the same
   // page twice while it's still on the stack.
-  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail' | 'usermgmt';
+  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail' | 'usermgmt' | 'userdetail';
   // Hydrate pageStack from history.state so a refresh lands the user
   // back on the same sub-page they were viewing. Fall back to [] for
   // a cold load (state is null) or a hostile/missing history.state.
@@ -143,6 +145,7 @@ export default function HomeScreen({
       // Per-page payload cleanup so a fresh push of the same page
       // never sees stale data from a previous open.
       if (top === 'proc') setProcDetailBatch(null);
+      if (top === 'userdetail') setSelectedUser(null);
       if (top === 'pdf') {
         setPdfPreview(null);
         // Mirror the dismissal back up to App.tsx so the URL hash
@@ -551,7 +554,11 @@ export default function HomeScreen({
           />
         );
       case 'usermgmt':
-        return <UserManagementScreen onBack={onBack} />;
+        return <UserManagementScreen onBack={onBack} onUserSelect={(u) => { setSelectedUser(u); pushPage('userdetail'); }} />;
+      case 'userdetail':
+        return selectedUser ? (
+          <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => loadData()} />
+        ) : null;
       case 'expense':
         return <ExpenseHistoryScreen onBack={onBack} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} />;
       case 'expdetail':

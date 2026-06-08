@@ -358,6 +358,19 @@ const I18N: Record<string, Record<string, string>> = {
     ssoDesc: '最多一台设备同时登录',
     ssoLabel: '单设备登录',
     userManagement: '用户管理',
+    userDetail: '用户详情',
+    basicInfo: '基本信息',
+    loginStatus: '登录状态',
+    otherInfo: '其他信息',
+    allowLogin: '允许登录',
+    loginDisabledHint: '关闭后，用户将无法登录系统',
+    phone: '手机号',
+    role: '角色',
+    remarks: '备注',
+    dateFrom: '开始日期',
+    dateTo: '结束日期',
+    statusFilter: '状态筛选',
+    registrationTime: '注册时间',
     stampPrefixBurgundy: '以此身，阅尽这',
     stampPrefixObsidian: '时序轮转，流光已掷下第',
     stampPrefixTeal: '星霜未歇，我们已共渡',
@@ -768,6 +781,19 @@ const I18N: Record<string, Record<string, string>> = {
     ssoDesc: '最多一台裝置同時登入',
     ssoLabel: '單一裝置登入',
     userManagement: '用戶管理',
+    userDetail: '用戶詳情',
+    basicInfo: '基本資訊',
+    loginStatus: '登入狀態',
+    otherInfo: '其他資訊',
+    allowLogin: '允許登入',
+    loginDisabledHint: '關閉後，用戶將無法登入系統',
+    phone: '手機號',
+    role: '角色',
+    remarks: '備註',
+    dateFrom: '開始日期',
+    dateTo: '結束日期',
+    statusFilter: '狀態篩選',
+    registrationTime: '註冊時間',
     stampPrefixBurgundy: '以此身，閱盡這',
     stampPrefixObsidian: '時序輪轉，流光已擲下第',
     stampPrefixTeal: '星霜未歇，我們已共渡',
@@ -1179,6 +1205,19 @@ const I18N: Record<string, Record<string, string>> = {
     ssoDesc: 'Only one device can stay signed in at a time',
     ssoLabel: 'Single-device sign-in',
     userManagement: 'User Management',
+    userDetail: 'User Detail',
+    basicInfo: 'Basic Info',
+    loginStatus: 'Login Status',
+    otherInfo: 'Other Info',
+    allowLogin: 'Allow Login',
+    loginDisabledHint: 'When disabled, the user cannot log in',
+    phone: 'Phone',
+    role: 'Role',
+    remarks: 'Remarks',
+    dateFrom: 'From',
+    dateTo: 'To',
+    statusFilter: 'Status Filter',
+    registrationTime: 'Registration Time',
     stampPrefixBurgundy: 'In this body, I have witnessed',
     stampPrefixObsidian: 'The light has cast its',
     stampPrefixTeal: 'Under starry frost, we have weathered',
@@ -1642,6 +1681,19 @@ export type I18nKey =
   | 'verifying'
   | 'wages'
   | 'willDelete'
+  | 'userDetail'
+  | 'basicInfo'
+  | 'loginStatus'
+  | 'otherInfo'
+  | 'allowLogin'
+  | 'loginDisabledHint'
+  | 'phone'
+  | 'role'
+  | 'remarks'
+  | 'dateFrom'
+  | 'dateTo'
+  | 'statusFilter'
+  | 'registrationTime'
 
 type Lang = 'zh-CN' | 'zh-TW' | 'en';
 
