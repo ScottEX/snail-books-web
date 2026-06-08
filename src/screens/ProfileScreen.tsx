@@ -272,8 +272,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
     try {
-      const uid = getCurrentUserId();
-      await api.deleteAccount(uid);
+      const rawUid = getCurrentUserId();
+      if (!rawUid) { setToast('无法获取用户信息'); setDeleteLoading(false); setShowDeleteModal(false); return; }
+      await api.deleteAccount(Number(rawUid));
       localStorage.removeItem('user');
       setToast(t('deleteAccountSuccess'));
       setTimeout(() => { window.location.replace('/login'); }, 1500);
@@ -920,7 +921,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               <Text style={[st.iconLabel, { color: '#e06464' }]}>{t('logout')}</Text>
               <ChevronRight color="#e06464" />
             </TouchableOpacity>
-            <View style={st.rowDivider} />
+            <View style={st.divider} />
             <TouchableOpacity style={st.iconRow} onPress={() => setShowDeleteModal(true)}>
               <View style={[st.iconWrap, st.iconDanger]}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -964,22 +965,22 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             </TouchableOpacity>
           </View>
           <View style={mo.body}>
-            <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22, marginBottom: 20 }}>
+            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 20 }}>
               {t('deleteAccountConfirmMsg')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity
-                style={[mo.btn, { flex: 1, backgroundColor: colors.bgSub }]}
+                style={mo.cancelBtn}
                 onPress={() => setShowDeleteModal(false)}
               >
-                <Text style={[mo.btnText, { color: colors.text }]}>{t('cancel')}</Text>
+                <Text style={mo.cancelText}>{t('cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[mo.btn, { flex: 1, backgroundColor: '#e06464' }]}
+                style={[mo.confirmBtn, { backgroundColor: colors.danger }]}
                 onPress={handleDeleteAccount}
                 disabled={deleteLoading}
               >
-                <Text style={[mo.btnText, { color: '#fff' }]}>
+                <Text style={[mo.confirmText, { color: colors.surface }]}>
                   {deleteLoading ? '...' : t('deleteAccountBtn')}
                 </Text>
               </TouchableOpacity>
