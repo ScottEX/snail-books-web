@@ -129,6 +129,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const rafRef = useRef(0);
   const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const dpr = useRef(typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1);
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
 
@@ -380,6 +381,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
                   key={p}
                   pageNumber={p}
                   width={pageW}
+                  devicePixelRatio={dpr.current}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                 />
