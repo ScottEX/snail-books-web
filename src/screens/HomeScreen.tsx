@@ -19,6 +19,7 @@ import PdfPreviewPage from './PdfPreviewPage';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
+import UserManagementScreen from './UserManagementScreen';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
@@ -86,7 +87,7 @@ export default function HomeScreen({
   // popPage() reverses it (250ms slide-out via the `removing` flag).
   // The `s.includes(p) ? s : ...` guard prevents pushing the same
   // page twice while it's still on the stack.
-  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail';
+  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail' | 'usermgmt';
   // Hydrate pageStack from history.state so a refresh lands the user
   // back on the same sub-page they were viewing. Fall back to [] for
   // a cold load (state is null) or a hostile/missing history.state.
@@ -546,9 +547,11 @@ export default function HomeScreen({
             onLogout={onLogout}
             onLangChange={() => loadData()}
             onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
-            onManageUsers={() => {}}
+            onManageUsers={() => pushPage('usermgmt')}
           />
         );
+      case 'usermgmt':
+        return <UserManagementScreen onBack={onBack} />;
       case 'expense':
         return <ExpenseHistoryScreen onBack={onBack} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} />;
       case 'expdetail':

@@ -81,6 +81,7 @@ const I18N: Record<string, Record<string, string>> = {
     deleteAccountConfirmTitle: '确认注销账户',
     deleteAccountSuccess: '账户已注销',
     deleteRecord: '删除',
+    disabledStatus: '已禁用',
     devCodeLabel: '🔧 开发模式 — 验证码',
     dineIn: '堂食',
     discountAmount: '优惠减免',
@@ -194,6 +195,8 @@ const I18N: Record<string, Record<string, string>> = {
     newEmail: '新邮箱',
     newPassword: '新密码',
     noDividendRecords: '暂无分红记录',
+    noUsers: '暂无用户',
+    normalStatus: '正常',
     noRecords: '暂无记录',
     notePlaceholder: '如：葱、香菜、电费',
     oldPassword: '当前密码',
@@ -336,6 +339,7 @@ const I18N: Record<string, Record<string, string>> = {
     save: '保存',
     saveImage: '保存图片',
     saving: '保存中…',
+    searchUser: '搜索用户',
     securitySettings: '安全设置',
     sendCode: '发送验证码',
     sessionKickedButton: '我知道了',
@@ -369,7 +373,8 @@ const I18N: Record<string, Record<string, string>> = {
     tabRevenue: '营业',
     tapForDetail: '点击卡片查看详情',
     themeLabel: '主题',
-    themePicker: '主题方案',
+    totalRecords: '共 {n} 条数据',
+    transactions: '交易记录',
     toastLoadFailed: '数据加载失败',
     toastSubmitFailed: '提交失败，请重试',
     today: '今日',
@@ -485,6 +490,7 @@ const I18N: Record<string, Record<string, string>> = {
     deleteAccountConfirmTitle: '確認註銷帳戶',
     deleteAccountSuccess: '帳戶已註銷',
     deleteRecord: '刪除',
+    disabledStatus: '已禁用',
     devCodeLabel: '🔧 開發模式 — 驗證碼',
     dineIn: '堂食',
     discountAmount: '優惠減免',
@@ -599,6 +605,8 @@ const I18N: Record<string, Record<string, string>> = {
     newPassword: '新密碼',
     noDividendRecords: '暫無分紅記錄',
     noExpenseRecords: '暫無支出記錄',
+    noUsers: '暫無用戶',
+    normalStatus: '正常',
     noRecords: '暫無記錄',
     notePlaceholder: '如：蔥、香菜、電費',
     oldPassword: '當前密碼',
@@ -741,6 +749,7 @@ const I18N: Record<string, Record<string, string>> = {
     save: '保存',
     saveImage: '儲存圖片',
     saving: '保存中…',
+    searchUser: '搜尋用戶',
     securitySettings: '安全設定',
     sendCode: '發送驗證碼',
     sessionKickedButton: '我知道了',
@@ -775,6 +784,8 @@ const I18N: Record<string, Record<string, string>> = {
     tapForDetail: '點擊卡片檢視詳情',
     themeLabel: '主題',
     themePicker: '主題方案',
+    totalRecords: '共 {n} 筆資料',
+    transactions: '交易記錄',
     toastLoadFailed: '資料載入失敗',
     toastSubmitFailed: '提交失敗，請重試',
     today: '今日',
@@ -890,6 +901,7 @@ const I18N: Record<string, Record<string, string>> = {
     deleteAccountConfirmTitle: 'Confirm Account Deletion',
     deleteAccountSuccess: 'Account deleted',
     deleteRecord: 'Delete',
+    disabledStatus: 'Disabled',
     devCodeLabel: '🔧 Dev Mode — Verification Code',
     dineIn: 'Dine-in',
     discountAmount: 'Discount',
@@ -1004,6 +1016,8 @@ const I18N: Record<string, Record<string, string>> = {
     newPassword: 'New Password',
     noDividendRecords: 'No dividend records',
     noExpenseRecords: 'No expense records',
+    noUsers: 'No users',
+    normalStatus: 'Normal',
     noRecords: 'No records yet',
     notePlaceholder: 'e.g. scallions, cilantro, electricity',
     oldPassword: 'Current Password',
@@ -1146,6 +1160,7 @@ const I18N: Record<string, Record<string, string>> = {
     save: 'Save',
     saveImage: 'Save image',
     saving: 'Saving…',
+    searchUser: 'Search users',
     securitySettings: 'Security Settings',
     sendCode: 'Send Code',
     sessionKickedButton: 'OK',
@@ -1180,6 +1195,8 @@ const I18N: Record<string, Record<string, string>> = {
     tapForDetail: 'Tap card for details',
     themeLabel: 'Theme',
     themePicker: 'Theme',
+    totalRecords: '{n} records total',
+    transactions: 'Transactions',
     toastLoadFailed: 'Failed to load data',
     toastSubmitFailed: 'Submit failed, please retry',
     today: 'Today',
@@ -1298,6 +1315,7 @@ export type I18nKey =
   | 'deleteRecord'
   | 'devCodeLabel'
   | 'dineIn'
+  | 'disabledStatus'
   | 'discountAmount'
   | 'displayName'
   | 'distributedPool'
@@ -1411,6 +1429,8 @@ export type I18nKey =
   | 'noExpenseRecords'
   | 'noRecords'
   | 'notePlaceholder'
+  | 'noUsers'
+  | 'normalStatus'
   | 'oldPassword'
   | 'opacity'
   | 'paidInRate'
@@ -1552,6 +1572,7 @@ export type I18nKey =
   | 'stayPage'
   | 'saveImage'
   | 'saving'
+  | 'searchUser'
   | 'securitySettings'
   | 'sendCode'
   | 'sessionKickedButton'
@@ -1596,6 +1617,7 @@ export type I18nKey =
   | 'totalDividends'
   | 'totalDividendsPaid'
   | 'totalInvest'
+  | 'totalRecords'
   | 'totalToPool'
   | 'tuan'
   | 'uploadFailed'
