@@ -432,19 +432,19 @@ const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
   return StyleSheet.create({
     container: { flex: 1 },
+    ...hdr as any,
     header: {
-      ...hdr.header as any,
+      ...(hdr as any).header,
       top: 0,
-    },
-    backBtn: (hdr as any).backBtn,
-    title: (hdr as any).title,
+    } as any,
     actionBtn: {
       width: 36, height: 36, borderRadius: 18,
       backgroundColor: withAlpha(c.bg, 0.30),
       justifyContent: 'center' as const, alignItems: 'center' as const,
-      backdropFilter: 'saturate(200%) blur(30px)' as any,
+      // @ts-ignore
+      backdropFilter: 'saturate(200%) blur(30px)',
       borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
-    },
+    } as any,
     body: {
       flex: 1,
       marginTop: 64,
