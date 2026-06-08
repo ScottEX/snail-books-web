@@ -5,6 +5,7 @@ import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
 import TrashIcon from '../components/icons/TrashIcon';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 
 interface UserData {
   id: number;
@@ -56,6 +57,7 @@ function PencilSvg({ color }: { color: string }) {
 
 export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const { colors: c } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
   const lang = getLang();
   const st = useMemo(() => getStyles(c), [c]);
 

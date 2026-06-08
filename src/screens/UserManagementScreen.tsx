@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 
 interface UserItem {
   id: number;
@@ -53,6 +54,7 @@ function CaretDownSvg({ color }: { color: string }) {
 
 export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const { colors: c } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
   const st = useMemo(() => getStyles(c), [c]);
 
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -161,7 +163,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   }, []);
 
   return (
-    <View style={st.container}>
+    <View style={st.container} {...swipeBack}>
       {/* Header — absolute glass (matches ExpenseDetailScreen) */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>

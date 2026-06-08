@@ -9,6 +9,7 @@ import { t } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
@@ -61,7 +62,8 @@ function EditIcon({ color }: { color: string }) {
 }
 
 export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPreview }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void; onPreview?: (id: number, number: number) => void }) {
-  const { colors: c } = useTheme();
+  const { colors: c, theme } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
   const styles = useMemo(() => getStyles(c), [c]);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);

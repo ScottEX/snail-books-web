@@ -15,6 +15,7 @@ import BackArrow from '../components/icons/BackArrow';
 import CameraIcon from '../components/icons/CameraIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import { useProfileForms } from './profile/useProfileForms';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 
 /* ========== MAIN SCREEN ========== */
@@ -31,6 +32,7 @@ function ChevronRight({ color }: { color: string }) {
 
 export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange, onManageUsers }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void; onManageUsers?: () => void }) {
   const { colors, theme } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
   const [coverUrl, setCoverUrl] = useState('');
@@ -682,7 +684,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   }, [coverCropSrc, coverShowResult]);
 
   return (
-    <View style={st.root}>
+    <View style={st.root} {...swipeBack}>
       <ScrollView style={st.scroll} showsVerticalScrollIndicator={false}>
         {/* Cover Image — nav & controls overlaid on top */}
         <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>

@@ -7,7 +7,8 @@ import { t, getLang } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useTheme, withAlpha } from '../theme';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
 import { getCurrentUser } from '../utils/storage';
@@ -46,7 +47,8 @@ function ExpenseEmptyIcon({ color }: { color: string }) {
 }
 
 export default function ExpenseHistoryScreen({ onBack, onExpDetail }: { onBack: () => void; onExpDetail?: (e: any) => void }) {
-  const [records, setRecords] = useState<any[]>([]);
+  const [records, setRecords]
+  const swipeBack = useSwipeBack(onBack); = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAll, setTotalAll] = useState(0);
@@ -237,7 +239,7 @@ export default function ExpenseHistoryScreen({ onBack, onExpDetail }: { onBack: 
   };
 
   return (
-    <View style={st.root}>
+    <View style={st.root} {...swipeBack}>
       {/* Header — absolute, transparent, floats above scroll (matches ReconHistoryScreen) */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>

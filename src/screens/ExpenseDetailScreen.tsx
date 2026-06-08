@@ -15,6 +15,7 @@ import Toast from '../components/Toast';
 import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 
 const todayStr = () => {
   const d = new Date();
@@ -84,7 +85,8 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   onBack: () => void;
   onDeleted?: () => void;
 }) {
-  const { colors: c, theme } = useTheme();
+  const { colors: c } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
   const styles = useMemo(() => getStyles(c), [c]);
 
   // Theme-specific amount card color
@@ -235,7 +237,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...swipeBack}>
       {/* Header — absolute glass, same as ProcurementDetailScreen */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>

@@ -74,6 +74,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
   const { colors: c } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
   const st = useMemo(() => getStyles(c), [c]);
   const title = t('procPdfTitle').replace('{n}', String(batchNumber));
   const pdfUrl = `/api/procurement-batches/${batchId}/pdf`;
@@ -382,7 +383,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, [applyTransform, flushZoom]);
 
   return (
-    <View style={st.container}>
+    <View style={st.container} {...swipeBack}>
       {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
         <style dangerouslySetInnerHTML={{ __html: getCSS(c) }} />
 

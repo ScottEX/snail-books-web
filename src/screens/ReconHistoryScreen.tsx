@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -47,7 +48,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [toast, setToast] = useState('');
-  const touchRef = useRef({ startX: 0, startY: 0 });
+  const swipeBack = useSwipeBack(onBack);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadingRef = useRef(false);
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
@@ -158,16 +159,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     return `${y}/${m}/${day}`;
   };
 
-  const onTouchStart = (e: any) => {
-    const t = e.nativeEvent?.touches?.[0] || e.nativeEvent;
-    touchRef.current = { startX: t.pageX, startY: t.pageY };
-  };
-  const onTouchEnd = (e: any) => {
-    const t = e.nativeEvent?.changedTouches?.[0] || e.nativeEvent;
-    const dx = t.pageX - touchRef.current.startX;
-    const dy = Math.abs(t.pageY - touchRef.current.startY);
-    if (touchRef.current.startX < 36 && dx > 80 && dx > dy * 1.5) onBack();
-  };
+
 
   // Card: compact summary (tap to open detail modal)
   const renderCard = (r: any) => (
@@ -331,7 +323,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const todayISO = new Date().toISOString().split('T')[0];
 
   return (
-    <View style={st.root} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <View style={st.root} {...swipeBack}>
       {/* Toast */}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
       {/* Header */}

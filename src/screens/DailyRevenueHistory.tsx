@@ -8,6 +8,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
 import DateErrorHint from '../components/DateErrorHint';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import BackArrow from '../components/icons/BackArrow';
 
 const PAGE_SIZE = 10;
@@ -40,7 +41,8 @@ function RevenueEmptyIcon({ color }: { color: string }) {
 }
 
 export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) {
-  const [records, setRecords] = useState<any[]>([]);
+  const [records, setRecords]
+  const swipeBack = useSwipeBack(onBack); = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAll, setTotalAll] = useState(0);
@@ -137,7 +139,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const st = useMemo(() => getSt(colors), [colors]);
 
   return (
-    <View style={st.root}>
+    <View style={st.root} {...swipeBack}>
       {/* Header */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>

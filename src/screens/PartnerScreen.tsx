@@ -7,7 +7,8 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
 import ConfirmModal from '../components/ConfirmModal';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useTheme, ThemeColors } from '../theme';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 
@@ -97,7 +98,8 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
     pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
   });
 
-  const { colors } = useTheme();
+  const { colors: c } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
 
   const s = useMemo(() => getS(colors), [colors]);
   const mo = useMemo(() => getMo(colors), [colors]);
