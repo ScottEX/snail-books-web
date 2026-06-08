@@ -332,6 +332,19 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         {/* ── Edit mode ── */}
         {editMode && (
           <View style={{ gap: 14 }}>
+            {/* Amount — top, matching view mode style */}
+            <Text style={styles.sectionTitle}>{t('amount')}</Text>
+            <View style={{ alignItems: 'center', paddingVertical: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
+                <Text style={{ fontSize: 20, fontWeight: '600' as const, color: amtColor, marginRight: 2, marginBottom: 4 }}>-¥</Text>
+                <TextInput
+                  style={{ fontSize: 36, fontWeight: '700' as const, color: amtColor, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180, outline: 'none' }}
+                  value={amount} onChangeText={(v: string) => setAmount(fmtDecInput(v))}
+                  onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
+                  keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={c.textSub} />
+              </View>
+            </View>
+
             {/* Category */}
             <Text style={styles.sectionTitle}>{t('expenseCategory')}</Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -368,59 +381,54 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
               })}
             </View>
 
-            {/* Amount */}
-            <Text style={styles.sectionTitle}>{t('amount')}</Text>
-            <View style={{ alignItems: 'center', paddingVertical: 16 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.danger, marginRight: 6 }}>-¥</Text>
-                <TextInput
-                  style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.textMain, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180 }}
-                  value={amount} onChangeText={(v: string) => setAmount(fmtDecInput(v))}
-                  onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
-                  keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={c.textSub} />
-              </View>
-              <View style={{ width: 40, height: 2, marginTop: 10, borderRadius: 1, backgroundColor: c.danger }} />
+            {/* Date — label inline with picker on same row */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('expenseDate')}</Text>
+              <TouchableOpacity
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: c.bg, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12 }}
+                onPress={() => dateInputRef.current?.showPicker?.()} activeOpacity={0.7}>
+                <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, flex: 1 }}>{fmtLocalDate(date, lang)}</Text>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M10 6l6 6-6 6"/></Svg>
+                {React.createElement('input', {
+                  ref: dateInputRef, type: 'date', defaultValue: date, max: todayStr(),
+                  onChange: (e: any) => setDate(e.target.value),
+                  style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size, outline: 'none' },
+                })}
+              </TouchableOpacity>
             </View>
-
-            {/* Date */}
-            <Text style={styles.sectionTitle}>{t('date')}</Text>
-            <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: c.bg, borderRadius: 10, paddingVertical: 12, paddingRight: 12 }}
-              onPress={() => dateInputRef.current?.showPicker?.()} activeOpacity={0.7}>
-              <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub }}>{fmtLocalDate(date, lang)}</Text>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
-              {React.createElement('input', {
-                ref: dateInputRef, type: 'date', defaultValue: date, max: todayStr(),
-                onChange: (e: any) => setDate(e.target.value),
-                style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
-              })}
-            </TouchableOpacity>
 
             {/* Note */}
             <Text style={styles.sectionTitle}>{t('expenseNote')}</Text>
             <TextInput
-              style={{ fontSize: FONTS.sub.size, color: c.textMain, borderWidth: 0, backgroundColor: c.bg, borderRadius: 10, padding: 12, minHeight: 60 }}
+              style={{ fontSize: FONTS.sub.size, color: c.textMain, borderWidth: 0, backgroundColor: c.bg, borderRadius: 10, padding: 12, minHeight: 60, outline: 'none' }}
               value={note} onChangeText={setNote}
               placeholder={t('expenseNote')} placeholderTextColor={c.textSub}
               multiline numberOfLines={3} />
 
-            {/* Images */}
+            {/* Images — add button first, then grid */}
+            <Text style={styles.sectionTitle}>{t('uploadImage')}</Text>
+            {React.createElement('input', { ref: fileInputRef, type: 'file', accept: 'image/*', multiple: true, onChange: handleFilePick, style: { display: 'none' } })}
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderRadius: 10, paddingVertical: 12, borderStyle: 'dashed' as any, borderColor: c.secondary }}
+              onPress={() => fileInputRef.current?.click()} activeOpacity={0.7}>
+              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round">
+                <Path d="M12 5v14M5 12h14"/>
+              </Svg>
+              <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{t('uploadImage')}</Text>
+            </TouchableOpacity>
             {images.length > 0 && (
-              <View>
-                <Text style={[styles.sectionTitle, { marginBottom: 8 }]}>{t('uploadImage')}</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {images.map((url: string, i: number) => (
-                    <View key={i} style={{ position: 'relative' }}>
-                      <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
-                      <TouchableOpacity onPress={() => removeImage(i)} activeOpacity={0.7}
-                        style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
-                        <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
-                          <Path d="M18 6L6 18M6 6l12 12"/>
-                        </Svg>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {images.map((url: string, i: number) => (
+                  <View key={i} style={{ position: 'relative' }}>
+                    <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
+                    <TouchableOpacity onPress={() => removeImage(i)} activeOpacity={0.7}
+                      style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
+                      <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
+                        <Path d="M18 6L6 18M6 6l12 12"/>
+                      </Svg>
+                    </TouchableOpacity>
+                  </View>
+                ))}
               </View>
             )}
             {newFiles.length > 0 && (
@@ -438,15 +446,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                 ))}
               </View>
             )}
-            <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderRadius: 10, paddingVertical: 12, borderStyle: 'dashed' as any, borderColor: c.secondary }}
-              onPress={() => fileInputRef.current?.click()} activeOpacity={0.7}>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round">
-                <Path d="M12 5v14M5 12h14"/>
-              </Svg>
-              <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{t('uploadImage')}</Text>
-            </TouchableOpacity>
-            {React.createElement('input', { ref: fileInputRef, type: 'file', accept: 'image/*', multiple: true, onChange: handleFilePick, style: { display: 'none' } })}
 
             {/* Buttons */}
             <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
