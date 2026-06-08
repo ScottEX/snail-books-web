@@ -311,6 +311,7 @@ const I18N: Record<string, Record<string, string>> = {
     revSaveDayBefore: '储存前日数据',
     revSaveToday: '储存今日数据',
     revSaveYesterday: '储存昨日数据',
+    revSaveDate: '储存{date}数据',
     revSubmit: '确认录入',
     revTurnover: '营业额',
     revTurnoverSub: '总销售流水额',
@@ -704,6 +705,7 @@ const I18N: Record<string, Record<string, string>> = {
     revSaveDayBefore: '儲存前日數據',
     revSaveToday: '儲存今日數據',
     revSaveYesterday: '儲存昨日數據',
+    revSaveDate: '儲存{date}數據',
     revSubmit: '確認錄入',
     revTurnover: '營業額',
     revTurnoverSub: '總銷售流水額',
@@ -1076,7 +1078,7 @@ const I18N: Record<string, Record<string, string>> = {
     resetBtn: 'Reset',
     resetDefault: 'Reset to Default',
     resetHint: 'Code sent to',
-    revCancelArchive: 'Reopen for Business',
+    revCancelArchive: 'Reopen',
     revClosedReason: 'Closed for the day',
     revEmpty: 'No records',
     revEmptyHint: 'Start recording daily revenue',
@@ -1085,7 +1087,7 @@ const I18N: Record<string, Record<string, string>> = {
     revHistoryBtn: 'History',
     revJD: 'JD Revenue',
     revJDSub: 'JD Platform',
-    revMarkArchive: 'Mark Closed',
+    revMarkArchive: 'Mark as',
     revNotEntered: 'Pending',
     revNote: 'Note',
     revNoteHint: 'e.g. events, promos',
@@ -1097,6 +1099,7 @@ const I18N: Record<string, Record<string, string>> = {
     revSaveDayBefore: 'Save Day Before',
     revSaveToday: 'Save Today',
     revSaveYesterday: 'Save Yesterday',
+    revSaveDate: 'Save {date} Data',
     revSubmit: 'Submit',
     revTurnover: 'Turnover',
     revTurnoverSub: 'Total Sales',
@@ -1503,6 +1506,7 @@ export type I18nKey =
   | 'revSaveDayBefore'
   | 'revSaveToday'
   | 'revSaveYesterday'
+  | 'revSaveDate'
   | 'revSubmit'
   | 'revTurnover'
   | 'revTurnoverSub'
