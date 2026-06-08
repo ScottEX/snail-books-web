@@ -194,9 +194,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = 0;
-      softClamp(); applyTransform(false);
+      applyTransform(false);
     });
-  }, [softClamp, applyTransform]);
+  }, [applyTransform]);
 
   const initZoom = useCallback(() => {
     const el = wrapRef.current;
