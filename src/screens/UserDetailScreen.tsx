@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, TextInput } from 'react-native';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { t, getLang } from '../i18n';
+import { historyHeader } from '../sharedStyles';
 
 interface UserData {
   id: number;
@@ -117,7 +118,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     try { return d.slice(0, 16).replace('T', ' '); } catch { return '—'; }
   };
 
-  // Shared header + loading/null states
+  // Shared header (absolute glass)
   const headerBar = (
     <View style={st.header}>
       <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
@@ -130,11 +131,10 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
   if (loading) {
     return (
-      <View style={st.root}>
-        <View style={st.statusBar} />
+      <View style={st.container}>
         {headerBar}
-        <View style={st.contentArea}>
-        <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>{t('loading') || '加载中...'}</Text>
+        <View style={st.body}>
+          <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>{t('loading') || '加载中...'}</Text>
         </View>
       </View>
     );
@@ -142,11 +142,10 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
   if (!detail) {
     return (
-      <View style={st.root}>
-        <View style={st.statusBar} />
+      <View style={st.container}>
         {headerBar}
-        <View style={st.contentArea}>
-        <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>User not found</Text>
+        <View style={st.body}>
+          <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>User not found</Text>
         </View>
       </View>
     );
@@ -173,12 +172,10 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   );
 
   return (
-    <View style={st.root}>
-      <View style={st.statusBar} />
+    <View style={st.container}>
       {headerBar}
 
-      <View style={st.contentArea}>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+      <ScrollView style={st.body} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, paddingTop: 16 }}>
         {/* Avatar left, username + status right */}
         <View style={st.avatarSection}>
           {detail.avatar ? (
@@ -303,79 +300,75 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
         </View>
       </ScrollView>
-      </View>
     </View>
   );
 }
 
-const STATUS_BAR_H = 48;
-
-const getStyles = (c: ThemeColors) => StyleSheet.create({
-  root: { flex: 1 },
-  contentArea: { flex: 1, backgroundColor: c.bg },
-  statusBar: { height: STATUS_BAR_H },
-  header: {
-    height: 48,
-    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12,
-    paddingHorizontal: 16, backgroundColor: 'transparent',
-  },
-  backBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: withAlpha(c.textMain, 0.06),
-    justifyContent: 'center' as const, alignItems: 'center' as const,
-  },
-  title: { flex: 1, fontSize: 17, fontWeight: '600' as const, color: c.textMain },
-  // Avatar section — horizontal layout
-  avatarSection: {
-    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 16,
-    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24,
-  },
-  avatar: { width: 64, height: 64, borderRadius: 32, flexShrink: 0 },
-  avatarName: { fontSize: 18, fontWeight: '700' as const, color: c.textMain, marginBottom: 6 },
-  statusBadge: {
-    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 5,
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
-  },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 12, fontWeight: '500' } as any,
-  // Sections
-  section: { paddingHorizontal: 20, marginTop: 12 },
-  sectionTitleRow: { flexDirection: 'row' as const, alignItems: 'center' as const, marginBottom: 4, gap: 8 },
-  sectionTitleText: { fontSize: 10, fontWeight: '600' as const, letterSpacing: 2, textTransform: 'uppercase' as const, color: c.textSub } as any,
-  sectionTitleLine: { flex: 1, height: 1, backgroundColor: withAlpha(c.textMain, 0.08) },
-  card: { marginTop: 4, backgroundColor: c.surface, borderRadius: 12, paddingHorizontal: 0, paddingVertical: 2 },
-  infoRow: {
-    flexDirection: 'row' as const, justifyContent: 'space-between',
-    alignItems: 'center' as const, paddingVertical: 14, paddingHorizontal: 16,
-  },
-  editRow: {
-    flexDirection: 'row' as const, justifyContent: 'space-between',
-    alignItems: 'center' as const, paddingVertical: 14, paddingHorizontal: 16, gap: 12,
-  },
-  infoLabel: { fontSize: 14, color: c.textSub, flexShrink: 0 },
-  infoValue: { fontSize: 14, fontWeight: '500' as const, color: c.textMain } as any,
-  editInput: {
-    fontSize: 14, fontWeight: '500' as const, color: c.textMain,
-    textAlign: 'right', borderWidth: 0, outlineWidth: 0,
-    background: 'transparent', padding: 0, flex: 1, minWidth: 60,
-  } as any,
-  divider: { height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 },
-  // Toggle
-  toggleRow: {
-    flexDirection: 'row' as const, alignItems: 'center' as const,
-    paddingVertical: 14, paddingHorizontal: 16, gap: 12,
-  },
-  toggleLabel: { fontSize: 14, fontWeight: '500' as const, color: c.textMain, marginBottom: 2 },
-  toggleHint: { fontSize: 12, color: c.textSub, lineHeight: 16 },
-  // Role picker
-  roleList: {
-    flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 6,
-    paddingHorizontal: 16, paddingBottom: 12,
-  },
-  roleItem: {
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8,
-    backgroundColor: withAlpha(c.textMain, 0.05),
-  },
-  roleItemActive: { backgroundColor: withAlpha(c.primary, 0.1) },
-  roleItemText: { fontSize: 13, color: c.textMain },
-});
+const getStyles = (c: ThemeColors) => {
+  const hdr = historyHeader(c);
+  return StyleSheet.create({
+    container: { flex: 1 },
+    ...hdr as any,
+    // Override title color for light bg (historyHeader defaults to #F0EDE8)
+    title: { ...hdr.title, color: c.textMain },
+    // Body (below absolute header)
+    body: {
+      flex: 1,
+      marginTop: 100,
+      backgroundColor: c.bg,
+    },
+    // Avatar section — horizontal layout
+    avatarSection: {
+      flexDirection: 'row' as const, alignItems: 'center' as const, gap: 16,
+      paddingHorizontal: 20, paddingBottom: 24,
+    },
+    avatar: { width: 64, height: 64, borderRadius: 32, flexShrink: 0 },
+    avatarName: { fontSize: 18, fontWeight: '700' as const, color: c.textMain, marginBottom: 6 },
+    statusBadge: {
+      flexDirection: 'row' as const, alignItems: 'center' as const, gap: 5,
+      paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
+    },
+    statusDot: { width: 6, height: 6, borderRadius: 3 },
+    statusText: { fontSize: 12, fontWeight: '500' } as any,
+    // Sections
+    section: { paddingHorizontal: 20, marginTop: 12 },
+    sectionTitleRow: { flexDirection: 'row' as const, alignItems: 'center' as const, marginBottom: 4, gap: 8 },
+    sectionTitleText: { fontSize: 10, fontWeight: '600' as const, letterSpacing: 2, textTransform: 'uppercase' as const, color: c.textSub } as any,
+    sectionTitleLine: { flex: 1, height: 1, backgroundColor: withAlpha(c.textMain, 0.08) },
+    card: { marginTop: 4, backgroundColor: c.surface, borderRadius: 12, paddingHorizontal: 0, paddingVertical: 2 },
+    infoRow: {
+      flexDirection: 'row' as const, justifyContent: 'space-between',
+      alignItems: 'center' as const, paddingVertical: 14, paddingHorizontal: 16,
+    },
+    editRow: {
+      flexDirection: 'row' as const, justifyContent: 'space-between',
+      alignItems: 'center' as const, paddingVertical: 14, paddingHorizontal: 16, gap: 12,
+    },
+    infoLabel: { fontSize: 14, color: c.textSub, flexShrink: 0 },
+    infoValue: { fontSize: 14, fontWeight: '500' as const, color: c.textMain } as any,
+    editInput: {
+      fontSize: 14, fontWeight: '500' as const, color: c.textMain,
+      textAlign: 'right', borderWidth: 0, outlineWidth: 0,
+      background: 'transparent', padding: 0, flex: 1, minWidth: 60,
+    } as any,
+    divider: { height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 },
+    // Toggle
+    toggleRow: {
+      flexDirection: 'row' as const, alignItems: 'center' as const,
+      paddingVertical: 14, paddingHorizontal: 16, gap: 12,
+    },
+    toggleLabel: { fontSize: 14, fontWeight: '500' as const, color: c.textMain, marginBottom: 2 },
+    toggleHint: { fontSize: 12, color: c.textSub, lineHeight: 16 },
+    // Role picker
+    roleList: {
+      flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 6,
+      paddingHorizontal: 16, paddingBottom: 12,
+    },
+    roleItem: {
+      paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8,
+      backgroundColor: withAlpha(c.textMain, 0.05),
+    },
+    roleItemActive: { backgroundColor: withAlpha(c.primary, 0.1) },
+    roleItemText: { fontSize: 13, color: c.textMain },
+  });
+};

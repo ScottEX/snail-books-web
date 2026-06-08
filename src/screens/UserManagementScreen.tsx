@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image 
 import { createPortal } from 'react-dom';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { t, getLang } from '../i18n';
+import { historyHeader } from '../sharedStyles';
 
 interface UserItem {
   id: number;
@@ -102,7 +103,6 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   }, [searchText]);
 
   const applyStatus = useCallback((val: string) => {
-    // Clear pending search debounce and commit immediately
     if (searchTimer.current) clearTimeout(searchTimer.current);
     setStatusFilter(val);
     setSearch(searchText);
@@ -161,11 +161,8 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   }, []);
 
   return (
-    <View style={st.root}>
-      {/* Status bar padding */}
-      <View style={st.statusBar} />
-
-      {/* Header — no backdrop */}
+    <View style={st.container}>
+      {/* Header — absolute glass (matches ExpenseDetailScreen) */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
@@ -176,144 +173,140 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
         <View style={{ width: 36 }} />
       </View>
 
-      {/* Search bar */}
-      <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <View style={st.searchBox}>
-        <SearchIcon />
-        <TextInput
-          style={st.searchInput}
-          placeholder={t('searchUser')}
-          placeholderTextColor={c.textSub}
-          value={searchText}
-          onChangeText={setSearchText}
-          returnKeyType="search"
-        />
-        {searchText !== '' && (
-          <TouchableOpacity onPress={() => { setSearchText(''); }}>
-            <Text style={{ fontSize: 14, color: c.textSub, paddingHorizontal: 4 }}>✕</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Filter row */}
-      <View style={st.filterRow}>
-        {/* Status filter */}
-        <View style={{ flex: 1 }}>
-          <TouchableOpacity style={st.filterChip} ref={statusChipRef as any} onPress={() => showStatusDrop ? closeDrops() : openStatusDrop()} activeOpacity={0.7}>
-            <Text style={[st.filterChipText, statusFilter !== '' && { color: c.primary, fontWeight: '600' }]} numberOfLines={1}>{statusLabel}</Text>
-            <CaretDownSvg color={statusFilter !== '' ? c.primary : c.textSub} />
-          </TouchableOpacity>
+      {/* Body */}
+      <View style={st.body}>
+        {/* Search bar */}
+        <View style={st.searchBox}>
+          <SearchIcon />
+          <TextInput
+            style={st.searchInput}
+            placeholder={t('searchUser')}
+            placeholderTextColor={c.textSub}
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+          />
+          {searchText !== '' && (
+            <TouchableOpacity onPress={() => { setSearchText(''); }}>
+              <Text style={{ fontSize: 14, color: c.textSub, paddingHorizontal: 4 }}>✕</Text>
+            </TouchableOpacity>
+          )}
         </View>
-        {/* Date filter */}
-        <View style={{ flex: 1 }}>
-          <TouchableOpacity style={st.filterChip} ref={dateChipRef as any} onPress={() => showDateDrop ? closeDrops() : openDateDrop()} activeOpacity={0.7}>
-            <Text style={[st.filterChipText, (dateFrom || dateTo) && { color: c.primary, fontWeight: '600' }]} numberOfLines={1}>{dateLabel}</Text>
-            <CaretDownSvg color={(dateFrom || dateTo) ? c.primary : c.textSub} />
-          </TouchableOpacity>
+
+        {/* Filter row */}
+        <View style={st.filterRow}>
+          <View style={{ flex: 1 }}>
+            <TouchableOpacity style={st.filterChip} ref={statusChipRef as any} onPress={() => showStatusDrop ? closeDrops() : openStatusDrop()} activeOpacity={0.7}>
+              <Text style={[st.filterChipText, statusFilter !== '' && { color: c.primary, fontWeight: '600' }]} numberOfLines={1}>{statusLabel}</Text>
+              <CaretDownSvg color={statusFilter !== '' ? c.primary : c.textSub} />
+            </TouchableOpacity>
+          </View>
+          <View style={{ flex: 1 }}>
+            <TouchableOpacity style={st.filterChip} ref={dateChipRef as any} onPress={() => showDateDrop ? closeDrops() : openDateDrop()} activeOpacity={0.7}>
+              <Text style={[st.filterChipText, (dateFrom || dateTo) && { color: c.primary, fontWeight: '600' }]} numberOfLines={1}>{dateLabel}</Text>
+              <CaretDownSvg color={(dateFrom || dateTo) ? c.primary : c.textSub} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      {/* Status dropdown portal */}
-      {showStatusDrop && statusRect && createPortal(
-        <div style={{ position: 'fixed', top: statusRect.top, left: statusRect.left, width: statusRect.width, zIndex: 9999 }}>
-          <div style={portalDropdownStyle(c)}>
-            <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus(''); closeDrops(); }}>
-              <Text style={[st.dropItemText, statusFilter === '' && { color: c.primary, fontWeight: '600' }]}>{t('all')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus('normal'); closeDrops(); }}>
-              <View style={[st.statusDot, { backgroundColor: c.success }]} />
-              <Text style={[st.dropItemText, statusFilter === 'normal' && { color: c.primary, fontWeight: '600' }]}>{t('normalStatus')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus('disabled'); closeDrops(); }}>
-              <View style={[st.statusDot, { backgroundColor: c.danger }]} />
-              <Text style={[st.dropItemText, statusFilter === 'disabled' && { color: c.primary, fontWeight: '600' }]}>{t('disabledStatus')}</Text>
-            </TouchableOpacity>
-          </div>
-        </div>,
-        document.body
-      )}
-      {showStatusDrop && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
-
-      {/* Date dropdown portal */}
-      {showDateDrop && dateRect && createPortal(
-        <div style={{ position: 'fixed', top: dateRect.top, left: dateRect.left, width: dateRect.width, zIndex: 9999 }}>
-          <div style={portalDropdownStyle(c)}>
-            <View style={st.dateRow}>
-              <TextInput
-                style={st.dateInput}
-                value={dateFrom}
-                onChangeText={setDateFrom}
-                placeholder="2024-01-01"
-                placeholderTextColor={c.textSub}
-                maxLength={10}
-              />
-              <Text style={{ color: c.textSub, marginHorizontal: 4 }}>—</Text>
-              <TextInput
-                style={st.dateInput}
-                value={dateTo}
-                onChangeText={setDateTo}
-                placeholder="2024-12-31"
-                placeholderTextColor={c.textSub}
-                maxLength={10}
-              />
-            </View>
-            <View style={st.dateActions}>
-              <TouchableOpacity style={st.dateActionBtn} onPress={() => { clearDate(); closeDrops(); }}>
-                <Text style={st.dateActionText}>{t('reset') || '重置'}</Text>
+        {/* Status dropdown portal */}
+        {showStatusDrop && statusRect && createPortal(
+          <div style={{ position: 'fixed', top: statusRect.top, left: statusRect.left, width: statusRect.width, zIndex: 9999 }}>
+            <div style={portalDropdownStyle(c)}>
+              <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus(''); closeDrops(); }}>
+                <Text style={[st.dropItemText, statusFilter === '' && { color: c.primary, fontWeight: '600' }]}>{t('all')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[st.dateActionBtn, st.dateActionApply]} onPress={() => { applyDate(dateFrom, dateTo); closeDrops(); }}>
-                <Text style={[st.dateActionText, { color: '#fff' }]}>{t('apply') || '确定'}</Text>
+              <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus('normal'); closeDrops(); }}>
+                <View style={[st.statusDot, { backgroundColor: c.success }]} />
+                <Text style={[st.dropItemText, statusFilter === 'normal' && { color: c.primary, fontWeight: '600' }]}>{t('normalStatus')}</Text>
               </TouchableOpacity>
-            </View>
-          </div>
-        </div>,
-        document.body
-      )}
-      {showDateDrop && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
-
-      {/* User list */}
-      <ScrollView style={st.list} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
-        {loading ? (
-          <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 40, fontSize: 13 }}>{t('loading') || '加载中...'}</Text>
-        ) : users.length === 0 ? (
-          <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 40, fontSize: 13 }}>{t('noUsers') || '暂无用户'}</Text>
-        ) : (
-          users.map((u) => (
-            <TouchableOpacity key={u.id} style={st.userRow} onPress={() => onUserSelect(u)} activeOpacity={0.6}>
-              <View style={st.avatarWrap}>
-                {u.avatar ? (
-                  <Image source={{ uri: u.avatar }} style={st.avatar} />
-                ) : (
-                  <Image source={{ uri: '/img/logo.jpg' }} style={st.avatar} />
-                )}
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={st.userName}>{u.username}</Text>
-                {u.email ? <Text style={st.userEmail}>{u.email}</Text> : null}
-              </View>
-              <View style={[st.statusBadge, { backgroundColor: u.is_disabled ? withAlpha(c.danger, 0.08) : withAlpha(c.success, 0.08) }]}>
-                <View style={[st.statusDot, { backgroundColor: u.is_disabled ? c.danger : c.success }]} />
-                <Text style={[st.statusText, { color: u.is_disabled ? c.danger : c.success }]}>
-                  {u.is_disabled ? t('disabledStatus') : t('normalStatus')}
-                </Text>
-              </View>
-              <ChevronRightSvg color={c.textSub} />
-            </TouchableOpacity>
-          ))
+              <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus('disabled'); closeDrops(); }}>
+                <View style={[st.statusDot, { backgroundColor: c.danger }]} />
+                <Text style={[st.dropItemText, statusFilter === 'disabled' && { color: c.primary, fontWeight: '600' }]}>{t('disabledStatus')}</Text>
+              </TouchableOpacity>
+            </div>
+          </div>,
+          document.body
         )}
-      </ScrollView>
+        {showStatusDrop && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
 
-      {/* Footer */}
-      <View style={st.footer}>
-        <Text style={st.footerText}>{t('totalUsers').replace('{n}', String(total))}</Text>
-      </View>
+        {/* Date dropdown portal */}
+        {showDateDrop && dateRect && createPortal(
+          <div style={{ position: 'fixed', top: dateRect.top, left: dateRect.left, width: dateRect.width, zIndex: 9999 }}>
+            <div style={portalDropdownStyle(c)}>
+              <View style={st.dateRow}>
+                <TextInput
+                  style={st.dateInput}
+                  value={dateFrom}
+                  onChangeText={setDateFrom}
+                  placeholder="2024-01-01"
+                  placeholderTextColor={c.textSub}
+                  maxLength={10}
+                />
+                <Text style={{ color: c.textSub, marginHorizontal: 4 }}>—</Text>
+                <TextInput
+                  style={st.dateInput}
+                  value={dateTo}
+                  onChangeText={setDateTo}
+                  placeholder="2024-12-31"
+                  placeholderTextColor={c.textSub}
+                  maxLength={10}
+                />
+              </View>
+              <View style={st.dateActions}>
+                <TouchableOpacity style={st.dateActionBtn} onPress={() => { clearDate(); closeDrops(); }}>
+                  <Text style={st.dateActionText}>{t('reset') || '重置'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[st.dateActionBtn, st.dateActionApply]} onPress={() => { applyDate(dateFrom, dateTo); closeDrops(); }}>
+                  <Text style={[st.dateActionText, { color: '#fff' }]}>{t('apply') || '确定'}</Text>
+                </TouchableOpacity>
+              </View>
+            </div>
+          </div>,
+          document.body
+        )}
+        {showDateDrop && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
+
+        {/* User list */}
+        <ScrollView style={st.list} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
+          {loading ? (
+            <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 40, fontSize: 13 }}>{t('loading') || '加载中...'}</Text>
+          ) : users.length === 0 ? (
+            <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 40, fontSize: 13 }}>{t('noUsers') || '暂无用户'}</Text>
+          ) : (
+            users.map((u) => (
+              <TouchableOpacity key={u.id} style={st.userRow} onPress={() => onUserSelect(u)} activeOpacity={0.6}>
+                <View style={st.avatarWrap}>
+                  {u.avatar ? (
+                    <Image source={{ uri: u.avatar }} style={st.avatar} />
+                  ) : (
+                    <Image source={{ uri: '/img/logo.jpg' }} style={st.avatar} />
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={st.userName}>{u.username}</Text>
+                  {u.email ? <Text style={st.userEmail}>{u.email}</Text> : null}
+                </View>
+                <View style={[st.statusBadge, { backgroundColor: u.is_disabled ? withAlpha(c.danger, 0.08) : withAlpha(c.success, 0.08) }]}>
+                  <View style={[st.statusDot, { backgroundColor: u.is_disabled ? c.danger : c.success }]} />
+                  <Text style={[st.statusText, { color: u.is_disabled ? c.danger : c.success }]}>
+                    {u.is_disabled ? t('disabledStatus') : t('normalStatus')}
+                  </Text>
+                </View>
+                <ChevronRightSvg color={c.textSub} />
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+
+        {/* Footer */}
+        <View style={st.footer}>
+          <Text style={st.footerText}>{t('totalUsers').replace('{n}', String(total))}</Text>
+        </View>
       </View>
     </View>
   );
 }
-
-const STATUS_BAR_H = 48;
-const HEADER_H = 48;
 
 function portalDropdownStyle(c: ThemeColors): React.CSSProperties {
   return {
@@ -325,110 +318,97 @@ function portalDropdownStyle(c: ThemeColors): React.CSSProperties {
   };
 }
 
-const getStyles = (c: ThemeColors) => StyleSheet.create({
-  root: { flex: 1 },
-  statusBar: { height: STATUS_BAR_H },
-  // Header
-  header: {
-    height: HEADER_H,
-    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12,
-    paddingHorizontal: 16,
-    backgroundColor: 'transparent',
-  },
-  backBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: withAlpha(c.textMain, 0.06),
-    justifyContent: 'center' as const, alignItems: 'center' as const,
-  },
-  title: {
-    flex: 1, fontSize: 17, fontWeight: '600' as const, color: c.textMain,
-  },
-  // Search bar
-  searchBox: {
-    flexDirection: 'row' as const, alignItems: 'center' as const,
-    marginHorizontal: 16, marginBottom: 10,
-    backgroundColor: c.surface,
-    borderRadius: 10, paddingHorizontal: 12, height: 40,
-    borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
-  },
-  searchInput: {
-    flex: 1, marginLeft: 8, fontSize: 14, color: c.textMain,
-    paddingVertical: 0,
-  } as any,
-  // Filter row
-  filterRow: {
-    flexDirection: 'row' as const, gap: 10,
-    paddingHorizontal: 16, marginBottom: 6,
-  },
-  filterChip: {
-    flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between',
-    backgroundColor: c.surface,
-    borderRadius: 10, height: 40, paddingHorizontal: 12,
-    borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
-  },
-  filterChipText: { fontSize: 13, color: c.textSub, flex: 1 } as any,
-  // Dropdown overlay
-  dropdown: {
-    position: 'absolute' as const, top: 44, left: 0, right: 0,
-    backgroundColor: c.surface, borderRadius: 10,
-    borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
-    zIndex: 100,
-    boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-    overflow: 'hidden' as const,
-  } as any,
-  dropItem: {
-    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8,
-    paddingVertical: 12, paddingHorizontal: 14,
-    borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.06),
-  },
-  dropItemText: { fontSize: 14, color: c.textMain },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  // Date picker in dropdown
-  dateRow: {
-    flexDirection: 'row' as const, alignItems: 'center' as const,
-    paddingHorizontal: 14, paddingVertical: 10,
-  },
-  dateInput: {
-    flex: 1, height: 34, borderRadius: 8,
-    backgroundColor: c.bg,
-    paddingHorizontal: 10, fontSize: 13, color: c.textMain,
-    borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.1),
-  } as any,
-  dateActions: {
-    flexDirection: 'row' as const, justifyContent: 'flex-end', gap: 8,
-    paddingHorizontal: 14, paddingBottom: 10,
-  },
-  dateActionBtn: {
-    paddingHorizontal: 16, paddingVertical: 7, borderRadius: 8,
-    backgroundColor: withAlpha(c.textMain, 0.06),
-  },
-  dateActionApply: { backgroundColor: c.primary },
-  dateActionText: { fontSize: 13, color: c.textMain },
-  // List
-  list: { flex: 1, paddingHorizontal: 16, paddingTop: 4 },
-  userRow: {
-    flexDirection: 'row' as const, alignItems: 'center' as const,
-    backgroundColor: c.surface, borderRadius: 12,
-    paddingVertical: 12, paddingHorizontal: 12,
-    marginBottom: 6,
-    borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.06),
-  },
-  avatarWrap: { marginRight: 12 },
-  avatar: { width: 40, height: 40, borderRadius: 20 },
-  userName: { fontSize: 15, fontWeight: '600', color: c.textMain } as any,
-  userEmail: { fontSize: 12, color: c.textSub, marginTop: 2 } as any,
-  statusBadge: {
-    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 5,
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6,
-    marginRight: 8,
-  },
-  statusText: { fontSize: 12, fontWeight: '500' } as any,
-  // Footer
-  footer: {
-    paddingVertical: 12, paddingHorizontal: 16,
-    borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06),
-    backgroundColor: c.surface,
-    alignItems: 'center' as const,
-  },
-  footerText: { fontSize: 13, color: c.textSub },
-});
+const getStyles = (c: ThemeColors) => {
+  const hdr = historyHeader(c);
+  return StyleSheet.create({
+    container: { flex: 1 },
+    ...hdr as any,
+    // Override title color for light bg (historyHeader defaults to #F0EDE8)
+    title: { ...hdr.title, color: c.textMain },
+    // Body (below absolute header)
+    body: {
+      flex: 1,
+      marginTop: 100,
+      backgroundColor: c.bg,
+    },
+    // Search bar
+    searchBox: {
+      flexDirection: 'row' as const, alignItems: 'center' as const,
+      marginHorizontal: 16, marginTop: 16, marginBottom: 10,
+      backgroundColor: c.surface,
+      borderRadius: 10, paddingHorizontal: 12, height: 40,
+      borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
+    },
+    searchInput: {
+      flex: 1, marginLeft: 8, fontSize: 14, color: c.textMain,
+      paddingVertical: 0,
+    } as any,
+    // Filter row
+    filterRow: {
+      flexDirection: 'row' as const, gap: 10,
+      paddingHorizontal: 16, marginBottom: 6,
+    },
+    filterChip: {
+      flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between',
+      backgroundColor: c.surface,
+      borderRadius: 10, height: 40, paddingHorizontal: 12,
+      borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
+    },
+    filterChipText: { fontSize: 13, color: c.textSub, flex: 1 } as any,
+    dropItem: {
+      flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8,
+      paddingVertical: 12, paddingHorizontal: 14,
+      borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.06),
+    },
+    dropItemText: { fontSize: 14, color: c.textMain },
+    statusDot: { width: 6, height: 6, borderRadius: 3 },
+    // Date picker in dropdown
+    dateRow: {
+      flexDirection: 'row' as const, alignItems: 'center' as const,
+      paddingHorizontal: 14, paddingVertical: 10,
+    },
+    dateInput: {
+      flex: 1, height: 34, borderRadius: 8,
+      backgroundColor: c.bg,
+      paddingHorizontal: 10, fontSize: 13, color: c.textMain,
+      borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.1),
+    } as any,
+    dateActions: {
+      flexDirection: 'row' as const, justifyContent: 'flex-end', gap: 8,
+      paddingHorizontal: 14, paddingBottom: 10,
+    },
+    dateActionBtn: {
+      paddingHorizontal: 16, paddingVertical: 7, borderRadius: 8,
+      backgroundColor: withAlpha(c.textMain, 0.06),
+    },
+    dateActionApply: { backgroundColor: c.primary },
+    dateActionText: { fontSize: 13, color: c.textMain },
+    // List
+    list: { flex: 1, paddingHorizontal: 16, paddingTop: 4 },
+    userRow: {
+      flexDirection: 'row' as const, alignItems: 'center' as const,
+      backgroundColor: c.surface, borderRadius: 12,
+      paddingVertical: 12, paddingHorizontal: 12,
+      marginBottom: 6,
+      borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.06),
+    },
+    avatarWrap: { marginRight: 12 },
+    avatar: { width: 40, height: 40, borderRadius: 20 },
+    userName: { fontSize: 15, fontWeight: '600', color: c.textMain } as any,
+    userEmail: { fontSize: 12, color: c.textSub, marginTop: 2 } as any,
+    statusBadge: {
+      flexDirection: 'row' as const, alignItems: 'center' as const, gap: 5,
+      paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6,
+      marginRight: 8,
+    },
+    statusText: { fontSize: 12, fontWeight: '500' } as any,
+    // Footer
+    footer: {
+      paddingVertical: 12, paddingHorizontal: 16,
+      borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06),
+      backgroundColor: c.surface,
+      alignItems: 'center' as const,
+    },
+    footerText: { fontSize: 13, color: c.textSub },
+  });
+};
