@@ -333,7 +333,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         {editMode && (
           <View style={{ gap: 14 }}>
             {/* Amount — top, matching view mode style */}
-            <Text style={styles.sectionTitle}>{t('amount')}</Text>
+            <Text style={styles.sectionTitle}>{t('expTotalAmount')}</Text>
             <View style={{ alignItems: 'center', paddingVertical: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
                 <Text style={{ fontSize: 20, fontWeight: '600' as const, color: amtColor, marginRight: 2, marginBottom: 4 }}>-¥</Text>
@@ -347,12 +347,12 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
 
             {/* Category */}
             <Text style={styles.sectionTitle}>{t('expenseCategory')}</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {CATEGORIES.map(cat => {
                 const active = category === cat;
                 return (
                   <TouchableOpacity key={cat}
-                    style={[styles.chip, active && styles.chipActive]}
+                    style={[styles.chip, { width: (screenW - 16*2 - 8) / 2 }, active && styles.chipActive]}
                     onPress={() => setCategory(cat)} activeOpacity={0.7}>
                     <View style={[styles.chipIconCircle, active && styles.chipIconCircleActive]}>
                       {catIcons[cat]}
@@ -387,7 +387,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
               <TouchableOpacity
                 style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: c.bg, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12 }}
                 onPress={() => dateInputRef.current?.showPicker?.()} activeOpacity={0.7}>
-                <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, flex: 1 }}>{fmtLocalDate(date, lang)}</Text>
+                <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub }}>{fmtLocalDate(date, lang)}</Text>
                 <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M10 6l6 6-6 6"/></Svg>
                 {React.createElement('input', {
                   ref: dateInputRef, type: 'date', defaultValue: date, max: todayStr(),
