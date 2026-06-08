@@ -85,7 +85,16 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   onDeleted?: () => void;
 }) {
   const { colors: c, theme } = useTheme();
-  const styles = useMemo(() => getStyles(c, theme.id), [c, theme.id]);
+  const styles = useMemo(() => getStyles(c), [c]);
+
+  // Theme-specific amount card color
+  const AMOUNT_COLORS: Record<string, string> = {
+    'burgundy-warm': '#FF6B3D',
+    'obsidian-gold': '#3B82F6',
+    'deep-teal': '#22C55E',
+  };
+  const amtColor = AMOUNT_COLORS[theme.id] || '#FF6B3D';
+  const amtBg = withAlpha(amtColor, 0.10);
   const lang = getLang();
 
   const [editMode, setEditMode] = useState(false);
@@ -199,9 +208,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         {!editMode && (
           <>
             {/* Amount card — prominent at the top, theme-colored */}
-            <View style={[styles.amountCard, { backgroundColor: styles._amountBg }]}>
+            <View style={[styles.amountCard, { backgroundColor: amtBg }]}>
               <Text style={styles.amountLabel}>{t('amount')}</Text>
-              <Text style={[styles.amountValue, { color: styles._amountColor }]}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
+              <Text style={[styles.amountValue, { color: amtColor }]}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
             </View>
 
             <View style={styles.infoCard}>
@@ -430,16 +439,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   );
 }
 
-const getStyles = (c: ThemeColors, themeId: string) => {
-  // Theme-specific amount card color — tinted bg + full text color
-  const AMOUNT_COLORS: Record<string, string> = {
-    'burgundy-warm': '#FF6B3D',  // orange-red, tinted
-    'obsidian-gold': '#3B82F6',   // blue, tinted
-    'deep-teal': '#22C55E',       // green, tinted
-  };
-  const amtColor = AMOUNT_COLORS[themeId] || '#FF6B3D';
-  const amtBg = withAlpha(amtColor, 0.10);
-
+const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
   return StyleSheet.create({
     container: { flex: 1 },
@@ -461,8 +461,6 @@ const getStyles = (c: ThemeColors, themeId: string) => {
       paddingTop: 16,
     },
     // Amount card — prominent, left-aligned, theme-colored bg
-    _amountBg: amtBg,
-    _amountColor: amtColor,
     amountCard: {
       borderRadius: 12,
       paddingVertical: 24,
