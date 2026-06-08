@@ -103,6 +103,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   const [showSavedConfirm, setShowSavedConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState('');
+  const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
+  const [previewOpacity, setPreviewOpacity] = useState(1);
+  const touchStartX = useRef(0);
 
   const [category, setCategory] = useState(record.category || 'daily');
   const [account, setAccount] = useState(record.account || 'payWechat');
@@ -179,6 +182,19 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
     for (let i = 0; i < files.length; i++) arr.push(files[i]);
     setNewFiles(prev => [...prev, ...arr]);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const openPreview = (idx: number) => {
+    setPreviewData({ images: displayImgs, idx });
+    setPreviewOpacity(1);
+  };
+
+  const navPreview = (newIdx: number) => {
+    setPreviewOpacity(0);
+    setTimeout(() => {
+      setPreviewData(prev => prev ? { ...prev, idx: newIdx } : null);
+      setPreviewOpacity(1);
+    }, 150);
   };
 
   const displayImgs = parseImages(record.images);
@@ -301,7 +317,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                 <Text style={styles.sectionTitle}>{t('uploadImage')}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   {displayImgs.map((url: string, i: number) => (
-                    <TouchableOpacity key={i} onPress={() => window.open(url, '_blank')} activeOpacity={0.8}>
+                    <TouchableOpacity key={i} onPress={() => openPreview(i)} activeOpacity={0.8}>
                       <Image source={{ uri: url }} style={styles.thumb} />
                     </TouchableOpacity>
                   ))}
@@ -483,6 +499,60 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         onCancel={() => setShowSavedConfirm(false)} />
 
       {toast ? <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} /> : null}
+
+      {/* Fullscreen image preview — swipe left/right, arrows, counter */}
+      {previewData && (
+        <View style={styles.previewOverlay}
+          onTouchStart={(e: any) => { touchStartX.current = e.nativeEvent.pageX || e.nativeEvent.touches?.[0]?.pageX || 0; }}
+          onTouchEnd={(e: any) => {
+            const endX = e.nativeEvent.pageX || e.nativeEvent.changedTouches?.[0]?.pageX || 0;
+            const dx = endX - touchStartX.current;
+            if (Math.abs(dx) > 60) {
+              if (dx < 0 && previewData.idx < previewData.images.length - 1) {
+                navPreview(previewData.idx + 1);
+              } else if (dx > 0 && previewData.idx > 0) {
+                navPreview(previewData.idx - 1);
+              }
+            }
+          }}>
+          <TouchableOpacity style={styles.previewClose}
+            onPress={() => setPreviewData(null)}
+            activeOpacity={0.7}>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.surface} strokeWidth={2} strokeLinecap="round">
+              <Path d="M18 6L6 18M6 6l12 12" />
+            </Svg>
+          </TouchableOpacity>
+          {previewData.images.length > 1 && previewData.idx > 0 && (
+            <TouchableOpacity style={styles.previewArrowLeft}
+              onPress={() => navPreview(previewData.idx - 1)}
+              activeOpacity={0.7}>
+              <Text style={styles.previewArrowText}>{'\u2039'}</Text>
+            </TouchableOpacity>
+          )}
+          {previewData.images.length > 1 && previewData.idx < previewData.images.length - 1 && (
+            <TouchableOpacity style={styles.previewArrowRight}
+              onPress={() => navPreview(previewData.idx + 1)}
+              activeOpacity={0.7}>
+              <Text style={styles.previewArrowText}>{'\u203A'}</Text>
+            </TouchableOpacity>
+          )}
+          {React.createElement('img', {
+            src: previewData.images[previewData.idx],
+            key: previewData.idx,
+            decoding: 'async' as any,
+            style: {
+              maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain',
+              opacity: previewOpacity,
+              // @ts-ignore
+              transition: 'opacity 0.2s ease',
+            },
+            alt: 'preview',
+          })}
+          {previewData.images.length > 1 && (
+            <Text style={styles.previewCounter}>{previewData.idx + 1} / {previewData.images.length}</Text>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -544,10 +614,10 @@ const getStyles = (c: ThemeColors) => {
       marginBottom: 4,
     },
     amountUsername: {
-      fontSize: FONTS.sub.size,
+      fontSize: 14,
       fontWeight: '600' as const,
       color: c.textMain,
-      maxWidth: 72,
+      maxWidth: 100,
     },
     // Info card
     infoCard: {
@@ -610,6 +680,35 @@ const getStyles = (c: ThemeColors) => {
     editBtnText: {
       color: c.surface, fontSize: FONTS.subBold.size,
       fontWeight: FONTS.subBold.weight,
+    },
+    // Preview — matches ProcurementDetailScreen
+    previewOverlay: {
+      position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
+      backgroundColor: 'rgba(0,0,0,0.85)',
+      alignItems: 'center' as const, justifyContent: 'center' as const,
+    },
+    previewClose: {
+      position: 'absolute' as const, top: 48, right: 20, zIndex: 10,
+      width: 36, height: 36, borderRadius: 18,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center' as const, justifyContent: 'center' as const,
+    },
+    previewArrowLeft: {
+      position: 'absolute' as const, left: 16, top: '50%' as any, zIndex: 10,
+      width: 40, height: 40, borderRadius: 20, marginTop: -20,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center' as const, justifyContent: 'center' as const,
+    },
+    previewArrowRight: {
+      position: 'absolute' as const, right: 16, top: '50%' as any, zIndex: 10,
+      width: 40, height: 40, borderRadius: 20, marginTop: -20,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center' as const, justifyContent: 'center' as const,
+    },
+    previewArrowText: { fontSize: FONTS.amount.size, fontWeight: '300' as const, color: c.surface, marginTop: -2 },
+    previewCounter: {
+      position: 'absolute' as const, bottom: 60, zIndex: 10,
+      fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: 'rgba(255,255,255,0.7)',
     },
   } as any);
 };
