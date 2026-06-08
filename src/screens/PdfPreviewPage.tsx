@@ -67,7 +67,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-loading-mask{position:absolute;inset:0;z-index:195;background:rgba(0,0,0,0.25);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
-.pv-root{animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
+.pv-root{background:#F9F7F4;animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
 .pv-root.out{animation:pv-slide-out 250ms cubic-bezier(0.55,0.055,0.675,0.19) both}
 `;
 };
