@@ -39,6 +39,11 @@ const I18N: Record<string, Record<string, string>> = {
     chairman: '董事长',
     changeEmail: '更换邮箱',
     changePassword: '修改密码',
+    chartSwitchBar: '柱状图',
+    chartSwitchHint: '点击切换视图',
+    chartSwitchPie: '饼图',
+    chartXAxis: '月份',
+    chartYAxis: '金额（元）',
     chooseImage: '选择图片',
     clear: '清空',
     codeSent: '验证码已发送',
@@ -110,11 +115,13 @@ const I18N: Record<string, Record<string, string>> = {
     errPwNeedNumber: '密码必须包含数字',
     errPwNeedSpecial: '密码必须包含特殊字符',
     errPwTooShort: '密码至少 8 位',
+    errPwRequirements: '密码须8位以上，包含字母、数字、特殊字符',
     errWrongCredentials: '账号或密码错误',
     expConfirmMsg: '提交后将无法修改，确定要记录吗？',
     expConfirmTitle: '确认记录',
     expDate: '日期',
     expense: '支出',
+    expenseBreakdown: '支出分类占比',
     expenseCategory: '支出分类',
     expenseDate: '支出日期',
     expenseHistory: '支出记录',
@@ -172,6 +179,8 @@ const I18N: Record<string, Record<string, string>> = {
     monthExpense: '本月支出',
     monthIncome: '本月收入',
     monthProfit: '本月利润',
+    monthlyProfit: '月度利润',
+    monthlyTrend: '月度收支趋势',
     nameJiang: '江宽',
     nameLan: '蓝柳富',
     nameZhang: '张安武',
@@ -193,6 +202,7 @@ const I18N: Record<string, Record<string, string>> = {
     paybackProgress: '回本进度',
     paybackRate: '回本率',
     paymentMethod: '支付方式',
+    pdfGenerating: '进货单PDF生成中…',
     pdfLoadFailed: 'PDF 加载失败',
     pdfLoading: '加载 PDF 中…',
     pendingPayback: '待回',
@@ -223,8 +233,6 @@ const I18N: Record<string, Record<string, string>> = {
     procEmptyProductsTitle: '还没有产品',
     procGenerating: '生成中...',
     procGeneratingPDF: '正在生成进货单…',
-    pdfGenerating: '进货单PDF生成中…',
-    retry: '重试',
     procHistory: '进货记录',
     procImages: '凭证预览',
     procMargin: '货款利润率',
@@ -266,14 +274,6 @@ const I18N: Record<string, Record<string, string>> = {
     procurement: '进货',
     profileEmail: '电子邮箱',
     profit: '利润',
-    monthlyProfit: '月度利润',
-    monthlyTrend: '月度收支趋势',
-    expenseBreakdown: '支出分类占比',
-    chartXAxis: '月份',
-    chartYAxis: '金额（元）',
-    chartSwitchBar: '柱状图',
-    chartSwitchPie: '饼图',
-    chartSwitchHint: '点击切换视图',
     pwHint: '8位以上，含字母+数字+特殊字符',
     receivable: '应收总额',
     reconComplete: '对账完成',
@@ -291,6 +291,7 @@ const I18N: Record<string, Record<string, string>> = {
     resetBtn: '重 置',
     resetDefault: '恢复默认',
     resetHint: '验证码已发送至',
+    retry: '重试',
     revCancelArchive: '取消歇业',
     revClosedReason: '今日歇业',
     revEmpty: '暂无营收记录',
@@ -309,10 +310,10 @@ const I18N: Record<string, Record<string, string>> = {
     revQuickYesterday: '昨天',
     revRevenue: '营业额收入',
     revRevenueSub: '实际到账金额',
+    revSaveDate: '储存{date}数据',
     revSaveDayBefore: '储存前日数据',
     revSaveToday: '储存今日数据',
     revSaveYesterday: '储存昨日数据',
-    revSaveDate: '储存{date}数据',
     revSubmit: '确认录入',
     revTurnover: '营业额',
     revTurnoverSub: '总销售流水额',
@@ -432,6 +433,11 @@ const I18N: Record<string, Record<string, string>> = {
     chairman: '董事長',
     changeEmail: '更換郵箱',
     changePassword: '修改密碼',
+    chartSwitchBar: '柱狀圖',
+    chartSwitchHint: '點擊切換視圖',
+    chartSwitchPie: '餅圖',
+    chartXAxis: '月份',
+    chartYAxis: '金額（元）',
     chooseImage: '選擇圖片',
     clear: '清空',
     codeSent: '驗證碼已發送',
@@ -503,11 +509,13 @@ const I18N: Record<string, Record<string, string>> = {
     errPwNeedNumber: '密碼必須包含數字',
     errPwNeedSpecial: '密碼必須包含特殊字符',
     errPwTooShort: '密碼至少 8 位',
+    errPwRequirements: '密碼須8位以上，包含字母、數字、特殊字符',
     errWrongCredentials: '帳號或密碼錯誤',
     expConfirmMsg: '提交後將無法修改，確定要記錄嗎？',
     expConfirmTitle: '確認記錄',
     expDate: '日期',
     expense: '支出',
+    expenseBreakdown: '支出分類佔比',
     expenseCategory: '支出分類',
     expenseDate: '支出日期',
     expenseHistory: '支出記錄',
@@ -565,6 +573,8 @@ const I18N: Record<string, Record<string, string>> = {
     monthExpense: '本月支出',
     monthIncome: '本月收入',
     monthProfit: '本月利潤',
+    monthlyProfit: '月度利潤',
+    monthlyTrend: '月度收支趨勢',
     nameJiang: '江寬',
     nameLan: '藍柳富',
     nameZhang: '張安武',
@@ -587,6 +597,7 @@ const I18N: Record<string, Record<string, string>> = {
     paybackProgress: '回本進度',
     paybackRate: '回本率',
     paymentMethod: '支付方式',
+    pdfGenerating: '進貨單PDF生成中…',
     pdfLoadFailed: 'PDF 載入失敗',
     pdfLoading: '載入 PDF 中…',
     pendingPayback: '待回',
@@ -617,8 +628,6 @@ const I18N: Record<string, Record<string, string>> = {
     procEmptyProductsTitle: '還沒有產品',
     procGenerating: '生成中...',
     procGeneratingPDF: '正在生成進貨單…',
-    pdfGenerating: '進貨單PDF生成中…',
-    retry: '重試',
     procHistory: '進貨記錄',
     procImages: '憑證預覽',
     procMargin: '貨款利潤率',
@@ -660,14 +669,6 @@ const I18N: Record<string, Record<string, string>> = {
     procurement: '進貨',
     profileEmail: '電子郵箱',
     profit: '利潤',
-    monthlyProfit: '月度利潤',
-    monthlyTrend: '月度收支趨勢',
-    expenseBreakdown: '支出分類佔比',
-    chartXAxis: '月份',
-    chartYAxis: '金額（元）',
-    chartSwitchBar: '柱狀圖',
-    chartSwitchPie: '餅圖',
-    chartSwitchHint: '點擊切換視圖',
     pwHint: '8位以上，含字母+數字+特殊字符',
     receivable: '應收總額',
     reconComplete: '對賬完成',
@@ -685,6 +686,7 @@ const I18N: Record<string, Record<string, string>> = {
     resetBtn: '重 置',
     resetDefault: '恢復默認',
     resetHint: '驗證碼已發送至',
+    retry: '重試',
     revCancelArchive: '取消歇業',
     revClosedReason: '今日歇業',
     revEmpty: '暫無營收記錄',
@@ -703,10 +705,10 @@ const I18N: Record<string, Record<string, string>> = {
     revQuickYesterday: '昨天',
     revRevenue: '營業額收入',
     revRevenueSub: '實際到賬金額',
+    revSaveDate: '儲存{date}數據',
     revSaveDayBefore: '儲存前日數據',
     revSaveToday: '儲存今日數據',
     revSaveYesterday: '儲存昨日數據',
-    revSaveDate: '儲存{date}數據',
     revSubmit: '確認錄入',
     revTurnover: '營業額',
     revTurnoverSub: '總銷售流水額',
@@ -808,7 +810,7 @@ const I18N: Record<string, Record<string, string>> = {
     avatarUpdated: 'Avatar Updated',
     back: 'Back',
     backToLogin: 'Back to login',
-    batchLabel: '{date} \u00b7 Batch #{n}',
+    batchLabel: '{date} · Batch #{n}',
     bgHint: 'Choose an image as home page background',
     bgResultHint: 'Will be used as fullscreen home background',
     bgSettings: 'Theme',
@@ -826,6 +828,11 @@ const I18N: Record<string, Record<string, string>> = {
     chairman: 'Chairman',
     changeEmail: 'Change Email',
     changePassword: 'Change Password',
+    chartSwitchBar: 'Bar Chart',
+    chartSwitchHint: 'Tap to switch',
+    chartSwitchPie: 'Pie Chart',
+    chartXAxis: 'Month',
+    chartYAxis: 'Amount (¥)',
     chooseImage: 'Choose Image',
     clear: 'Clear',
     codeSent: 'Code sent',
@@ -897,11 +904,13 @@ const I18N: Record<string, Record<string, string>> = {
     errPwNeedNumber: 'Password must contain a number',
     errPwNeedSpecial: 'Password must contain a special char',
     errPwTooShort: 'Password must be at least 8 chars',
+    errPwRequirements: 'Password: 8+ chars, letters, digits, and a special character',
     errWrongCredentials: 'Wrong username or password',
     expConfirmMsg: 'This cannot be edited after submission. Proceed?',
     expConfirmTitle: 'Confirm Record',
     expDate: 'Date',
     expense: 'Expense',
+    expenseBreakdown: 'Expense Breakdown',
     expenseCategory: 'Category',
     expenseDate: 'Expense Date',
     expenseHistory: 'Expense Records',
@@ -959,6 +968,8 @@ const I18N: Record<string, Record<string, string>> = {
     monthExpense: 'Month Expense',
     monthIncome: 'Month Income',
     monthProfit: 'Month Profit',
+    monthlyProfit: 'Monthly Profit',
+    monthlyTrend: 'Monthly Trend',
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
     nameZhang: 'Zhang Anwu',
@@ -981,6 +992,7 @@ const I18N: Record<string, Record<string, string>> = {
     paybackProgress: 'Payback Progress',
     paybackRate: 'Payback Rate',
     paymentMethod: 'Payment Method',
+    pdfGenerating: 'Generating purchase order PDF…',
     pdfLoadFailed: 'Failed to load PDF',
     pdfLoading: 'Loading PDF…',
     pendingPayback: 'Pending',
@@ -1011,8 +1023,6 @@ const I18N: Record<string, Record<string, string>> = {
     procEmptyProductsTitle: 'No products yet',
     procGenerating: 'Generating...',
     procGeneratingPDF: 'Generating purchase order...',
-    pdfGenerating: 'Generating purchase order PDF…',
-    retry: 'Retry',
     procHistory: 'History',
     procImages: 'Voucher Preview',
     procMargin: 'Margin',
@@ -1054,14 +1064,6 @@ const I18N: Record<string, Record<string, string>> = {
     procurement: 'Purchase',
     profileEmail: 'Email Address',
     profit: 'Profit',
-    monthlyProfit: 'Monthly Profit',
-    monthlyTrend: 'Monthly Trend',
-    expenseBreakdown: 'Expense Breakdown',
-    chartXAxis: 'Month',
-    chartYAxis: 'Amount (¥)',
-    chartSwitchBar: 'Bar Chart',
-    chartSwitchPie: 'Pie Chart',
-    chartSwitchHint: 'Tap to switch',
     pwHint: '8+ chars, letter + number + special',
     receivable: 'Total Receivable',
     reconComplete: 'Complete Recon',
@@ -1079,6 +1081,7 @@ const I18N: Record<string, Record<string, string>> = {
     resetBtn: 'Reset',
     resetDefault: 'Reset to Default',
     resetHint: 'Code sent to',
+    retry: 'Retry',
     revCancelArchive: 'Reopen',
     revClosedReason: 'Closed for the day',
     revEmpty: 'No records',
@@ -1097,10 +1100,10 @@ const I18N: Record<string, Record<string, string>> = {
     revQuickYesterday: 'Ytd',
     revRevenue: 'Revenue',
     revRevenueSub: 'Actual Received',
+    revSaveDate: 'Save {date} Data',
     revSaveDayBefore: 'Save Day Before',
     revSaveToday: 'Save Today',
     revSaveYesterday: 'Save Yesterday',
-    revSaveDate: 'Save {date} Data',
     revSubmit: 'Submit',
     revTurnover: 'Turnover',
     revTurnoverSub: 'Total Sales',
@@ -1184,19 +1187,6 @@ const I18N: Record<string, Record<string, string>> = {
   },
 };
 
-type Lang = 'zh-CN' | 'zh-TW' | 'en';
-
-export const langs: [Lang, string][] = [
-  ['zh-CN', '简'],
-  ['zh-TW', '繁'],
-  ['en', 'EN'],
-];
-
-// ═══════════════════════════════════════════════════════════════
-// Type-safe i18n key — all 365 zh-CN keys. Use this type for
-// variables that hold i18n keys to catch typos at compile time.
-// For dynamic keys from DB enums, cast with `as I18nKey`.
-// ═══════════════════════════════════════════════════════════════
 export type I18nKey =
   | 'accountInfo'
   | 'actualReceived'
@@ -1235,6 +1225,11 @@ export type I18nKey =
   | 'chairman'
   | 'changeEmail'
   | 'changePassword'
+  | 'chartSwitchBar'
+  | 'chartSwitchHint'
+  | 'chartSwitchPie'
+  | 'chartXAxis'
+  | 'chartYAxis'
   | 'chooseImage'
   | 'clear'
   | 'codeSent'
@@ -1305,22 +1300,18 @@ export type I18nKey =
   | 'errPwNeedLetter'
   | 'errPwNeedNumber'
   | 'errPwNeedSpecial'
+  | 'errPwRequirements'
   | 'errPwTooShort'
   | 'errWrongCredentials'
   | 'expConfirmMsg'
   | 'expConfirmTitle'
   | 'expDate'
   | 'expense'
+  | 'expenseBreakdown'
   | 'expenseCategory'
   | 'expenseDate'
   | 'expenseHistory'
   | 'expenseNote'
-  | 'expenseBreakdown'
-  | 'chartXAxis'
-  | 'chartYAxis'
-  | 'chartSwitchBar'
-  | 'chartSwitchPie'
-  | 'chartSwitchHint'
   | 'feeAllMonths'
   | 'feeCurrent'
   | 'feeDetail'
@@ -1382,6 +1373,7 @@ export type I18nKey =
   | 'newEmail'
   | 'newPassword'
   | 'noDividendRecords'
+  | 'noExpenseRecords'
   | 'noRecords'
   | 'notePlaceholder'
   | 'oldPassword'
@@ -1397,6 +1389,7 @@ export type I18nKey =
   | 'paybackProgress'
   | 'paybackRate'
   | 'paymentMethod'
+  | 'pdfGenerating'
   | 'pdfLoadFailed'
   | 'pdfLoading'
   | 'pendingPayback'
@@ -1427,8 +1420,6 @@ export type I18nKey =
   | 'procEmptyProductsTitle'
   | 'procGenerating'
   | 'procGeneratingPDF'
-  | 'pdfGenerating'
-  | 'retry'
   | 'procHistory'
   | 'procImages'
   | 'procMargin'
@@ -1487,6 +1478,7 @@ export type I18nKey =
   | 'resetBtn'
   | 'resetDefault'
   | 'resetHint'
+  | 'retry'
   | 'revCancelArchive'
   | 'revClosedReason'
   | 'revEmpty'
@@ -1505,10 +1497,10 @@ export type I18nKey =
   | 'revQuickYesterday'
   | 'revRevenue'
   | 'revRevenueSub'
+  | 'revSaveDate'
   | 'revSaveDayBefore'
   | 'revSaveToday'
   | 'revSaveYesterday'
-  | 'revSaveDate'
   | 'revSubmit'
   | 'revTurnover'
   | 'revTurnoverSub'
@@ -1588,18 +1580,24 @@ export type I18nKey =
   | 'verifyNewWrongEmail'
   | 'verifying'
   | 'wages'
-  | 'willDelete';
+  | 'willDelete'
 
-export function t(key: I18nKey): string {
-  const lang = (typeof window !== 'undefined'
-    ? ((window as any).curLang || (typeof localStorage !== 'undefined' && localStorage.getItem('lang')) || 'zh-CN')
-    : 'zh-CN') as string;
+type Lang = 'zh-CN' | 'zh-TW' | 'en';
+
+export const langs: [Lang, string][] = [
+  ['zh-CN', '简'],
+  ['zh-TW', '繁'],
+  ['en', 'EN'],
+];
+
+export function t(key: I18nKey | string): string {
+  const lang = (typeof window !== 'undefined' ? (window as any).curLang : null) || 'zh-CN';
   return I18N[lang]?.[key] || I18N['zh-CN']?.[key] || key;
 }
 
 export function getLang(): string {
   if (typeof window !== 'undefined') {
-    return (window as any).curLang || (typeof localStorage !== 'undefined' && localStorage.getItem('lang')) || 'zh-CN';
+    return (window as any).curLang || 'zh-CN';
   }
   return 'zh-CN';
 }

@@ -95,11 +95,12 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   }, [username]);
 
   const validatePassword = (pw: string): string => {
-    if (pw.length < 8) return 'errPwTooShort';
-    if (!/[A-Za-z]/.test(pw)) return 'errPwNeedLetter';
-    if (!/[0-9]/.test(pw)) return 'errPwNeedNumber';
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pw)) return 'errPwNeedSpecial';
-    return '';
+    let ok = true;
+    if (pw.length < 8) ok = false;
+    if (!/[A-Za-z]/.test(pw)) ok = false;
+    if (!/[0-9]/.test(pw)) ok = false;
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pw)) ok = false;
+    return ok ? '' : 'errPwRequirements';
   };
 
   const validateEmail = (em: string): string => {
