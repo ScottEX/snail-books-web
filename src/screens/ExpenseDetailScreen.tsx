@@ -686,7 +686,7 @@ const getStyles = (c: ThemeColors) => {
       backgroundColor: c.bg, alignItems: 'center' as const, justifyContent: 'center' as const,
     },
     chipActive: { backgroundColor: c.primary },
-    chipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textSub, lineHeight: 20 },
+    chipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textSub },
     chipTextActive: { color: c.surface },
     chipIconCircle: {
       width: 26, height: 26, borderRadius: 13,
