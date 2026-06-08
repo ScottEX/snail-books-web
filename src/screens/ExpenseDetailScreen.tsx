@@ -198,6 +198,12 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         {/* ── View mode ── */}
         {!editMode && (
           <>
+            {/* Amount card — prominent, above the info card */}
+            <View style={styles.amountCard}>
+              <Text style={styles.amountLabel}>{t('amount')}</Text>
+              <Text style={styles.amountValue}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
+            </View>
+
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{t('expenseCategory')}</Text>
@@ -206,10 +212,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{t('paymentMethod')}</Text>
                 <Text style={styles.infoValue}>{trPayment(record.account)}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{t('amount')}</Text>
-                <Text style={[styles.infoValue, { color: c.danger }]}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{t('date')}</Text>
@@ -448,6 +450,28 @@ const getStyles = (c: ThemeColors) => {
     bodyContent: {
       paddingHorizontal: 16,
       paddingTop: 16,
+    },
+    // Amount card — prominent at the top
+    amountCard: {
+      backgroundColor: c.surface,
+      borderRadius: 12,
+      paddingVertical: 24,
+      paddingHorizontal: 16,
+      marginBottom: 16,
+      alignItems: 'center' as const,
+    },
+    amountLabel: {
+      fontSize: FONTS.micro.size,
+      fontWeight: '500' as const,
+      color: c.textSub,
+      textTransform: 'uppercase' as any,
+      letterSpacing: 0.5,
+      marginBottom: 6,
+    },
+    amountValue: {
+      fontSize: FONTS.amount.size,
+      fontWeight: FONTS.amount.weight,
+      color: c.danger,
     },
     // Info card
     infoCard: {
