@@ -128,6 +128,7 @@ const I18N: Record<string, Record<string, string>> = {
     expenseCategory: '支出分类',
     expenseDate: '支出日期',
     expDetail: '支出详情',
+    expTotalAmount: '支出金额',
     expSavedMsg: '支出已更新，是否返回列表？',
     expUpdated: '支出已更新',
     expenseHistory: '支出记录',
@@ -531,6 +532,7 @@ const I18N: Record<string, Record<string, string>> = {
     expenseCategory: '支出分類',
     expenseDate: '支出日期',
     expDetail: '支出詳情',
+    expTotalAmount: '支出金額',
     expSavedMsg: '支出已更新，是否返回列表？',
     expUpdated: '支出已更新',
     expenseHistory: '支出記錄',
@@ -935,7 +937,8 @@ const I18N: Record<string, Record<string, string>> = {
     expenseCategory: 'Category',
     expenseDate: 'Expense Date',
     expDetail: 'Expense Detail',
-    expSavedMsg: 'Expense updated. Back to list?',
+    expTotalAmount: 'Expense Amount',
+    expSavedMsg: 'Expense updated. Return to list?',
     expUpdated: 'Expense updated',
     expenseHistory: 'Expense Records',
     expenseNote: 'Description',
@@ -1335,6 +1338,7 @@ export type I18nKey =
   | 'expConfirmTitle'
   | 'expDate'
   | 'expDetail'
+  | 'expTotalAmount'
   | 'expSavedMsg'
   | 'expUpdated'
   | 'expense'

@@ -14,7 +14,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import Toast from '../components/Toast';
 import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
-import { getCurrentUser } from '../utils/storage';
+import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 
 const todayStr = () => {
   const d = new Date();
@@ -183,6 +183,30 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
 
   const displayImgs = parseImages(record.images);
   const currentUser = getCurrentUser();
+  const [avatarUrl, setAvatarUrl] = useState('');
+
+  useEffect(() => {
+    const uid = getCurrentUserId();
+    if (!uid) return;
+    const CACHE_KEY = 'cached_avatar_b64';
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) setAvatarUrl(cached);
+    } catch {}
+    fetch(`/api/users/avatar?user_id=${uid}`)
+      .then(resp => resp.ok ? resp.blob() : null)
+      .then(blob => {
+        if (!blob) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const b64 = reader.result as string;
+          setAvatarUrl(b64);
+          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
+        };
+        reader.readAsDataURL(blob);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -209,8 +233,19 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
           <>
             {/* Amount card — prominent at the top, theme-colored */}
             <View style={[styles.amountCard, { backgroundColor: amtBg }]}>
-              <Text style={styles.amountLabel}>{t('amount')}</Text>
-              <Text style={[styles.amountValue, { color: amtColor }]}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.amountLabel}>{t('expTotalAmount')}</Text>
+                <Text style={[styles.amountValue, { color: amtColor }]}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
+              </View>
+              {currentUser ? (
+                <View style={styles.amountUser}>
+                  <Image
+                    source={{ uri: avatarUrl || '/img/logo.jpg' }}
+                    style={styles.amountAvatar}
+                  />
+                  <Text style={styles.amountUsername} numberOfLines={1}>{currentUser}</Text>
+                </View>
+              ) : null}
             </View>
 
             <View style={styles.infoCard}>
@@ -462,8 +497,10 @@ const getStyles = (c: ThemeColors) => {
     },
     // Amount card — prominent, left-aligned, theme-colored bg
     amountCard: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
       borderRadius: 12,
-      paddingVertical: 24,
+      paddingVertical: 20,
       paddingHorizontal: 20,
       marginBottom: 16,
     },
@@ -478,6 +515,20 @@ const getStyles = (c: ThemeColors) => {
     amountValue: {
       fontSize: 32,
       fontWeight: '700' as const,
+    },
+    amountUser: {
+      alignItems: 'center' as const,
+      marginLeft: 12,
+    },
+    amountAvatar: {
+      width: 36, height: 36, borderRadius: 18,
+      marginBottom: 4,
+    },
+    amountUsername: {
+      fontSize: FONTS.micro.size,
+      fontWeight: '500' as const,
+      color: c.textSub,
+      maxWidth: 72,
     },
     // Info card
     infoCard: {
