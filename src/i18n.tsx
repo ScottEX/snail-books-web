@@ -1697,6 +1697,7 @@ export type I18nKey =
   | 'dateTo'
   | 'statusFilter'
   | 'registrationTime'
+  | 'lastLogin'
 
 type Lang = 'zh-CN' | 'zh-TW' | 'en';
 
