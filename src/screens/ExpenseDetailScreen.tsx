@@ -352,7 +352,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                 const active = category === cat;
                 return (
                   <TouchableOpacity key={cat}
-                    style={[styles.chip, { width: (screenW - 16*2 - 8) / 2 }, active && styles.chipActive]}
+                    style={[styles.chip, { flex: 0, width: (screenW - 16*2 - 8) / 2 }, active && styles.chipActive]}
                     onPress={() => setCategory(cat)} activeOpacity={0.7}>
                     <View style={[styles.chipIconCircle, active && styles.chipIconCircleActive]}>
                       {catIcons[cat]}
@@ -385,7 +385,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('expenseDate')}</Text>
               <TouchableOpacity
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: c.bg, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12 }}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: c.bg, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12 }}
                 onPress={() => dateInputRef.current?.showPicker?.()} activeOpacity={0.7}>
                 <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub }}>{fmtLocalDate(date, lang)}</Text>
                 <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M10 6l6 6-6 6"/></Svg>
@@ -397,13 +397,15 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
               </TouchableOpacity>
             </View>
 
-            {/* Note */}
-            <Text style={styles.sectionTitle}>{t('expenseNote')}</Text>
-            <TextInput
-              style={{ fontSize: FONTS.sub.size, color: c.textMain, borderWidth: 0, backgroundColor: c.surface, borderRadius: 10, padding: 12, minHeight: 60, outline: 'none' } as any}
+            {/* Note — row layout: label left, input right, top-aligned (matches procurement cart) */}
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+              <Text style={[styles.sectionTitle, { marginBottom: 0, marginTop: 9, textTransform: 'none' as any }]}>{t('expenseNote')}</Text>
+              <TextInput
+                style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textMain, borderWidth: 0, backgroundColor: withAlpha(c.textMain, 0.03), borderRadius: 8, paddingHorizontal: 10, paddingVertical: 9, minHeight: 70, outline: 'none', textAlignVertical: 'top' } as any}
               value={note} onChangeText={setNote}
               placeholder={t('expenseNote')} placeholderTextColor={c.textSub}
               multiline numberOfLines={3} />
+            </View>
 
             {/* Images — add square button inline with image grid, same as ExpenseScreen */}
             <Text style={styles.sectionTitle}>{t('uploadImage')}</Text>
@@ -483,7 +485,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
       {/* Delete confirm */}
       <ConfirmModal visible={showDeleteConfirm}
         title={t('confirmDeleteRecord')}
-        message={t('confirmDelete')}
+        message="确认删除该笔支出数据，将无法回复"
         confirmLabel={t('delete')} cancelLabel={t('cancel')}
         confirmColor={c.danger}
         onConfirm={() => { setShowDeleteConfirm(false); handleDelete(); }}
