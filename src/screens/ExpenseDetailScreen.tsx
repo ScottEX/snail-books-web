@@ -436,15 +436,14 @@ const getStyles = (c: ThemeColors) => {
     header: {
       ...(hdr as any).header,
       top: 0,
-    } as any,
+    },
     actionBtn: {
       width: 36, height: 36, borderRadius: 18,
       backgroundColor: withAlpha(c.bg, 0.30),
       justifyContent: 'center' as const, alignItems: 'center' as const,
-      // @ts-ignore
-      backdropFilter: 'saturate(200%) blur(30px)',
+      backdropFilter: 'saturate(200%) blur(30px)' as any,
       borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
-    } as any,
+    },
     body: {
       flex: 1,
       marginTop: 64,
@@ -516,5 +515,5 @@ const getStyles = (c: ThemeColors) => {
       color: c.surface, fontSize: FONTS.subBold.size,
       fontWeight: FONTS.subBold.weight,
     },
-  });
+  } as any);
 };
