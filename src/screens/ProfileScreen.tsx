@@ -68,6 +68,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmUsername, setDeleteConfirmUsername] = useState('');
   const [showThemeModal, setShowThemeModal] = useState(false);
 
   // Auth prefs (single-device login + session timeout)
@@ -912,6 +913,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <View style={st.sectionTitleLine} />
           </View>
           <View style={st.card}>
+            <TouchableOpacity style={st.iconRow} onPress={() => { setDeleteConfirmUsername(''); setShowDeleteModal(true); }}>
+              <View style={[st.iconWrap, st.iconDanger]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+              </View>
+              <Text style={[st.iconLabel, { color: '#e06464' }]}>{t('deleteAccount')}</Text>
+              <ChevronRight color="#e06464" />
+            </TouchableOpacity>
+            <View style={st.divider} />
             <TouchableOpacity style={st.iconRow} onPress={() => setShowLogoutModal(true)}>
               <View style={[st.iconWrap, st.iconDanger]}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -919,16 +930,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                 </svg>
               </View>
               <Text style={[st.iconLabel, { color: '#e06464' }]}>{t('logout')}</Text>
-              <ChevronRight color="#e06464" />
-            </TouchableOpacity>
-            <View style={st.divider} />
-            <TouchableOpacity style={st.iconRow} onPress={() => setShowDeleteModal(true)}>
-              <View style={[st.iconWrap, st.iconDanger]}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
-                </svg>
-              </View>
-              <Text style={[st.iconLabel, { color: '#e06464' }]}>{t('deleteAccount')}</Text>
               <ChevronRight color="#e06464" />
             </TouchableOpacity>
           </View>
@@ -965,22 +966,27 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             </TouchableOpacity>
           </View>
           <View style={mo.body}>
-            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 20 }}>
+            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 8 }}>
               {t('deleteAccountConfirmMsg')}
             </Text>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <TouchableOpacity
-                style={mo.cancelBtn}
-                onPress={() => setShowDeleteModal(false)}
-              >
+            <TextInput
+              style={[mo.input, { outline: 'none' } as any]}
+              placeholder={t('enterUsernameToConfirm')}
+              placeholderTextColor={colors.textSub}
+              value={deleteConfirmUsername}
+              onChangeText={setDeleteConfirmUsername}
+              autoFocus
+            />
+            <View style={mo.btnRow}>
+              <TouchableOpacity style={mo.cancelBtn} onPress={() => { setShowDeleteModal(false); setDeleteConfirmUsername(''); }}>
                 <Text style={mo.cancelText}>{t('cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[mo.confirmBtn, { backgroundColor: colors.danger }]}
+                style={[mo.confirmBtn, { backgroundColor: colors.primary }, (deleteConfirmUsername !== username) && { opacity: 0.5 }]}
                 onPress={handleDeleteAccount}
-                disabled={deleteLoading}
+                disabled={deleteLoading || deleteConfirmUsername !== username}
               >
-                <Text style={[mo.confirmText, { color: colors.surface }]}>
+                <Text style={mo.confirmText}>
                   {deleteLoading ? '...' : t('deleteAccountBtn')}
                 </Text>
               </TouchableOpacity>
@@ -1515,7 +1521,7 @@ function getMo(colors: ThemeColors) {
     },
     cancelText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
     confirmBtn: {
-      flex: 2, paddingVertical: 12, borderRadius: 10,
+      flex: 1, paddingVertical: 12, borderRadius: 10,
       backgroundColor: colors.primary,
       justifyContent: 'center', alignItems: 'center',
     },

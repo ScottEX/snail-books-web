@@ -93,7 +93,8 @@ const I18N: Record<string, Record<string, string>> = {
     emptyExpenseHint: '每完成一次记账，这里就多一条记录',
     emptyReconHint: '每完成一次对账，这里就多一张小卡片',
     enterAmount: '输入金额',
-    enterCode: '输入验证码',
+    enterCode: '输入6位验证码',
+    enterUsernameToConfirm: '请输入用户名以确认注销',
     entryDate: '录入日期',
     errDateFuture: '不能选择未来的日期',
     errDateRange: '结束日期必须晚于开始日期',
@@ -485,6 +486,7 @@ const I18N: Record<string, Record<string, string>> = {
     emptyReconHint: '每完成一次對賬，這裡就多一張小卡片',
     enterAmount: '輸入金額',
     enterCode: '輸入驗證碼',
+    enterUsernameToConfirm: '請輸入用戶名以確認註銷',
     entryDate: '錄入日期',
     errDateFuture: '不能選擇未來的日期',
     errDateRange: '結束日期必須晚於開始日期',
@@ -877,6 +879,7 @@ const I18N: Record<string, Record<string, string>> = {
     emptyReconHint: 'Each reconciliation adds a card here',
     enterAmount: 'Enter amount',
     enterCode: 'Enter code',
+    enterUsernameToConfirm: 'Enter your username to confirm deletion',
     entryDate: 'Entry Date',
     errDateFuture: 'Cannot select a future date',
     errDateRange: 'End date must be after start date',
@@ -1283,6 +1286,7 @@ export type I18nKey =
   | 'emptyReconHint'
   | 'enterAmount'
   | 'enterCode'
+  | 'enterUsernameToConfirm'
   | 'entryDate'
   | 'errDateFuture'
   | 'errDateRange'
