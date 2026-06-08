@@ -92,6 +92,7 @@ const I18N: Record<string, Record<string, string>> = {
     downloadPdf: '下载PDF',
     editBg: '编辑背景图',
     editCover: '更换封面',
+    edit: '编辑',
     editProfile: '个人中心',
     email: '邮箱',
     emailAction: '邮件',
@@ -124,6 +125,8 @@ const I18N: Record<string, Record<string, string>> = {
     expenseBreakdown: '支出分类占比',
     expenseCategory: '支出分类',
     expenseDate: '支出日期',
+    expDetail: '支出详情',
+    expUpdated: '支出已更新',
     expenseHistory: '支出记录',
     expenseNote: '支出说明',
     feeAllMonths: '全部',
@@ -326,7 +329,9 @@ const I18N: Record<string, Record<string, string>> = {
     revenueDate: '营收日期',
     roundNote: '轮次备注',
     salary: '薪资',
+    save: '保存',
     saveImage: '保存图片',
+    saving: '保存中…',
     securitySettings: '安全设置',
     sendCode: '发送验证码',
     sessionKickedButton: '我知道了',
@@ -486,6 +491,7 @@ const I18N: Record<string, Record<string, string>> = {
     downloadPdf: '下載PDF',
     editBg: '編輯背景圖',
     editCover: '更換封面',
+    edit: '編輯',
     editProfile: '個人中心',
     email: '郵箱',
     emailAction: '郵件',
@@ -518,6 +524,8 @@ const I18N: Record<string, Record<string, string>> = {
     expenseBreakdown: '支出分類佔比',
     expenseCategory: '支出分類',
     expenseDate: '支出日期',
+    expDetail: '支出詳情',
+    expUpdated: '支出已更新',
     expenseHistory: '支出記錄',
     expenseNote: '支出說明',
     feeAllMonths: '全部',
@@ -721,7 +729,9 @@ const I18N: Record<string, Record<string, string>> = {
     revenueDate: '营收日期',
     roundNote: '輪次備註',
     salary: '薪資',
+    save: '保存',
     saveImage: '儲存圖片',
+    saving: '保存中…',
     securitySettings: '安全設定',
     sendCode: '發送驗證碼',
     sessionKickedButton: '我知道了',
@@ -879,6 +889,7 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundOnly: 'Dividend #{n}',
     done: 'Done',
     downloadPdf: 'Download PDF',
+    edit: 'Edit',
     editBg: 'Edit Background',
     editCover: 'Change Cover',
     editProfile: 'Profile',
@@ -913,6 +924,8 @@ const I18N: Record<string, Record<string, string>> = {
     expenseBreakdown: 'Expense Breakdown',
     expenseCategory: 'Category',
     expenseDate: 'Expense Date',
+    expDetail: 'Expense Detail',
+    expUpdated: 'Expense updated',
     expenseHistory: 'Expense Records',
     expenseNote: 'Description',
     feeAllMonths: 'All',
@@ -1116,7 +1129,9 @@ const I18N: Record<string, Record<string, string>> = {
     revenueDate: 'Revenue Date',
     roundNote: 'Round Note',
     salary: 'Salary',
+    save: 'Save',
     saveImage: 'Save image',
+    saving: 'Saving…',
     securitySettings: 'Security Settings',
     sendCode: 'Send Code',
     sessionKickedButton: 'OK',
@@ -1306,6 +1321,8 @@ export type I18nKey =
   | 'expConfirmMsg'
   | 'expConfirmTitle'
   | 'expDate'
+  | 'expDetail'
+  | 'expUpdated'
   | 'expense'
   | 'expenseBreakdown'
   | 'expenseCategory'
@@ -1513,7 +1530,9 @@ export type I18nKey =
   | 'revenueDate'
   | 'roundNote'
   | 'salary'
+  | 'save'
   | 'saveImage'
+  | 'saving'
   | 'securitySettings'
   | 'sendCode'
   | 'sessionKickedButton'

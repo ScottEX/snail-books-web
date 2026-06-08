@@ -45,7 +45,7 @@ function ExpenseEmptyIcon({ color }: { color: string }) {
   );
 }
 
-export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void }) {
+export default function ExpenseHistoryScreen({ onBack, onExpDetail }: { onBack: () => void; onExpDetail?: (e: any) => void }) {
   const [records, setRecords] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -147,7 +147,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     const displayImgs = thumbImgs.length > 0 ? thumbImgs : parseImages(e.images);
     const previewImgs = parseImages(e.images);
     return (
-      <View style={st.row}>
+      <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
+        <View style={st.row}>
         <View style={st.rowTop}>
           <View style={st.badges}>
             <View style={st.catBadge}>
@@ -194,8 +195,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           </View>
         )}
       </View>
+      </TouchableOpacity>
     );
-  }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, setPreviewData]);
+  }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, setPreviewData, onExpDetail]);
 
   // End-of-list pagination — replaces ScrollView onScroll, debounced 150ms
   const onEndReached = useCallback(() => {

@@ -167,6 +167,7 @@ export const api = {
   },
   createTransaction: (data: any) => authFetch('/api/transactions', { method: 'POST', body: JSON.stringify(data) }),
   deleteTransaction: (id: number) => authFetch(`/api/transactions/${id}`, { method: 'DELETE' }),
+  updateTransaction: (id: number, data: any) => authFetch(`/api/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // Expense image upload — returns { images: [...], thumb_images: [...], has_thumbs: bool }
   uploadExpenseImages: async (files: File[]) => {

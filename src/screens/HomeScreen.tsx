@@ -12,6 +12,7 @@ import ProcurementScreen from './ProcurementScreen';
 import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
+import ExpenseDetailScreen from './ExpenseDetailScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
 import ProcurementDetailScreen from './ProcurementDetailScreen';
 import PdfPreviewPage from './PdfPreviewPage';
@@ -67,6 +68,7 @@ export default function HomeScreen({
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
+  const [expDetailRecord, setExpDetailRecord] = useState<any>(null);
   // External signal for ProcurementScreen.edit flow. When set, the
   // newly-mounted ProcurementScreen instance (which mounts when
   // popPage flips pageStack empty after the 280ms slide-out) will
@@ -84,7 +86,7 @@ export default function HomeScreen({
   // popPage() reverses it (250ms slide-out via the `removing` flag).
   // The `s.includes(p) ? s : ...` guard prevents pushing the same
   // page twice while it's still on the stack.
-  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf';
+  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail';
   // Hydrate pageStack from history.state so a refresh lands the user
   // back on the same sub-page they were viewing. Fall back to [] for
   // a cold load (state is null) or a hostile/missing history.state.
@@ -547,7 +549,15 @@ export default function HomeScreen({
           />
         );
       case 'expense':
-        return <ExpenseHistoryScreen onBack={onBack} />;
+        return <ExpenseHistoryScreen onBack={onBack} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} />;
+      case 'expdetail':
+        return expDetailRecord ? (
+          <ExpenseDetailScreen
+            record={expDetailRecord}
+            onBack={onBack}
+            onDeleted={() => loadData()}
+          />
+        ) : null;
       case 'daily':
         return <DailyRevenueHistory onBack={onBack} />;
       case 'recon':
