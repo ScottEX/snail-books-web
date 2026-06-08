@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
   ActivityIndicator, Image,
@@ -11,7 +12,6 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
-import ModalOverlay from '../components/ModalOverlay';
 import { formatDate } from '../utils/format';
 import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -282,19 +282,16 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
       </ScrollView>
 
       {/* Full-screen loading mask (PDF generation) */}
-      <ModalOverlay visible={downloading} onClose={() => {}}>
-        <View style={[styles.loadingCard, {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.1,
-          shadowRadius: 24,
-          elevation: 8,
-        }]}>
-          <ActivityIndicator size="large" color={c.primary} />
-          <Text style={styles.loadingTitle}>{t('procGeneratingPDF')}</Text>
-          <Text style={styles.loadingTimer}>{timerSec}<Text style={{ fontSize: FONTS.body.size, fontWeight: '400' }}> s</Text></Text>
-        </View>
-      </ModalOverlay>
+      {downloading && createPortal(
+        <View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', opacity: 0.8 }}>
+          <View style={[styles.loadingCard, { opacity: 1 }]}>
+            <ActivityIndicator size="large" color={c.primary} />
+            <Text style={styles.loadingTitle}>{t('procGeneratingPDF')}</Text>
+            <Text style={styles.loadingTimer}>{timerSec}<Text style={{ fontSize: FONTS.body.size, fontWeight: '400' }}> s</Text></Text>
+          </View>
+        </View>,
+        document.body
+      )}
 
       {/* Delete confirmation modal */}
       <ConfirmModal
