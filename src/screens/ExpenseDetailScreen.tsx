@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  TextInput, ActivityIndicator, Image,
+  TextInput, ActivityIndicator, Image, Dimensions,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -96,6 +96,8 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   const amtColor = AMOUNT_COLORS[theme.id] || '#FF6B3D';
   const amtBg = withAlpha(amtColor, 0.10);
   const lang = getLang();
+  const screenW = Dimensions.get('window').width;
+  const thumbSize = (screenW - 16 * 2 - 8 * 3) / 4;
 
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -315,13 +317,13 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             {displayImgs.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t('uploadImage')}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {displayImgs.map((url: string, i: number) => (
                     <TouchableOpacity key={i} onPress={() => openPreview(i)} activeOpacity={0.8}>
-                      <Image source={{ uri: url }} style={styles.thumb} />
+                      <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
                     </TouchableOpacity>
                   ))}
-                </ScrollView>
+                </View>
               </View>
             )}
           </>
@@ -406,10 +408,10 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             {images.length > 0 && (
               <View>
                 <Text style={[styles.sectionTitle, { marginBottom: 8 }]}>{t('uploadImage')}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {images.map((url: string, i: number) => (
-                    <View key={i} style={{ position: 'relative', marginRight: 8 }}>
-                      <Image source={{ uri: url }} style={styles.thumb} />
+                    <View key={i} style={{ position: 'relative' }}>
+                      <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
                       <TouchableOpacity onPress={() => removeImage(i)} activeOpacity={0.7}
                         style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
                         <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
@@ -418,14 +420,14 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                       </TouchableOpacity>
                     </View>
                   ))}
-                </ScrollView>
+                </View>
               </View>
             )}
             {newFiles.length > 0 && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {newFiles.map((file: File, i: number) => (
-                  <View key={i} style={{ position: 'relative', marginRight: 8 }}>
-                    <Image source={{ uri: getPreviewUrl(file) }} style={styles.thumb} />
+                  <View key={i} style={{ position: 'relative' }}>
+                    <Image source={{ uri: getPreviewUrl(file) }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
                     <TouchableOpacity onPress={() => removeNewFile(i)} activeOpacity={0.7}
                       style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
                       <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
@@ -434,7 +436,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                     </TouchableOpacity>
                   </View>
                 ))}
-              </ScrollView>
+              </View>
             )}
             <TouchableOpacity
               style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderRadius: 10, paddingVertical: 12, borderStyle: 'dashed' as any, borderColor: c.secondary }}
