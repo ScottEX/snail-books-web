@@ -76,7 +76,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const { colors: c } = useTheme();
   const st = useMemo(() => getStyles(c), [c]);
   const title = t('procPdfTitle').replace('{n}', String(batchNumber));
-  const pdfUrl = `/api/procurement-batches/${batchId}/pdf`;
+
+  const [refresh, setRefresh] = useState(false);
+  const pdfUrl = `/api/procurement-batches/${batchId}/pdf${refresh ? '?refresh=1' : ''}`;
 
   const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
@@ -362,7 +364,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
               </svg>
               <div>{t('pdfLoadFailed')}</div>
               <div className="pv-err-msg">{pdfError}</div>
-              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); setIntroSec(1); }}>{t('retry')}</button>
+              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); setIntroSec(1); setRefresh(true); }}>{t('retry')}</button>
             </div>
           )}
           <div className="pv-pdf-wrap" ref={wrapRef} style={{ visibility: pdfLoading ? 'hidden' : 'visible' }}>
