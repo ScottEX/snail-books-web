@@ -46,6 +46,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const username = useMemo(() => {
     try { return getCurrentUser(); } catch { return ''; }
   }, []);
+  const currentUserId = useMemo(() => {
+    try { return getCurrentUserId(); } catch { return null; }
+  }, []);
   const [email, setEmail] = useState('');
   const [signature, setSignature] = useState('');
   const [signatureEditing, setSignatureEditing] = useState(false);
@@ -903,7 +906,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </View>
               <Text style={st.authDesc}>{t('sessionTimeoutDesc')}</Text>
             </View>
-            {username === 'Rowan-Lan' && (<>
+            {currentUserId === '64' && (<>
             <View style={st.divider} />
             {/* User management row */}
             <TouchableOpacity style={st.iconRow} onPress={() => onManageUsers?.()}>
