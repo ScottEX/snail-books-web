@@ -19,6 +19,7 @@ const I18N: Record<string, Record<string, string>> = {
     avatarCropTitle: '调整头像',
     avatarSizeHint: '在不同场景下的显示效果',
     avatarUpdated: '头像已更新',
+    back: '返回',
     backToLogin: '返回登录',
     batchLabel: '{date} · 第{n}次分红',
     bgHint: '选择一张图片作为首页背景',
@@ -855,7 +856,7 @@ const I18N: Record<string, Record<string, string>> = {
     date: 'Date',
     delete: 'Delete',
     deleteAccount: 'Delete Account',
-    deleteAccountBtn: 'Delete My Account',
+    deleteAccountBtn: 'Confirm Deletion',
     deleteAccountConfirmMsg: 'All data will be permanently deleted and cannot be recovered. Are you sure?',
     deleteAccountConfirmTitle: 'Confirm Account Deletion',
     deleteAccountSuccess: 'Account deleted',
@@ -1214,6 +1215,7 @@ export type I18nKey =
   | 'avatarCropTitle'
   | 'avatarSizeHint'
   | 'avatarUpdated'
+  | 'back'
   | 'backToLogin'
   | 'batchLabel'
   | 'bgHint'

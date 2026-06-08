@@ -1045,14 +1045,14 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
               <View style={mo.btnRow}>
                 <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowPwModal(false)}>
-                  <Text style={mo.cancelText}>取消</Text>
+                  <Text style={mo.cancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
                   onPress={handleChangePw}
                   disabled={modalLoading}
                 >
-                  <Text style={mo.confirmText}>{modalLoading ? '...' : '确认修改'}</Text>
+                  <Text style={mo.confirmText}>{modalLoading ? '...' : t('confirm')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1083,7 +1083,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                   {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
                   <View style={mo.btnRow}>
                     <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowEmailModal(false)}>
-                      <Text style={mo.cancelText}>取消</Text>
+                      <Text style={mo.cancelText}>{t('cancel')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
@@ -1112,7 +1112,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                   {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
                   <View style={mo.btnRow}>
                     <TouchableOpacity style={mo.cancelBtn} onPress={() => setEmailStep('input')}>
-                      <Text style={mo.cancelText}>返回</Text>
+                      <Text style={mo.cancelText}>{t('back')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
@@ -1122,7 +1122,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                       })}
                       disabled={modalLoading}
                     >
-                      <Text style={mo.confirmText}>{modalLoading ? t('verifying') : '确认'}</Text>
+                      <Text style={mo.confirmText}>{modalLoading ? t('verifying') : t('confirm')}</Text>
                     </TouchableOpacity>
                   </View>
                 </>
