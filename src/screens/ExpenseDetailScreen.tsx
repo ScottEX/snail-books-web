@@ -400,77 +400,75 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             {/* Note */}
             <Text style={styles.sectionTitle}>{t('expenseNote')}</Text>
             <TextInput
-              style={{ fontSize: FONTS.sub.size, color: c.textMain, borderWidth: 0, backgroundColor: c.bg, borderRadius: 10, padding: 12, minHeight: 60, outline: 'none' } as any}
+              style={{ fontSize: FONTS.sub.size, color: c.textMain, borderWidth: 0, backgroundColor: c.surface, borderRadius: 10, padding: 12, minHeight: 60, outline: 'none' } as any}
               value={note} onChangeText={setNote}
               placeholder={t('expenseNote')} placeholderTextColor={c.textSub}
               multiline numberOfLines={3} />
 
-            {/* Images — add button first, then grid */}
+            {/* Images — add square button inline with image grid, same as ExpenseScreen */}
             <Text style={styles.sectionTitle}>{t('uploadImage')}</Text>
-            {React.createElement('input', { ref: fileInputRef, type: 'file', accept: 'image/*', multiple: true, onChange: handleFilePick, style: { display: 'none' } })}
-            <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderRadius: 10, paddingVertical: 12, borderStyle: 'dashed' as any, borderColor: c.secondary }}
-              onPress={() => fileInputRef.current?.click()} activeOpacity={0.7}>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round">
-                <Path d="M12 5v14M5 12h14"/>
-              </Svg>
-              <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{t('uploadImage')}</Text>
-            </TouchableOpacity>
-            {images.length > 0 && (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {images.map((url: string, i: number) => (
-                  <View key={i} style={{ position: 'relative' }}>
-                    <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
-                    <TouchableOpacity onPress={() => removeImage(i)} activeOpacity={0.7}
-                      style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
-                      <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12"/>
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-            {newFiles.length > 0 && (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {newFiles.map((file: File, i: number) => (
-                  <View key={i} style={{ position: 'relative' }}>
-                    <Image source={{ uri: getPreviewUrl(file) }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
-                    <TouchableOpacity onPress={() => removeNewFile(i)} activeOpacity={0.7}
-                      style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
-                      <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12"/>
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Buttons */}
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {React.createElement('input', { ref: fileInputRef, type: 'file', accept: 'image/*', multiple: true, onChange: handleFilePick, style: { display: 'none' } })}
               <TouchableOpacity
-                style={{ flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderColor: c.secondary }}
-                onPress={() => {
-                  setCategory(record.category || 'daily'); setAccount(record.account || 'payWechat');
-                  setAmount(toDec2(record.amount)); setDate(record.date || record.created_at?.slice(0, 10) || todayStr());
-                  setNote(record.note || ''); setImages(parseImages(record.images));
-                  newFiles.forEach(f => { const u = urlCache.current.get(f); if (u) URL.revokeObjectURL(u); });
-                  urlCache.current.clear(); setNewFiles([]); setEditMode(false);
-                }} activeOpacity={0.7}>
-                <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain }}>{t('cancel')}</Text>
+                style={{ width: thumbSize, height: thumbSize, borderRadius: 8, borderWidth: 1.5, borderStyle: 'dashed' as any, borderColor: c.secondary, backgroundColor: c.surface, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4 }}
+                onPress={() => fileInputRef.current?.click()} activeOpacity={0.7}>
+                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={1.5} strokeLinecap="round">
+                  <Path d="M12 5v14M5 12h14"/>
+                </Svg>
+                <Text style={{ fontSize: 10, color: c.textSub }}>{t('uploadImage')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[{ flex: 2, borderRadius: 12, paddingVertical: 14, alignItems: 'center', backgroundColor: c.primary }, saving && { opacity: 0.5 }]}
-                onPress={handleSave} disabled={saving} activeOpacity={0.8}>
-                {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}>{t('save')}</Text>}
-              </TouchableOpacity>
+              {images.map((url: string, i: number) => (
+                <View key={i} style={{ position: 'relative' }}>
+                  <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
+                  <TouchableOpacity onPress={() => removeImage(i)} activeOpacity={0.7}
+                    style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
+                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
+                      <Path d="M18 6L6 18M6 6l12 12"/>
+                    </Svg>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {newFiles.map((file: File, i: number) => (
+                <View key={`new-${i}`} style={{ position: 'relative' }}>
+                  <Image source={{ uri: getPreviewUrl(file) }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
+                  <TouchableOpacity onPress={() => removeNewFile(i)} activeOpacity={0.7}
+                    style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
+                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
+                      <Path d="M18 6L6 18M6 6l12 12"/>
+                    </Svg>
+                  </TouchableOpacity>
+                </View>
+              ))}
             </View>
           </View>
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 80 }} />
       </ScrollView>
+
+      {/* Edit mode bottom bar — fixed at bottom, equal width */}
+      {editMode && (
+        <View style={styles.bottomBar}>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              style={{ flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderColor: c.secondary }}
+              onPress={() => {
+                setCategory(record.category || 'daily'); setAccount(record.account || 'payWechat');
+                setAmount(toDec2(record.amount)); setDate(record.date || record.created_at?.slice(0, 10) || todayStr());
+                setNote(record.note || ''); setImages(parseImages(record.images));
+                newFiles.forEach(f => { const u = urlCache.current.get(f); if (u) URL.revokeObjectURL(u); });
+                urlCache.current.clear(); setNewFiles([]); setEditMode(false);
+              }} activeOpacity={0.7}>
+              <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain }}>{t('cancel')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[{ flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', backgroundColor: c.primary }, saving && { opacity: 0.5 }]}
+              onPress={handleSave} disabled={saving} activeOpacity={0.8}>
+              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}>{t('save')}</Text>}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {/* View mode bottom bar — match procurement detail */}
       {!editMode && (
@@ -647,7 +645,7 @@ const getStyles = (c: ThemeColors) => {
     // Section
     section: { marginBottom: 16 },
     sectionTitle: {
-      fontSize: FONTS.micro.size, fontWeight: '600' as const,
+      fontSize: 14, fontWeight: '400' as const,
       color: c.textSub, textTransform: 'uppercase' as any,
       letterSpacing: 0.5, marginBottom: 10,
     },

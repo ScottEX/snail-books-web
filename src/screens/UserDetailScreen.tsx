@@ -221,7 +221,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             </View>
             <View style={st.divider} />
             <View style={st.infoRow}>
-              <Text style={st.infoLabel}>{t('lastLogin') || 'Last Login'}</Text>
+              <Text style={st.infoLabel}>{t('lastLogin')}</Text>
               <Text style={st.infoValue}>{fmtDate(detail.last_login)}</Text>
             </View>
           </View>
