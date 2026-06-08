@@ -472,10 +472,10 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   filledBy: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center', gap: 8,
   },
-  dateText: { fontSize: FONTS.sub.size, color: colors.textSub },
-  note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right' },
+  dateText: { fontSize: FONTS.sub.size, color: colors.textSub, flexShrink: 0 },
+  note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right', overflow: 'hidden' },
   emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
   emptyEmoji: { fontSize: FONTS.h1.size },
