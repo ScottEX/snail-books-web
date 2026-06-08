@@ -8,11 +8,10 @@ interface ModalOverlayProps {
   children: React.ReactNode;
   overlayStyle?: any;
   contentStyle?: any;
-  backdropOpacity?: number;
 }
 
 /** Uniform spring-animated modal overlay used by all modals across the app. */
-export default function ModalOverlay({ visible = true, onClose, children, overlayStyle, contentStyle, backdropOpacity = 0.8 }: ModalOverlayProps) {
+export default function ModalOverlay({ visible = true, onClose, children, overlayStyle, contentStyle }: ModalOverlayProps) {
   const [show, setShow] = useState(false);
   const slide = useRef(new Animated.Value(-300)).current;
   const fade = useRef(new Animated.Value(0)).current;
@@ -38,7 +37,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
 
   return createPortal(
     <Animated.View style={[{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, justifyContent: 'center', alignItems: 'center', padding: 16 }, { opacity: fade }, overlayStyle]}>
-      <TouchableOpacity activeOpacity={1} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#000', opacity: backdropOpacity }} onPress={onClose} />
+      <TouchableOpacity activeOpacity={1} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#000', opacity: 0.8 }} onPress={onClose} />
       <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, contentStyle, { transform: [{ translateY: slide }] }]}>
         {children}
       </Animated.View>
