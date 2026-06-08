@@ -29,12 +29,12 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-nav-l{display:flex;align-items:center;gap:10px}
 .pv-back{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .pv-back:active{background:${btnBgActive}}
-.pv-back svg{width:16px;height:16px;stroke:#fff;stroke-width:2;fill:none;display:block;mix-blend-mode:difference}
-.pv-title{font-size:15px;font-weight:600;color:#fff;mix-blend-mode:difference;letter-spacing:.01em}
+.pv-back svg{width:16px;height:16px;stroke:#2C2626;stroke-width:2;fill:none;display:block}
+.pv-title{font-size:15px;font-weight:600;color:#2C2626;letter-spacing:.01em}
 .pv-sub{font-size:10px;color:rgba(240,237,232,0.28);font-family:'DM Mono',monospace;margin-top:1px}
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
-.pv-share-btn svg{width:16px;height:16px;stroke:#ccc;stroke-width:2;fill:none;mix-blend-mode:difference}
+.pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
 .pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:20px;padding:4px 14px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;pointer-events:none}
 .pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:8px;padding:4px 10px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
