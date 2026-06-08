@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useTheme, ThemeColors } from '../theme';
 import { t, getLang } from '../i18n';
-import ModalOverlay from '../components/ModalOverlay';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
@@ -339,14 +338,17 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
         {/* PDF Viewport */}
         <div className="pv-vp">
-          {/* Loading overlay — reuses project-standard ModalOverlay */}
+          {/* Loading overlay — matches ModalOverlay backdrop style, inside viewport so warm white shows through */}
           {pdfLoading && !pdfError && (
-            <ModalOverlay visible onClose={() => {}} overlayStyle={{ zIndex: 10000 }} backdropOpacity={0.4}>
-              <div className="pv-intro">
-                <div className="pv-intro-text">{t('pdfGenerating')}</div>
-                <div className="pv-intro-sec" style={{ color: c.accent }}>{introSec}</div>
+            <>
+              <div style={{ position: 'absolute', inset: 0, backgroundColor: '#000', opacity: 0.4, zIndex: 195 }} />
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
+                <div className="pv-intro">
+                  <div className="pv-intro-text">{t('pdfGenerating')}</div>
+                  <div className="pv-intro-sec" style={{ color: c.accent }}>{introSec}</div>
+                </div>
               </div>
-            </ModalOverlay>
+            </>
           )}
           {pdfError && (
             <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
