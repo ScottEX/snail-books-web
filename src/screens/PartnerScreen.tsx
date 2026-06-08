@@ -1012,7 +1012,6 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
 
 const getMo = (colors: ThemeColors) => StyleSheet.create({
   overlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 },
-  backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: withAlpha(colors.textMain, 0.4) },
   content: { alignItems: 'center', justifyContent: 'center' },
   modalCard: {
     backgroundColor: colors.surface, borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
