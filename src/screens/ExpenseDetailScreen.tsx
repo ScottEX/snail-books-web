@@ -345,22 +345,39 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
               </View>
             </View>
 
-            {/* Category */}
+            {/* Category — 2×2 grid (matches ExpenseScreen) */}
             <Text style={styles.sectionTitle}>{t('expenseCategory')}</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {CATEGORIES.map(cat => {
-                const active = category === cat;
-                return (
-                  <TouchableOpacity key={cat}
-                    style={[styles.chip, { flex: 0, width: (screenW - 16*2 - 8) / 2 }, active && styles.chipActive]}
-                    onPress={() => setCategory(cat)} activeOpacity={0.7}>
-                    <View style={[styles.chipIconCircle, active && styles.chipIconCircleActive]}>
-                      {catIcons[cat]}
-                    </View>
-                    <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>{trCategory(cat)}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+            <View style={{ gap: 8 }}>
+              <View style={{ flexDirection: 'row', width: '100%', gap: 8 }}>
+                {['daily','rent'].map(cat => {
+                  const active = category === cat;
+                  return (
+                    <TouchableOpacity key={cat}
+                      style={[styles.chip, active && styles.chipActive]}
+                      onPress={() => setCategory(cat)} activeOpacity={0.7}>
+                      <View style={[styles.chipIconCircle, active && styles.chipIconCircleActive]}>
+                        {catIcons[cat]}
+                      </View>
+                      <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>{trCategory(cat)}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <View style={{ flexDirection: 'row', width: '100%', gap: 8 }}>
+                {['salary','goods'].map(cat => {
+                  const active = category === cat;
+                  return (
+                    <TouchableOpacity key={cat}
+                      style={[styles.chip, active && styles.chipActive]}
+                      onPress={() => setCategory(cat)} activeOpacity={0.7}>
+                      <View style={[styles.chipIconCircle, active && styles.chipIconCircleActive]}>
+                        {catIcons[cat]}
+                      </View>
+                      <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>{trCategory(cat)}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
 
             {/* Payment */}
