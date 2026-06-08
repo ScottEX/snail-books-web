@@ -171,13 +171,32 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     ziTimer.current = setTimeout(() => setZoomVis(false), 1500);
   }, []);
 
+  // Soft clamp — allows overscroll with resistance (30% movement beyond bounds)
+  const softClamp = useCallback(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const g = gRef.current;
+    const vp = el.parentElement; if (!vp) return;
+    const cw = el.scrollWidth * g.scale;
+    const ch = el.scrollHeight * g.scale;
+    const vw = vp.clientWidth, vh = vp.clientHeight;
+    const mx = Math.max(0, (cw - vw) / 2);
+    const scrollH = Math.max(0, ch - vh);
+    const R = 0.3;
+    if (g.tx < -mx) g.tx = -mx + (g.tx + mx) * R;
+    else if (g.tx > mx) g.tx = mx + (g.tx - mx) * R;
+    const topLimit = -scrollH - 20;
+    if (g.ty < topLimit) g.ty = topLimit + (g.ty - topLimit) * R;
+    else if (g.ty > 20) g.ty = 20 + (g.ty - 20) * R;
+  }, []);
+
   const scheduleApply = useCallback(() => {
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = 0;
-      clamp(); applyTransform(false);
+      softClamp(); applyTransform(false);
     });
-  }, [clamp, applyTransform]);
+  }, [softClamp, applyTransform]);
 
   const initZoom = useCallback(() => {
     const el = wrapRef.current;
