@@ -29,7 +29,7 @@ function ChevronRight({ color }: { color: string }) {
 
 /* ========== MAIN SCREEN ========== */
 
-export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void }) {
+export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange, onManageUsers }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void; onManageUsers?: () => void }) {
   const { colors, theme } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
@@ -903,6 +903,17 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </View>
               <Text style={st.authDesc}>{t('sessionTimeoutDesc')}</Text>
             </View>
+            <View style={st.divider} />
+            {/* User management row */}
+            <TouchableOpacity style={st.iconRow} onPress={() => onManageUsers?.()}>
+              <View style={[st.iconWrap, st.iconUsers]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B9BD5" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="7" r="3"/><path d="M2 20c0-3 3.1-5.5 7-5.5s7 2.5 7 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 19c0-2 1.8-4 4-4s4 2 4 4"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>{t('userManagement')}</Text>
+              <ChevronRight color={colors.textSub} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -1426,6 +1437,7 @@ function getStyles(colors: ThemeColors) {
     },
     iconShield: { backgroundColor: withAlpha(colors.primary, 0.12) },
     iconClock: { backgroundColor: 'rgba(255,180,80,0.12)' },
+    iconUsers: { backgroundColor: 'rgba(91,155,213,0.12)' },
     capsuleRow: {
       flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 2, flexWrap: 'wrap', marginLeft: 42,
     },

@@ -84,8 +84,8 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   onBack: () => void;
   onDeleted?: () => void;
 }) {
-  const { colors: c } = useTheme();
-  const styles = useMemo(() => getStyles(c), [c]);
+  const { colors: c, theme } = useTheme();
+  const styles = useMemo(() => getStyles(c, theme.id), [c, theme.id]);
   const lang = getLang();
 
   const [editMode, setEditMode] = useState(false);
@@ -198,10 +198,10 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         {/* ── View mode ── */}
         {!editMode && (
           <>
-            {/* Amount card — prominent, above the info card */}
-            <View style={styles.amountCard}>
+            {/* Amount card — prominent at the top, theme-colored */}
+            <View style={[styles.amountCard, { backgroundColor: styles._amountBg }]}>
               <Text style={styles.amountLabel}>{t('amount')}</Text>
-              <Text style={styles.amountValue}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
+              <Text style={[styles.amountValue, { color: styles._amountColor }]}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
             </View>
 
             <View style={styles.infoCard}>
@@ -430,7 +430,16 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   );
 }
 
-const getStyles = (c: ThemeColors) => {
+const getStyles = (c: ThemeColors, themeId: string) => {
+  // Theme-specific amount card color — tinted bg + full text color
+  const AMOUNT_COLORS: Record<string, string> = {
+    'burgundy-warm': '#FF6B3D',  // orange-red, tinted
+    'obsidian-gold': '#3B82F6',   // blue, tinted
+    'deep-teal': '#22C55E',       // green, tinted
+  };
+  const amtColor = AMOUNT_COLORS[themeId] || '#FF6B3D';
+  const amtBg = withAlpha(amtColor, 0.10);
+
   const hdr = historyHeader(c);
   return StyleSheet.create({
     container: { flex: 1 },
@@ -451,14 +460,14 @@ const getStyles = (c: ThemeColors) => {
       paddingHorizontal: 16,
       paddingTop: 16,
     },
-    // Amount card — prominent at the top
+    // Amount card — prominent, left-aligned, theme-colored bg
+    _amountBg: amtBg,
+    _amountColor: amtColor,
     amountCard: {
-      backgroundColor: c.surface,
       borderRadius: 12,
       paddingVertical: 24,
-      paddingHorizontal: 16,
+      paddingHorizontal: 20,
       marginBottom: 16,
-      alignItems: 'center' as const,
     },
     amountLabel: {
       fontSize: FONTS.micro.size,
@@ -466,12 +475,11 @@ const getStyles = (c: ThemeColors) => {
       color: c.textSub,
       textTransform: 'uppercase' as any,
       letterSpacing: 0.5,
-      marginBottom: 6,
+      marginBottom: 4,
     },
     amountValue: {
-      fontSize: FONTS.amount.size,
-      fontWeight: FONTS.amount.weight,
-      color: c.danger,
+      fontSize: 32,
+      fontWeight: '700' as const,
     },
     // Info card
     infoCard: {

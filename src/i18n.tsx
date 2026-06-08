@@ -352,6 +352,7 @@ const I18N: Record<string, Record<string, string>> = {
     signaturePlaceholder: '这个人很懒，什么都没留下...',
     ssoDesc: '最多一台设备同时登录',
     ssoLabel: '单设备登录',
+    userManagement: '用户管理',
     stampPrefixBurgundy: '以此身，阅尽这',
     stampPrefixObsidian: '时序轮转，流光已掷下第',
     stampPrefixTeal: '星霜未歇，我们已共渡',
@@ -755,6 +756,7 @@ const I18N: Record<string, Record<string, string>> = {
     signaturePlaceholder: '這個人很懶，什麼都沒留下...',
     ssoDesc: '最多一台裝置同時登入',
     ssoLabel: '單一裝置登入',
+    userManagement: '用戶管理',
     stampPrefixBurgundy: '以此身，閱盡這',
     stampPrefixObsidian: '時序輪轉，流光已擲下第',
     stampPrefixTeal: '星霜未歇，我們已共渡',
@@ -1158,6 +1160,7 @@ const I18N: Record<string, Record<string, string>> = {
     signaturePlaceholder: 'This person is lazy and left nothing...',
     ssoDesc: 'Only one device can stay signed in at a time',
     ssoLabel: 'Single-device sign-in',
+    userManagement: 'User Management',
     stampPrefixBurgundy: 'In this body, I have witnessed',
     stampPrefixObsidian: 'The light has cast its',
     stampPrefixTeal: 'Under starry frost, we have weathered',
@@ -1564,6 +1567,7 @@ export type I18nKey =
   | 'ssoLabel'
   | 'stampPrefixBurgundy'
   | 'stampPrefixObsidian'
+  | 'userManagement'
   | 'stampPrefixTeal'
   | 'stampSuffixBurgundy'
   | 'stampSuffixObsidian'

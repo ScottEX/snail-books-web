@@ -546,6 +546,7 @@ export default function HomeScreen({
             onLogout={onLogout}
             onLangChange={() => loadData()}
             onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
+            onManageUsers={() => {}}
           />
         );
       case 'expense':
