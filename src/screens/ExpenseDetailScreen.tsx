@@ -211,7 +211,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   const currentUser = getCurrentUser();
 
   return (
-    <View style={st.wrap}>
+    <View style={[st.wrap, { backgroundColor: colors.bg }]}>
       {/* Header */}
       <View style={{...historyHeader(colors).header, backgroundColor: colors.bg}}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={st.headerBtn}>
@@ -495,7 +495,7 @@ const st = StyleSheet.create({
   headerBtn: { padding: 8 },
   headerTitle: { fontSize: FONTS.h2.size, fontWeight: '600' },
   body: { flex: 1, paddingHorizontal: 20 },
-  bodyInner: { paddingTop: 16, paddingBottom: 24 },
+  bodyInner: { paddingTop: 95, paddingBottom: 24 },
   fieldRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(128,128,128,0.15)',
