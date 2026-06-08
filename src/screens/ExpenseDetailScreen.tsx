@@ -316,7 +316,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
 
             {displayImgs.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('uploadImage')}</Text>
+                <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>{t('uploadImage')}</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {displayImgs.map((url: string, i: number) => (
                     <TouchableOpacity key={i} onPress={() => openPreview(i)} activeOpacity={0.8}>
@@ -333,7 +333,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         {editMode && (
           <View style={{ gap: 14 }}>
             {/* Amount — top, matching view mode style */}
-            <Text style={styles.sectionTitle}>{t('expTotalAmount')}</Text>
+            <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>{t('expTotalAmount')}</Text>
             <View style={{ alignItems: 'center', paddingVertical: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
                 <Text style={{ fontSize: 20, fontWeight: '600' as const, color: amtColor, marginRight: 2, marginBottom: 4 }}>-¥</Text>
@@ -425,7 +425,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             </View>
 
             {/* Images — add square button inline with image grid, same as ExpenseScreen */}
-            <Text style={styles.sectionTitle}>{t('uploadImage')}</Text>
+            <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>{t('uploadImage')}</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {React.createElement('input', { ref: fileInputRef, type: 'file', accept: 'image/*', multiple: true, onChange: handleFilePick, style: { display: 'none' } })}
               <TouchableOpacity
