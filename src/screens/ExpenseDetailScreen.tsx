@@ -432,7 +432,12 @@ const getStyles = (c: ThemeColors) => {
   const hdr = historyHeader(c);
   return StyleSheet.create({
     container: { flex: 1 },
-    ...hdr as any,
+    header: {
+      ...hdr.header as any,
+      top: 0,
+    },
+    backBtn: (hdr as any).backBtn,
+    title: (hdr as any).title,
     actionBtn: {
       width: 36, height: 36, borderRadius: 18,
       backgroundColor: withAlpha(c.bg, 0.30),
@@ -442,7 +447,7 @@ const getStyles = (c: ThemeColors) => {
     },
     body: {
       flex: 1,
-      marginTop: 100,
+      marginTop: 64,
       backgroundColor: c.bg,
     },
     bodyContent: {
