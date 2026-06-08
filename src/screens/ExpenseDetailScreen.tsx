@@ -297,7 +297,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
               <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
                 <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.danger, marginRight: 6 }}>-¥</Text>
                 <TextInput
-                  style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.textMain, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180, outline: 'none' as any }}
+                  style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.textMain, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180 }}
                   value={amount} onChangeText={(v: string) => setAmount(fmtDecInput(v))}
                   onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
                   keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={c.textSub} />
@@ -322,7 +322,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             {/* Note */}
             <Text style={styles.sectionTitle}>{t('expenseNote')}</Text>
             <TextInput
-              style={{ fontSize: FONTS.sub.size, color: c.textMain, borderWidth: 0, backgroundColor: c.bg, borderRadius: 10, padding: 12, minHeight: 60, textAlignVertical: 'top' as any, outline: 'none' as any }}
+              style={{ fontSize: FONTS.sub.size, color: c.textMain, borderWidth: 0, backgroundColor: c.bg, borderRadius: 10, padding: 12, minHeight: 60 }}
               value={note} onChangeText={setNote}
               placeholder={t('expenseNote')} placeholderTextColor={c.textSub}
               multiline numberOfLines={3} />
