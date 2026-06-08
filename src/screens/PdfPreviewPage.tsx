@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useTheme, ThemeColors } from '../theme';
 import { t, getLang } from '../i18n';
+import ModalOverlay from '../components/ModalOverlay';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
@@ -48,9 +49,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-zoom-btn svg{width:16px;height:16px;stroke:rgba(240,237,232,0.5);stroke-width:2;fill:none}
 .pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:0.5px solid rgba(0,0,0,0.10);border-radius:10px;padding:10px 18px;font-size:12px;color:#F0EDE8;display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .pv-toast.on{opacity:1;transform:translate(-50%,0)}
-.pv-intro-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
-.pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
-.pv-intro.on{opacity:1;transform:translateY(0)}
+.pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
 .pv-intro-sec{font-size:36px;font-weight:800;font-family:'DM Mono',monospace}
 .pv-sh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
@@ -63,7 +62,6 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-err-msg{font-size:13px;color:#999}
 .pv-err-btn{padding:10px 28px;border-radius:8px;background:${c.accent};color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .pv-err-btn:active{opacity:.8}
-.pv-loading-mask{position:fixed;inset:0;z-index:195;background:rgba(0,0,0,0.4);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .pv-root{animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
@@ -341,16 +339,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
         {/* PDF Viewport */}
         <div className="pv-vp">
-          {/* Mask — blocks interaction while PDF loads */}
-          {pdfLoading && !pdfError && <div className="pv-loading-mask" />}
-          {/* Intro elapsed toast — centered, shows while PDF loads */}
+          {/* Loading overlay — reuses project-standard ModalOverlay */}
           {pdfLoading && !pdfError && (
-            <div className="pv-intro-overlay">
-              <div className="pv-intro on">
+            <ModalOverlay visible onClose={() => {}} overlayStyle={{ zIndex: 10000 }}>
+              <div className="pv-intro">
                 <div className="pv-intro-text">{t('pdfGenerating')}</div>
                 <div className="pv-intro-sec" style={{ color: c.accent }}>{introSec}</div>
               </div>
-            </div>
+            </ModalOverlay>
           )}
           {pdfError && (
             <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
