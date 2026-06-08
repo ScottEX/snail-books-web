@@ -903,6 +903,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </View>
               <Text style={st.authDesc}>{t('sessionTimeoutDesc')}</Text>
             </View>
+            {username === 'Rowan-Lan' && (<>
             <View style={st.divider} />
             {/* User management row */}
             <TouchableOpacity style={st.iconRow} onPress={() => onManageUsers?.()}>
@@ -914,6 +915,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               <Text style={st.iconLabel}>{t('userManagement')}</Text>
               <ChevronRight color={colors.textSub} />
             </TouchableOpacity>
+            </>)}
           </View>
         </View>
 
