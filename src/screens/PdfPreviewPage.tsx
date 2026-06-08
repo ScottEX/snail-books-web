@@ -64,7 +64,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-err-msg{font-size:13px;color:#999}
 .pv-err-btn{padding:10px 28px;border-radius:8px;background:${c.accent};color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .pv-err-btn:active{opacity:.8}
-.pv-loading-mask{position:absolute;inset:0;z-index:195;background:transparent;pointer-events:auto}
+.pv-loading-mask{position:absolute;inset:0;z-index:195;background:rgba(0,0,0,0.12);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .pv-root{background:linear-gradient(to bottom,transparent 56px,#F9F7F4 56px);animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
