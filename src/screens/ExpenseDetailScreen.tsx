@@ -477,12 +477,12 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   );
 }
 
-const getSt = (colors: ThemeColors): any => StyleSheet.create({
+const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Root */
   wrap: { flex: 1 },
 
   /* Header — from shared historyHeader, same as ExpenseHistoryScreen */
-  ...historyHeader(colors),
+  ...historyHeader(colors) as any,
   headerTitle: {
     flex: 1, textAlign: 'center', fontSize: FONTS.h2.size, fontWeight: '600',
     color: colors.textMain,
@@ -602,4 +602,4 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
 
   /* Bottom bar */
   bottomBar: { paddingHorizontal: 20, paddingBottom: 32, paddingTop: 8 },
-});
+} as any);
