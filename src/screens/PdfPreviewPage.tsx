@@ -126,6 +126,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const rafRef = useRef(0);
   const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const bounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
 
@@ -139,9 +140,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const applyTransform = useCallback((animated: boolean) => {
     const el = wrapRef.current; if (!el) return;
     const g = gRef.current;
-    el.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
+    el.style.transition = animated ? 'transform .35s cubic-bezier(0.175,0.885,0.32,1.275)' : 'none';
     el.style.transform = `translate(-50%, 0) translate(${g.tx}px, ${g.ty}px) scale(${g.scale})`;
-    if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 260);
+    if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 360);
     // sync current page
     if (phRef.current > 0 && numPagesRef.current > 0) {
       const p = Math.max(1, Math.min(numPagesRef.current, Math.round((-g.ty) / phRef.current) + 1));
@@ -159,8 +160,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const vw = vp.clientWidth, vh = vp.clientHeight;
     const mx = Math.max(0, (cw - vw) / 2);
     const scrollH = Math.max(0, ch - vh);
-    g.tx = Math.max(-mx, Math.min(mx, g.tx));
-    g.ty = Math.max(-scrollH - 20, Math.min(20, g.ty));
+    const OS = 80;
+    g.tx = Math.max(-mx - OS, Math.min(mx + OS, g.tx));
+    g.ty = Math.max(-scrollH - OS, Math.min(OS, g.ty));
   }, []);
 
   const flushZoom = useCallback((animated: boolean) => {
@@ -174,9 +176,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = 0;
-      clamp(); applyTransform(false);
+      applyTransform(false);
     });
-  }, [clamp, applyTransform]);
+  }, [applyTransform]);
 
   const initZoom = useCallback(() => {
     const el = wrapRef.current;
@@ -227,7 +229,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       } else {
         g.ty -= e.deltaY;
       }
-      clamp(); applyTransform(false);
+      applyTransform(false);
+      // bounce-back after wheel stops
+      clearTimeout(bounceTimer.current);
+      bounceTimer.current = setTimeout(() => { clamp(); applyTransform(true); }, 120);
     };
 
     el.addEventListener('mousedown', onMD);
@@ -273,6 +278,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     el.addEventListener('touchend', onTE);
 
     return () => {
+      clearTimeout(bounceTimer.current);
       el.removeEventListener('mousedown', onMD);
       window.removeEventListener('mousemove', onMM);
       window.removeEventListener('mouseup', onMU);
