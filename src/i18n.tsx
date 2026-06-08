@@ -19,6 +19,8 @@ const I18N: Record<string, Record<string, string>> = {
     avatarCropTitle: '调整头像',
     avatarSizeHint: '在不同场景下的显示效果',
     avatarUpdated: '头像已更新',
+    backToList: '返回列表',
+    stayPage: '留在本页',
     back: '返回',
     backToLogin: '返回登录',
     batchLabel: '{date} · 第{n}次分红',
@@ -126,6 +128,7 @@ const I18N: Record<string, Record<string, string>> = {
     expenseCategory: '支出分类',
     expenseDate: '支出日期',
     expDetail: '支出详情',
+    expSavedMsg: '支出已更新，是否返回列表？',
     expUpdated: '支出已更新',
     expenseHistory: '支出记录',
     expenseNote: '支出说明',
@@ -418,6 +421,8 @@ const I18N: Record<string, Record<string, string>> = {
     avatarCropTitle: '調整頭像',
     avatarSizeHint: '在不同場景下的顯示效果',
     avatarUpdated: '頭像已更新',
+    backToList: '返回列表',
+    stayPage: '留在本頁',
     back: '返回',
     backToLogin: '返回登錄',
     batchLabel: '{date} · 第{n}次分紅',
@@ -525,6 +530,7 @@ const I18N: Record<string, Record<string, string>> = {
     expenseCategory: '支出分類',
     expenseDate: '支出日期',
     expDetail: '支出詳情',
+    expSavedMsg: '支出已更新，是否返回列表？',
     expUpdated: '支出已更新',
     expenseHistory: '支出記錄',
     expenseNote: '支出說明',
@@ -817,7 +823,9 @@ const I18N: Record<string, Record<string, string>> = {
     autoByShare: 'Auto-distribute by share ratio',
     avatarCropTitle: 'Adjust Avatar',
     avatarSizeHint: 'Preview in different sizes',
-    avatarUpdated: 'Avatar Updated',
+    avatarUpdated: 'Avatar updated',
+    backToList: 'Back to list',
+    stayPage: 'Stay',
     back: 'Back',
     backToLogin: 'Back to login',
     batchLabel: '{date} · Batch #{n}',
@@ -925,6 +933,7 @@ const I18N: Record<string, Record<string, string>> = {
     expenseCategory: 'Category',
     expenseDate: 'Expense Date',
     expDetail: 'Expense Detail',
+    expSavedMsg: 'Expense updated. Back to list?',
     expUpdated: 'Expense updated',
     expenseHistory: 'Expense Records',
     expenseNote: 'Description',
@@ -1221,6 +1230,7 @@ export type I18nKey =
   | 'avatarSizeHint'
   | 'avatarUpdated'
   | 'back'
+  | 'backToList'
   | 'backToLogin'
   | 'batchLabel'
   | 'bgHint'
@@ -1322,6 +1332,7 @@ export type I18nKey =
   | 'expConfirmTitle'
   | 'expDate'
   | 'expDetail'
+  | 'expSavedMsg'
   | 'expUpdated'
   | 'expense'
   | 'expenseBreakdown'
@@ -1531,6 +1542,7 @@ export type I18nKey =
   | 'roundNote'
   | 'salary'
   | 'save'
+  | 'stayPage'
   | 'saveImage'
   | 'saving'
   | 'securitySettings'

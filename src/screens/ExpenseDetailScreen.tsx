@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet,
   ActivityIndicator, Image,
 } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
@@ -54,6 +54,7 @@ interface ExpenseRecord {
   created_at: string;
   user_id?: number;
   procurement_batch_id?: number | null;
+  proc_batch_number?: string | null;
 }
 
 const CATEGORIES = ['daily', 'rent', 'salary', 'goods'] as const;
@@ -96,6 +97,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showSavedConfirm, setShowSavedConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState('');
 
@@ -158,7 +160,8 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
       setImages(finalImages);
       setNewFiles([]);
       setEditMode(false);
-      setToast(t('expUpdated'));
+      setShowSavedConfirm(true);
+      setToast('');
     } catch (e: any) {
       setToast(e?.message || t('errNetworkError'));
     } finally {
@@ -210,11 +213,11 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   return (
     <View style={st.wrap}>
       {/* Header */}
-      <View style={[historyHeader, { backgroundColor: colors.bg }]}>
+      <View style={{...historyHeader(colors).header, backgroundColor: colors.bg}}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={st.headerBtn}>
-          <BackArrow color={colors.text} />
+          <BackArrow color={colors.textMain} />
         </TouchableOpacity>
-        <Text style={[st.headerTitle, { color: colors.text }]}>{t('expDetail')}</Text>
+        <Text style={[st.headerTitle, { color: colors.textMain }]}>{t('expDetail')}</Text>
         <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7} style={st.headerBtn}>
           <TrashIcon color={colors.danger} />
         </TouchableOpacity>
@@ -237,7 +240,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             <View style={st.fieldRow}>
               <Text style={[st.fieldLabel, { color: colors.textSub }]}>{t('paymentMethod')}</Text>
               <View style={[st.badge, { backgroundColor: withAlpha(colors.textSub, 0.1) }]}>
-                <Text style={[st.badgeText, { color: colors.text }]}>{trPayment(record.account)}</Text>
+                <Text style={[st.badgeText, { color: colors.textMain}]}>{trPayment(record.account)}</Text>
               </View>
             </View>
 
@@ -250,13 +253,13 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             {/* Date */}
             <View style={st.fieldRow}>
               <Text style={[st.fieldLabel, { color: colors.textSub }]}>{t('date')}</Text>
-              <Text style={[st.fieldValue, { color: colors.text }]}>{fmtExpDate(record.date || record.created_at?.slice(0, 10))}</Text>
+              <Text style={[st.fieldValue, { color: colors.textMain}]}>{fmtExpDate(record.date || record.created_at?.slice(0, 10))}</Text>
             </View>
 
             {/* Note */}
             <View style={st.noteSection}>
               <Text style={[st.fieldLabel, { color: colors.textSub, marginBottom: 6 }]}>{t('expenseNote')}</Text>
-              <Text style={[st.noteFull, { color: colors.text }]}>
+              <Text style={[st.noteFull, { color: colors.textMain}]}>
                 {record.note || (record.proc_batch_number ? t('procNowBatch').replace('{n}', String(record.proc_batch_number)) : '—')}
               </Text>
             </View>
@@ -265,7 +268,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             {currentUser && (
               <View style={st.fieldRow}>
                 <Text style={[st.fieldLabel, { color: colors.textSub }]}>{t('filledBy')}</Text>
-                <Text style={[st.fieldValue, { color: colors.text }]}>{currentUser}</Text>
+                <Text style={[st.fieldValue, { color: colors.textMain}]}>{currentUser}</Text>
               </View>
             )}
 
@@ -289,7 +292,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         {editMode && (
           <>
             {/* Category picker */}
-            <Text style={[st.sectionTitle, { color: colors.text }]}>{t('expenseCategory')}</Text>
+            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('expenseCategory')}</Text>
             <View style={st.chipGrid}>
               {CATEGORIES.map(cat => {
                 const active = category === cat;
@@ -298,7 +301,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                     style={[st.chip, active && { backgroundColor: withAlpha(colors.primary, 0.12), borderColor: colors.primary }]}
                     onPress={() => setCategory(cat)} activeOpacity={0.7}>
                     <View style={[st.chipIcon, active && { backgroundColor: colors.primary }]}>
-                      {React.cloneElement(catIcons[cat] as React.ReactElement, { stroke: active ? '#fff' : colors.textSub })}
+                      {React.cloneElement(catIcons[cat] as any, { stroke: active ? '#fff' : colors.textSub })}
                     </View>
                     <Text style={[st.chipText, active && { color: colors.primary }]} numberOfLines={1}>{trCategory(cat)}</Text>
                   </TouchableOpacity>
@@ -307,7 +310,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             </View>
 
             {/* Payment method picker */}
-            <Text style={[st.sectionTitle, { color: colors.text }]}>{t('paymentMethod')}</Text>
+            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('paymentMethod')}</Text>
             <View style={st.chipGrid}>
               {PAY_METHODS.map(m => {
                 const active = account === m;
@@ -325,9 +328,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             </View>
 
             {/* Amount */}
-            <Text style={[st.sectionTitle, { color: colors.text }]}>{t('amount')}</Text>
+            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('amount')}</Text>
             <TextInput
-              style={[st.input, { color: colors.text, borderColor: colors.secondary, backgroundColor: colors.bg }]}
+              style={[st.input, { color: colors.textMain, borderColor: colors.secondary, backgroundColor: colors.bg }]}
               value={amount}
               onChangeText={(v: string) => setAmount(fmtDecInput(v))}
               onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
@@ -337,9 +340,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             />
 
             {/* Date */}
-            <Text style={[st.sectionTitle, { color: colors.text }]}>{t('date')}</Text>
+            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('date')}</Text>
             <TouchableOpacity style={[st.dateBtn, { borderColor: colors.secondary }]} onPress={() => dateInputRef.current?.showPicker?.()} activeOpacity={0.7}>
-              <Text style={[st.dateBtnText, { color: colors.text }]}>{fmtLocalDate(date, lang)}</Text>
+              <Text style={[st.dateBtnText, { color: colors.textMain}]}>{fmtLocalDate(date, lang)}</Text>
               <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <Rect x="3" y="4" width="18" height="18" rx="2"/><Path d="M16 2v4M8 2v4M3 10h18"/>
               </Svg>
@@ -354,9 +357,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             </TouchableOpacity>
 
             {/* Note */}
-            <Text style={[st.sectionTitle, { color: colors.text }]}>{t('expenseNote')}</Text>
+            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('expenseNote')}</Text>
             <TextInput
-              style={[st.input, st.noteInput, { color: colors.text, borderColor: colors.secondary, backgroundColor: colors.bg }]}
+              style={[st.input, st.noteInput, { color: colors.textMain, borderColor: colors.secondary, backgroundColor: colors.bg }]}
               value={note}
               onChangeText={setNote}
               placeholder={t('expenseNote')}
@@ -431,7 +434,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                   setNewFiles([]);
                   setEditMode(false);
                 }} activeOpacity={0.7}>
-                <Text style={[st.cancelBtnText, { color: colors.text }]}>{t('cancel')}</Text>
+                <Text style={[st.cancelBtnText, { color: colors.textMain}]}>{t('cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[st.saveBtn, saving && st.saveBtnDisabled, { backgroundColor: colors.primary }]}
                 onPress={handleSave} disabled={saving} activeOpacity={0.8}>
@@ -470,7 +473,19 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         />
       )}
 
-      {toast ? <Toast message={toast} onDone={() => setToast('')} /> : null}
+      {showSavedConfirm && (
+        <ConfirmModal
+          visible={showSavedConfirm}
+          title={t('expUpdated')}
+          message={t('expSavedMsg')}
+          confirmLabel={t('backToList')}
+          cancelLabel={t('stayPage')}
+          onConfirm={() => { setShowSavedConfirm(false); onBack(); }}
+          onCancel={() => setShowSavedConfirm(false)}
+        />
+      )}
+
+      {toast ? <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} /> : null}
     </View>
   );
 }
