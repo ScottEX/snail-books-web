@@ -211,7 +211,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   const currentUser = getCurrentUser();
 
   return (
-    <View style={st.wrap}>
+    <View style={[st.wrap, { backgroundColor: colors.bg }]}>
       {/* Header — uses shared historyHeader */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
