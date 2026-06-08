@@ -433,10 +433,6 @@ const getStyles = (c: ThemeColors) => {
   return StyleSheet.create({
     container: { flex: 1 },
     ...hdr as any,
-    header: {
-      ...(hdr as any).header,
-      top: 0,
-    },
     actionBtn: {
       width: 36, height: 36, borderRadius: 18,
       backgroundColor: withAlpha(c.bg, 0.30),
@@ -446,7 +442,7 @@ const getStyles = (c: ThemeColors) => {
     },
     body: {
       flex: 1,
-      marginTop: 64,
+      marginTop: 100,
       backgroundColor: c.bg,
     },
     bodyContent: {

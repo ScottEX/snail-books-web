@@ -1025,7 +1025,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   // Header — frosted glass, same as sub-screen headers
   header: {
-    position: 'relative' as const, zIndex: 101,
+    position: 'relative' as const, zIndex: 200,
     paddingVertical: 8,
     paddingHorizontal: 20,
     backgroundColor: 'transparent',
