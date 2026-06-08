@@ -49,7 +49,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:0.5px solid rgba(0,0,0,0.10);border-radius:10px;padding:10px 18px;font-size:12px;color:#F0EDE8;display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .pv-toast.on{opacity:1;transform:translate(-50%,0)}
 .pv-intro-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
-.pv-intro{background:#fff;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
 .pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
 .pv-intro-sec{font-size:36px;font-weight:800;font-family:'DM Mono',monospace}
