@@ -71,16 +71,16 @@ function parseImages(raw: any): string[] {
 
 /* ── SVG icons (same as ExpenseScreen) ── */
 const catIcons: Record<string, React.ReactElement> = {
-  daily: <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2l-2-3H9L7 7H5a2 2 0 00-2 2z"/><Path d="M16 12a4 4 0 11-8 0"/></Svg>,
-  rent: <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 21h18"/><Path d="M3 10l9-7 9 7"/><Path d="M5 12v7h4v-4h6v4h4v-7"/></Svg>,
-  salary: <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="9"/><Path d="M14 8h-3.5a2 2 0 000 4h1a2 2 0 010 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
-  goods: <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 7l-3-4H7L4 7v12a2 2 0 002 2h12a2 2 0 002-2V7z"/><Path d="M4 7h16"/><Path d="M9 12h6"/><Path d="M12 9v6"/></Svg>,
+  daily: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2l-2-3H9L7 7H5a2 2 0 00-2 2z"/><Path d="M16 12a4 4 0 11-8 0"/></Svg>,
+  rent: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 21h18"/><Path d="M3 10l9-7 9 7"/><Path d="M5 12v7h4v-4h6v4h4v-7"/></Svg>,
+  salary: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="9"/><Path d="M14 8h-3.5a2 2 0 000 4h1a2 2 0 010 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
+  goods: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 7l-3-4H7L4 7v12a2 2 0 002 2h12a2 2 0 002-2V7z"/><Path d="M4 7h16"/><Path d="M9 12h6"/><Path d="M12 9v6"/></Svg>,
 };
 
 const payIcons: Record<string, (color: string) => React.ReactNode> = {
-  payCash: (color: string) => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
-  payWechat: (color: string) => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
-  payAlipay: (color: string) => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
+  payCash: (color: string) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
+  payWechat: (color: string) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
+  payAlipay: (color: string) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
 };
 
 const payIconBg: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
@@ -92,6 +92,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
 }) {
   const { colors } = useTheme();
   const lang = getLang();
+  const st = getSt(colors);
 
   // State
   const [editMode, setEditMode] = useState(false);
@@ -109,7 +110,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   const [note, setNote] = useState(record.note || '');
   const [images, setImages] = useState<string[]>(parseImages(record.images));
 
-  // For new image uploads (File objects)
+  // For new image uploads
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [uploadingImg, setUploadingImg] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -150,7 +151,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         note,
         images: finalImages,
       });
-      // Update local state so view mode reflects changes
       record.amount = amt;
       record.category = category;
       record.account = account;
@@ -212,13 +212,13 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
 
   return (
     <View style={[st.wrap, { backgroundColor: colors.bg }]}>
-      {/* Header */}
-      <View style={{...historyHeader(colors).header, backgroundColor: colors.bg}}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={st.headerBtn}>
+      {/* Header — uses shared historyHeader */}
+      <View style={st.header}>
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={st.backBtn}>
           <BackArrow color={colors.textMain} />
         </TouchableOpacity>
-        <Text style={[st.headerTitle, { color: colors.textMain }]}>{t('expDetail')}</Text>
-        <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7} style={st.headerBtn}>
+        <Text style={st.headerTitle}>{t('expDetail')}</Text>
+        <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7} style={st.headerRightBtn}>
           <TrashIcon color={colors.danger} />
         </TouchableOpacity>
       </View>
@@ -228,54 +228,47 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         {/* ── View mode ── */}
         {!editMode && (
           <>
-            {/* Category */}
             <View style={st.fieldRow}>
-              <Text style={[st.fieldLabel, { color: colors.textSub }]}>{t('expenseCategory')}</Text>
+              <Text style={st.fieldLabel}>{t('expenseCategory')}</Text>
               <View style={[st.badge, { backgroundColor: withAlpha(colors.primary, 0.1) }]}>
                 <Text style={[st.badgeText, { color: colors.primary }]}>{trCategory(record.category)}</Text>
               </View>
             </View>
 
-            {/* Payment method */}
             <View style={st.fieldRow}>
-              <Text style={[st.fieldLabel, { color: colors.textSub }]}>{t('paymentMethod')}</Text>
+              <Text style={st.fieldLabel}>{t('paymentMethod')}</Text>
               <View style={[st.badge, { backgroundColor: withAlpha(colors.textSub, 0.1) }]}>
-                <Text style={[st.badgeText, { color: colors.textMain}]}>{trPayment(record.account)}</Text>
+                <Text style={[st.badgeText, { color: colors.textMain }]}>{trPayment(record.account)}</Text>
               </View>
             </View>
 
-            {/* Amount */}
             <View style={st.fieldRow}>
-              <Text style={[st.fieldLabel, { color: colors.textSub }]}>{t('amount')}</Text>
+              <Text style={st.fieldLabel}>{t('amount')}</Text>
               <Text style={[st.fieldValue, { color: colors.danger }]}>-¥{Number(record.amount || 0).toFixed(2)}</Text>
             </View>
 
-            {/* Date */}
             <View style={st.fieldRow}>
-              <Text style={[st.fieldLabel, { color: colors.textSub }]}>{t('date')}</Text>
-              <Text style={[st.fieldValue, { color: colors.textMain}]}>{fmtExpDate(record.date || record.created_at?.slice(0, 10))}</Text>
+              <Text style={st.fieldLabel}>{t('date')}</Text>
+              <Text style={[st.fieldValue, { color: colors.textMain }]}>{fmtExpDate(record.date || record.created_at?.slice(0, 10))}</Text>
             </View>
 
-            {/* Note */}
             <View style={st.noteSection}>
-              <Text style={[st.fieldLabel, { color: colors.textSub, marginBottom: 6 }]}>{t('expenseNote')}</Text>
-              <Text style={[st.noteFull, { color: colors.textMain}]}>
+              <Text style={[st.fieldLabel, { marginBottom: 6 }]}>{t('expenseNote')}</Text>
+              <Text style={st.noteFull}>
                 {record.note || (record.proc_batch_number ? t('procNowBatch').replace('{n}', String(record.proc_batch_number)) : '—')}
               </Text>
             </View>
 
-            {/* Filled by */}
             {currentUser && (
               <View style={st.fieldRow}>
-                <Text style={[st.fieldLabel, { color: colors.textSub }]}>{t('filledBy')}</Text>
-                <Text style={[st.fieldValue, { color: colors.textMain}]}>{currentUser}</Text>
+                <Text style={st.fieldLabel}>{t('filledBy')}</Text>
+                <Text style={[st.fieldValue, { color: colors.textMain }]}>{currentUser}</Text>
               </View>
             )}
 
-            {/* Images */}
             {displayImgs.length > 0 && (
               <View style={st.imageSection}>
-                <Text style={[st.fieldLabel, { color: colors.textSub, marginBottom: 8 }]}>{t('uploadImage')}</Text>
+                <Text style={[st.fieldLabel, { marginBottom: 8 }]}>{t('uploadImage')}</Text>
                 <View style={st.imageGrid}>
                   {displayImgs.map((url: string, i: number) => (
                     <TouchableOpacity key={i} onPress={() => window.open(url, '_blank')} activeOpacity={0.8}>
@@ -288,91 +281,84 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
           </>
         )}
 
-        {/* ── Edit mode ── */}
+        {/* ── Edit mode — styles match ExpenseScreen ── */}
         {editMode && (
-          <>
-            {/* Category picker */}
-            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('expenseCategory')}</Text>
-            <View style={st.chipGrid}>
+          <View style={st.editForm}>
+            {/* Category chips — same as ExpenseScreen */}
+            <Text style={st.catSectionTitle}>{t('expenseCategory')}</Text>
+            <View style={st.catGrid}>
               {CATEGORIES.map(cat => {
                 const active = category === cat;
                 return (
-                  <TouchableOpacity key={cat}
-                    style={[st.chip, active && { backgroundColor: withAlpha(colors.primary, 0.12), borderColor: colors.primary }]}
+                  <TouchableOpacity key={cat} style={[st.catChip, active && st.catChipActive]}
                     onPress={() => setCategory(cat)} activeOpacity={0.7}>
-                    <View style={[st.chipIcon, active && { backgroundColor: colors.primary }]}>
-                      {React.cloneElement(catIcons[cat] as any, { stroke: active ? '#fff' : colors.textSub })}
-                    </View>
-                    <Text style={[st.chipText, active && { color: colors.primary }]} numberOfLines={1}>{trCategory(cat)}</Text>
+                    <View style={[st.chipIconCircle, active && st.chipIconCircleActive]}>{catIcons[cat]}</View>
+                    <Text style={[st.catChipText, active && st.catChipTextActive]} numberOfLines={1}>{trCategory(cat)}</Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
 
-            {/* Payment method picker */}
-            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('paymentMethod')}</Text>
-            <View style={st.chipGrid}>
+            {/* Payment chips — same as ExpenseScreen */}
+            <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
+            <View style={st.payGrid}>
               {PAY_METHODS.map(m => {
                 const active = account === m;
+                const isWechat = m === 'payWechat';
+                const isAlipay = m === 'payAlipay';
                 return (
                   <TouchableOpacity key={m}
-                    style={[st.chip, active && { backgroundColor: withAlpha(payIconBg[m] || colors.primary, 0.12), borderColor: payIconBg[m] || colors.primary }]}
+                    style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : isAlipay ? st.payChipActiveAlipay : st.payChipActive)]}
                     onPress={() => setAccount(m)} activeOpacity={0.7}>
-                    <View style={[st.chipIcon, active && { backgroundColor: payIconBg[m] || colors.primary }]}>
+                    <View style={[st.chipIconCircle, active && { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
                       {payIcons[m](active ? '#fff' : colors.textSub)}
                     </View>
-                    <Text style={[st.chipText, active && { color: payIconBg[m] || colors.primary }]} numberOfLines={1}>{trPayment(m)}</Text>
+                    <Text style={[st.payChipText, active && st.payChipTextActive]} numberOfLines={1}>{trPayment(m)}</Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
 
-            {/* Amount */}
-            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('amount')}</Text>
-            <TextInput
-              style={[st.input, { color: colors.textMain, borderColor: colors.secondary, backgroundColor: colors.bg }]}
-              value={amount}
-              onChangeText={(v: string) => setAmount(fmtDecInput(v))}
-              onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
-              keyboardType="decimal-pad"
-              placeholder="0.00"
-              placeholderTextColor={colors.textSub}
-            />
+            {/* Amount — big input matching ExpenseScreen */}
+            <Text style={st.catSectionTitle}>{t('amount')}</Text>
+            <View style={st.bigAmtWrap}>
+              <View style={st.bigAmtRow}>
+                <Text style={[st.bigAmtSymbol, { color: colors.danger }]}>-¥</Text>
+                <TextInput style={st.bigAmtInput}
+                  value={amount} onChangeText={(v: string) => setAmount(fmtDecInput(v))}
+                  onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
+                  keyboardType="decimal-pad" placeholder="0.00"
+                  placeholderTextColor={colors.textSub} />
+              </View>
+              <View style={[st.amtCursor, { backgroundColor: colors.danger }]} />
+            </View>
 
-            {/* Date */}
-            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('date')}</Text>
-            <TouchableOpacity style={[st.dateBtn, { borderColor: colors.secondary }]} onPress={() => dateInputRef.current?.showPicker?.()} activeOpacity={0.7}>
-              <Text style={[st.dateBtnText, { color: colors.textMain}]}>{fmtLocalDate(date, lang)}</Text>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <Rect x="3" y="4" width="18" height="18" rx="2"/><Path d="M16 2v4M8 2v4M3 10h18"/>
-              </Svg>
+            {/* Date — same pattern as ExpenseScreen */}
+            <Text style={st.catSectionTitle}>{t('date')}</Text>
+            <TouchableOpacity style={[st.expDateRow, { backgroundColor: colors.bg }]} onPress={() => dateInputRef.current?.showPicker?.()} activeOpacity={0.7}>
+              <Text style={st.expDateInput}>{fmtLocalDate(date, lang)}</Text>
+              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
               {React.createElement('input', {
                 ref: dateInputRef,
                 type: 'date',
                 defaultValue: date,
                 max: todayStr(),
                 onChange: (e: any) => setDate(e.target.value),
-                style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer' },
+                style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
               })}
             </TouchableOpacity>
 
             {/* Note */}
-            <Text style={[st.sectionTitle, { color: colors.textMain}]}>{t('expenseNote')}</Text>
-            <TextInput
-              style={[st.input, st.noteInput, { color: colors.textMain, borderColor: colors.secondary, backgroundColor: colors.bg }]}
-              value={note}
-              onChangeText={setNote}
-              placeholder={t('expenseNote')}
-              placeholderTextColor={colors.textSub}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
+            <Text style={st.catSectionTitle}>{t('expenseNote')}</Text>
+            <TextInput style={[st.noteInput, { color: colors.textMain, backgroundColor: colors.bg }]}
+              value={note} onChangeText={setNote}
+              placeholder={t('expenseNote')} placeholderTextColor={colors.textSub}
+              multiline numberOfLines={3} textAlignVertical="top" />
 
             {/* Existing images */}
             {images.length > 0 && (
               <View style={st.imageSection}>
-                <Text style={[st.fieldLabel, { color: colors.textSub, marginBottom: 8 }]}>{t('uploadImage')}</Text>
+                <Text style={[st.fieldLabel, { marginBottom: 8 }]}>{t('uploadImage')}</Text>
                 <View style={st.imageGrid}>
                   {images.map((url: string, i: number) => (
                     <View key={i} style={st.imageWrap}>
@@ -416,7 +402,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
             </TouchableOpacity>
             {React.createElement('input', { ref: fileInputRef, type: 'file', accept: 'image/*', multiple: true, onChange: handleFilePick, style: { display: 'none' } })}
 
-            {/* Edit bottom buttons */}
+            {/* Edit bottom buttons — matching ExpenseScreen */}
             <View style={st.editBtnRow}>
               <TouchableOpacity style={[st.cancelBtn, { borderColor: colors.secondary }]}
                 onPress={() => {
@@ -434,9 +420,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                   setNewFiles([]);
                   setEditMode(false);
                 }} activeOpacity={0.7}>
-                <Text style={[st.cancelBtnText, { color: colors.textMain}]}>{t('cancel')}</Text>
+                <Text style={[st.cancelBtnText, { color: colors.textMain }]}>{t('cancel')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[st.saveBtn, saving && st.saveBtnDisabled, { backgroundColor: colors.primary }]}
+              <TouchableOpacity style={[st.saveBtn, saving && { opacity: 0.5 }, { backgroundColor: colors.primary }]}
                 onPress={handleSave} disabled={saving} activeOpacity={0.8}>
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
@@ -445,21 +431,21 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
                 )}
               </TouchableOpacity>
             </View>
-          </>
+          </View>
         )}
       </ScrollView>
 
       {/* View mode bottom: Edit button */}
       {!editMode && (
         <View style={st.bottomBar}>
-          <TouchableOpacity style={[st.editBtn, { backgroundColor: colors.primary }]}
+          <TouchableOpacity style={[st.expBtn, { backgroundColor: colors.primary }]}
             onPress={() => setEditMode(true)} activeOpacity={0.8}>
-            <Text style={st.editBtnText}>{t('edit')}</Text>
+            <Text style={st.expBtnText}>{t('edit')}</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Delete confirm modal */}
+      {/* Delete confirm */}
       {showDeleteConfirm && (
         <ConfirmModal
           visible={showDeleteConfirm}
@@ -473,6 +459,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
         />
       )}
 
+      {/* Save success confirm */}
       {showSavedConfirm && (
         <ConfirmModal
           visible={showSavedConfirm}
@@ -490,22 +477,113 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   );
 }
 
-const st = StyleSheet.create({
+const getSt = (colors: ThemeColors): any => StyleSheet.create({
+  /* Root */
   wrap: { flex: 1 },
-  headerBtn: { padding: 8 },
-  headerTitle: { fontSize: FONTS.h2.size, fontWeight: '600' },
+
+  /* Header — from shared historyHeader, same as ExpenseHistoryScreen */
+  ...historyHeader(colors),
+  headerTitle: {
+    flex: 1, textAlign: 'center', fontSize: FONTS.h2.size, fontWeight: '600',
+    color: colors.textMain,
+  },
+  headerRightBtn: { padding: 8 },
+
+  /* Body */
   body: { flex: 1, paddingHorizontal: 20 },
-  bodyInner: { paddingTop: 95, paddingBottom: 24 },
+  bodyInner: { paddingTop: 90, paddingBottom: 24 },
+
+  /* View mode fields */
   fieldRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(128,128,128,0.15)',
   },
-  fieldLabel: { fontSize: FONTS.body.size },
+  fieldLabel: { fontSize: FONTS.body.size, color: colors.textSub },
   fieldValue: { fontSize: FONTS.body.size, fontWeight: '500' },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
   badgeText: { fontSize: FONTS.sub.size, fontWeight: '500' },
   noteSection: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(128,128,128,0.15)' },
-  noteFull: { fontSize: FONTS.body.size, lineHeight: 22 },
+  noteFull: { fontSize: FONTS.body.size, lineHeight: 22, color: colors.textMain },
+
+  /* Edit form — matching ExpenseScreen styles */
+  editForm: { gap: 14 },
+  catSectionTitle: { fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, marginBottom: 6, marginTop: 10 },
+  /* Category chips */
+  catGrid: { flexDirection: 'row', gap: 8 },
+  catChip: {
+    flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
+    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
+  },
+  catChipActive: { backgroundColor: colors.primary },
+  catChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
+  catChipTextActive: { color: colors.surface },
+  /* Payment chips */
+  payGrid: { flexDirection: 'row', gap: 8 },
+  payChip: {
+    flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
+    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
+  },
+  payChipActive: { backgroundColor: colors.primary },
+  payChipActiveWechat: { backgroundColor: '#07C160' },
+  payChipActiveAlipay: { backgroundColor: '#1677FF' },
+  payChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
+  payChipTextActive: { color: colors.surface },
+  chipIconCircle: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    alignItems: 'center', justifyContent: 'center',
+    marginRight: 4,
+  },
+  chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  /* Big amount */
+  bigAmtWrap: { alignItems: 'center', paddingVertical: 16 },
+  bigAmtRow: { flexDirection: 'row', alignItems: 'flex-end' },
+  bigAmtSymbol: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, marginRight: 6 },
+  bigAmtInput: {
+    fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.textMain,
+    borderWidth: 0, backgroundColor: 'transparent',
+    textAlign: 'left', padding: 0,
+    flex: 0, width: 180,
+    outline: 'none' as any,
+  },
+  amtCursor: {
+    width: 40, height: 2, marginTop: 10, borderRadius: 1,
+  },
+  /* Date */
+  expDateRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    borderRadius: 10, paddingVertical: 12, paddingRight: 12,
+  },
+  expDateInput: {
+    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub,
+    borderWidth: 0, padding: 0, backgroundColor: 'transparent',
+    outline: 'none' as any,
+  },
+  /* Note */
+  noteInput: {
+    fontSize: FONTS.sub.size, color: colors.textSub,
+    borderWidth: 0, borderRadius: 10, padding: 12, minHeight: 60,
+    textAlignVertical: 'top' as any,
+    outline: 'none' as any,
+  },
+  /* Buttons */
+  expBtn: {
+    borderRadius: 12, paddingVertical: 14,
+    alignItems: 'center', overflow: 'hidden',
+  },
+  expBtnText: { color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
+  editBtnRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  cancelBtn: {
+    flex: 1, borderWidth: 1, borderRadius: 12,
+    paddingVertical: 14, alignItems: 'center',
+  },
+  cancelBtnText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
+  saveBtn: {
+    flex: 2, borderRadius: 12, paddingVertical: 14, alignItems: 'center',
+  },
+  saveBtnText: { color: '#fff', fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
+
+  /* Images */
   imageSection: { marginTop: 14 },
   imageGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   imageThumb: { width: 72, height: 72, borderRadius: 8, backgroundColor: 'rgba(128,128,128,0.1)' },
@@ -515,47 +593,13 @@ const st = StyleSheet.create({
     width: 22, height: 22, borderRadius: 11,
     backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center',
   },
-
-  // Edit mode
-  sectionTitle: { fontSize: FONTS.body.size, fontWeight: '500', marginTop: 18, marginBottom: 8 },
-  chipGrid: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-  chip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 10, borderWidth: 1.5, borderColor: 'rgba(128,128,128,0.2)',
-  },
-  chipIcon: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(128,128,128,0.08)' },
-  chipText: { fontSize: FONTS.sub.size, fontWeight: '500' },
-  input: {
-    borderWidth: 1.5, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: FONTS.body.size,
-  },
-  noteInput: { minHeight: 80, paddingTop: 12 },
-  dateBtn: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    borderWidth: 1.5, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
-  },
-  dateBtnText: { fontSize: FONTS.body.size },
   addImgBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    borderWidth: 1.5, borderRadius: 10, paddingVertical: 12, marginTop: 10,
-    borderStyle: 'dashed',
+    borderWidth: 1.5, borderRadius: 10, paddingVertical: 12, marginTop: 4,
+    borderStyle: 'dashed' as any,
   },
   addImgText: { fontSize: FONTS.sub.size },
-  editBtnRow: { flexDirection: 'row', gap: 12, marginTop: 24 },
-  cancelBtn: {
-    flex: 1, borderWidth: 1.5, borderRadius: 10,
-    paddingVertical: 14, alignItems: 'center',
-  },
-  cancelBtnText: { fontSize: FONTS.body.size, fontWeight: '500' },
-  saveBtn: {
-    flex: 2, borderRadius: 10, paddingVertical: 14, alignItems: 'center',
-  },
-  saveBtnDisabled: { opacity: 0.5 },
-  saveBtnText: { color: '#fff', fontSize: FONTS.body.size, fontWeight: '600' },
 
-  // View mode bottom bar
+  /* Bottom bar */
   bottomBar: { paddingHorizontal: 20, paddingBottom: 32, paddingTop: 8 },
-  editBtn: { borderRadius: 10, paddingVertical: 16, alignItems: 'center' },
-  editBtnText: { color: '#fff', fontSize: FONTS.body.size, fontWeight: '600' },
 });
