@@ -591,7 +591,7 @@ const getStyles = (c: ThemeColors) => {
     },
     amountLabel: {
       fontSize: FONTS.micro.size,
-      fontWeight: '500' as const,
+      fontWeight: '600' as const,
       color: c.textSub,
       textTransform: 'uppercase' as any,
       letterSpacing: 0.5,
