@@ -211,11 +211,13 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   const currentUser = getCurrentUser();
 
   return (
-    <View style={[st.wrap, { backgroundColor: colors.bg }]}>
+    <View style={st.wrap}>
       {/* Header — uses shared historyHeader */}
       <View style={st.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={st.backBtn}>
-          <BackArrow color={colors.textMain} />
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+          <View style={st.backBtn}>
+            <BackArrow color={colors.primary} />
+          </View>
         </TouchableOpacity>
         <Text style={st.headerTitle}>{t('expDetail')}</Text>
         <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7} style={st.headerRightBtn}>
