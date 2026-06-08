@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, Te
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
+import ConfirmModal from '../components/ConfirmModal';
+import TrashIcon from '../components/icons/TrashIcon';
 
 interface UserData {
   id: number;
@@ -66,6 +68,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [email, setEmail] = useState('');
   const [showRolePicker, setShowRolePicker] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -113,6 +117,23 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     saveField('role', r);
   }, [saveField]);
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const resp = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'X-Lang': lang },
+      });
+      if (resp.ok) {
+        onUpdated();
+        onBack();
+      }
+    } catch {}
+    setDeleting(false);
+    setShowDeleteConfirm(false);
+  };
+
   const fmtDate = (d: string) => {
     if (!d) return '—';
     try { return d.slice(0, 16).replace('T', ' '); } catch { return '—'; }
@@ -125,7 +146,9 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         <View style={st.backBtn}><BackArrowSvg color={c.primary} /></View>
       </TouchableOpacity>
       <Text style={st.title}>{t('userDetail')}</Text>
-      <View style={{ width: 36 }} />
+      <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7}>
+        <View style={st.deleteBtn}><TrashIcon color={c.danger} /></View>
+      </TouchableOpacity>
     </View>
   );
 
@@ -300,6 +323,15 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
         </View>
       </ScrollView>
+
+      <ConfirmModal visible={showDeleteConfirm}
+        title={t('deleteUser') || '删除用户'}
+        message={t('deleteUserConfirm') || '确认删除该用户，该用户的所有数据（交易记录、进货记录等）也将一并删除'}
+        confirmLabel={t('delete')} cancelLabel={t('cancel')}
+        confirmColor={c.danger}
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)} />
     </View>
   );
 }
@@ -370,5 +402,10 @@ const getStyles = (c: ThemeColors) => {
     },
     roleItemActive: { backgroundColor: withAlpha(c.primary, 0.1) },
     roleItemText: { fontSize: 13, color: c.textMain },
+    deleteBtn: {
+      width: 36, height: 36, borderRadius: 18,
+      backgroundColor: withAlpha(c.danger, 0.08),
+      justifyContent: 'center' as const, alignItems: 'center' as const,
+    },
   });
 };

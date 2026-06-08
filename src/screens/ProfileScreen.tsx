@@ -54,6 +54,17 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [signatureEditing, setSignatureEditing] = useState(false);
   const [signatureDraft, setSignatureDraft] = useState('');
   const [daysSince, setDaysSince] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const checkAdmin = async () => {
+    try {
+      const resp = await fetch('/api/admin/check', { credentials: 'include' });
+      if (resp.ok) {
+        const data = await resp.json();
+        setIsAdmin(data.is_admin === true);
+      }
+    } catch {}
+  };
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -154,7 +165,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     } catch {}
   };
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); }, []);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); }, []);
 
   const loadUserInfo = async () => {
     try {
@@ -906,7 +917,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </View>
               <Text style={st.authDesc}>{t('sessionTimeoutDesc')}</Text>
             </View>
-            {currentUserId === '64' && (<>
+            {isAdmin && (<>
             <View style={st.divider} />
             {/* User management row */}
             <TouchableOpacity style={st.iconRow} onPress={() => onManageUsers?.()}>

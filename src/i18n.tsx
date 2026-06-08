@@ -75,6 +75,8 @@ const I18N: Record<string, Record<string, string>> = {
     dangerZone: '危险操作',
     date: '日期',
     delete: '删除',
+    deleteUser: '删除用户',
+    deleteUserConfirm: '确认删除该用户，该用户的所有数据（交易记录、进货记录等）也将一并删除',
     deleteAccount: '注销账户',
     deleteAccountBtn: '确认注销',
     deleteAccountConfirmMsg: '注销后所有数据将被永久删除，不可恢复。确定继续吗？',
@@ -499,6 +501,8 @@ const I18N: Record<string, Record<string, string>> = {
     dangerZone: '危險操作',
     date: '日期',
     delete: '刪除',
+    deleteUser: '刪除用戶',
+    deleteUserConfirm: '確認刪除該用戶，該用戶的所有數據（交易記錄、進貨記錄等）也將一併刪除',
     deleteAccount: '註銷帳戶',
     deleteAccountBtn: '確認註銷',
     deleteAccountConfirmMsg: '註銷後所有資料將被永久刪除，不可恢復。確定繼續嗎？',
@@ -925,6 +929,8 @@ const I18N: Record<string, Record<string, string>> = {
     dangerZone: 'Danger Zone',
     date: 'Date',
     delete: 'Delete',
+    deleteUser: 'Delete User',
+    deleteUserConfirm: 'Are you sure you want to delete this user? All associated data (transactions, procurement records, etc.) will also be deleted.',
     deleteAccount: 'Delete Account',
     deleteAccountBtn: 'Confirm Deletion',
     deleteAccountConfirmMsg: 'All data will be permanently deleted and cannot be recovered. Are you sure?',
@@ -1352,6 +1358,8 @@ export type I18nKey =
   | 'dangerZone'
   | 'date'
   | 'delete'
+  | 'deleteUser'
+  | 'deleteUserConfirm'
   | 'deleteAccount'
   | 'deleteAccountBtn'
   | 'deleteAccountConfirmMsg'
