@@ -64,7 +64,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-err-msg{font-size:13px;color:#999}
 .pv-err-btn{padding:10px 28px;border-radius:8px;background:${c.accent};color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .pv-err-btn:active{opacity:.8}
-.pv-loading-mask{position:absolute;inset:0;z-index:195;background:rgba(0,0,0,0.08);pointer-events:auto}
+.pv-loading-mask{position:absolute;inset:0;z-index:195;background:rgba(0,0,0,0.25);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .pv-root{animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
@@ -76,9 +76,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const { colors: c } = useTheme();
   const st = useMemo(() => getStyles(c), [c]);
   const title = t('procPdfTitle').replace('{n}', String(batchNumber));
-
-  const [refresh, setRefresh] = useState(false);
-  const pdfUrl = `/api/procurement-batches/${batchId}/pdf${refresh ? '?refresh=1' : ''}`;
+  const pdfUrl = `/api/procurement-batches/${batchId}/pdf`;
 
   const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
@@ -129,7 +127,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const rafRef = useRef(0);
   const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const dpr = useRef(typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1);
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
 
@@ -365,7 +362,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
               </svg>
               <div>{t('pdfLoadFailed')}</div>
               <div className="pv-err-msg">{pdfError}</div>
-              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); setIntroSec(1); setRefresh(true); }}>{t('retry')}</button>
+              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); setIntroSec(1); }}>{t('retry')}</button>
             </div>
           )}
           <div className="pv-pdf-wrap" ref={wrapRef} style={{ visibility: pdfLoading ? 'hidden' : 'visible' }}>
@@ -381,7 +378,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
                   key={p}
                   pageNumber={p}
                   width={pageW}
-                  devicePixelRatio={dpr.current}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                 />
