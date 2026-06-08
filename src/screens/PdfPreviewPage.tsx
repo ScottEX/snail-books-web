@@ -88,6 +88,12 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
   const [introSec, setIntroSec] = useState(1);
   const [exiting, setExiting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const phRef = useRef(0); // page height
+  const numPagesRef = useRef(0);
+  const setPageRef = useRef(setCurrentPage);
+  setPageRef.current = setCurrentPage;
+  numPagesRef.current = numPages;
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -136,6 +142,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     el.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
     el.style.transform = `translate(-50%, 0) translate(${g.tx}px, ${g.ty}px) scale(${g.scale})`;
     if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 260);
+    // sync current page
+    if (phRef.current > 0 && numPagesRef.current > 0) {
+      const p = Math.max(1, Math.min(numPagesRef.current, Math.round((-g.ty) / phRef.current) + 1));
+      setPageRef.current(p);
+    }
   }, []);
 
   const clamp = useCallback(() => {
@@ -147,9 +158,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const ch = el.scrollHeight * g.scale;
     const vw = vp.clientWidth, vh = vp.clientHeight;
     const mx = Math.max(0, (cw - vw) / 2);
-    const my = Math.max(0, (ch - vh) / 2 + 20);
+    const scrollH = Math.max(0, ch - vh);
     g.tx = Math.max(-mx, Math.min(mx, g.tx));
-    g.ty = Math.max(-20, Math.min(my, g.ty));
+    g.ty = Math.max(-scrollH - 20, Math.min(20, g.ty));
   }, []);
 
   const flushZoom = useCallback((animated: boolean) => {
@@ -180,6 +191,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (!pdfLoading && wrapRef.current) setTimeout(initZoom, 100);
   }, [pdfLoading, initZoom]);
 
+  // capture page height after canvases render
+  useEffect(() => {
+    if (numPages > 0 && !pdfLoading) {
+      requestAnimationFrame(() => {
+        const canvas = wrapRef.current?.querySelector('canvas');
+        if (canvas) phRef.current = canvas.clientHeight;
+      });
+    }
+  }, [numPages, pdfLoading]);
+
   // ── 手势事件 ──
   useEffect(() => {
     const el = wrapRef.current; if (!el) return;
@@ -200,8 +221,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const onWh = (e: WheelEvent) => {
       e.preventDefault();
       const g = gRef.current;
-      g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + (e.deltaY > 0 ? -0.08 : 0.08)));
-      clamp(); applyTransform(false); flushZoom(false);
+      if (e.ctrlKey || e.metaKey) {
+        g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + (e.deltaY > 0 ? -0.08 : 0.08)));
+        flushZoom(false);
+      } else {
+        g.ty -= e.deltaY;
+      }
+      clamp(); applyTransform(false);
     };
 
     el.addEventListener('mousedown', onMD);
@@ -308,7 +334,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         </div>
 
         {/* Page pill */}
-        {numPages > 0 && <div className="pv-pill">第 1 页 / 共 {numPages} 页</div>}
+        {numPages > 0 && <div className="pv-pill">第 {currentPage} 页 / 共 {numPages} 页</div>}
 
         {/* Zoom indicator */}
         <div className={`pv-zi${zoomVis ? ' on' : ''}`}>{zoomPct}%</div>
