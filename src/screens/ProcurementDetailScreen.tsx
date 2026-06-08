@@ -284,10 +284,13 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
       {/* Full-screen loading mask (PDF generation) */}
       <ModalOverlay visible={downloading} onClose={() => {}}>
         <View style={[styles.loadingCard, {
-          // @ts-ignore
-          boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.1,
+          shadowRadius: 24,
+          elevation: 8,
         }]}>
-          <ActivityIndicator size="small" color={c.primary} />
+          <ActivityIndicator size="large" color={c.primary} />
           <Text style={styles.loadingTitle}>{t('procGeneratingPDF')}</Text>
           <Text style={styles.loadingTimer}>{timerSec}<Text style={{ fontSize: FONTS.body.size, fontWeight: '400' }}> s</Text></Text>
         </View>
