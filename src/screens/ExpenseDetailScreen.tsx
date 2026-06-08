@@ -440,10 +440,6 @@ const getStyles = (c: ThemeColors) => {
       backdropFilter: 'saturate(200%) blur(30px)' as any,
       borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
     },
-    title: {
-      flex: 1, textAlign: 'center' as const,
-      fontSize: FONTS.h2.size, fontWeight: '600' as const, color: c.textMain,
-    },
     body: {
       flex: 1,
       marginTop: 100,
