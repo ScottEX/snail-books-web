@@ -11,6 +11,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import ModalOverlay from '../components/ModalOverlay';
 import { formatDate } from '../utils/format';
 import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -281,15 +282,16 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
       </ScrollView>
 
       {/* Full-screen loading mask (PDF generation) */}
-      {downloading && (
-        <View style={styles.loadingMask}>
-          <View style={styles.loadingCard}>
-            <ActivityIndicator size="small" color={c.primary} />
-            <Text style={styles.loadingTitle}>{t('procGeneratingPDF')}</Text>
-            <Text style={styles.loadingTimer}>{timerSec}s</Text>
-          </View>
+      <ModalOverlay visible={downloading} onClose={() => {}}>
+        <View style={[styles.loadingCard, {
+          // @ts-ignore
+          boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+        }]}>
+          <ActivityIndicator size="small" color={c.primary} />
+          <Text style={styles.loadingTitle}>{t('procGeneratingPDF')}</Text>
+          <Text style={styles.loadingTimer}>{timerSec}<Text style={{ fontSize: FONTS.body.size, fontWeight: '400' }}> s</Text></Text>
         </View>
-      )}
+      </ModalOverlay>
 
       {/* Delete confirmation modal */}
       <ConfirmModal
@@ -503,13 +505,7 @@ const getStyles = (c: ThemeColors) => {
       minWidth: 72,
       textAlign: 'right' as const,
     },
-    // Full-screen loading mask (PDF generation)
-    loadingMask: {
-      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.35)',
-      alignItems: 'center', justifyContent: 'center',
-      zIndex: 998,
-    },
+    // Full-screen loading card (PDF generation)
     loadingCard: {
       backgroundColor: c.surface,
       paddingVertical: 24,
