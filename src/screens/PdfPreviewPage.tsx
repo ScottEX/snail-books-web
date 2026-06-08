@@ -341,7 +341,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <div className="pv-vp">
           {/* Loading overlay — reuses project-standard ModalOverlay */}
           {pdfLoading && !pdfError && (
-            <ModalOverlay visible onClose={() => {}} overlayStyle={{ zIndex: 10000 }}>
+            <ModalOverlay visible onClose={() => {}} overlayStyle={{ zIndex: 10000 }} backdropOpacity={0.4}>
               <div className="pv-intro">
                 <div className="pv-intro-text">{t('pdfGenerating')}</div>
                 <div className="pv-intro-sec" style={{ color: c.accent }}>{introSec}</div>
