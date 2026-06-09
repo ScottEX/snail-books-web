@@ -49,8 +49,9 @@ export default function ReceiptUpload({
   };
 
   const totalItems = 1 + existingImages.length + newFiles.length; // +1 for add button
+  const itemsPerRow = Math.min(totalItems, 4);
   const thumbSize = containerWidth > 0
-    ? Math.min(maxThumbSize, (containerWidth - GAP * (totalItems - 1)) / totalItems)
+    ? Math.min(maxThumbSize, (containerWidth - GAP * (itemsPerRow - 1)) / itemsPerRow)
     : maxThumbSize;
 
   return (
