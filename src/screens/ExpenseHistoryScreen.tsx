@@ -7,7 +7,7 @@ import { t, getLang } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
-import { useTheme, withAlpha } from '../theme';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';

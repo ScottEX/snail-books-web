@@ -7,7 +7,7 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
 import ConfirmModal from '../components/ConfirmModal';
-import { useTheme, ThemeColors } from '../theme';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose } from '../sharedStyles';

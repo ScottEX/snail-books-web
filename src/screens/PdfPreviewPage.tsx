@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useTheme, ThemeColors } from '../theme';
 import { t, getLang } from '../i18n';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 

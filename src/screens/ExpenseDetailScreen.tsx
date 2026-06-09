@@ -85,7 +85,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
   onBack: () => void;
   onDeleted?: () => void;
 }) {
-  const { colors: c } = useTheme();
+  const { colors: c, theme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const styles = useMemo(() => getStyles(c), [c]);
 
