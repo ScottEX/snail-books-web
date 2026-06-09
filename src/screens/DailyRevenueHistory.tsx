@@ -41,8 +41,8 @@ function RevenueEmptyIcon({ color }: { color: string }) {
 }
 
 export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) {
-  const [records, setRecords]
-  const swipeBack = useSwipeBack(onBack); = useState<any[]>([]);
+  const [records, setRecords] = useState<any[]>([]);
+  const swipeBack = useSwipeBack(onBack);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAll, setTotalAll] = useState(0);
