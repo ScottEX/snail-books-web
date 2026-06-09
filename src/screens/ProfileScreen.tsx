@@ -1093,7 +1093,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                 leftOnPress={() => setShowPwModal(false)}
                 rightLabel={modalLoading ? '...' : t('confirm')}
                 rightOnPress={handleChangePw}
-                rightDisabled={modalLoading}
+                rightDisabled={modalLoading || !oldPw || !newPw || !confirmPw}
               />
             </View>
         </View>
@@ -1126,7 +1126,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                     leftOnPress={() => setShowEmailModal(false)}
                     rightLabel={modalLoading ? '...' : t('sendCode')}
                     rightOnPress={handleSendCode}
-                    rightDisabled={modalLoading}
+                    rightDisabled={modalLoading || !newEmail}
                   />
                 </>
               ) : (
@@ -1153,7 +1153,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                       setEmail(newEm);
                       try { localStorage.setItem('email', newEm); } catch {}
                     })}
-                    rightDisabled={modalLoading}
+                    rightDisabled={modalLoading || !emailCode}
                   />
                 </>
               )}
