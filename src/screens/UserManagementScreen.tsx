@@ -97,10 +97,11 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   // Debounced search-as-you-type
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [searchText, setSearchText] = useState('');
+  const debouncePrimed = useRef(false);
   useEffect(() => {
+    if (!debouncePrimed.current) { debouncePrimed.current = true; return; }
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
-      console.log('[UserMgmt] debounce fire, searchText:', searchText);
       setSearch(searchText);
       setPage(1);
       fetchUsers(1, searchText, statusFilter, dateFrom, dateTo);

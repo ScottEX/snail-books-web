@@ -218,11 +218,23 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   const loadAvatar = async () => {
     const uid = getCurrentUserId();
     if (!uid) return;
+    const CACHE_KEY = 'partner_avatar_b64';
+    // Serve from cache immediately to avoid flash
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) setAvatarUrl(cached);
+    } catch {}
     try {
       const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
       if (resp.ok) {
         const blob = await resp.blob();
-        setAvatarUrl(URL.createObjectURL(blob));
+        const reader = new FileReader();
+        reader.onload = () => {
+          const b64 = reader.result as string;
+          setAvatarUrl(b64);
+          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
+        };
+        reader.readAsDataURL(blob);
       }
     } catch {}
   };
