@@ -19,6 +19,7 @@ import ReceiptUpload from '../components/ReceiptUpload';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import PlusIcon from '../components/icons/PlusIcon';
+import { fmtDecInput } from '../utils/numbers';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = 'payCash' | 'payWechat' | 'payAlipay';
@@ -973,8 +974,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                         <View style={styles.prodPriceWrap}>
                           {isEditing ? (
                             <TextInput
-                              style={{ width: 70, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, borderWidth: 1, borderColor: c.primary, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, outline: 'none', backgroundColor: c.surface } as any}
-                              value={editPriceVal} onChangeText={setEditPriceVal}
+                              style={{ width: 70, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain, borderWidth: 1, borderColor: c.primary, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, outline: 'none', backgroundColor: c.surface } as any}
+                              value={editPriceVal} onChangeText={(v) => setEditPriceVal(fmtDecInput(v))}
                               onBlur={() => commitPrice(p.id)} autoFocus keyboardType="numeric"
                             />
                           ) : (
@@ -1177,7 +1178,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   ))
                 )}
               </View>
-              <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: v }))} keyboardType="numeric" />
+              <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="numeric" />
               <TextInput style={styles.modalInput} placeholder={t('procProductNote')} placeholderTextColor={c.textSub} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
               <View style={styles.modalBtnRow}>
                 <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setShowProductModal(false))}>

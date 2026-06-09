@@ -24,6 +24,7 @@ import MinusIcon from '../components/icons/MinusIcon';
 import { getCurrentUserId } from '../utils/storage';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
+import { fmtDecInput } from '../utils/numbers';
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
@@ -594,7 +595,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               <View>
                 <Text style={moBody.label}>{t('totalToPool')}</Text>
                 <TextInput style={moBody.input} placeholder={t('enterAmount')} value={divAmount}
-                  onChangeText={(v) => { setDivAmount(v); calcPreview(parseFloat(v) || 0); }}
+                  onChangeText={(v) => { const clean = fmtDecInput(v); setDivAmount(clean); calcPreview(parseFloat(clean) || 0); }}
                   keyboardType="decimal-pad" placeholderTextColor={colors.textSub} />
               </View>
               <View>
@@ -1031,7 +1032,7 @@ const getMo = (colors: ThemeColors) => StyleSheet.create({
 const getMoBody = (colors: ThemeColors) => StyleSheet.create({
   body: { padding: 20, gap: 12 },
   label: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, marginBottom: 4 },
-  input: { width: '100%', backgroundColor: colors.bg, borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight as any, color: colors.textSub, fontFamily: undefined },
+  input: { width: '100%', backgroundColor: colors.bg, borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight as any, color: colors.textMain, fontFamily: undefined },
   preview: { backgroundColor: colors.bg, borderRadius: 12, padding: 12, gap: 8 },
   previewTitle: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.5 },
   previewRow: { flexDirection: 'row', justifyContent: 'space-between' },
