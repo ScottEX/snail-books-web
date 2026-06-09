@@ -319,7 +319,7 @@ export const api = {
   clearCart: () => authFetch('/api/procurement-cart', { method: 'DELETE' }),
 
   // Daily revenue (每日营收)
-  getDailyRevenue: (page = 1, perPage = 30, year?: number, month?: number, date?: string, days?: number, dateFrom?: string, dateTo?: string) => {
+  getDailyRevenue: (page = 1, perPage = 10, year?: number, month?: number, date?: string, days?: number, dateFrom?: string, dateTo?: string) => {
     const params = new URLSearchParams();
     params.append('page', String(page));
     params.append('per_page', String(perPage));
