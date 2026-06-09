@@ -19,6 +19,8 @@ interface UserData {
   last_login: string;
   avatar: string;
   signature: string;
+  delete_scheduled: string;
+  delete_by: string;
 }
 
 interface Props {
@@ -68,6 +70,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [remark, setRemark] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [deleteScheduled, setDeleteScheduled] = useState('');
+  const [deleteBy, setDeleteBy] = useState('');
   const [showRolePicker, setShowRolePicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -85,6 +89,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         setRemark(d.remark || '');
         setPhone(d.phone || '');
         setEmail(d.email || '');
+        setDeleteScheduled(d.delete_scheduled || '');
+        setDeleteBy(d.delete_by || '');
       }
     } catch {}
     setLoading(false);
@@ -127,13 +133,34 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         credentials: 'include',
         headers: { 'X-Lang': lang },
       });
+      const data = await resp.json();
       if (resp.ok) {
+        setDeleteScheduled(data.scheduled || '');
+        setDeleteBy('admin');
         onUpdated();
-        onBack();
+        // Show the grace period message, don't navigate back
       }
     } catch {}
     setDeleting(false);
     setShowDeleteConfirm(false);
+  };
+
+  const handleRestore = async () => {
+    setSaving(true);
+    try {
+      const resp = await fetch(`/api/admin/users/${user.id}/restore`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'X-Lang': lang },
+      });
+      if (resp.ok) {
+        setDeleteScheduled('');
+        setDeleteBy('');
+        setIsDisabled(false);
+        onUpdated();
+      }
+    } catch {}
+    setSaving(false);
   };
 
   const fmtDate = (d: string) => {
@@ -259,6 +286,22 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             <View style={st.sectionTitleLine} />
           </View>
           <View style={st.card}>
+            {deleteScheduled ? (
+              <View style={{ padding: 16 }}>
+                <Text style={[st.toggleLabel, { color: c.warning, marginBottom: 6 }]}>冷静期中</Text>
+                <Text style={st.toggleHint}>
+                  将于 {deleteScheduled.slice(0, 16).replace('T', ' ')} 永久删除 · {deleteBy === 'admin' ? '管理员' : '用户'}发起
+                </Text>
+                <TouchableOpacity
+                  style={{ marginTop: 12, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, backgroundColor: withAlpha(c.success, 0.12), alignSelf: 'flex-start' }}
+                  onPress={handleRestore}
+                  disabled={saving}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: c.success }}>恢复账户</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
             <View style={st.toggleRow}>
               <View style={{ flex: 1 }}>
                 <Text style={st.toggleLabel}>{t('allowLogin')}</Text>
@@ -272,6 +315,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                 disabled={saving}
               />
             </View>
+            )}
           </View>
         </View>
 
@@ -328,7 +372,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
       <ConfirmModal visible={showDeleteConfirm}
         title={t('deleteUser') || '删除用户'}
-        message={t('deleteUserConfirm') || '确认删除该用户，该用户的所有数据（交易记录、进货记录等）也将一并删除'}
+        message="账户将进入 5 天冷静期，期满后永久删除并转移经营数据至管理员。冷静期内您可随时恢复。"
         confirmLabel={t('delete')} cancelLabel={t('cancel')}
         confirmColor={c.danger}
         onConfirm={handleDelete}

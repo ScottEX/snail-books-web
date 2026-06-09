@@ -13,6 +13,7 @@ interface UserItem {
   is_disabled: boolean;
   created_at: string;
   avatar: string;
+  delete_scheduled: string;
 }
 
 interface Props {
@@ -287,10 +288,10 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                   <Text style={st.userName}>{u.username}</Text>
                   {u.email ? <Text style={st.userEmail}>{u.email}</Text> : null}
                 </View>
-                <View style={[st.statusBadge, { backgroundColor: u.is_disabled ? withAlpha(c.danger, 0.08) : withAlpha(c.success, 0.08) }]}>
-                  <View style={[st.statusDot, { backgroundColor: u.is_disabled ? c.danger : c.success }]} />
-                  <Text style={[st.statusText, { color: u.is_disabled ? c.danger : c.success }]}>
-                    {u.is_disabled ? t('disabledStatus') : t('normalStatus')}
+                <View style={[st.statusBadge, { backgroundColor: u.delete_scheduled ? withAlpha(c.warning, 0.12) : u.is_disabled ? withAlpha(c.danger, 0.08) : withAlpha(c.success, 0.08) }]}>
+                  <View style={[st.statusDot, { backgroundColor: u.delete_scheduled ? c.warning : u.is_disabled ? c.danger : c.success }]} />
+                  <Text style={[st.statusText, { color: u.delete_scheduled ? c.warning : u.is_disabled ? c.danger : c.success }]}>
+                    {u.delete_scheduled ? '冷静期中' : u.is_disabled ? t('disabledStatus') : t('normalStatus')}
                   </Text>
                 </View>
                 <ChevronRightSvg color={c.textSub} />

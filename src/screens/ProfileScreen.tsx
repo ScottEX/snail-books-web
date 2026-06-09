@@ -292,15 +292,15 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try {
       const rawUid = getCurrentUserId();
       if (!rawUid) { setToast('无法获取用户信息'); setDeleteLoading(false); setShowDeleteModal(false); return; }
-      await api.deleteAccount(Number(rawUid));
-      localStorage.removeItem('user');
-      setToast(t('deleteAccountSuccess'));
-      setTimeout(() => { window.location.replace('/login'); }, 1500);
+      const data = await api.deleteAccount(Number(rawUid));
+      setShowDeleteModal(false);
+      setDeleteConfirmUsername('');
+      setToast(data.message || '账户已进入冷静期');
     } catch (err: any) {
       setToast(err.message || '操作失败，请稍后重试');
     } finally {
       setDeleteLoading(false);
-      setShowDeleteModal(false);
+    }
     }
   };
 
@@ -997,7 +997,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
           <View style={mo.body}>
             <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 8 }}>
-              {t('deleteAccountConfirmMsg')}
+              您的账户将进入 3 天冷静期，期满后永久注销。在此期间登录即可自动恢复账户。
             </Text>
             <TextInput
               style={[mo.input, { outline: 'none' } as any]}
