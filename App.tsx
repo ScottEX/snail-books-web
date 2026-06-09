@@ -114,6 +114,11 @@ export default function App() {
         {page === 'home' && (
           <HomeScreen
             onLogout={() => {
+              // Clear all cached data on logout
+              try {
+                localStorage.clear();
+                sessionStorage.clear();
+              } catch {}
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new Event('app:user-change'));
               }

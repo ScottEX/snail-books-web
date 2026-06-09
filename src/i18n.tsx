@@ -77,11 +77,14 @@ const I18N: Record<string, Record<string, string>> = {
     delete: '删除',
     deleteUser: '删除用户',
     deleteUserConfirm: '确认删除该用户，该用户的所有数据（交易记录、进货记录等）也将一并删除',
+    deleteUserGraceNote: '账户将进入 5 天冷静期，期满后永久删除并转移经营数据至管理员。冷静期内您可随时恢复。',
     deleteAccount: '注销账户',
     deleteAccountBtn: '确认注销',
     deleteAccountConfirmMsg: '注销后所有数据将被永久删除，不可恢复。确定继续吗？',
     deleteAccountConfirmTitle: '确认注销账户',
     deleteAccountSuccess: '账户已注销',
+    deleteAccountGraceNote: '您的账户将进入 3 天冷静期，期满后永久注销。在此期间登录即可自动恢复账户。',
+    adminCannotDelete: '管理员账户无法注销。如需停用，请联系其他管理员操作。',
     deleteRecord: '删除',
     disabledStatus: '禁用',
     devCodeLabel: '🔧 开发模式 — 验证码',
@@ -504,11 +507,14 @@ const I18N: Record<string, Record<string, string>> = {
     delete: '刪除',
     deleteUser: '刪除用戶',
     deleteUserConfirm: '確認刪除該用戶，該用戶的所有數據（交易記錄、進貨記錄等）也將一併刪除',
+    deleteUserGraceNote: '帳戶將進入 5 天冷靜期，期滿後永久刪除並轉移經營數據至管理員。冷靜期內您可隨時恢復。',
     deleteAccount: '註銷帳戶',
     deleteAccountBtn: '確認註銷',
     deleteAccountConfirmMsg: '註銷後所有資料將被永久刪除，不可恢復。確定繼續嗎？',
     deleteAccountConfirmTitle: '確認註銷帳戶',
     deleteAccountSuccess: '帳戶已註銷',
+    deleteAccountGraceNote: '您的帳戶將進入 3 天冷靜期，期滿後永久註銷。在此期間登入即可自動恢復帳戶。',
+    adminCannotDelete: '管理員帳戶無法註銷。如需停用，請聯繫其他管理員操作。',
     deleteRecord: '刪除',
     disabledStatus: '禁用',
     devCodeLabel: '🔧 開發模式 — 驗證碼',
@@ -933,11 +939,14 @@ const I18N: Record<string, Record<string, string>> = {
     delete: 'Delete',
     deleteUser: 'Delete User',
     deleteUserConfirm: 'Are you sure you want to delete this user? All associated data (transactions, procurement records, etc.) will also be deleted.',
+    deleteUserGraceNote: 'Account will enter a 5-day grace period before being permanently deleted. Business data will be transferred to admin. You can restore at any time during the grace period.',
     deleteAccount: 'Delete Account',
     deleteAccountBtn: 'Confirm Deletion',
     deleteAccountConfirmMsg: 'All data will be permanently deleted and cannot be recovered. Are you sure?',
     deleteAccountConfirmTitle: 'Confirm Account Deletion',
     deleteAccountSuccess: 'Account deleted',
+    deleteAccountGraceNote: 'Your account will enter a 3-day grace period before being permanently deleted. Log in during this time to auto-restore it.',
+    adminCannotDelete: 'Admin account cannot be deleted. Please contact another admin if you need to disable it.',
     deleteRecord: 'Delete',
     disabledStatus: 'Disabled',
     devCodeLabel: '🔧 Dev Mode — Verification Code',
@@ -1363,11 +1372,14 @@ export type I18nKey =
   | 'delete'
   | 'deleteUser'
   | 'deleteUserConfirm'
+  | 'deleteUserGraceNote'
   | 'deleteAccount'
   | 'deleteAccountBtn'
   | 'deleteAccountConfirmMsg'
   | 'deleteAccountConfirmTitle'
   | 'deleteAccountSuccess'
+  | 'deleteAccountGraceNote'
+  | 'adminCannotDelete'
   | 'deleteRecord'
   | 'devCodeLabel'
   | 'dineIn'

@@ -84,6 +84,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   } = useProfileForms(setToast);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAdminBlockModal, setShowAdminBlockModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteConfirmUsername, setDeleteConfirmUsername] = useState('');
   const [showThemeModal, setShowThemeModal] = useState(false);
@@ -942,7 +943,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <View style={st.sectionTitleLine} />
           </View>
           <View style={st.card}>
-            <TouchableOpacity style={st.iconRow} onPress={() => { setDeleteConfirmUsername(''); setShowDeleteModal(true); }}>
+            <TouchableOpacity style={st.iconRow} onPress={() => {
+              if (currentUserId === '64') { setShowAdminBlockModal(true); }
+              else { setDeleteConfirmUsername(''); setShowDeleteModal(true); }
+            }}>
               <View style={[st.iconWrap, st.iconDanger]}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
@@ -985,6 +989,25 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
       {/* Shared modals */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
+      {/* Admin cannot self-delete modal */}
+      <ModalOverlay visible={showAdminBlockModal} onClose={() => setShowAdminBlockModal(false)}>
+        <View style={mo.card}>
+          <View style={mo.header}>
+            <Text style={mo.title}>{t('deleteAccount')}</Text>
+            <TouchableOpacity onPress={() => setShowAdminBlockModal(false)}>
+              <Text style={mo.closeBtn}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={mo.body}>
+            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 16 }}>
+              {t('adminCannotDelete')}
+            </Text>
+            <TouchableOpacity style={[mo.btn, { backgroundColor: colors.primary }]} onPress={() => setShowAdminBlockModal(false)}>
+              <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>{t('confirm')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ModalOverlay>
       {/* Delete account modal */}
       <ModalOverlay visible={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
         <View style={mo.card}>
@@ -996,7 +1019,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
           <View style={mo.body}>
             <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 8 }}>
-              您的账户将进入 3 天冷静期，期满后永久注销。在此期间登录即可自动恢复账户。
+              {t('deleteAccountGraceNote')}
             </Text>
             <TextInput
               style={[mo.input, { outline: 'none' } as any]}

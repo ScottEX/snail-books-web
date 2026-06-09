@@ -183,7 +183,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
   if (loading) {
     return (
-      <View style={st.container}>
+      <View style={st.container} {...swipeBack}>
         {headerBar}
         <View style={st.body}>
           <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>{t('loading') || '加载中...'}</Text>
@@ -194,7 +194,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
   if (!detail) {
     return (
-      <View style={st.container}>
+      <View style={st.container} {...swipeBack}>
         {headerBar}
         <View style={st.body}>
           <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>User not found</Text>
@@ -372,7 +372,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
       <ConfirmModal visible={showDeleteConfirm}
         title={t('deleteUser') || '删除用户'}
-        message="账户将进入 5 天冷静期，期满后永久删除并转移经营数据至管理员。冷静期内您可随时恢复。"
+        message={t('deleteUserGraceNote')}
         confirmLabel={t('delete')} cancelLabel={t('cancel')}
         confirmColor={c.danger}
         onConfirm={handleDelete}

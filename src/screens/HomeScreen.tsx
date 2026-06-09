@@ -43,8 +43,8 @@ export default function HomeScreen({
 }) {
   const { colors } = useTheme();
   const [tab, setTabState] = useState<Tab>(() => {
-    try { return (localStorage.getItem('active_tab') as Tab) || 'expense'; }
-    catch { return 'expense'; }
+    try { return (localStorage.getItem('active_tab') as Tab) || 'partner'; }
+    catch { return 'partner'; }
   });
   const setTab = (t: Tab) => {
     setTabState(t);

@@ -393,6 +393,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('email') || 'Email'}</Text>
                 <TextInput style={styles.textInput} value={email} onChangeText={setEmail}
+                  keyboardType="email-address"
                   placeholder={t('email') || 'Email'} placeholderTextColor="rgba(255,255,255,0.55)" />
               </View>
               <View style={styles.fieldWrap}>
