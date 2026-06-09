@@ -228,7 +228,15 @@ export default function HomeScreen({
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
   const [bgReady, setBgReady] = useState(true); // default bg.jpg always ready
-  const [bgImage, setBgImage] = useState('/img/bg.jpg?v=2');
+  const [bgImage, setBgImage] = useState(() => {
+    // Read cached bg URL to show custom background instantly, avoid API wait.
+    // localStorage is written by api.getBackground() (line ~326) and bg upload.
+    try {
+      const cached = localStorage.getItem('bg-image');
+      if (cached) return cached;
+    } catch {}
+    return '/img/bg.jpg?v=2';
+  });
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
       const uid = getCurrentUserId();
