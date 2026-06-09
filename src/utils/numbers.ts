@@ -1,9 +1,13 @@
 /** Strip non-numeric characters except '.' */
 export const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
 
-/** Format decimal input — strip non-numeric, prepend '0' if starts with '.' */
+/** Strip leading zeros — keeps '0' and '0.xxx' intact */
+export const stripLeadingZeros = (s: string) => s.replace(/^0+(?=\d)/, '');
+
+/** Format decimal input — strip non-numeric, strip leading zeros, prepend '0' if starts with '.' */
 export const fmtDecInput = (s: string) => {
-  const clean = blockNeg(s);
+  let clean = blockNeg(s);
+  clean = stripLeadingZeros(clean);
   return clean.startsWith('.') ? '0' + clean : clean;
 };
 
