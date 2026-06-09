@@ -140,7 +140,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('user', r.username || username);
           localStorage.setItem('user_id', String(r.user_id || ''));
-          localStorage.setItem('saved_login', username);
+          if (remember) {
+            localStorage.setItem('saved_login', username);
+          } else {
+            localStorage.removeItem('saved_login');
+          }
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
