@@ -618,7 +618,7 @@ const getStyles = (c: ThemeColors) => {
       marginBottom: 16,
     },
     amountLabel: {
-      fontSize: FONTS.micro.size,
+      fontSize: 14,
       fontWeight: '600' as const,
       color: c.textSub,
       textTransform: 'uppercase' as any,
@@ -626,11 +626,11 @@ const getStyles = (c: ThemeColors) => {
       marginBottom: 4,
     },
     amountValue: {
-      fontSize: 14,
+      fontSize: 36,
       fontWeight: '700' as const,
     },
     amountSymbol: {
-      fontSize: 14,
+      fontSize: 20,
       fontWeight: '600' as const,
       marginRight: 2,
       marginBottom: 2,
