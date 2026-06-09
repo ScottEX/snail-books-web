@@ -360,7 +360,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
             <ExpenseNoteInput value={note} onChangeText={setNote} />
 
             {/* Images */}
-            <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>{t('uploadImage')}</Text>
             <ReceiptUpload
               existingImages={images}
               newFiles={newFiles}
@@ -368,7 +367,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               onRemoveExisting={removeImage}
               onRemoveNew={removeNewFile}
               getPreviewUrl={getPreviewUrl}
-              thumbSize={thumbSize}
             />
           </View>
         )}

@@ -1,7 +1,8 @@
-import React, { useRef } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useRef, useCallback } from 'react';
+import { View, Text, TouchableOpacity, Image, LayoutChangeEvent } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../theme';
+import { FONTS } from '../theme';
 import { t } from '../i18n';
 
 interface Props {
@@ -13,9 +14,11 @@ interface Props {
   onRemoveExisting?: (index: number) => void;
   onRemoveNew?: (index: number) => void;
   getPreviewUrl?: (file: File) => string;
-  /** Thumbnail size in px (default 92) */
-  thumbSize?: number;
+  /** Max thumbnail size in px (default 120), actual size auto-calculated to fill row */
+  maxThumbSize?: number;
 }
+
+const GAP = 8;
 
 export default function ReceiptUpload({
   existingImages = [],
@@ -24,10 +27,17 @@ export default function ReceiptUpload({
   onRemoveExisting,
   onRemoveNew,
   getPreviewUrl,
-  thumbSize = 92,
+  maxThumbSize = 120,
 }: Props) {
   const { colors: c } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showTip, setShowTip] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  const onLayout = useCallback((e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width;
+    if (w > 0) setContainerWidth(w);
+  }, []);
 
   const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -38,10 +48,34 @@ export default function ReceiptUpload({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const hasAny = existingImages.length > 0 || newFiles.length > 0;
+  const totalItems = 1 + existingImages.length + newFiles.length; // +1 for add button
+  const thumbSize = containerWidth > 0
+    ? Math.min(maxThumbSize, (containerWidth - GAP * (totalItems - 1)) / totalItems)
+    : maxThumbSize;
 
   return (
-    <View>
+    <View onLayout={onLayout}>
+      {/* Label + info tip */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+        <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 0 }}>
+          {t('uploadImage')}
+        </Text>
+        <TouchableOpacity
+          onPress={() => setShowTip(!showTip)}
+          activeOpacity={0.7}
+          style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: c.secondary, alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Text style={{ fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub }}>!</Text>
+        </TouchableOpacity>
+        {showTip && (
+          <View style={{ backgroundColor: c.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
+            <Text style={{ fontSize: FONTS.micro.size, color: c.surface, fontWeight: '500' as const }}>
+              支持 jpg/png/webp，单张最大 10MB
+            </Text>
+          </View>
+        )}
+      </View>
+
       {/* Hidden file input */}
       {React.createElement('input', {
         ref: fileInputRef,
@@ -53,7 +87,7 @@ export default function ReceiptUpload({
       })}
 
       {/* Add button + previews */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP }}>
         {/* Add button */}
         <TouchableOpacity
           style={{
@@ -71,7 +105,7 @@ export default function ReceiptUpload({
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={1.5} strokeLinecap="round">
             <Path d="M12 5v14M5 12h14" />
           </Svg>
-          <Text style={{ fontSize: 10, color: c.textSub }}>{hasAny ? '' : t('uploadImage')}</Text>
+          <Text style={{ fontSize: 10, color: c.textSub }}>{totalItems === 1 ? t('uploadImage') : ''}</Text>
         </TouchableOpacity>
 
         {/* Existing image previews */}
@@ -79,8 +113,11 @@ export default function ReceiptUpload({
           <View key={`existing-${i}`} style={{ position: 'relative' }}>
             <Image source={{ uri: url }} style={{ width: thumbSize, height: thumbSize, borderRadius: 8 }} />
             {onRemoveExisting && (
-              <TouchableOpacity onPress={() => onRemoveExisting(i)} activeOpacity={0.7}
-                style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
+              <TouchableOpacity
+                onPress={() => onRemoveExisting(i)}
+                activeOpacity={0.7}
+                style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}
+              >
                 <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
                   <Path d="M18 6L6 18M6 6l12 12" />
                 </Svg>
@@ -100,8 +137,11 @@ export default function ReceiptUpload({
               </View>
             )}
             {onRemoveNew && (
-              <TouchableOpacity onPress={() => onRemoveNew(i)} activeOpacity={0.7}
-                style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
+              <TouchableOpacity
+                onPress={() => onRemoveNew(i)}
+                activeOpacity={0.7}
+                style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}
+              >
                 <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
                   <Path d="M18 6L6 18M6 6l12 12" />
                 </Svg>

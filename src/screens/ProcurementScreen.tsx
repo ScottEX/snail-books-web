@@ -9,7 +9,7 @@ import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 import Toast from '../components/Toast';
 import ConfirmModal from '../components/ConfirmModal';
 import { formatDate } from '../utils/format';
@@ -134,7 +134,6 @@ const CHIP_ICON_BG: Record<string, string> = { payWechat: '#07C160', payAlipay: 
 // Styles
 // ═══════════════════════════════════════════════
 const getStyles = (c: ThemeColors) => StyleSheet.create({
-  ...uploadReceiptStyles(c),
   container: { flex: 1, position: 'relative' as const },
 
   frostedBlock: {
@@ -386,8 +385,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [existingThumbUrls, setExistingThumbUrls] = useState<string[]>([]);
   // Delete confirmation target (batch record)
   const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
-
-  const [showImgTip, setShowImgTip] = useState(false);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [itemsModalIsCart, setItemsModalIsCart] = useState(false);
@@ -1315,17 +1312,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </View>
 
               {/* Upload receipts */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
-                <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: c.secondary, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub }}>!</Text>
-                </TouchableOpacity>
-                {showImgTip && (
-                  <View style={styles.imgTipBubble}>
-                    <Text style={styles.imgTipText}>支持 jpg/png/webp，单张最大 10MB</Text>
-                  </View>
-                )}
-              </View>
               <ReceiptUpload
                 existingImages={existingImageUrls}
                 newFiles={receipts}
@@ -1333,7 +1319,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 onRemoveExisting={removeExistingImage}
                 onRemoveNew={handleRemoveNewFile}
                 getPreviewUrl={getPreviewUrl}
-                thumbSize={92}
               />
 
               {/* Items row — matching 近7天 pattern: label left, theme button right */}

@@ -360,8 +360,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     onToast: setToast,
   });
 
-  const [showImgTip, setShowImgTip] = useState(false);
-
   // Sync uncontrolled date inputs when state changes externally
   const recDateInputRef = useRef<HTMLInputElement>(null);
   const feeDateInputRef = useRef<HTMLInputElement>(null);
@@ -800,24 +798,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {/* 支出说明 */}
               <ExpenseNoteInput value={expNote} onChangeText={setExpNote} />
               {/* 凭证上传 */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={[st.catSectionTitle, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
-                <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7}
-                  style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: colors.secondary, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub }}>!</Text>
-                </TouchableOpacity>
-                {showImgTip && (
-                  <View style={st.imgTipBubble}>
-                    <Text style={st.imgTipText}>支持 jpg/png/webp，单张最大 10MB</Text>
-                  </View>
-                )}
-              </View>
               <ReceiptUpload
                 newFiles={expImages}
                 onAdd={(files: File[]) => handleImageSelect({ target: { files: files as any, value: '' } } as any)}
                 onRemoveNew={removeImage}
                 getPreviewUrl={getPreviewUrl}
-                thumbSize={92}
+                maxThumbSize={120}
               />
               {/* 日期选择 */}
               <View style={st.expDateRow}>
