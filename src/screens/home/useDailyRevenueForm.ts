@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Animated } from 'react-native';
 import { api } from '../../api/client';
 import { t } from '../../i18n';
+import { fmtDecInput, toDec2 } from '../../utils/numbers';
 
 const todayDateStr = () => {
   const d = new Date();
@@ -25,12 +26,7 @@ const isFuture = (d: string) => d > todayDateStr();
 const fmtDate = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-const fmtDecInput = (s: string) => {
-  s = s.replace(/[^0-9.]/g, '');
-  return s.startsWith('.') ? '0' + s : s;
-};
 
-const toDec2 = (x: any) => String(parseFloat(x || 0).toFixed(2));
 
 export interface UseDailyRevenueFormCallbacks {
   /** Show a toast message after save/delete */

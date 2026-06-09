@@ -14,6 +14,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 import { fmtAmt as fmt } from '../utils/format';
+import { blockNeg, fmtDecInput, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
 import CategoryChips from '../components/CategoryChips';
@@ -46,13 +47,7 @@ const fmtMonth = (year: number, month: number) => {
   return `${year}年${String(month).padStart(2, '0')}月`;
 };
 const toNum = (s: string) => parseFloat(s) || 0;
-const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
-const fmtDecInput = (s: string) => { s = blockNeg(s); return s.startsWith('.') ? '0' + s : s; };
-const toDec2 = (v: any) => String((parseFloat(String(v ?? 0)) || 0).toFixed(2));
-const toDec2Comma = (v: any) => {
-  const n = parseFloat(String(v ?? 0)) || 0;
-  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
+
 
 /* ═══════════════════════════════════════════════════════════
    InputWithFocus — 聚焦时边框过渡到品牌红

@@ -6,7 +6,8 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
-import Toast from '../components/Toast';
+import Toast from "../components/Toast";
+import EmptyState from "../components/EmptyState";
 import ImagePreview from '../components/ImagePreview';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -361,11 +362,11 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
         ListEmptyComponent={!loading ? (
-          <View style={st.emptyWrap}>
-            <View style={st.emptyIcon}><ExpenseEmptyIcon color={colors.textSub} /></View>
-            <Text style={st.emptyTitle}>{t('noRecords')}</Text>
-            <Text style={st.emptyHint}>{t('emptyExpenseHint')}</Text>
-          </View>
+          <EmptyState
+            icon={<ExpenseEmptyIcon color={colors.textSub} />}
+            title={t('noRecords')}
+            hint={t('emptyExpenseHint')}
+          />
         ) : null}
         ListFooterComponent={loading ? (
           <View style={st.loading}>
@@ -429,11 +430,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   },
   dateText: { fontSize: FONTS.sub.size, color: colors.textSub, flexShrink: 0 },
   note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right', overflow: 'hidden' },
-  emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
-  emptyEmoji: { fontSize: FONTS.h1.size },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
-  emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
   loadingText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Preview overlay */

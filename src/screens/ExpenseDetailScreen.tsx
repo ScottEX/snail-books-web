@@ -6,6 +6,7 @@ import {
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
+import { blockNeg, fmtDecInput, toDec2 } from '../utils/numbers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -37,9 +38,7 @@ const fmtLocalDate = (s: string, lang: string) => {
   return `${y}年${m}月${d}日`;
 };
 
-const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
-const fmtDecInput = (s: string) => { s = blockNeg(s); return s.startsWith('.') ? '0' + s : s; };
-const toDec2 = (v: any) => String((parseFloat(String(v ?? 0)) || 0).toFixed(2));
+
 
 interface ExpenseRecord {
   id: number;

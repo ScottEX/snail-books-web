@@ -11,7 +11,8 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 import Toast from '../components/Toast';
-import ConfirmModal from '../components/ConfirmModal';
+import ConfirmModal from "../components/ConfirmModal";
+import EmptyState from "../components/EmptyState";
 import { formatDate } from '../utils/format';
 import TrashIcon from '../components/icons/TrashIcon';
 import ReceiptUpload from '../components/ReceiptUpload';
@@ -297,10 +298,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   successBtnViewText: { color: c.textMain, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   // Empty state
-  emptyIconWrap: { marginBottom: 16, opacity: 0.35 },
-  emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: c.textSub, marginBottom: 6 },
-  emptyHint: { fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center' as const, paddingHorizontal: 40, lineHeight: 20 },
+
   loadingWrap: { paddingVertical: 20, alignItems: 'center' as const },
   contentArea: { flex: 1, paddingBottom: 100 },
 });
@@ -1005,11 +1003,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </View>
             ))}
             {groupedProducts.length === 0 && (
-              <View style={styles.emptyWrap}>
-                <View style={styles.emptyIconWrap}><EmptyCartIcon color={c.textSub} /></View>
-                <Text style={styles.emptyTitle}>{t('procEmptyNewTitle')}</Text>
-                <Text style={styles.emptyHint}>{t('procEmptyNewHint')}</Text>
-              </View>
+              <EmptyState
+                icon={<EmptyCartIcon color={c.textSub} />}
+                title={t('procEmptyNewTitle')}
+                hint={t('procEmptyNewHint')}
+              />
             )}
           </ScrollView>
 
@@ -1104,11 +1102,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             </View>
           )}
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
-              <View style={styles.emptyIconWrap}><EmptyClipboardIcon color={c.textSub} /></View>
-              <Text style={styles.emptyTitle}>{t('procEmptyHistoryTitle')}</Text>
-              <Text style={styles.emptyHint}>{t('procEmptyHistoryHint')}</Text>
-            </View>
+            <EmptyState
+              icon={<EmptyClipboardIcon color={c.textSub} />}
+              title={t('procEmptyHistoryTitle')}
+              hint={t('procEmptyHistoryHint')}
+            />
           }
           ListFooterComponent={loadingHist ? <View style={styles.loadingWrap}><ActivityIndicator color={c.primary} /></View> : null}
         />
@@ -1122,11 +1120,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
           {filteredMgmtProducts.length === 0 ? (
-            <View style={styles.emptyWrap}>
-              <View style={styles.emptyIconWrap}><EmptyBoxIcon color={c.textSub} /></View>
-              <Text style={styles.emptyTitle}>{t('procEmptyProductsTitle')}</Text>
-              <Text style={styles.emptyHint}>{t('procEmptyProductsHint')}</Text>
-            </View>
+            <EmptyState
+              icon={<EmptyBoxIcon color={c.textSub} />}
+              title={t('procEmptyProductsTitle')}
+              hint={t('procEmptyProductsHint')}
+            />
           ) : (
             [...filteredMgmtProducts].sort((a, b) => b.id - a.id).map(p => (
               <View key={p.id} style={styles.mgmtRow}>

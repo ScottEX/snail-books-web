@@ -5,6 +5,7 @@ import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import EmptyState from '../components/EmptyState';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
@@ -313,11 +314,11 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   };
 
   const renderEmpty = () => (
-    <View style={st.emptyWrap}>
-      <View style={st.emptyIcon}><ReconEmptyIcon color={colors.textSub} /></View>
-      <Text style={st.emptyTitle}>{t('noRecords')}</Text>
-      <Text style={st.emptyHint}>{t('emptyReconHint')}</Text>
-    </View>
+    <EmptyState
+      icon={<ReconEmptyIcon color={colors.textSub} />}
+      title={t('noRecords')}
+      hint={t('emptyReconHint')}
+    />
   );
 
   const todayISO = new Date().toISOString().split('T')[0];
@@ -534,11 +535,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   chanLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
   chanVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
   /* Empty state */
-  emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
-  emptyEmoji: { fontSize: FONTS.h1.size },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
-  emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+
   /* Filter — ultra-minimal */
   filterBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub },
   filterBtnTextActive: { color: colors.surface },
