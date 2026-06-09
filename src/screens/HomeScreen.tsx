@@ -230,8 +230,8 @@ export default function HomeScreen({
   const [bgImage, setBgImage] = useState(() => {
     try {
       const saved = localStorage.getItem('bg-image');
-      return saved || '/img/bg.jpg';
-    } catch { return '/img/bg.jpg'; }
+      return saved || '/img/bg-v2.jpg';
+    } catch { return '/img/bg-v2.jpg'; }
   });
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
@@ -328,7 +328,7 @@ export default function HomeScreen({
         try { localStorage.setItem('bg-image', r.url); } catch {}
       } else {
         // No custom background — use default
-        setBgImage('/img/bg.jpg');
+        setBgImage('/img/bg-v2.jpg');
         try { localStorage.removeItem('bg-image'); } catch {}
       }
       // Load opacity from server (overrides localStorage default)
@@ -514,7 +514,7 @@ export default function HomeScreen({
     setUploadingBg(true);
     try {
       await api.resetBackground();
-      setBgImage('/img/bg.jpg');
+      setBgImage('/img/bg-v2.jpg');
       try { localStorage.removeItem('bg-image'); } catch {}
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
