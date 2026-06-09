@@ -91,7 +91,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           const blob = await resp.blob();
           const url = URL.createObjectURL(blob);
           // Preload before showing — avoid flash
-          const img = new Image();
+          const img = document.createElement('img');
           img.onload = () => { setAvatarUrl(url); setAvatarReady(true); };
           img.onerror = () => { setAvatarUrl(''); setAvatarReady(true); };
           img.src = url;
@@ -105,7 +105,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         if (bgResp.ok) {
           const blob = await bgResp.blob();
           const url = URL.createObjectURL(blob);
-          const img = new Image();
+          const img = document.createElement('img');
           img.onload = () => { setBgUrl(url); setBgReady(true); };
           img.onerror = () => { setBgUrl(''); setBgReady(true); };
           img.src = url;
