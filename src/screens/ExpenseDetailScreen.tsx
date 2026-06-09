@@ -294,7 +294,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
             {displayImgs.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>{t('uploadImage')}</Text>
+                <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>{t('receiptExpenseLabel')}</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {displayImgs.map((url: string, i: number) => (
                     <TouchableOpacity key={i} onPress={() => openPreview(i)} activeOpacity={0.8}>
@@ -350,7 +350,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
             {/* Images */}
             <ReceiptUpload
-              label={t('receiptExpenseLabel')}
               existingImages={images}
               newFiles={newFiles}
               onAdd={(files: File[]) => setNewFiles(prev => [...prev, ...files])}
