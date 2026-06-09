@@ -642,6 +642,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 leftOnPress={() => setShowDividend(false)}
                 rightLabel={t('confirmIssue')}
                 rightOnPress={handleDividend}
+                rightDisabled={!divAmount || parseFloat(divAmount) <= 0}
               />
             </View>
           </View>
