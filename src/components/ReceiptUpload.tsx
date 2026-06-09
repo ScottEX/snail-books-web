@@ -58,7 +58,7 @@ export default function ReceiptUpload({
     <View onLayout={onLayout}>
       {/* Label + info tip */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-        <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 0 }}>
+        <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, marginBottom: 0 }}>
           {t('uploadImage')}
         </Text>
         <TouchableOpacity
