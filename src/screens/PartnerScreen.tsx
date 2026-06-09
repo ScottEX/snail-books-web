@@ -98,7 +98,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
     pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
   });
 
-  const { colors: c } = useTheme();
+  const { colors } = useTheme();
   const swipeBack = useSwipeBack(onBack);
 
   const s = useMemo(() => getS(colors), [colors]);
