@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { api } from './api/client';
 
 const I18N: Record<string, Record<string, string>> = {
   'zh-CN': {
@@ -87,6 +88,8 @@ const I18N: Record<string, Record<string, string>> = {
     adminCannotDelete: '管理员账户无法注销。如需停用，请联系其他管理员操作。',
     deleteRecord: '删除',
     disabledStatus: '禁用',
+    graceStatus: '冷静期中',
+    restoreAccount: '恢复账户',
     devCodeLabel: '🔧 开发模式 — 验证码',
     dineIn: '堂食',
     discountAmount: '优惠减免',
@@ -517,6 +520,8 @@ const I18N: Record<string, Record<string, string>> = {
     adminCannotDelete: '管理員帳戶無法註銷。如需停用，請聯繫其他管理員操作。',
     deleteRecord: '刪除',
     disabledStatus: '禁用',
+    graceStatus: '冷靜期中',
+    restoreAccount: '恢復帳戶',
     devCodeLabel: '🔧 開發模式 — 驗證碼',
     dineIn: '堂食',
     discountAmount: '優惠減免',
@@ -949,6 +954,8 @@ const I18N: Record<string, Record<string, string>> = {
     adminCannotDelete: 'Admin account cannot be deleted. Please contact another admin if you need to disable it.',
     deleteRecord: 'Delete',
     disabledStatus: 'Disabled',
+    graceStatus: 'Cooling Period',
+    restoreAccount: 'Restore Account',
     devCodeLabel: '🔧 Dev Mode — Verification Code',
     dineIn: 'Dine-in',
     discountAmount: 'Discount',
@@ -1384,6 +1391,8 @@ export type I18nKey =
   | 'devCodeLabel'
   | 'dineIn'
   | 'disabledStatus'
+  | 'graceStatus'
+  | 'restoreAccount'
   | 'discountAmount'
   | 'displayName'
   | 'distributedPool'
@@ -1771,6 +1780,8 @@ export function LangProvider({ children }: { children: React.ReactNode }): React
       (window as any).curLang = l;
       try { localStorage.setItem('lang', l); } catch {}
     }
+    // Persist to server so backend (emails, etc.) uses correct language
+    try { api.saveLang(l).catch(() => {}); } catch {}
   }, []);
 
   return (

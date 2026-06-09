@@ -115,14 +115,12 @@ export default function App() {
           <HomeScreen
             onLogout={() => {
               // Preserve login-related keys before clearing cache
-              let savedUser = '', savedLogin = '', rememberMe = '';
+              let savedLogin = '', rememberMe = '';
               try {
-                savedUser = localStorage.getItem('user') || '';
                 savedLogin = localStorage.getItem('saved_login') || '';
                 rememberMe = localStorage.getItem('remember_me') || '';
                 localStorage.clear();
                 sessionStorage.clear();
-                if (savedUser) localStorage.setItem('user', savedUser);
                 if (savedLogin) localStorage.setItem('saved_login', savedLogin);
                 if (rememberMe) localStorage.setItem('remember_me', rememberMe);
               } catch {}

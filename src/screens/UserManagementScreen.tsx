@@ -131,7 +131,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     fetchUsers(searchText, statusFilter, '', '');
   }, [searchText, statusFilter, fetchUsers]);
 
-  const statusLabel = statusFilter === 'normal' ? t('normalStatus') : statusFilter === 'disabled' ? t('disabledStatus') : t('all');
+  const statusLabel = statusFilter === 'normal' ? t('normalStatus') : statusFilter === 'disabled' ? t('disabledStatus') : statusFilter === 'grace' ? t('graceStatus') : t('all');
   const dateLabel = (dateFrom || dateTo) ? `${dateFrom || '…'} - ${dateTo || '…'}` : t('registrationTime');
 
   // Refs for dropdown positioning via portal
@@ -225,6 +225,10 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                 <View style={[st.statusDot, { backgroundColor: c.danger }]} />
                 <Text style={[st.dropItemText, statusFilter === 'disabled' && { color: c.primary, fontWeight: '600' }]}>{t('disabledStatus')}</Text>
               </TouchableOpacity>
+              <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus('grace'); closeDrops(); }}>
+                <View style={[st.statusDot, { backgroundColor: c.warning }]} />
+                <Text style={[st.dropItemText, statusFilter === 'grace' && { color: c.primary, fontWeight: '600' }]}>{t('graceStatus')}</Text>
+              </TouchableOpacity>
             </div>
           </div>,
           document.body
@@ -291,7 +295,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                 <View style={[st.statusBadge, { backgroundColor: u.delete_scheduled ? withAlpha(c.warning, 0.12) : u.is_disabled ? withAlpha(c.danger, 0.08) : withAlpha(c.success, 0.08) }]}>
                   <View style={[st.statusDot, { backgroundColor: u.delete_scheduled ? c.warning : u.is_disabled ? c.danger : c.success }]} />
                   <Text style={[st.statusText, { color: u.delete_scheduled ? c.warning : u.is_disabled ? c.danger : c.success }]}>
-                    {u.delete_scheduled ? '冷静期中' : u.is_disabled ? t('disabledStatus') : t('normalStatus')}
+                    {u.delete_scheduled ? t('graceStatus') : u.is_disabled ? t('disabledStatus') : t('normalStatus')}
                   </Text>
                 </View>
                 <ChevronRightSvg color={c.textSub} />
