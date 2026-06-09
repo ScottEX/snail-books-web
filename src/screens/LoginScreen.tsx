@@ -15,6 +15,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [bgUrl, setBgUrl] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [email, setEmail] = useState('');
@@ -74,9 +75,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setPassword(''); setPassword2(''); setEmail('');
   };
 
-  // Fetch avatar when username changes (debounced)
+  // Fetch avatar & background when username changes (debounced)
   useEffect(() => {
-    if (!username) { setAvatarUrl(''); return; }
+    if (!username) { setAvatarUrl(''); setBgUrl(''); return; }
     const timer = setTimeout(async () => {
       try {
         let resp = await fetch(`/api/users/avatar?username=${encodeURIComponent(username)}`);
@@ -90,6 +91,16 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           setAvatarUrl('');
         }
       } catch { setAvatarUrl(''); }
+
+      try {
+        const bgResp = await fetch(`/api/users/background?username=${encodeURIComponent(username)}`);
+        if (bgResp.ok) {
+          const blob = await bgResp.blob();
+          setBgUrl(URL.createObjectURL(blob));
+        } else {
+          setBgUrl('');
+        }
+      } catch { setBgUrl(''); }
     }, 400);
     return () => clearTimeout(timer);
   }, [username]);
@@ -256,7 +267,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   return (
     <View style={styles.container}>
       {/* Background layers */}
-      <View style={styles.bgWrapper} />
+      <View style={[styles.bgWrapper, bgUrl ? { backgroundImage: `url(${bgUrl})` } as any : {}]} />
       <View style={styles.bgOverlay} />
       <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
@@ -556,7 +567,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, padding: 20, paddingTop: 24 },
   bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
-    // @ts-ignore - web-only background image
+    // @ts-ignore - web-only
     backgroundImage: 'url(/img/bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
   bgOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
