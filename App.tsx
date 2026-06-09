@@ -114,10 +114,17 @@ export default function App() {
         {page === 'home' && (
           <HomeScreen
             onLogout={() => {
-              // Clear all cached data on logout
+              // Preserve login-related keys before clearing cache
+              let savedUser = '', savedLogin = '', rememberMe = '';
               try {
+                savedUser = localStorage.getItem('user') || '';
+                savedLogin = localStorage.getItem('saved_login') || '';
+                rememberMe = localStorage.getItem('remember_me') || '';
                 localStorage.clear();
                 sessionStorage.clear();
+                if (savedUser) localStorage.setItem('user', savedUser);
+                if (savedLogin) localStorage.setItem('saved_login', savedLogin);
+                if (rememberMe) localStorage.setItem('remember_me', rememberMe);
               } catch {}
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new Event('app:user-change'));
