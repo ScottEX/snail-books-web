@@ -28,7 +28,7 @@ export default function ExpenseNoteInput({ value, onChangeText, placeholder, lab
           backgroundColor: withAlpha(c.textMain, 0.03),
           borderRadius: 10,
           padding: 12,
-          minHeight: 60,
+          minHeight: 78,
           textAlignVertical: 'top',
           outline: 'none',
         } as any}
