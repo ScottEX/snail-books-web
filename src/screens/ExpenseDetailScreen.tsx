@@ -514,7 +514,7 @@ const getStyles = (c: ThemeColors) => {
     },
     amountLabel: {
       fontSize: 14,
-      fontWeight: '600' as const,
+      fontWeight: '500' as const,
       color: c.textSub,
       textTransform: 'uppercase' as any,
       letterSpacing: 0.5,
@@ -560,7 +560,8 @@ const getStyles = (c: ThemeColors) => {
       borderBottomColor: withAlpha(c.textMain, 0.06),
     },
     infoLabel: {
-      fontSize: FONTS.sub.size,
+      fontSize: 14,
+      fontWeight: '500' as const,
       color: c.textSub,
     },
     infoValue: {
@@ -571,7 +572,7 @@ const getStyles = (c: ThemeColors) => {
     // Section
     section: { marginBottom: 16 },
     sectionTitle: {
-      fontSize: 14, fontWeight: '400' as const,
+      fontSize: 14, fontWeight: '500' as const,
       color: c.textSub, textTransform: 'uppercase' as any,
       letterSpacing: 0.5, marginBottom: 10,
     },
