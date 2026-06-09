@@ -633,7 +633,7 @@ export default function HomeScreen({
     <View style={styles.container}>
       {/* Background — default always visible, custom fades in on top */}
       <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
-      <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
+      <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=2' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
 
       {/* Sub-page stack — iOS push/pop with z-index keyed to stack
           position so the top of the stack always covers what's below.
@@ -1038,7 +1038,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   bgLayer: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
-  bgCustom: { transition: 'opacity 0.5s ease' },
+  bgCustom: { transition: 'opacity 0.5s ease, filter 0.5s ease' },
   // Header — frosted glass, same as sub-screen headers
   header: {
     position: 'relative' as const, zIndex: 200,

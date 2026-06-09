@@ -273,14 +273,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     <View style={styles.container}>
       {/* Background layers — default always visible, custom fades in on top */}
       <View style={styles.bgWrapper} />
-      <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
+      <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none', filter: bgReady && bgUrl ? 'blur(0)' : 'blur(16px)' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
       <View style={styles.bgOverlay} />
       <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
         <View style={styles.brand}>
           <View style={styles.logoWrap}>
             <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
-            <Image source={{ uri: avatarUrl || '/img/logo.jpg' }} style={[styles.logo, styles.logoOver, { opacity: avatarReady && avatarUrl ? 1 : 0 }]} />
+            <Image source={{ uri: avatarUrl || '/img/logo.jpg' }} style={[styles.logo, styles.logoOver, { filter: avatarReady && avatarUrl ? 'blur(0)' : 'blur(12px)', opacity: avatarReady && avatarUrl ? 1 : 0 }]} />
           </View>
           <Text style={styles.subtitle}>{t('subtitle')}</Text>
           <View style={styles.langRow}>
@@ -574,7 +574,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only
     backgroundImage: 'url(/img/bg.jpg?v=2)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
-  bgCustom: { zIndex: 0, transition: 'opacity 0.5s ease' },
+  bgCustom: { zIndex: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },
   bgOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
   content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
@@ -586,7 +586,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)',
   },
   logo: { width: 80, height: 80, borderRadius: 40, marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)' } as any,
-  logoOver: { position: 'absolute' as any, top: 0, left: 0, marginBottom: 0, transition: 'opacity 0.5s ease' },
+  logoOver: { position: 'absolute' as any, top: 0, left: 0, marginBottom: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },
   subtitle: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
   langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
   langBtn: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
