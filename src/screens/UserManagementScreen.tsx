@@ -79,7 +79,10 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       if (dt) params.set('date_to', dt);
       params.set('page', String(p));
       params.set('per_page', '50');
-      const resp = await fetch(`/api/admin/users?${params.toString()}`, { credentials: 'include', headers: { 'X-Lang': getLang() } });
+      const url = `/api/admin/users?${params.toString()}`;
+      console.log('[UserMgmt] fetchUsers, url:', url);
+      const resp = await fetch(url, { credentials: 'include', headers: { 'X-Lang': getLang() } });
+      console.log('[UserMgmt] fetchUsers resp:', resp.status);
       if (resp.ok) {
         const data = await resp.json();
         setUsers(data.data || []);
@@ -97,6 +100,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
+      console.log('[UserMgmt] debounce fire, searchText:', searchText);
       setSearch(searchText);
       setPage(1);
       fetchUsers(1, searchText, statusFilter, dateFrom, dateTo);
