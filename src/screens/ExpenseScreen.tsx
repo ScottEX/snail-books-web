@@ -166,41 +166,28 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [tuan, setTuan] = useState('');
   const [jd, setJd] = useState('');
 
-  const mountedRef = useRef(false);
   const initReconValues = useRef({ card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' });
   const reconJustLoaded = useRef(false);
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
   // Load reconciliation data from backend
+  // Rule:
+  //   1. Exact match on bill_date → show that record's values
+  //   2. No match + recDate >= last bill_date → fill with last record's values
+  //   3. No match + recDate < last bill_date → leave empty
   useEffect(() => {
-    if (!mountedRef.current) {
-      // First mount: load the last reconciliation
-      mountedRef.current = true;
-      (async () => {
-        try {
-          const data = await api.getReconciliations(1);
-          if (data && data.length > 0) {
-            const last = data[0];
-            const d = last.bill_date || last.date || yesterdayStr();
-            setRecDate(d);
-            setCardBalance(toDec2(last.card_balance));
-            setCashBalance(toDec2(last.cash_balance));
-            setDineIn(toDec2(last.dine_in));
-            setMeituan(toDec2(last.meituan));
-            setFlashSale(toDec2(last.flash_sale));
-            setTuan(toDec2(last.tuan));
-            setJd(toDec2(last.jd));
-          }
-          reconJustLoaded.current = true;
-        } catch { setToast(t('toastLoadFailed')); }
-      })();
-      return;
-    }
-    // When recDate changes: fetch reconciliation for that date from backend
     (async () => {
       try {
         const data = await api.getReconciliations(365);
-        const match = (data || []).find((r: any) => r.bill_date === recDate);
+        if (!data || data.length === 0) {
+          setCardBalance(''); setCashBalance('');
+          setDineIn(''); setMeituan('');
+          setFlashSale(''); setTuan(''); setJd('');
+          reconJustLoaded.current = true;
+          return;
+        }
+        const last = data[0]; // most recent record
+        const match = data.find((r: any) => r.bill_date === recDate);
         if (match) {
           setCardBalance(toDec2(match.card_balance));
           setCashBalance(toDec2(match.cash_balance));
@@ -209,14 +196,18 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           setFlashSale(toDec2(match.flash_sale));
           setTuan(toDec2(match.tuan));
           setJd(toDec2(match.jd));
+        } else if (recDate >= (last.bill_date || '')) {
+          setCardBalance(toDec2(last.card_balance));
+          setCashBalance(toDec2(last.cash_balance));
+          setDineIn(toDec2(last.dine_in));
+          setMeituan(toDec2(last.meituan));
+          setFlashSale(toDec2(last.flash_sale));
+          setTuan(toDec2(last.tuan));
+          setJd(toDec2(last.jd));
         } else {
-          setCardBalance('');
-          setCashBalance('');
-          setDineIn('');
-          setMeituan('');
-          setFlashSale('');
-          setTuan('');
-          setJd('');
+          setCardBalance(''); setCashBalance('');
+          setDineIn(''); setMeituan('');
+          setFlashSale(''); setTuan(''); setJd('');
         }
         reconJustLoaded.current = true;
       } catch { setToast(t('toastLoadFailed')); }
