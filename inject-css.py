@@ -104,6 +104,33 @@ html = html.replace(
 # Fix title
 html = html.replace('<title>snail-books-web</title>', '<title>蓝姐螺蛳粉</title>')
 
+# ── Splash screen: visible until React mounts ──
+SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FBF7F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;transition:opacity .3s">
+<div style="text-align:center">
+<div style="font-size:48px;animation:pulse 1.8s ease-in-out infinite">🐌</div>
+<div style="font-size:18px;font-weight:600;color:#5C3D2E;margin-top:16px">蓝姐螺蛳粉</div>
+<div style="margin-top:12px;display:flex;gap:6px;justify-content:center">
+<span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out infinite"></span>
+<span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out .2s infinite"></span>
+<span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out .4s infinite"></span>
+</div>
+</div>
+</div>"""
+SPLASH_CSS = """
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(.96)}50%{opacity:1;transform:scale(1)}}
+@keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+"""
+SPLASH_JS = """<script>
+new MutationObserver(function(){
+  var root=document.getElementById('root');
+  if(root&&root.children.length){var s=document.getElementById('splash');s.style.opacity='0';setTimeout(function(){s.remove()},300)}
+}).observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
+</script>"""
+
+html = html.replace('</style>', '</style>\n<style>' + SPLASH_CSS + '</style>')
+html = html.replace('<body>', '<body>\n' + SPLASH_HTML)
+html = html.replace('</body>', SPLASH_JS + '\n</body>')
+
 with open(dist_index, 'w') as f:
     f.write(html)
 
