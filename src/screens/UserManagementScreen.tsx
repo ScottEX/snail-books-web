@@ -62,7 +62,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState(''); // '' | 'normal' | 'disabled'
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   // dropdown states
   const [showStatusDrop, setShowStatusDrop] = useState(false);
   const [showDateDrop, setShowDateDrop] = useState(false);
