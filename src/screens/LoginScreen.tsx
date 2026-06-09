@@ -89,13 +89,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         }
         if (resp.ok) {
           const blob = await resp.blob();
-          const url = URL.createObjectURL(blob);
-          // Set URL first so element mounts at opacity:0, then preload → fade in
-          setAvatarUrl(url);
-          const img = document.createElement('img');
-          img.onload = () => requestAnimationFrame(() => setAvatarReady(true));
-          img.onerror = () => { setAvatarUrl(''); setAvatarReady(true); };
-          img.src = url;
+          setAvatarUrl(URL.createObjectURL(blob));
+          setAvatarReady(true);
         } else {
           setAvatarUrl(''); setAvatarReady(true);
         }
@@ -105,12 +100,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         const bgResp = await fetch(`/api/users/background?username=${encodeURIComponent(username)}`);
         if (bgResp.ok) {
           const blob = await bgResp.blob();
-          const url = URL.createObjectURL(blob);
-          setBgUrl(url);
-          const img = document.createElement('img');
-          img.onload = () => requestAnimationFrame(() => setBgReady(true));
-          img.onerror = () => { setBgUrl(''); setBgReady(true); };
-          img.src = url;
+          setBgUrl(URL.createObjectURL(blob));
+          setBgReady(true);
         } else {
           setBgUrl(''); setBgReady(true);
         }

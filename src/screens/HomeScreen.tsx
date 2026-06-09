@@ -308,14 +308,8 @@ export default function HomeScreen({
     const onBgChanged = (e: any) => {
       const url = e?.detail?.url;
       if (typeof url === 'string') {
-        setBgReady(false);
-        const img = document.createElement('img');
-        img.onload = () => requestAnimationFrame(() => {
-          setBgImage(url);
-          setBgReady(true);
-        });
-        img.onerror = () => { setBgImage(url); setBgReady(true); };
-        img.src = url;
+        setBgImage(url);
+        setBgReady(true);
         setBgVersion(v => v + 1);
       }
     };
@@ -327,15 +321,8 @@ export default function HomeScreen({
   useEffect(() => {
     api.getBackground().then((r: any) => {
       if (r?.url) {
-        // Preload custom bg before showing to enable smooth fade-in
-        setBgReady(false);
-        const img = document.createElement('img');
-        img.onload = () => requestAnimationFrame(() => {
-          setBgImage(r.url);
-          setBgReady(true);
-        });
-        img.onerror = () => { setBgImage('/img/bg.jpg?v=2'); setBgReady(true); };
-        img.src = r.url;
+        setBgImage(r.url);
+        setBgReady(true);
         try { localStorage.setItem('bg-image', r.url); } catch {}
       } else {
         // No custom background — use default
@@ -513,14 +500,8 @@ export default function HomeScreen({
     try {
       const r: any = await api.uploadBackground(file);
       if (r?.url) {
-        setBgReady(false);
-        const img = document.createElement('img');
-        img.onload = () => requestAnimationFrame(() => {
-          setBgImage(r.url);
-          setBgReady(true);
-        });
-        img.onerror = () => { setBgImage(r.url); setBgReady(true); };
-        img.src = r.url;
+        setBgImage(r.url);
+        setBgReady(true);
         try { localStorage.setItem('bg-image', r.url); } catch {}
         setBgVersion(v => v + 1);
       } else { throw new Error(t('uploadFailedShort')); }
