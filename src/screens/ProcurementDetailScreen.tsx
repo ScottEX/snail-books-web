@@ -13,6 +13,7 @@ import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import ImagePreview from '../components/ImagePreview';
 import { formatDate } from '../utils/format';
 import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -70,8 +71,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
-  const [previewOpacity, setPreviewOpacity] = useState(1);
-  const touchStartX = useRef(0);
+
   const [timerSec, setTimerSec] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -157,16 +157,9 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
 
   const openPreview = (idx: number) => {
     setPreviewData({ images: images.length ? images : thumbImgs, idx });
-    setPreviewOpacity(1);
   };
 
-  const navPreview = (newIdx: number) => {
-    setPreviewOpacity(0);
-    setTimeout(() => {
-      setPreviewData(prev => prev ? { ...prev, idx: newIdx } : null);
-      setPreviewOpacity(1);
-    }, 150);
-  };
+
 
   const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
   const images: string[] = batch.images || [];
@@ -305,58 +298,13 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
         onCancel={() => setShowDeleteConfirm(false)}
       />
 
-      {/* Fullscreen image preview — swipe left/right, arrows, counter (matches ExpenseHistoryScreen) */}
       {previewData && (
-        <View style={styles.previewOverlay}
-          onTouchStart={(e: any) => { touchStartX.current = e.nativeEvent.pageX || e.nativeEvent.touches?.[0]?.pageX || 0; }}
-          onTouchEnd={(e: any) => {
-            const endX = e.nativeEvent.pageX || e.nativeEvent.changedTouches?.[0]?.pageX || 0;
-            const dx = endX - touchStartX.current;
-            if (Math.abs(dx) > 60) {
-              if (dx < 0 && previewData.idx < previewData.images.length - 1) {
-                navPreview(previewData.idx + 1);
-              } else if (dx > 0 && previewData.idx > 0) {
-                navPreview(previewData.idx - 1);
-              }
-            }
-          }}>
-          <TouchableOpacity style={styles.previewClose}
-            onPress={() => setPreviewData(null)}
-            activeOpacity={0.7}>
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.surface} strokeWidth={2} strokeLinecap="round">
-              <Path d="M18 6L6 18M6 6l12 12" />
-            </Svg>
-          </TouchableOpacity>
-          {previewData.images.length > 1 && previewData.idx > 0 && (
-            <TouchableOpacity style={styles.previewArrowLeft}
-              onPress={() => navPreview(previewData.idx - 1)}
-              activeOpacity={0.7}>
-              <Text style={styles.previewArrowText}>{'\u2039'}</Text>
-            </TouchableOpacity>
-          )}
-          {previewData.images.length > 1 && previewData.idx < previewData.images.length - 1 && (
-            <TouchableOpacity style={styles.previewArrowRight}
-              onPress={() => navPreview(previewData.idx + 1)}
-              activeOpacity={0.7}>
-              <Text style={styles.previewArrowText}>{'\u203A'}</Text>
-            </TouchableOpacity>
-          )}
-          {React.createElement('img', {
-            src: previewData.images[previewData.idx],
-            key: previewData.idx,
-            decoding: 'async' as any,
-            style: {
-              maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain',
-              opacity: previewOpacity,
-              // @ts-ignore
-              transition: 'opacity 0.2s ease',
-            },
-            alt: 'preview',
-          })}
-          {previewData.images.length > 1 && (
-            <Text style={styles.previewCounter}>{previewData.idx + 1} / {previewData.images.length}</Text>
-          )}
-        </View>
+        <ImagePreview
+          images={previewData.images}
+          initialIdx={previewData.idx}
+          visible={true}
+          onClose={() => setPreviewData(null)}
+        />
       )}
     </View>
   );
@@ -530,33 +478,6 @@ const getStyles = (c: ThemeColors) => {
       fontVariant: ['tabular-nums'] as any,
     },
     // Preview — matches ExpenseHistoryScreen exactly
-    previewOverlay: {
-      position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
-      backgroundColor: 'rgba(0,0,0,0.85)',
-      alignItems: 'center' as const, justifyContent: 'center' as const,
-    },
-    previewClose: {
-      position: 'absolute' as const, top: 48, right: 20, zIndex: 10,
-      width: 36, height: 36, borderRadius: 18,
-      backgroundColor: 'rgba(255,255,255,0.15)',
-      alignItems: 'center' as const, justifyContent: 'center' as const,
-    },
-    previewArrowLeft: {
-      position: 'absolute' as const, left: 16, top: '50%' as any, zIndex: 10,
-      width: 40, height: 40, borderRadius: 20, marginTop: -20,
-      backgroundColor: 'rgba(255,255,255,0.15)',
-      alignItems: 'center' as const, justifyContent: 'center' as const,
-    },
-    previewArrowRight: {
-      position: 'absolute' as const, right: 16, top: '50%' as any, zIndex: 10,
-      width: 40, height: 40, borderRadius: 20, marginTop: -20,
-      backgroundColor: 'rgba(255,255,255,0.15)',
-      alignItems: 'center' as const, justifyContent: 'center' as const,
-    },
-    previewArrowText: { fontSize: FONTS.amount.size, fontWeight: '300' as const, color: c.surface, marginTop: -2 },
-    previewCounter: {
-      position: 'absolute' as const, bottom: 60, zIndex: 10,
-      fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: 'rgba(255,255,255,0.7)',
-    },
+
   });
 };
