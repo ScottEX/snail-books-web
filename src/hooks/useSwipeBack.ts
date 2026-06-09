@@ -3,11 +3,18 @@ import { useRef, useCallback } from 'react';
 /**
  * Swipe-right-from-left-edge to go back.
  * Usage: <View {...useSwipeBack(onBack)}> ... </View>
+ * Skips touch events originating from interactive elements (input, button, etc.).
  */
 export function useSwipeBack(onBack: () => void) {
   const touchRef = useRef({ startX: 0, startY: 0 });
 
   const onTouchStart = useCallback((e: any) => {
+    // Skip if touch originated from an interactive element (input, textarea, button, select, a)
+    const target = e.nativeEvent?.target || e.target;
+    if (target) {
+      const tag = (target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'button' || tag === 'select' || tag === 'a') return;
+    }
     const t = e.nativeEvent?.touches?.[0] || e.nativeEvent;
     touchRef.current = { startX: t.pageX, startY: t.pageY };
   }, []);
