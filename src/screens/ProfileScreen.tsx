@@ -1002,7 +1002,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 16 }}>
               {t('adminCannotDelete')}
             </Text>
-            <TouchableOpacity style={[mo.btn, { backgroundColor: colors.primary }]} onPress={() => setShowAdminBlockModal(false)}>
+            <TouchableOpacity style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center' }} onPress={() => setShowAdminBlockModal(false)}>
               <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>{t('confirm')}</Text>
             </TouchableOpacity>
           </View>
