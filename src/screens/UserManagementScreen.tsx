@@ -343,7 +343,7 @@ const getStyles = (c: ThemeColors) => {
     },
     searchInput: {
       flex: 1, marginLeft: 8, fontSize: 14, color: c.textMain,
-      paddingVertical: 0,
+      paddingVertical: 0, outline: 'none',
     } as any,
     // Filter row
     filterRow: {
@@ -373,7 +373,7 @@ const getStyles = (c: ThemeColors) => {
       flex: 1, height: 34, borderRadius: 8,
       backgroundColor: c.bg,
       paddingHorizontal: 10, fontSize: 13, color: c.textMain,
-      borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.1),
+      borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.1), outline: 'none',
     } as any,
     dateActions: {
       flexDirection: 'row' as const, justifyContent: 'flex-end', gap: 8,

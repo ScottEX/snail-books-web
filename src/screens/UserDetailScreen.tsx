@@ -381,7 +381,7 @@ const getStyles = (c: ThemeColors) => {
     infoValue: { fontSize: 14, fontWeight: '500' as const, color: c.textMain } as any,
     editInput: {
       fontSize: 14, fontWeight: '500' as const, color: c.textMain,
-      textAlign: 'right', borderWidth: 0, outlineWidth: 0,
+      textAlign: 'right', borderWidth: 0, outline: 'none',
       background: 'transparent', padding: 0, flex: 1, minWidth: 60,
     } as any,
     divider: { height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 },
