@@ -61,7 +61,6 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState(''); // '' | 'normal' | 'disabled'
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   // dropdown states
   const [showStatusDrop, setShowStatusDrop] = useState(false);
@@ -69,7 +68,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  const fetchUsers = useCallback(async (p: number, s: string, sts: string, df: string, dt: string) => {
+  const fetchUsers = useCallback(async (s: string, sts: string, df: string, dt: string) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -77,12 +76,10 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       if (sts) params.set('status', sts);
       if (df) params.set('date_from', df);
       if (dt) params.set('date_to', dt);
-      params.set('page', String(p));
-      params.set('per_page', '50');
+      params.set('page', '1');
+      params.set('per_page', '100');
       const url = `/api/admin/users?${params.toString()}`;
-      console.log('[UserMgmt] fetchUsers, url:', url);
       const resp = await fetch(url, { credentials: 'include', headers: { 'X-Lang': getLang() } });
-      console.log('[UserMgmt] fetchUsers resp:', resp.status);
       if (resp.ok) {
         const data = await resp.json();
         setUsers(data.data || []);
@@ -92,7 +89,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchUsers(1, search, statusFilter, dateFrom, dateTo); }, []);
+  useEffect(() => { fetchUsers(search, statusFilter, dateFrom, dateTo); }, []);
 
   // Debounced search-as-you-type
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -103,8 +100,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
       setSearch(searchText);
-      setPage(1);
-      fetchUsers(1, searchText, statusFilter, dateFrom, dateTo);
+      fetchUsers(searchText, statusFilter, dateFrom, dateTo);
     }, 300);
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
   }, [searchText]);
@@ -114,8 +110,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     setStatusFilter(val);
     setSearch(searchText);
     setShowStatusDrop(false);
-    setPage(1);
-    fetchUsers(1, searchText, val, dateFrom, dateTo);
+    fetchUsers(searchText, val, dateFrom, dateTo);
   }, [searchText, dateFrom, dateTo, fetchUsers]);
 
   const applyDate = useCallback((df: string, dt: string) => {
@@ -124,8 +119,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     setDateTo(dt);
     setSearch(searchText);
     setShowDateDrop(false);
-    setPage(1);
-    fetchUsers(1, searchText, statusFilter, df, dt);
+    fetchUsers(searchText, statusFilter, df, dt);
   }, [searchText, statusFilter, fetchUsers]);
 
   const clearDate = useCallback(() => {
@@ -133,8 +127,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     setDateFrom('');
     setDateTo('');
     setSearch(searchText);
-    setPage(1);
-    fetchUsers(1, searchText, statusFilter, '', '');
+    fetchUsers(searchText, statusFilter, '', '');
   }, [searchText, statusFilter, fetchUsers]);
 
   const statusLabel = statusFilter === 'normal' ? t('normalStatus') : statusFilter === 'disabled' ? t('disabledStatus') : t('all');
