@@ -811,10 +811,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     );
                   };
                   return (
-                    <>
-                      <View style={st.catRow}>{cats.slice(0, 2).map(mkChip)}</View>
-                      <View style={st.catRow}>{cats.slice(2, 4).map(mkChip)}</View>
-                    </>
+                    <View style={st.catRow}>{cats.map(mkChip)}</View>
                   );
                 })()}
               </View>
