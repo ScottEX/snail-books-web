@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput } from 'react-native';
-import { useTheme } from '../theme';
+import { useTheme, withAlpha } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 
@@ -25,7 +25,7 @@ export default function ExpenseNoteInput({ value, onChangeText, placeholder, lab
           fontSize: FONTS.sub.size,
           color: c.textMain,
           borderWidth: 0,
-          backgroundColor: c.surface,
+          backgroundColor: withAlpha(c.textMain, 0.03),
           borderRadius: 10,
           padding: 12,
           minHeight: 60,

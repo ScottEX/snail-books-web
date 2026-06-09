@@ -16,6 +16,7 @@ import { formatDate } from '../utils/format';
 import TrashIcon from '../components/icons/TrashIcon';
 import ReceiptUpload from '../components/ReceiptUpload';
 import PaymentMethodChips from '../components/PaymentMethodChips';
+import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import PlusIcon from '../components/icons/PlusIcon';
 
 type SubTab = 'new' | 'history' | 'products';
@@ -1281,11 +1282,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 </Text>
               </View>
 
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                <Text style={[styles.sectionLabel, { marginBottom: 0, marginTop: 9 }]}>{t('procNoteOptional')}</Text>
-                <TextInput style={{ flex: 1, height: 70, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none', textAlignVertical: 'top' } as any}
-                  value={orderNote} onChangeText={setOrderNote} placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`} placeholderTextColor={c.textSub} multiline />
-              </View>
+              <ExpenseNoteInput
+                label={t('procNoteOptional') as string}
+                value={orderNote}
+                onChangeText={setOrderNote}
+                placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`}
+              />
 
               {/* Total + Submit moved to drawer footer */}
             </ScrollView>
