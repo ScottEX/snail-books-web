@@ -19,6 +19,7 @@ import { useExpenseForm } from './expense/useExpenseForm';
 import CategoryChips from '../components/CategoryChips';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
+import ReceiptUpload from '../components/ReceiptUpload';
 
 /* ── helpers ── */
 const fmtInt = (n: number) => n.toLocaleString();
@@ -811,44 +812,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   </View>
                 )}
               </View>
-              <View style={st.imgRow}>
-                {/* Hidden file input */}
-                {React.createElement('input', {
-                  ref: fileInputRef,
-                  type: 'file',
-                  accept: 'image/jpeg,image/png,image/webp',
-                  multiple: true,
-                  onChange: handleImageSelect,
-                  style: { display: 'none' },
-                })}
-                {/* Add button */}
-                <TouchableOpacity style={st.imgAddBtn}
-                  onPress={() => fileInputRef.current?.click()}
-                  activeOpacity={0.7}>
-                  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5} strokeLinecap="round">
-                    <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                    <Circle cx="12" cy="13" r="4" />
-                  </Svg>
-                  <Text style={st.imgAddText}>{t('addImage')}</Text>
-                </TouchableOpacity>
-                {/* Image previews */}
-                {expImages.map((file, i) => (
-                  <View key={`img-${i}`} style={st.imgPreview}>
-                    {React.createElement('img', {
-                      src: getPreviewUrl(file),
-                      style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' },
-                      alt: file.name,
-                    })}
-                    <TouchableOpacity style={st.imgRemove}
-                      onPress={() => removeImage(i)}
-                      activeOpacity={0.7}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth={2.5} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12" />
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
+              <ReceiptUpload
+                newFiles={expImages}
+                onAdd={(files: File[]) => handleImageSelect({ target: { files: files as any, value: '' } } as any)}
+                onRemoveNew={removeImage}
+                getPreviewUrl={getPreviewUrl}
+                thumbSize={92}
+              />
               {/* 日期选择 */}
               <View style={st.expDateRow}>
                 <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5}>

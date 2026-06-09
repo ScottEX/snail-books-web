@@ -19,6 +19,7 @@ import { useSwipeBack } from '../hooks/useSwipeBack';
 import CategoryChips from '../components/CategoryChips';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
+import ReceiptUpload from '../components/ReceiptUpload';
 
 const todayStr = () => {
   const d = new Date();
@@ -104,7 +105,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   const [images, setImages] = useState<string[]>(parseImages(record.images));
 
   const [newFiles, setNewFiles] = useState<File[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const urlCache = useRef<Map<File, string>>(new Map());
 
@@ -171,15 +171,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
     const file = newFiles[idx];
     if (file) { const u = urlCache.current.get(file); if (u) URL.revokeObjectURL(u); urlCache.current.delete(file); }
     setNewFiles(prev => prev.filter((_, i) => i !== idx));
-  };
-
-  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    const arr: File[] = [];
-    for (let i = 0; i < files.length; i++) arr.push(files[i]);
-    setNewFiles(prev => [...prev, ...arr]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const openPreview = (idx: number) => {
@@ -368,41 +359,17 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
             {/* Note */}
             <ExpenseNoteInput value={note} onChangeText={setNote} />
 
-            {/* Images — add square button inline with image grid, same as ExpenseScreen */}
+            {/* Images */}
             <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>{t('uploadImage')}</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {React.createElement('input', { ref: fileInputRef, type: 'file', accept: 'image/*', multiple: true, onChange: handleFilePick, style: { display: 'none' } })}
-              <TouchableOpacity
-                style={{ width: thumbSize, height: thumbSize, borderRadius: 8, borderWidth: 1.5, borderStyle: 'dashed' as any, borderColor: c.secondary, backgroundColor: c.surface, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 4 }}
-                onPress={() => fileInputRef.current?.click()} activeOpacity={0.7}>
-                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={1.5} strokeLinecap="round">
-                  <Path d="M12 5v14M5 12h14"/>
-                </Svg>
-                <Text style={{ fontSize: 10, color: c.textSub }}>{t('uploadImage')}</Text>
-              </TouchableOpacity>
-              {images.map((url: string, i: number) => (
-                <View key={i} style={{ position: 'relative' }}>
-                  <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
-                  <TouchableOpacity onPress={() => removeImage(i)} activeOpacity={0.7}
-                    style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
-                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
-                      <Path d="M18 6L6 18M6 6l12 12"/>
-                    </Svg>
-                  </TouchableOpacity>
-                </View>
-              ))}
-              {newFiles.map((file: File, i: number) => (
-                <View key={`new-${i}`} style={{ position: 'relative' }}>
-                  <Image source={{ uri: getPreviewUrl(file) }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
-                  <TouchableOpacity onPress={() => removeNewFile(i)} activeOpacity={0.7}
-                    style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
-                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth={2} strokeLinecap="round">
-                      <Path d="M18 6L6 18M6 6l12 12"/>
-                    </Svg>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
+            <ReceiptUpload
+              existingImages={images}
+              newFiles={newFiles}
+              onAdd={(files: File[]) => setNewFiles(prev => [...prev, ...files])}
+              onRemoveExisting={removeImage}
+              onRemoveNew={removeNewFile}
+              getPreviewUrl={getPreviewUrl}
+              thumbSize={thumbSize}
+            />
           </View>
         )}
 
