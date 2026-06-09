@@ -101,6 +101,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   const [date, setDate] = useState(record.date || record.created_at?.slice(0, 10) || todayStr());
   const [note, setNote] = useState(record.note || '');
   const [images, setImages] = useState<string[]>(parseImages(record.images));
+  const [thumbImages, setThumbImages] = useState<string[]>(parseImages(record.thumb_images));
 
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const dateInputRef = useRef<HTMLInputElement>(null);
@@ -112,6 +113,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
     date !== (record.date || record.created_at?.slice(0, 10) || todayStr()) ||
     note !== (record.note || '') ||
     JSON.stringify(images) !== JSON.stringify(parseImages(record.images)) ||
+    JSON.stringify(thumbImages) !== JSON.stringify(parseImages(record.thumb_images)) ||
     newFiles.length > 0;
 
   const getPreviewUrl = (file: File) => {
@@ -133,14 +135,17 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
     setSaving(true);
     try {
       let finalImages = images;
+      let finalThumbs = thumbImages;
       if (newFiles.length > 0) {
         const uploadRes = await api.uploadExpenseImages(newFiles);
         finalImages = [...images, ...(uploadRes.images || [])];
+        finalThumbs = [...thumbImages, ...(uploadRes.thumb_images || uploadRes.images || [])];
       }
-      await api.updateTransaction(record.id, { amount: amt, category, account, date, note, images: finalImages });
+      await api.updateTransaction(record.id, { amount: amt, category, account, date, note, images: finalImages, thumb_images: finalThumbs });
       record.amount = amt; record.category = category; record.account = account;
       record.date = date; record.note = note; record.images = JSON.stringify(finalImages);
-      setImages(finalImages); setNewFiles([]); setEditMode(false);
+      record.thumb_images = JSON.stringify(finalThumbs);
+      setImages(finalImages); setThumbImages(finalThumbs); setNewFiles([]); setEditMode(false);
       setShowSavedConfirm(true);
       onEdited?.();
     } catch (e: any) {
@@ -164,7 +169,10 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
     }
   };
 
-  const removeImage = (idx: number) => setImages(prev => prev.filter((_, i) => i !== idx));
+  const removeImage = (idx: number) => {
+    setImages(prev => prev.filter((_, i) => i !== idx));
+    setThumbImages(prev => prev.filter((_, i) => i !== idx));
+  };
   const removeNewFile = (idx: number) => {
     const file = newFiles[idx];
     if (file) { const u = urlCache.current.get(file); if (u) URL.revokeObjectURL(u); urlCache.current.delete(file); }
@@ -375,6 +383,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                 setCategory(record.category || 'daily'); setAccount(record.account || 'payWechat');
                 setAmount(toDec2(record.amount)); setDate(record.date || record.created_at?.slice(0, 10) || todayStr());
                 setNote(record.note || ''); setImages(parseImages(record.images));
+                setThumbImages(parseImages(record.thumb_images));
                 newFiles.forEach(f => { const u = urlCache.current.get(f); if (u) URL.revokeObjectURL(u); });
                 urlCache.current.clear(); setNewFiles([]); setEditMode(false);
               }} activeOpacity={0.7}>
