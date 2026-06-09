@@ -16,6 +16,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bgUrl, setBgUrl] = useState('');
+  const [bgReady, setBgReady] = useState(false);
+  const [avatarReady, setAvatarReady] = useState(false);
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [email, setEmail] = useState('');
@@ -77,7 +79,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   // Fetch avatar & background when username changes (debounced)
   useEffect(() => {
-    if (!username) { setAvatarUrl(''); setBgUrl(''); return; }
+    if (!username) { setAvatarUrl(''); setBgUrl(''); setBgReady(false); setAvatarReady(false); return; }
+    setBgReady(false); setAvatarReady(false);
     const timer = setTimeout(async () => {
       try {
         let resp = await fetch(`/api/users/avatar?username=${encodeURIComponent(username)}`);
@@ -86,21 +89,30 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         }
         if (resp.ok) {
           const blob = await resp.blob();
-          setAvatarUrl(URL.createObjectURL(blob));
+          const url = URL.createObjectURL(blob);
+          // Preload before showing — avoid flash
+          const img = new Image();
+          img.onload = () => { setAvatarUrl(url); setAvatarReady(true); };
+          img.onerror = () => { setAvatarUrl(''); setAvatarReady(true); };
+          img.src = url;
         } else {
-          setAvatarUrl('');
+          setAvatarUrl(''); setAvatarReady(true);
         }
-      } catch { setAvatarUrl(''); }
+      } catch { setAvatarUrl(''); setAvatarReady(true); }
 
       try {
         const bgResp = await fetch(`/api/users/background?username=${encodeURIComponent(username)}`);
         if (bgResp.ok) {
           const blob = await bgResp.blob();
-          setBgUrl(URL.createObjectURL(blob));
+          const url = URL.createObjectURL(blob);
+          const img = new Image();
+          img.onload = () => { setBgUrl(url); setBgReady(true); };
+          img.onerror = () => { setBgUrl(''); setBgReady(true); };
+          img.src = url;
         } else {
-          setBgUrl('');
+          setBgUrl(''); setBgReady(true);
         }
-      } catch { setBgUrl(''); }
+      } catch { setBgUrl(''); setBgReady(true); }
     }, 400);
     return () => clearTimeout(timer);
   }, [username]);
@@ -266,17 +278,19 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   return (
     <View style={styles.container}>
-      {/* Background layers */}
-      <View style={[styles.bgWrapper, bgUrl ? { backgroundImage: `url(${bgUrl})` } as any : {}]} />
+      {/* Background layers — default always visible, custom fades in on top */}
+      <View style={styles.bgWrapper} />
+      {!!bgUrl && <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: `url(${bgUrl})` } as any, { opacity: bgReady ? 1 : 0 }]} />}
       <View style={styles.bgOverlay} />
       <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
         <View style={styles.brand}>
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.logo} />
-          ) : (
+          <View style={styles.logoWrap}>
             <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
-          )}
+            {avatarReady && avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={[styles.logo, styles.logoOver]} />
+            ) : null}
+          </View>
           <Text style={styles.subtitle}>{t('subtitle')}</Text>
           <View style={styles.langRow}>
             {langs.map(([l, label]) => (
@@ -569,6 +583,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only
     backgroundImage: 'url(/img/bg.jpg?v=2)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
+  bgCustom: { zIndex: 0, transition: 'opacity 0.4s ease' },
   bgOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
   content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
@@ -580,6 +595,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)',
   },
   logo: { width: 80, height: 80, borderRadius: 40, marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)' } as any,
+  logoOver: { position: 'absolute' as any, top: 0, left: 0, marginBottom: 0, transition: 'opacity 0.4s ease' },
   subtitle: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
   langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
   langBtn: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
