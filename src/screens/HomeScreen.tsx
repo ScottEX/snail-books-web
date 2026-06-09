@@ -71,6 +71,7 @@ export default function HomeScreen({
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
   const [expDetailRecord, setExpDetailRecord] = useState<any>(null);
+  const [expenseRefreshKey, setExpenseRefreshKey] = useState(0);
   // External signal for ProcurementScreen.edit flow. When set, the
   // newly-mounted ProcurementScreen instance (which mounts when
   // popPage flips pageStack empty after the 280ms slide-out) will
@@ -560,13 +561,14 @@ export default function HomeScreen({
           <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => loadData()} />
         ) : null;
       case 'expense':
-        return <ExpenseHistoryScreen onBack={onBack} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} />;
+        return <ExpenseHistoryScreen onBack={onBack} refreshKey={expenseRefreshKey} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} />;
       case 'expdetail':
         return expDetailRecord ? (
           <ExpenseDetailScreen
             record={expDetailRecord}
             onBack={onBack}
-            onDeleted={() => loadData()}
+            onDeleted={() => { setExpenseRefreshKey(k => k + 1); loadData(); }}
+            onEdited={() => { setExpenseRefreshKey(k => k + 1); }}
           />
         ) : null;
       case 'daily':

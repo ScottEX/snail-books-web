@@ -80,10 +80,11 @@ const payIcons: Record<string, (color: string) => React.ReactNode> = {
 
 const payIconBg: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
 
-export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
+export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdited }: {
   record: ExpenseRecord;
   onBack: () => void;
   onDeleted?: () => void;
+  onEdited?: () => void;
 }) {
   const { colors: c, theme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
@@ -159,6 +160,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted }: {
       record.date = date; record.note = note; record.images = JSON.stringify(finalImages);
       setImages(finalImages); setNewFiles([]); setEditMode(false);
       setShowSavedConfirm(true);
+      onEdited?.();
     } catch (e: any) {
       setToast(e?.message || t('errNetworkError'));
     } finally {

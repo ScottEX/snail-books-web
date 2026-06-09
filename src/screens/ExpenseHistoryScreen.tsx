@@ -46,7 +46,7 @@ function ExpenseEmptyIcon({ color }: { color: string }) {
   );
 }
 
-export default function ExpenseHistoryScreen({ onBack, onExpDetail }: { onBack: () => void; onExpDetail?: (e: any) => void }) {
+export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void }) {
   const [records, setRecords] = useState<any[]>([]);
   const swipeBack = useSwipeBack(onBack);
   const [page, setPage] = useState(1);
@@ -136,7 +136,7 @@ export default function ExpenseHistoryScreen({ onBack, onExpDetail }: { onBack: 
   useEffect(() => {
     setRecords([]);
     loadPage(1, true);
-  }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filterKey, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Current user for displaying who filled each record
   const currentUser = getCurrentUser();
