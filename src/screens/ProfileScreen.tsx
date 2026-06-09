@@ -301,7 +301,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     } finally {
       setDeleteLoading(false);
     }
-    }
   };
 
   // ── Avatar upload flow ──
