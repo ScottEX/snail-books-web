@@ -17,6 +17,7 @@ import { fmtAmt as fmt } from '../utils/format';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
 import CategoryChips from '../components/CategoryChips';
+import ButtonPair from '../components/ButtonPair';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
@@ -751,20 +752,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
 
-            {/* 按钮行：对账记录(左) + 添加(右) */}
-            <View style={st.btnRow}>
-              <TouchableOpacity style={st.reconRecordBtn} onPress={onReconHistory} activeOpacity={0.8}>
-                <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[st.reconBtn, !hasReconChanges && { opacity: 0.4 }]}
-                onPress={() => hasReconChanges && setShowToast(true)}
-                activeOpacity={hasReconChanges ? 0.8 : 1}
-                disabled={!hasReconChanges}
-              >
-                <Text style={st.reconBtnText}>{t('reconComplete')}</Text>
-              </TouchableOpacity>
-            </View>
+            <ButtonPair
+              leftLabel={t('reconHistory')}
+              leftOnPress={onReconHistory}
+              rightLabel={t('reconComplete')}
+              rightOnPress={() => hasReconChanges && setShowToast(true)}
+              rightDisabled={!hasReconChanges}
+            />
           </View>
         </FadeInView>
         )}
@@ -839,26 +833,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} color={colors.danger} textAlign="left" />
                 </View>
               </View>
-              {/* 按钮行 */}
-              <View style={st.btnRow}>
-                <TouchableOpacity style={st.reconRecordBtn}
-                  onPress={() => onExpenseHistory?.()} activeOpacity={0.8}>
-                  <Text style={st.reconRecordBtnText}>{t('expenseHistory')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[st.expBtn, { flex: 1 }]}
-                  onPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) > 0) setShowExpConfirm(true); }}
-                  disabled={isAmountInvalid}
-                  activeOpacity={0.8}
-                >
-                  <Text style={st.expBtnText}>
-                    {loadingExp ? '...' : t('confirmRecord')}
-                  </Text>
-                  {isAmountInvalid && (
-                    <View style={st.expBtnMask} />
-                  )}
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('expenseHistory')}
+                leftOnPress={() => onExpenseHistory?.()}
+                rightLabel={loadingExp ? '...' : t('confirmRecord')}
+                rightOnPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) > 0) setShowExpConfirm(true); }}
+                rightDisabled={isAmountInvalid}
+              />
             </View>
           </View>
         </FadeInView>
@@ -1368,24 +1349,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   resultVal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   resultDiff: { fontSize: FONTS.h1.size, fontWeight: FONTS.amount.weight, letterSpacing: -0.5 },
   /* ── Recon buttons ── */
-  btnRow: {
-    flexDirection: 'row', gap: 10, marginTop: 4,
-  },
-  reconBtn: {
-    flex: 1, backgroundColor: colors.primary, borderRadius: 12,
-    paddingVertical: 14, alignItems: 'center',
-  },
-  reconBtnText: {
-    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface,
-  },
-  reconRecordBtn: {
-    flex: 1, backgroundColor: colors.secondary, borderRadius: 12,
-    paddingVertical: 14, alignItems: 'center',
-    borderWidth: 1, borderColor: colors.secondary,
-  },
-  reconRecordBtnText: {
-    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub,
-  },
 
   /* ── KPI ── */
   kpiRow: { flexDirection: 'column' },
@@ -1446,15 +1409,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   catSectionTitle: { fontSize: 14, color: colors.textSub, fontWeight: FONTS.microBold.weight, marginBottom: 10 },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   expCatLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
-  expBtn: {
-    backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14,
-    alignItems: 'center', position: 'relative', overflow: 'hidden',
-  },
-  expBtnMask: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 12,
-  },
-  expBtnText: { color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   /* ── Expense list ── */
   expRow: {

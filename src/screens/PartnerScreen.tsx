@@ -23,6 +23,7 @@ import PlusIcon from '../components/icons/PlusIcon';
 import MinusIcon from '../components/icons/MinusIcon';
 import { getCurrentUserId } from '../utils/storage';
 import { useCropCanvas } from '../hooks/useCropCanvas';
+import ButtonPair from '../components/ButtonPair';
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
@@ -636,14 +637,12 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                   </View>
                 ))}
               </View>
-              <View style={moBody.btnRow}>
-                <TouchableOpacity style={moBody.cancelBtn} onPress={() => setShowDividend(false)}>
-                  <Text style={moBody.cancelBtnText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={moBody.confirmBtn} onPress={handleDividend}>
-                  <Text style={moBody.confirmBtnText}>{t('confirmIssue')}</Text>
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={() => setShowDividend(false)}
+                rightLabel={t('confirmIssue')}
+                rightOnPress={handleDividend}
+              />
             </View>
           </View>
         </ModalOverlay>
@@ -1037,12 +1036,6 @@ const getMoBody = (colors: ThemeColors) => StyleSheet.create({
   previewRow: { flexDirection: 'row', justifyContent: 'space-between' },
   previewName: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
   previewAmt: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textMain },
-  btnRow: { flexDirection: 'row', gap: 12, paddingTop: 4 },
-  cancelBtn: { flex: 1, backgroundColor: colors.bg, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
-  cancelBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
-  confirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
-  confirmBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.surface },
-  deleteConfirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   deleteBox: { backgroundColor: withAlpha(colors.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' },
   deleteText: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
 });

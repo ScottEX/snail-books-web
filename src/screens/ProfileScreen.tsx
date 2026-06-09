@@ -17,6 +17,7 @@ import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import { useProfileForms } from './profile/useProfileForms';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCropCanvas } from '../hooks/useCropCanvas';
+import ButtonPair from '../components/ButtonPair';
 
 /* ========== MAIN SCREEN ========== */
 function ChevronRight({ color }: { color: string }) {
@@ -1006,20 +1007,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               onChangeText={setDeleteConfirmUsername}
               autoFocus
             />
-            <View style={mo.btnRow}>
-              <TouchableOpacity style={mo.cancelBtn} onPress={() => { setShowDeleteModal(false); setDeleteConfirmUsername(''); }}>
-                <Text style={mo.cancelText}>{t('cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[mo.confirmBtn, { backgroundColor: colors.primary }, (deleteConfirmUsername !== username) && { opacity: 0.5 }]}
-                onPress={handleDeleteAccount}
-                disabled={deleteLoading || deleteConfirmUsername !== username}
-              >
-                <Text style={mo.confirmText}>
-                  {deleteLoading ? '...' : t('deleteAccountBtn')}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <ButtonPair
+              leftLabel={t('cancel')}
+              leftOnPress={() => { setShowDeleteModal(false); setDeleteConfirmUsername(''); }}
+              rightLabel={deleteLoading ? '...' : t('deleteAccountBtn')}
+              rightOnPress={handleDeleteAccount}
+              rightDisabled={deleteLoading || deleteConfirmUsername !== username}
+            />
           </View>
         </View>
       </ModalOverlay>
@@ -1072,18 +1066,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                 onChangeText={setConfirmPw}
               />
               {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
-              <View style={mo.btnRow}>
-                <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowPwModal(false)}>
-                  <Text style={mo.cancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
-                  onPress={handleChangePw}
-                  disabled={modalLoading}
-                >
-                  <Text style={mo.confirmText}>{modalLoading ? '...' : t('confirm')}</Text>
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={() => setShowPwModal(false)}
+                rightLabel={modalLoading ? '...' : t('confirm')}
+                rightOnPress={handleChangePw}
+                rightDisabled={modalLoading}
+              />
             </View>
         </View>
       </ModalOverlay>
@@ -1110,18 +1099,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                     keyboardType="email-address"
                   />
                   {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
-                  <View style={mo.btnRow}>
-                    <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowEmailModal(false)}>
-                      <Text style={mo.cancelText}>{t('cancel')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
-                      onPress={handleSendCode}
-                      disabled={modalLoading}
-                    >
-                      <Text style={mo.confirmText}>{modalLoading ? '...' : t('sendCode')}</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <ButtonPair
+                    leftLabel={t('cancel')}
+                    leftOnPress={() => setShowEmailModal(false)}
+                    rightLabel={modalLoading ? '...' : t('sendCode')}
+                    rightOnPress={handleSendCode}
+                    rightDisabled={modalLoading}
+                  />
                 </>
               ) : (
                 <>
@@ -1139,21 +1123,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                     keyboardType="number-pad"
                   />
                   {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
-                  <View style={mo.btnRow}>
-                    <TouchableOpacity style={mo.cancelBtn} onPress={() => setEmailStep('input')}>
-                      <Text style={mo.cancelText}>{t('back')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
-                      onPress={() => handleVerifyEmail((newEm: string) => {
-                        setEmail(newEm);
-                        try { localStorage.setItem('email', newEm); } catch {}
-                      })}
-                      disabled={modalLoading}
-                    >
-                      <Text style={mo.confirmText}>{modalLoading ? t('verifying') : t('confirm')}</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <ButtonPair
+                    leftLabel={t('back')}
+                    leftOnPress={() => setEmailStep('input')}
+                    rightLabel={modalLoading ? t('verifying') : t('confirm')}
+                    rightOnPress={() => handleVerifyEmail((newEm: string) => {
+                      setEmail(newEm);
+                      try { localStorage.setItem('email', newEm); } catch {}
+                    })}
+                    rightDisabled={modalLoading}
+                  />
                 </>
               )}
             </View>
@@ -1543,19 +1522,6 @@ function getMo(colors: ThemeColors) {
     },
     pwHint: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 18 },
     err: { fontSize: FONTS.micro.size, color: colors.danger },
-    btnRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
-    cancelBtn: {
-      flex: 1, paddingVertical: 12, borderRadius: 10,
-      borderWidth: 1, borderColor: colors.primary,
-      justifyContent: 'center', alignItems: 'center',
-    },
-    cancelText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
-    confirmBtn: {
-      flex: 1, paddingVertical: 12, borderRadius: 10,
-      backgroundColor: colors.primary,
-      justifyContent: 'center', alignItems: 'center',
-    },
-    confirmText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
   });
 }
 
