@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
-import { useTheme } from '../theme';
+import { useTheme, withAlpha } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 
@@ -38,7 +38,7 @@ export default function PaymentMethodChips({ selected, onSelect }: Props) {
     <View style={{ flexDirection: 'row', gap: 8 }}>
       {METHODS.map(m => {
         const active = selected === m;
-        const bg = active ? (activeBg[m] || c.primary) : c.bg;
+        const bg = active ? (activeBg[m] || c.primary) : withAlpha(c.textMain, 0.06);
         const iconColor = active ? c.surface : c.textSub;
         return (
           <TouchableOpacity

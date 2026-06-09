@@ -15,6 +15,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import { formatDate } from '../utils/format';
 import TrashIcon from '../components/icons/TrashIcon';
 import ReceiptUpload from '../components/ReceiptUpload';
+import PaymentMethodChips from '../components/PaymentMethodChips';
 import PlusIcon from '../components/icons/PlusIcon';
 
 type SubTab = 'new' | 'history' | 'products';
@@ -52,27 +53,6 @@ function CheckIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-// Payment SVG icons — clean, modern design
-const PAY_ICONS: Record<string, (color: string) => React.ReactNode> = {
-  payCash: (color: string) => (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x="1" y="4" width="22" height="16" rx="2" />
-      <Path d="M1 10h22" />
-      <Circle cx="12" cy="12" r="3" />
-    </Svg>
-  ),
-  payWechat: (color: string) => (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z" />
-    </Svg>
-  ),
-  payAlipay: (color: string) => (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <Path d="M9 12l2 2 4-4" />
-    </Svg>
-  ),
-};
 function BoxIcon({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -126,9 +106,6 @@ const sortByOrder = (a: string, b: string) => {
   if (bi === -1) return -1;
   return ai - bi;
 };
-
-const PAY_KEYS = ['payCash', 'payWechat', 'payAlipay'] as const;
-const CHIP_ICON_BG: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
 
 // ═══════════════════════════════════════════════
 // Styles
@@ -232,25 +209,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   dateCatLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain },
   dateCatValue: { fontSize: FONTS.sub.size, color: c.textSub, flexDirection: 'row' as const, alignItems: 'center' as const },
 
-  // Payment capsules (matching ExpenseScreen)
   sectionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 6 },
-  payRow: { flexDirection: 'row' as const, gap: 6, marginBottom: 12 },
-  payChip: {
-    flex: 1, flexDirection: 'row' as const, paddingVertical: 8, borderRadius: 22,
-    backgroundColor: c.bg,
-    alignItems: 'center' as const, justifyContent: 'center' as const,
-  },
-  payChipOn: { backgroundColor: c.primary },
-  payChipOnWechat: { backgroundColor: '#07C160' },
-  payChipOnAlipay: { backgroundColor: '#1677FF' },
-  payChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textSub },
-  payChipTextOn: { color: c.surface },
-
-  chipIconCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const, justifyContent: 'center' as const, marginRight: 4 },
-  chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
-
-  // Upload (expense page style)
-  // Image upload — now in sharedStyles
 
   // Items row
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
@@ -1291,24 +1250,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 </View>
               </View>
 
-              {/* Payment method capsules */}
+              {/* Payment method */}
               <Text style={styles.sectionLabel}>{t('procPaymentMethod')}</Text>
-              <View style={styles.payRow}>
-                {PAY_KEYS.map(pm => {
-                  const active = payMethod === pm;
-                  const isWechat = pm === 'payWechat';
-                  const isAlipay = pm === 'payAlipay';
-                  return (
-                    <TouchableOpacity key={pm}
-                      style={[styles.payChip, active && (isWechat ? styles.payChipOnWechat : isAlipay ? styles.payChipOnAlipay : styles.payChipOn)]}
-                      onPress={() => setPayMethod(pm)} activeOpacity={0.7}>
-                      <View style={[styles.chipIconCircle, active && { backgroundColor: CHIP_ICON_BG[pm] }]}>
-                        {PAY_ICONS[pm](active ? c.surface : c.textSub)}
-                      </View>
-                      <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{t(pm as any)}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              <View style={{ marginBottom: 12 }}>
+                <PaymentMethodChips selected={payMethod} onSelect={(m) => setPayMethod(m as PayMethod)} />
               </View>
 
               {/* Upload receipts */}
