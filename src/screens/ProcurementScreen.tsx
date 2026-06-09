@@ -14,7 +14,7 @@ import Toast from '../components/Toast';
 import ConfirmModal from '../components/ConfirmModal';
 import { formatDate } from '../utils/format';
 import TrashIcon from '../components/icons/TrashIcon';
-import CameraIcon from '../components/icons/CameraIcon';
+import ReceiptUpload from '../components/ReceiptUpload';
 import PlusIcon from '../components/icons/PlusIcon';
 
 type SubTab = 'new' | 'history' | 'products';
@@ -377,7 +377,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [payMethod, setPayMethod] = useState<PayMethod>('payWechat');
   const [orderNote, setOrderNote] = useState('');
   const [receipts, setReceipts] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   // Edit mode: when set, the drawer is editing this batch instead of creating a new one
   const [editingBatchId, setEditingBatchId] = useState<number | null>(null);
@@ -389,7 +388,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
 
   const [showImgTip, setShowImgTip] = useState(false);
-  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [itemsModalIsCart, setItemsModalIsCart] = useState(false);
@@ -704,21 +702,23 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setEditingPrice(null);
   };
 
-  // ── File upload (matching ExpenseScreen pattern) ──
-  const handleFileSelect = async (e: any) => {
-    const files = e.target?.files || e.nativeEvent?.target?.files;
-    if (!files || files.length === 0) return;
+  // ── File upload (using shared ReceiptUpload) ──
+  const handleAddFiles = async (files: File[]) => {
     const newFiles: File[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) continue;
-      if (f.size > 10 * 1024 * 1024) continue;
+    for (const f of files) {
       if (receipts.some(r => r.name === f.name && r.size === f.size)) continue;
       const compressed = await compressImage(f);
       newFiles.push(compressed);
     }
     setReceipts(prev => [...prev, ...newFiles]);
-    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const handleRemoveNewFile = (i: number) => {
+    setReceipts(prev => {
+      const removed = prev[i];
+      if (removed) revokePreviewUrl(removed);
+      return prev.filter((_, idx) => idx !== i);
+    });
   };
 
   const urlCache = useRef<Map<File, string>>(new Map());
@@ -741,14 +741,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     };
   }, []);
 
-  const removeReceipt = (i: number) => {
-    setReceipts(prev => {
-      const removed = prev[i];
-      if (removed) revokePreviewUrl(removed);
-      return prev.filter((_, idx) => idx !== i);
-    });
-  };
-
   const submitOrder = async () => {
     if (cartItems.length === 0) return;
     setSubmitting(true);
@@ -757,9 +749,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       let newImageUrls: string[] = [];
       let newThumbUrls: string[] = [];
       if (receipts.length > 0) {
-        setUploading(true);
         const result = await api.uploadExpenseImages(receipts);
-        setUploading(false);
         if (result.status !== 'ok') {
           setSubmitting(false);
           setToastMsg(t('toastSubmitFailed'));
@@ -830,7 +820,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       setToastMsg(t('toastSubmitFailed'));
       setShowToast(true);
     }
-    setSubmitting(false); setUploading(false);
+    setSubmitting(false);
   };
 
   // Open drawer in edit mode, prefilled from the batch
@@ -1324,7 +1314,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 })}
               </View>
 
-              {/* Upload receipts (expense page style) */}
+              {/* Upload receipts */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                 <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
                 <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: c.secondary, alignItems: 'center', justifyContent: 'center' }}>
@@ -1336,41 +1326,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   </View>
                 )}
               </View>
-              <View style={styles.imgRow}>
-                {React.createElement('input', {
-                  ref: fileRef, type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true,
-                  onChange: handleFileSelect, style: { display: 'none' },
-                })}
-                <TouchableOpacity style={styles.imgAddBtn} onPress={() => fileRef.current?.click()} activeOpacity={0.7}>
-                  <CameraIcon color={c.textSub} />
-                  <Text style={styles.imgAddText}>{t('addImage')}</Text>
-                </TouchableOpacity>
-                {existingImageUrls.map((url, i) => (
-                  <View key={`exist-${i}`} style={styles.imgPreview}>
-                    {React.createElement('img', {
-                      src: url, style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' } as any,
-                    })}
-                    <TouchableOpacity style={styles.imgRemove} onPress={() => removeExistingImage(i)} activeOpacity={0.7}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12" />
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-                {receipts.map((file, i) => (
-                  <View key={`rec-${i}`} style={styles.imgPreview}>
-                    {React.createElement('img', {
-                      src: getPreviewUrl(file), style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' } as any,
-                    })}
-                    <TouchableOpacity style={styles.imgRemove} onPress={() => removeReceipt(i)} activeOpacity={0.7}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12" />
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-                {uploading && <ActivityIndicator color={c.primary} style={{ marginLeft: 8 }} />}
-              </View>
+              <ReceiptUpload
+                existingImages={existingImageUrls}
+                newFiles={receipts}
+                onAdd={handleAddFiles}
+                onRemoveExisting={removeExistingImage}
+                onRemoveNew={handleRemoveNewFile}
+                getPreviewUrl={getPreviewUrl}
+                thumbSize={92}
+              />
 
               {/* Items row — matching 近7天 pattern: label left, theme button right */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
