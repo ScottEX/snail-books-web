@@ -172,12 +172,14 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   };
 
   const openPreview = (idx: number) => {
-    setPreviewData({ images: displayImgs, idx });
+    setPreviewData({ images: previewImgs, idx });
   };
 
 
 
-  const displayImgs = parseImages(record.images);
+  const thumbImgs = parseImages(record.thumb_images);
+  const displayImgs = thumbImgs.length > 0 ? thumbImgs : parseImages(record.images);
+  const previewImgs = parseImages(record.images);
   const currentUser = getCurrentUser();
   const [avatarUrl, setAvatarUrl] = useState('');
 
