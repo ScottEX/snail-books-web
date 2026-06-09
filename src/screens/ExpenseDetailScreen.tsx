@@ -17,6 +17,8 @@ import TrashIcon from '../components/icons/TrashIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import CategoryChips from '../components/CategoryChips';
+import PaymentMethodChips from '../components/PaymentMethodChips';
+import ExpenseNoteInput from '../components/ExpenseNoteInput';
 
 const todayStr = () => {
   const d = new Date();
@@ -53,9 +55,6 @@ interface ExpenseRecord {
   proc_batch_number?: string | null;
 }
 
-const CATEGORIES = ['daily', 'rent', 'salary', 'goods'] as const;
-const PAY_METHODS = ['payCash', 'payWechat', 'payAlipay'] as const;
-
 function parseImages(raw: any): string[] {
   if (!raw) return [];
   if (Array.isArray(raw)) return raw;
@@ -64,15 +63,6 @@ function parseImages(raw: any): string[] {
   }
   return [];
 }
-
-/* ── SVG icons ── */
-const payIcons: Record<string, (color: string) => React.ReactNode> = {
-  payCash: (color: string) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
-  payWechat: (color: string) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
-  payAlipay: (color: string) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
-};
-
-const payIconBg: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
 
 export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdited }: {
   record: ExpenseRecord;
@@ -357,21 +347,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
             {/* Payment */}
             <Text style={styles.sectionTitle}>{t('paymentMethod')}</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {PAY_METHODS.map(m => {
-                const active = account === m;
-                return (
-                  <TouchableOpacity key={m}
-                    style={[styles.chip, active && { backgroundColor: payIconBg[m] || c.primary }]}
-                    onPress={() => setAccount(m)} activeOpacity={0.7}>
-                    <View style={[styles.chipIconCircle, active && styles.chipIconCircleActive]}>
-                      {payIcons[m](active ? '#fff' : c.textSub)}
-                    </View>
-                    <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>{trPayment(m)}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            <PaymentMethodChips selected={account} onSelect={setAccount} />
 
             {/* Date — label inline with picker on same row */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -389,15 +365,8 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               </TouchableOpacity>
             </View>
 
-            {/* Note — row layout: label left, input right, top-aligned (matches procurement cart) */}
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-              <Text style={[styles.sectionTitle, { marginBottom: 0, marginTop: 9, textTransform: 'none' as any }]}>{t('expenseNote')}</Text>
-              <TextInput
-                style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textMain, borderWidth: 0, backgroundColor: withAlpha(c.textMain, 0.03), borderRadius: 8, paddingHorizontal: 10, paddingVertical: 9, minHeight: 70, outline: 'none', textAlignVertical: 'top' } as any}
-              value={note} onChangeText={setNote}
-              placeholder={t('expenseNote')} placeholderTextColor={c.textSub}
-              multiline numberOfLines={3} />
-            </View>
+            {/* Note */}
+            <ExpenseNoteInput value={note} onChangeText={setNote} />
 
             {/* Images — add square button inline with image grid, same as ExpenseScreen */}
             <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>{t('uploadImage')}</Text>
@@ -647,20 +616,6 @@ const getStyles = (c: ThemeColors) => {
       width: 72, height: 72, borderRadius: 8, marginRight: 8,
       borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     },
-    // Edit chips
-    chip: {
-      flex: 1, flexDirection: 'row' as const, paddingVertical: 8, borderRadius: 22,
-      backgroundColor: c.bg, alignItems: 'center' as const, justifyContent: 'center' as const,
-    },
-    chipActive: { backgroundColor: c.primary },
-    chipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textSub },
-    chipTextActive: { color: c.surface },
-    chipIconCircle: {
-      width: 26, height: 26, borderRadius: 13,
-      backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const,
-      justifyContent: 'center' as const, marginRight: 4,
-    },
-    chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
     // Bottom bar
     bottomBar: {
       backgroundColor: c.bg,

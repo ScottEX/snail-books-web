@@ -17,6 +17,8 @@ import { fmtAmt as fmt } from '../utils/format';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
 import CategoryChips from '../components/CategoryChips';
+import PaymentMethodChips from '../components/PaymentMethodChips';
+import ExpenseNoteInput from '../components/ExpenseNoteInput';
 
 /* ── helpers ── */
 const fmtInt = (n: number) => n.toLocaleString();
@@ -793,42 +795,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <CategoryChips selected={expCategory} onSelect={setExpCategory} />
               {/* 支付方式 */}
               <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
-              <View style={st.payGrid}>
-                {(() => {
-                  // Internal keys: 'payCash' | 'payWechat' | 'payAlipay'
-                  const payIcons: Record<string, (color: string) => React.ReactNode> = {
-                    payCash: (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
-                    payWechat: (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
-                    payAlipay: (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
-                  };
-                  const chipIconBg: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
-                  return (['payCash', 'payWechat', 'payAlipay'] as const).map((m) => {
-                    const active = payMethod === m;
-                    const isWechat = m === 'payWechat';
-                    const isAlipay = m === 'payAlipay';
-                    return (
-                      <TouchableOpacity key={m}
-                        style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : isAlipay ? st.payChipActiveAlipay : st.payChipActive)]}
-                        onPress={() => setPayMethod(m)} activeOpacity={0.7}>
-                        <View style={[st.chipIconCircle, active && { backgroundColor: chipIconBg[m] }]}>
-                          {payIcons[m](active ? colors.surface : colors.textSub)}
-                        </View>
-                        <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(m as any)}</Text>
-                      </TouchableOpacity>
-                    );
-                  });
-                })()}
-              </View>
+              <PaymentMethodChips selected={payMethod} onSelect={setPayMethod} />
               {/* 支出说明 */}
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                <Text style={[st.catSectionTitle, { marginBottom: 0, marginTop: 9 }]}>{t('expenseNote')}</Text>
-                <InputWithFocus inputStyle={[st.noteInput, { flex: 1 }]}
-                  value={expNote}
-                  onChangeText={setExpNote}
-                  placeholder={t('notePlaceholder')}
-                  placeholderTextColor={colors.textSub}
-                  multiline />
-              </View>
+              <ExpenseNoteInput value={expNote} onChangeText={setExpNote} />
               {/* 凭证上传 */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={[st.catSectionTitle, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
@@ -1521,34 +1490,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   /* Category chips */
   catSectionTitle: { fontSize: 14, color: colors.textSub, fontWeight: FONTS.microBold.weight, marginBottom: 10 },
-  /* Payment method chips */
-  payGrid: { flexDirection: 'row', gap: 8 },
-  payChip: {
-    flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
-    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
-  },
-  payChipActive: { backgroundColor: colors.primary },
-  payChipActiveWechat: { backgroundColor: '#07C160' },
-  payChipActiveAlipay: { backgroundColor: '#1677FF' },
-  payChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
-  payChipTextActive: { color: colors.surface },
-  /* Chip icon circle */
-  chipIconCircle: {
-    width: 26, height: 26, borderRadius: 13,
-    backgroundColor: 'rgba(0,0,0,0.04)',
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: 4,
-  },
-  chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
-  /* Expense records */
-  noteInput: {
-    fontSize: FONTS.sub.size, color: colors.textSub,
-    borderWidth: 0, backgroundColor: colors.surface,
-    borderRadius: 10, padding: 12, minHeight: 60,
-    textAlignVertical: 'top',
-    // @ts-ignore
-    outline: 'none',
-  },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   expCatLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
   expBtn: {
