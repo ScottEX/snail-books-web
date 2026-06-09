@@ -273,7 +273,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try {
       await api.resetBackground();
       try { localStorage.removeItem('bg-image'); } catch {}
-      window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg-v2.jpg' } }));
+      window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg?v=2' } }));
     } catch (err) { /* ignore */ }
     finally { setCoverUploading(false); }
   };
