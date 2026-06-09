@@ -626,11 +626,11 @@ const getStyles = (c: ThemeColors) => {
       marginBottom: 4,
     },
     amountValue: {
-      fontSize: 36,
+      fontSize: 14,
       fontWeight: '700' as const,
     },
     amountSymbol: {
-      fontSize: 20,
+      fontSize: 14,
       fontWeight: '600' as const,
       marginRight: 2,
       marginBottom: 2,
