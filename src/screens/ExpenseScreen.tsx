@@ -847,13 +847,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 })()}
               </View>
               {/* 支出说明 */}
-              <Text style={st.catSectionTitle}>{t('expenseNote')}</Text>
-              <InputWithFocus inputStyle={st.noteInput}
-                value={expNote}
-                onChangeText={setExpNote}
-                placeholder={t('notePlaceholder')}
-                placeholderTextColor={colors.textSub}
-                multiline />
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+                <Text style={[st.catSectionTitle, { marginBottom: 0, marginTop: 9 }]}>{t('expenseNote')}</Text>
+                <InputWithFocus inputStyle={[st.noteInput, { flex: 1 }]}
+                  value={expNote}
+                  onChangeText={setExpNote}
+                  placeholder={t('notePlaceholder')}
+                  placeholderTextColor={colors.textSub}
+                  multiline />
+              </View>
               {/* 凭证上传 */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={[st.catSectionTitle, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
