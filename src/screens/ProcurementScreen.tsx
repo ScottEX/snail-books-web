@@ -207,10 +207,10 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   // Date row (all 4 elements inline)
   dateCatRow: { marginBottom: 12 },
   dateCatLine: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.06), gap: 8 },
-  dateCatLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain },
-  dateCatValue: { fontSize: FONTS.sub.size, color: c.textSub, flexDirection: 'row' as const, alignItems: 'center' as const },
+  dateCatLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub },
+  dateCatValue: { fontSize: FONTS.sub.size, color: c.textMain, flexDirection: 'row' as const, alignItems: 'center' as const },
 
-  sectionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 6 },
+  sectionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, marginBottom: 6 },
 
   // Items row
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
@@ -1238,7 +1238,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
                   <View style={styles.dateCatValue}>
-                    <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{formatDate(orderDate)}</Text>
+                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{formatDate(orderDate)}</Text>
                     {React.createElement('input', {
                       ref: orderDateInputRef,
                       type: 'date', defaultValue: orderDate, max: todayStr(),
@@ -1247,7 +1247,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     })}
                   </View>
                   <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                  <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{t('goods')}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{t('goods')}</Text>
                 </View>
               </View>
 
@@ -1255,14 +1255,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               <PaymentMethodChips label={t('procPaymentMethod') as string} selected={payMethod} onSelect={(m) => setPayMethod(m as PayMethod)} />
 
               {/* Upload receipts */}
-              <ReceiptUpload
-                existingImages={existingImageUrls}
-                newFiles={receipts}
-                onAdd={handleAddFiles}
-                onRemoveExisting={removeExistingImage}
-                onRemoveNew={handleRemoveNewFile}
-                getPreviewUrl={getPreviewUrl}
-              />
+              <View style={{ marginTop: 12 }}>
+                <ReceiptUpload
+                  existingImages={existingImageUrls}
+                  newFiles={receipts}
+                  onAdd={handleAddFiles}
+                  onRemoveExisting={removeExistingImage}
+                  onRemoveNew={handleRemoveNewFile}
+                  getPreviewUrl={getPreviewUrl}
+                />
+              </View>
 
               {/* Items row — matching 近7天 pattern: label left, theme button right */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
@@ -1274,7 +1276,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
-                <Text style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight }}>
+                <Text style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>
                   {t('procNowBatch').replace('{n}', String(editingBatchId !== null ? editingBatchNumber : stats.batch_count + 1))}
                 </Text>
               </View>
