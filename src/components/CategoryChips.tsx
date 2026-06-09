@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { useTheme, ThemeColors } from '../theme';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 
@@ -22,7 +22,7 @@ const icons: Record<string, React.ReactElement> = {
 export default function CategoryChips({ selected, onSelect }: Props) {
   const { colors: c } = useTheme();
   const activeColor = c.primary;
-  const bgColor = c.bg;
+  const bgColor = withAlpha(c.textMain, 0.06);
 
   return (
     <View style={{ flexDirection: 'row', width: '100%' as any, gap: 8 }}>
