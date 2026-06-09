@@ -16,6 +16,7 @@ import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import CategoryChips from '../components/CategoryChips';
 
 const todayStr = () => {
   const d = new Date();
@@ -65,13 +66,6 @@ function parseImages(raw: any): string[] {
 }
 
 /* ── SVG icons ── */
-const catIcons: Record<string, React.ReactElement> = {
-  daily: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2l-2-3H9L7 7H5a2 2 0 00-2 2z"/><Path d="M16 12a4 4 0 11-8 0"/></Svg>,
-  rent: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 21h18"/><Path d="M3 10l9-7 9 7"/><Path d="M5 12v7h4v-4h6v4h4v-7"/></Svg>,
-  salary: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="9"/><Path d="M14 8h-3.5a2 2 0 000 4h1a2 2 0 010 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
-  goods: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 7l-3-4H7L4 7v12a2 2 0 002 2h12a2 2 0 002-2V7z"/><Path d="M4 7h16"/><Path d="M9 12h6"/><Path d="M12 9v6"/></Svg>,
-};
-
 const payIcons: Record<string, (color: string) => React.ReactNode> = {
   payCash: (color: string) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
   payWechat: (color: string) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
@@ -357,23 +351,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               </View>
             </View>
 
-            {/* Category — 2×2 grid (matches ExpenseScreen) */}
+            {/* Category */}
             <Text style={styles.sectionTitle}>{t('expenseCategory')}</Text>
-            <View style={{ flexDirection: 'row', width: '100%', gap: 8 }}>
-                {['daily','rent','salary','goods'].map(cat => {
-                  const active = category === cat;
-                  return (
-                    <TouchableOpacity key={cat}
-                      style={[styles.chip, active && styles.chipActive]}
-                      onPress={() => setCategory(cat)} activeOpacity={0.7}>
-                      <View style={[styles.chipIconCircle, active && styles.chipIconCircleActive]}>
-                        {catIcons[cat]}
-                      </View>
-                      <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>{trCategory(cat)}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+            <CategoryChips selected={category} onSelect={setCategory} />
 
             {/* Payment */}
             <Text style={styles.sectionTitle}>{t('paymentMethod')}</Text>

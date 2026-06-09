@@ -16,6 +16,7 @@ import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedSt
 import { fmtAmt as fmt } from '../utils/format';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
+import CategoryChips from '../components/CategoryChips';
 
 /* ── helpers ── */
 const fmtInt = (n: number) => n.toLocaleString();
@@ -787,34 +788,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </View>
                 <View style={st.amtCursor} />
               </View>
-              {/* 分类胶囊 — 2×2 grid (accommodates long English words) */}
+              {/* 分类胶囊 */}
               <Text style={st.catSectionTitle}>{t('expenseCategory')}</Text>
-              <View style={st.catGridWide}>
-                {(() => {
-                  // Internal keys: 'daily' | 'rent' | 'salary' | 'goods'
-                  // These ARE the i18n keys (key === display key), so no map needed.
-                  const icons: Record<string, React.ReactElement> = {
-                    daily: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2l-2-3H9L7 7H5a2 2 0 00-2 2z"/><Path d="M16 12a4 4 0 11-8 0"/></Svg>,
-                    rent: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 21h18"/><Path d="M3 10l9-7 9 7"/><Path d="M5 12v7h4v-4h6v4h4v-7"/></Svg>,
-                    salary: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="9"/><Path d="M14 8h-3.5a2 2 0 000 4h1a2 2 0 010 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
-                    goods: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 7l-3-4H7L4 7v12a2 2 0 002 2h12a2 2 0 002-2V7z"/><Path d="M4 7h16"/><Path d="M9 12h6"/><Path d="M12 9v6"/></Svg>,
-                  };
-                  const cats = ['daily', 'rent', 'salary', 'goods'] as const;
-                  const mkChip = (cat: string) => {
-                    const active = expCategory === cat;
-                    return (
-                      <TouchableOpacity key={cat} style={[st.catChip, active && st.catChipActive]}
-                        onPress={() => setExpCategory(cat)} activeOpacity={0.7}>
-                        <View style={[st.chipIconCircle, active && st.chipIconCircleActive]}>{icons[cat]}</View>
-                        <Text style={[st.catChipText, active && st.catChipTextActive]} numberOfLines={1}>{t(cat as any)}</Text>
-                      </TouchableOpacity>
-                    );
-                  };
-                  return (
-                    <View style={st.catRow}>{cats.map(mkChip)}</View>
-                  );
-                })()}
-              </View>
+              <CategoryChips selected={expCategory} onSelect={setExpCategory} />
               {/* 支付方式 */}
               <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
               <View style={st.payGrid}>
@@ -1545,16 +1521,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   /* Category chips */
   catSectionTitle: { fontSize: 14, color: colors.textSub, fontWeight: FONTS.microBold.weight, marginBottom: 10 },
-  catGrid: { flexDirection: 'row', gap: 8 },
-  catGridWide: { gap: 8 },
-  catRow: { flexDirection: 'row', width: '100%' as any, gap: 8, marginBottom: 6 },
-  catChip: {
-    flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
-    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
-  },
-  catChipActive: { backgroundColor: colors.primary },
-  catChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
-  catChipTextActive: { color: colors.surface },
   /* Payment method chips */
   payGrid: { flexDirection: 'row', gap: 8 },
   payChip: {
