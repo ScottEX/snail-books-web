@@ -102,13 +102,13 @@ html = html.replace(
 )
 
 # Fix title
-html = html.replace('<title>snail-books-web</title>', '<title>蓝姐螺蛳粉</title>')
+html = html.replace('<title>snail-books-web</title>', '<title>柳味探秘科技</title>')
 
-# ── Splash screen: visible until React mounts ──
-SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FBF7F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;transition:opacity .3s">
+# ── Splash screen: only shown after 2s of loading ──
+SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FBF7F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;transition:opacity .3s;opacity:0">
 <div style="text-align:center">
 <div style="font-size:48px;animation:pulse 1.8s ease-in-out infinite">🐌</div>
-<div style="font-size:18px;font-weight:600;color:#5C3D2E;margin-top:16px">蓝姐螺蛳粉</div>
+<div style="font-size:18px;font-weight:600;color:#5C3D2E;margin-top:16px">柳味探秘科技</div>
 <div style="margin-top:12px;display:flex;gap:6px;justify-content:center">
 <span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out infinite"></span>
 <span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out .2s infinite"></span>
@@ -121,10 +121,15 @@ SPLASH_CSS = """
 @keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 """
 SPLASH_JS = """<script>
-new MutationObserver(function(){
-  var root=document.getElementById('root');
-  if(root&&root.children.length){var s=document.getElementById('splash');s.style.opacity='0';setTimeout(function(){s.remove()},300)}
-}).observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
+(function(){
+  var s=document.getElementById('splash');
+  var t=setTimeout(function(){s.style.opacity='1'},2000);
+  new MutationObserver(function(){
+    clearTimeout(t);
+    var root=document.getElementById('root');
+    if(root&&root.children.length){s.style.opacity='0';setTimeout(function(){s.remove()},300)}
+  }).observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
+})();
 </script>"""
 
 html = html.replace('</style>', '</style>\n<style>' + SPLASH_CSS + '</style>')
