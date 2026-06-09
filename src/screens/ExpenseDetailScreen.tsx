@@ -350,6 +350,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
             {/* Images */}
             <ReceiptUpload
+              label={t('receiptExpenseLabel')}
               existingImages={images}
               newFiles={newFiles}
               onAdd={(files: File[]) => setNewFiles(prev => [...prev, ...files])}

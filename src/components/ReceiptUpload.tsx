@@ -16,6 +16,8 @@ interface Props {
   getPreviewUrl?: (file: File) => string;
   /** Max thumbnail size in px (default 120), actual size auto-calculated to fill row */
   maxThumbSize?: number;
+  /** Label text override (default: 凭证上传) */
+  label?: string;
 }
 
 const GAP = 8;
@@ -28,6 +30,7 @@ export default function ReceiptUpload({
   onRemoveNew,
   getPreviewUrl,
   maxThumbSize = 120,
+  label,
 }: Props) {
   const { colors: c } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,7 +62,7 @@ export default function ReceiptUpload({
       {/* Label + info tip */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, marginBottom: 0 }}>
-          {t('uploadImage')}
+          {label || t('uploadImage')}
         </Text>
         <TouchableOpacity
           onPress={() => setShowTip(!showTip)}
