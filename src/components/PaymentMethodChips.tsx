@@ -8,6 +8,7 @@ import { t } from '../i18n';
 interface Props {
   selected: string;
   onSelect: (method: string) => void;
+  label?: string;
 }
 
 const METHODS = ['payCash', 'payWechat', 'payAlipay'] as const;
@@ -31,34 +32,39 @@ function payIcon(method: string, color: string) {
   }
 }
 
-export default function PaymentMethodChips({ selected, onSelect }: Props) {
+export default function PaymentMethodChips({ selected, onSelect, label }: Props) {
   const { colors: c } = useTheme();
 
   return (
-    <View style={{ flexDirection: 'row', gap: 8 }}>
-      {METHODS.map(m => {
-        const active = selected === m;
-        const bg = active ? (activeBg[m] || c.primary) : withAlpha(c.textMain, 0.06);
-        const iconColor = active ? c.surface : c.textSub;
-        return (
-          <TouchableOpacity
-            key={m}
-            style={[st.chip, { backgroundColor: bg }]}
-            onPress={() => onSelect(m)}
-            activeOpacity={0.7}
-          >
-            <View style={[st.iconCircle, active && { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-              {payIcon(m, iconColor)}
-            </View>
-            <Text
-              style={[st.label, { color: c.textSub }, active && { color: c.surface }]}
-              numberOfLines={1}
+    <View>
+      <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 6 }}>
+        {label || t('paymentMethod')}
+      </Text>
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        {METHODS.map(m => {
+          const active = selected === m;
+          const bg = active ? (activeBg[m] || c.primary) : withAlpha(c.textMain, 0.06);
+          const iconColor = active ? c.surface : c.textSub;
+          return (
+            <TouchableOpacity
+              key={m}
+              style={[st.chip, { backgroundColor: bg }]}
+              onPress={() => onSelect(m)}
+              activeOpacity={0.7}
             >
-              {t(m as any)}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+              <View style={[st.iconCircle, active && { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                {payIcon(m, iconColor)}
+              </View>
+              <Text
+                style={[st.label, { color: c.textSub }, active && { color: c.surface }]}
+                numberOfLines={1}
+              >
+                {t(m as any)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }

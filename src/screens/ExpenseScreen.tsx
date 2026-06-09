@@ -790,10 +790,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <View style={st.amtCursor} />
               </View>
               {/* 分类胶囊 */}
-              <Text style={st.catSectionTitle}>{t('expenseCategory')}</Text>
               <CategoryChips selected={expCategory} onSelect={setExpCategory} />
               {/* 支付方式 */}
-              <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
               <PaymentMethodChips selected={payMethod} onSelect={setPayMethod} />
               {/* 支出说明 */}
               <ExpenseNoteInput value={expNote} onChangeText={setExpNote} />

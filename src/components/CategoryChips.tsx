@@ -8,6 +8,7 @@ import { t } from '../i18n';
 interface Props {
   selected: string;
   onSelect: (cat: string) => void;
+  label?: string;
 }
 
 const CATS = ['daily', 'rent', 'salary', 'goods'] as const;
@@ -19,34 +20,39 @@ const icons: Record<string, React.ReactElement> = {
   goods: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 7l-3-4H7L4 7v12a2 2 0 002 2h12a2 2 0 002-2V7z"/><Path d="M4 7h16"/><Path d="M9 12h6"/><Path d="M12 9v6"/></Svg>,
 };
 
-export default function CategoryChips({ selected, onSelect }: Props) {
+export default function CategoryChips({ selected, onSelect, label }: Props) {
   const { colors: c } = useTheme();
   const activeColor = c.primary;
   const bgColor = withAlpha(c.textMain, 0.06);
 
   return (
-    <View style={{ flexDirection: 'row', width: '100%' as any, gap: 8 }}>
-      {CATS.map(cat => {
-        const active = selected === cat;
-        return (
-          <TouchableOpacity
-            key={cat}
-            style={[st.chip, { backgroundColor: bgColor }, active && { backgroundColor: activeColor }]}
-            onPress={() => onSelect(cat)}
-            activeOpacity={0.7}
-          >
-            <View style={[st.iconCircle, active && { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-              {icons[cat]}
-            </View>
-            <Text
-              style={[st.label, { color: c.textSub }, active && { color: c.surface }]}
-              numberOfLines={1}
+    <View>
+      <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 6 }}>
+        {label || t('expenseCategory')}
+      </Text>
+      <View style={{ flexDirection: 'row', width: '100%' as any, gap: 8 }}>
+        {CATS.map(cat => {
+          const active = selected === cat;
+          return (
+            <TouchableOpacity
+              key={cat}
+              style={[st.chip, { backgroundColor: bgColor }, active && { backgroundColor: activeColor }]}
+              onPress={() => onSelect(cat)}
+              activeOpacity={0.7}
             >
-              {t(cat as any)}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+              <View style={[st.iconCircle, active && { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                {icons[cat]}
+              </View>
+              <Text
+                style={[st.label, { color: c.textSub }, active && { color: c.surface }]}
+                numberOfLines={1}
+              >
+                {t(cat as any)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }

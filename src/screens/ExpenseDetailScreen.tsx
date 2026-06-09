@@ -333,11 +333,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
             </View>
 
             {/* Category */}
-            <Text style={styles.sectionTitle}>{t('expenseCategory')}</Text>
             <CategoryChips selected={category} onSelect={setCategory} />
 
             {/* Payment */}
-            <Text style={styles.sectionTitle}>{t('paymentMethod')}</Text>
             <PaymentMethodChips selected={account} onSelect={setAccount} />
 
             {/* Date — label inline with picker on same row */}

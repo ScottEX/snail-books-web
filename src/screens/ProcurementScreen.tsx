@@ -1252,10 +1252,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </View>
 
               {/* Payment method */}
-              <Text style={styles.sectionLabel}>{t('procPaymentMethod')}</Text>
-              <View style={{ marginBottom: 12 }}>
-                <PaymentMethodChips selected={payMethod} onSelect={(m) => setPayMethod(m as PayMethod)} />
-              </View>
+              <PaymentMethodChips label={t('procPaymentMethod') as string} selected={payMethod} onSelect={(m) => setPayMethod(m as PayMethod)} />
 
               {/* Upload receipts */}
               <ReceiptUpload
