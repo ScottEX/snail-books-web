@@ -90,9 +90,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         if (resp.ok) {
           const blob = await resp.blob();
           const url = URL.createObjectURL(blob);
-          // Preload before showing — avoid flash
+          // Set URL first so element mounts at opacity:0, then preload → fade in
+          setAvatarUrl(url);
           const img = document.createElement('img');
-          img.onload = () => { setAvatarUrl(url); setAvatarReady(true); };
+          img.onload = () => requestAnimationFrame(() => setAvatarReady(true));
           img.onerror = () => { setAvatarUrl(''); setAvatarReady(true); };
           img.src = url;
         } else {
@@ -105,8 +106,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         if (bgResp.ok) {
           const blob = await bgResp.blob();
           const url = URL.createObjectURL(blob);
+          setBgUrl(url);
           const img = document.createElement('img');
-          img.onload = () => { setBgUrl(url); setBgReady(true); };
+          img.onload = () => requestAnimationFrame(() => setBgReady(true));
           img.onerror = () => { setBgUrl(''); setBgReady(true); };
           img.src = url;
         } else {
@@ -280,16 +282,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     <View style={styles.container}>
       {/* Background layers — default always visible, custom fades in on top */}
       <View style={styles.bgWrapper} />
-      {!!bgUrl && <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: `url(${bgUrl})` } as any, { opacity: bgReady ? 1 : 0 }]} />}
+      <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
       <View style={styles.bgOverlay} />
       <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
         <View style={styles.brand}>
           <View style={styles.logoWrap}>
             <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
-            {avatarReady && avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={[styles.logo, styles.logoOver]} />
-            ) : null}
+            <Image source={{ uri: avatarUrl || '/img/logo.jpg' }} style={[styles.logo, styles.logoOver, { opacity: avatarReady && avatarUrl ? 1 : 0 }]} />
           </View>
           <Text style={styles.subtitle}>{t('subtitle')}</Text>
           <View style={styles.langRow}>
