@@ -27,7 +27,7 @@ export default function CategoryChips({ selected, onSelect, label }: Props) {
 
   return (
     <View>
-      <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 6 }}>
+      <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, marginBottom: 6 }}>
         {label || t('expenseCategory')}
       </Text>
       <View style={{ flexDirection: 'row', width: '100%' as any, gap: 8 }}>

@@ -37,7 +37,7 @@ export default function PaymentMethodChips({ selected, onSelect, label }: Props)
 
   return (
     <View>
-      <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 6 }}>
+      <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, marginBottom: 6 }}>
         {label || t('paymentMethod')}
       </Text>
       <View style={{ flexDirection: 'row', gap: 8 }}>
