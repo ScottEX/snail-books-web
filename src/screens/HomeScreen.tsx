@@ -228,12 +228,7 @@ export default function HomeScreen({
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
   const [bgReady, setBgReady] = useState(true); // default bg.jpg always ready
-  const [bgImage, setBgImage] = useState(() => {
-    try {
-      const saved = localStorage.getItem('bg-image');
-      return saved || '/img/bg.jpg?v=2';
-    } catch { return '/img/bg.jpg?v=2'; }
-  });
+  const [bgImage, setBgImage] = useState('/img/bg.jpg?v=2');
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
       const uid = getCurrentUserId();
