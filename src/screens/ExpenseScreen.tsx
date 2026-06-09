@@ -1580,7 +1580,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Expense records */
   noteInput: {
     fontSize: FONTS.sub.size, color: colors.textSub,
-    borderWidth: 0, backgroundColor: colors.bg,
+    borderWidth: 0, backgroundColor: colors.surface,
     borderRadius: 10, padding: 12, minHeight: 60,
     textAlignVertical: 'top',
     // @ts-ignore
