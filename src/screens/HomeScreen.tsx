@@ -227,6 +227,7 @@ export default function HomeScreen({
   const [avatarUrl, setAvatarUrl] = useState('');
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
+  const [bgReady, setBgReady] = useState(true); // default bg.jpg always ready
   const [bgImage, setBgImage] = useState(() => {
     try {
       const saved = localStorage.getItem('bg-image');
@@ -312,7 +313,14 @@ export default function HomeScreen({
     const onBgChanged = (e: any) => {
       const url = e?.detail?.url;
       if (typeof url === 'string') {
-        setBgImage(url);
+        setBgReady(false);
+        const img = document.createElement('img');
+        img.onload = () => requestAnimationFrame(() => {
+          setBgImage(url);
+          setBgReady(true);
+        });
+        img.onerror = () => { setBgImage(url); setBgReady(true); };
+        img.src = url;
         setBgVersion(v => v + 1);
       }
     };
@@ -324,11 +332,20 @@ export default function HomeScreen({
   useEffect(() => {
     api.getBackground().then((r: any) => {
       if (r?.url) {
-        setBgImage(r.url);
+        // Preload custom bg before showing to enable smooth fade-in
+        setBgReady(false);
+        const img = document.createElement('img');
+        img.onload = () => requestAnimationFrame(() => {
+          setBgImage(r.url);
+          setBgReady(true);
+        });
+        img.onerror = () => { setBgImage('/img/bg.jpg?v=2'); setBgReady(true); };
+        img.src = r.url;
         try { localStorage.setItem('bg-image', r.url); } catch {}
       } else {
         // No custom background — use default
         setBgImage('/img/bg.jpg?v=2');
+        setBgReady(true);
         try { localStorage.removeItem('bg-image'); } catch {}
       }
       // Load opacity from server (overrides localStorage default)
@@ -501,7 +518,14 @@ export default function HomeScreen({
     try {
       const r: any = await api.uploadBackground(file);
       if (r?.url) {
-        setBgImage(r.url);
+        setBgReady(false);
+        const img = document.createElement('img');
+        img.onload = () => requestAnimationFrame(() => {
+          setBgImage(r.url);
+          setBgReady(true);
+        });
+        img.onerror = () => { setBgImage(r.url); setBgReady(true); };
+        img.src = r.url;
         try { localStorage.setItem('bg-image', r.url); } catch {}
         setBgVersion(v => v + 1);
       } else { throw new Error(t('uploadFailedShort')); }
@@ -515,6 +539,7 @@ export default function HomeScreen({
     try {
       await api.resetBackground();
       setBgImage('/img/bg.jpg?v=2');
+      setBgReady(true);
       try { localStorage.removeItem('bg-image'); } catch {}
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
@@ -630,8 +655,9 @@ export default function HomeScreen({
 
   return (
     <View style={styles.container}>
-      {/* Background */}
-      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+      {/* Background — default always visible, custom fades in on top */}
+      <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+      <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
 
       {/* Sub-page stack — iOS push/pop with z-index keyed to stack
           position so the top of the stack always covers what's below.
@@ -1036,6 +1062,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   bgLayer: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
+  bgCustom: { transition: 'opacity 0.5s ease' },
   // Header — frosted glass, same as sub-screen headers
   header: {
     position: 'relative' as const, zIndex: 200,
