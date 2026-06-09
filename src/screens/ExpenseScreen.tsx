@@ -1545,7 +1545,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     marginTop: 10, borderRadius: 1,
   },
   /* Category chips */
-  catSectionTitle: { fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, marginBottom: 10 },
+  catSectionTitle: { fontSize: 14, color: colors.textSub, fontWeight: FONTS.microBold.weight, marginBottom: 10 },
   catGrid: { flexDirection: 'row', gap: 8 },
   catGridWide: { gap: 8 },
   catRow: { flexDirection: 'row', width: '100%' as any, gap: 8, marginBottom: 6 },
