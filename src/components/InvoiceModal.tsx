@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { useTheme, withAlpha } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
-import Toast from './Toast';
 import ModalOverlay from './ModalOverlay';
 import { FONTS } from '../theme';
 
@@ -37,12 +36,21 @@ const FIELDS: { key: keyof InvoiceData; labelKey: string }[] = [
 export default function InvoiceModal({ visible, onClose }: Props) {
   const { colors: c } = useTheme();
   const [data, setData] = useState<InvoiceData>(EMPTY);
+  const [original, setOriginal] = useState<InvoiceData>(EMPTY);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState('');
+  const [saved, setSaved] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup close timer on unmount
+  useEffect(() => {
+    return () => { if (closeTimer.current) clearTimeout(closeTimer.current); };
+  }, []);
 
   useEffect(() => {
     if (!visible) return;
+    // Reset states when opening
+    setSaved(false);
     (async () => {
       try {
         const [invData, admResp] = await Promise.all([
@@ -50,7 +58,9 @@ export default function InvoiceModal({ visible, onClose }: Props) {
           fetch('/api/admin/check', { credentials: 'include' }),
         ]);
         if (invData.status === 'ok' && invData.data) {
-          setData({ ...EMPTY, ...invData.data });
+          const d = { ...EMPTY, ...invData.data };
+          setData(d);
+          setOriginal(d);
         }
         if (admResp.ok) {
           const admJson = await admResp.json();
@@ -60,21 +70,24 @@ export default function InvoiceModal({ visible, onClose }: Props) {
     })();
   }, [visible]);
 
+  const hasChanged = JSON.stringify(data) !== JSON.stringify(original);
+
   const handleSave = async () => {
+    if (!hasChanged || saving) return;
     setSaving(true);
     try {
       const json = await api.updateInvoice(data as any);
       if (json.status === 'ok') {
-        setToast('已保存');
-        setTimeout(() => onClose(), 600);
-      } else {
-        setToast(json.message || '保存失败');
+        setSaved(true);
+        setOriginal({ ...data });
+        closeTimer.current = setTimeout(() => onClose(), 800);
       }
-    } catch {
-      setToast('保存失败');
-    }
+    } catch {}
     setSaving(false);
   };
+
+  const btnDisabled = saving || saved || !hasChanged;
+  const btnText = saved ? t('invoiceSaved') : saving ? t('invoiceSaving') : t('invoiceSave');
 
   return (
     <ModalOverlay visible={visible} onClose={onClose}>
@@ -90,28 +103,34 @@ export default function InvoiceModal({ visible, onClose }: Props) {
             <View key={f.key} style={s.fieldRow}>
               <Text style={[s.label, { color: c.textSub }]}>{t(f.labelKey as any)}</Text>
               <TextInput
-                style={[s.input, { color: c.textMain, borderColor: withAlpha(c.textMain, 0.1) }] as any}
+                style={[s.input, {
+                  color: c.textMain,
+                  borderColor: withAlpha(c.textMain, 0.1),
+                  backgroundColor: isAdmin ? 'transparent' : c.bg,
+                }] as any}
                 value={data[f.key]}
                 onChangeText={(v) => setData((d) => ({ ...d, [f.key]: v }))}
                 placeholder={t(f.labelKey as any)}
                 placeholderTextColor={c.textSub}
-                editable={isAdmin}
+                editable={isAdmin && !saved}
               />
             </View>
           ))}
           {isAdmin && (
             <TouchableOpacity
-              style={[s.saveBtn, { backgroundColor: c.primary, opacity: saving ? 0.6 : 1 }]}
+              style={[s.saveBtn, {
+                backgroundColor: c.primary,
+                opacity: btnDisabled ? 0.45 : 1,
+              }]}
               onPress={handleSave}
-              disabled={saving}
+              disabled={btnDisabled}
               activeOpacity={0.7}
             >
-              <Text style={[s.saveBtnText, { color: c.surface }]}>{saving ? '...' : t('invoiceSave')}</Text>
+              <Text style={[s.saveBtnText, { color: c.surface }]}>{btnText}</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
     </ModalOverlay>
   );
 }

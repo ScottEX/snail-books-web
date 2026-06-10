@@ -309,6 +309,8 @@ const I18N: Record<string, Record<string, string>> = {
     addressPhone: '公司地址',
     companyPhone: '公司电话',
     invoiceSave: '保存',
+    invoiceSaving: '...',
+    invoiceSaved: '成功',
     registerBtn: '注 册',
     rememberMe: '记住我',
     rent: '房租',
@@ -750,6 +752,8 @@ const I18N: Record<string, Record<string, string>> = {
     addressPhone: '公司地址',
     companyPhone: '公司電話',
     invoiceSave: '保存',
+    invoiceSaving: '...',
+    invoiceSaved: '成功',
     registerBtn: '註 冊',
     rememberMe: '記住我',
     rent: '房租',
@@ -1192,6 +1196,8 @@ const I18N: Record<string, Record<string, string>> = {
     addressPhone: 'Company Address',
     companyPhone: 'Company Phone',
     invoiceSave: 'Save',
+    invoiceSaving: '...',
+    invoiceSaved: 'Saved',
     registerBtn: 'Register',
     rememberMe: 'Remember me',
     rent: 'Rent',
@@ -1626,7 +1632,7 @@ export type I18nKey =
   | 'recordedBy'
   | 'recrop'
   | 'register'
-  | 'invoiceTitle' | 'companyName' | 'taxId' | 'bankName' | 'bankAccount' | 'addressPhone' | 'companyPhone' | 'invoiceSave'
+  | 'invoiceTitle' | 'companyName' | 'taxId' | 'bankName' | 'bankAccount' | 'addressPhone' | 'companyPhone' | 'invoiceSave' | 'invoiceSaving' | 'invoiceSaved'
   | 'registerBtn'
   | 'rememberMe'
   | 'rent'
