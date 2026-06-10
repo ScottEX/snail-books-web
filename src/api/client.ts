@@ -360,4 +360,8 @@ export const api = {
 
   // Delete account (self-deletion only, CASCADE cleans up all user data)
   deleteAccount: (uid: number) => authFetch(`/api/users/${uid}/delete`, { method: 'POST' }),
+
+  // Invoice info (system-level)
+  getInvoice: () => authFetch('/api/admin/invoice'),
+  updateInvoice: (data: Record<string, string>) => authFetch('/api/admin/invoice', { method: 'PUT', body: JSON.stringify(data) }),
 };
