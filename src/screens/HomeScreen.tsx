@@ -44,6 +44,11 @@ export default function HomeScreen({
   const { colors } = useTheme();
   const [tab, setTabState] = useState<Tab>(() => {
     try {
+      // Fresh login: always start on chart, ignore any stale saved tab
+      if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('fresh_login')) {
+        sessionStorage.removeItem('fresh_login');
+        return 'chart';
+      }
       const saved = localStorage.getItem('active_tab');
       if (saved && ['expense', 'list', 'supply', 'chart', 'partner'].includes(saved)) return saved as Tab;
       return 'chart';

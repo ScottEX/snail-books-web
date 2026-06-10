@@ -147,6 +147,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           }
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
+          // Signal to HomeScreen that this is a fresh login → default to chart
+          try { sessionStorage.setItem('fresh_login', '1'); } catch {}
         }
         // NOTE: do NOT save getLang() here. At this point localStorage
         // may still hold the PREVIOUS user's language (the one who
