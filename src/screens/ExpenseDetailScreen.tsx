@@ -22,12 +22,9 @@ import CategoryChips from '../components/CategoryChips';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
+import { useServerDate } from '../hooks/useServerDate';
 
-const todayStr = () => {
-  const d = new Date();
-  const cn = new Date(d.getTime() + 8 * 3600000);
-  return cn.toISOString().slice(0, 10);
-};
+// Date helpers replaced by useServerDate() hook (server time, not client)
 
 const fmtLocalDate = (s: string, lang: string) => {
   const [y, m, d] = s.split('-');
@@ -98,7 +95,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   const [category, setCategory] = useState(record.category || 'daily');
   const [account, setAccount] = useState(record.account || 'payWechat');
   const [amount, setAmount] = useState(toDec2(record.amount));
-  const [date, setDate] = useState(record.date || record.created_at?.slice(0, 10) || todayStr());
+  const [date, setDate] = useState(record.date || record.created_at?.slice(0, 10) || sd.today);
   const [note, setNote] = useState(record.note || '');
   const [images, setImages] = useState<string[]>(parseImages(record.images));
   const [thumbImages, setThumbImages] = useState<string[]>(parseImages(record.thumb_images));
@@ -110,7 +107,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   const hasChanges = category !== (record.category || 'daily') ||
     account !== (record.account || 'payWechat') ||
     amount !== toDec2(record.amount) ||
-    date !== (record.date || record.created_at?.slice(0, 10) || todayStr()) ||
+    date !== (record.date || record.created_at?.slice(0, 10) || sd.today) ||
     note !== (record.note || '') ||
     JSON.stringify(images) !== JSON.stringify(parseImages(record.images)) ||
     JSON.stringify(thumbImages) !== JSON.stringify(parseImages(record.thumb_images)) ||
@@ -348,7 +345,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                 <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub }}>{fmtLocalDate(date, lang)}</Text>
                 <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M10 6l6 6-6 6"/></Svg>
                 {React.createElement('input', {
-                  ref: dateInputRef, type: 'date', defaultValue: date, max: todayStr(),
+                  ref: dateInputRef, type: 'date', defaultValue: date, max: sd.today,
                   onChange: (e: any) => setDate(e.target.value),
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size, outline: 'none' },
                 })}
@@ -381,7 +378,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               style={{ flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderColor: c.secondary }}
               onPress={() => {
                 setCategory(record.category || 'daily'); setAccount(record.account || 'payWechat');
-                setAmount(toDec2(record.amount)); setDate(record.date || record.created_at?.slice(0, 10) || todayStr());
+                setAmount(toDec2(record.amount)); setDate(record.date || record.created_at?.slice(0, 10) || sd.today);
                 setNote(record.note || ''); setImages(parseImages(record.images));
                 setThumbImages(parseImages(record.thumb_images));
                 newFiles.forEach(f => { const u = urlCache.current.get(f); if (u) URL.revokeObjectURL(u); });

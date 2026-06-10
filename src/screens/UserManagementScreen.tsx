@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image 
 import { createPortal } from 'react-dom';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { t, getLang } from '../i18n';
+import { useServerDate } from '../hooks/useServerDate';
 import { historyHeader } from '../sharedStyles';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import EmptyState from '../components/EmptyState';
@@ -70,9 +71,9 @@ const DD_CSS = `
 `;
 let ddInjected = false;
 
-const NOW = new Date();
-const THIS_YEAR = NOW.getFullYear();
-const YEARS = [THIS_YEAR - 2, THIS_YEAR - 1, THIS_YEAR, THIS_YEAR + 1];
+// Year constants — will be overridden by useServerDate in component
+const FALLBACK_YEAR = new Date().getFullYear();
+const FALLBACK_YEARS = [FALLBACK_YEAR - 2, FALLBACK_YEAR - 1, FALLBACK_YEAR, FALLBACK_YEAR + 1];
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 function fmtDate(d: Date): string {
@@ -89,6 +90,7 @@ function lastDayOfMonth(y: number, m: number): string {
 
 export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const { colors: c } = useTheme();
+  const sd = useServerDate();
   const swipeBack = useSwipeBack(onBack);
   const st = useMemo(() => getStyles(c), [c]);
 
@@ -103,7 +105,8 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   // Date picker local state (year + month selection)
-  const [dropYear, setDropYear] = useState(THIS_YEAR);
+  const [dropYear, setDropYear] = useState(FALLBACK_YEAR);
+  useEffect(() => { if (sd.ready && sd.year !== FALLBACK_YEAR) setDropYear(sd.year); }, [sd.ready, sd.year]);
   const [dropMonth, setDropMonth] = useState(NOW.getMonth() + 1);
 
   // Inject dropdown animation CSS once
@@ -165,11 +168,8 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
 
   // Quick presets
   const applyQuick = useCallback((days: number) => {
-    const to = new Date();
-    const from = new Date();
-    from.setDate(from.getDate() - days);
-    const fs = fmtDate(from), ts = fmtDate(to);
-    setDateFrom(fs);
+    setQuickDays(days); setDropFrom(sd.offset(-days)); setDropTo(sd.today);
+  }, [sd.today, sd.offset]);
     setDateTo(ts);
     setShowDateDrop(false);
     fetchUsers(statusFilter, fs, ts);
@@ -221,7 +221,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       setDropYear(parseInt(dateFrom.slice(0, 4)));
       setDropMonth(parseInt(dateFrom.slice(5, 7)));
     } else {
-      setDropYear(THIS_YEAR);
+      setDropYear(sd.year || FALLBACK_YEAR);
       setDropMonth(NOW.getMonth() + 1);
     }
     setShowDateDrop(true);

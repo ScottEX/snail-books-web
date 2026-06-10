@@ -3,14 +3,9 @@ import { t } from '../../i18n';
 import { catKey } from '../../i18nHelpers';
 import { api } from "../../api/client";
 import { fmtDecInput, toDec2Comma } from "../../utils/numbers";
+import { useServerDate } from '../../hooks/useServerDate';
 
-/* ── helpers ── */
-const todayStr = () => {
-  const d = new Date();
-  const cn = new Date(d.getTime() + 8 * 3600000);
-  return cn.toISOString().slice(0, 10);
-};
-const isFuture = (d: string) => d > todayStr();
+// Date helpers replaced by useServerDate() hook (server time, not client)
 
 
 interface UseExpenseFormOptions {
@@ -25,9 +20,11 @@ interface UseExpenseFormOptions {
 
 export function useExpenseForm(options: UseExpenseFormOptions) {
   const { onExpenseHistory, getPreviewUrl, revokePreviewUrl, clearUrlCache, fileInputRef, expDateInputRef, onToast } = options;
+  const sd = useServerDate();
 
   /* ── expense form state ── */
-  const [expDate, setExpDate] = useState(todayStr());
+  const [expDate, setExpDate] = useState('');
+  useEffect(() => { if (sd.ready && expDate === '') setExpDate(sd.today); }, [sd.ready, sd.today, expDate]);
   const [expDateErr, setExpDateErr] = useState(0);
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('daily');
@@ -145,7 +142,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
   /* ── handle date change (for native input onChange) ── */
   const handleExpDateChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (isFuture(e.target.value)) {
+      if (sd.isFuture(e.target.value)) {
         if (expDateInputRef.current) expDateInputRef.current.value = expDate;
         setExpDateErr((c) => c + 1);
       } else {
@@ -158,7 +155,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
   /* ── submit ── */
   const handleAddExpense = useCallback(async () => {
     if (!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0) return;
-    if (isFuture(expDate)) {
+    if (sd.isFuture(expDate)) {
       return;
     }
     setLoadingExp(true);
@@ -192,7 +189,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
       setExpCategory('daily');
       setPayMethod('payWechat');
       setExpNote('');
-      setExpDate(todayStr());
+      setExpDate(sd.today);
       setExpImages([]);
       await loadExpenses();
       onExpenseHistory?.();
@@ -218,7 +215,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     setExpCategory('daily');
     setPayMethod('payWechat');
     setExpNote('');
-    setExpDate(todayStr());
+    setExpDate(sd.today);
     setExpImages([]);
     setExpDateErr(0);
     setShowExpConfirm(false);
@@ -264,6 +261,5 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     // formatters (re-exported for convenience)
     fmtDecInput,
     toDec2Comma,
-    todayStr,
   };
 }

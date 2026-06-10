@@ -9,6 +9,7 @@ import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { useServerDate } from '../hooks/useServerDate';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
@@ -332,7 +333,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [showDrawer, setShowDrawer] = useState(false);
   const drawerAnim = useRef(new Animated.Value(0)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
-  const [orderDate, setOrderDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [orderDate, setOrderDate] = useState('');
+  useEffect(() => { if (sd.ready && orderDate === '') setOrderDate(sd.today); }, [sd.ready, sd.today, orderDate]);
   const [payMethod, setPayMethod] = useState<PayMethod>('payWechat');
   const [orderNote, setOrderNote] = useState('');
   const [receipts, setReceipts] = useState<File[]>([]);
@@ -442,7 +444,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         setEditingBatchId(null); setEditingBatchNumber(0);
         setExistingImageUrls([]); setExistingThumbUrls([]);
         setCart({}); setReceipts([]); setOrderNote('');
-        setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('payWechat');
+        setOrderDate(sd.today); setPayMethod('payWechat');
       }
     });
   };
@@ -465,7 +467,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     },
   })).current;
 
-  const todayStr = () => new Date().toISOString().slice(0, 10);
+  // todayStr replaced by useServerDate hook
 
   // ── Image compression (matching ExpenseScreen) ──
   const compressImage = (file: File): Promise<File> => {
@@ -750,7 +752,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             setCart({}); setReceipts([]); setOrderNote('');
             setExistingImageUrls([]); setExistingThumbUrls([]);
             setEditingBatchId(null); setEditingBatchNumber(0);
-            setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('payWechat');
+            setOrderDate(sd.today); setPayMethod('payWechat');
             setShowDrawer(false); onDrawerClose?.();
             // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
             setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
@@ -867,7 +869,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   };
 
   const resetOrder = () => {
-    closeSlideModal(() => { setShowSuccess(false); setOrderDate(todayStr()); setPayMethod('payWechat'); setOrderNote(''); setReceipts([]); });
+    closeSlideModal(() => { setShowSuccess(false); setOrderDate(sd.today); setPayMethod('payWechat'); setOrderNote(''); setReceipts([]); });
   };
 
   const openAddProduct = () => {
@@ -1262,7 +1264,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{formatDate(orderDate)}</Text>
                     {React.createElement('input', {
                       ref: orderDateInputRef,
-                      type: 'date', defaultValue: orderDate, max: todayStr(),
+                      type: 'date', defaultValue: orderDate, max: sd.today,
                       onChange: (e: any) => setOrderDate(e.target.value),
                       style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
                     })}

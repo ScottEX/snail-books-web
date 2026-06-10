@@ -4,6 +4,7 @@ import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { api } from '../api/client';
+import { useServerDate } from '../hooks/useServerDate';
 import Toast from '../components/Toast';
 import EmptyState from '../components/EmptyState';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -15,13 +16,8 @@ import BackArrow from '../components/icons/BackArrow';
 
 const PAGE_SIZE = 10;
 
-const todayStr = () => new Date().toISOString().split('T')[0];
-const defaultFromDate = () => {
-  const d = new Date();
-  d.setDate(d.getDate() - 30);
-  return d.toISOString().split('T')[0];
-};
-const isFuture = (d: string) => d > todayStr();
+// Date helpers replaced by useServerDate() hook
+const isFuture = (d: string) => d > sd.today;
 // Strict calendar months between two ISO dates (YYYY-MM-DD)
 function monthsBetween(from: string, to: string): number {
   const [fy, fm, fd] = from.split('-').map(Number);
@@ -56,20 +52,25 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const filDateFromRef = useRef<HTMLInputElement>(null);
   const filDateToRef = useRef<HTMLInputElement>(null);
 
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+    const sd = useServerDate();
   const st = useMemo(() => getSt(colors), [colors]);
 
   const [showFilter, setShowFilter] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
-  const [filDateFrom, setFilDateFrom] = useState(defaultFromDate());
-  const [filDateTo, setFilDateTo] = useState(todayStr());
+  const [filDateFrom, setFilDateFrom] = useState('');
+  useEffect(() => { if (sd.ready && filDateFrom === '') setFilDateFrom(sd.offset(-30)); }, [sd.ready, sd.today, filDateFrom]);
+  const [filDateTo, setFilDateTo] = useState('');
+  useEffect(() => { if (sd.ready && filDateTo === '') setFilDateTo(sd.today); }, [sd.ready, sd.today, filDateTo]);
   useEffect(() => { if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; }, [filDateFrom]);
   useEffect(() => { if (filDateToRef.current) filDateToRef.current.value = filDateTo; }, [filDateTo]);
   const [filBy, setFilBy] = useState('');
   const [users, setUsers] = useState<{id: number; username: string}[]>([]);
   // Track applied filters (snapshot at last apply)
-  const [appliedFrom, setAppliedFrom] = useState(defaultFromDate());
-  const [appliedTo, setAppliedTo] = useState(todayStr());
+  const [appliedFrom, setAppliedFrom] = useState('');
+  useEffect(() => { if (sd.ready && appliedFrom === '') setAppliedFrom(sd.offset(-30)); }, [sd.ready, sd.today, appliedFrom]);
+  const [appliedTo, setAppliedTo] = useState('');
+  useEffect(() => { if (sd.ready && appliedTo === '') setAppliedTo(sd.today); }, [sd.ready, sd.today, appliedTo]);
   const [appliedBy, setAppliedBy] = useState('');
   const [filterDateError, setFilterDateError] = useState(0);
   const [filDateFromKey, setFilDateFromKey] = useState(0);
@@ -104,8 +105,8 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   }, [appliedFrom, appliedTo, appliedBy]);
 
   const resetFilters = () => {
-    const dFrom = defaultFromDate();
-    const dTo = todayStr();
+    const dFrom = sd.offset(-30);
+    const dTo = sd.today;
     setFilDateFrom(dFrom);
     setFilDateTo(dTo);
     setFilBy('');
@@ -321,7 +322,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     />
   );
 
-  const todayISO = new Date().toISOString().split('T')[0];
+  const todayISO = sd.today;
 
   return (
     <View style={st.root} {...swipeBack}>
@@ -377,7 +378,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
                   <input type="date" ref={filDateFromRef} defaultValue={filDateFrom} max={todayISO} key={filDateFromKey}
-                    onChange={(e: any) => { if (isFuture(e.target.value)) { filDateFromRef.current!.value = filDateFrom; setFilDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateFrom(e.target.value); } }}
+                    onChange={(e: any) => { if (sd.isFuture(e.target.value)) { filDateFromRef.current!.value = filDateFrom; setFilDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateFrom(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
@@ -388,7 +389,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
                   <input type="date" ref={filDateToRef} defaultValue={filDateTo} max={todayISO} key={filDateToKey}
-                    onChange={(e: any) => { if (isFuture(e.target.value)) { filDateToRef.current!.value = filDateTo; setFilDateToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateTo(e.target.value); } }}
+                    onChange={(e: any) => { if (sd.isFuture(e.target.value)) { filDateToRef.current!.value = filDateTo; setFilDateToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateTo(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>

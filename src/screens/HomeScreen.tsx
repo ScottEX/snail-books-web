@@ -24,6 +24,7 @@ import UserDetailScreen from './UserDetailScreen';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
+import { useServerDate } from '../hooks/useServerDate';
 import DailyRevenuePanel from './home/DailyRevenuePanel';
 import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
 import ChartsPanel from './ChartsPanel';
@@ -257,6 +258,7 @@ export default function HomeScreen({
   const [chartMonthly, setChartMonthly] = useState<any>(null);
   // Background image crop moved to shared BgCropModal component.
 
+  const sd = useServerDate();
   const revForm = useDailyRevenueForm({
     onToast: (msg: string) => setToast(msg),
     onRefreshLast7: (records: any[]) => setLast7Records(records),
@@ -418,7 +420,7 @@ export default function HomeScreen({
   }, []);
 
   // Compute chart summary values
-  const todayStr2 = new Date().toISOString().slice(0, 10);
+  const todayStr2 = sd.today;
   const thisMonthPrefix2 = todayStr2.slice(0, 7);
   const todayExpenseChart = chartExpenses
     .filter((e: any) => e.date === todayStr2)
@@ -502,7 +504,9 @@ export default function HomeScreen({
   };
 
 
-  const todayStr = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
+  const todayStr = sd.ready
+    ? new Date(sd.today + 'T00:00:00').toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })
+    : '';
 
   // Background image crop flow is self-contained inside ThemePickerModal —
   // it calls onCoverImagePicked(file) after the user confirms in the

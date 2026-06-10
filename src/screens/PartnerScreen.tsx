@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { createPortal } from 'react-dom';
-import { t, langs, useLang } from '../i18n';
+import { t, getLang } from '../i18n';
+import { useServerDate } from '../hooks/useServerDate';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
@@ -57,7 +58,8 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
 }
 
 
-export default function PartnerScreen({ onBack, onProfile }: { onBack: () => void; onProfile: () => void }) {
+export default function PartnerScreen({ onBack }: { onBack: () => void }) {
+  const sd = useServerDate();
   const [toast, setToast] = useState('');
   const [cropMsg, setCropMsg] = useState('');
   const {
@@ -179,7 +181,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   const handleDividend = async () => {
     if (!divAmount) return;
     const amt = parseFloat(divAmount);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = sd.today;
     const items = partners.map((p: any) => ({
       partner: p.name,
       amount: parseFloat((amt * (partnerShare[p.name] ?? 0.33)).toFixed(2)),
@@ -616,7 +618,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 <Text style={moBody.label}>{t('roundNote')}</Text>
                 <View style={[moBody.input, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
                   {(() => {
-                    const fmt = (t('dividendRoundFmt') as string).replace('{date}', formatDate(new Date().toISOString().slice(0, 10)));
+                    const fmt = (t('dividendRoundFmt') as string).replace('{date}', formatDate(sd.today));
                     const idx = fmt.indexOf('{n}');
                     const prefix = fmt.slice(0, idx);
                     const suffix = fmt.slice(idx + 3);
