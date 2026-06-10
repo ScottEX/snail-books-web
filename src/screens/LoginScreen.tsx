@@ -15,6 +15,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [bgUrl, setBgUrl] = useState('');
+  const [bgReady, setBgReady] = useState(false);
+  const [avatarReady, setAvatarReady] = useState(false);
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [email, setEmail] = useState('');
@@ -74,9 +77,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setPassword(''); setPassword2(''); setEmail('');
   };
 
-  // Fetch avatar when username changes (debounced)
+  // Fetch avatar & background when username changes (debounced)
   useEffect(() => {
-    if (!username) { setAvatarUrl(''); return; }
+    if (!username) { setAvatarUrl(''); setBgUrl(''); setBgReady(false); setAvatarReady(false); return; }
+    setBgReady(false); setAvatarReady(false);
     const timer = setTimeout(async () => {
       try {
         let resp = await fetch(`/api/users/avatar?username=${encodeURIComponent(username)}`);
@@ -86,20 +90,33 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         if (resp.ok) {
           const blob = await resp.blob();
           setAvatarUrl(URL.createObjectURL(blob));
+          setAvatarReady(true);
         } else {
-          setAvatarUrl('');
+          setAvatarUrl(''); setAvatarReady(true);
         }
-      } catch { setAvatarUrl(''); }
+      } catch { setAvatarUrl(''); setAvatarReady(true); }
+
+      try {
+        const bgResp = await fetch(`/api/users/background?username=${encodeURIComponent(username)}`);
+        if (bgResp.ok) {
+          const blob = await bgResp.blob();
+          setBgUrl(URL.createObjectURL(blob));
+          setBgReady(true);
+        } else {
+          setBgUrl(''); setBgReady(true);
+        }
+      } catch { setBgUrl(''); setBgReady(true); }
     }, 400);
     return () => clearTimeout(timer);
   }, [username]);
 
   const validatePassword = (pw: string): string => {
-    if (pw.length < 8) return 'errPwTooShort';
-    if (!/[A-Za-z]/.test(pw)) return 'errPwNeedLetter';
-    if (!/[0-9]/.test(pw)) return 'errPwNeedNumber';
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pw)) return 'errPwNeedSpecial';
-    return '';
+    let ok = true;
+    if (pw.length < 8) ok = false;
+    if (!/[A-Za-z]/.test(pw)) ok = false;
+    if (!/[0-9]/.test(pw)) ok = false;
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pw)) ok = false;
+    return ok ? '' : 'errPwRequirements';
   };
 
   const validateEmail = (em: string): string => {
@@ -123,7 +140,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('user', r.username || username);
           localStorage.setItem('user_id', String(r.user_id || ''));
-          localStorage.setItem('saved_login', username);
+          if (remember) {
+            localStorage.setItem('saved_login', username);
+          } else {
+            localStorage.removeItem('saved_login');
+          }
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
@@ -254,17 +275,17 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   return (
     <View style={styles.container}>
-      {/* Background layers */}
+      {/* Background layers — default always visible, custom fades in on top */}
       <View style={styles.bgWrapper} />
+      <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none', filter: bgReady && bgUrl ? 'blur(0)' : 'blur(16px)' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
       <View style={styles.bgOverlay} />
       <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
         <View style={styles.brand}>
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.logo} />
-          ) : (
+          <View style={styles.logoWrap}>
             <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
-          )}
+            <Image source={{ uri: avatarUrl || '/img/logo.jpg' }} style={[styles.logo, styles.logoOver, { filter: avatarReady && avatarUrl ? 'blur(0)' : 'blur(12px)', opacity: avatarReady && avatarUrl ? 1 : 0 }]} />
+          </View>
           <Text style={styles.subtitle}>{t('subtitle')}</Text>
           <View style={styles.langRow}>
             {langs.map(([l, label]) => (
@@ -376,6 +397,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>{t('email') || 'Email'}</Text>
                 <TextInput style={styles.textInput} value={email} onChangeText={setEmail}
+                  keyboardType="email-address"
                   placeholder={t('email') || 'Email'} placeholderTextColor="rgba(255,255,255,0.55)" />
               </View>
               <View style={styles.fieldWrap}>
@@ -555,8 +577,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, padding: 20, paddingTop: 24 },
   bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
-    // @ts-ignore - web-only background image
-    backgroundImage: 'url(/img/bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
+    // @ts-ignore - web-only
+    backgroundImage: 'url(/img/bg.jpg?v=2)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
+  bgCustom: { zIndex: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },
   bgOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
   content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
@@ -568,6 +591,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)',
   },
   logo: { width: 80, height: 80, borderRadius: 40, marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)' } as any,
+  logoOver: { position: 'absolute' as any, top: 0, left: 0, marginBottom: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },
   subtitle: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
   langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
   langBtn: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },

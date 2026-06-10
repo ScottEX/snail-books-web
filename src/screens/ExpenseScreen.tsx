@@ -14,8 +14,14 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
 import { fmtAmt as fmt } from '../utils/format';
+import { blockNeg, fmtDecInput, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
+import CategoryChips from '../components/CategoryChips';
+import ButtonPair from '../components/ButtonPair';
+import PaymentMethodChips from '../components/PaymentMethodChips';
+import ExpenseNoteInput from '../components/ExpenseNoteInput';
+import ReceiptUpload from '../components/ReceiptUpload';
 
 /* ── helpers ── */
 const fmtInt = (n: number) => n.toLocaleString();
@@ -41,13 +47,7 @@ const fmtMonth = (year: number, month: number) => {
   return `${year}年${String(month).padStart(2, '0')}月`;
 };
 const toNum = (s: string) => parseFloat(s) || 0;
-const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
-const fmtDecInput = (s: string) => { s = blockNeg(s); return s.startsWith('.') ? '0' + s : s; };
-const toDec2 = (v: any) => String((parseFloat(String(v ?? 0)) || 0).toFixed(2));
-const toDec2Comma = (v: any) => {
-  const n = parseFloat(String(v ?? 0)) || 0;
-  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
+
 
 /* ═══════════════════════════════════════════════════════════
    InputWithFocus — 聚焦时边框过渡到品牌红
@@ -166,41 +166,28 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [tuan, setTuan] = useState('');
   const [jd, setJd] = useState('');
 
-  const mountedRef = useRef(false);
   const initReconValues = useRef({ card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' });
   const reconJustLoaded = useRef(false);
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
   // Load reconciliation data from backend
+  // Rule:
+  //   1. Exact match on bill_date → show that record's values
+  //   2. No match + recDate >= last bill_date → fill with last record's values
+  //   3. No match + recDate < last bill_date → leave empty
   useEffect(() => {
-    if (!mountedRef.current) {
-      // First mount: load the last reconciliation
-      mountedRef.current = true;
-      (async () => {
-        try {
-          const data = await api.getReconciliations(1);
-          if (data && data.length > 0) {
-            const last = data[0];
-            const d = last.bill_date || last.date || yesterdayStr();
-            setRecDate(d);
-            setCardBalance(toDec2(last.card_balance));
-            setCashBalance(toDec2(last.cash_balance));
-            setDineIn(toDec2(last.dine_in));
-            setMeituan(toDec2(last.meituan));
-            setFlashSale(toDec2(last.flash_sale));
-            setTuan(toDec2(last.tuan));
-            setJd(toDec2(last.jd));
-          }
-          reconJustLoaded.current = true;
-        } catch { setToast(t('toastLoadFailed')); }
-      })();
-      return;
-    }
-    // When recDate changes: fetch reconciliation for that date from backend
     (async () => {
       try {
         const data = await api.getReconciliations(365);
-        const match = (data || []).find((r: any) => r.bill_date === recDate);
+        if (!data || data.length === 0) {
+          setCardBalance(''); setCashBalance('');
+          setDineIn(''); setMeituan('');
+          setFlashSale(''); setTuan(''); setJd('');
+          reconJustLoaded.current = true;
+          return;
+        }
+        const last = data[0]; // most recent record
+        const match = data.find((r: any) => r.bill_date === recDate);
         if (match) {
           setCardBalance(toDec2(match.card_balance));
           setCashBalance(toDec2(match.cash_balance));
@@ -209,14 +196,18 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           setFlashSale(toDec2(match.flash_sale));
           setTuan(toDec2(match.tuan));
           setJd(toDec2(match.jd));
+        } else if (recDate >= (last.bill_date || '')) {
+          setCardBalance(toDec2(last.card_balance));
+          setCashBalance(toDec2(last.cash_balance));
+          setDineIn(toDec2(last.dine_in));
+          setMeituan(toDec2(last.meituan));
+          setFlashSale(toDec2(last.flash_sale));
+          setTuan(toDec2(last.tuan));
+          setJd(toDec2(last.jd));
         } else {
-          setCardBalance('');
-          setCashBalance('');
-          setDineIn('');
-          setMeituan('');
-          setFlashSale('');
-          setTuan('');
-          setJd('');
+          setCardBalance(''); setCashBalance('');
+          setDineIn(''); setMeituan('');
+          setFlashSale(''); setTuan(''); setJd('');
         }
         reconJustLoaded.current = true;
       } catch { setToast(t('toastLoadFailed')); }
@@ -364,8 +355,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     expDateInputRef,
     onToast: setToast,
   });
-
-  const [showImgTip, setShowImgTip] = useState(false);
 
   // Sync uncontrolled date inputs when state changes externally
   const recDateInputRef = useRef<HTMLInputElement>(null);
@@ -758,20 +747,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
 
-            {/* 按钮行：对账记录(左) + 添加(右) */}
-            <View style={st.btnRow}>
-              <TouchableOpacity style={st.reconRecordBtn} onPress={onReconHistory} activeOpacity={0.8}>
-                <Text style={st.reconRecordBtnText}>{t('reconHistory')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[st.reconBtn, !hasReconChanges && { opacity: 0.4 }]}
-                onPress={() => hasReconChanges && setShowToast(true)}
-                activeOpacity={hasReconChanges ? 0.8 : 1}
-                disabled={!hasReconChanges}
-              >
-                <Text style={st.reconBtnText}>{t('reconComplete')}</Text>
-              </TouchableOpacity>
-            </View>
+            <ButtonPair
+              leftLabel={t('reconHistory')}
+              leftOnPress={onReconHistory}
+              rightLabel={t('reconComplete')}
+              rightOnPress={() => hasReconChanges && setShowToast(true)}
+              rightDisabled={!hasReconChanges}
+            />
           </View>
         </FadeInView>
         )}
@@ -796,124 +778,20 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </View>
                 <View style={st.amtCursor} />
               </View>
-              {/* 分类胶囊 — 2×2 grid (accommodates long English words) */}
-              <Text style={st.catSectionTitle}>{t('expenseCategory')}</Text>
-              <View style={st.catGridWide}>
-                {(() => {
-                  // Internal keys: 'daily' | 'rent' | 'salary' | 'goods'
-                  // These ARE the i18n keys (key === display key), so no map needed.
-                  const icons: Record<string, React.ReactElement> = {
-                    daily: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2l-2-3H9L7 7H5a2 2 0 00-2 2z"/><Path d="M16 12a4 4 0 11-8 0"/></Svg>,
-                    rent: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M3 21h18"/><Path d="M3 10l9-7 9 7"/><Path d="M5 12v7h4v-4h6v4h4v-7"/></Svg>,
-                    salary: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="9"/><Path d="M14 8h-3.5a2 2 0 000 4h1a2 2 0 010 4H8"/><Path d="M12 6v2M12 16v2"/></Svg>,
-                    goods: <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 7l-3-4H7L4 7v12a2 2 0 002 2h12a2 2 0 002-2V7z"/><Path d="M4 7h16"/><Path d="M9 12h6"/><Path d="M12 9v6"/></Svg>,
-                  };
-                  const cats = ['daily', 'rent', 'salary', 'goods'] as const;
-                  const mkChip = (cat: string) => {
-                    const active = expCategory === cat;
-                    return (
-                      <TouchableOpacity key={cat} style={[st.catChip, active && st.catChipActive]}
-                        onPress={() => setExpCategory(cat)} activeOpacity={0.7}>
-                        <View style={[st.chipIconCircle, active && st.chipIconCircleActive]}>{icons[cat]}</View>
-                        <Text style={[st.catChipText, active && st.catChipTextActive]} numberOfLines={1}>{t(cat as any)}</Text>
-                      </TouchableOpacity>
-                    );
-                  };
-                  return (
-                    <>
-                      <View style={st.catRow}>{cats.slice(0, 2).map(mkChip)}</View>
-                      <View style={st.catRow}>{cats.slice(2, 4).map(mkChip)}</View>
-                    </>
-                  );
-                })()}
-              </View>
+              {/* 分类胶囊 */}
+              <CategoryChips selected={expCategory} onSelect={setExpCategory} />
               {/* 支付方式 */}
-              <Text style={st.catSectionTitle}>{t('paymentMethod')}</Text>
-              <View style={st.payGrid}>
-                {(() => {
-                  // Internal keys: 'payCash' | 'payWechat' | 'payAlipay'
-                  const payIcons: Record<string, (color: string) => React.ReactNode> = {
-                    payCash: (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Rect x="1" y="4" width="22" height="16" rx="2"/><Path d="M1 10h22"/><Circle cx="12" cy="12" r="3"/></Svg>,
-                    payWechat: (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></Svg>,
-                    payAlipay: (color) => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><Path d="M9 12l2 2 4-4"/></Svg>,
-                  };
-                  const chipIconBg: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
-                  return (['payCash', 'payWechat', 'payAlipay'] as const).map((m) => {
-                    const active = payMethod === m;
-                    const isWechat = m === 'payWechat';
-                    const isAlipay = m === 'payAlipay';
-                    return (
-                      <TouchableOpacity key={m}
-                        style={[st.payChip, active && (isWechat ? st.payChipActiveWechat : isAlipay ? st.payChipActiveAlipay : st.payChipActive)]}
-                        onPress={() => setPayMethod(m)} activeOpacity={0.7}>
-                        <View style={[st.chipIconCircle, active && { backgroundColor: chipIconBg[m] }]}>
-                          {payIcons[m](active ? colors.surface : colors.textSub)}
-                        </View>
-                        <Text style={[st.payChipText, active && st.payChipTextActive]}>{t(m as any)}</Text>
-                      </TouchableOpacity>
-                    );
-                  });
-                })()}
-              </View>
+              <PaymentMethodChips selected={payMethod} onSelect={setPayMethod} />
               {/* 支出说明 */}
-              <Text style={st.catSectionTitle}>{t('expenseNote')}</Text>
-              <InputWithFocus inputStyle={st.noteInput}
-                value={expNote}
-                onChangeText={setExpNote}
-                placeholder={t('notePlaceholder')}
-                placeholderTextColor={colors.textSub}
-                multiline />
+              <ExpenseNoteInput value={expNote} onChangeText={setExpNote} />
               {/* 凭证上传 */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={[st.catSectionTitle, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
-                <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7}
-                  style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: colors.secondary, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub }}>!</Text>
-                </TouchableOpacity>
-                {showImgTip && (
-                  <View style={st.imgTipBubble}>
-                    <Text style={st.imgTipText}>支持 jpg/png/webp，单张最大 10MB</Text>
-                  </View>
-                )}
-              </View>
-              <View style={st.imgRow}>
-                {/* Hidden file input */}
-                {React.createElement('input', {
-                  ref: fileInputRef,
-                  type: 'file',
-                  accept: 'image/jpeg,image/png,image/webp',
-                  multiple: true,
-                  onChange: handleImageSelect,
-                  style: { display: 'none' },
-                })}
-                {/* Add button */}
-                <TouchableOpacity style={st.imgAddBtn}
-                  onPress={() => fileInputRef.current?.click()}
-                  activeOpacity={0.7}>
-                  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5} strokeLinecap="round">
-                    <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                    <Circle cx="12" cy="13" r="4" />
-                  </Svg>
-                  <Text style={st.imgAddText}>{t('addImage')}</Text>
-                </TouchableOpacity>
-                {/* Image previews */}
-                {expImages.map((file, i) => (
-                  <View key={`img-${i}`} style={st.imgPreview}>
-                    {React.createElement('img', {
-                      src: getPreviewUrl(file),
-                      style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' },
-                      alt: file.name,
-                    })}
-                    <TouchableOpacity style={st.imgRemove}
-                      onPress={() => removeImage(i)}
-                      activeOpacity={0.7}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth={2.5} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12" />
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
+              <ReceiptUpload
+                newFiles={expImages}
+                onAdd={(files: File[]) => handleImageSelect({ target: { files: files as any, value: '' } } as any)}
+                onRemoveNew={removeImage}
+                getPreviewUrl={getPreviewUrl}
+                maxThumbSize={120}
+              />
               {/* 日期选择 */}
               <View style={st.expDateRow}>
                 <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5}>
@@ -950,26 +828,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} color={colors.danger} textAlign="left" />
                 </View>
               </View>
-              {/* 按钮行 */}
-              <View style={st.btnRow}>
-                <TouchableOpacity style={st.reconRecordBtn}
-                  onPress={() => onExpenseHistory?.()} activeOpacity={0.8}>
-                  <Text style={st.reconRecordBtnText}>{t('expenseHistory')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[st.expBtn, { flex: 1 }]}
-                  onPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) > 0) setShowExpConfirm(true); }}
-                  disabled={isAmountInvalid}
-                  activeOpacity={0.8}
-                >
-                  <Text style={st.expBtnText}>
-                    {loadingExp ? '...' : t('confirmRecord')}
-                  </Text>
-                  {isAmountInvalid && (
-                    <View style={st.expBtnMask} />
-                  )}
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('expenseHistory')}
+                leftOnPress={() => onExpenseHistory?.()}
+                rightLabel={loadingExp ? '...' : t('confirmRecord')}
+                rightOnPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) > 0) setShowExpConfirm(true); }}
+                rightDisabled={isAmountInvalid}
+              />
             </View>
           </View>
         </FadeInView>
@@ -1479,24 +1344,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   resultVal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.textMain },
   resultDiff: { fontSize: FONTS.h1.size, fontWeight: FONTS.amount.weight, letterSpacing: -0.5 },
   /* ── Recon buttons ── */
-  btnRow: {
-    flexDirection: 'row', gap: 10, marginTop: 4,
-  },
-  reconBtn: {
-    flex: 1, backgroundColor: colors.primary, borderRadius: 12,
-    paddingVertical: 14, alignItems: 'center',
-  },
-  reconBtnText: {
-    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface,
-  },
-  reconRecordBtn: {
-    flex: 1, backgroundColor: colors.secondary, borderRadius: 12,
-    paddingVertical: 14, alignItems: 'center',
-    borderWidth: 1, borderColor: colors.secondary,
-  },
-  reconRecordBtnText: {
-    fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub,
-  },
 
   /* ── KPI ── */
   kpiRow: { flexDirection: 'column' },
@@ -1554,56 +1401,9 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     marginTop: 10, borderRadius: 1,
   },
   /* Category chips */
-  catSectionTitle: { fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, marginBottom: 10 },
-  catGrid: { flexDirection: 'row', gap: 8 },
-  catGridWide: { gap: 8 },
-  catRow: { flexDirection: 'row', width: '100%' as any, gap: 8, marginBottom: 6 },
-  catChip: {
-    flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
-    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
-  },
-  catChipActive: { backgroundColor: colors.primary },
-  catChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
-  catChipTextActive: { color: colors.surface },
-  /* Payment method chips */
-  payGrid: { flexDirection: 'row', gap: 8 },
-  payChip: {
-    flex: 1, flexDirection: 'row', paddingVertical: 8, borderRadius: 22,
-    backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center',
-  },
-  payChipActive: { backgroundColor: colors.primary },
-  payChipActiveWechat: { backgroundColor: '#07C160' },
-  payChipActiveAlipay: { backgroundColor: '#1677FF' },
-  payChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
-  payChipTextActive: { color: colors.surface },
-  /* Chip icon circle */
-  chipIconCircle: {
-    width: 26, height: 26, borderRadius: 13,
-    backgroundColor: 'rgba(0,0,0,0.04)',
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: 4,
-  },
-  chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
-  /* Expense records */
-  noteInput: {
-    fontSize: FONTS.sub.size, color: colors.textSub,
-    borderWidth: 0, backgroundColor: colors.bg,
-    borderRadius: 10, padding: 12, minHeight: 60,
-    textAlignVertical: 'top',
-    // @ts-ignore
-    outline: 'none',
-  },
+  catSectionTitle: { fontSize: 14, color: colors.textSub, fontWeight: FONTS.microBold.weight, marginBottom: 10 },
   expFormRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   expCatLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
-  expBtn: {
-    backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14,
-    alignItems: 'center', position: 'relative', overflow: 'hidden',
-  },
-  expBtnMask: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 12,
-  },
-  expBtnText: { color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   /* ── Expense list ── */
   expRow: {

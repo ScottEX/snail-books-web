@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { useTheme, ThemeColors } from '../theme';
+import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING } from '../theme';
 import { t, getLang } from '../i18n';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
@@ -17,37 +18,43 @@ const MIN_SCALE = 0.5;
 const MAX_SCALE = 4;
 const NAV_H = 56;
 
-const CSS = `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--bg:#141416;--surface:#1E1E22;--surface2:#26262C;--surface3:#2E2E36;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--text:#F0EDE8;--text2:rgba(240,237,232,.5);--text3:rgba(240,237,232,.28);--accent:#C0392B;--accent-dim:rgba(192,57,43,.15);--sans:'Noto Sans SC',sans-serif;--mono:'DM Mono',monospace}
+const getCSS = (c: ThemeColors) => {
+  const r = parseInt(c.bg.slice(1,3),16);
+  const g = parseInt(c.bg.slice(3,5),16);
+  const b = parseInt(c.bg.slice(5,7),16);
+  const btnBg = `rgba(${r},${g},${b},0.30)`;
+  const btnBgActive = `rgba(${r},${g},${b},0.45)`;
+  return `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html.pv-lock{overflow:hidden;touch-action:none}
-.pv-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(20,20,22,.85);backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--line)}
+.pv-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:transparent;backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
 .pv-nav-l{display:flex;align-items:center;gap:10px}
-.pv-back{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
-.pv-back:active{background:var(--surface3)}
-.pv-back svg{width:16px;height:16px;stroke:var(--text);stroke-width:2;fill:none;display:block}
-.pv-title{font-size:15px;font-weight:600;color:var(--text);letter-spacing:.01em}
-.pv-sub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
-.pv-share-btn{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
-.pv-share-btn:active{background:var(--surface3);transform:scale(.92)}
-.pv-share-btn svg{width:16px;height:16px;stroke:var(--text2);stroke-width:2;fill:none}
-.pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:20px;padding:4px 14px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;pointer-events:none}
-.pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:11px;font-family:var(--mono);color:var(--text2);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
+.pv-back{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
+.pv-back:active{background:${btnBgActive}}
+.pv-back svg{width:16px;height:16px;stroke:#2C2626;stroke-width:2;fill:none;display:block}
+.pv-title{font-size:15px;font-weight:600;color:#2C2626;letter-spacing:.01em}
+.pv-sub{font-size:10px;color:rgba(240,237,232,0.28);font-family:'DM Mono',monospace;margin-top:1px}
+.pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
+.pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
+.pv-pill{position:fixed;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:20px;padding:4px 14px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;pointer-events:none}
+.pv-zi{position:fixed;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:8px;padding:4px 10px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
 .pv-zi.on{opacity:1}
 .pv-vp{position:fixed;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:hidden;background:#F9F7F4}
 .pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
 .pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
 .pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
 .pv-zoom-strip{position:fixed;right:16px;bottom:18px;z-index:95;display:flex;flex-direction:column;gap:6px}
-.pv-zoom-btn{width:40px;height:40px;border-radius:50%;background:rgba(20,20,22,.75);backdrop-filter:blur(12px);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35)}
-.pv-zoom-btn:active{background:var(--surface3);transform:scale(.92)}
-.pv-zoom-btn svg{width:16px;height:16px;stroke:var(--text2);stroke-width:2;fill:none}
-.pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:1px solid var(--line2);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.pv-zoom-btn{width:40px;height:40px;border-radius:50%;background:${btnBg};backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.pv-zoom-btn:active{background:${btnBgActive};transform:scale(.92)}
+.pv-zoom-btn svg{width:16px;height:16px;stroke:#2C2626;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.pv-zoom-btn svg text{fill:#2C2626;stroke:none}
+.pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:0.5px solid rgba(0,0,0,0.10);border-radius:10px;padding:10px 18px;font-size:12px;color:#F0EDE8;display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .pv-toast.on{opacity:1;transform:translate(-50%,0)}
 .pv-intro-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
-.pv-intro{background:#fff;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
 .pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
-.pv-intro-sec{font-size:36px;font-weight:800;font-family:var(--mono)}
+.pv-intro-sec{font-size:36px;font-weight:800;font-family:'DM Mono',monospace}
 .pv-sh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
 .pv-sh-overlay.open{opacity:1;pointer-events:auto}
 .pv-sh{position:absolute;bottom:0;left:0;right:0;max-height:70vh;background:#F9F7F4;border-radius:20px 20px 0 0;padding:16px 16px 24px;transform:translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
@@ -56,17 +63,19 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
 .pv-err svg{display:block}
 .pv-err-msg{font-size:13px;color:#999}
-.pv-err-btn{padding:10px 28px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.pv-err-btn{padding:10px 28px;border-radius:8px;background:${c.accent};color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .pv-err-btn:active{opacity:.8}
-.pv-loading-mask{position:fixed;inset:0;z-index:195;background:rgba(0,0,0,0.4);pointer-events:auto}
+.pv-loading-mask{position:absolute;inset:0;z-index:195;background:rgba(0,0,0,0.35);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
-.pv-root{animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
-.pv-root.out{animation:pv-slide-out 250ms cubic-bezier(0.55,0.055,0.675,0.19) both}
+.pv-root{background:linear-gradient(to bottom,transparent 56px,#F9F7F4 56px);animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
+.pv-root.out{animation:pv-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
 `;
+};
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
   const { colors: c } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
   const st = useMemo(() => getStyles(c), [c]);
   const title = t('procPdfTitle').replace('{n}', String(batchNumber));
   const pdfUrl = `/api/procurement-batches/${batchId}/pdf`;
@@ -82,11 +91,17 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
   const [introSec, setIntroSec] = useState(1);
   const [exiting, setExiting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const phRef = useRef(0); // page height
+  const numPagesRef = useRef(0);
+  const setPageRef = useRef(setCurrentPage);
+  setPageRef.current = setCurrentPage;
+  numPagesRef.current = numPages;
 
   const handleBack = useCallback(() => {
     if (exiting) return;
     setExiting(true);
-    setTimeout(onBack, 250);
+    setTimeout(onBack, EXIT_DURATION);
   }, [exiting, onBack]);
 
   // Fetch PDF as blob with auth cookies, then create object URL for react-pdf
@@ -114,6 +129,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const rafRef = useRef(0);
   const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const momRef = useRef(0); // momentum animation raf id
+  const velRef = useRef({ vy: 0, ly: 0, vx: 0, lx: 0, lt: 0 }); // velocity tracking
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
 
@@ -130,6 +147,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     el.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
     el.style.transform = `translate(-50%, 0) translate(${g.tx}px, ${g.ty}px) scale(${g.scale})`;
     if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 260);
+    // sync current page
+    if (phRef.current > 0 && numPagesRef.current > 0) {
+      const p = Math.max(1, Math.min(numPagesRef.current, Math.round((-g.ty) / phRef.current) + 1));
+      setPageRef.current(p);
+    }
   }, []);
 
   const clamp = useCallback(() => {
@@ -139,11 +161,17 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const vp = el.parentElement; if (!vp) return;
     const cw = el.scrollWidth * g.scale;
     const ch = el.scrollHeight * g.scale;
-    const vw = vp.clientWidth, vh = vp.clientHeight;
-    const mx = Math.max(0, (cw - vw) / 2);
-    const my = Math.max(0, (ch - vh) / 2 + 20);
-    g.tx = Math.max(-mx, Math.min(mx, g.tx));
-    g.ty = Math.max(-20, Math.min(my, g.ty));
+    const vw = vp.clientWidth;
+    const vh = vp.clientHeight;
+    const scrollW = Math.max(0, cw - vw);
+    const scrollH = Math.max(0, ch - vh);
+    // Horizontal: center ± half overflow, with 20px overscroll
+    if (cw > vw) {
+      g.tx = Math.max(-scrollW / 2 - 20, Math.min(scrollW / 2 + 20, g.tx));
+    } else {
+      g.tx = Math.max(-20, Math.min(20, g.tx));
+    }
+    g.ty = Math.max(-scrollH - 20, Math.min(20, g.ty));
   }, []);
 
   const flushZoom = useCallback((animated: boolean) => {
@@ -157,8 +185,56 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = 0;
-      clamp(); applyTransform(false);
+      applyTransform(false);
     });
+  }, [applyTransform]);
+
+  // Momentum scroll — continues after finger lifts, decelerates, bounces at bounds
+  const startMomentum = useCallback(() => {
+    const g = gRef.current;
+    let vx = velRef.current.vx * 16; // px/frame (~60fps)
+    let vy = velRef.current.vy * 16;
+    if (Math.abs(vx) < 0.5 && Math.abs(vy) < 0.5) { clamp(); applyTransform(true); return; }
+
+    const tick = () => {
+      g.tx += vx;
+      g.ty += vy;
+      vx *= 0.94; // friction
+      vy *= 0.94;
+
+      // Check bounds — if overscrolled, bounce back
+      const el = wrapRef.current;
+      if (el) {
+        const vp = el.parentElement;
+        if (vp) {
+          const cw = el.scrollWidth * g.scale;
+          const ch = el.scrollHeight * g.scale;
+          const vw = vp.clientWidth;
+          const vh = vp.clientHeight;
+          const scrollW = Math.max(0, cw - vw);
+          const scrollH = Math.max(0, ch - vh);
+          const leftLimit = cw > vw ? -scrollW / 2 - 20 : -20;
+          const rightLimit = cw > vw ? scrollW / 2 + 20 : 20;
+          const topLimit = -scrollH - 20;
+          if (g.tx > rightLimit || g.tx < leftLimit || g.ty > 20 || g.ty < topLimit) {
+            clamp(); applyTransform(true);
+            momRef.current = 0;
+            return;
+          }
+        }
+      }
+
+      if (Math.abs(vx) < 0.3 && Math.abs(vy) < 0.3) {
+        clamp(); applyTransform(true);
+        momRef.current = 0;
+        return;
+      }
+
+      applyTransform(false);
+      momRef.current = requestAnimationFrame(tick);
+    };
+
+    momRef.current = requestAnimationFrame(tick);
   }, [clamp, applyTransform]);
 
   const initZoom = useCallback(() => {
@@ -174,38 +250,24 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (!pdfLoading && wrapRef.current) setTimeout(initZoom, 100);
   }, [pdfLoading, initZoom]);
 
+  // capture page height after canvases render
+  useEffect(() => {
+    if (numPages > 0 && !pdfLoading) {
+      requestAnimationFrame(() => {
+        const canvas = wrapRef.current?.querySelector('canvas');
+        if (canvas) phRef.current = canvas.clientHeight;
+      });
+    }
+  }, [numPages, pdfLoading]);
+
   // ── 手势事件 ──
   useEffect(() => {
     const el = wrapRef.current; if (!el) return;
 
-    const onMD = (e: MouseEvent) => {
-      e.preventDefault();
-      const g = gRef.current;
-      dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.tx, sty: g.ty };
-    };
-    const onMM = (e: MouseEvent) => {
-      if (!dragRef.current.active) return;
-      const d = dragRef.current;
-      gRef.current.tx = d.stx + (e.clientX - d.sx);
-      gRef.current.ty = d.sty + (e.clientY - d.sy);
-      scheduleApply();
-    };
-    const onMU = () => { dragRef.current.active = false; clamp(); applyTransform(true); };
-    const onWh = (e: WheelEvent) => {
-      e.preventDefault();
-      const g = gRef.current;
-      g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + (e.deltaY > 0 ? -0.08 : 0.08)));
-      clamp(); applyTransform(false); flushZoom(false);
-    };
-
-    el.addEventListener('mousedown', onMD);
-    window.addEventListener('mousemove', onMM);
-    window.addEventListener('mouseup', onMU);
-    el.addEventListener('wheel', onWh, { passive: false });
-
     const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
+      cancelAnimationFrame(momRef.current);
       if (e.touches.length === 1) {
         const now = Date.now();
         if (now - lastTapRef.current < 300) {
@@ -214,7 +276,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           clamp(); applyTransform(true); flushZoom(true); lastTapRef.current = 0; return;
         }
         lastTapRef.current = now;
+        gRef.current.tx = gRef.current.tx; // preserve current horizontal position
         dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: gRef.current.tx, sty: gRef.current.ty };
+        velRef.current = { vy: 0, ly: e.touches[0].clientY, vx: 0, lx: e.touches[0].clientX, lt: performance.now() };
       } else if (e.touches.length === 2) {
         pinchRef.current = { dist: dist(e.touches), scale: gRef.current.scale };
       }
@@ -225,6 +289,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         const d = dragRef.current;
         gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
         gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
+        // track velocity
+        const now = performance.now();
+        const dy = e.touches[0].clientY - velRef.current.ly;
+        const dx = e.touches[0].clientX - velRef.current.lx;
+        const dt = now - velRef.current.lt;
+        if (dt > 5) { velRef.current.vy = dy / dt; velRef.current.vx = dx / dt; }
+        velRef.current.ly = e.touches[0].clientY;
+        velRef.current.lx = e.touches[0].clientX;
+        velRef.current.lt = now;
         scheduleApply();
       } else if (e.touches.length === 2 && pinchRef.current.dist > 0) {
         const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchRef.current.scale * (dist(e.touches) / pinchRef.current.dist)));
@@ -233,7 +306,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       }
     };
     const onTE = (e: TouchEvent) => {
-      if (e.touches.length === 0) { dragRef.current.active = false; clamp(); applyTransform(true); }
+      if (e.touches.length === 0 && dragRef.current.active) { dragRef.current.active = false; startMomentum(); }
       else if (e.touches.length === 1) { dragRef.current.active = false; }
     };
     el.addEventListener('touchstart', onTS, { passive: false });
@@ -241,15 +314,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     el.addEventListener('touchend', onTE);
 
     return () => {
-      el.removeEventListener('mousedown', onMD);
-      window.removeEventListener('mousemove', onMM);
-      window.removeEventListener('mouseup', onMU);
-      el.removeEventListener('wheel', onWh);
       el.removeEventListener('touchstart', onTS);
       el.removeEventListener('touchmove', onTM);
       el.removeEventListener('touchend', onTE);
     };
-  }, [scheduleApply, clamp, applyTransform, flushZoom]);
+  }, [scheduleApply, clamp, applyTransform, flushZoom, startMomentum]);
 
   const doDownload = useCallback(() => {
     const a = document.createElement('a');
@@ -286,9 +355,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, [applyTransform, flushZoom]);
 
   return (
-    <View style={st.container}>
+    <View style={st.container} {...swipeBack}>
       {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
-        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <style dangerouslySetInnerHTML={{ __html: getCSS(c) }} />
 
         {/* Navbar */}
         <div className="pv-nav">
@@ -302,7 +371,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         </div>
 
         {/* Page pill */}
-        {numPages > 0 && <div className="pv-pill">第 1 页 / 共 {numPages} 页</div>}
+        {numPages > 0 && <div className="pv-pill">第 {currentPage} 页 / 共 {numPages} 页</div>}
 
         {/* Zoom indicator */}
         <div className={`pv-zi${zoomVis ? ' on' : ''}`}>{zoomPct}%</div>
@@ -356,9 +425,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
         {/* Zoom buttons */}
         <div className="pv-zoom-strip">
-          <div className="pv-zoom-btn" onClick={() => stepZoom(0.25)}><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg></div>
-          <div className="pv-zoom-btn" onClick={resetZoom}><svg viewBox="0 0 24 24"><path d="M3.5 3.5l4 4M20.5 3.5l-4 4M20.5 20.5l-4-4M3.5 20.5l4-4" /></svg></div>
-          <div className="pv-zoom-btn" onClick={() => stepZoom(-0.25)}><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /></svg></div>
+          <div className="pv-zoom-btn" onClick={() => stepZoom(0.25)}>
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div className="pv-zoom-btn" onClick={resetZoom}>
+            <svg viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="700" fill="#2C2626" font-family="system-ui">1x</text></svg>
+          </div>
+          <div className="pv-zoom-btn" onClick={() => stepZoom(-0.25)}>
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
         </div>
 
         {/* Toast */}

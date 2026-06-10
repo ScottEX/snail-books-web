@@ -3,11 +3,14 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
+import { toDec2 } from "../utils/numbers";
+import EmptyState from "../components/EmptyState";
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
 import DateErrorHint from '../components/DateErrorHint';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import BackArrow from '../components/icons/BackArrow';
 
 const PAGE_SIZE = 10;
@@ -41,6 +44,7 @@ function RevenueEmptyIcon({ color }: { color: string }) {
 
 export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) {
   const [records, setRecords] = useState<any[]>([]);
+  const swipeBack = useSwipeBack(onBack);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAll, setTotalAll] = useState(0);
@@ -132,12 +136,12 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
     return `${y}/${m}/${day}`;
   };
 
-  const toDec2 = (x: any) => String(parseFloat(x || 0).toFixed(2));
+
 
   const st = useMemo(() => getSt(colors), [colors]);
 
   return (
-    <View style={st.root}>
+    <View style={st.root} {...swipeBack}>
       {/* Header */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
@@ -247,11 +251,11 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             <Text style={st.loadingText}>{t('loading')}</Text>
           </View>
         ) : records.length === 0 ? (
-          <View style={st.emptyWrap}>
-            <View style={st.emptyIcon}><RevenueEmptyIcon color={colors.textSub} /></View>
-            <Text style={st.emptyTitle}>{t('revEmpty')}</Text>
-            <Text style={st.emptyHint}>{t('revEmptyHint')}</Text>
-          </View>
+          <EmptyState
+            icon={<RevenueEmptyIcon color={colors.textSub} />}
+            title={t('revEmpty')}
+            hint={t('revEmptyHint')}
+          />
         ) : (
           <>
             {records.map((rec: any, i: number) => (
@@ -410,10 +414,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   cardNote: { borderTopWidth: 0.5, borderTopColor: colors.secondary, paddingTop: 8, marginTop: 4 },
   cardNoteText: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 16 },
 
-  emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
-  emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+
 
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 40, gap: 8 },
   loadingText: { fontSize: FONTS.sub.size, color: colors.primary },

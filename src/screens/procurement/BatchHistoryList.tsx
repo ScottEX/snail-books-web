@@ -4,7 +4,8 @@ import {
   ActivityIndicator, StyleSheet
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { t } from '../../i18n';
+import { t } from "../../i18n";
+import EmptyState from "../../components/EmptyState";
 import { trPayment } from '../../i18nHelpers';
 import { useTheme, withAlpha, ThemeColors } from '../../theme';
 import { FONTS } from '../../theme';
@@ -63,10 +64,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histAmount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary, marginTop: 8 },
   histImages: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 4, marginTop: 6 },
   // Empty state
-  emptyIconWrap: { marginBottom: 16, opacity: 0.35 },
-  emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: c.textSub, marginBottom: 6 },
-  emptyHint: { fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center' as const, paddingHorizontal: 40, lineHeight: 20 },
+
   loadingWrap: { paddingVertical: 20, alignItems: 'center' as const },
 });
 
@@ -146,11 +144,11 @@ export default function BatchHistoryList({ batches, loading, total, onViewDetail
         </View>
       )}
       ListEmptyComponent={
-        <View style={styles.emptyWrap}>
-          <View style={styles.emptyIconWrap}><EmptyClipboardIcon color={c.textSub} /></View>
-          <Text style={styles.emptyTitle}>{t('procEmptyHistoryTitle')}</Text>
-          <Text style={styles.emptyHint}>{t('procEmptyHistoryHint')}</Text>
-        </View>
+        <EmptyState
+          icon={<EmptyClipboardIcon color={c.textSub} />}
+          title={t('procEmptyHistoryTitle')}
+          hint={t('procEmptyHistoryHint')}
+        />
       }
       ListFooterComponent={loading ? <View style={styles.loadingWrap}><ActivityIndicator color={c.primary} /></View> : null}
     />

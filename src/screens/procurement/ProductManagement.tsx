@@ -4,7 +4,8 @@ import {
   Animated, StyleSheet
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { t } from '../../i18n';
+import { t } from "../../i18n";
+import EmptyState from "../../components/EmptyState";
 import { api } from '../../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../../theme';
 import { FONTS } from '../../theme';
@@ -67,10 +68,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtAddBtn: { marginHorizontal: 12, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: withAlpha(c.primary, 0.06), borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
   // Empty state
-  emptyIconWrap: { marginBottom: 16, opacity: 0.35 },
-  emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: c.textSub, marginBottom: 6 },
-  emptyHint: { fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center' as const, paddingHorizontal: 40, lineHeight: 20 },
+
   // Modal (product add/edit)
   modalOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 400, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center' as const, alignItems: 'center' as const },
   modalCard: { backgroundColor: c.surface, borderRadius: 16, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
@@ -165,11 +163,11 @@ export default function ProductManagement({ products, suppliers, onRefresh }: Pr
           <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
         </TouchableOpacity>
         {products.length === 0 ? (
-          <View style={styles.emptyWrap}>
-            <View style={styles.emptyIconWrap}><EmptyBoxIcon color={c.textSub} /></View>
-            <Text style={styles.emptyTitle}>{t('procEmptyProductsTitle')}</Text>
-            <Text style={styles.emptyHint}>{t('procEmptyProductsHint')}</Text>
-          </View>
+          <EmptyState
+            icon={<EmptyBoxIcon color={c.textSub} />}
+            title={t('procEmptyProductsTitle')}
+            hint={t('procEmptyProductsHint')}
+          />
         ) : (
           [...products].sort((a, b) => b.id - a.id).map(p => (
             <View key={p.id} style={styles.mgmtRow}>

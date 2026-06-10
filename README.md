@@ -108,7 +108,7 @@ import { withAlpha } from '../theme';
 | 分支 | 触发 | 目标 |
 |------|------|------|
 | `develop` | push | 自动部署到 staging (8601) |
-| `main` | push / PR merge | 手动触发生产 (8600) |
+| `main` | push / PR merge | 自动部署触发生产 (8600) |
 
 ```bash
 # 开发流程

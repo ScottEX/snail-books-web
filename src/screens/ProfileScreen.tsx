@@ -15,7 +15,9 @@ import BackArrow from '../components/icons/BackArrow';
 import CameraIcon from '../components/icons/CameraIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import { useProfileForms } from './profile/useProfileForms';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCropCanvas } from '../hooks/useCropCanvas';
+import ButtonPair from '../components/ButtonPair';
 
 /* ========== MAIN SCREEN ========== */
 function ChevronRight({ color }: { color: string }) {
@@ -29,8 +31,9 @@ function ChevronRight({ color }: { color: string }) {
 
 /* ========== MAIN SCREEN ========== */
 
-export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void }) {
+export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange, onManageUsers }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void; onManageUsers?: () => void }) {
   const { colors, theme } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarKey, setAvatarKey] = useState(0);
   const [coverUrl, setCoverUrl] = useState('');
@@ -46,11 +49,25 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const username = useMemo(() => {
     try { return getCurrentUser(); } catch { return ''; }
   }, []);
+  const currentUserId = useMemo(() => {
+    try { return getCurrentUserId(); } catch { return null; }
+  }, []);
   const [email, setEmail] = useState('');
   const [signature, setSignature] = useState('');
   const [signatureEditing, setSignatureEditing] = useState(false);
   const [signatureDraft, setSignatureDraft] = useState('');
   const [daysSince, setDaysSince] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const checkAdmin = async () => {
+    try {
+      const resp = await fetch('/api/admin/check', { credentials: 'include' });
+      if (resp.ok) {
+        const data = await resp.json();
+        setIsAdmin(data.is_admin === true);
+      }
+    } catch {}
+  };
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -66,6 +83,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     handleChangePw, handleSendCode, handleVerifyEmail, openEmailModal,
   } = useProfileForms(setToast);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAdminBlockModal, setShowAdminBlockModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmUsername, setDeleteConfirmUsername] = useState('');
   const [showThemeModal, setShowThemeModal] = useState(false);
 
   // Auth prefs (single-device login + session timeout)
@@ -148,7 +169,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     } catch {}
   };
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); }, []);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); }, []);
 
   const loadUserInfo = async () => {
     try {
@@ -253,7 +274,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try {
       await api.resetBackground();
       try { localStorage.removeItem('bg-image'); } catch {}
-      window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg' } }));
+      window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg?v=2' } }));
     } catch (err) { /* ignore */ }
     finally { setCoverUploading(false); }
   };
@@ -264,6 +285,23 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     if (val === signature) return;
     setSignature(val);
     try { await api.saveSignature(val); } catch {}
+  };
+
+  // ── Delete account ──
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    try {
+      const rawUid = getCurrentUserId();
+      if (!rawUid) { setToast('无法获取用户信息'); setDeleteLoading(false); setShowDeleteModal(false); return; }
+      const data = await api.deleteAccount(Number(rawUid));
+      setShowDeleteModal(false);
+      setDeleteConfirmUsername('');
+      setToast(data.message || '账户已进入冷静期');
+    } catch (err: any) {
+      setToast(err.message || '操作失败，请稍后重试');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   // ── Avatar upload flow ──
@@ -647,7 +685,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   }, [coverCropSrc, coverShowResult]);
 
   return (
-    <View style={st.root}>
+    <View style={st.root} {...swipeBack}>
       <ScrollView style={st.scroll} showsVerticalScrollIndicator={false}>
         {/* Cover Image — nav & controls overlaid on top */}
         <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
@@ -882,6 +920,19 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </View>
               <Text style={st.authDesc}>{t('sessionTimeoutDesc')}</Text>
             </View>
+            {isAdmin && (<>
+            <View style={st.divider} />
+            {/* User management row */}
+            <TouchableOpacity style={st.iconRow} onPress={() => onManageUsers?.()}>
+              <View style={[st.iconWrap, st.iconUsers]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B9BD5" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="7" r="3"/><path d="M2 20c0-3 3.1-5.5 7-5.5s7 2.5 7 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 19c0-2 1.8-4 4-4s4 2 4 4"/>
+                </svg>
+              </View>
+              <Text style={st.iconLabel}>{t('userManagement')}</Text>
+              <ChevronRight color={colors.textSub} />
+            </TouchableOpacity>
+            </>)}
           </View>
         </View>
 
@@ -892,6 +943,19 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <View style={st.sectionTitleLine} />
           </View>
           <View style={st.card}>
+            <TouchableOpacity style={st.iconRow} onPress={() => {
+              if (currentUserId === '64') { setShowAdminBlockModal(true); }
+              else { setDeleteConfirmUsername(''); setShowDeleteModal(true); }
+            }}>
+              <View style={[st.iconWrap, st.iconDanger]}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+              </View>
+              <Text style={[st.iconLabel, { color: '#e06464' }]}>{t('deleteAccount')}</Text>
+              <ChevronRight color="#e06464" />
+            </TouchableOpacity>
+            <View style={st.divider} />
             <TouchableOpacity style={st.iconRow} onPress={() => setShowLogoutModal(true)}>
               <View style={[st.iconWrap, st.iconDanger]}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e06464" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -925,6 +989,57 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
       {/* Shared modals */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
+      {/* Admin cannot self-delete modal */}
+      <ModalOverlay visible={showAdminBlockModal} onClose={() => setShowAdminBlockModal(false)}>
+        <View style={mo.card}>
+          <View style={mo.header}>
+            <Text style={mo.title}>{t('deleteAccount')}</Text>
+            <TouchableOpacity onPress={() => setShowAdminBlockModal(false)}>
+              <Text style={mo.closeBtn}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={mo.body}>
+            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 16 }}>
+              {t('adminCannotDelete')}
+            </Text>
+            <TouchableOpacity style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center' }} onPress={() => setShowAdminBlockModal(false)}>
+              <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>{t('confirm')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ModalOverlay>
+      {/* Delete account modal */}
+      <ModalOverlay visible={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+        <View style={mo.card}>
+          <View style={mo.header}>
+            <Text style={mo.title}>{t('deleteAccountConfirmTitle')}</Text>
+            <TouchableOpacity onPress={() => setShowDeleteModal(false)}>
+              <Text style={mo.closeBtn}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={mo.body}>
+            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 8 }}>
+              {t('deleteAccountGraceNote')}
+            </Text>
+            <TextInput
+              style={[mo.input, { outline: 'none' } as any]}
+              placeholder={t('enterUsernameToConfirm')}
+              placeholderTextColor={colors.textSub}
+              value={deleteConfirmUsername}
+              onChangeText={setDeleteConfirmUsername}
+              autoFocus
+            />
+            <ButtonPair
+              leftLabel={t('cancel')}
+              leftOnPress={() => { setShowDeleteModal(false); setDeleteConfirmUsername(''); }}
+              rightLabel={deleteLoading ? '...' : t('deleteAccountBtn')}
+              rightOnPress={handleDeleteAccount}
+              rightDisabled={deleteLoading || deleteConfirmUsername !== username}
+            />
+          </View>
+        </View>
+      </ModalOverlay>
+
       <ThemePickerModal
         visible={showThemeModal}
         onClose={() => setShowThemeModal(false)}
@@ -973,18 +1088,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                 onChangeText={setConfirmPw}
               />
               {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
-              <View style={mo.btnRow}>
-                <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowPwModal(false)}>
-                  <Text style={mo.cancelText}>取消</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
-                  onPress={handleChangePw}
-                  disabled={modalLoading}
-                >
-                  <Text style={mo.confirmText}>{modalLoading ? '...' : '确认修改'}</Text>
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={() => setShowPwModal(false)}
+                rightLabel={modalLoading ? '...' : t('confirm')}
+                rightOnPress={handleChangePw}
+                rightDisabled={modalLoading || !oldPw || !newPw || !confirmPw}
+              />
             </View>
         </View>
       </ModalOverlay>
@@ -1011,18 +1121,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                     keyboardType="email-address"
                   />
                   {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
-                  <View style={mo.btnRow}>
-                    <TouchableOpacity style={mo.cancelBtn} onPress={() => setShowEmailModal(false)}>
-                      <Text style={mo.cancelText}>取消</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
-                      onPress={handleSendCode}
-                      disabled={modalLoading}
-                    >
-                      <Text style={mo.confirmText}>{modalLoading ? '...' : t('sendCode')}</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <ButtonPair
+                    leftLabel={t('cancel')}
+                    leftOnPress={() => setShowEmailModal(false)}
+                    rightLabel={modalLoading ? '...' : t('sendCode')}
+                    rightOnPress={handleSendCode}
+                    rightDisabled={modalLoading || !newEmail}
+                  />
                 </>
               ) : (
                 <>
@@ -1040,21 +1145,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                     keyboardType="number-pad"
                   />
                   {modalMsg ? <Text style={mo.err}>{modalMsg}</Text> : null}
-                  <View style={mo.btnRow}>
-                    <TouchableOpacity style={mo.cancelBtn} onPress={() => setEmailStep('input')}>
-                      <Text style={mo.cancelText}>返回</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[mo.confirmBtn, modalLoading && { opacity: 0.6 }]}
-                      onPress={() => handleVerifyEmail((newEm: string) => {
-                        setEmail(newEm);
-                        try { localStorage.setItem('email', newEm); } catch {}
-                      })}
-                      disabled={modalLoading}
-                    >
-                      <Text style={mo.confirmText}>{modalLoading ? t('verifying') : '确认'}</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <ButtonPair
+                    leftLabel={t('back')}
+                    leftOnPress={() => setEmailStep('input')}
+                    rightLabel={modalLoading ? t('verifying') : t('confirm')}
+                    rightOnPress={() => handleVerifyEmail((newEm: string) => {
+                      setEmail(newEm);
+                      try { localStorage.setItem('email', newEm); } catch {}
+                    })}
+                    rightDisabled={modalLoading || !emailCode}
+                  />
                 </>
               )}
             </View>
@@ -1356,6 +1456,7 @@ function getStyles(colors: ThemeColors) {
     },
     iconShield: { backgroundColor: withAlpha(colors.primary, 0.12) },
     iconClock: { backgroundColor: 'rgba(255,180,80,0.12)' },
+    iconUsers: { backgroundColor: 'rgba(91,155,213,0.12)' },
     capsuleRow: {
       flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 2, flexWrap: 'wrap', marginLeft: 42,
     },
@@ -1443,19 +1544,6 @@ function getMo(colors: ThemeColors) {
     },
     pwHint: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 18 },
     err: { fontSize: FONTS.micro.size, color: colors.danger },
-    btnRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
-    cancelBtn: {
-      flex: 1, paddingVertical: 12, borderRadius: 10,
-      borderWidth: 1, borderColor: colors.primary,
-      justifyContent: 'center', alignItems: 'center',
-    },
-    cancelText: { fontSize: FONTS.sub.size, fontWeight: '500', color: colors.textSub },
-    confirmBtn: {
-      flex: 2, paddingVertical: 12, borderRadius: 10,
-      backgroundColor: colors.primary,
-      justifyContent: 'center', alignItems: 'center',
-    },
-    confirmText: { fontSize: FONTS.sub.size, fontWeight: '600', color: colors.surface },
   });
 }
 

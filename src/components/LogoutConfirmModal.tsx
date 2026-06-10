@@ -35,7 +35,6 @@ export default function LogoutConfirmModal({ visible, onClose, onLogout }: Logou
             </TouchableOpacity>
             <TouchableOpacity style={styles.confirmBtn} onPress={async () => {
               await api.logout();
-              try { localStorage.removeItem('active_tab'); } catch {}
               onLogout();
             }}>
               <Text style={styles.confirmBtnText}>{t('confirmLogout') || '确定退出'}</Text>
