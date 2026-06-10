@@ -818,7 +818,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   useEffect(() => {
     if (pendingEditBatch && productsLoaded) {
       openEditBatch(pendingEditBatch);
-      onPendingEditConsumed?.();
+      // Defer consumption so cart/drawer state is flushed before parent
+      // clears pendingEditBatch, avoiding a potential mid-batch race.
+      const timer = setTimeout(() => onPendingEditConsumed?.(), 0);
+      return () => clearTimeout(timer);
     }
   }, [pendingEditBatch, productsLoaded, onPendingEditConsumed]);
 
