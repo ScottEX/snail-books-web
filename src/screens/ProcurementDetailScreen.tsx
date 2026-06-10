@@ -87,7 +87,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
 
   if (!batch) {
     return (
-      <View style={styles.container}>
+      <View style={styles.container} {...swipeBack}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
             <View style={styles.backBtn}>
@@ -170,7 +170,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
   const paymentLabel = trPayment(batch.payment_method);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...swipeBack}>
       {/* Header — absolute, glass */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
