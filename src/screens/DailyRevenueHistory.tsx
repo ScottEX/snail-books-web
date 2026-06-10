@@ -67,6 +67,18 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const [dateFromKey, setDateFromKey] = useState(0);
   const [dateToKey, setDateToKey] = useState(0);
 
+  // Once server date arrives, backfill the date filter defaults
+  useEffect(() => {
+    if (sd.ready && !dateFrom) {
+      const from = sd.offset(-30);
+      const to = sd.today;
+      setDateFrom(from);
+      setDateTo(to);
+      setAppliedFrom(from);
+      setAppliedTo(to);
+    }
+  }, [sd.ready, dateFrom, dateTo, sd.today, sd.offset]);
+
   const { colors } = useTheme();
 
   useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);

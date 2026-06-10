@@ -77,6 +77,18 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   const [filDateFromKey, setFilDateFromKey] = useState(0);
   const [filDateToKey, setFilDateToKey] = useState(0);
 
+  // Once server date arrives, backfill the date filter defaults
+  useEffect(() => {
+    if (sd.ready && !appliedFrom) {
+      const from = sd.offset(-30);
+      const to = sd.today;
+      setFilDateFrom(from);
+      setFilDateTo(to);
+      setAppliedFrom(from);
+      setAppliedTo(to);
+    }
+  }, [sd.ready, appliedFrom, appliedTo, sd.today, sd.offset]);
+
   const { colors } = useTheme();
   const st = useMemo(() => getSt(colors), [colors]);
 
