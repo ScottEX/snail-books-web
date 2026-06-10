@@ -121,6 +121,9 @@ export default function App() {
                 rememberMe = localStorage.getItem('remember_me') || '';
                 localStorage.clear();
                 sessionStorage.clear();
+                // Belt-and-suspenders: explicitly remove navigation keys
+                try { localStorage.removeItem('active_tab'); } catch {}
+                try { localStorage.removeItem('expense_active_tab'); } catch {}
                 if (savedLogin) localStorage.setItem('saved_login', savedLogin);
                 if (rememberMe) localStorage.setItem('remember_me', rememberMe);
               } catch {}
