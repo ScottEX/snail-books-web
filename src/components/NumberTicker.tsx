@@ -3,8 +3,8 @@ import { Text } from 'react-native';
 import { fmtAmt as fmt } from '../utils/format';
 
 /** Smooth number ticker — animates from previous value to target (ease-out cubic). */
-export default function NumberTicker({ value, duration = 500, style }: {
-  value: number; duration?: number; style?: any;
+export default function NumberTicker({ value, duration = 500, style, formatFn }: {
+  value: number; duration?: number; style?: any; formatFn?: (n: number) => string;
 }) {
   const [display, setDisplay] = useState(value);
   const prevRef = useRef(value);
@@ -27,5 +27,6 @@ export default function NumberTicker({ value, duration = 500, style }: {
     return () => cancelAnimationFrame(rafRef.current);
   }, [value, duration]);
 
-  return <Text style={style}>{fmt(display)}</Text>;
+  const fmtFn = formatFn || fmt;
+  return <Text style={style}>{fmtFn(display)}</Text>;
 }

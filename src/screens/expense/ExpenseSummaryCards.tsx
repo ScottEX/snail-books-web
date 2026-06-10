@@ -4,7 +4,7 @@ import NumberTicker from '../../components/NumberTicker';
 import { useTheme, withAlpha, ThemeColors } from '../../theme';
 import { FONTS } from '../../theme';
 import { t } from '../../i18n';
-import { fmtAmt as fmt } from '../../utils/format';
+import { fmtAmtFull } from '../../utils/format';
 
 interface ExpenseSummaryCardsProps {
   todayExpense: number;
@@ -49,17 +49,12 @@ export default function ExpenseSummaryCards({
           >
             <Text style={st.label}>{c.label}</Text>
             <View style={st.valueRow}>
-              {c.isProfit && (
-                <Text style={[st.prefix, { color: c.color }]}>
-                  {c.value >= 0 ? '+' : ''}
-                </Text>
-              )}
               {c.isProfit ? (
                 <Text style={[st.value, { color: c.color }]}>
-                  ¥{Math.abs(c.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  {c.value >= 0 ? '+' : ''}{fmtAmtFull(Math.abs(c.value))}
                 </Text>
               ) : (
-                <NumberTicker value={c.value} style={st.value} />
+                <NumberTicker value={c.value} style={st.value} formatFn={fmtAmtFull} />
               )}
             </View>
           </View>
