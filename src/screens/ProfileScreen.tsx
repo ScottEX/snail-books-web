@@ -49,9 +49,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const username = useMemo(() => {
     try { return getCurrentUser(); } catch { return ''; }
   }, []);
-  const currentUserId = useMemo(() => {
-    try { return getCurrentUserId(); } catch { return null; }
-  }, []);
   const [email, setEmail] = useState('');
   const [signature, setSignature] = useState('');
   const [signatureEditing, setSignatureEditing] = useState(false);
@@ -944,7 +941,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
           <View style={st.card}>
             <TouchableOpacity style={st.iconRow} onPress={() => {
-              if (currentUserId === '64') { setShowAdminBlockModal(true); }
+              if (isAdmin) { setShowAdminBlockModal(true); }
               else { setDeleteConfirmUsername(''); setShowDeleteModal(true); }
             }}>
               <View style={[st.iconWrap, st.iconDanger]}>
@@ -1239,7 +1236,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
       {/* ====== AVATAR RESULT PREVIEW ====== */}
       {showResult && cropResult !== '' && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setShowResult(false); setCropSrc(''); } }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setShowResult(false); setCropSrc(''); } }}>
           <View style={cropS.resultCard as any}>
             <View style={cropS.resultBadge as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
@@ -1343,7 +1340,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
       {/* ====== COVER RESULT PREVIEW ====== */}
       {coverShowResult && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverShowResult(false); setCoverCropSrc(''); } }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverShowResult(false); setCoverCropSrc(''); } }}>
           <View style={cropS.resultCard as any}>
             <View style={cropS.resultBadge as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
@@ -1585,7 +1582,7 @@ function getCropStyles() {
       flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6',
       justifyContent: 'center', alignItems: 'center', flexDirection: 'row',
     } as any,
-    resultCard: { position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: -160 }, { translateY: -100 }], backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12 } as any,
+    resultCard: { backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12 } as any,
     resultBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any,
     resultLabel: { fontSize: 14, fontWeight: '600' as const, color: '#fff' },
     sizePreviews: { flexDirection: 'row', gap: 16, alignItems: 'flex-end' } as any,
