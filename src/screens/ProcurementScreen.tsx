@@ -958,7 +958,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             />
             {search !== '' && (
               <TouchableOpacity style={styles.searchClear} onPress={() => setSearch('')}>
-                <Text style={{ fontSize: 14, color: c.textSub, lineHeight: 16 }}>✕</Text>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round">
+                  <Path d="M18 6L6 18M6 6l12 12" />
+                </Svg>
               </TouchableOpacity>
             )}
           </View>
