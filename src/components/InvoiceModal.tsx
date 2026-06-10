@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
-import { createPortal } from 'react-dom';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useTheme, withAlpha } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
 import Toast from './Toast';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import ModalOverlay from './ModalOverlay';
+import { FONTS } from '../theme';
 
 interface Props {
   visible: boolean;
@@ -31,7 +31,7 @@ const FIELDS: { key: keyof InvoiceData; labelKey: string }[] = [
   { key: 'bank_name', labelKey: 'bankName' },
   { key: 'bank_account', labelKey: 'bankAccount' },
   { key: 'address', labelKey: 'addressPhone' },
-  { key: 'phone', labelKey: 'addressPhone' },
+  { key: 'phone', labelKey: 'phone' },
 ];
 
 export default function InvoiceModal({ visible, onClose }: Props) {
@@ -80,18 +80,15 @@ export default function InvoiceModal({ visible, onClose }: Props) {
 
   if (!visible) return null;
 
-  return createPortal(
-    <View style={[s.overlay, { backgroundColor: 'rgba(0,0,0,0.3)' }] as any}>
-      <View style={[s.card, { backgroundColor: c.surface }] as any}>
-        {/* Header */}
+  return (
+    <ModalOverlay visible={visible} onClose={onClose}>
+      <View style={[s.card, { backgroundColor: c.surface }]}>
         <View style={[s.header, { backgroundColor: c.primary }]}>
-          <Text style={s.title}>{t('invoiceTitle')}</Text>
+          <Text style={[s.title, { color: c.surface }]}>{t('invoiceTitle')}</Text>
           <TouchableOpacity onPress={onClose}>
-            <Text style={s.closeBtn}>✕</Text>
+            <Text style={[s.closeBtn, { color: c.surface }]}>✕</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Body */}
         <View style={s.body}>
           {FIELDS.map((f) => (
             <View key={f.key} style={s.fieldRow}>
@@ -106,7 +103,6 @@ export default function InvoiceModal({ visible, onClose }: Props) {
               />
             </View>
           ))}
-
           {isAdmin && (
             <TouchableOpacity
               style={[s.saveBtn, { backgroundColor: c.primary, opacity: saving ? 0.6 : 1 }]}
@@ -114,34 +110,29 @@ export default function InvoiceModal({ visible, onClose }: Props) {
               disabled={saving}
               activeOpacity={0.7}
             >
-              <Text style={s.saveBtnText}>{saving ? '...' : t('invoiceSave')}</Text>
+              <Text style={[s.saveBtnText, { color: c.surface }]}>{saving ? '...' : t('invoiceSave')}</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
-
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
-    </View>,
-    document.body
+    </ModalOverlay>
   );
 }
 
 const s = StyleSheet.create({
-  overlay: {
-    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
-    zIndex: 600, justifyContent: 'center', alignItems: 'center',
-  },
   card: {
-    borderRadius: 16, width: 340, maxWidth: '90%', overflow: 'hidden' as any,
-    ...modalCardAnimation,
-  },
+    backgroundColor: '#fff', borderRadius: 16,
+    width: 340, maxWidth: '100%', overflow: 'hidden' as any,
+    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+  } as any,
   header: {
     paddingHorizontal: 20, paddingVertical: 14,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  title: { fontSize: 16, fontWeight: '600', color: '#fff' },
-  closeBtn: { ...modalClose },
-  body: { padding: 20, gap: 14 },
+  title: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
+  closeBtn: { fontSize: 18, fontWeight: '300' as const },
+  body: { padding: 24, gap: 14 },
   fieldRow: { gap: 4 },
   label: { fontSize: 12, fontWeight: '500' },
   input: {
@@ -151,5 +142,5 @@ const s = StyleSheet.create({
   saveBtn: {
     marginTop: 6, paddingVertical: 12, borderRadius: 10, alignItems: 'center',
   },
-  saveBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+  saveBtnText: { fontSize: 14, fontWeight: '600' },
 });
