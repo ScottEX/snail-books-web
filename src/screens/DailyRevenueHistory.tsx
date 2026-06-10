@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
+import { useServerDate } from '../hooks/useServerDate';
 import { toDec2 } from "../utils/numbers";
 import EmptyState from "../components/EmptyState";
 import Toast from '../components/Toast';
@@ -15,13 +16,7 @@ import BackArrow from '../components/icons/BackArrow';
 
 const PAGE_SIZE = 10;
 
-const todayStr = () => new Date().toISOString().split('T')[0];
-const defaultFromDate = () => {
-  const d = new Date();
-  d.setDate(d.getDate() - 30);
-  return d.toISOString().split('T')[0];
-};
-const isFuture = (d: string) => d > todayStr();
+// Date helpers replaced by useServerDate() hook
 // Strict calendar months between two ISO dates (YYYY-MM-DD)
 function monthsBetween(from: string, to: string): number {
   const [fy, fm, fd] = from.split('-').map(Number);
@@ -57,11 +52,13 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const dateFromRef = useRef<HTMLInputElement>(null);
   const dateToRef = useRef<HTMLInputElement>(null);
 
+  const sd = useServerDate();
+
   // Filter state
   const [showFilter, setShowFilter] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
-  const [dateFrom, setDateFrom] = useState(defaultFromDate());
-  const [dateTo, setDateTo] = useState(todayStr());
+  const [dateFrom, setDateFrom] = useState(sd.offset(-30));
+  const [dateTo, setDateTo] = useState(sd.today);
   useEffect(() => { if (dateFromRef.current) dateFromRef.current.value = dateFrom; }, [dateFrom]);
   useEffect(() => { if (dateToRef.current) dateToRef.current.value = dateTo; }, [dateTo]);
   const [appliedFrom, setAppliedFrom] = useState(dateFrom);
@@ -69,6 +66,18 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const [filterDateError, setFilterDateError] = useState(0);
   const [dateFromKey, setDateFromKey] = useState(0);
   const [dateToKey, setDateToKey] = useState(0);
+
+  // Once server date arrives, backfill the date filter defaults
+  useEffect(() => {
+    if (sd.ready && !dateFrom) {
+      const from = sd.offset(-30);
+      const to = sd.today;
+      setDateFrom(from);
+      setDateTo(to);
+      setAppliedFrom(from);
+      setAppliedTo(to);
+    }
+  }, [sd.ready, dateFrom, dateTo, sd.today, sd.offset]);
 
   const { colors } = useTheme();
 
@@ -197,8 +206,8 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={dateFromRef} defaultValue={dateFrom} max={todayStr()} key={dateFromKey}
-                    onChange={(e: any) => { if (isFuture(e.target.value)) { dateFromRef.current!.value = dateFrom; setDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setDateFrom(e.target.value); } }}
+                  <input type="date" ref={dateFromRef} defaultValue={dateFrom} max={sd.today} key={dateFromKey}
+                    onChange={(e: any) => { if (sd.isFuture(e.target.value)) { dateFromRef.current!.value = dateFrom; setDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setDateFrom(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
@@ -208,16 +217,16 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                   ) : (
                     <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
                   )}
-                  <input type="date" ref={dateToRef} defaultValue={dateTo} max={todayStr()} key={dateToKey}
-                    onChange={(e: any) => { if (isFuture(e.target.value)) { dateToRef.current!.value = dateTo; setDateToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setDateTo(e.target.value); } }}
+                  <input type="date" ref={dateToRef} defaultValue={dateTo} max={sd.today} key={dateToKey}
+                    onChange={(e: any) => { if (sd.isFuture(e.target.value)) { dateToRef.current!.value = dateTo; setDateToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setDateTo(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
               </View>
             </View>
             <View style={st.filterActions}>
               <TouchableOpacity style={st.filterResetBtn} onPress={() => {
-                const dFrom = defaultFromDate();
-                const dTo = todayStr();
+                const dFrom = sd.offset(-30);
+                const dTo = sd.today;
                 setDateFrom(dFrom);
                 setDateTo(dTo);
                 setAppliedFrom(dFrom);

@@ -3,44 +3,30 @@ import { Animated } from 'react-native';
 import { api } from '../../api/client';
 import { t } from '../../i18n';
 import { fmtDecInput, toDec2 } from '../../utils/numbers';
+import { useServerDate } from '../../hooks/useServerDate';
 
-const todayDateStr = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
-const yesterdayDateStr = () => {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
-const dayBeforeDateStr = () => {
-  const d = new Date();
-  d.setDate(d.getDate() - 2);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
-const isFuture = (d: string) => d > todayDateStr();
+// Date helpers replaced by useServerDate() hook (server time, not client)
 
 const fmtDate = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 
 
-export interface UseDailyRevenueFormCallbacks {
+export interface DailyRevenueFormOptions {
   /** Show a toast message after save/delete */
   onToast: (msg: string) => void;
   /** Refresh last 7 days records after save */
   onRefreshLast7: (records: any[]) => void;
 }
 
-export function useDailyRevenueForm(callbacks: UseDailyRevenueFormCallbacks) {
-  const { onToast, onRefreshLast7 } = callbacks;
+export function useDailyRevenueForm(opts: DailyRevenueFormOptions) {
+  const { onToast, onRefreshLast7 } = opts;
+  const sd = useServerDate();
 
-  // ── Daily revenue ──
+  /* ── state ── */
   const [dailyRevs, setDailyRevs] = useState<any[]>([]);
-  const [revDate, setRevDate] = useState(todayDateStr());
+  const [revDate, setRevDate] = useState('');
+  useEffect(() => { if (sd.ready && revDate === '') setRevDate(sd.today); }, [sd.ready, sd.today, revDate]);
   const [revDateErr, setRevDateErr] = useState(0);
   const [revDateKey, setRevDateKey] = useState(0);
   const [revRevenue, setRevRevenue] = useState('');
@@ -49,8 +35,10 @@ export function useDailyRevenueForm(callbacks: UseDailyRevenueFormCallbacks) {
   const [revNote, setRevNote] = useState('');
   const [revPage, setRevPage] = useState(1);
   const [revPages, setRevPages] = useState(1);
-  const [revYear, setRevYear] = useState(new Date().getFullYear());
-  const [revMonth, setRevMonth] = useState(new Date().getMonth() + 1);
+  const [revYear, setRevYear] = useState(0);
+  useEffect(() => { if (sd.ready && revYear === 0) setRevYear(sd.year); }, [sd.ready, sd.year, revYear]);
+  const [revMonth, setRevMonth] = useState(0);
+  useEffect(() => { if (sd.ready && revMonth === 0) setRevMonth(sd.month); }, [sd.ready, sd.month, revMonth]);
   const [revLoading, setRevLoading] = useState(false);
   const [revSaving, setRevSaving] = useState(false);
   const [showRevMonthPicker, setShowRevMonthPicker] = useState(false);
@@ -62,6 +50,12 @@ export function useDailyRevenueForm(callbacks: UseDailyRevenueFormCallbacks) {
   const [yesterdayRev, setYesterdayRev] = useState<any>(null);
   const [weekRev, setWeekRev] = useState<any>(null);
   const [revMarkedClosed, setRevMarkedClosed] = useState(false);
+
+  /* ── date helpers (server time) ── */
+  const todayDateStr = useCallback(() => sd.today, [sd.today]);
+  const yesterdayDateStr = useCallback(() => sd.yesterday, [sd.yesterday]);
+  const dayBeforeDateStr = useCallback(() => sd.offset(-2), [sd.today]);
+  const isFuture = useCallback((d: string) => sd.isFuture(d), [sd.today]);
 
   // Load existing record for a date (for quick-date pills + date picker)
   const loadRevForDate = (d: string) => {
@@ -119,7 +113,7 @@ export function useDailyRevenueForm(callbacks: UseDailyRevenueFormCallbacks) {
   // Load yesterday's revenue for card footers
   useEffect(() => {
     let cancelled = false;
-    const yd = fmtDate((() => { const d = new Date(); d.setDate(d.getDate() - 1); return d; })());
+    const yd = sd.yesterday;
     api
       .getDailyRevenue(1, 1, undefined, undefined, yd)
       .then((r: any) => {

@@ -53,10 +53,6 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
   const styles = useMemoizedStyles(colors);
 
   const td = todayDateStr();
-  const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate() - 1); return fmtDateLocal(d); };
-  const db4Str = () => { const d = new Date(); d.setDate(d.getDate() - 2); return fmtDateLocal(d); };
-  const fmtDateLocal = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
   const pickDate = (d: string) => { if (d <= td) loadRevForDate(d); };
 
@@ -103,8 +99,8 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {[
             { label: t('revQuickToday'), d: td },
-            { label: t('revQuickYesterday'), d: yesterdayStr() },
-            { label: t('revQuickDB4'), d: db4Str() },
+            { label: t('revQuickYesterday'), d: yesterdayDateStr() },
+            { label: t('revQuickDB4'), d: dayBeforeDateStr() },
           ].map((pill) => (
             <TouchableOpacity
               key={pill.d}

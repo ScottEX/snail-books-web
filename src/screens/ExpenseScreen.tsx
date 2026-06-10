@@ -17,6 +17,7 @@ import { fmtAmt as fmt } from '../utils/format';
 import { blockNeg, fmtDecInput, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
+import { useServerDate } from '../hooks/useServerDate';
 import CategoryChips from '../components/CategoryChips';
 import ButtonPair from '../components/ButtonPair';
 import PaymentMethodChips from '../components/PaymentMethodChips';
@@ -25,10 +26,7 @@ import ReceiptUpload from '../components/ReceiptUpload';
 
 /* ── helpers ── */
 const fmtInt = (n: number) => n.toLocaleString();
-const cnNow = () => { const d = new Date(); return new Date(d.getTime() + 8 * 3600000); };
-const yesterdayStr = () => { const d = cnNow(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
-const todayStr = () => cnNow().toISOString().slice(0, 10);
-const isFuture = (d: string) => d > todayStr();
+// Date helpers replaced by useServerDate() hook (server time, not client)
 const fmtLocalDate = (s: string) => {
   const [y, m, d] = s.split('-');
   const l = getLang();
@@ -79,6 +77,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
    ═══════════════════════════════════════════════════════════ */
 export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { onReconHistory?: () => void; onExpenseHistory?: () => void }) {
   const { colors } = useTheme();
+  const sd = useServerDate();
   const urlCache = useRef<Map<File, string>>(new Map());
   const getPreviewUrl = (file: File) => {
     if (!urlCache.current.has(file)) urlCache.current.set(file, URL.createObjectURL(file));
@@ -153,7 +152,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   }, [activeTab]);
 
   /* ── 模块一：对账 ── */
-  const [recDate, setRecDate] = useState(yesterdayStr());
+  const [recDate, setRecDate] = useState('');
+  useEffect(() => { if (sd.ready && recDate === '') setRecDate(sd.yesterday); }, [sd.ready, sd.yesterday, recDate]);
   const [recDateKey, setRecDateKey] = useState(0);
   const [recDateErr, setRecDateErr] = useState(0);
   const [toast, setToast] = useState('');
@@ -225,12 +225,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
-    if (isFuture(recDate)) { setToast(t('errDateFuture')); return; }
+    if (sd.ready && sd.isFuture(recDate)) { setToast(t('errDateFuture')); return; }
     try {
-      const today = new Date().toISOString().slice(0, 10);
       const username = getCurrentUser();
       await api.createReconciliation({
-        date: today,
         bill_date: recDate,
         card_balance: toNum(cardBalance),
         cash_balance: toNum(cashBalance),
@@ -259,19 +257,20 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     toNum(jd) !== toNum(initReconValues.current.jd) ||
     toNum(tuan) !== toNum(initReconValues.current.tuan);
 
-  const now = new Date();
-  const thisYear = now.getFullYear();
-  const thisMonth = now.getMonth() + 1;
+  // thisYear/thisMonth replaced by sd.year/sd.month from server time
 
   const [feeData, setFeeData] = useState<any>(null);        // current month
   const [allFees, setAllFees] = useState<any[]>([]);         // all months for detail
-  const [feeMonth, setFeeMonth] = useState<'all' | { year: number; month: number }>({ year: thisYear, month: thisMonth });
+  const [feeMonth, setFeeMonth] = useState<'all' | { year: number; month: number }>('all');
+  const feeMonthInited = useRef(false);
+  useEffect(() => { if (sd.ready && !feeMonthInited.current) { feeMonthInited.current = true; setFeeMonth({ year: sd.year, month: sd.month }); } }, [sd.ready, sd.year, sd.month]);
   const [showFeeMonthPicker, setShowFeeMonthPicker] = useState(false);
   const [showFeeSheet, setShowFeeSheet] = useState(false);
   const [showFeeHistory, setShowFeeHistory] = useState(false);
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
   const [showFeeHistoryFilterPicker, setShowFeeHistoryFilterPicker] = useState(false);
-  const [feeEntryDate, setFeeEntryDate] = useState(todayStr());
+  const [feeEntryDate, setFeeEntryDate] = useState('');
+  useEffect(() => { if (sd.ready && feeEntryDate === '') setFeeEntryDate(sd.yesterday); }, [sd.ready, sd.yesterday, feeEntryDate]);
   const [feeDateErr, setFeeDateErr] = useState(0);
   const [feeMc, setFeeMc] = useState('');
   const [feeMw, setFeeMw] = useState('');
@@ -302,7 +301,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
-    if (isFuture(feeEntryDate)) { setToast(t('errDateFuture')); return; }
+    if (sd.isFuture(feeEntryDate)) { setToast(t('errDateFuture')); return; }
     const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
     if (mc + mw + ew + mt === 0) { setToast(t('atLeastOneFee')); return; }
     setSavingFee(true);
@@ -345,7 +344,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     handleImageSelect, removeImage,
     handleExpDateChange, resetForm,
     isAmountInvalid,
-    fmtDecInput, toDec2Comma, todayStr: _hookTodayStr,
+    fmtDecInput, toDec2Comma,
   } = useExpenseForm({
     onExpenseHistory,
     getPreviewUrl,
@@ -666,8 +665,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   type: 'date',
                   key: recDateKey,
                   defaultValue: recDate,
-                  max: todayStr(),
-                  onChange: (e: any) => { if (isFuture(e.target.value)) { recDateInputRef.current!.value = recDate; setRecDateKey(k => k + 1); setRecDateErr(c => c + 1); } else { setRecDate(e.target.value); } },
+                  max: sd.today,
+                  onChange: (e: any) => { if (sd.isFuture(e.target.value)) { recDateInputRef.current!.value = recDate; setRecDateKey(k => k + 1); setRecDateErr(c => c + 1); } else { setRecDate(e.target.value); } },
                   style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                 })}
               </View>
@@ -820,7 +819,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       ref: expDateInputRef,
                       type: 'date',
                       defaultValue: expDate,
-                      max: todayStr(),
+                      max: sd.today,
                       onChange: handleExpDateChange,
                       style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                     })}
@@ -911,8 +910,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
                     {React.createElement('input', {
                       ref: feeDateInputRef,
-                      type: 'date', defaultValue: feeEntryDate, max: todayStr(),
-                      onChange: (e: any) => { if (isFuture(e.target.value)) { feeDateInputRef.current!.value = feeEntryDate; setFeeDateErr(c => c + 1); } else { setFeeEntryDate(e.target.value); } },
+                      type: 'date', defaultValue: feeEntryDate, max: sd.today,
+                      onChange: (e: any) => { if (sd.isFuture(e.target.value)) { feeDateInputRef.current!.value = feeEntryDate; setFeeDateErr(c => c + 1); } else { setFeeEntryDate(e.target.value); } },
                       style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
                     })}
                   </View>

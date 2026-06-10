@@ -9,6 +9,7 @@ import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { useServerDate } from '../hooks/useServerDate';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
@@ -137,7 +138,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   statLbl: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 3 },
 
   searchSection: { paddingHorizontal: 18, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
-  searchInput: { paddingHorizontal: 12, paddingVertical: 9, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
+  searchRow: { position: 'relative' as const },
+  searchInput: { paddingHorizontal: 12, paddingVertical: 9, paddingRight: 36, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
+  searchClear: { position: 'absolute' as const, right: 8, top: 0, bottom: 0, justifyContent: 'center' as const, alignItems: 'center' as const },
   filterRow: { flexDirection: 'row' as const, gap: 6, marginTop: 8 },
   filterChip: { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12) },
   filterChipOn: { backgroundColor: c.primary, borderColor: c.primary },
@@ -309,6 +312,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void }) {
   const { colors: c } = useTheme();
+  const sd = useServerDate();
   const styles = useMemo(() => getStyles(c), [c]);
 
   const [subTab, setSubTab] = useState<SubTab>(() => {
@@ -321,6 +325,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   useEffect(() => {
     try { localStorage.setItem('snail_proc_tab', subTab); } catch {}
   }, [subTab]);
+  // Auto-clear search when switching between sub-tabs
+  useEffect(() => { setSearch(''); }, [subTab]);
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [cart, setCart] = useState<Record<number, number>>({});
@@ -332,7 +338,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [showDrawer, setShowDrawer] = useState(false);
   const drawerAnim = useRef(new Animated.Value(0)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
-  const [orderDate, setOrderDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [orderDate, setOrderDate] = useState('');
+  useEffect(() => { if (sd.ready && orderDate === '') setOrderDate(sd.today); }, [sd.ready, sd.today, orderDate]);
   const [payMethod, setPayMethod] = useState<PayMethod>('payWechat');
   const [orderNote, setOrderNote] = useState('');
   const [receipts, setReceipts] = useState<File[]>([]);
@@ -442,7 +449,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         setEditingBatchId(null); setEditingBatchNumber(0);
         setExistingImageUrls([]); setExistingThumbUrls([]);
         setCart({}); setReceipts([]); setOrderNote('');
-        setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('payWechat');
+        setOrderDate(sd.today); setPayMethod('payWechat');
       }
     });
   };
@@ -465,7 +472,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     },
   })).current;
 
-  const todayStr = () => new Date().toISOString().slice(0, 10);
+  // todayStr replaced by useServerDate hook
 
   // ── Image compression (matching ExpenseScreen) ──
   const compressImage = (file: File): Promise<File> => {
@@ -505,7 +512,21 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   }, [products]);
 
   const loadProducts = useCallback(() => {
-    api.getProducts().then((data: any) => { if (Array.isArray(data)) { setProducts(data); setProductsLoaded(true); } }).catch(() => { setProductsLoaded(true); });
+    api.getProducts().then((data: any) => {
+      if (Array.isArray(data)) { setProducts(data); setProductsLoaded(true); }
+      // If there was a deferred pending edit, process it now that products are loaded.
+      if (pendingEditRef.current) {
+        openEditBatch(pendingEditRef.current);
+        onPendingEditConsumedRef.current?.();
+      }
+    }).catch(() => {
+      setProductsLoaded(true);
+      // Even on failure, try to process pending edit (cart will be empty but drawer opens).
+      if (pendingEditRef.current) {
+        openEditBatch(pendingEditRef.current);
+        onPendingEditConsumedRef.current?.();
+      }
+    });
   }, []);
   const loadStats = useCallback(() => {
     api.getProcurementStats().then((s: any) => {
@@ -736,7 +757,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             setCart({}); setReceipts([]); setOrderNote('');
             setExistingImageUrls([]); setExistingThumbUrls([]);
             setEditingBatchId(null); setEditingBatchNumber(0);
-            setOrderDate(new Date().toISOString().slice(0, 10)); setPayMethod('payWechat');
+            setOrderDate(sd.today); setPayMethod('payWechat');
             setShowDrawer(false); onDrawerClose?.();
             // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
             setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
@@ -812,15 +833,19 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // the freshly-mounted instance (the one whose parent just flipped
   // setShowProcDetail(false)), so openEditBatch's setState calls all
   // land on a live component — no stale ref, no unmounted setState.
-  // Gate on productsLoaded: when the component remounts for a pending edit,
-  // products may not have loaded yet. Wait until loadProducts finishes so
-  // cartItems (which depends on products) isn't empty.
-  useEffect(() => {
-    if (pendingEditBatch && productsLoaded) {
-      openEditBatch(pendingEditBatch);
-      onPendingEditConsumed?.();
-    }
-  }, [pendingEditBatch, productsLoaded, onPendingEditConsumed]);
+  //
+  // Use refs to decouple from React's render batching: loadProducts may
+  // resolve synchronously (cached) or asynchronously. We store the
+  // deferred edit in a ref and process it inside loadProducts'
+  // completion, avoiding races between productsLoaded state and the
+  // pendingEditBatch prop.
+  const pendingEditRef = useRef<any>(null);
+  useEffect(() => { pendingEditRef.current = pendingEditBatch; }, [pendingEditBatch]);
+
+  // Ref for onPendingEditConsumed so loadProducts can call it without
+  // adding it to its deps array.
+  const onPendingEditConsumedRef = useRef(onPendingEditConsumed);
+  useEffect(() => { onPendingEditConsumedRef.current = onPendingEditConsumed; }, [onPendingEditConsumed]);
 
   // Confirm delete batch + cascade
   const confirmDeleteBatch = async () => {
@@ -849,7 +874,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   };
 
   const resetOrder = () => {
-    closeSlideModal(() => { setShowSuccess(false); setOrderDate(todayStr()); setPayMethod('payWechat'); setOrderNote(''); setReceipts([]); });
+    closeSlideModal(() => { setShowSuccess(false); setOrderDate(sd.today); setPayMethod('payWechat'); setOrderNote(''); setReceipts([]); });
   };
 
   const openAddProduct = () => {
@@ -924,12 +949,21 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
         {/* Search + filters */}
         <View style={styles.searchSection}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder={subTab === 'history' ? t('procSearchHistory') : subTab === 'products' ? t('procSearchProducts') : t('procSearchPlaceholder')}
-            placeholderTextColor={c.textSub}
-            value={search} onChangeText={setSearch}
-          />
+          <View style={styles.searchRow}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder={subTab === 'history' ? t('procSearchHistory') : subTab === 'products' ? t('procSearchProducts') : t('procSearchPlaceholder')}
+              placeholderTextColor={c.textSub}
+              value={search} onChangeText={setSearch}
+            />
+            {search !== '' && (
+              <TouchableOpacity style={styles.searchClear} onPress={() => setSearch('')}>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round">
+                  <Path d="M18 6L6 18M6 6l12 12" />
+                </Svg>
+              </TouchableOpacity>
+            )}
+          </View>
           {subTab === 'new' && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ gap: 6 }}>
             {suppliers.map(sup => (
@@ -1244,7 +1278,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{formatDate(orderDate)}</Text>
                     {React.createElement('input', {
                       ref: orderDateInputRef,
-                      type: 'date', defaultValue: orderDate, max: todayStr(),
+                      type: 'date', defaultValue: orderDate, max: sd.today,
                       onChange: (e: any) => setOrderDate(e.target.value),
                       style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
                     })}
