@@ -49,9 +49,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const username = useMemo(() => {
     try { return getCurrentUser(); } catch { return ''; }
   }, []);
-  const currentUserId = useMemo(() => {
-    try { return getCurrentUserId(); } catch { return null; }
-  }, []);
   const [email, setEmail] = useState('');
   const [signature, setSignature] = useState('');
   const [signatureEditing, setSignatureEditing] = useState(false);
@@ -944,7 +941,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
           <View style={st.card}>
             <TouchableOpacity style={st.iconRow} onPress={() => {
-              if (currentUserId === '64') { setShowAdminBlockModal(true); }
+              if (isAdmin) { setShowAdminBlockModal(true); }
               else { setDeleteConfirmUsername(''); setShowDeleteModal(true); }
             }}>
               <View style={[st.iconWrap, st.iconDanger]}>
