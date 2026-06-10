@@ -107,7 +107,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   // Date picker local state (year + month selection)
   const [dropYear, setDropYear] = useState(FALLBACK_YEAR);
   useEffect(() => { if (sd.ready && sd.year !== FALLBACK_YEAR) setDropYear(sd.year); }, [sd.ready, sd.year]);
-  const [dropMonth, setDropMonth] = useState(NOW.getMonth() + 1);
+  const [dropMonth, setDropMonth] = useState(new Date().getMonth() + 1);
 
   // Inject dropdown animation CSS once
   useEffect(() => {
@@ -170,10 +170,6 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const applyQuick = useCallback((days: number) => {
     setQuickDays(days); setDropFrom(sd.offset(-days)); setDropTo(sd.today);
   }, [sd.today, sd.offset]);
-    setDateTo(ts);
-    setShowDateDrop(false);
-    fetchUsers(statusFilter, fs, ts);
-  }, [statusFilter, fetchUsers]);
 
   const clearDate = useCallback(() => {
     setDateFrom('');
