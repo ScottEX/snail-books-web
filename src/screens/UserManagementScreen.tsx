@@ -60,7 +60,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
 
   const [users, setUsers] = useState<UserItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState('');
+  const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState(''); // '' | 'normal' | 'disabled'
   const [loading, setLoading] = useState(true);
   // dropdown states
@@ -69,11 +69,10 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  const fetchUsers = useCallback(async (s: string, sts: string, df: string, dt: string) => {
+  const fetchUsers = useCallback(async (sts: string, df: string, dt: string) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (s) params.set('search', s);
       if (sts) params.set('status', sts);
       if (df) params.set('date_from', df);
       if (dt) params.set('date_to', dt);
@@ -90,46 +89,36 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchUsers(search, statusFilter, dateFrom, dateTo); }, []);
+  useEffect(() => { fetchUsers('', '', ''); }, []);
 
-  // Debounced search-as-you-type
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [searchText, setSearchText] = useState('');
-  const debouncePrimed = useRef(false);
-  useEffect(() => {
-    if (!debouncePrimed.current) { debouncePrimed.current = true; return; }
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => {
-      setSearch(searchText);
-      fetchUsers(searchText, statusFilter, dateFrom, dateTo);
-    }, 300);
-    return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
-  }, [searchText]);
+  // Client-side filter (matches ProcurementScreen pattern)
+  const filteredUsers = useMemo(() => {
+    if (!searchText) return users;
+    const s = searchText.toLowerCase();
+    return users.filter(u =>
+      u.username.toLowerCase().includes(s) ||
+      (u.email || '').toLowerCase().includes(s)
+    );
+  }, [users, searchText]);
 
   const applyStatus = useCallback((val: string) => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
     setStatusFilter(val);
-    setSearch(searchText);
     setShowStatusDrop(false);
-    fetchUsers(searchText, val, dateFrom, dateTo);
-  }, [searchText, dateFrom, dateTo, fetchUsers]);
+    fetchUsers(val, dateFrom, dateTo);
+  }, [dateFrom, dateTo, fetchUsers]);
 
   const applyDate = useCallback((df: string, dt: string) => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
     setDateFrom(df);
     setDateTo(dt);
-    setSearch(searchText);
     setShowDateDrop(false);
-    fetchUsers(searchText, statusFilter, df, dt);
-  }, [searchText, statusFilter, fetchUsers]);
+    fetchUsers(statusFilter, df, dt);
+  }, [statusFilter, fetchUsers]);
 
   const clearDate = useCallback(() => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
     setDateFrom('');
     setDateTo('');
-    setSearch(searchText);
-    fetchUsers(searchText, statusFilter, '', '');
-  }, [searchText, statusFilter, fetchUsers]);
+    fetchUsers(statusFilter, '', '');
+  }, [statusFilter, fetchUsers]);
 
   const statusLabel = statusFilter === 'normal' ? t('normalStatus') : statusFilter === 'disabled' ? t('disabledStatus') : statusFilter === 'grace' ? t('graceStatus') : t('all');
   const dateLabel = (dateFrom || dateTo) ? `${dateFrom || '…'} - ${dateTo || '…'}` : t('registrationTime');
@@ -279,7 +268,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
           ) : users.length === 0 ? (
             <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 40, fontSize: 13 }}>{t('noUsers') || '暂无用户'}</Text>
           ) : (
-            users.map((u) => (
+            filteredUsers.map((u) => (
               <TouchableOpacity key={u.id} style={st.userRow} onPress={() => onUserSelect(u)} activeOpacity={0.6}>
                 <View style={st.avatarWrap}>
                   {u.avatar ? (
