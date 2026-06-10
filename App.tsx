@@ -114,19 +114,17 @@ export default function App() {
         {page === 'home' && (
           <HomeScreen
             onLogout={() => {
-              // Preserve login-related keys before clearing cache
               let savedLogin = '', rememberMe = '';
               try {
                 savedLogin = localStorage.getItem('saved_login') || '';
                 rememberMe = localStorage.getItem('remember_me') || '';
                 localStorage.clear();
                 sessionStorage.clear();
-                // Belt-and-suspenders: explicitly remove navigation keys
-                try { localStorage.removeItem('active_tab'); } catch {}
-                try { localStorage.removeItem('expense_active_tab'); } catch {}
                 if (savedLogin) localStorage.setItem('saved_login', savedLogin);
                 if (rememberMe) localStorage.setItem('remember_me', rememberMe);
               } catch {}
+              // Clear history.state so stale sub-page stack isn't restored on next login
+              try { history.replaceState(null, '', location.href); } catch {}
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new Event('app:user-change'));
               }
