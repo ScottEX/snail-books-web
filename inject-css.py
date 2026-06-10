@@ -102,13 +102,13 @@ html = html.replace(
 )
 
 # Fix title
-html = html.replace('<title>snail-books-web</title>', '<title>柳味探秘科技</title>')
+html = html.replace('<title>snail-books-web</title>', '<title>探秘</title>')
 
 # ── Splash screen: only shown after 2s of loading ──
 SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FBF7F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;transition:opacity .3s;opacity:0">
 <div style="text-align:center">
 <div style="font-size:48px;animation:pulse 1.8s ease-in-out infinite">🐌</div>
-<div style="font-size:18px;font-weight:600;color:#5C3D2E;margin-top:16px">柳味探秘科技</div>
+<div style="font-size:18px;font-weight:600;color:#5C3D2E;margin-top:16px">探秘</div>
 <div style="margin-top:12px;display:flex;gap:6px;justify-content:center">
 <span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out infinite"></span>
 <span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out .2s infinite"></span>
