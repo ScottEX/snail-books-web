@@ -264,53 +264,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   useEffect(() => {
     const el = wrapRef.current; if (!el) return;
 
-    const onMD = (e: MouseEvent) => {
-      e.preventDefault();
-      cancelAnimationFrame(momRef.current);
-      const g = gRef.current;
-      dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.tx, sty: g.ty };
-      velRef.current = { vy: 0, ly: e.clientY, vx: 0, lx: e.clientX, lt: performance.now() };
-    };
-    const onMM = (e: MouseEvent) => {
-      if (!dragRef.current.active) return;
-      const d = dragRef.current;
-      gRef.current.tx = d.stx + (e.clientX - d.sx);
-      gRef.current.ty = d.sty + (e.clientY - d.sy);
-      // track velocity
-      const now = performance.now();
-      const dy = e.clientY - velRef.current.ly;
-      const dx = e.clientX - velRef.current.lx;
-      const dt = now - velRef.current.lt;
-      if (dt > 5) { velRef.current.vy = dy / dt; velRef.current.vx = dx / dt; }
-      velRef.current.ly = e.clientY;
-      velRef.current.lx = e.clientX;
-      velRef.current.lt = now;
-      scheduleApply();
-    };
-    const onMU = () => {
-      if (!dragRef.current.active) return;
-      dragRef.current.active = false;
-      startMomentum();
-    };
-    const onWh = (e: WheelEvent) => {
-      e.preventDefault();
-      cancelAnimationFrame(momRef.current);
-      const g = gRef.current;
-      if (e.ctrlKey || e.metaKey) {
-        g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + (e.deltaY > 0 ? -0.08 : 0.08)));
-        flushZoom(false);
-      } else {
-        g.ty -= e.deltaY;
-      }
-      clamp(); applyTransform(false);
-    };
-
-    el.addEventListener('mousedown', onMD);
-    window.addEventListener('mousemove', onMM);
-    window.addEventListener('mouseup', onMU);
-    el.addEventListener('wheel', onWh, { passive: false });
-
-    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
       cancelAnimationFrame(momRef.current);
@@ -360,10 +313,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     el.addEventListener('touchend', onTE);
 
     return () => {
-      el.removeEventListener('mousedown', onMD);
-      window.removeEventListener('mousemove', onMM);
-      window.removeEventListener('mouseup', onMU);
-      el.removeEventListener('wheel', onWh);
       el.removeEventListener('touchstart', onTS);
       el.removeEventListener('touchmove', onTM);
       el.removeEventListener('touchend', onTE);
