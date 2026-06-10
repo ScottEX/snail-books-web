@@ -31,7 +31,7 @@ const FIELDS: { key: keyof InvoiceData; labelKey: string }[] = [
   { key: 'bank_name', labelKey: 'bankName' },
   { key: 'bank_account', labelKey: 'bankAccount' },
   { key: 'address', labelKey: 'addressPhone' },
-  { key: 'phone', labelKey: 'phone' },
+  { key: 'phone', labelKey: 'companyPhone' },
 ];
 
 export default function InvoiceModal({ visible, onClose }: Props) {
@@ -45,13 +45,12 @@ export default function InvoiceModal({ visible, onClose }: Props) {
     if (!visible) return;
     (async () => {
       try {
-        const [invResp, admResp] = await Promise.all([
+        const [invData, admResp] = await Promise.all([
           api.getInvoice(),
           fetch('/api/admin/check', { credentials: 'include' }),
         ]);
-        const invJson = await invResp.json();
-        if (invJson.status === 'ok' && invJson.data) {
-          setData({ ...EMPTY, ...invJson.data });
+        if (invData.status === 'ok' && invData.data) {
+          setData({ ...EMPTY, ...invData.data });
         }
         if (admResp.ok) {
           const admJson = await admResp.json();
@@ -64,8 +63,7 @@ export default function InvoiceModal({ visible, onClose }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const resp = await api.updateInvoice(data as any);
-      const json = await resp.json();
+      const json = await api.updateInvoice(data as any);
       if (json.status === 'ok') {
         setToast('已保存');
         setTimeout(() => onClose(), 600);
@@ -77,8 +75,6 @@ export default function InvoiceModal({ visible, onClose }: Props) {
     }
     setSaving(false);
   };
-
-  if (!visible) return null;
 
   return (
     <ModalOverlay visible={visible} onClose={onClose}>
