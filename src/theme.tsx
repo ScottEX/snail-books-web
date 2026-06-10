@@ -47,8 +47,8 @@ export interface Theme {
 // ═══════════════════════════════════════════
 // 页面动画常量（统一控制，一处改全局生效）
 // ═══════════════════════════════════════════
-export const ENTER_DURATION = 500; // 页面滑入时长 (ms)
-export const EXIT_DURATION = 250;  // 页面滑出时长 (ms)
+export const ENTER_DURATION = 400; // 页面滑入时长 (ms)
+export const EXIT_DURATION = 370;  // 页面滑出时长 (ms)
 export const ENTER_EASING = 'cubic-bezier(0.215, 0.61, 0.355, 1)';
 export const EXIT_EASING = 'cubic-bezier(0.55, 0.055, 0.675, 0.19)';
 
