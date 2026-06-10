@@ -76,6 +76,15 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     }
     return Promise.reject(new Error(kickMsg || 'Unauthorized'));
   }
+  if (resp.status === 403) {
+    // 403 may indicate account disabled — treat same as 401 (clear + redirect)
+    localStorage.removeItem('user');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('app:user-change'));
+      if (window.location.pathname !== '/login') window.location.replace('/login');
+    }
+    return Promise.reject(new Error('Account disabled'));
+  }
   if (!resp.ok) {
     let msg = `API error: ${resp.status} ${resp.statusText}`;
     try {
@@ -179,7 +188,7 @@ export const api = {
       body: form,
       credentials: 'same-origin' as RequestCredentials,
     });
-    if (resp.status === 401) {
+    if (resp.status === 401 || resp.status === 403) {
       localStorage.removeItem('user');
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
