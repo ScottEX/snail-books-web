@@ -153,7 +153,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   }, [activeTab]);
 
   /* ── 模块一：对账 ── */
-  const [recDate, setRecDate] = useState(yesterdayStr());
+  const [recDate, setRecDate] = useState(todayStr());
   const [recDateKey, setRecDateKey] = useState(0);
   const [recDateErr, setRecDateErr] = useState(0);
   const [toast, setToast] = useState('');
@@ -271,7 +271,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [showFeeHistory, setShowFeeHistory] = useState(false);
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
   const [showFeeHistoryFilterPicker, setShowFeeHistoryFilterPicker] = useState(false);
-  const [feeEntryDate, setFeeEntryDate] = useState(todayStr());
+  const [feeEntryDate, setFeeEntryDate] = useState(yesterdayStr());
   const [feeDateErr, setFeeDateErr] = useState(0);
   const [feeMc, setFeeMc] = useState('');
   const [feeMw, setFeeMw] = useState('');
