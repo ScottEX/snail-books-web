@@ -218,7 +218,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       setDropMonth(parseInt(dateFrom.slice(5, 7)));
     } else {
       setDropYear(sd.year || FALLBACK_YEAR);
-      setDropMonth(NOW.getMonth() + 1);
+      setDropMonth(new Date().getMonth() + 1);
     }
     setShowDateDrop(true);
     setShowStatusDrop(false);
@@ -311,7 +311,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
             <div className="dd-enter" style={portalDropdownStyle(c)}>
               {/* Year selector */}
               <View style={st.pickerRow}>
-                {YEARS.map(y => (
+                {(sd.ready ? [sd.year - 2, sd.year - 1, sd.year, sd.year + 1] : FALLBACK_YEARS).map(y => (
                   <TouchableOpacity
                     key={y}
                     style={[st.pickerBtn, dropYear === y && st.pickerBtnOn]}

@@ -225,7 +225,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
-    if (sd.ready && sd.sd.isFuture(recDate)) { setToast(t('errDateFuture')); return; }
+    if (sd.ready && sd.isFuture(recDate)) { setToast(t('errDateFuture')); return; }
     try {
       const username = getCurrentUser();
       await api.createReconciliation({
@@ -344,7 +344,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     handleImageSelect, removeImage,
     handleExpDateChange, resetForm,
     isAmountInvalid,
-    fmtDecInput, toDec2Comma, todayStr: _hookTodayStr,
+    fmtDecInput, toDec2Comma,
   } = useExpenseForm({
     onExpenseHistory,
     getPreviewUrl,
