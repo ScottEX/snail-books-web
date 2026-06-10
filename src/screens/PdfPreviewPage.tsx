@@ -130,7 +130,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const momRef = useRef(0); // momentum animation raf id
-  const velRef = useRef({ vy: 0, ly: 0, lt: 0 }); // velocity tracking
+  const velRef = useRef({ vy: 0, ly: 0, vx: 0, lx: 0, lt: 0 }); // velocity tracking
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
 
@@ -159,10 +159,18 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (!el) return;
     const g = gRef.current;
     const vp = el.parentElement; if (!vp) return;
+    const cw = el.scrollWidth * g.scale;
     const ch = el.scrollHeight * g.scale;
+    const vw = vp.clientWidth;
     const vh = vp.clientHeight;
+    const scrollW = Math.max(0, cw - vw);
     const scrollH = Math.max(0, ch - vh);
-    g.tx = 0; // lock horizontal
+    // Horizontal: center ± half overflow, with 20px overscroll
+    if (cw > vw) {
+      g.tx = Math.max(-scrollW / 2 - 20, Math.min(scrollW / 2 + 20, g.tx));
+    } else {
+      g.tx = Math.max(-20, Math.min(20, g.tx));
+    }
     g.ty = Math.max(-scrollH - 20, Math.min(20, g.ty));
   }, []);
 
@@ -184,23 +192,31 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   // Momentum scroll — continues after finger lifts, decelerates, bounces at bounds
   const startMomentum = useCallback(() => {
     const g = gRef.current;
-    let vy = velRef.current.vy * 16; // px/frame (~60fps)
-    if (Math.abs(vy) < 0.5) { clamp(); applyTransform(true); return; }
+    let vx = velRef.current.vx * 16; // px/frame (~60fps)
+    let vy = velRef.current.vy * 16;
+    if (Math.abs(vx) < 0.5 && Math.abs(vy) < 0.5) { clamp(); applyTransform(true); return; }
 
     const tick = () => {
+      g.tx += vx;
       g.ty += vy;
-      vy *= 0.94; // friction
+      vx *= 0.94; // friction
+      vy *= 0.94;
 
-      // Check vertical bounds — if overscrolled, bounce back
+      // Check bounds — if overscrolled, bounce back
       const el = wrapRef.current;
       if (el) {
         const vp = el.parentElement;
         if (vp) {
+          const cw = el.scrollWidth * g.scale;
           const ch = el.scrollHeight * g.scale;
+          const vw = vp.clientWidth;
           const vh = vp.clientHeight;
+          const scrollW = Math.max(0, cw - vw);
           const scrollH = Math.max(0, ch - vh);
+          const leftLimit = cw > vw ? -scrollW / 2 - 20 : -20;
+          const rightLimit = cw > vw ? scrollW / 2 + 20 : 20;
           const topLimit = -scrollH - 20;
-          if (g.ty > 20 || g.ty < topLimit) {
+          if (g.tx > rightLimit || g.tx < leftLimit || g.ty > 20 || g.ty < topLimit) {
             clamp(); applyTransform(true);
             momRef.current = 0;
             return;
@@ -208,7 +224,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         }
       }
 
-      if (Math.abs(vy) < 0.3) {
+      if (Math.abs(vx) < 0.3 && Math.abs(vy) < 0.3) {
         clamp(); applyTransform(true);
         momRef.current = 0;
         return;
@@ -252,20 +268,22 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       e.preventDefault();
       cancelAnimationFrame(momRef.current);
       const g = gRef.current;
-      g.tx = 0;
-      dragRef.current = { active: true, sx: 0, sy: e.clientY, stx: 0, sty: g.ty };
-      velRef.current = { vy: 0, ly: e.clientY, lt: performance.now() };
+      dragRef.current = { active: true, sx: e.clientX, sy: e.clientY, stx: g.tx, sty: g.ty };
+      velRef.current = { vy: 0, ly: e.clientY, vx: 0, lx: e.clientX, lt: performance.now() };
     };
     const onMM = (e: MouseEvent) => {
       if (!dragRef.current.active) return;
       const d = dragRef.current;
+      gRef.current.tx = d.stx + (e.clientX - d.sx);
       gRef.current.ty = d.sty + (e.clientY - d.sy);
       // track velocity
       const now = performance.now();
       const dy = e.clientY - velRef.current.ly;
+      const dx = e.clientX - velRef.current.lx;
       const dt = now - velRef.current.lt;
-      if (dt > 5) velRef.current.vy = dy / dt; // px/ms
+      if (dt > 5) { velRef.current.vy = dy / dt; velRef.current.vx = dx / dt; }
       velRef.current.ly = e.clientY;
+      velRef.current.lx = e.clientX;
       velRef.current.lt = now;
       scheduleApply();
     };
@@ -304,9 +322,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           clamp(); applyTransform(true); flushZoom(true); lastTapRef.current = 0; return;
         }
         lastTapRef.current = now;
-        gRef.current.tx = 0;
-        dragRef.current = { active: true, sx: 0, sy: e.touches[0].clientY, stx: 0, sty: gRef.current.ty };
-        velRef.current = { vy: 0, ly: e.touches[0].clientY, lt: performance.now() };
+        gRef.current.tx = gRef.current.tx; // preserve current horizontal position
+        dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: gRef.current.tx, sty: gRef.current.ty };
+        velRef.current = { vy: 0, ly: e.touches[0].clientY, vx: 0, lx: e.touches[0].clientX, lt: performance.now() };
       } else if (e.touches.length === 2) {
         pinchRef.current = { dist: dist(e.touches), scale: gRef.current.scale };
       }
@@ -315,13 +333,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
       e.preventDefault();
       if (dragRef.current.active && e.touches.length === 1) {
         const d = dragRef.current;
+        gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
         gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
         // track velocity
         const now = performance.now();
         const dy = e.touches[0].clientY - velRef.current.ly;
+        const dx = e.touches[0].clientX - velRef.current.lx;
         const dt = now - velRef.current.lt;
-        if (dt > 5) velRef.current.vy = dy / dt;
+        if (dt > 5) { velRef.current.vy = dy / dt; velRef.current.vx = dx / dt; }
         velRef.current.ly = e.touches[0].clientY;
+        velRef.current.lx = e.touches[0].clientX;
         velRef.current.lt = now;
         scheduleApply();
       } else if (e.touches.length === 2 && pinchRef.current.dist > 0) {
