@@ -6,7 +6,7 @@ import { useRef, useCallback } from 'react';
  * Skips touch events originating from interactive elements (input, button, etc.).
  */
 export function useSwipeBack(onBack: () => void) {
-  const touchRef = useRef({ startX: 0, startY: 0 });
+  const touchRef = useRef({ startX: 99999, startY: 0 });
 
   const onTouchStart = useCallback((e: any) => {
     // Skip if touch originated from an interactive element (input, textarea, button, select, a)

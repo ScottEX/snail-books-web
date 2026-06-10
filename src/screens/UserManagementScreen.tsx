@@ -58,10 +58,6 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const swipeBack = useSwipeBack(onBack);
   const st = useMemo(() => getStyles(c), [c]);
 
-  // Delay swipe-back handler until slide-in animation (280ms) completes
-  const [swipeReady, setSwipeReady] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setSwipeReady(true), 500); return () => clearTimeout(t); }, []);
-
   const [users, setUsers] = useState<UserItem[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
@@ -167,7 +163,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   }, []);
 
   return (
-    <View style={st.container} {...(swipeReady ? swipeBack : {})}>
+    <View style={st.container} {...swipeBack}>
       {/* Header — absolute glass (matches ExpenseDetailScreen) */}
       <View style={[st.header, { pointerEvents: 'box-none' as const }] as any}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
