@@ -5,6 +5,7 @@ import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import EmptyState from '../components/EmptyState';
 
 interface UserItem {
   id: number;
@@ -49,6 +50,15 @@ function CaretDownSvg({ color }: { color: string }) {
   return (
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function UserEmptyIcon({ color }: { color: string }) {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8" />
     </svg>
   );
 }
@@ -363,7 +373,10 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
           {loading ? (
             <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 40, fontSize: 13 }}>{t('loading') || '加载中...'}</Text>
           ) : users.length === 0 ? (
-            <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 40, fontSize: 13 }}>{t('noUsers') || '暂无用户'}</Text>
+            <EmptyState
+              icon={<UserEmptyIcon color={c.textSub} />}
+              title={t('noUsers') || '暂无用户'}
+            />
           ) : (
             filteredUsers.map((u) => (
               <TouchableOpacity key={u.id} style={st.userRow} onPress={() => onUserSelect(u)} activeOpacity={0.6}>
@@ -419,7 +432,7 @@ const getStyles = (c: ThemeColors) => {
     // Body (below absolute header)
     body: {
       flex: 1,
-      marginTop: 116,
+      marginTop: 100,
       backgroundColor: c.bg,
     },
     // Search bar
