@@ -6,6 +6,7 @@ import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import { getCurrentUserId } from '../utils/storage';
 
 interface UserData {
   id: number;
@@ -103,6 +104,7 @@ function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c 
 export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
+  const isSelf = String(user.id) === (getCurrentUserId() || '');
   const lang = getLang();
   const st = useMemo(() => getStyles(c), [c]);
 
@@ -252,7 +254,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               <View style={{ flexDirection: 'row' as const, justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Text style={st.avatarName}>{detail.username}</Text>
                 {/* Delete / Restore button (mutually exclusive) */}
-                {!isGrace ? (
+                {!isGrace && !isSelf ? (
                   <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7} disabled={deleting}>
                     <View style={[st.actionBtn, { backgroundColor: withAlpha(c.danger, 0.08) }]}>
                       {deleting ? (
@@ -331,6 +333,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               <View style={st.sectionTitleLine} />
             </View>
             <View style={st.card}>
+              {!isSelf && (
               <View style={st.toggleRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={st.toggleLabel}>{t('allowLogin')}</Text>
@@ -344,6 +347,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   disabled={saving || isGrace}
                 />
               </View>
+              )}
             </View>
           </View>
 
