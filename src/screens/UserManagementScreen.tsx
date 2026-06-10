@@ -95,7 +95,6 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   // Debounced search-as-you-type
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [searchText, setSearchText] = useState('');
-  const searchInputRef = useRef<any>(null);
   const debouncePrimed = useRef(false);
   useEffect(() => {
     if (!debouncePrimed.current) { debouncePrimed.current = true; return; }
@@ -178,10 +177,9 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       {/* Body */}
       <View style={st.body}>
         {/* Search bar */}
-        <TouchableOpacity style={st.searchBox} activeOpacity={1} onPress={() => searchInputRef.current?.focus()}>
+        <View style={st.searchBox}>
           <SearchIcon />
           <TextInput
-            ref={searchInputRef}
             style={st.searchInput}
             placeholder={t('searchUser')}
             placeholderTextColor={c.textSub}
@@ -194,7 +192,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
               <Text style={{ fontSize: 14, color: c.textSub, paddingHorizontal: 4 }}>✕</Text>
             </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        </View>
 
         {/* Filter row */}
         <View style={st.filterRow}>
