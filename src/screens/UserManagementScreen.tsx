@@ -53,6 +53,30 @@ function CaretDownSvg({ color }: { color: string }) {
   );
 }
 
+// ── Dropdown animation CSS ──
+const DD_CSS = `
+@keyframes dd-in{from{opacity:0;transform:translateY(-4px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.dd-enter{animation:dd-in 180ms cubic-bezier(0.215,0.61,0.355,1) both}
+`;
+let ddInjected = false;
+
+const NOW = new Date();
+const THIS_YEAR = NOW.getFullYear();
+const YEARS = [THIS_YEAR - 2, THIS_YEAR - 1, THIS_YEAR, THIS_YEAR + 1];
+const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+function fmtDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function lastDayOfMonth(y: number, m: number): string {
+  const d = new Date(y, m, 0); // m is 1-based → JS month is 0-based, day 0 = last day of prev month
+  return `${y}-${String(m).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
@@ -68,6 +92,18 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const [showDateDrop, setShowDateDrop] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  // Date picker local state (year + month selection)
+  const [dropYear, setDropYear] = useState(THIS_YEAR);
+  const [dropMonth, setDropMonth] = useState(NOW.getMonth() + 1);
+
+  // Inject dropdown animation CSS once
+  useEffect(() => {
+    if (ddInjected) return;
+    ddInjected = true;
+    const s = document.createElement('style');
+    s.textContent = DD_CSS;
+    document.head.appendChild(s);
+  }, []);
 
   const fetchUsers = useCallback(async (sts: string, df: string, dt: string) => {
     setLoading(true);
@@ -107,21 +143,41 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     fetchUsers(val, dateFrom, dateTo);
   }, [dateFrom, dateTo, fetchUsers]);
 
-  const applyDate = useCallback((df: string, dt: string) => {
-    setDateFrom(df);
-    setDateTo(dt);
+  // Apply year+month picker selection
+  const applyPick = useCallback(() => {
+    const from = `${dropYear}-${String(dropMonth).padStart(2, '0')}-01`;
+    const to = lastDayOfMonth(dropYear, dropMonth);
+    setDateFrom(from);
+    setDateTo(to);
     setShowDateDrop(false);
-    fetchUsers(statusFilter, df, dt);
+    fetchUsers(statusFilter, from, to);
+  }, [dropYear, dropMonth, statusFilter, fetchUsers]);
+
+  // Quick presets
+  const applyQuick = useCallback((days: number) => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    const fs = fmtDate(from), ts = fmtDate(to);
+    setDateFrom(fs);
+    setDateTo(ts);
+    setShowDateDrop(false);
+    fetchUsers(statusFilter, fs, ts);
   }, [statusFilter, fetchUsers]);
 
   const clearDate = useCallback(() => {
     setDateFrom('');
     setDateTo('');
+    setShowDateDrop(false);
     fetchUsers(statusFilter, '', '');
   }, [statusFilter, fetchUsers]);
 
   const statusLabel = statusFilter === 'normal' ? t('normalStatus') : statusFilter === 'disabled' ? t('disabledStatus') : statusFilter === 'grace' ? t('graceStatus') : t('all');
-  const dateLabel = (dateFrom || dateTo) ? `${dateFrom || '…'} - ${dateTo || '…'}` : t('registrationTime');
+  const dateLabel = (dateFrom || dateTo)
+    ? (dateFrom && dateTo && dateFrom.slice(0, 7) === dateTo.slice(0, 7)
+        ? `${dropYear}年${dropMonth}月`
+        : `${dateFrom || '…'} - ${dateTo || '…'}`)
+    : t('registrationTime');
 
   // Refs for dropdown positioning via portal
   const statusChipRef = useRef<HTMLDivElement>(null);
@@ -138,10 +194,21 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
 
   const openDateDrop = useCallback(() => {
     const el = dateChipRef.current;
-    if (el) { const r = el.getBoundingClientRect(); setDateRect({ top: r.bottom + 4, left: r.left, width: r.width }); }
+    if (el) {
+      const r = el.getBoundingClientRect();
+      setDateRect({ top: r.bottom + 4, left: Math.max(r.left - 20, 16), width: 320 });
+    }
+    // Init picker from current dateFrom or today
+    if (dateFrom && dateFrom.length >= 7) {
+      setDropYear(parseInt(dateFrom.slice(0, 4)));
+      setDropMonth(parseInt(dateFrom.slice(5, 7)));
+    } else {
+      setDropYear(THIS_YEAR);
+      setDropMonth(NOW.getMonth() + 1);
+    }
     setShowDateDrop(true);
     setShowStatusDrop(false);
-  }, []);
+  }, [dateFrom]);
 
   const closeDrops = useCallback(() => {
     setShowStatusDrop(false);
@@ -202,7 +269,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
         {/* Status dropdown portal */}
         {showStatusDrop && statusRect && createPortal(
           <div style={{ position: 'fixed', top: statusRect.top, left: statusRect.left, width: statusRect.width, zIndex: 9999 }}>
-            <div style={portalDropdownStyle(c)}>
+            <div className="dd-enter" style={portalDropdownStyle(c)}>
               <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus(''); closeDrops(); }}>
                 <Text style={[st.dropItemText, statusFilter === '' && { color: c.primary, fontWeight: '600' }]}>{t('all')}</Text>
               </TouchableOpacity>
@@ -224,34 +291,56 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
         )}
         {showStatusDrop && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
 
-        {/* Date dropdown portal */}
+        {/* Date dropdown portal — year/month picker + quick presets */}
         {showDateDrop && dateRect && createPortal(
           <div style={{ position: 'fixed', top: dateRect.top, left: dateRect.left, width: dateRect.width, zIndex: 9999 }}>
-            <div style={portalDropdownStyle(c)}>
-              <View style={st.dateRow}>
-                <TextInput
-                  style={st.dateInput}
-                  value={dateFrom}
-                  onChangeText={setDateFrom}
-                  placeholder="2024-01-01"
-                  placeholderTextColor={c.textSub}
-                  maxLength={10}
-                />
-                <Text style={{ color: c.textSub, marginHorizontal: 4 }}>—</Text>
-                <TextInput
-                  style={st.dateInput}
-                  value={dateTo}
-                  onChangeText={setDateTo}
-                  placeholder="2024-12-31"
-                  placeholderTextColor={c.textSub}
-                  maxLength={10}
-                />
+            <div className="dd-enter" style={portalDropdownStyle(c)}>
+              {/* Year selector */}
+              <View style={st.pickerRow}>
+                {YEARS.map(y => (
+                  <TouchableOpacity
+                    key={y}
+                    style={[st.pickerBtn, dropYear === y && st.pickerBtnOn]}
+                    onPress={() => setDropYear(y)}
+                  >
+                    <Text style={[st.pickerBtnText, dropYear === y && st.pickerBtnTextOn]}>
+                      {y}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
+              {/* Month grid */}
+              <View style={st.monthGrid}>
+                {MONTHS.map(m => (
+                  <TouchableOpacity
+                    key={m}
+                    style={[st.monthBtn, dropMonth === m && st.monthBtnOn]}
+                    onPress={() => setDropMonth(m)}
+                  >
+                    <Text style={[st.monthBtnText, dropMonth === m && st.monthBtnTextOn]}>
+                      {m}月
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {/* Quick presets */}
+              <View style={st.quickRow}>
+                <TouchableOpacity style={st.quickBtn} onPress={() => applyQuick(7)}>
+                  <Text style={st.quickBtnText}>近7天</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={st.quickBtn} onPress={() => applyQuick(30)}>
+                  <Text style={st.quickBtnText}>近30天</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={st.quickBtn} onPress={() => applyQuick(90)}>
+                  <Text style={st.quickBtnText}>近3月</Text>
+                </TouchableOpacity>
+              </View>
+              {/* Actions */}
               <View style={st.dateActions}>
-                <TouchableOpacity style={st.dateActionBtn} onPress={() => { clearDate(); closeDrops(); }}>
+                <TouchableOpacity style={st.dateActionBtn} onPress={clearDate}>
                   <Text style={st.dateActionText}>{t('reset') || '重置'}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[st.dateActionBtn, st.dateActionApply]} onPress={() => { applyDate(dateFrom, dateTo); closeDrops(); }}>
+                <TouchableOpacity style={[st.dateActionBtn, st.dateActionApply]} onPress={applyPick}>
                   <Text style={[st.dateActionText, { color: '#fff' }]}>{t('apply') || '确定'}</Text>
                 </TouchableOpacity>
               </View>
@@ -356,17 +445,43 @@ const getStyles = (c: ThemeColors) => {
     },
     dropItemText: { fontSize: 14, color: c.textMain },
     statusDot: { width: 6, height: 6, borderRadius: 3 },
-    // Date picker in dropdown
-    dateRow: {
-      flexDirection: 'row' as const, alignItems: 'center' as const,
-      paddingHorizontal: 14, paddingVertical: 10,
+    // ── Date picker (year + month) ──
+    pickerRow: {
+      flexDirection: 'row' as const, gap: 6,
+      paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6,
     },
-    dateInput: {
-      flex: 1, height: 34, borderRadius: 8,
-      backgroundColor: c.bg,
-      paddingHorizontal: 10, fontSize: 13, color: c.textMain,
-      borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.1), outline: 'none',
-    } as any,
+    pickerBtn: {
+      flex: 1, alignItems: 'center' as const, paddingVertical: 7,
+      borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.04),
+    },
+    pickerBtnOn: { backgroundColor: c.primary },
+    pickerBtnText: { fontSize: 13, color: c.textMain },
+    pickerBtnTextOn: { color: '#fff', fontWeight: '600' as const },
+    monthGrid: {
+      flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 6,
+      paddingHorizontal: 14, paddingBottom: 8,
+    },
+    monthBtn: {
+      width: 'calc(25% - 4.5px)' as any, alignItems: 'center' as const,
+      paddingVertical: 7, borderRadius: 8,
+      backgroundColor: withAlpha(c.textMain, 0.04),
+    },
+    monthBtnOn: { backgroundColor: c.primary },
+    monthBtnText: { fontSize: 13, color: c.textMain },
+    monthBtnTextOn: { color: '#fff', fontWeight: '600' as const },
+    // ── Quick presets ──
+    quickRow: {
+      flexDirection: 'row' as const, gap: 6,
+      paddingHorizontal: 14, paddingBottom: 10,
+      borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06),
+      paddingTop: 10,
+    },
+    quickBtn: {
+      flex: 1, alignItems: 'center' as const, paddingVertical: 7,
+      borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.04),
+    },
+    quickBtnText: { fontSize: 12, color: c.textSub },
+    // ── Actions ──
     dateActions: {
       flexDirection: 'row' as const, justifyContent: 'flex-end', gap: 8,
       paddingHorizontal: 14, paddingBottom: 10,
