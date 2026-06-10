@@ -42,8 +42,6 @@ export const historyHeader = (colors: ThemeColors) => ({
     // @ts-ignore
     backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
-    // @ts-ignore — let clicks on empty header area pass through to content below
-    pointerEvents: 'box-none' as const,
   },
   backBtn: {
     width: 36, height: 36, borderRadius: 18,
