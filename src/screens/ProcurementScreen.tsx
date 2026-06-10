@@ -322,6 +322,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     try { localStorage.setItem('snail_proc_tab', subTab); } catch {}
   }, [subTab]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [search, setSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('全部');
@@ -504,7 +505,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   }, [products]);
 
   const loadProducts = useCallback(() => {
-    api.getProducts().then((data: any) => { if (Array.isArray(data)) setProducts(data); }).catch(() => {});
+    api.getProducts().then((data: any) => { if (Array.isArray(data)) { setProducts(data); setProductsLoaded(true); } }).catch(() => { setProductsLoaded(true); });
   }, []);
   const loadStats = useCallback(() => {
     api.getProcurementStats().then((s: any) => {
@@ -811,12 +812,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // the freshly-mounted instance (the one whose parent just flipped
   // setShowProcDetail(false)), so openEditBatch's setState calls all
   // land on a live component — no stale ref, no unmounted setState.
+  // Gate on productsLoaded: when the component remounts for a pending edit,
+  // products may not have loaded yet. Wait until loadProducts finishes so
+  // cartItems (which depends on products) isn't empty.
   useEffect(() => {
-    if (pendingEditBatch) {
+    if (pendingEditBatch && productsLoaded) {
       openEditBatch(pendingEditBatch);
       onPendingEditConsumed?.();
     }
-  }, [pendingEditBatch, onPendingEditConsumed]);
+  }, [pendingEditBatch, productsLoaded, onPendingEditConsumed]);
 
   // Confirm delete batch + cascade
   const confirmDeleteBatch = async () => {
