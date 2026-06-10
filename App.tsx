@@ -52,11 +52,9 @@ export default function App() {
   }, []);
   const closePreview = () => {
     if (typeof window !== 'undefined') {
-      // Drop the hash without leaving the page. Using
-      // history.pushState + replaceState keeps the browser back
-      // stack clean: back from a fresh empty hash lands on the
-      // previous page in the SPA, not on the previous URL.
-      history.pushState(null, '', window.location.pathname + window.location.search);
+      // Replace current entry instead of pushing a new one,
+      // so stale PDF hash entries don't linger in history.
+      history.replaceState(null, '', window.location.pathname + window.location.search);
       setPreviewRoute(null);
     }
   };
