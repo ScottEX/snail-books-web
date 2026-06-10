@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, TouchableOpacity, Animated } from 'react-native';
 import { createPortal } from 'react-dom';
+import { MODAL_BACKDROP_OPACITY } from '../theme';
 
 interface ModalOverlayProps {
   visible?: boolean;
@@ -37,7 +38,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
 
   return createPortal(
     <Animated.View style={[{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, justifyContent: 'center', alignItems: 'center', padding: 16 }, { opacity: fade }, overlayStyle]}>
-      <TouchableOpacity activeOpacity={1} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={onClose} />
+      <TouchableOpacity activeOpacity={1} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#000', opacity: MODAL_BACKDROP_OPACITY }} onPress={onClose} />
       <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, contentStyle, { transform: [{ translateY: slide }] }]}>
         {children}
       </Animated.View>

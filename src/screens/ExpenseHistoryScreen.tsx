@@ -6,8 +6,11 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
-import Toast from '../components/Toast';
+import Toast from "../components/Toast";
+import EmptyState from "../components/EmptyState";
+import ImagePreview from '../components/ImagePreview';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
 import { getCurrentUser } from '../utils/storage';
@@ -45,8 +48,9 @@ function ExpenseEmptyIcon({ color }: { color: string }) {
   );
 }
 
-export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void }) {
+export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void }) {
   const [records, setRecords] = useState<any[]>([]);
+  const swipeBack = useSwipeBack(onBack);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAll, setTotalAll] = useState(0);
@@ -54,8 +58,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
-  const [previewOpacity, setPreviewOpacity] = useState(1);
-  const touchStartX = useRef(0);
+
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
   const filDateFromRef = useRef<HTMLInputElement>(null);
   const filDateToRef = useRef<HTMLInputElement>(null);
@@ -134,7 +137,7 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
   useEffect(() => {
     setRecords([]);
     loadPage(1, true);
-  }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filterKey, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Current user for displaying who filled each record
   const currentUser = getCurrentUser();
@@ -147,7 +150,8 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     const displayImgs = thumbImgs.length > 0 ? thumbImgs : parseImages(e.images);
     const previewImgs = parseImages(e.images);
     return (
-      <View style={st.row}>
+      <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
+        <View style={st.row}>
         <View style={st.rowTop}>
           <View style={st.badges}>
             <View style={st.catBadge}>
@@ -194,8 +198,9 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
           </View>
         )}
       </View>
+      </TouchableOpacity>
     );
-  }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, setPreviewData]);
+  }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, onExpDetail]);
 
   // End-of-list pagination — replaces ScrollView onScroll, debounced 150ms
   const onEndReached = useCallback(() => {
@@ -226,16 +231,10 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
     !!(filDateFrom && filDateTo && !rangeInvalid && monthsBetween(filDateFrom, filDateTo) > 24),
     [filDateFrom, filDateTo, rangeInvalid]);
 
-  const navPreview = (newIdx: number) => {
-    setPreviewOpacity(0);
-    setTimeout(() => {
-      setPreviewData({ images: previewData!.images, idx: newIdx });
-      setPreviewOpacity(1);
-    }, 150);
-  };
+
 
   return (
-    <View style={st.root}>
+    <View style={st.root} {...swipeBack}>
       {/* Header — absolute, transparent, floats above scroll (matches ReconHistoryScreen) */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
@@ -363,11 +362,11 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
         ListEmptyComponent={!loading ? (
-          <View style={st.emptyWrap}>
-            <View style={st.emptyIcon}><ExpenseEmptyIcon color={colors.textSub} /></View>
-            <Text style={st.emptyTitle}>{t('noRecords')}</Text>
-            <Text style={st.emptyHint}>{t('emptyExpenseHint')}</Text>
-          </View>
+          <EmptyState
+            icon={<ExpenseEmptyIcon color={colors.textSub} />}
+            title={t('noRecords')}
+            hint={t('emptyExpenseHint')}
+          />
         ) : null}
         ListFooterComponent={loading ? (
           <View style={st.loading}>
@@ -377,58 +376,13 @@ export default function ExpenseHistoryScreen({ onBack }: { onBack: () => void })
         ) : null}
       />
 
-      {/* Fullscreen image preview with left/right swipe */}
       {previewData && (
-        <View style={st.previewOverlay}
-          onTouchStart={(e: any) => { touchStartX.current = e.nativeEvent.pageX || e.nativeEvent.touches?.[0]?.pageX || 0; }}
-          onTouchEnd={(e: any) => {
-            const endX = e.nativeEvent.pageX || e.nativeEvent.changedTouches?.[0]?.pageX || 0;
-            const dx = endX - touchStartX.current;
-            if (Math.abs(dx) > 60) {
-              if (dx < 0 && previewData.idx < previewData.images.length - 1) {
-                navPreview(previewData.idx + 1);
-              } else if (dx > 0 && previewData.idx > 0) {
-                navPreview(previewData.idx - 1);
-              }
-            }
-          }}>
-          <TouchableOpacity style={st.previewClose}
-            onPress={() => setPreviewData(null)}
-            activeOpacity={0.7}>
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth={2} strokeLinecap="round">
-              <Path d="M18 6L6 18M6 6l12 12" />
-            </Svg>
-          </TouchableOpacity>
-          {previewData.images.length > 1 && previewData.idx > 0 && (
-            <TouchableOpacity style={st.previewArrowLeft}
-              onPress={() => navPreview(previewData.idx - 1)}
-              activeOpacity={0.7}>
-              <Text style={st.previewArrowText}>{'\u2039'}</Text>
-            </TouchableOpacity>
-          )}
-          {previewData.images.length > 1 && previewData.idx < previewData.images.length - 1 && (
-            <TouchableOpacity style={st.previewArrowRight}
-              onPress={() => navPreview(previewData.idx + 1)}
-              activeOpacity={0.7}>
-              <Text style={st.previewArrowText}>{'\u203A'}</Text>
-            </TouchableOpacity>
-          )}
-          {React.createElement('img', {
-            src: previewData.images[previewData.idx],
-            key: previewData.idx,
-            decoding: 'async' as any,
-            style: {
-              maxWidth: '90%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain',
-              opacity: previewOpacity,
-              // @ts-ignore
-              transition: 'opacity 0.2s ease',
-            },
-            alt: 'preview',
-          })}
-          {previewData.images.length > 1 && (
-            <Text style={st.previewCounter}>{previewData.idx + 1} / {previewData.images.length}</Text>
-          )}
-        </View>
+        <ImagePreview
+          images={previewData.images}
+          initialIdx={previewData.idx}
+          visible={true}
+          onClose={() => setPreviewData(null)}
+        />
       )}
 
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
@@ -472,46 +426,15 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   filledBy: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center', gap: 16,
   },
-  dateText: { fontSize: FONTS.sub.size, color: colors.textSub },
-  note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right' },
-  emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
-  emptyEmoji: { fontSize: FONTS.h1.size },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
-  emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+  dateText: { fontSize: FONTS.sub.size, color: colors.textSub, flexShrink: 0 },
+  note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right', overflow: 'hidden' },
+
   loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
   loadingText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Preview overlay */
-  previewOverlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  previewClose: {
-    position: 'absolute', top: 48, right: 20, zIndex: 10,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  previewArrowLeft: {
-    position: 'absolute', left: 16, top: '50%', zIndex: 10,
-    width: 40, height: 40, borderRadius: 20, marginTop: -20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  previewArrowRight: {
-    position: 'absolute', right: 16, top: '50%', zIndex: 10,
-    width: 40, height: 40, borderRadius: 20, marginTop: -20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  previewArrowText: { fontSize: FONTS.amount.size, fontWeight: '300', color: colors.surface, marginTop: -2 },
-  previewCounter: {
-    position: 'absolute', bottom: 60, zIndex: 10,
-    fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: 'rgba(255,255,255,0.7)',
-  },
+
   /* Filter panel — matches ReconHistoryScreen */
   filterBtnTextActive: { color: colors.surface },
   filterPanel: {

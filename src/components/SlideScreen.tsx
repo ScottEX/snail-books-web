@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING } from '../theme';
 
 interface Props {
   visible: boolean;
@@ -21,8 +22,8 @@ const SS_CSS = `
   position:absolute;top:0;left:0;right:0;bottom:0;
   transform:translateX(0);
 }
-.ss-root.ss-enter{animation:ss-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
-.ss-root.ss-exit{animation:ss-slide-out 250ms cubic-bezier(0.55,0.055,0.675,0.19) both}
+.ss-root.ss-enter{animation:ss-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
+.ss-root.ss-exit{animation:ss-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
 `;
 
 let ssInjected = false;
@@ -51,7 +52,7 @@ export default function SlideScreen({
   useEffect(() => {
     if (visible) {
       setPhase('enter');
-      timer.current = setTimeout(() => setPhase(p => (p === 'enter' ? 'idle' : p)), 280);
+      timer.current = setTimeout(() => setPhase(p => (p === 'enter' ? 'idle' : p)), ENTER_DURATION);
       return () => clearTimeout(timer.current);
     }
     if (phase === 'enter' || phase === 'idle') {
@@ -59,7 +60,7 @@ export default function SlideScreen({
       timer.current = setTimeout(() => {
         setPhase('hidden');
         onClose();
-      }, 250);
+      }, EXIT_DURATION);
       return () => clearTimeout(timer.current);
     }
   }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -70,7 +71,7 @@ export default function SlideScreen({
     timer.current = setTimeout(() => {
       setPhase('hidden');
       onClose();
-    }, 250);
+    }, EXIT_DURATION);
   }, [phase, onClose]);
 
   // Don't render anything when fully hidden

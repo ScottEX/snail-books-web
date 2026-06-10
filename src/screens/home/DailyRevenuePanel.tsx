@@ -331,7 +331,7 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
                     ? t('revSaveYesterday')
                     : revDate === dayBeforeDateStr()
                     ? t('revSaveDayBefore')
-                    : `储存${revDate.slice(5).replace('-', '')}数据`}
+                    : t('revSaveDate').replace('{date}', revDate.slice(5).replace('-', ''))}
                 </Text>
               </>
             )}

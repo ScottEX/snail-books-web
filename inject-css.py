@@ -16,7 +16,7 @@ INJECT_CSS = '''
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
     /* Keep #root flex for React Native Web layout — don't override */
-    .bg-wrapper { position: fixed; inset: 0; z-index: 0; background: url(/img/bg.jpg) center/cover no-repeat; }
+    .bg-wrapper { position: fixed; inset: 0; z-index: 0; background: url(/img/bg.jpg?v=2) center/cover no-repeat; }
     .bg-overlay { position: fixed; inset: 0; z-index: 1; background: rgba(0,0,0,0.15); }
     .bg-content { position: relative; z-index: 2; }
     .glass-card { background: rgba(255,255,255,0.10); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.10); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
@@ -102,7 +102,39 @@ html = html.replace(
 )
 
 # Fix title
-html = html.replace('<title>snail-books-web</title>', '<title>蓝姐螺蛳粉</title>')
+html = html.replace('<title>snail-books-web</title>', '<title>柳味探秘科技</title>')
+
+# ── Splash screen: only shown after 2s of loading ──
+SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FBF7F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;transition:opacity .3s;opacity:0">
+<div style="text-align:center">
+<div style="font-size:48px;animation:pulse 1.8s ease-in-out infinite">🐌</div>
+<div style="font-size:18px;font-weight:600;color:#5C3D2E;margin-top:16px">柳味探秘科技</div>
+<div style="margin-top:12px;display:flex;gap:6px;justify-content:center">
+<span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out infinite"></span>
+<span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out .2s infinite"></span>
+<span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out .4s infinite"></span>
+</div>
+</div>
+</div>"""
+SPLASH_CSS = """
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(.96)}50%{opacity:1;transform:scale(1)}}
+@keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+"""
+SPLASH_JS = """<script>
+(function(){
+  var s=document.getElementById('splash');
+  var t=setTimeout(function(){s.style.opacity='1'},2000);
+  new MutationObserver(function(){
+    clearTimeout(t);
+    var root=document.getElementById('root');
+    if(root&&root.children.length){s.style.opacity='0';setTimeout(function(){s.remove()},300)}
+  }).observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
+})();
+</script>"""
+
+html = html.replace('</style>', '</style>\n<style>' + SPLASH_CSS + '</style>')
+html = html.replace('<body>', '<body>\n' + SPLASH_HTML)
+html = html.replace('</body>', SPLASH_JS + '\n</body>')
 
 with open(dist_index, 'w') as f:
     f.write(html)

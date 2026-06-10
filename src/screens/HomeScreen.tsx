@@ -12,12 +12,15 @@ import ProcurementScreen from './ProcurementScreen';
 import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
+import ExpenseDetailScreen from './ExpenseDetailScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
 import ProcurementDetailScreen from './ProcurementDetailScreen';
 import PdfPreviewPage from './PdfPreviewPage';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import SlideScreen from '../components/SlideScreen';
 import ProfileScreen from './ProfileScreen';
+import UserManagementScreen from './UserManagementScreen';
+import UserDetailScreen from './UserDetailScreen';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
@@ -40,8 +43,11 @@ export default function HomeScreen({
 }) {
   const { colors } = useTheme();
   const [tab, setTabState] = useState<Tab>(() => {
-    try { return (localStorage.getItem('active_tab') as Tab) || 'expense'; }
-    catch { return 'expense'; }
+    try {
+      const saved = localStorage.getItem('active_tab');
+      if (saved && ['expense', 'list', 'supply', 'chart', 'partner'].includes(saved)) return saved as Tab;
+      return 'chart';
+    } catch { return 'chart'; }
   });
   const setTab = (t: Tab) => {
     setTabState(t);
@@ -67,6 +73,9 @@ export default function HomeScreen({
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
+  const [expDetailRecord, setExpDetailRecord] = useState<any>(null);
+  const [expenseRefreshKey, setExpenseRefreshKey] = useState(0);
+  const [userRefreshKey, setUserRefreshKey] = useState(0);
   // External signal for ProcurementScreen.edit flow. When set, the
   // newly-mounted ProcurementScreen instance (which mounts when
   // popPage flips pageStack empty after the 280ms slide-out) will
@@ -78,13 +87,14 @@ export default function HomeScreen({
   // 'pdf' via the useEffect below whenever App.tsx sees a matching
   // hash. Cleared on popPage so a fresh push always starts clean.
   const [showCartDrawer, setShowCartDrawer] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: number; username: string; email: string; avatar: string; is_disabled: boolean } | null>(null);
   // iOS-style push/pop nav: pageStack is the single source of truth
   // for which sub-screen (profile / recon / expense / daily / proc / pdf)
   // is on top of HomeScreen. pushPage() opens one (280ms slide-in);
   // popPage() reverses it (250ms slide-out via the `removing` flag).
   // The `s.includes(p) ? s : ...` guard prevents pushing the same
   // page twice while it's still on the stack.
-  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf';
+  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail' | 'usermgmt' | 'userdetail';
   // Hydrate pageStack from history.state so a refresh lands the user
   // back on the same sub-page they were viewing. Fall back to [] for
   // a cold load (state is null) or a hostile/missing history.state.
@@ -140,6 +150,7 @@ export default function HomeScreen({
       // Per-page payload cleanup so a fresh push of the same page
       // never sees stale data from a previous open.
       if (top === 'proc') setProcDetailBatch(null);
+      if (top === 'userdetail') setSelectedUser(null);
       if (top === 'pdf') {
         setPdfPreview(null);
         // Mirror the dismissal back up to App.tsx so the URL hash
@@ -220,11 +231,15 @@ export default function HomeScreen({
   const [avatarUrl, setAvatarUrl] = useState('');
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
+  const [bgReady, setBgReady] = useState(true); // default bg.jpg always ready
   const [bgImage, setBgImage] = useState(() => {
+    // Read cached bg URL to show custom background instantly, avoid API wait.
+    // localStorage is written by api.getBackground() (line ~326) and bg upload.
     try {
-      const saved = localStorage.getItem('bg-image');
-      return saved || '/img/bg.jpg';
-    } catch { return '/img/bg.jpg'; }
+      const cached = localStorage.getItem('bg-image');
+      if (cached) return cached;
+    } catch {}
+    return '/img/bg.jpg?v=2';
   });
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
@@ -306,6 +321,7 @@ export default function HomeScreen({
       const url = e?.detail?.url;
       if (typeof url === 'string') {
         setBgImage(url);
+        setBgReady(true);
         setBgVersion(v => v + 1);
       }
     };
@@ -318,10 +334,12 @@ export default function HomeScreen({
     api.getBackground().then((r: any) => {
       if (r?.url) {
         setBgImage(r.url);
+        setBgReady(true);
         try { localStorage.setItem('bg-image', r.url); } catch {}
       } else {
         // No custom background — use default
-        setBgImage('/img/bg.jpg');
+        setBgImage('/img/bg.jpg?v=2');
+        setBgReady(true);
         try { localStorage.removeItem('bg-image'); } catch {}
       }
       // Load opacity from server (overrides localStorage default)
@@ -495,6 +513,7 @@ export default function HomeScreen({
       const r: any = await api.uploadBackground(file);
       if (r?.url) {
         setBgImage(r.url);
+        setBgReady(true);
         try { localStorage.setItem('bg-image', r.url); } catch {}
         setBgVersion(v => v + 1);
       } else { throw new Error(t('uploadFailedShort')); }
@@ -507,7 +526,8 @@ export default function HomeScreen({
     setUploadingBg(true);
     try {
       await api.resetBackground();
-      setBgImage('/img/bg.jpg');
+      setBgImage('/img/bg.jpg?v=2');
+      setBgReady(true);
       try { localStorage.removeItem('bg-image'); } catch {}
       setBgVersion(v => v + 1);
     } catch (err) { /* ignore */ }
@@ -544,10 +564,26 @@ export default function HomeScreen({
             onLogout={onLogout}
             onLangChange={() => loadData()}
             onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
+            onManageUsers={() => pushPage('usermgmt')}
           />
         );
+      case 'usermgmt':
+        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={(u) => { setSelectedUser(u); pushPage('userdetail'); }} />;
+      case 'userdetail':
+        return selectedUser ? (
+          <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => setUserRefreshKey(k => k + 1)} />
+        ) : null;
       case 'expense':
-        return <ExpenseHistoryScreen onBack={onBack} />;
+        return <ExpenseHistoryScreen onBack={onBack} refreshKey={expenseRefreshKey} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} />;
+      case 'expdetail':
+        return expDetailRecord ? (
+          <ExpenseDetailScreen
+            record={expDetailRecord}
+            onBack={onBack}
+            onDeleted={() => { setExpenseRefreshKey(k => k + 1); loadData(); }}
+            onEdited={() => { setExpenseRefreshKey(k => k + 1); }}
+          />
+        ) : null;
       case 'daily':
         return <DailyRevenueHistory onBack={onBack} />;
       case 'recon':
@@ -607,8 +643,9 @@ export default function HomeScreen({
 
   return (
     <View style={styles.container}>
-      {/* Background */}
-      <View style={[styles.bgLayer, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+      {/* Background — default always visible, custom fades in on top */}
+      <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+      <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=2' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
 
       {/* Sub-page stack — iOS push/pop with z-index keyed to stack
           position so the top of the stack always covers what's below.
@@ -1013,9 +1050,10 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   bgLayer: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
+  bgCustom: { transition: 'opacity 0.5s ease, filter 0.5s ease' },
   // Header — frosted glass, same as sub-screen headers
   header: {
-    position: 'relative' as const, zIndex: 101,
+    position: 'relative' as const, zIndex: 200,
     paddingVertical: 8,
     paddingHorizontal: 20,
     backgroundColor: 'transparent',

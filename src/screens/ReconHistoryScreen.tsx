@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
+import EmptyState from '../components/EmptyState';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
@@ -47,7 +49,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [toast, setToast] = useState('');
-  const touchRef = useRef({ startX: 0, startY: 0 });
+  const swipeBack = useSwipeBack(onBack);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadingRef = useRef(false);
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
@@ -158,16 +160,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     return `${y}/${m}/${day}`;
   };
 
-  const onTouchStart = (e: any) => {
-    const t = e.nativeEvent?.touches?.[0] || e.nativeEvent;
-    touchRef.current = { startX: t.pageX, startY: t.pageY };
-  };
-  const onTouchEnd = (e: any) => {
-    const t = e.nativeEvent?.changedTouches?.[0] || e.nativeEvent;
-    const dx = t.pageX - touchRef.current.startX;
-    const dy = Math.abs(t.pageY - touchRef.current.startY);
-    if (touchRef.current.startX < 36 && dx > 80 && dx > dy * 1.5) onBack();
-  };
+
 
   // Card: compact summary (tap to open detail modal)
   const renderCard = (r: any) => (
@@ -321,17 +314,17 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   };
 
   const renderEmpty = () => (
-    <View style={st.emptyWrap}>
-      <View style={st.emptyIcon}><ReconEmptyIcon color={colors.textSub} /></View>
-      <Text style={st.emptyTitle}>{t('noRecords')}</Text>
-      <Text style={st.emptyHint}>{t('emptyReconHint')}</Text>
-    </View>
+    <EmptyState
+      icon={<ReconEmptyIcon color={colors.textSub} />}
+      title={t('noRecords')}
+      hint={t('emptyReconHint')}
+    />
   );
 
   const todayISO = new Date().toISOString().split('T')[0];
 
   return (
-    <View style={st.root} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <View style={st.root} {...swipeBack}>
       {/* Toast */}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
       {/* Header */}
@@ -542,11 +535,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   chanLabel: { fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight },
   chanVal: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
   /* Empty state */
-  emptyWrap: { marginTop: 80, alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: withAlpha(colors.textSub, 0.06), justifyContent: 'center', alignItems: 'center' },
-  emptyEmoji: { fontSize: FONTS.h1.size },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: '500', color: colors.textSub },
-  emptyHint: { fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
+
   /* Filter — ultra-minimal */
   filterBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub },
   filterBtnTextActive: { color: colors.surface },

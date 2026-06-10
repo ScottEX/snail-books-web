@@ -9,13 +9,17 @@ import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 import Toast from '../components/Toast';
-import ConfirmModal from '../components/ConfirmModal';
+import ConfirmModal from "../components/ConfirmModal";
+import EmptyState from "../components/EmptyState";
 import { formatDate } from '../utils/format';
 import TrashIcon from '../components/icons/TrashIcon';
-import CameraIcon from '../components/icons/CameraIcon';
+import ReceiptUpload from '../components/ReceiptUpload';
+import PaymentMethodChips from '../components/PaymentMethodChips';
+import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import PlusIcon from '../components/icons/PlusIcon';
+import { fmtDecInput } from '../utils/numbers';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = 'payCash' | 'payWechat' | 'payAlipay';
@@ -52,27 +56,6 @@ function CheckIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-// Payment SVG icons — clean, modern design
-const PAY_ICONS: Record<string, (color: string) => React.ReactNode> = {
-  payCash: (color: string) => (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x="1" y="4" width="22" height="16" rx="2" />
-      <Path d="M1 10h22" />
-      <Circle cx="12" cy="12" r="3" />
-    </Svg>
-  ),
-  payWechat: (color: string) => (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z" />
-    </Svg>
-  ),
-  payAlipay: (color: string) => (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <Path d="M9 12l2 2 4-4" />
-    </Svg>
-  ),
-};
 function BoxIcon({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -127,14 +110,10 @@ const sortByOrder = (a: string, b: string) => {
   return ai - bi;
 };
 
-const PAY_KEYS = ['payCash', 'payWechat', 'payAlipay'] as const;
-const CHIP_ICON_BG: Record<string, string> = { payWechat: '#07C160', payAlipay: '#1677FF', payCash: '#333' };
-
 // ═══════════════════════════════════════════════
 // Styles
 // ═══════════════════════════════════════════════
 const getStyles = (c: ThemeColors) => StyleSheet.create({
-  ...uploadReceiptStyles(c),
   container: { flex: 1, position: 'relative' as const },
 
   frostedBlock: {
@@ -230,28 +209,10 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   // Date row (all 4 elements inline)
   dateCatRow: { marginBottom: 12 },
   dateCatLine: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.06), gap: 8 },
-  dateCatLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain },
-  dateCatValue: { fontSize: FONTS.sub.size, color: c.textSub, flexDirection: 'row' as const, alignItems: 'center' as const },
+  dateCatLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub },
+  dateCatValue: { fontSize: FONTS.sub.size, color: c.textMain, flexDirection: 'row' as const, alignItems: 'center' as const },
 
-  // Payment capsules (matching ExpenseScreen)
-  sectionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textMain, marginBottom: 6 },
-  payRow: { flexDirection: 'row' as const, gap: 6, marginBottom: 12 },
-  payChip: {
-    flex: 1, flexDirection: 'row' as const, paddingVertical: 8, borderRadius: 22,
-    backgroundColor: c.bg,
-    alignItems: 'center' as const, justifyContent: 'center' as const,
-  },
-  payChipOn: { backgroundColor: c.primary },
-  payChipOnWechat: { backgroundColor: '#07C160' },
-  payChipOnAlipay: { backgroundColor: '#1677FF' },
-  payChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textSub },
-  payChipTextOn: { color: c.surface },
-
-  chipIconCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.04)', alignItems: 'center' as const, justifyContent: 'center' as const, marginRight: 4 },
-  chipIconCircleActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
-
-  // Upload (expense page style)
-  // Image upload — now in sharedStyles
+  sectionLabel: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, marginBottom: 6 },
 
   // Items row
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
@@ -338,10 +299,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   successBtnViewText: { color: c.textMain, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
 
   // Empty state
-  emptyIconWrap: { marginBottom: 16, opacity: 0.35 },
-  emptyWrap: { alignItems: 'center' as const, paddingVertical: 60 },
-  emptyTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: c.textSub, marginBottom: 6 },
-  emptyHint: { fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center' as const, paddingHorizontal: 40, lineHeight: 20 },
+
   loadingWrap: { paddingVertical: 20, alignItems: 'center' as const },
   contentArea: { flex: 1, paddingBottom: 100 },
 });
@@ -377,7 +335,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [payMethod, setPayMethod] = useState<PayMethod>('payWechat');
   const [orderNote, setOrderNote] = useState('');
   const [receipts, setReceipts] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   // Edit mode: when set, the drawer is editing this batch instead of creating a new one
   const [editingBatchId, setEditingBatchId] = useState<number | null>(null);
@@ -387,9 +344,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [existingThumbUrls, setExistingThumbUrls] = useState<string[]>([]);
   // Delete confirmation target (batch record)
   const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
-
-  const [showImgTip, setShowImgTip] = useState(false);
-  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [itemsModalIsCart, setItemsModalIsCart] = useState(false);
@@ -704,21 +658,23 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setEditingPrice(null);
   };
 
-  // ── File upload (matching ExpenseScreen pattern) ──
-  const handleFileSelect = async (e: any) => {
-    const files = e.target?.files || e.nativeEvent?.target?.files;
-    if (!files || files.length === 0) return;
+  // ── File upload (using shared ReceiptUpload) ──
+  const handleAddFiles = async (files: File[]) => {
     const newFiles: File[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) continue;
-      if (f.size > 10 * 1024 * 1024) continue;
+    for (const f of files) {
       if (receipts.some(r => r.name === f.name && r.size === f.size)) continue;
       const compressed = await compressImage(f);
       newFiles.push(compressed);
     }
     setReceipts(prev => [...prev, ...newFiles]);
-    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const handleRemoveNewFile = (i: number) => {
+    setReceipts(prev => {
+      const removed = prev[i];
+      if (removed) revokePreviewUrl(removed);
+      return prev.filter((_, idx) => idx !== i);
+    });
   };
 
   const urlCache = useRef<Map<File, string>>(new Map());
@@ -741,14 +697,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     };
   }, []);
 
-  const removeReceipt = (i: number) => {
-    setReceipts(prev => {
-      const removed = prev[i];
-      if (removed) revokePreviewUrl(removed);
-      return prev.filter((_, idx) => idx !== i);
-    });
-  };
-
   const submitOrder = async () => {
     if (cartItems.length === 0) return;
     setSubmitting(true);
@@ -757,9 +705,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       let newImageUrls: string[] = [];
       let newThumbUrls: string[] = [];
       if (receipts.length > 0) {
-        setUploading(true);
         const result = await api.uploadExpenseImages(receipts);
-        setUploading(false);
         if (result.status !== 'ok') {
           setSubmitting(false);
           setToastMsg(t('toastSubmitFailed'));
@@ -830,7 +776,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       setToastMsg(t('toastSubmitFailed'));
       setShowToast(true);
     }
-    setSubmitting(false); setUploading(false);
+    setSubmitting(false);
   };
 
   // Open drawer in edit mode, prefilled from the batch
@@ -1028,8 +974,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                         <View style={styles.prodPriceWrap}>
                           {isEditing ? (
                             <TextInput
-                              style={{ width: 70, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, borderWidth: 1, borderColor: c.primary, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, outline: 'none', backgroundColor: c.surface } as any}
-                              value={editPriceVal} onChangeText={setEditPriceVal}
+                              style={{ width: 70, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain, borderWidth: 1, borderColor: c.primary, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, outline: 'none', backgroundColor: c.surface } as any}
+                              value={editPriceVal} onChangeText={(v) => setEditPriceVal(fmtDecInput(v))}
                               onBlur={() => commitPrice(p.id)} autoFocus keyboardType="numeric"
                             />
                           ) : (
@@ -1058,11 +1004,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </View>
             ))}
             {groupedProducts.length === 0 && (
-              <View style={styles.emptyWrap}>
-                <View style={styles.emptyIconWrap}><EmptyCartIcon color={c.textSub} /></View>
-                <Text style={styles.emptyTitle}>{t('procEmptyNewTitle')}</Text>
-                <Text style={styles.emptyHint}>{t('procEmptyNewHint')}</Text>
-              </View>
+              <EmptyState
+                icon={<EmptyCartIcon color={c.textSub} />}
+                title={t('procEmptyNewTitle')}
+                hint={t('procEmptyNewHint')}
+              />
             )}
           </ScrollView>
 
@@ -1157,11 +1103,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             </View>
           )}
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
-              <View style={styles.emptyIconWrap}><EmptyClipboardIcon color={c.textSub} /></View>
-              <Text style={styles.emptyTitle}>{t('procEmptyHistoryTitle')}</Text>
-              <Text style={styles.emptyHint}>{t('procEmptyHistoryHint')}</Text>
-            </View>
+            <EmptyState
+              icon={<EmptyClipboardIcon color={c.textSub} />}
+              title={t('procEmptyHistoryTitle')}
+              hint={t('procEmptyHistoryHint')}
+            />
           }
           ListFooterComponent={loadingHist ? <View style={styles.loadingWrap}><ActivityIndicator color={c.primary} /></View> : null}
         />
@@ -1175,11 +1121,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
           {filteredMgmtProducts.length === 0 ? (
-            <View style={styles.emptyWrap}>
-              <View style={styles.emptyIconWrap}><EmptyBoxIcon color={c.textSub} /></View>
-              <Text style={styles.emptyTitle}>{t('procEmptyProductsTitle')}</Text>
-              <Text style={styles.emptyHint}>{t('procEmptyProductsHint')}</Text>
-            </View>
+            <EmptyState
+              icon={<EmptyBoxIcon color={c.textSub} />}
+              title={t('procEmptyProductsTitle')}
+              hint={t('procEmptyProductsHint')}
+            />
           ) : (
             [...filteredMgmtProducts].sort((a, b) => b.id - a.id).map(p => (
               <View key={p.id} style={styles.mgmtRow}>
@@ -1232,7 +1178,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   ))
                 )}
               </View>
-              <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: v }))} keyboardType="numeric" />
+              <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="numeric" />
               <TextInput style={styles.modalInput} placeholder={t('procProductNote')} placeholderTextColor={c.textSub} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
               <View style={styles.modalBtnRow}>
                 <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setShowProductModal(false))}>
@@ -1291,7 +1237,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
                   <View style={styles.dateCatValue}>
-                    <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{formatDate(orderDate)}</Text>
+                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{formatDate(orderDate)}</Text>
                     {React.createElement('input', {
                       ref: orderDateInputRef,
                       type: 'date', defaultValue: orderDate, max: todayStr(),
@@ -1300,76 +1246,23 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     })}
                   </View>
                   <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                  <Text style={{ fontSize: FONTS.sub.size, color: c.textSub }}>{t('goods')}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{t('goods')}</Text>
                 </View>
               </View>
 
-              {/* Payment method capsules */}
-              <Text style={styles.sectionLabel}>{t('procPaymentMethod')}</Text>
-              <View style={styles.payRow}>
-                {PAY_KEYS.map(pm => {
-                  const active = payMethod === pm;
-                  const isWechat = pm === 'payWechat';
-                  const isAlipay = pm === 'payAlipay';
-                  return (
-                    <TouchableOpacity key={pm}
-                      style={[styles.payChip, active && (isWechat ? styles.payChipOnWechat : isAlipay ? styles.payChipOnAlipay : styles.payChipOn)]}
-                      onPress={() => setPayMethod(pm)} activeOpacity={0.7}>
-                      <View style={[styles.chipIconCircle, active && { backgroundColor: CHIP_ICON_BG[pm] }]}>
-                        {PAY_ICONS[pm](active ? c.surface : c.textSub)}
-                      </View>
-                      <Text style={[styles.payChipText, active && styles.payChipTextOn]}>{t(pm as any)}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+              {/* Payment method */}
+              <PaymentMethodChips label={t('procPaymentMethod') as string} selected={payMethod} onSelect={(m) => setPayMethod(m as PayMethod)} />
 
-              {/* Upload receipts (expense page style) */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('uploadImage')}</Text>
-                <TouchableOpacity onPress={() => setShowImgTip(!showImgTip)} activeOpacity={0.7} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: c.secondary, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.textSub }}>!</Text>
-                </TouchableOpacity>
-                {showImgTip && (
-                  <View style={styles.imgTipBubble}>
-                    <Text style={styles.imgTipText}>支持 jpg/png/webp，单张最大 10MB</Text>
-                  </View>
-                )}
-              </View>
-              <View style={styles.imgRow}>
-                {React.createElement('input', {
-                  ref: fileRef, type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true,
-                  onChange: handleFileSelect, style: { display: 'none' },
-                })}
-                <TouchableOpacity style={styles.imgAddBtn} onPress={() => fileRef.current?.click()} activeOpacity={0.7}>
-                  <CameraIcon color={c.textSub} />
-                  <Text style={styles.imgAddText}>{t('addImage')}</Text>
-                </TouchableOpacity>
-                {existingImageUrls.map((url, i) => (
-                  <View key={`exist-${i}`} style={styles.imgPreview}>
-                    {React.createElement('img', {
-                      src: url, style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' } as any,
-                    })}
-                    <TouchableOpacity style={styles.imgRemove} onPress={() => removeExistingImage(i)} activeOpacity={0.7}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12" />
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-                {receipts.map((file, i) => (
-                  <View key={`rec-${i}`} style={styles.imgPreview}>
-                    {React.createElement('img', {
-                      src: getPreviewUrl(file), style: { width: 92, height: 92, borderRadius: 12, objectFit: 'cover' } as any,
-                    })}
-                    <TouchableOpacity style={styles.imgRemove} onPress={() => removeReceipt(i)} activeOpacity={0.7}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12" />
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-                {uploading && <ActivityIndicator color={c.primary} style={{ marginLeft: 8 }} />}
+              {/* Upload receipts */}
+              <View style={{ marginTop: 12 }}>
+                <ReceiptUpload
+                  existingImages={existingImageUrls}
+                  newFiles={receipts}
+                  onAdd={handleAddFiles}
+                  onRemoveExisting={removeExistingImage}
+                  onRemoveNew={handleRemoveNewFile}
+                  getPreviewUrl={getPreviewUrl}
+                />
               </View>
 
               {/* Items row — matching 近7天 pattern: label left, theme button right */}
@@ -1382,16 +1275,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
-                <Text style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight }}>
+                <Text style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>
                   {t('procNowBatch').replace('{n}', String(editingBatchId !== null ? editingBatchNumber : stats.batch_count + 1))}
                 </Text>
               </View>
 
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                <Text style={[styles.sectionLabel, { marginBottom: 0, marginTop: 9 }]}>{t('procNoteOptional')}</Text>
-                <TextInput style={{ flex: 1, height: 70, paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none', textAlignVertical: 'top' } as any}
-                  value={orderNote} onChangeText={setOrderNote} placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`} placeholderTextColor={c.textSub} multiline />
-              </View>
+              <ExpenseNoteInput
+                label={t('procNoteOptional') as string}
+                value={orderNote}
+                onChangeText={setOrderNote}
+                placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`}
+              />
 
               {/* Total + Submit moved to drawer footer */}
             </ScrollView>

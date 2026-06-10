@@ -8,6 +8,7 @@ import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
 import ConfirmModal from '../components/ConfirmModal';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 
@@ -22,6 +23,8 @@ import PlusIcon from '../components/icons/PlusIcon';
 import MinusIcon from '../components/icons/MinusIcon';
 import { getCurrentUserId } from '../utils/storage';
 import { useCropCanvas } from '../hooks/useCropCanvas';
+import ButtonPair from '../components/ButtonPair';
+import { fmtDecInput } from '../utils/numbers';
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
@@ -98,6 +101,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   });
 
   const { colors } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
 
   const s = useMemo(() => getS(colors), [colors]);
   const mo = useMemo(() => getMo(colors), [colors]);
@@ -164,7 +168,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 
   const calcPreview = (total: number) => {
     setDivPreview(partners.map((p: any) => ({
-      name: p.name,
+      name: translateName(p.name),
       share: (partnerShare[p.name] ?? 0.33) * 100,
       amount: parseFloat((total * (partnerShare[p.name] ?? 0.33)).toFixed(2)),
     })));
@@ -214,11 +218,23 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   const loadAvatar = async () => {
     const uid = getCurrentUserId();
     if (!uid) return;
+    const CACHE_KEY = 'partner_avatar_b64';
+    // Serve from cache immediately to avoid flash
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) setAvatarUrl(cached);
+    } catch {}
     try {
       const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
       if (resp.ok) {
         const blob = await resp.blob();
-        setAvatarUrl(URL.createObjectURL(blob));
+        const reader = new FileReader();
+        reader.onload = () => {
+          const b64 = reader.result as string;
+          setAvatarUrl(b64);
+          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
+        };
+        reader.readAsDataURL(blob);
       }
     } catch {}
   };
@@ -420,7 +436,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 </View>
               </View>
             </View>
-            <View style={{ position: 'relative', marginTop: -4 }}>
+            <View style={{ position: 'relative', marginTop: -4, marginRight: -18 }}>
             <TouchableOpacity onPress={onProfile}>
               {avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={s.avatar} key={avatarKey} />
@@ -591,7 +607,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               <View>
                 <Text style={moBody.label}>{t('totalToPool')}</Text>
                 <TextInput style={moBody.input} placeholder={t('enterAmount')} value={divAmount}
-                  onChangeText={(v) => { setDivAmount(v); calcPreview(parseFloat(v) || 0); }}
+                  onChangeText={(v) => { const clean = fmtDecInput(v); setDivAmount(clean); calcPreview(parseFloat(clean) || 0); }}
                   keyboardType="decimal-pad" placeholderTextColor={colors.textSub} />
               </View>
               <View>
@@ -624,7 +640,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               <View style={moBody.preview}>
                 <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
                 {(divPreview.length > 0 ? divPreview : partners.map((p: any) => ({
-                  name: p.name,
+                  name: translateName(p.name),
                   share: (partnerShare[p.name] ?? 0.33) * 100,
                   amount: 0,
                 }))).map((item: any) => (
@@ -634,14 +650,13 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                   </View>
                 ))}
               </View>
-              <View style={moBody.btnRow}>
-                <TouchableOpacity style={moBody.cancelBtn} onPress={() => setShowDividend(false)}>
-                  <Text style={moBody.cancelBtnText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={moBody.confirmBtn} onPress={handleDividend}>
-                  <Text style={moBody.confirmBtnText}>{t('confirmIssue')}</Text>
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={() => setShowDividend(false)}
+                rightLabel={t('confirmIssue')}
+                rightOnPress={handleDividend}
+                rightDisabled={!divAmount || parseFloat(divAmount) <= 0}
+              />
             </View>
           </View>
         </ModalOverlay>
@@ -657,7 +672,8 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       />
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
-        <ModalOverlay visible={showDetail} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
+      {showDetail && (
+        <ModalOverlay visible={!!showDetail} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
@@ -732,6 +748,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
             </View>
           </View>
         </ModalOverlay>
+      )}
 
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
         <ModalOverlay visible={showOrg} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowOrg(false)}>
@@ -1010,7 +1027,6 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
 
 const getMo = (colors: ThemeColors) => StyleSheet.create({
   overlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 },
-  backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: withAlpha(colors.textMain, 0.4) },
   content: { alignItems: 'center', justifyContent: 'center' },
   modalCard: {
     backgroundColor: colors.surface, borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
@@ -1028,18 +1044,12 @@ const getMo = (colors: ThemeColors) => StyleSheet.create({
 const getMoBody = (colors: ThemeColors) => StyleSheet.create({
   body: { padding: 20, gap: 12 },
   label: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, marginBottom: 4 },
-  input: { width: '100%', backgroundColor: colors.bg, borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight as any, color: colors.textSub, fontFamily: undefined },
+  input: { width: '100%', backgroundColor: colors.bg, borderWidth: 1, borderColor: 'transparent', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight as any, color: colors.textMain, fontFamily: undefined },
   preview: { backgroundColor: colors.bg, borderRadius: 12, padding: 12, gap: 8 },
   previewTitle: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.5 },
   previewRow: { flexDirection: 'row', justifyContent: 'space-between' },
   previewName: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
   previewAmt: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textMain },
-  btnRow: { flexDirection: 'row', gap: 12, paddingTop: 4 },
-  cancelBtn: { flex: 1, backgroundColor: colors.bg, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
-  cancelBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
-  confirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
-  confirmBtnText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.surface },
-  deleteConfirmBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   deleteBox: { backgroundColor: withAlpha(colors.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' },
   deleteText: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' },
 });

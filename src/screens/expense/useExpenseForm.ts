@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { t } from '../../i18n';
 import { catKey } from '../../i18nHelpers';
-import { api } from '../../api/client';
+import { api } from "../../api/client";
+import { fmtDecInput, toDec2Comma } from "../../utils/numbers";
 
 /* ── helpers ── */
 const todayStr = () => {
@@ -10,15 +11,7 @@ const todayStr = () => {
   return cn.toISOString().slice(0, 10);
 };
 const isFuture = (d: string) => d > todayStr();
-const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
-const fmtDecInput = (s: string) => {
-  s = blockNeg(s);
-  return s.startsWith('.') ? '0' + s : s;
-};
-const toDec2Comma = (v: any) => {
-  const n = parseFloat(String(v ?? 0)) || 0;
-  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
+
 
 interface UseExpenseFormOptions {
   onExpenseHistory?: () => void;
