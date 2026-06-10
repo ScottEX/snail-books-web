@@ -8,7 +8,7 @@ import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useTheme, withAlpha, ThemeColors, MODAL_BACKDROP_OPACITY } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
@@ -278,7 +278,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
 
       {/* Full-screen loading mask (PDF generation) */}
       {downloading && createPortal(
-        <View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', opacity: 0.8 }}>
+        <View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', opacity: MODAL_BACKDROP_OPACITY }}>
           <View style={[styles.loadingCard, { opacity: 1 }]}>
             <ActivityIndicator size="large" color={c.primary} />
             <Text style={styles.loadingTitle}>{t('procGeneratingPDF')}</Text>

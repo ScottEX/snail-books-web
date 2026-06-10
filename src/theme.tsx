@@ -52,6 +52,11 @@ export const EXIT_DURATION = 350;  // 页面滑出时长 (ms)
 export const ENTER_EASING = 'cubic-bezier(0.215, 0.61, 0.355, 1)';
 export const EXIT_EASING = 'cubic-bezier(0.55, 0.055, 0.675, 0.19)';
 
+// ═══════════════════════════════════════════
+// 弹窗遮罩常量（统一控制，PDF 预览页除外）
+// ═══════════════════════════════════════════
+export const MODAL_BACKDROP_OPACITY = 0.8;
+
 // ─── 方案一：勃艮第红与暖沙白 ───
 const theme1: Theme = {
   id: 'burgundy-warm',
