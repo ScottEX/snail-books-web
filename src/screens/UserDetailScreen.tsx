@@ -253,7 +253,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             <View style={{ flex: 1, gap: 4 }}>
               <View style={{ flexDirection: 'row' as const, justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Text style={st.avatarName}>{detail.username}</Text>
-                {/* Delete / Restore button (mutually exclusive) */}
+                {/* Delete / Restore button (mutually exclusive, hidden for self) */}
                 {!isGrace && !isSelf ? (
                   <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7} disabled={deleting}>
                     <View style={[st.actionBtn, { backgroundColor: withAlpha(c.danger, 0.08) }]}>
@@ -264,13 +264,13 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                       )}
                     </View>
                   </TouchableOpacity>
-                ) : (
+                ) : isGrace && !isSelf ? (
                   <TouchableOpacity onPress={handleRestore} activeOpacity={0.7} disabled={saving}>
                     <View style={[st.actionBtn, { backgroundColor: withAlpha(c.success, 0.08) }]}>
                       <UndoIconSvg color={c.success} />
                     </View>
                   </TouchableOpacity>
-                )}
+                ) : null}
               </View>
               {/* Status badge */}
               {isGrace ? (
@@ -326,14 +326,14 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             </View>
           </View>
 
-          {/* Login Status */}
+          {/* Login Status — hidden for self */}
+          {!isSelf && (
           <View style={st.section}>
             <View style={st.sectionTitleRow}>
               <Text style={st.sectionTitleText}>{t('loginStatus')}</Text>
               <View style={st.sectionTitleLine} />
             </View>
             <View style={st.card}>
-              {!isSelf && (
               <View style={st.toggleRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={st.toggleLabel}>{t('allowLogin')}</Text>
@@ -347,9 +347,9 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   disabled={saving || isGrace}
                 />
               </View>
-              )}
             </View>
           </View>
+          )}
 
           {/* Other Info */}
           <View style={st.section}>
