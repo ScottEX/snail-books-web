@@ -12,14 +12,14 @@ const fmtDate = (d: Date) =>
 
 
 
-export interface UseDailyRevenueFormCallbacks {
+export interface DailyRevenueFormOptions {
   /** Show a toast message after save/delete */
   onToast: (msg: string) => void;
   /** Refresh last 7 days records after save */
   onRefreshLast7: (records: any[]) => void;
 }
 
-export function useDailyRevenueForm(opts: DailyRevenueFormOptions): DailyRevenueFormResult {
+export function useDailyRevenueForm(opts: DailyRevenueFormOptions) {
   const { onToast, onRefreshLast7 } = opts;
   const sd = useServerDate();
 

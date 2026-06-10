@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { createPortal } from 'react-dom';
-import { t, getLang } from '../i18n';
+import { t, getLang, useLang } from '../i18n';
 import { useServerDate } from '../hooks/useServerDate';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -58,7 +58,7 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
 }
 
 
-export default function PartnerScreen({ onBack }: { onBack: () => void }) {
+export default function PartnerScreen({ onBack, onProfile }: { onBack: () => void; onProfile?: () => void }) {
   const sd = useServerDate();
   const [toast, setToast] = useState('');
   const [cropMsg, setCropMsg] = useState('');

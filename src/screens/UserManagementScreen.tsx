@@ -168,7 +168,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
 
   // Quick presets
   const applyQuick = useCallback((days: number) => {
-    setQuickDays(days); setDropFrom(sd.offset(-days)); setDropTo(sd.today);
+    setDateFrom(sd.offset(-days)); setDateTo(sd.today);
   }, [sd.today, sd.offset]);
 
   const clearDate = useCallback(() => {
