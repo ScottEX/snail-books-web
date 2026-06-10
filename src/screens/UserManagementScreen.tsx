@@ -347,8 +347,8 @@ const getStyles = (c: ThemeColors) => {
       borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     },
     searchInput: {
-      flex: 1, minWidth: 0, height: '100%', marginLeft: 8, fontSize: 14, color: c.textMain,
-      outline: 'none', borderWidth: 0, background: 'transparent',
+      flex: 1, marginLeft: 8, fontSize: 14, color: c.textMain,
+      paddingVertical: 0, outline: 'none',
     } as any,
     // Filter row
     filterRow: {
