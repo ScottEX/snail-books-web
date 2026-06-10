@@ -88,7 +88,7 @@ function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c 
       <Text style={{ fontSize: 14, color: c.textSub, flexShrink: 0 }}>{label}</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
         <TextInput
-          style={{ fontSize: 14, fontWeight: '500', color: c.textMain, textAlign: 'right', borderWidth: 0, outline: 'none', background: 'transparent', padding: 0, flex: 1, minWidth: 60 } as any}
+          style={{ fontSize: 16, fontWeight: '500', color: c.textMain, textAlign: 'right', borderWidth: 0, outline: 'none', background: 'transparent', padding: 0, flex: 1, minWidth: 60 } as any}
           value={value}
           onChangeText={onChangeText}
           onBlur={onBlurSave}
