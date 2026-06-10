@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { useTheme, ThemeColors } from '../theme';
+import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING } from '../theme';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 
@@ -68,8 +68,8 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-loading-mask{position:absolute;inset:0;z-index:195;background:rgba(0,0,0,0.8);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
-.pv-root{background:linear-gradient(to bottom,transparent 56px,#F9F7F4 56px);animation:pv-slide-in 280ms cubic-bezier(0.215,0.61,0.355,1) both}
-.pv-root.out{animation:pv-slide-out 250ms cubic-bezier(0.55,0.055,0.675,0.19) both}
+.pv-root{background:linear-gradient(to bottom,transparent 56px,#F9F7F4 56px);animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
+.pv-root.out{animation:pv-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
 `;
 };
 
@@ -101,7 +101,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const handleBack = useCallback(() => {
     if (exiting) return;
     setExiting(true);
-    setTimeout(onBack, 250);
+    setTimeout(onBack, EXIT_DURATION);
   }, [exiting, onBack]);
 
   // Fetch PDF as blob with auth cookies, then create object URL for react-pdf
