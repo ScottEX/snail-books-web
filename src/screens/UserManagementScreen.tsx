@@ -196,7 +196,15 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     const el = dateChipRef.current;
     if (el) {
       const r = el.getBoundingClientRect();
-      setDateRect({ top: r.bottom + 4, left: Math.max(r.left - 20, 16), width: 320 });
+      const DD_W = 320;
+      const pad = 16;
+      let left = r.left - 20;
+      // Keep within viewport: right edge must not exceed window width
+      if (left + DD_W > window.innerWidth - pad) {
+        left = window.innerWidth - pad - DD_W;
+      }
+      if (left < pad) left = pad;
+      setDateRect({ top: r.bottom + 4, left, width: DD_W });
     }
     // Init picker from current dateFrom or today
     if (dateFrom && dateFrom.length >= 7) {
