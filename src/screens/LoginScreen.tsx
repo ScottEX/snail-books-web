@@ -586,9 +586,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   contentScroll: { paddingBottom: 40 },
   brand: { alignItems: 'center', marginBottom: 32 },
   logoWrap: {
-    width: 80, height: 80, borderRadius: 16, overflow: 'hidden' as const, marginBottom: 20,
-    // @ts-ignore - web-only boxShadow
-    boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)',
+    width: 80, height: 80, borderRadius: 40, overflow: 'hidden' as const, marginBottom: 20,
   },
   logo: { width: 80, height: 80, borderRadius: 40, marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)' } as any,
   logoOver: { position: 'absolute' as any, top: 0, left: 0, marginBottom: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },

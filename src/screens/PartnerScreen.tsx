@@ -7,6 +7,7 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
 import ConfirmModal from '../components/ConfirmModal';
+import InvoiceModal from '../components/InvoiceModal';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
@@ -73,6 +74,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   const [showDelete, setShowDelete] = useState<any>(null);
   const [showDetail, setShowDetail] = useState<any>(null);
   const [showOrg, setShowOrg] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
   const [divAmount, setDivAmount] = useState('');
   const [divRoundNum, setDivRoundNum] = useState(0);
   const [divPreview, setDivPreview] = useState<any[]>([]);
@@ -451,7 +453,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 
           {/* ====== 3 STAT CARDS (8600 exact) ====== */}
           <View style={s.statGrid}>
-            <View style={s.statCard}>
+            <TouchableOpacity style={s.statCard} activeOpacity={0.7} onPress={() => setShowInvoice(true)}>
               <View style={[s.statIconBg, { backgroundColor: withAlpha(colors.primary, 0.08) }]}>
                 <IconBuilding color={colors.primary} />
               </View>
@@ -460,7 +462,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 <Text style={s.statValue}>¥130,000</Text>
                 <Text style={s.statGreen}>{t('paidInRate')} 100%</Text>
               </View>
-            </View>
+            </TouchableOpacity>
 
             <View style={s.statCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 }}>
@@ -904,6 +906,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
         document.body
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      <InvoiceModal visible={showInvoice} onClose={() => setShowInvoice(false)} />
     </View>
   );
 }

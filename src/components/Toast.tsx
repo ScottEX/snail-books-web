@@ -15,6 +15,7 @@ export default function Toast({ message, visible, onDismiss, duration = 3000 }: 
   const { colors } = useTheme();
   const dismissRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const styles = useMemo(() => getStyles(colors), [colors]);
 
   useEffect(() => {
     if (visible && message) {
@@ -32,8 +33,6 @@ export default function Toast({ message, visible, onDismiss, duration = 3000 }: 
   }, [visible, message, duration, onDismiss]);
 
   if (!show && !visible) return null;
-
-  const styles = useMemo(() => getStyles(colors), [colors]);
 
   return (
     <View style={[styles.overlay, { opacity: show ? 1 : 0 }]}>

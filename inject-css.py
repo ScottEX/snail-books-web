@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
-"""Post-build: inject Tailwind CDN + Google Fonts + glass CSS + idle timeout into dist/index.html"""
+"""Post-build: inject Tailwind CDN + Google Fonts + glass CSS + idle timeout + PWA into dist/index.html"""
 
-import sys, os, re
+import sys, os, re, shutil
 
 dist_index = os.path.join(os.path.dirname(__file__) if '__file__' in dir() else '.', 'dist', 'index.html')
 if len(sys.argv) > 1:
     dist_index = sys.argv[1]
+
+dist_dir = os.path.dirname(dist_index)
+
+# ── Copy PWA icons to dist/ ──
+web_dir = os.path.join(os.path.dirname(dist_index) if '__file__' not in dir() else '.', 'web')
+if os.path.isdir(web_dir):
+    for f in ['icon-180.png', 'icon-192.png', 'icon-512.png', 'favicon-32.png', 'manifest.json']:
+        src = os.path.join(web_dir, f)
+        dst = os.path.join(dist_dir, f)
+        if os.path.isfile(src):
+            shutil.copy2(src, dst)
+            print(f"Copied {f} to dist/")
 
 with open(dist_index, 'r') as f:
     html = f.read()
@@ -15,6 +27,7 @@ INJECT_CSS = '''
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
+    input, textarea { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
     /* Keep #root flex for React Native Web layout — don't override */
     .bg-wrapper { position: fixed; inset: 0; z-index: 0; background: url(/img/bg.jpg?v=2) center/cover no-repeat; }
     .bg-overlay { position: fixed; inset: 0; z-index: 1; background: rgba(0,0,0,0.15); }
@@ -85,6 +98,15 @@ INJECT_HEAD = '''
     </script>
 '''
 
+# ── PWA tags (no apple-mobile-web-app-capable — avoids iOS fullscreen white gap) ──
+PWA_TAGS = '''
+    <meta name="theme-color" content="#1A1A2E" />
+    <meta name="apple-mobile-web-app-title" content="探秘" />
+    <link rel="apple-touch-icon" href="/icon-180.png?v=3" />
+    <link rel="manifest" href="/manifest.json?v=3" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+'''
+
 # Inject idle timeout first (before any other scripts, so it wraps fetch early)
 html = html.replace('<head>', '<head>\n' + IDLE_TIMEOUT_JS)
 
@@ -92,6 +114,8 @@ html = html.replace('<head>', '<head>\n' + IDLE_TIMEOUT_JS)
 html = html.replace('<head>', '<head>\n' + BOOT_JS)
 # Insert Tailwind CDN right after <head>
 html = html.replace('<head>', '<head>\n' + INJECT_HEAD)
+# Insert PWA tags
+html = html.replace('<head>', '<head>\n' + PWA_TAGS)
 # Insert custom CSS into the existing expo-reset style block, or add a new one
 html = html.replace('</style>', '</style>\n<style>' + INJECT_CSS + '</style>')
 
@@ -102,13 +126,13 @@ html = html.replace(
 )
 
 # Fix title
-html = html.replace('<title>snail-books-web</title>', '<title>柳味探秘科技</title>')
+html = html.replace('<title>snail-books-web</title>', '<title>探秘</title>')
 
 # ── Splash screen: only shown after 2s of loading ──
 SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FBF7F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;transition:opacity .3s;opacity:0">
 <div style="text-align:center">
 <div style="font-size:48px;animation:pulse 1.8s ease-in-out infinite">🐌</div>
-<div style="font-size:18px;font-weight:600;color:#5C3D2E;margin-top:16px">柳味探秘科技</div>
+<div style="font-size:18px;font-weight:600;color:#5C3D2E;margin-top:16px">探秘</div>
 <div style="margin-top:12px;display:flex;gap:6px;justify-content:center">
 <span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out infinite"></span>
 <span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out .2s infinite"></span>
