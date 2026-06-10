@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
-"""Post-build: inject Tailwind CDN + Google Fonts + glass CSS + idle timeout into dist/index.html"""
+"""Post-build: inject Tailwind CDN + Google Fonts + glass CSS + idle timeout + PWA into dist/index.html"""
 
-import sys, os, re
+import sys, os, re, shutil
 
 dist_index = os.path.join(os.path.dirname(__file__) if '__file__' in dir() else '.', 'dist', 'index.html')
 if len(sys.argv) > 1:
     dist_index = sys.argv[1]
+
+dist_dir = os.path.dirname(dist_index)
+
+# ── Copy PWA icons to dist/ ──
+web_dir = os.path.join(os.path.dirname(dist_index) if '__file__' not in dir() else '.', 'web')
+if os.path.isdir(web_dir):
+    for f in ['icon-180.png', 'icon-192.png', 'icon-512.png', 'favicon-32.png', 'manifest.json']:
+        src = os.path.join(web_dir, f)
+        dst = os.path.join(dist_dir, f)
+        if os.path.isfile(src):
+            shutil.copy2(src, dst)
+            print(f"Copied {f} to dist/")
 
 with open(dist_index, 'r') as f:
     html = f.read()
@@ -85,6 +97,15 @@ INJECT_HEAD = '''
     </script>
 '''
 
+# ── PWA tags (no apple-mobile-web-app-capable — avoids iOS fullscreen white gap) ──
+PWA_TAGS = '''
+    <meta name="theme-color" content="#1A1A2E" />
+    <meta name="apple-mobile-web-app-title" content="探秘" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+'''
+
 # Inject idle timeout first (before any other scripts, so it wraps fetch early)
 html = html.replace('<head>', '<head>\n' + IDLE_TIMEOUT_JS)
 
@@ -92,6 +113,8 @@ html = html.replace('<head>', '<head>\n' + IDLE_TIMEOUT_JS)
 html = html.replace('<head>', '<head>\n' + BOOT_JS)
 # Insert Tailwind CDN right after <head>
 html = html.replace('<head>', '<head>\n' + INJECT_HEAD)
+# Insert PWA tags
+html = html.replace('<head>', '<head>\n' + PWA_TAGS)
 # Insert custom CSS into the existing expo-reset style block, or add a new one
 html = html.replace('</style>', '</style>\n<style>' + INJECT_CSS + '</style>')
 
