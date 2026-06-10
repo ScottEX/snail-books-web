@@ -70,6 +70,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 }) {
   const { colors: c, theme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
+  const sd = useServerDate();
   const styles = useMemo(() => getStyles(c), [c]);
 
   // Theme-specific amount card color

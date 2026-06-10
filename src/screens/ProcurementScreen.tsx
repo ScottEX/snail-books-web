@@ -310,6 +310,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void }) {
   const { colors: c } = useTheme();
+  const sd = useServerDate();
   const styles = useMemo(() => getStyles(c), [c]);
 
   const [subTab, setSubTab] = useState<SubTab>(() => {
