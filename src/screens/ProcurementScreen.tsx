@@ -138,9 +138,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   statLbl: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 3 },
 
   searchSection: { paddingHorizontal: 18, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
-  searchRow: { flexDirection: 'row' as const, alignItems: 'center' as const },
-  searchInput: { flex: 1, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
-  searchClear: { marginLeft: 8, padding: 6, borderRadius: 14, width: 28, height: 28, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.06) },
+  searchRow: { position: 'relative' as const },
+  searchInput: { paddingHorizontal: 12, paddingVertical: 9, paddingRight: 36, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
+  searchClear: { position: 'absolute' as const, right: 8, top: 0, bottom: 0, justifyContent: 'center' as const, alignItems: 'center' as const },
   filterRow: { flexDirection: 'row' as const, gap: 6, marginTop: 8 },
   filterChip: { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12) },
   filterChipOn: { backgroundColor: c.primary, borderColor: c.primary },
