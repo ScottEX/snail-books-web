@@ -505,7 +505,21 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   }, [products]);
 
   const loadProducts = useCallback(() => {
-    api.getProducts().then((data: any) => { if (Array.isArray(data)) { setProducts(data); setProductsLoaded(true); } }).catch(() => { setProductsLoaded(true); });
+    api.getProducts().then((data: any) => {
+      if (Array.isArray(data)) { setProducts(data); setProductsLoaded(true); }
+      // If there was a deferred pending edit, process it now that products are loaded.
+      if (pendingEditRef.current) {
+        openEditBatch(pendingEditRef.current);
+        onPendingEditConsumedRef.current?.();
+      }
+    }).catch(() => {
+      setProductsLoaded(true);
+      // Even on failure, try to process pending edit (cart will be empty but drawer opens).
+      if (pendingEditRef.current) {
+        openEditBatch(pendingEditRef.current);
+        onPendingEditConsumedRef.current?.();
+      }
+    });
   }, []);
   const loadStats = useCallback(() => {
     api.getProcurementStats().then((s: any) => {
@@ -812,18 +826,19 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // the freshly-mounted instance (the one whose parent just flipped
   // setShowProcDetail(false)), so openEditBatch's setState calls all
   // land on a live component — no stale ref, no unmounted setState.
-  // Gate on productsLoaded: when the component remounts for a pending edit,
-  // products may not have loaded yet. Wait until loadProducts finishes so
-  // cartItems (which depends on products) isn't empty.
-  useEffect(() => {
-    if (pendingEditBatch && productsLoaded) {
-      openEditBatch(pendingEditBatch);
-      // Defer consumption so cart/drawer state is flushed before parent
-      // clears pendingEditBatch, avoiding a potential mid-batch race.
-      const timer = setTimeout(() => onPendingEditConsumed?.(), 0);
-      return () => clearTimeout(timer);
-    }
-  }, [pendingEditBatch, productsLoaded, onPendingEditConsumed]);
+  //
+  // Use refs to decouple from React's render batching: loadProducts may
+  // resolve synchronously (cached) or asynchronously. We store the
+  // deferred edit in a ref and process it inside loadProducts'
+  // completion, avoiding races between productsLoaded state and the
+  // pendingEditBatch prop.
+  const pendingEditRef = useRef<any>(null);
+  useEffect(() => { pendingEditRef.current = pendingEditBatch; }, [pendingEditBatch]);
+
+  // Ref for onPendingEditConsumed so loadProducts can call it without
+  // adding it to its deps array.
+  const onPendingEditConsumedRef = useRef(onPendingEditConsumed);
+  useEffect(() => { onPendingEditConsumedRef.current = onPendingEditConsumed; }, [onPendingEditConsumed]);
 
   // Confirm delete batch + cascade
   const confirmDeleteBatch = async () => {
