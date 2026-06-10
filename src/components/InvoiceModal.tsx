@@ -146,8 +146,8 @@ const s = StyleSheet.create({
   label: { fontSize: 12, fontWeight: '500' },
   input: {
     fontSize: 14, paddingVertical: 10, paddingHorizontal: 12,
-    borderRadius: 8, borderWidth: 1, outline: 'none',
-  },
+    borderRadius: 8, borderWidth: 1,
+  } as any,
   saveBtn: {
     marginTop: 6, paddingVertical: 12, borderRadius: 10, alignItems: 'center',
   },
