@@ -27,6 +27,7 @@ INJECT_CSS = '''
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
+    input, textarea { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
     /* Keep #root flex for React Native Web layout — don't override */
     .bg-wrapper { position: fixed; inset: 0; z-index: 0; background: url(/img/bg.jpg?v=2) center/cover no-repeat; }
     .bg-overlay { position: fixed; inset: 0; z-index: 1; background: rgba(0,0,0,0.15); }
