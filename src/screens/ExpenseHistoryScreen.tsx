@@ -6,6 +6,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
+import { useServerDate } from '../hooks/useServerDate';
 import Toast from "../components/Toast";
 import EmptyState from "../components/EmptyState";
 import ImagePreview from '../components/ImagePreview';
@@ -56,20 +57,18 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
   const filDateFromRef = useRef<HTMLInputElement>(null);
   const filDateToRef = useRef<HTMLInputElement>(null);
+  const sd = useServerDate();
+
   const [showFilter, setShowFilter] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
-  const [filDateFrom, setFilDateFrom] = useState('');
-  useEffect(() => { if (sd.ready && filDateFrom === '') setFilDateFrom(sd.offset(-30)); }, [sd.ready, sd.today, filDateFrom]);
-  const [filDateTo, setFilDateTo] = useState('');
-  useEffect(() => { if (sd.ready && filDateTo === '') setFilDateTo(sd.today); }, [sd.ready, sd.today, filDateTo]);
+  const [filDateFrom, setFilDateFrom] = useState(sd.offset(-30));
+  const [filDateTo, setFilDateTo] = useState(sd.today);
   useEffect(() => { if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; }, [filDateFrom]);
   useEffect(() => { if (filDateToRef.current) filDateToRef.current.value = filDateTo; }, [filDateTo]);
   const [filCategories, setFilCategories] = useState<string[]>([]);
   // Track active filters (snapshot at last apply) — compare strings to avoid object deps
-  const [appliedFrom, setAppliedFrom] = useState('');
-  useEffect(() => { if (sd.ready && appliedFrom === '') setAppliedFrom(sd.offset(-30)); }, [sd.ready, sd.today, appliedFrom]);
-  const [appliedTo, setAppliedTo] = useState('');
-  useEffect(() => { if (sd.ready && appliedTo === '') setAppliedTo(sd.today); }, [sd.ready, sd.today, appliedTo]);
+  const [appliedFrom, setAppliedFrom] = useState(sd.offset(-30));
+  const [appliedTo, setAppliedTo] = useState(sd.today);
   const [appliedCats, setAppliedCats] = useState('');
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
@@ -78,8 +77,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   const [filDateFromKey, setFilDateFromKey] = useState(0);
   const [filDateToKey, setFilDateToKey] = useState(0);
 
-  const { colors, isDark } = useTheme();
-    const sd = useServerDate();
+  const { colors } = useTheme();
   const st = useMemo(() => getSt(colors), [colors]);
 
   // Build filter params from applied values
@@ -109,7 +107,8 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     try { const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; } catch { return []; }
   };
 
-    useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
+  const isFuture = (d: string) => d > sd.today;
+  useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
 
   // Fetch one page from server (with current filters)
   const loadPage = useCallback(async (pg: number, reset: boolean) => {

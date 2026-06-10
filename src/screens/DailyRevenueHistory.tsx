@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
+import { useServerDate } from '../hooks/useServerDate';
 import { toDec2 } from "../utils/numbers";
 import EmptyState from "../components/EmptyState";
 import Toast from '../components/Toast';
@@ -51,11 +52,12 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const dateFromRef = useRef<HTMLInputElement>(null);
   const dateToRef = useRef<HTMLInputElement>(null);
 
+  const sd = useServerDate();
+
   // Filter state
   const [showFilter, setShowFilter] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
-  const [filDateFrom, setFilDateFrom] = useState('');
-    useEffect(() => { if (sd.ready && filDateFrom === '') setFilDateFrom(sd.offset(-30)); }, [sd.ready, sd.today, filDateFrom]);
+  const [dateFrom, setDateFrom] = useState(sd.offset(-30));
   const [dateTo, setDateTo] = useState(sd.today);
   useEffect(() => { if (dateFromRef.current) dateFromRef.current.value = dateFrom; }, [dateFrom]);
   useEffect(() => { if (dateToRef.current) dateToRef.current.value = dateTo; }, [dateTo]);
@@ -65,8 +67,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   const [dateFromKey, setDateFromKey] = useState(0);
   const [dateToKey, setDateToKey] = useState(0);
 
-  const { colors, isDark } = useTheme();
-    const sd = useServerDate();
+  const { colors } = useTheme();
 
   useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
 

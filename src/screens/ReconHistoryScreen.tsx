@@ -51,25 +51,21 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const filDateFromRef = useRef<HTMLInputElement>(null);
   const filDateToRef = useRef<HTMLInputElement>(null);
 
-  const { colors, isDark } = useTheme();
-    const sd = useServerDate();
+  const { colors } = useTheme();
+  const sd = useServerDate();
   const st = useMemo(() => getSt(colors), [colors]);
 
   const [showFilter, setShowFilter] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
-  const [filDateFrom, setFilDateFrom] = useState('');
-  useEffect(() => { if (sd.ready && filDateFrom === '') setFilDateFrom(sd.offset(-30)); }, [sd.ready, sd.today, filDateFrom]);
-  const [filDateTo, setFilDateTo] = useState('');
-  useEffect(() => { if (sd.ready && filDateTo === '') setFilDateTo(sd.today); }, [sd.ready, sd.today, filDateTo]);
+  const [filDateFrom, setFilDateFrom] = useState(sd.offset(-30));
+  const [filDateTo, setFilDateTo] = useState(sd.today);
   useEffect(() => { if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; }, [filDateFrom]);
   useEffect(() => { if (filDateToRef.current) filDateToRef.current.value = filDateTo; }, [filDateTo]);
   const [filBy, setFilBy] = useState('');
   const [users, setUsers] = useState<{id: number; username: string}[]>([]);
   // Track applied filters (snapshot at last apply)
-  const [appliedFrom, setAppliedFrom] = useState('');
-  useEffect(() => { if (sd.ready && appliedFrom === '') setAppliedFrom(sd.offset(-30)); }, [sd.ready, sd.today, appliedFrom]);
-  const [appliedTo, setAppliedTo] = useState('');
-  useEffect(() => { if (sd.ready && appliedTo === '') setAppliedTo(sd.today); }, [sd.ready, sd.today, appliedTo]);
+  const [appliedFrom, setAppliedFrom] = useState(sd.offset(-30));
+  const [appliedTo, setAppliedTo] = useState(sd.today);
   const [appliedBy, setAppliedBy] = useState('');
   const [filterDateError, setFilterDateError] = useState(0);
   const [filDateFromKey, setFilDateFromKey] = useState(0);
