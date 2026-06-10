@@ -264,6 +264,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   useEffect(() => {
     const el = wrapRef.current; if (!el) return;
 
+    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
       cancelAnimationFrame(momRef.current);
