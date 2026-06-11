@@ -50,6 +50,11 @@ const I18N: Record<string, Record<string, string>> = {
     chooseImage: '选择图片',
     clear: '清空',
     codeSent: '验证码已发送',
+    last7Days: '近7天',
+    last30Days: '近30天',
+    last3Months: '近3月',
+    monthUnit: '月',
+    normalUser: '普通用户',
     confirm: '确认',
     confirmDelete: '确认删除？',
     confirmDeleteRecord: '确认删除',
@@ -493,6 +498,11 @@ const I18N: Record<string, Record<string, string>> = {
     chooseImage: '選擇圖片',
     clear: '清空',
     codeSent: '驗證碼已發送',
+    last7Days: '近7天',
+    last30Days: '近30天',
+    last3Months: '近3月',
+    monthUnit: '月',
+    normalUser: '普通用戶',
     confirm: '確認',
     confirmDelete: '確認刪除？',
     confirmDeleteRecord: '確認刪除',
@@ -938,6 +948,11 @@ const I18N: Record<string, Record<string, string>> = {
     chooseImage: 'Choose Image',
     clear: 'Clear',
     codeSent: 'Code sent',
+    last7Days: 'Last 7 days',
+    last30Days: 'Last 30 days',
+    last3Months: 'Last 3 months',
+    monthUnit: '',
+    normalUser: 'User',
     confirm: 'Confirm',
     confirmDelete: 'Confirm delete?',
     confirmDeleteRecord: 'Confirm Delete',
@@ -1770,6 +1785,11 @@ export type I18nKey =
   | 'statusFilter'
   | 'registrationTime'
   | 'lastLogin'
+  | 'last7Days'
+  | 'last30Days'
+  | 'last3Months'
+  | 'monthUnit'
+  | 'normalUser'
 
 type Lang = 'zh-CN' | 'zh-TW' | 'en';
 
