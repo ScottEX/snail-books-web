@@ -21,7 +21,7 @@ const CAT_COLORS_LIGHT: Record<string, string> = {
   daily:      '#4A7299', // blue
   rent:       '#7D2329', // burgundy
   salary:     '#D59A53', // gold
-  procurement:'#4C7A5D', // green
+  goods:      '#4C7A5D', // green
   other:      '#8C8583', // grey
   eleme:      '#B34149', // light red
   meituan:    '#C5A880', // sand
@@ -31,7 +31,7 @@ const CAT_COLORS_DARK: Record<string, string> = {
   daily:      '#6B9AC7',
   rent:       '#A8454D',
   salary:     '#E8B86D',
-  procurement:'#6BA87A',
+  goods:      '#6BA87A',
   other:      '#A8A3A0',
   eleme:      '#D46B73',
   meituan:    '#D9C4A0',
