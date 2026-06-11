@@ -254,7 +254,7 @@ export default function HomeScreen({
   // ── 收支总览数据（图表 Tab）──
   const [businessSummary, setBusinessSummary] = useState<any>({});
   const [chartExpenses, setChartExpenses] = useState<any[]>([]);
-  const [chartFeeTotal, setChartFeeTotal] = useState(0);
+  const [dailyRevenues, setDailyRevenues] = useState<any[]>([]);
   const [chartMonthly, setChartMonthly] = useState<any>(null);
   // Background image crop moved to shared BgCropModal component.
 
@@ -410,13 +410,15 @@ export default function HomeScreen({
       } catch {}
     })();
 
-    // platform fees (for month income)
-    api.getPlatformFees().then((all: any) => {
-      const arr = Array.isArray(all) ? all : [];
-      const total = arr.reduce((sum: number, f: any) =>
-        sum + (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0), 0);
-      setChartFeeTotal(total);
-    }).catch(() => {});
+    // daily revenue (for today/month income cards)
+    (async () => {
+      try {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const monthStart = todayStr.slice(0, 7) + '-01';
+        const r: any = await api.getDailyRevenue(1, 31, undefined, undefined, undefined, undefined, monthStart, todayStr);
+        setDailyRevenues(r?.records || []);
+      } catch {}
+    })();
   }, []);
 
   // Compute chart summary values
@@ -428,6 +430,12 @@ export default function HomeScreen({
   const monthExpenseChart = chartExpenses
     .filter((e: any) => String(e.date || '').startsWith(thisMonthPrefix2))
     .reduce((s: number, e: any) => s + (e.amount || 0), 0);
+
+  const todayIncome = dailyRevenues
+    .filter((r: any) => r.date === todayStr2)
+    .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
+  const monthIncome = dailyRevenues
+    .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
 
   // ── Inject glass-slider CSS ──
   useEffect(() => {
@@ -913,8 +921,8 @@ export default function HomeScreen({
                   <ExpenseSummaryCards
                     todayExpense={todayExpenseChart}
                     monthExpense={monthExpenseChart}
-                    todayIncome={0}
-                    monthIncome={chartFeeTotal}
+                    todayIncome={todayIncome}
+                    monthIncome={monthIncome}
                   />
                   {/* 图表：月度趋势 + 分类占比 */}
                   {chartMonthly && (
