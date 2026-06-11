@@ -278,7 +278,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{t('expenseDate')}</Text>
                 <Text style={styles.infoValue}>{(() => {
-                  const raw = record.created_at || record.date || '';
+                  const raw = record.date || record.created_at || '';
                   if (!raw) return '—';
                   const d = new Date(raw.endsWith('Z') ? raw : raw + 'Z');
                   if (isNaN(d.getTime())) {
