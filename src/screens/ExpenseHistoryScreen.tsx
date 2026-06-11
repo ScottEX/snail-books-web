@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
-import { trCategory, trPayment } from '../i18nHelpers';
+import { trCategory, trPayment, catKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
@@ -319,7 +319,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
                 onPress={() => {
                   setAppliedFrom(filDateFrom);
                   setAppliedTo(filDateTo);
-                  setAppliedCats(filCategories.join(','));
+                  setAppliedCats(filCategories.map(catKey).join(','));
                   setShowFilter(false);
                 }} activeOpacity={0.8}>
                 <Text style={[st.filterApplyBtnText, (rangeInvalid || rangeTooLong) && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
