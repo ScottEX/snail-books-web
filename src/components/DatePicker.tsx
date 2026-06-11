@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Rect, Line } from 'react-native-svg';
 import { useTheme, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 
@@ -73,16 +73,17 @@ export default function DatePicker({
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}>
       {showCalendarIcon && (
         <Svg
-          width={14}
-          height={14}
+          width={18}
+          height={18}
           viewBox="0 0 24 24"
           fill="none"
           stroke={c}
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          strokeWidth={1.5}
         >
-          <Path d="M8 2v4M16 2v4M3 10h18M21 14V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h8" />
+          <Rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <Line x1="16" y1="2" x2="16" y2="6"/>
+          <Line x1="8" y1="2" x2="8" y2="6"/>
+          <Line x1="3" y1="10" x2="21" y2="10"/>
         </Svg>
       )}
       <Text style={{ fontSize: fs, fontWeight: fw, color: c }}>
@@ -90,16 +91,17 @@ export default function DatePicker({
       </Text>
       {showChevron && (
         <Svg
-          width={fs > 14 ? 14 : 12}
-          height={fs > 14 ? 14 : 12}
+          width={20}
+          height={20}
           viewBox="0 0 24 24"
           fill="none"
           stroke={c}
-          strokeWidth={2.5}
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
+          style={{ transform: [{ translateY: 0 }] }}
         >
-          <Path d="M9 18l6-6-6-6" />
+          <Path d="M10 6l6 6-6 6" />
         </Svg>
       )}
       {!disabled && React.createElement('input', {
