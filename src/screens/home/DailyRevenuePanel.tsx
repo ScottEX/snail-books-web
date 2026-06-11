@@ -127,6 +127,18 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
         </View>
         <View style={{ position: 'relative' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Svg
+              width={14}
+              height={14}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={colors.textSub}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <Path d="M8 2v4M16 2v4M3 10h18M21 14V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h8" />
+            </Svg>
             <Text
               style={{
                 fontSize: FONTS.subBold.size,
@@ -136,7 +148,18 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
             >
               {revDate.replace(/-/g, '/')}
             </Text>
-            <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>📅</Text>
+            <Svg
+              width={12}
+              height={12}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={colors.textSub}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <Path d="M9 18l6-6-6-6" />
+            </Svg>
             {React.createElement('input', {
               ref: revDateInputRef,
               type: 'date',
