@@ -270,7 +270,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
   const [showFeeHistoryFilterPicker, setShowFeeHistoryFilterPicker] = useState(false);
   const [feeEntryDate, setFeeEntryDate] = useState('');
-  useEffect(() => { if (sd.ready && feeEntryDate === '') setFeeEntryDate(sd.yesterday); }, [sd.ready, sd.yesterday, feeEntryDate]);
+  useEffect(() => { if (sd.ready && feeEntryDate === '') setFeeEntryDate(sd.today); }, [sd.ready, sd.today, feeEntryDate]);
   const [feeDateErr, setFeeDateErr] = useState(0);
   const [feeMc, setFeeMc] = useState('');
   const [feeMw, setFeeMw] = useState('');
@@ -298,7 +298,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     } catch { setToast(t('toastLoadFailed')); }
   };
   useEffect(() => { loadFeeData(); }, [feeMonth]);
-  useEffect(() => { if (showFeeSheet) setFeeEntryDate(todayStr()); }, [showFeeSheet]);
 
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
