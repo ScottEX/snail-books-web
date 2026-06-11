@@ -331,34 +331,36 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
       </>)}
 
       {/* List */}
-      {(loading && records.length === 0) ? (
-        <LoadingSpinner />
-      ) : records.length === 0 ? (
-        <View style={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, flex: 1, justifyContent: 'center' }}>
+      <FlatList
+        testID="exp-scroll"
+        style={st.list}
+        data={visible}
+        keyExtractor={(e: any, i: number) => e.id != null ? `tx-${e.id}` : `tx-${i}`}
+        renderItem={renderItem}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.4}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
+        ListEmptyComponent={!loading ? (
           <EmptyState
-          icon={<ExpenseEmptyIcon color={colors.textSub} />}
-          title={t('noRecords')}
-          hint={t('emptyExpenseHint')}
-        />
+            icon={<ExpenseEmptyIcon color={colors.textSub} />}
+            title={t('noRecords')}
+            hint={t('emptyExpenseHint')}
+          />
+        ) : null}
+        ListFooterComponent={hasMore ? (
+          <View style={st.loadingMore}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={st.loadingMoreText}>{t('loading')}...</Text>
+          </View>
+        ) : null}
+      />
+
+      {/* Loading overlay — covers empty state during initial load */}
+      {loading && records.length === 0 && (
+        <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', paddingTop: 112 }}>
+          <LoadingSpinner label={false} />
         </View>
-      ) : (
-        <FlatList
-          testID="exp-scroll"
-          style={st.list}
-          data={visible}
-          keyExtractor={(e: any, i: number) => e.id != null ? `tx-${e.id}` : `tx-${i}`}
-          renderItem={renderItem}
-          onEndReached={onEndReached}
-          onEndReachedThreshold={0.4}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
-          ListFooterComponent={hasMore ? (
-            <View style={st.loadingMore}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={st.loadingMoreText}>{t('loading')}...</Text>
-            </View>
-          ) : null}
-        />
       )}
 
       {previewData && (
