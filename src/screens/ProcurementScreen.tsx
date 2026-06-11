@@ -1288,7 +1288,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   />
                   <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{t('goods')}</Text>
+                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>{t('goods')}</Text>
                   </View>
                 </View>
               </View>
