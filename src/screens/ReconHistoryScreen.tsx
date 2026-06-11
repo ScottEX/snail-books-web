@@ -5,6 +5,7 @@ import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
+import DatePicker from '../components/DatePicker';
 import Toast from '../components/Toast';
 import EmptyState from '../components/EmptyState';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -391,25 +392,27 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               <Text style={st.filterLabel}>{t('reconDate')}</Text>
               <View style={st.filterDateRange}>
                 <View style={st.filterDateWrap}>
-                  {filDateFrom ? (
-                    <Text style={st.filterDateText}>{fmtDate(filDateFrom)}</Text>
-                  ) : (
-                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
-                  )}
-                  <input type="date" ref={filDateFromRef} defaultValue={filDateFrom} max={todayISO} key={filDateFromKey}
-                    onChange={(e: any) => { if (sd.isFuture(e.target.value)) { filDateFromRef.current!.value = filDateFrom; setFilDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateFrom(e.target.value); } }}
-                    style={st.filterDateHidden as any} />
+                  <DatePicker
+                    date={filDateFrom}
+                    onChange={setFilDateFrom}
+                    max={todayISO}
+                    onFutureDate={() => setFilterDateError(c => c + 1)}
+                    displayDate={filDateFrom ? fmtDate(filDateFrom) : t('any')}
+                    fontSize={FONTS.micro.size}
+                    showChevron={false}
+                  />
                 </View>
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
                 <View style={st.filterDateWrap}>
-                  {filDateTo ? (
-                    <Text style={st.filterDateText}>{fmtDate(filDateTo)}</Text>
-                  ) : (
-                    <Text style={st.filterDatePlaceholder}>{t('any')}</Text>
-                  )}
-                  <input type="date" ref={filDateToRef} defaultValue={filDateTo} max={todayISO} key={filDateToKey}
-                    onChange={(e: any) => { if (sd.isFuture(e.target.value)) { filDateToRef.current!.value = filDateTo; setFilDateToKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateTo(e.target.value); } }}
-                    style={st.filterDateHidden as any} />
+                  <DatePicker
+                    date={filDateTo}
+                    onChange={setFilDateTo}
+                    max={todayISO}
+                    onFutureDate={() => setFilterDateError(c => c + 1)}
+                    displayDate={filDateTo ? fmtDate(filDateTo) : t('any')}
+                    fontSize={FONTS.micro.size}
+                    showChevron={false}
+                  />
                 </View>
               </View>
             </View>

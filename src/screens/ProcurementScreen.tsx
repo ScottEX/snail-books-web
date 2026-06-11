@@ -1284,6 +1284,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     fontSize={FONTS.sub.size}
                     color={c.textMain}
                     showChevron
+                    showCalendarIcon
                   />
                   <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
