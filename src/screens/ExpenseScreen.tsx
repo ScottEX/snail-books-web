@@ -984,7 +984,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   if (!showFeeHistoryFilterPicker) {
                     if (feeHistoryFilterTriggerRef.current) {
                       (feeHistoryFilterTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
-                        setFeeHistoryPickerPos({ top: y + h + 6, left: x });
+                        setFeeHistoryPickerPos({ top: y + 30, left: x });
                         feeHistoryPickerAnim.setValue(0);
                         Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
                         setShowFeeHistoryFilterPicker(true);
@@ -1002,7 +1002,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: FONTS.subBold.size, color: colors.primary, fontWeight: FONTS.subBold.weight }}>
+                <Text style={{ fontSize: FONTS.microBold.size, color: colors.primary, fontWeight: FONTS.microBold.weight }}>
                   {feeHistoryFilter === 'all' ? t('feeAllMonths') : fmtMonth(feeHistoryFilter.year, feeHistoryFilter.month)}
                 </Text>
                 <Text style={{ fontSize: FONTS.micro.size, color: colors.primary, marginLeft: 2 }}>▼</Text>
