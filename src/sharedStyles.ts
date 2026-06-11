@@ -56,9 +56,7 @@ export const historyHeader = (colors: ThemeColors) => ({
     marginTop: -2, marginLeft: -1,
   },
   title: {
-    flex: 1, fontSize: 15, fontWeight: '600' as const, color: '#fff',
-    // @ts-ignore
-    mixBlendMode: 'difference',
+    flex: 1, fontSize: 15, fontWeight: '600' as const, color: '#F0EDE8',
   },
   filterBtn: {
     width: 36, height: 36, borderRadius: 18,
