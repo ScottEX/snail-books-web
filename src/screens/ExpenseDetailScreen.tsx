@@ -91,6 +91,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSavedConfirm, setShowSavedConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
 
@@ -156,14 +157,15 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
   const handleDelete = async () => {
     setDeleting(true);
+    setDeleteError('');
     try {
       await api.deleteTransaction(record.id);
       setShowDeleteConfirm(false);
+      setDeleting(false);
       onDeleted?.();
       onBack();
     } catch (e: any) {
-      setToast(e?.message || t('errNetworkError'));
-    } finally {
+      setDeleteError(e?.message || t('errNetworkError'));
       setDeleting(false);
     }
   };
@@ -453,11 +455,17 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
       {/* Delete confirm */}
       <ConfirmModal visible={showDeleteConfirm}
         title={t('confirmDeleteRecord')}
-        message="确认删除该笔支出数据，将无法恢复"
-        confirmLabel={t('delete')} cancelLabel={t('cancel')}
+        message={deleteError ? (
+          <Text style={{ color: c.danger, fontSize: FONTS.micro.size, textAlign: 'center' }}>{deleteError}</Text>
+        ) : (
+          "确认删除该笔支出数据，将无法恢复"
+        )}
+        confirmLabel={deleting ? '删除中…' : t('delete')}
+        cancelLabel={t('cancel')}
         confirmColor={c.danger}
-        onConfirm={() => { setShowDeleteConfirm(false); handleDelete(); }}
-        onCancel={() => setShowDeleteConfirm(false)} />
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }} />
 
       {/* Save success confirm */}
       <ConfirmModal visible={showSavedConfirm}

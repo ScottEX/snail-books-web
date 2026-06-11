@@ -74,6 +74,8 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   } = usePartnerData(setToast);
   const [showDividend, setShowDividend] = useState(false);
   const [showDelete, setShowDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [showDetail, setShowDetail] = useState<any>(null);
   const [showOrg, setShowOrg] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
@@ -200,15 +202,22 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 
   const handleDelete = async () => {
     if (showDelete === null) return;
+    setDeleting(true);
+    setDeleteError('');
     const toDelete = dividends.filter((d: any) => d.note === showDelete);
     let failed = 0;
     for (const d of toDelete) {
       try { await api.deleteDividend(d.id); }
       catch { failed++; }
     }
-    setShowDelete(null);
-    if (failed > 0) setToast(t('toastSubmitFailed'));
-    loadData();
+    if (failed > 0) {
+      setDeleteError(`删除失败：${failed}/${toDelete.length} 条记录`);
+      setDeleting(false);
+    } else {
+      setDeleting(false);
+      setShowDelete(null);
+      loadData();
+    }
   };
 
   const switchLang = (l: string) => {
@@ -669,10 +678,15 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       <ConfirmModal
         visible={showDelete !== null}
         title={t('confirmDeleteRecord')}
-        message={<>{t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{translateDividendNote(showDelete, grouped[showDelete ?? '']?.[0]?.date)}</Text>{t('allDividendRecords')}</>}
-        confirmLabel={t('confirmDeleteRecord')}
+        message={deleteError ? (
+          <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'center' }}>{deleteError}</Text>
+        ) : (
+          <>{t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{translateDividendNote(showDelete, grouped[showDelete ?? '']?.[0]?.date)}</Text>{t('allDividendRecords')}</>
+        )}
+        confirmLabel={deleting ? '删除中…' : t('confirmDeleteRecord')}
+        loading={deleting}
         onConfirm={handleDelete}
-        onCancel={() => setShowDelete(null)}
+        onCancel={() => { setShowDelete(null); setDeleteError(''); }}
       />
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}

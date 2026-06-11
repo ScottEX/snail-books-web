@@ -121,6 +121,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -172,6 +173,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
   const handleDelete = async () => {
     setDeleting(true);
+    setDeleteError('');
     try {
       const resp = await fetch(`/api/admin/users/${user.id}`, {
         method: 'DELETE',
@@ -184,10 +186,16 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         setDeleteBy('admin');
         setIsDisabled(true);
         onUpdated();
+        setDeleting(false);
+        setShowDeleteConfirm(false);
+      } else {
+        setDeleteError(data?.message || '删除失败');
+        setDeleting(false);
       }
-    } catch {}
-    setDeleting(false);
-    setShowDeleteConfirm(false);
+    } catch (e: any) {
+      setDeleteError(e?.message || '网络错误');
+      setDeleting(false);
+    }
   };
 
   const handleRestore = async () => {
@@ -394,12 +402,17 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
       <ConfirmModal visible={showDeleteConfirm}
         title={t('deleteUser') || '删除用户'}
-        message={t('deleteUserGraceNote')}
+        message={deleteError ? (
+          <Text style={{ color: c.danger, fontSize: 12, textAlign: 'center' }}>{deleteError}</Text>
+        ) : (
+          t('deleteUserGraceNote')
+        )}
         confirmLabel={deleting ? (t('loading') || '...') : (t('delete') || '删除')}
         cancelLabel={t('cancel')}
         confirmColor={c.danger}
+        loading={deleting}
         onConfirm={handleDelete}
-        onCancel={() => setShowDeleteConfirm(false)} />
+        onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }} />
     </View>
   );
 }

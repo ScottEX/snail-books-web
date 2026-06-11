@@ -105,7 +105,9 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
   };
 
   /* ── load expenses ── */
+  const reqIdRef = useRef(0);
   const loadExpenses = useCallback(async () => {
+    const reqId = ++reqIdRef.current;
     try {
       const allExpenses: any[] = [];
       let page = 1;
@@ -116,6 +118,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
         if (page >= (tx.pages || 1)) break;
         page++;
       }
+      if (reqId !== reqIdRef.current) return;
       setExpenses(allExpenses);
       let daily = 0,
         rent = 0,
@@ -131,6 +134,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
       });
       setExpCatTotals({ daily, rent, salary, goods });
     } catch {
+      if (reqId !== reqIdRef.current) return;
       onToast(t('toastLoadFailed'));
     }
   }, []);

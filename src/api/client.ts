@@ -29,12 +29,19 @@ const API_BASE = getApiBase();
 // (or session_id gets revoked by another device via SSO), the next API call
 // returns 401 and authFetch below redirects to /login. No frontend timer needed.
 
+/** Fetch with AbortController timeout. MUTATION methods (POST/PUT/DELETE) use 10s, others 30s. */
+function fetchWithTimeout(url: string, options?: RequestInit): Promise<Response> {
+  const method = (options?.method || 'GET').toUpperCase();
+  const timeout = ['POST','PUT','DELETE'].includes(method) ? 10_000 : 30_000;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeout);
+  return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
 function headers(): Record<string, string> {
-  const h: Record<string, string> = {
+  return {
     'X-Lang': getLang(),
   };
-  // Only set Content-Type for requests with a body (FormData sets its own)
-  return h;
 }
 
 async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T> {
@@ -46,7 +53,7 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
   if (options?.body && typeof options.body === 'string' && !mergedHeaders['Content-Type']) {
     mergedHeaders['Content-Type'] = 'application/json';
   }
-  const resp = await fetch(API_BASE + url, {
+  const resp = await fetchWithTimeout(API_BASE + url, {
     ...options,
     headers: mergedHeaders,
   });
@@ -182,9 +189,9 @@ export const api = {
   uploadExpenseImages: async (files: File[]) => {
     const form = new FormData();
     files.forEach(f => form.append('files', f));
-    const resp = await fetch(API_BASE + '/api/expenses/upload-images', {
+    const resp = await fetchWithTimeout(API_BASE + '/api/expenses/upload-images', {
       method: 'POST',
-      headers: headers(),  // Use shared headers() for consistency
+      headers: headers(),
       body: form,
       credentials: 'same-origin' as RequestCredentials,
     });
