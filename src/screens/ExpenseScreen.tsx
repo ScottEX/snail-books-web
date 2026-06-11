@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, useReducer } from 'react';
+import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
 } from 'react-native';
@@ -1091,7 +1092,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </>
       )}
       {/* Fee history filter dropdown — animated to match platform fee picker */}
-      {showFeeHistoryFilterPicker && (
+      {showFeeHistoryFilterPicker && createPortal(
         <>
           <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: feeHistoryPickerAnim }}>
             <TouchableOpacity
@@ -1145,11 +1146,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               );
             })}
           </Animated.View>
-        </>
+        </>,
+        document.body,
       )}
     </View>
   );
-}
+};
 
 /* ═══════════════════════════════════════ STYLES ═══════════════════════════════════ */
 const getSt = (colors: ThemeColors) => StyleSheet.create({
