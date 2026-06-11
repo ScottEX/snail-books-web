@@ -172,6 +172,8 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
         setUploadingImg(false);
         if (result.status !== 'ok') {
           setLoadingExp(false);
+          setUploadingImg(false);
+          onToast(t('uploadFailed'));
           return;
         }
         imageUrls = result.images || [];

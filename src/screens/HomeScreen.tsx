@@ -275,15 +275,22 @@ export default function HomeScreen({
 
   const MONTHS_SHORT = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 
+  const loadDataReqRef = useRef(0);
   const loadData = useCallback(async () => {
+    const reqId = ++loadDataReqRef.current;
     try {
       const s = await api.getSummary();
+      if (reqId !== loadDataReqRef.current) return;
       setSummary(s);
       const tx = await api.getTransactions(1, 20);
+      if (reqId !== loadDataReqRef.current) return;
       setTransactions(tx.transactions || []);
       setPages(tx.pages || 1);
       setPage(1);
-    } catch { setToast(t('toastLoadFailed')); }
+    } catch {
+      if (reqId !== loadDataReqRef.current) return;
+      setToast(t('toastLoadFailed'));
+    }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);

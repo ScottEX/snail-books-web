@@ -138,6 +138,11 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
       let finalThumbs = thumbImages;
       if (newFiles.length > 0) {
         const uploadRes = await api.uploadExpenseImages(newFiles);
+        if (uploadRes.status !== 'ok') {
+          setToast(t('uploadFailed'));
+          setSaving(false);
+          return;
+        }
         finalImages = [...images, ...(uploadRes.images || [])];
         finalThumbs = [...thumbImages, ...(uploadRes.thumb_images || uploadRes.images || [])];
       }
