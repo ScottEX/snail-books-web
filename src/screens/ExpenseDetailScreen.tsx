@@ -222,10 +222,12 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
           </View>
         </TouchableOpacity>
         <Text style={styles.title}>{t('expDetail')}</Text>
-        <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7}
-          style={styles.actionBtn} disabled={deleting}>
-          <TrashIcon color={c.danger} />
-        </TouchableOpacity>
+        {!record.procurement_batch_id && (
+          <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7}
+            style={styles.actionBtn} disabled={deleting}>
+            <TrashIcon color={c.danger} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Body — bg + marginTop clears the absolute header */}
