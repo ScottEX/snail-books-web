@@ -7,6 +7,7 @@ import { t, getLang } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
+import { usePaginatedList } from '../hooks/usePaginatedList';
 import Toast from "../components/Toast";
 import EmptyState from "../components/EmptyState";
 import ImagePreview from '../components/ImagePreview';
@@ -17,8 +18,6 @@ import { modalClose, historyHeader } from '../sharedStyles';
 import { getCurrentUser } from '../utils/storage';
 import DateErrorHint from '../components/DateErrorHint';
 import BackArrow from '../components/icons/BackArrow';
-
-const PAGE_SIZE = 10;
 
 // Date helpers replaced by useServerDate() hook
 // Strict calendar months between two ISO dates (YYYY-MM-DD)
@@ -44,13 +43,7 @@ function ExpenseEmptyIcon({ color }: { color: string }) {
 }
 
 export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void }) {
-  const [records, setRecords] = useState<any[]>([]);
   const swipeBack = useSwipeBack(onBack);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalAll, setTotalAll] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
 
@@ -70,10 +63,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   const [appliedFrom, setAppliedFrom] = useState(sd.offset(-30));
   const [appliedTo, setAppliedTo] = useState(sd.today);
   const [appliedCats, setAppliedCats] = useState('');
-  const loadingRef = useRef(false);
-  const reqIdRef = useRef(0);
-  const pageRef = useRef(1);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [filterDateError, setFilterDateError] = useState(0);
   const [filDateFromKey, setFilDateFromKey] = useState(0);
   const [filDateToKey, setFilDateToKey] = useState(0);
@@ -102,8 +92,16 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     return f;
   }, [appliedFrom, appliedTo, appliedCats]);
 
-  // i18n mapping for category & payment. Helper handles both internal keys
-  // (new data) and legacy Chinese substrings (old data, with/without emoji).
+  // Paginated list hook (must be after getFilterParams)
+  const { records, page, total, totalAll, hasMore, loading, loadPage, onEndReached } = usePaginatedList({
+    fetchPage: useCallback(async (pg: number, perPage: number) => {
+      const tx: any = await api.getTransactions(pg, perPage, getFilterParams());
+      return { items: tx.transactions || [], total: tx.total || 0, totalAll: tx.total_all, pages: tx.pages || 1 };
+    }, [getFilterParams]),
+    onError: () => setToast(t('toastLoadFailed')),
+  });
+
+  // i18n mapping for category & payment.
   const trCat = (s: string) => trCategory(s);
   const trPay = (s: string) => trPayment(s);
   const fmtExpDate = (d: string) => {
@@ -122,33 +120,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
 
   const isFuture = (d: string) => d > sd.today;
   useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
-
-  // Fetch one page from server (with current filters)
-  const loadPage = useCallback(async (pg: number, reset: boolean) => {
-    if (loadingRef.current && !reset) return;
-    loadingRef.current = true;
-    const reqId = ++reqIdRef.current;
-    if (reset) setLoading(true);
-    try {
-      const tx: any = await api.getTransactions(pg, PAGE_SIZE, getFilterParams());
-      if (reqId !== reqIdRef.current) return;
-      const exps = tx.transactions || [];
-      setRecords(prev => reset ? exps : [...prev, ...exps]);
-      setPage(pg);
-      pageRef.current = pg;
-      setTotal(tx.total || 0);
-      setTotalAll(tx.total_all ?? tx.total ?? 0);
-      setHasMore(pg < (tx.pages || 1));
-    } catch {
-      if (reqId !== reqIdRef.current) return;
-      setToast(t('toastLoadFailed'));
-    } finally {
-      if (reqId === reqIdRef.current) {
-        setLoading(false);
-        loadingRef.current = false;
-      }
-    }
-  }, [getFilterParams]);
 
   // Initial load — trigger when filter params change (wait for server date)
   const filterKey = `${appliedFrom}|${appliedTo}|${appliedCats}`;
@@ -219,16 +190,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
       </TouchableOpacity>
     );
   }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, onExpDetail]);
-
-  // End-of-list pagination — replaces ScrollView onScroll, debounced 150ms
-  const onEndReached = useCallback(() => {
-    if (loadingRef.current || !hasMore) return;
-    if (scrollTimerRef.current) return;
-    scrollTimerRef.current = setTimeout(() => {
-      scrollTimerRef.current = null;
-      loadPage(pageRef.current + 1, false);
-    }, 150);
-  }, [hasMore, loadPage]);
 
   // Category toggle
   const toggleCat = (cat: string) => {

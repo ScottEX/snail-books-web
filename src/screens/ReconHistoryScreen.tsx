@@ -5,6 +5,7 @@ import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
+import { usePaginatedList } from '../hooks/usePaginatedList';
 import DatePicker from '../components/DatePicker';
 import Toast from '../components/Toast';
 import EmptyState from '../components/EmptyState';
@@ -15,9 +16,7 @@ import { fmtAmtFull } from '../utils/format';
 import DateErrorHint from '../components/DateErrorHint';
 import BackArrow from '../components/icons/BackArrow';
 
-const PAGE_SIZE = 10;
-
-// Date helpers replaced by useServerDate() hook
+// Date format
 // Strict calendar months between two ISO dates (YYYY-MM-DD)
 function monthsBetween(from: string, to: string): number {
   const [fy, fm, fd] = from.split('-').map(Number);
@@ -37,17 +36,9 @@ function ReconEmptyIcon({ color }: { color: string }) {
 }
 
 export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
-  const [records, setRecords] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalAll, setTotalAll] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [toast, setToast] = useState('');
   const swipeBack = useSwipeBack(onBack);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const loadingRef = useRef(false);
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
   const filDateFromRef = useRef<HTMLInputElement>(null);
   const filDateToRef = useRef<HTMLInputElement>(null);
@@ -112,6 +103,15 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     return f;
   }, [appliedFrom, appliedTo, appliedBy]);
 
+  // Paginated list hook
+  const { records, page, total, totalAll, hasMore, loading, loadPage, handleScroll } = usePaginatedList({
+    fetchPage: useCallback(async (pg: number, perPage: number) => {
+      const data: any = await api.getReconciliationsPage(pg, perPage, getFilterParams());
+      return { items: data?.records || [], total: data?.total || 0, totalAll: data?.total_all, pages: data?.pages || 1 };
+    }, [getFilterParams]),
+    onError: () => setToast(t('toastLoadFailed')),
+  });
+
   const resetFilters = () => {
     const dFrom = sd.offset(-30);
     const dTo = sd.today;
@@ -123,44 +123,11 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     setAppliedBy('');
   };
 
-  // Fetch one page from server (with current filters)
-  const loadPage = useCallback(async (pg: number, reset: boolean) => {
-    if (loadingRef.current) return;
-    loadingRef.current = true;
-    if (reset) setLoading(true);
-    try {
-      const data: any = await api.getReconciliationsPage(pg, PAGE_SIZE, getFilterParams());
-      const recs = data?.records || [];
-      setRecords(prev => reset ? recs : [...prev, ...recs]);
-      setPage(pg);
-      setTotal(data?.total || 0);
-      setTotalAll(data?.total_all ?? data?.total ?? 0);
-      setHasMore(pg < (data?.pages || 1));
-    } catch { setToast(t('toastLoadFailed')); }
-    setLoading(false);
-    loadingRef.current = false;
-  }, [getFilterParams]);
-
   // Trigger load when filter params change
   const filterKey = `${appliedFrom}|${appliedTo}|${appliedBy}`;
   useEffect(() => {
-    setRecords([]);
     loadPage(1, true);
   }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Scroll pagination
-  const handleScroll = useCallback((e: any) => {
-    if (loadingRef.current || !hasMore) return;
-    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 60) {
-      if (!scrollTimerRef.current) {
-        scrollTimerRef.current = setTimeout(() => {
-          scrollTimerRef.current = null;
-          loadPage(page + 1, false);
-        }, 150);
-      }
-    }
-  }, [page, hasMore, loadPage]);
 
   const fmtDate = (d: string) => {
     const [y, m, day] = d.split('-');
