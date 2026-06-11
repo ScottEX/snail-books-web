@@ -21,6 +21,7 @@ interface Props {
 }
 
 const GAP = 8;
+const MAX_IMAGES = 9;
 
 export default function ReceiptUpload({
   existingImages = [],
@@ -36,6 +37,7 @@ export default function ReceiptUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showTip, setShowTip] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [showMaxHint, setShowMaxHint] = useState(false);
 
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width;
@@ -47,11 +49,19 @@ export default function ReceiptUpload({
     if (!files) return;
     const arr: File[] = [];
     for (let i = 0; i < files.length; i++) arr.push(files[i]);
-    onAdd(arr);
+    const available = MAX_IMAGES - existingImages.length - newFiles.length;
+    if (arr.length > available) {
+      onAdd(arr.slice(0, available));
+      setShowMaxHint(true);
+      setTimeout(() => setShowMaxHint(false), 3000);
+    } else {
+      onAdd(arr);
+    }
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const totalItems = 1 + existingImages.length + newFiles.length; // +1 for add button
+  const atMax = existingImages.length + newFiles.length >= MAX_IMAGES;
+  const totalItems = atMax ? existingImages.length + newFiles.length : 1 + existingImages.length + newFiles.length; // +1 for add button (hidden at max)
   const itemsPerRow = Math.min(totalItems, 4);
   const thumbSize = containerWidth > 0
     ? Math.min(maxThumbSize, (containerWidth - GAP * (itemsPerRow - 1)) / itemsPerRow)
@@ -92,7 +102,8 @@ export default function ReceiptUpload({
 
       {/* Add button + previews */}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP }}>
-        {/* Add button */}
+        {/* Add button — hidden when max reached */}
+        {!atMax && (
         <TouchableOpacity
           style={{
             width: thumbSize, height: thumbSize,
@@ -111,6 +122,7 @@ export default function ReceiptUpload({
           </Svg>
           <Text style={{ fontSize: 10, color: c.textSub }}>{totalItems === 1 ? t('uploadImage') : ''}</Text>
         </TouchableOpacity>
+        )}
 
         {/* Existing image previews */}
         {existingImages.map((url: string, i: number) => (
@@ -154,6 +166,13 @@ export default function ReceiptUpload({
           </View>
         ))}
       </View>
+
+      {/* Max limit hint */}
+      {showMaxHint && (
+        <Text style={{ fontSize: FONTS.micro.size, color: c.danger, marginTop: 4 }}>
+          最多{MAX_IMAGES}张
+        </Text>
+      )}
     </View>
   );
 }
