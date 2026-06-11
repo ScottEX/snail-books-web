@@ -144,7 +144,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   // Initial load — trigger when filter params change
   const filterKey = `${appliedFrom}|${appliedTo}|${appliedCats}`;
   useEffect(() => {
-    setRecords([]);
     loadPage(1, true);
   }, [filterKey, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
