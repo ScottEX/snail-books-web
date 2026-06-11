@@ -1801,7 +1801,7 @@ export const langs: [Lang, string][] = [
 
 export function t(key: I18nKey | string): string {
   const lang = (typeof window !== 'undefined' ? (window as any).curLang : null) || 'zh-CN';
-  return I18N[lang]?.[key] || I18N['zh-CN']?.[key] || key;
+  return I18N[lang]?.[key] ?? I18N['zh-CN']?.[key] ?? key;
 }
 
 export function getLang(): string {
