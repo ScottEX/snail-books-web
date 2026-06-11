@@ -51,7 +51,7 @@ export default function DatePicker({
   const inputRef = useRef<HTMLInputElement>(null);
   const [key, setKey] = useState(0);
 
-  const c = color || colors.textSub;
+  const c = color || colors.primary;
   const fs = fontSize || FONTS.sub.size;
   const fw = (FONTS as any).subBold?.weight || '700';
 
@@ -91,8 +91,8 @@ export default function DatePicker({
       </Text>
       {showChevron && (
         <Svg
-          width={20}
-          height={20}
+          width={19}
+          height={19}
           viewBox="0 0 24 24"
           fill="none"
           stroke={colors.primary}
