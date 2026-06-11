@@ -4,8 +4,10 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
+import { usePaginatedList } from '../hooks/usePaginatedList';
 import { toDec2 } from "../utils/numbers";
-import EmptyState from "../components/EmptyState";
+import EmptyState from '../components/EmptyState';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -13,8 +15,6 @@ import { modalClose, historyHeader } from '../sharedStyles';
 import DateErrorHint from '../components/DateErrorHint';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import BackArrow from '../components/icons/BackArrow';
-
-const PAGE_SIZE = 10;
 
 // Date helpers replaced by useServerDate() hook
 // Strict calendar months between two ISO dates (YYYY-MM-DD)
@@ -38,16 +38,8 @@ function RevenueEmptyIcon({ color }: { color: string }) {
 }
 
 export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) {
-  const [records, setRecords] = useState<any[]>([]);
   const swipeBack = useSwipeBack(onBack);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalAll, setTotalAll] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
-  const loadingRef = useRef(false);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Uncontrolled date refs
   const dateFromRef = useRef<HTMLInputElement>(null);
   const dateToRef = useRef<HTMLInputElement>(null);
@@ -63,6 +55,21 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
   useEffect(() => { if (dateToRef.current) dateToRef.current.value = dateTo; }, [dateTo]);
   const [appliedFrom, setAppliedFrom] = useState(dateFrom);
   const [appliedTo, setAppliedTo] = useState(dateTo);
+
+  // Paginated list hook
+  const { records, page, total, totalAll, hasMore, loading, loadPage, handleScroll } = usePaginatedList({
+    fetchPage: useCallback(async (pg: number, perPage: number) => {
+      const r: any = await api.getDailyRevenue(
+        pg, perPage,
+        undefined, undefined, undefined, undefined,
+        appliedFrom || undefined,
+        appliedTo || undefined,
+      );
+      return { items: r?.records || [], total: r?.total || 0, totalAll: r?.total_all, pages: r?.pages || 1 };
+    }, [appliedFrom, appliedTo]),
+    onError: () => setToast(t('toastLoadFailed')),
+  });
+
   const [filterDateError, setFilterDateError] = useState(0);
   const [dateFromKey, setDateFromKey] = useState(0);
   const [dateToKey, setDateToKey] = useState(0);
@@ -91,49 +98,11 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
     !!(dateFrom && dateTo && !rangeInvalid && monthsBetween(dateFrom, dateTo) > 24),
     [dateFrom, dateTo, rangeInvalid]);
 
-  // Server-side paginated load
-  const loadPage = useCallback(async (pg: number, reset: boolean) => {
-    if (loadingRef.current) return;
-    loadingRef.current = true;
-    if (reset) setLoading(true);
-    try {
-      const r: any = await api.getDailyRevenue(
-        pg, PAGE_SIZE,
-        undefined, undefined, undefined, undefined,
-        appliedFrom || undefined,
-        appliedTo || undefined,
-      );
-      const recs = r?.records || [];
-      setRecords(prev => reset ? recs : [...prev, ...recs]);
-      setPage(pg);
-      setTotal(r?.total || 0);
-      setTotalAll(r?.total_all ?? r?.total ?? 0);
-      setHasMore(pg < (r?.pages || 1));
-    } catch { setToast(t('toastLoadFailed')); }
-    setLoading(false);
-    loadingRef.current = false;
-  }, [appliedFrom, appliedTo]);
-
   // Reload when filter changes
   const filterKey = `${appliedFrom}|${appliedTo}`;
   useEffect(() => {
-    setRecords([]);
     loadPage(1, true);
   }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Infinite scroll
-  const handleScroll = useCallback((e: any) => {
-    if (loadingRef.current || !hasMore) return;
-    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 60) {
-      if (!scrollTimerRef.current) {
-        scrollTimerRef.current = setTimeout(() => {
-          scrollTimerRef.current = null;
-          loadPage(page + 1, false);
-        }, 150);
-      }
-    }
-  }, [page, hasMore, loadPage]);
 
   const fmtDate = (d: string) => {
     const [y, m, day] = d.split('-');
@@ -255,10 +224,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 166 : 112, paddingHorizontal: 16, paddingBottom: 100 }}>
         {loading ? (
-          <View style={st.loading}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={st.loadingText}>{t('loading')}</Text>
-          </View>
+          <LoadingSpinner />
         ) : records.length === 0 ? (
           <EmptyState
             icon={<RevenueEmptyIcon color={colors.textSub} />}
@@ -425,8 +391,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
 
 
 
-  loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 40, gap: 8 },
-  loadingText: { fontSize: FONTS.sub.size, color: colors.primary },
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
   loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
 });

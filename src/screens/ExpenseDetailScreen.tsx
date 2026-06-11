@@ -467,7 +467,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
         )}
         confirmLabel={deleting ? '删除中…' : t('delete')}
         cancelLabel={t('cancel')}
-        confirmColor={c.danger}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }} />

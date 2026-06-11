@@ -7,13 +7,14 @@ import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
-import { FONTS } from '../theme';
+import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
+import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
+import LoadingSpinner from '../components/LoadingSpinner';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -304,7 +305,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Empty state
 
-  loadingWrap: { paddingVertical: 20, alignItems: 'center' as const },
+  loadingMore: { paddingVertical: 20, alignItems: 'center' as const },
   contentArea: { flex: 1, paddingBottom: 100 },
 });
 
@@ -376,10 +377,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [toastMsg, setToastMsg] = useState('');
 
   const [stats, setStats] = useState<ProcStats>({ total_spent: 0, total_income: 0, batch_count: 0, margin_pct: 0 });
-  const [batches, setBatches] = useState<BatchRecord[]>([]);
-  const [histPage, setHistPage] = useState(1);
-  const [histTotal, setHistTotal] = useState(0);
-  const [loadingHist, setLoadingHist] = useState(false);
+
+  // Paginated list hook for batch history
+  const { records: batches, total: histTotal, hasMore, loading: loadingHist, loadPage, onEndReached } = usePaginatedList<BatchRecord>({
+    fetchPage: useCallback(async (pg: number, perPage: number) => {
+      const data: any = await api.getProcurementBatches(pg, perPage);
+      return { items: data?.records || [], total: data?.total || 0, pages: data?.pages || 1 };
+    }, []),
+  });
 
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -562,37 +567,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   useEffect(() => { if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; }, [orderDate]);
 
-  // Preload history total on mount so the tab badge shows correct count immediately
-  useEffect(() => {
-    api.getProcurementBatches(1).then((data: any) => {
-      setHistTotal(data?.total || 0);
-    }).catch(() => {});
-  }, []);
-
   useEffect(() => {
     if (subTab !== 'history') return;
-    setLoadingHist(true);
-    api.getProcurementBatches(1).then((data: any) => {
-      setBatches(data?.records || []); setHistTotal(data?.total || 0); setHistPage(1);
-    }).catch(() => {}).finally(() => setLoadingHist(false));
-  }, [subTab]);
-
-  // Refetch history list (page 1) — used after edit/delete
-  const loadHistory = useCallback(() => {
-    setLoadingHist(true);
-    api.getProcurementBatches(1).then((data: any) => {
-      setBatches(data?.records || []); setHistTotal(data?.total || 0); setHistPage(1);
-    }).catch(() => {}).finally(() => setLoadingHist(false));
-  }, []);
-
-  const loadMoreHistory = () => {
-    if (loadingHist) return;
-    const next = histPage + 1;
-    setLoadingHist(true);
-    api.getProcurementBatches(next).then((data: any) => {
-      setBatches(prev => [...prev, ...(data?.records || [])]); setHistPage(next);
-    }).catch(() => {}).finally(() => setLoadingHist(false));
-  };
+    loadPage(1, true);
+  }, [subTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredProducts = useMemo(() => {
     let list = products;
@@ -780,7 +758,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
             setSuccessIsEdit(true);
             openSlideModal(() => setShowSuccess(true));
-            loadHistory();
+            loadPage(1, true);
             loadStats();
           });
         } else {
@@ -875,7 +853,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       if (r?.status === 'ok') {
         // Skip toast — Modal close + Toast mount on same frame crashes RN Web layout (same as password-change fix 1d06376)
         // Refresh history list and stats
-        loadHistory();
+        loadPage(1, true);
         loadStats();
       } else {
         setToastMsg(t('toastSubmitFailed')); setShowToast(true);
@@ -1090,13 +1068,22 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
       {/* ── History ── */}
       {subTab === 'history' && (
-        <FlatList
-          data={filteredBatches}
-          keyExtractor={item => String(item.id)}
-          contentContainerStyle={styles.historyList}
-          onEndReached={filteredBatches.length < histTotal ? loadMoreHistory : undefined}
-          onEndReachedThreshold={0.4}
-          renderItem={({ item: batch }) => (
+        (loadingHist && batches.length === 0) ? (
+          <LoadingSpinner />
+        ) : batches.length === 0 ? (
+          <EmptyState
+            icon={<EmptyClipboardIcon color={c.textSub} />}
+            title={t('procEmptyHistoryTitle')}
+            hint={t('procEmptyHistoryHint')}
+          />
+        ) : (
+          <FlatList
+            data={filteredBatches}
+            keyExtractor={item => String(item.id)}
+            contentContainerStyle={styles.historyList}
+            onEndReached={hasMore ? onEndReached : undefined}
+            onEndReachedThreshold={0.4}
+            renderItem={({ item: batch }) => (
             <View style={styles.historyCard}>
               <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
                 <View style={styles.histHead}>
@@ -1158,16 +1145,13 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </TouchableOpacity>
             </View>
           )}
-          ListEmptyComponent={
-            <EmptyState
-              icon={<EmptyClipboardIcon color={c.textSub} />}
-              title={t('procEmptyHistoryTitle')}
-              hint={t('procEmptyHistoryHint')}
-            />
-          }
-          ListFooterComponent={loadingHist ? <View style={styles.loadingWrap}><ActivityIndicator color={c.primary} /></View> : null}
+          ListFooterComponent={hasMore ? (
+            <View style={styles.loadingMore}>
+              <ActivityIndicator size="small" color={c.primary} />
+            </View>
+          ) : null}
         />
-      )}
+      ))}
 
       {/* ── Product Mgmt ── */}
       {subTab === 'products' && (
