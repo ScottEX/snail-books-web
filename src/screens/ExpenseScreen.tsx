@@ -895,6 +895,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     onFutureDate={() => setFeeDateErr(c => c + 1)}
                     displayDate={fmtLocalDate(feeEntryDate)}
                     fontSize={FONTS.subBold.size}
+                    showCalendarIcon
                     showChevron
                   />
                   <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} color={colors.danger} />

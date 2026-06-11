@@ -91,8 +91,8 @@ export default function DatePicker({
       </Text>
       {showChevron && (
         <Svg
-          width={19}
-          height={19}
+          width={18}
+          height={18}
           viewBox="0 0 24 24"
           fill="none"
           stroke={colors.primary}
