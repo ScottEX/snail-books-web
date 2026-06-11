@@ -170,6 +170,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const initReconValues = useRef({ card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' });
   const reconJustLoaded = useRef(false);
+  const reconLoadId = useRef(0);  // guard against stale async responses
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
   // Load reconciliation data from backend
@@ -179,8 +180,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   //   3. No match + recDate < last bill_date → leave empty
   useEffect(() => {
     (async () => {
+      const id = ++reconLoadId.current;
       try {
         const data = await api.getReconciliations(365);
+        if (id !== reconLoadId.current) return; // stale
         if (!data || data.length === 0) {
           setCardBalance(''); setCashBalance('');
           setDineIn(''); setMeituan('');
@@ -265,6 +268,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [allFees, setAllFees] = useState<any[]>([]);         // all months for detail
   const [feeMonth, setFeeMonth] = useState<'all' | { year: number; month: number }>('all');
   const feeMonthInited = useRef(false);
+  const feeLoadId = useRef(0);  // guard against stale async responses
   useEffect(() => { if (sd.ready && !feeMonthInited.current) { feeMonthInited.current = true; setFeeMonth({ year: sd.year, month: sd.month }); } }, [sd.ready, sd.year, sd.month]);
   const [showFeeMonthPicker, setShowFeeMonthPicker] = useState(false);
   const [showFeeSheet, setShowFeeSheet] = useState(false);
@@ -287,8 +291,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [feeHistoryPickerPos, setFeeHistoryPickerPos] = useState({ top: 0, left: 0 });
 
   const loadFeeData = async () => {
+    const id = ++feeLoadId.current;
     try {
       const all = await api.getPlatformFees();
+      if (id !== feeLoadId.current) return; // stale
       const allArr = Array.isArray(all) ? all : [];
       setAllFees(allArr);
       // Derive feeData from feeMonth
