@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme, ThemeColors, withAlpha } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
@@ -13,6 +13,7 @@ interface ConfirmModalProps {
   confirmColor?: string;
   cancelLabel?: string;
   headerColor?: string;
+  loading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -26,6 +27,7 @@ export default function ConfirmModal({
   confirmColor,
   cancelLabel,
   headerColor,
+  loading,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -48,11 +50,15 @@ export default function ConfirmModal({
             <Text style={styles.warningText}>{message}</Text>
           </View>
           <View style={styles.btnRow}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
+            <TouchableOpacity style={[styles.cancelBtn, loading && styles.btnDisabled]} onPress={onCancel} disabled={loading}>
               <Text style={styles.cancelText}>{cancelLabel || t('cancel')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: btn }]} onPress={onConfirm}>
-              <Text style={styles.confirmText}>{confirmLabel || t('delete')}</Text>
+            <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: btn }, loading && styles.btnDisabled]} onPress={onConfirm} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator size="small" color={c.surface} />
+              ) : (
+                <Text style={styles.confirmText}>{confirmLabel || t('delete')}</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -90,4 +96,5 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     flex: 1, paddingVertical: 13, borderRadius: 10, alignItems: 'center',
   },
   confirmText: { fontSize: FONTS.sub.size, fontWeight: '600', color: c.surface },
+  btnDisabled: { opacity: 0.5 },
 });

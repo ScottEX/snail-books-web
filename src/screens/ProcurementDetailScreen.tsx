@@ -70,6 +70,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
   const [downloaded, setDownloaded] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
 
   const [timerSec, setTimerSec] = useState(0);
@@ -146,11 +147,14 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
   const handleDelete = async () => {
     if (!batch || deleting) return;
     setDeleting(true);
+    setDeleteError('');
     try {
       await api.deleteProcurementBatch(batch.id);
+      setShowDeleteConfirm(false);
+      setDeleting(false);
       onBack();
-    } catch (err) {
-      console.error('[procurement] delete error:', err);
+    } catch (err: any) {
+      setDeleteError(err?.message || '删除失败，请重试');
       setDeleting(false);
     }
   };
@@ -292,10 +296,15 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
       <ConfirmModal
         visible={showDeleteConfirm}
         title={t('procDeleteBatch')}
-        message={<>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>}
-        confirmLabel={t('delete')}
-        onConfirm={() => { setShowDeleteConfirm(false); handleDelete(); }}
-        onCancel={() => setShowDeleteConfirm(false)}
+        message={deleteError ? (
+          <Text style={{ color: c.danger, fontSize: FONTS.micro.size, textAlign: 'center' }}>{deleteError}</Text>
+        ) : (
+          <>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>
+        )}
+        confirmLabel={deleting ? '删除中…' : t('delete')}
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }}
       />
 
       {previewData && (

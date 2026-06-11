@@ -71,6 +71,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   const [appliedTo, setAppliedTo] = useState(sd.today);
   const [appliedCats, setAppliedCats] = useState('');
   const loadingRef = useRef(false);
+  const reqIdRef = useRef(0);
   const pageRef = useRef(1);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [filterDateError, setFilterDateError] = useState(0);
@@ -124,11 +125,13 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
 
   // Fetch one page from server (with current filters)
   const loadPage = useCallback(async (pg: number, reset: boolean) => {
-    if (loadingRef.current) return;
+    if (loadingRef.current && !reset) return;
     loadingRef.current = true;
+    const reqId = ++reqIdRef.current;
     if (reset) setLoading(true);
     try {
       const tx: any = await api.getTransactions(pg, PAGE_SIZE, getFilterParams());
+      if (reqId !== reqIdRef.current) return;
       const exps = tx.transactions || [];
       setRecords(prev => reset ? exps : [...prev, ...exps]);
       setPage(pg);
@@ -136,17 +139,23 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
       setTotal(tx.total || 0);
       setTotalAll(tx.total_all ?? tx.total ?? 0);
       setHasMore(pg < (tx.pages || 1));
-    } catch { setToast(t('toastLoadFailed')); }
-    setLoading(false);
-    loadingRef.current = false;
+    } catch {
+      if (reqId !== reqIdRef.current) return;
+      setToast(t('toastLoadFailed'));
+    } finally {
+      if (reqId === reqIdRef.current) {
+        setLoading(false);
+        loadingRef.current = false;
+      }
+    }
   }, [getFilterParams]);
 
-  // Initial load — trigger when filter params change
+  // Initial load — trigger when filter params change (wait for server date)
   const filterKey = `${appliedFrom}|${appliedTo}|${appliedCats}`;
   useEffect(() => {
-    setRecords([]);
+    if (!sd.ready && appliedFrom === '' && appliedTo === '') return;
     loadPage(1, true);
-  }, [filterKey, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filterKey, refreshKey, sd.ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Current user for displaying who filled each record
   const currentUser = getCurrentUser();
