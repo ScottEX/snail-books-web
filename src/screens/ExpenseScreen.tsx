@@ -588,7 +588,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={{ fontSize: FONTS.microBold.size, color: colors.primary, fontWeight: FONTS.microBold.weight }}>
                     {feeMonth === 'all' ? t('feeAllMonths') : fmtMonth(feeMonth.year, feeMonth.month)}
                   </Text>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>▼</Text>
+                  <Svg width={12} height={12} viewBox="0 0 1024 1024" style={{ marginLeft: 2 }}>
+                    <Path d="M836.899 399.237l-218.01 335.037c-47.506 73.007-166.272 73.007-213.778 0l-218.01-335.037C139.595 326.23 198.977 234.97 293.99 234.97h436.02c95.013 0 154.395 91.26 106.889 164.267z" fill={colors.primary} />
+                  </Svg>
                 </TouchableOpacity>
               </View>
               {(feeMonth !== 'all' || allFees.length > 0) && (
@@ -1005,7 +1007,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ fontSize: FONTS.microBold.size, color: colors.primary, fontWeight: FONTS.microBold.weight }}>
                   {feeHistoryFilter === 'all' ? t('feeAllMonths') : fmtMonth(feeHistoryFilter.year, feeHistoryFilter.month)}
                 </Text>
-                <Text style={{ fontSize: FONTS.micro.size, color: colors.primary, marginLeft: 2 }}>▼</Text>
+                <Svg width={12} height={12} viewBox="0 0 1024 1024" style={{ marginLeft: 2 }}>
+                    <Path d="M836.899 399.237l-218.01 335.037c-47.506 73.007-166.272 73.007-213.778 0l-218.01-335.037C139.595 326.23 198.977 234.97 293.99 234.97h436.02c95.013 0 154.395 91.26 106.889 164.267z" fill={colors.primary} />
+                  </Svg>
 
               </TouchableOpacity>
             </View>
