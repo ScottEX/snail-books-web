@@ -277,31 +277,40 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               ) : null}
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{t('expenseDate')}</Text>
-                <Text style={styles.infoValue}>{(() => {
-                  const raw = record.date || record.created_at || '';
-                  if (!raw) return '—';
-                  const d = new Date(raw.endsWith('Z') ? raw : raw + 'Z');
-                  if (isNaN(d.getTime())) {
-                    const s = record.date || raw.slice(0, 10);
-                    const [y, mm, dd] = s.split('-');
+                <Text style={styles.infoValue}>
+                  {(() => {
+                    const d = record.date || '';
+                    if (!d) return '—';
+                    const [y, m, day] = d.split('-');
                     if (lang.startsWith('en')) {
                       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                      return `${months[+mm-1]} ${+dd}, ${y}`;
+                      return `${months[+m-1]} ${+day}, ${y}`;
                     }
-                    return `${y}年${mm}月${dd}日`;
-                  }
-                  const y = d.getFullYear();
-                  const mo = d.getMonth() + 1;
-                  const day = d.getDate();
-                  const h = String(d.getHours()).padStart(2, '0');
-                  const mi = String(d.getMinutes()).padStart(2, '0');
-                  const s = String(d.getSeconds()).padStart(2, '0');
-                  if (lang.startsWith('en')) {
-                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                    return `${months[mo-1]} ${day}, ${y} ${h}:${mi}:${s}`;
-                  }
-                  return `${y}年${mo}月${day}日 ${h}:${mi}:${s}`;
-                })()}</Text>
+                    return `${y}年${m}月${day}日`;
+                  })()}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{t('createdAt')}</Text>
+                <Text style={styles.infoValue}>
+                  {(() => {
+                    const raw = record.created_at || '';
+                    if (!raw) return '—';
+                    const d = new Date(raw.endsWith('Z') ? raw : raw + 'Z');
+                    if (isNaN(d.getTime())) return raw.slice(0, 19).replace('T', ' ');
+                    const y = d.getFullYear();
+                    const mo = d.getMonth() + 1;
+                    const day = d.getDate();
+                    const h = String(d.getHours()).padStart(2, '0');
+                    const mi = String(d.getMinutes()).padStart(2, '0');
+                    const s = String(d.getSeconds()).padStart(2, '0');
+                    if (lang.startsWith('en')) {
+                      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                      return `${months[mo-1]} ${day}, ${y} ${h}:${mi}:${s}`;
+                    }
+                    return `${y}年${mo}月${day}日 ${h}:${mi}:${s}`;
+                  })()}
+                </Text>
               </View>
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.infoLabel}>{t('expenseNote')}</Text>
