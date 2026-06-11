@@ -332,7 +332,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                     onPress={() => setDropMonth(m)}
                   >
                     <Text style={[st.monthBtnText, dropMonth === m && st.monthBtnTextOn]}>
-                      {m}月
+                      {m}{t('monthUnit')}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -340,13 +340,13 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
               {/* Quick presets */}
               <View style={st.quickRow}>
                 <TouchableOpacity style={st.quickBtn} onPress={() => applyQuick(7)}>
-                  <Text style={st.quickBtnText}>近7天</Text>
+                  <Text style={st.quickBtnText}>{t('last7Days')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={st.quickBtn} onPress={() => applyQuick(30)}>
-                  <Text style={st.quickBtnText}>近30天</Text>
+                  <Text style={st.quickBtnText}>{t('last30Days')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={st.quickBtn} onPress={() => applyQuick(90)}>
-                  <Text style={st.quickBtnText}>近3月</Text>
+                  <Text style={st.quickBtnText}>{t('last3Months')}</Text>
                 </TouchableOpacity>
               </View>
               {/* Actions */}

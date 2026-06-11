@@ -43,7 +43,7 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 function getRoleLabel(role: string, lang: string): string {
-  if (!role) return '普通用户';
+  if (!role) return t('normalUser');
   if (lang === 'en') { const idx = ROLES.indexOf(role); return idx >= 0 ? ROLE_EN[idx] : role; }
   if (lang === 'zh-TW') { const idx = ROLES.indexOf(role); return idx >= 0 ? ROLE_TW[idx] : role; }
   return role;
