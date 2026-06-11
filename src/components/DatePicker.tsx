@@ -95,7 +95,7 @@ export default function DatePicker({
           height={22}
           viewBox="0 0 24 24"
           fill="none"
-          stroke={c}
+          stroke={colors.primary}
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
