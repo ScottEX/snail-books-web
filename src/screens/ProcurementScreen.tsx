@@ -15,6 +15,7 @@ import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import { formatDate } from '../utils/format';
+import DatePicker from '../components/DatePicker';
 import TrashIcon from '../components/icons/TrashIcon';
 import ReceiptUpload from '../components/ReceiptUpload';
 import PaymentMethodChips from '../components/PaymentMethodChips';
@@ -1275,27 +1276,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               <View style={styles.dateCatRow}>
                 <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
-                  <View style={styles.dateCatValue}>
-                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{formatDate(orderDate)}</Text>
-                    {React.createElement('input', {
-                      ref: orderDateInputRef,
-                      type: 'date', defaultValue: orderDate, max: sd.today,
-                      onChange: (e: any) => setOrderDate(e.target.value),
-                      style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
-                    })}
-                  </View>
-                  <Svg
-                    width={11}
-                    height={11}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={c.textSub}
-                    strokeWidth={2.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <Path d="M9 18l6-6-6-6" />
-                  </Svg>
+                  <DatePicker
+                    date={orderDate}
+                    onChange={setOrderDate}
+                    max={sd.today}
+                    displayDate={formatDate(orderDate)}
+                    fontSize={FONTS.sub.size}
+                    color={c.textMain}
+                    showChevron
+                  />
                   <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
                     <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{t('goods')}</Text>

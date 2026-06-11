@@ -5,6 +5,7 @@ import { t } from '../../i18n';
 import { useTheme, withAlpha, ThemeColors } from '../../theme';
 import { FONTS } from '../../theme';
 import DateErrorHint from '../../components/DateErrorHint';
+import DatePicker from '../../components/DatePicker';
 
 export interface DailyRevenuePanelProps {
   revDate: string;
@@ -126,66 +127,16 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
           ))}
         </View>
         <View style={{ position: 'relative' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Svg
-              width={14}
-              height={14}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke={colors.textSub}
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <Path d="M8 2v4M16 2v4M3 10h18M21 14V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h8" />
-            </Svg>
-            <Text
-              style={{
-                fontSize: FONTS.subBold.size,
-                fontWeight: FONTS.subBold.weight,
-                color: colors.textSub,
-              }}
-            >
-              {revDate.replace(/-/g, '/')}
-            </Text>
-            <Svg
-              width={12}
-              height={12}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke={colors.textSub}
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <Path d="M9 18l6-6-6-6" />
-            </Svg>
-            {React.createElement('input', {
-              ref: revDateInputRef,
-              type: 'date',
-              defaultValue: revDate,
-              max: todayDateStr(),
-              key: revDateKey,
-              onChange: (e: any) => {
-                if (isFuture(e.target.value)) {
-                  revDateInputRef.current!.value = revDate;
-                  setRevDateKey((k) => k + 1);
-                  setRevDateErr((c) => c + 1);
-                } else {
-                  loadRevForDate(e.target.value);
-                }
-              },
-              style: {
-                position: 'absolute',
-                top: -4,
-                right: 0,
-                bottom: -4,
-                left: 0,
-                opacity: 0.01,
-                cursor: 'pointer',
-              },
-            })}
-          </View>
+          <DatePicker
+            date={revDate}
+            onChange={(d) => { loadRevForDate(d); }}
+            max={todayDateStr()}
+            onFutureDate={() => setRevDateErr(c => c + 1)}
+            displayDate={revDate.replace(/-/g, '/')}
+            showCalendarIcon
+            showChevron
+            fontSize={FONTS.subBold.size}
+          />
           <DateErrorHint trigger={revDateErr} message={t('errDateFuture')} color={colors.danger} textAlign="left" />
         </View>
       </View>
