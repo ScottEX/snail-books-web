@@ -298,6 +298,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     } catch { setToast(t('toastLoadFailed')); }
   };
   useEffect(() => { loadFeeData(); }, [feeMonth]);
+  useEffect(() => { if (showFeeSheet) setFeeEntryDate(todayStr()); }, [showFeeSheet]);
 
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
