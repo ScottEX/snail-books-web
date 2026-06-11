@@ -334,11 +334,13 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
       {(loading && records.length === 0) ? (
         <LoadingSpinner />
       ) : records.length === 0 ? (
-        <EmptyState
+        <View style={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, flex: 1, justifyContent: 'center' }}>
+          <EmptyState
           icon={<ExpenseEmptyIcon color={colors.textSub} />}
           title={t('noRecords')}
           hint={t('emptyExpenseHint')}
         />
+        </View>
       ) : (
         <FlatList
           testID="exp-scroll"
