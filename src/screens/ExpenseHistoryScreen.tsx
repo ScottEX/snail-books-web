@@ -141,11 +141,12 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     loadingRef.current = false;
   }, [getFilterParams]);
 
-  // Initial load — trigger when filter params change
+  // Initial load — trigger when filter params change (wait for server date)
   const filterKey = `${appliedFrom}|${appliedTo}|${appliedCats}`;
   useEffect(() => {
+    if (!sd.ready && appliedFrom === '' && appliedTo === '') return;
     loadPage(1, true);
-  }, [filterKey, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filterKey, refreshKey, sd.ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Current user for displaying who filled each record
   const currentUser = getCurrentUser();
