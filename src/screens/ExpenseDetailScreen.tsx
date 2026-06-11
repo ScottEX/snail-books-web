@@ -344,7 +344,16 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
             </View>
 
             {/* Category */}
-            <CategoryChips selected={category} onSelect={setCategory} />
+            {record.procurement_batch_id ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('expenseCategory')}</Text>
+                <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub }}>
+                  {trCategory(category)}
+                </Text>
+              </View>
+            ) : (
+              <CategoryChips selected={category} onSelect={setCategory} />
+            )}
 
             {/* Payment */}
             <PaymentMethodChips selected={account} onSelect={setAccount} />
