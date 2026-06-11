@@ -168,6 +168,18 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     return `${y}/${m}/${day}`;
   };
 
+  const fmtDateTime = (d: string) => {
+    // d is "YYYY-MM-DD HH:MM:SS" from created_at — split date and time
+    const [datePart, timePart] = d.split(' ');
+    const [y, m, day] = datePart.split('-');
+    const l = getLang();
+    if (l.startsWith('en')) {
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return timePart ? `${months[+m-1]} ${+day}, ${y} ${timePart}` : `${months[+m-1]} ${+day}, ${y}`;
+    }
+    return timePart ? `${y}年${+m}月${+day}日 ${timePart}` : `${y}年${+m}月${+day}日`;
+  };
+
 
 
   // Card: compact summary (tap to open detail modal)
@@ -177,7 +189,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       <View style={st.dateRow}>
         <View style={st.dateItem}>
           <Text style={st.dateLabel}>{t('reconDate')}</Text>
-          <Text style={st.dateVal}>{fmtDate(r.date)}</Text>
+          <Text style={st.dateVal}>{fmtDateTime(r.created_at || r.date)}</Text>
         </View>
         <View style={st.dateSep} />
         <View style={st.dateItem}>
@@ -248,7 +260,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           {/* Header */}
           <View style={st.modalHeader}>
             <View>
-              <Text style={st.modalDate}>{t('reconDate')}: {fmtDate(r.date)}</Text>
+              <Text style={st.modalDate}>{t('reconDate')}: {fmtDateTime(r.created_at || r.date)}</Text>
               <Text style={st.modalDateSub}>{t('billDate')}: {fmtDate(r.bill_date || r.date)}</Text>
               {r.reconciled_by ? (
                 <Text style={st.modalDateSub}>{t('reconciledBy')}: {r.reconciled_by}</Text>
