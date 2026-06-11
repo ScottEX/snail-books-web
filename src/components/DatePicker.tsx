@@ -70,7 +70,7 @@ export default function DatePicker({
   };
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1, position: 'relative' }}>
       {showCalendarIcon && (
         <Svg
           width={18}
@@ -91,17 +91,16 @@ export default function DatePicker({
       </Text>
       {showChevron && (
         <Svg
-          width={20}
-          height={20}
+          width={22}
+          height={22}
           viewBox="0 0 24 24"
           fill="none"
           stroke={c}
-          strokeWidth={2}
+          strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ transform: [{ translateY: 0 }] }}
         >
-          <Path d="M10 6l6 6-6 6" />
+          <Path d="M8 5l8 7-8 7" />
         </Svg>
       )}
       {!disabled && React.createElement('input', {
