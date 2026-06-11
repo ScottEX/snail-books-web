@@ -385,6 +385,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const st = useMemo(() => getSt(colors), [colors]);
 
+  // Fast glass-card totals: prefer business-summary API (instant), fallback to full aggregation
+  const glassCatTotals = useMemo(() => ({
+    daily: businessSummary.expense_by_category?.daily ?? expCatTotals.daily,
+    rent: businessSummary.expense_by_category?.rent ?? expCatTotals.rent,
+    salary: businessSummary.expense_by_category?.salary ?? expCatTotals.salary,
+    goods: businessSummary.expense_by_category?.goods ?? expCatTotals.goods,
+  }), [businessSummary.expense_by_category, expCatTotals]);
+
   /* ── Render ── */
   return (
     <View style={st.root}>
@@ -412,7 +420,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               >
                 <View style={st.tabInner}>
                   <Text style={[st.tabTitle, active && st.tabTitleActive]}>
-                    {tab.title}{i === 1 ? ' ¥' + fmtInt(businessSummary.cumulative_expense || 0) : ''}
+                    {tab.title}{i === 1 ? ' ¥' + toDec2Comma(businessSummary.cumulative_expense || 0) : ''}
                   </Text>
                   {i === 0 && (
                     <View style={{ flex: 1, gap: 12 }}>
@@ -500,7 +508,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         <Text style={{
                           fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                           color: 'rgba(255,255,255,0.95)',
-                        }}>{'¥' + toDec2Comma(expCatTotals.daily)}</Text>
+                        }}>{'¥' + toDec2Comma(glassCatTotals.daily)}</Text>
                       </View>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
@@ -515,7 +523,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         <Text style={{
                           fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                           color: 'rgba(255,255,255,0.95)',
-                        }}>{'¥' + toDec2Comma(expCatTotals.goods)}</Text>
+                        }}>{'¥' + toDec2Comma(glassCatTotals.goods)}</Text>
                       </View>
                     </View>
                     {/* Row 2: 房租 | 薪资 */}
@@ -533,7 +541,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         <Text style={{
                           fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                           color: 'rgba(255,255,255,0.95)',
-                        }}>{'¥' + toDec2Comma(expCatTotals.rent)}</Text>
+                        }}>{'¥' + toDec2Comma(glassCatTotals.rent)}</Text>
                       </View>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
@@ -548,7 +556,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         <Text style={{
                           fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                           color: 'rgba(255,255,255,0.95)',
-                        }}>{'¥' + toDec2Comma(expCatTotals.salary)}</Text>
+                        }}>{'¥' + toDec2Comma(glassCatTotals.salary)}</Text>
                       </View>
                     </View>
                   </View>
