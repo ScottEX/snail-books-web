@@ -1284,8 +1284,22 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                       style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
                     })}
                   </View>
-                  <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                  <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{t('goods')}</Text>
+                  <Svg
+                    width={11}
+                    height={11}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={c.textSub}
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <Path d="M9 18l6-6-6-6" />
+                  </Svg>
+                  <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
+                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{t('goods')}</Text>
+                  </View>
                 </View>
               </View>
 
