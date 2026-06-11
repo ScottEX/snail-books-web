@@ -544,8 +544,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   useEffect(() => { loadProducts(); loadStats(); }, [loadProducts, loadStats]);
 
   // Sync uncontrolled date input when orderDate changes externally
-  // Load shared cart from server on mount
+  // Load shared cart from server on mount (skip if pending edit — openEditBatch will set it)
   useEffect(() => {
+    if (pendingEditBatch) return;
     api.getCart().then((data: any) => {
       if (Array.isArray(data)) {
         const map: Record<number, number> = {};
