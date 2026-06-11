@@ -331,11 +331,15 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
             <View style={{ alignItems: 'center', paddingVertical: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
                 <Text style={{ fontSize: 20, fontWeight: '600' as const, color: amtColor, marginRight: 2, marginBottom: 4 }}>-¥</Text>
-                <TextInput
-                  style={{ fontSize: 36, fontWeight: '700' as const, color: amtColor, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180, outline: 'none' } as any}
-                  value={amount} onChangeText={(v: string) => setAmount(fmtDecInput(v))}
-                  onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
-                  keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={c.textSub} />
+                {record.procurement_batch_id ? (
+                  <Text style={{ fontSize: 36, fontWeight: '700' as const, color: c.textSub }}>{amount || '0.00'}</Text>
+                ) : (
+                  <TextInput
+                    style={{ fontSize: 36, fontWeight: '700' as const, color: amtColor, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180, outline: 'none' } as any}
+                    value={amount} onChangeText={(v: string) => setAmount(fmtDecInput(v))}
+                    onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
+                    keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={c.textSub} />
+                )}
               </View>
             </View>
 
