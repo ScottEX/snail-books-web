@@ -23,6 +23,7 @@ import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
 import { useServerDate } from '../hooks/useServerDate';
+import DatePicker from '../components/DatePicker';
 
 // Date helpers replaced by useServerDate() hook (server time, not client)
 
@@ -222,10 +223,12 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
           </View>
         </TouchableOpacity>
         <Text style={styles.title}>{t('expDetail')}</Text>
-        <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7}
-          style={styles.actionBtn} disabled={deleting}>
-          <TrashIcon color={c.danger} />
-        </TouchableOpacity>
+        {!record.procurement_batch_id && (
+          <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7}
+            style={styles.actionBtn} disabled={deleting}>
+            <TrashIcon color={c.danger} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Body — bg + marginTop clears the absolute header */}
@@ -264,6 +267,14 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                 <Text style={styles.infoLabel}>{t('paymentMethod')}</Text>
                 <Text style={styles.infoValue}>{trPayment(record.account)}</Text>
               </View>
+              {record.proc_batch_number ? (
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>{t('procBatchLabel')}</Text>
+                  <Text style={styles.infoValue}>
+                    {t('procNowBatch').replace('{n}', String(record.proc_batch_number))}
+                  </Text>
+                </View>
+              ) : null}
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{t('expenseDate')}</Text>
                 <Text style={styles.infoValue}>{(() => {
@@ -295,7 +306,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.infoLabel}>{t('expenseNote')}</Text>
                 <Text style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
-                  {record.note || (record.proc_batch_number ? t('procNowBatch').replace('{n}', String(record.proc_batch_number)) : '—')}
+                  {record.note || '—'}
                 </Text>
               </View>
             </View>
@@ -323,34 +334,58 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
             <View style={{ alignItems: 'center', paddingVertical: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
                 <Text style={{ fontSize: 20, fontWeight: '600' as const, color: amtColor, marginRight: 2, marginBottom: 4 }}>-¥</Text>
-                <TextInput
-                  style={{ fontSize: 36, fontWeight: '700' as const, color: amtColor, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180, outline: 'none' } as any}
-                  value={amount} onChangeText={(v: string) => setAmount(fmtDecInput(v))}
-                  onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
-                  keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={c.textSub} />
+                {record.procurement_batch_id ? (
+                  <Text style={{ fontSize: 36, fontWeight: '700' as const, color: c.textSub }}>{amount || '0.00'}</Text>
+                ) : (
+                  <TextInput
+                    style={{ fontSize: 36, fontWeight: '700' as const, color: amtColor, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180, outline: 'none' } as any}
+                    value={amount} onChangeText={(v: string) => setAmount(fmtDecInput(v))}
+                    onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
+                    keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={c.textSub} />
+                )}
               </View>
             </View>
 
             {/* Category */}
-            <CategoryChips selected={category} onSelect={setCategory} />
+            {record.procurement_batch_id ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('expenseCategory')}</Text>
+                <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub }}>
+                  {trCategory(category)}
+                </Text>
+              </View>
+            ) : (
+              <CategoryChips selected={category} onSelect={setCategory} />
+            )}
 
             {/* Payment */}
             <PaymentMethodChips selected={account} onSelect={setAccount} />
 
+            {/* Procurement batch — read-only, only if linked */}
+            {record.proc_batch_number ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
+                <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub }}>
+                  {t('procNowBatch').replace('{n}', String(record.proc_batch_number))}
+                </Text>
+              </View>
+            ) : null}
+
             {/* Date — label inline with picker on same row */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('expenseDate')}</Text>
-              <TouchableOpacity
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: c.bg, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12 }}
-                onPress={() => dateInputRef.current?.showPicker?.()} activeOpacity={0.7}>
-                <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub }}>{fmtLocalDate(date, lang)}</Text>
-                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M10 6l6 6-6 6"/></Svg>
-                {React.createElement('input', {
-                  ref: dateInputRef, type: 'date', defaultValue: date, max: sd.today,
-                  onChange: (e: any) => setDate(e.target.value),
-                  style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size, outline: 'none' },
-                })}
-              </TouchableOpacity>
+              <View style={{ flex: 1, backgroundColor: c.bg, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12 }}>
+                <DatePicker
+                  date={date}
+                  onChange={setDate}
+                  max={sd.today}
+                  displayDate={fmtLocalDate(date, lang)}
+                  fontSize={FONTS.sub.size}
+                  color={c.textSub}
+                  disabled={!!record.procurement_batch_id}
+                  showChevron
+                />
+              </View>
             </View>
 
             {/* Note */}

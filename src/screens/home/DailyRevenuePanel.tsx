@@ -5,6 +5,7 @@ import { t } from '../../i18n';
 import { useTheme, withAlpha, ThemeColors } from '../../theme';
 import { FONTS } from '../../theme';
 import DateErrorHint from '../../components/DateErrorHint';
+import DatePicker from '../../components/DatePicker';
 
 export interface DailyRevenuePanelProps {
   revDate: string;
@@ -126,43 +127,15 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
           ))}
         </View>
         <View style={{ position: 'relative' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Text
-              style={{
-                fontSize: FONTS.subBold.size,
-                fontWeight: FONTS.subBold.weight,
-                color: colors.textSub,
-              }}
-            >
-              {revDate.replace(/-/g, '/')}
-            </Text>
-            <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub }}>📅</Text>
-            {React.createElement('input', {
-              ref: revDateInputRef,
-              type: 'date',
-              defaultValue: revDate,
-              max: todayDateStr(),
-              key: revDateKey,
-              onChange: (e: any) => {
-                if (isFuture(e.target.value)) {
-                  revDateInputRef.current!.value = revDate;
-                  setRevDateKey((k) => k + 1);
-                  setRevDateErr((c) => c + 1);
-                } else {
-                  loadRevForDate(e.target.value);
-                }
-              },
-              style: {
-                position: 'absolute',
-                top: -4,
-                right: 0,
-                bottom: -4,
-                left: 0,
-                opacity: 0.01,
-                cursor: 'pointer',
-              },
-            })}
-          </View>
+          <DatePicker
+            date={revDate}
+            onChange={(d) => { loadRevForDate(d); }}
+            max={todayDateStr()}
+            onFutureDate={() => setRevDateErr(c => c + 1)}
+            showCalendarIcon
+            showChevron
+            fontSize={FONTS.subBold.size}
+          />
           <DateErrorHint trigger={revDateErr} message={t('errDateFuture')} color={colors.danger} textAlign="left" />
         </View>
       </View>

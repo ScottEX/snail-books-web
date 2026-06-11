@@ -15,6 +15,7 @@ import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import { formatDate } from '../utils/format';
+import DatePicker from '../components/DatePicker';
 import TrashIcon from '../components/icons/TrashIcon';
 import ReceiptUpload from '../components/ReceiptUpload';
 import PaymentMethodChips from '../components/PaymentMethodChips';
@@ -350,6 +351,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // Server-side image URLs kept across edit (new uploads get appended)
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [existingThumbUrls, setExistingThumbUrls] = useState<string[]>([]);
+  // Edit mode snapshot: serialized initial values, used to detect changes
+  const [editSnapshot, setEditSnapshot] = useState<string | null>(null);
   // Delete confirmation target (batch record)
   const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
 
@@ -448,6 +451,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       if (editingBatchId !== null) {
         setEditingBatchId(null); setEditingBatchNumber(0);
         setExistingImageUrls([]); setExistingThumbUrls([]);
+        setEditSnapshot(null);
         setCart({}); setReceipts([]); setOrderNote('');
         setOrderDate(sd.today); setPayMethod('payWechat');
       }
@@ -544,8 +548,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   useEffect(() => { loadProducts(); loadStats(); }, [loadProducts, loadStats]);
 
   // Sync uncontrolled date input when orderDate changes externally
-  // Load shared cart from server on mount
+  // Load shared cart from server on mount (skip if pending edit — openEditBatch will set it)
   useEffect(() => {
+    if (pendingEditBatch) return;
     api.getCart().then((data: any) => {
       if (Array.isArray(data)) {
         const map: Record<number, number> = {};
@@ -645,6 +650,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   const cartTotal = useMemo(() => cartItems.reduce((s, i) => s + i.subtotal, 0), [cartItems]);
   const cartCount = cartItems.length;
+
+  // Edit mode: true when nothing has changed from the initial batch values
+  const editUnchanged = useMemo(() => {
+    if (editingBatchId === null || !editSnapshot) return false;
+    try {
+      const s = JSON.parse(editSnapshot);
+      return s.date === orderDate && s.pm === payMethod &&
+        JSON.stringify(s.cart) === JSON.stringify(cart) &&
+        s.note === orderNote && s.imgs === existingImageUrls.length &&
+        receipts.length === 0;
+    } catch { return false; }
+  }, [editingBatchId, editSnapshot, orderDate, payMethod, cart, orderNote, existingImageUrls.length, receipts.length]);
 
   const updateQty = (pid: number, delta: number) => {
     setCart(prev => {
@@ -819,6 +836,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setReceipts([]);
     setExistingImageUrls(batch.images || []);
     setExistingThumbUrls(batch.thumb_images || []);
+    setEditSnapshot(JSON.stringify({ date: batch.date, pm: payKey(batch.payment_method), cart: newCart, note: batch.note || '', imgs: (batch.images || []).length }));
     // Open the same drawer the new-batch flow uses
     setShowDrawer(true);
     onDrawerOpen?.();
@@ -1274,17 +1292,20 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               <View style={styles.dateCatRow}>
                 <View style={styles.dateCatLine}>
                   <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
-                  <View style={styles.dateCatValue}>
-                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{formatDate(orderDate)}</Text>
-                    {React.createElement('input', {
-                      ref: orderDateInputRef,
-                      type: 'date', defaultValue: orderDate, max: sd.today,
-                      onChange: (e: any) => setOrderDate(e.target.value),
-                      style: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.01, cursor: 'pointer', width: '100%' },
-                    })}
+                  <DatePicker
+                    date={orderDate}
+                    onChange={setOrderDate}
+                    max={sd.today}
+                    displayDate={formatDate(orderDate)}
+                    fontSize={FONTS.sub.size}
+                    color={c.textMain}
+                    showChevron
+                    showCalendarIcon
+                  />
+                  <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
+                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>{t('goods')}</Text>
                   </View>
-                  <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                  <Text style={{ fontSize: FONTS.sub.size, color: c.textMain }}>{t('goods')}</Text>
                 </View>
               </View>
 
@@ -1331,7 +1352,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <View style={styles.drawerFooter}>
               <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
                 <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
-                <TouchableOpacity style={[styles.submitBtn, cartCount === 0 && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]} onPress={submitOrder} disabled={cartCount === 0 || submitting}>
+                <TouchableOpacity style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]} onPress={submitOrder} disabled={cartCount === 0 || submitting || editUnchanged}>
                   {submitting ? <ActivityIndicator color={c.surface} /> : <Text style={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}>{t('procSubmit')}</Text>}
                 </TouchableOpacity>
               </View>

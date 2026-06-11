@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, useReducer } from 'react';
+import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
 } from 'react-native';
@@ -17,6 +18,7 @@ import { fmtAmt as fmt } from '../utils/format';
 import { blockNeg, fmtDecInput, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
+import DatePicker from '../components/DatePicker';
 import { useServerDate } from '../hooks/useServerDate';
 import CategoryChips from '../components/CategoryChips';
 import ButtonPair from '../components/ButtonPair';
@@ -270,7 +272,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
   const [showFeeHistoryFilterPicker, setShowFeeHistoryFilterPicker] = useState(false);
   const [feeEntryDate, setFeeEntryDate] = useState('');
-  useEffect(() => { if (sd.ready && feeEntryDate === '') setFeeEntryDate(sd.yesterday); }, [sd.ready, sd.yesterday, feeEntryDate]);
+  useEffect(() => { if (sd.ready && feeEntryDate === '') setFeeEntryDate(sd.today); }, [sd.ready, sd.today, feeEntryDate]);
   const [feeDateErr, setFeeDateErr] = useState(0);
   const [feeMc, setFeeMc] = useState('');
   const [feeMw, setFeeMw] = useState('');
@@ -280,6 +282,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const pickerTriggerRef = useRef<any>(null);
   const feeHistoryFilterTriggerRef = useRef<any>(null);
   const [pickerAnim] = useState(new Animated.Value(0));
+  const [feeHistoryPickerAnim] = useState(new Animated.Value(0));
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
   const [feeHistoryPickerPos, setFeeHistoryPickerPos] = useState({ top: 0, left: 0 });
 
@@ -586,7 +589,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={{ fontSize: FONTS.microBold.size, color: colors.primary, fontWeight: FONTS.microBold.weight }}>
                     {feeMonth === 'all' ? t('feeAllMonths') : fmtMonth(feeMonth.year, feeMonth.month)}
                   </Text>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>▼</Text>
+                  <Svg width={14} height={14} viewBox="0 0 1024 1024" style={{ marginLeft: 2 }}>
+                    <Path d="M836.899 399.237l-218.01 335.037c-47.506 73.007-166.272 73.007-213.778 0l-218.01-335.037C139.595 326.23 198.977 234.97 293.99 234.97h436.02c95.013 0 154.395 91.26 106.889 164.267z" fill={colors.primary} />
+                  </Svg>
                 </TouchableOpacity>
               </View>
               {(feeMonth !== 'all' || allFees.length > 0) && (
@@ -643,32 +648,26 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={st.dateRow}>
               <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub }}>{t('billDate')}</Text>
               <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, position: 'relative' }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
               >
-                <Text style={st.dateText}>
-                  {(() => {
+                <DatePicker
+                  date={recDate}
+                  onChange={setRecDate}
+                  max={sd.today}
+                  onFutureDate={() => setRecDateErr(c => c + 1)}
+                  displayDate={(() => {
                     const l = getLang();
                     const [y, m, d] = recDate.split('-');
                     if (l.startsWith('en')) {
                       const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
                       return `${months[+m-1]} ${+d}, ${y}`;
                     }
-                    if (l === 'zh-Hant' || l === 'zh-TW') {
-                      return `${y}年${m}月${d}日`;
-                    }
                     return `${y}年${m}月${d}日`;
                   })()}
-                </Text>
-                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
-                {React.createElement('input', {
-                  ref: recDateInputRef,
-                  type: 'date',
-                  key: recDateKey,
-                  defaultValue: recDate,
-                  max: sd.today,
-                  onChange: (e: any) => { if (sd.isFuture(e.target.value)) { recDateInputRef.current!.value = recDate; setRecDateKey(k => k + 1); setRecDateErr(c => c + 1); } else { setRecDate(e.target.value); } },
-                  style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
-                })}
+                  fontSize={FONTS.subBold.size}
+                  showCalendarIcon
+                  showChevron
+                />
               </View>
             </View>
             <DateErrorHint trigger={recDateErr} message={t('errDateFuture')} color={colors.danger} />
@@ -793,39 +792,25 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               />
               {/* 日期选择 */}
               <View style={st.expDateRow}>
-                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5}>
-                  <Rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <Line x1="16" y1="2" x2="16" y2="6"/>
-                  <Line x1="8" y1="2" x2="8" y2="6"/>
-                  <Line x1="3" y1="10" x2="21" y2="10"/>
-                </Svg>
-                <View style={{ flex: 1 }}>
-                  <View
-                    style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }}
-                  >
-                    <Text style={st.dateText}>
-                      {(() => {
-                        const l = getLang();
-                        const [y, m, d] = expDate.split('-');
-                        if (l.startsWith('en')) {
-                          const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-                          return `${months[+m-1]} ${+d}, ${y}`;
-                        }
-                        return `${y}年${m}月${d}日`;
-                      })()}
-                    </Text>
-                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: 0 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
-                    {React.createElement('input', {
-                      ref: expDateInputRef,
-                      type: 'date',
-                      defaultValue: expDate,
-                      max: sd.today,
-                      onChange: handleExpDateChange,
-                      style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
-                    })}
-                  </View>
-                  <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} color={colors.danger} textAlign="left" />
-                </View>
+                <DatePicker
+                  date={expDate}
+                  onChange={setExpDate}
+                  max={sd.today}
+                  onFutureDate={() => setExpDateErr(c => c + 1)}
+                  displayDate={(() => {
+                    const l = getLang();
+                    const [y, m, d] = expDate.split('-');
+                    if (l.startsWith('en')) {
+                      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                      return `${months[+m-1]} ${+d}, ${y}`;
+                    }
+                    return `${y}年${m}月${d}日`;
+                  })()}
+                  fontSize={FONTS.subBold.size}
+                  showCalendarIcon
+                  showChevron
+                />
+                <DateErrorHint trigger={expDateErr} message={t('errDateFuture')} color={colors.danger} textAlign="left" />
               </View>
               <ButtonPair
                 leftLabel={t('expenseHistory')}
@@ -903,18 +888,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16 }}>
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
                 <View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }}>
-                    <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub }}>
-                      {(() => { return fmtLocalDate(feeEntryDate); })()}
-                    </Text>
-                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, transform: [{ translateY: -1 }] }}><Path d="M10 6l6 6-6 6"/></Svg>
-                    {React.createElement('input', {
-                      ref: feeDateInputRef,
-                      type: 'date', defaultValue: feeEntryDate, max: sd.today,
-                      onChange: (e: any) => { if (sd.isFuture(e.target.value)) { feeDateInputRef.current!.value = feeEntryDate; setFeeDateErr(c => c + 1); } else { setFeeEntryDate(e.target.value); } },
-                      style: { position: 'absolute', top: -6, right: 0, bottom: -6, left: 0, opacity: 0.01, cursor: 'pointer', fontSize: FONTS.sub.size },
-                    })}
-                  </View>
+                  <DatePicker
+                    date={feeEntryDate}
+                    onChange={setFeeEntryDate}
+                    max={sd.today}
+                    onFutureDate={() => setFeeDateErr(c => c + 1)}
+                    displayDate={fmtLocalDate(feeEntryDate)}
+                    fontSize={FONTS.subBold.size}
+                    showCalendarIcon
+                    showChevron
+                  />
                   <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} color={colors.danger} />
                 </View>
               </View>
@@ -980,26 +963,32 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, position: 'relative' }}
                 onPress={() => {
                   if (!showFeeHistoryFilterPicker) {
-                    if (feeHistoryFilterTriggerRef.current && typeof (feeHistoryFilterTriggerRef.current as any).measure === 'function') {
-                      (feeHistoryFilterTriggerRef.current as any).measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
-                        setFeeHistoryPickerPos({ top: py + 30, left: px });
+                    if (feeHistoryFilterTriggerRef.current) {
+                      (feeHistoryFilterTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
+                        setFeeHistoryPickerPos({ top: y + 30, left: x });
+                        feeHistoryPickerAnim.setValue(0);
+                        Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
+                        setShowFeeHistoryFilterPicker(true);
                       });
+                    } else {
+                      feeHistoryPickerAnim.setValue(0);
+                      Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
+                      setShowFeeHistoryFilterPicker(true);
                     }
-                    pickerAnim.setValue(0);
-                    Animated.spring(pickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                    setShowFeeHistoryFilterPicker(true);
                   } else {
-                    Animated.timing(pickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+                    Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
                       setShowFeeHistoryFilterPicker(false);
                     });
                   }
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: FONTS.subBold.size, color: colors.primary, fontWeight: FONTS.subBold.weight }}>
+                <Text style={{ fontSize: FONTS.microBold.size, color: colors.primary, fontWeight: FONTS.microBold.weight }}>
                   {feeHistoryFilter === 'all' ? t('feeAllMonths') : fmtMonth(feeHistoryFilter.year, feeHistoryFilter.month)}
                 </Text>
-                <Text style={{ fontSize: FONTS.micro.size, color: colors.primary, marginLeft: 2 }}>▼</Text>
+                <Svg width={14} height={14} viewBox="0 0 1024 1024" style={{ marginLeft: 2 }}>
+                    <Path d="M836.899 399.237l-218.01 335.037c-47.506 73.007-166.272 73.007-213.778 0l-218.01-335.037C139.595 326.23 198.977 234.97 293.99 234.97h436.02c95.013 0 154.395 91.26 106.889 164.267z" fill={colors.primary} />
+                  </Svg>
 
               </TouchableOpacity>
             </View>
@@ -1095,14 +1084,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </>
       )}
       {/* Fee history filter dropdown — animated to match platform fee picker */}
-      {showFeeHistoryFilterPicker && (
+      {showFeeHistoryFilterPicker && createPortal(
         <>
-          <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: pickerAnim }}>
+          <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: feeHistoryPickerAnim }}>
             <TouchableOpacity
               style={{ flex: 1 }}
               activeOpacity={1}
               onPress={() => {
-                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
               }}
             />
           </Animated.View>
@@ -1118,14 +1107,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             width: 140,
             maxHeight: 240,
             overflow: 'scroll' as any,
-            opacity: pickerAnim,
-            transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
+            opacity: feeHistoryPickerAnim,
+            transform: [{ scale: feeHistoryPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: feeHistoryPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
             <TouchableOpacity
               style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeHistoryFilter('all');
-                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
               }}
               activeOpacity={0.6}
             >
@@ -1140,7 +1129,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeHistoryFilter({ year: f.year, month: f.month });
-                    Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                    Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
                   }}
                   activeOpacity={0.6}
                 >
@@ -1149,11 +1138,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               );
             })}
           </Animated.View>
-        </>
+        </>,
+        document.body,
       )}
     </View>
   );
-}
+};
 
 /* ═══════════════════════════════════════ STYLES ═══════════════════════════════════ */
 const getSt = (colors: ThemeColors) => StyleSheet.create({
