@@ -70,6 +70,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   const [appliedFrom, setAppliedFrom] = useState(sd.offset(-30));
   const [appliedTo, setAppliedTo] = useState(sd.today);
   const [appliedCats, setAppliedCats] = useState('');
+  const loadingRef = useRef(false);
   const reqIdRef = useRef(0);
   const pageRef = useRef(1);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -124,7 +125,13 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
 
   // Fetch one page from server (with current filters)
   const loadPage = useCallback(async (pg: number, reset: boolean) => {
-    // Invalidate any in-flight request so it won't overwrite newer data
+    // Block pagination when already loading; reset always goes through
+    if (loadingRef.current) {
+      if (!reset) return;
+      // Invalidate old in-flight request so it won't overwrite newer data
+      reqIdRef.current++;
+    }
+    loadingRef.current = true;
     const reqId = ++reqIdRef.current;
     if (reset) setLoading(true);
     try {
@@ -142,11 +149,13 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
       setToast(t('toastLoadFailed'));
     }
     setLoading(false);
+    loadingRef.current = false;
   }, [getFilterParams]);
 
   // Initial load — trigger when filter params change
   const filterKey = `${appliedFrom}|${appliedTo}|${appliedCats}`;
   useEffect(() => {
+    setRecords([]);
     loadPage(1, true);
   }, [filterKey, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -215,7 +224,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
 
   // End-of-list pagination — replaces ScrollView onScroll, debounced 150ms
   const onEndReached = useCallback(() => {
-    if (!hasMore) return;
+    if (loadingRef.current || !hasMore) return;
     if (scrollTimerRef.current) return;
     scrollTimerRef.current = setTimeout(() => {
       scrollTimerRef.current = null;
