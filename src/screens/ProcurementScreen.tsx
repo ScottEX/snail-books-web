@@ -351,6 +351,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // Server-side image URLs kept across edit (new uploads get appended)
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [existingThumbUrls, setExistingThumbUrls] = useState<string[]>([]);
+  // Edit mode snapshot: serialized initial values, used to detect changes
+  const [editSnapshot, setEditSnapshot] = useState<string | null>(null);
   // Delete confirmation target (batch record)
   const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
 
@@ -449,6 +451,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       if (editingBatchId !== null) {
         setEditingBatchId(null); setEditingBatchNumber(0);
         setExistingImageUrls([]); setExistingThumbUrls([]);
+        setEditSnapshot(null);
         setCart({}); setReceipts([]); setOrderNote('');
         setOrderDate(sd.today); setPayMethod('payWechat');
       }
@@ -648,6 +651,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const cartTotal = useMemo(() => cartItems.reduce((s, i) => s + i.subtotal, 0), [cartItems]);
   const cartCount = cartItems.length;
 
+  // Edit mode: true when nothing has changed from the initial batch values
+  const editUnchanged = useMemo(() => {
+    if (editingBatchId === null || !editSnapshot) return false;
+    try {
+      const s = JSON.parse(editSnapshot);
+      return s.date === orderDate && s.pm === payMethod &&
+        JSON.stringify(s.cart) === JSON.stringify(cart) &&
+        s.note === orderNote && s.imgs === existingImageUrls.length &&
+        receipts.length === 0;
+    } catch { return false; }
+  }, [editingBatchId, editSnapshot, orderDate, payMethod, cart, orderNote, existingImageUrls.length, receipts.length]);
+
   const updateQty = (pid: number, delta: number) => {
     setCart(prev => {
       const newQty = Math.max(0, (prev[pid] || 0) + delta);
@@ -821,6 +836,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setReceipts([]);
     setExistingImageUrls(batch.images || []);
     setExistingThumbUrls(batch.thumb_images || []);
+    setEditSnapshot(JSON.stringify({ date: batch.date, pm: payKey(batch.payment_method), cart: newCart, note: batch.note || '', imgs: (batch.images || []).length }));
     // Open the same drawer the new-batch flow uses
     setShowDrawer(true);
     onDrawerOpen?.();
@@ -1336,7 +1352,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <View style={styles.drawerFooter}>
               <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
                 <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
-                <TouchableOpacity style={[styles.submitBtn, cartCount === 0 && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]} onPress={submitOrder} disabled={cartCount === 0 || submitting}>
+                <TouchableOpacity style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]} onPress={submitOrder} disabled={cartCount === 0 || submitting || editUnchanged}>
                   {submitting ? <ActivityIndicator color={c.surface} /> : <Text style={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}>{t('procSubmit')}</Text>}
                 </TouchableOpacity>
               </View>
