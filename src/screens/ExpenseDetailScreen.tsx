@@ -295,9 +295,17 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.infoLabel}>{t('expenseNote')}</Text>
                 <Text style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
-                  {record.note || (record.proc_batch_number ? t('procNowBatch').replace('{n}', String(record.proc_batch_number)) : '—')}
+                  {record.note || '—'}
                 </Text>
               </View>
+              {record.proc_batch_number ? (
+                <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+                  <Text style={styles.infoLabel}>{t('procBatchLabel')}</Text>
+                  <Text style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
+                    {t('procNowBatch').replace('{n}', String(record.proc_batch_number))}
+                  </Text>
+                </View>
+              ) : null}
             </View>
 
             {displayImgs.length > 0 && (
@@ -355,6 +363,16 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
             {/* Note */}
             <ExpenseNoteInput value={note} onChangeText={setNote} />
+
+            {/* Procurement batch — read-only, only if linked */}
+            {record.proc_batch_number ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
+                <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub }}>
+                  {t('procNowBatch').replace('{n}', String(record.proc_batch_number))}
+                </Text>
+              </View>
+            ) : null}
 
             {/* Images */}
             <ReceiptUpload
