@@ -132,7 +132,6 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
             onChange={(d) => { loadRevForDate(d); }}
             max={todayDateStr()}
             onFutureDate={() => setRevDateErr(c => c + 1)}
-            displayDate={revDate.replace(/-/g, '/')}
             showCalendarIcon
             showChevron
             fontSize={FONTS.subBold.size}
