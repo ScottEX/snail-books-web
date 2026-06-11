@@ -982,9 +982,18 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, position: 'relative' }}
                 onPress={() => {
                   if (!showFeeHistoryFilterPicker) {
-                    feeHistoryPickerAnim.setValue(0);
-                    Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                    setShowFeeHistoryFilterPicker(true);
+                    if (feeHistoryFilterTriggerRef.current) {
+                      (feeHistoryFilterTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
+                        setFeeHistoryPickerPos({ top: y + h + 6, left: x });
+                        feeHistoryPickerAnim.setValue(0);
+                        Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
+                        setShowFeeHistoryFilterPicker(true);
+                      });
+                    } else {
+                      feeHistoryPickerAnim.setValue(0);
+                      Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
+                      setShowFeeHistoryFilterPicker(true);
+                    }
                   } else {
                     Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
                       setShowFeeHistoryFilterPicker(false);
