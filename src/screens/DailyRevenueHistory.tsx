@@ -6,7 +6,8 @@ import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { toDec2 } from "../utils/numbers";
-import EmptyState from "../components/EmptyState";
+import EmptyState from '../components/EmptyState';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -223,10 +224,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 166 : 112, paddingHorizontal: 16, paddingBottom: 100 }}>
         {loading ? (
-          <View style={st.loading}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={st.loadingText}>{t('loading')}</Text>
-          </View>
+          <LoadingSpinner />
         ) : records.length === 0 ? (
           <EmptyState
             icon={<RevenueEmptyIcon color={colors.textSub} />}
@@ -393,8 +391,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
 
 
 
-  loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 40, gap: 8 },
-  loadingText: { fontSize: FONTS.sub.size, color: colors.primary },
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
   loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
 });

@@ -99,3 +99,21 @@ export const uploadReceiptStyles = (colors: ThemeColors) => ({
   },
   imgTipText: { fontSize: FONTS.micro.size, color: colors.surface, fontWeight: '500' as const },
 });
+
+// ─── Loading Spinner ──────────────────────────
+
+/** Shared loading-spinner layout. Use as inline style or spread into your StyleSheet. */
+export const spinnerAnimation = {
+  container: {
+    flex: 1,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    paddingVertical: 60,
+    gap: 16,
+  } as const,
+  label: {
+    fontSize: FONTS.sub.size,
+    color: '#999',
+    fontWeight: '500' as const,
+  } as const,
+};

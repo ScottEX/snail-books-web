@@ -14,6 +14,7 @@ import { modalCardAnimation, modalClose } from '../sharedStyles';
 import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
+import LoadingSpinner from '../components/LoadingSpinner';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -304,7 +305,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Empty state
 
-  loadingWrap: { paddingVertical: 20, alignItems: 'center' as const },
+  loadingMore: { paddingVertical: 20, alignItems: 'center' as const },
   contentArea: { flex: 1, paddingBottom: 100 },
 });
 
@@ -378,7 +379,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [stats, setStats] = useState<ProcStats>({ total_spent: 0, total_income: 0, batch_count: 0, margin_pct: 0 });
 
   // Paginated list hook for batch history
-  const { records: batches, total: histTotal, loading: loadingHist, loadPage, onEndReached } = usePaginatedList<BatchRecord>({
+  const { records: batches, total: histTotal, hasMore, loading: loadingHist, loadPage, onEndReached } = usePaginatedList<BatchRecord>({
     fetchPage: useCallback(async (pg: number, perPage: number) => {
       const data: any = await api.getProcurementBatches(pg, perPage);
       return { items: data?.records || [], total: data?.total || 0, pages: data?.pages || 1 };
@@ -1067,13 +1068,22 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
       {/* ── History ── */}
       {subTab === 'history' && (
-        <FlatList
-          data={filteredBatches}
-          keyExtractor={item => String(item.id)}
-          contentContainerStyle={styles.historyList}
-          onEndReached={filteredBatches.length < histTotal ? onEndReached : undefined}
-          onEndReachedThreshold={0.4}
-          renderItem={({ item: batch }) => (
+        (loadingHist && batches.length === 0) ? (
+          <LoadingSpinner />
+        ) : batches.length === 0 ? (
+          <EmptyState
+            icon={<EmptyClipboardIcon color={c.textSub} />}
+            title={t('procEmptyHistoryTitle')}
+            hint={t('procEmptyHistoryHint')}
+          />
+        ) : (
+          <FlatList
+            data={filteredBatches}
+            keyExtractor={item => String(item.id)}
+            contentContainerStyle={styles.historyList}
+            onEndReached={hasMore ? onEndReached : undefined}
+            onEndReachedThreshold={0.4}
+            renderItem={({ item: batch }) => (
             <View style={styles.historyCard}>
               <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
                 <View style={styles.histHead}>
@@ -1135,16 +1145,13 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </TouchableOpacity>
             </View>
           )}
-          ListEmptyComponent={
-            <EmptyState
-              icon={<EmptyClipboardIcon color={c.textSub} />}
-              title={t('procEmptyHistoryTitle')}
-              hint={t('procEmptyHistoryHint')}
-            />
-          }
-          ListFooterComponent={loadingHist ? <View style={styles.loadingWrap}><ActivityIndicator color={c.primary} /></View> : null}
+          ListFooterComponent={hasMore ? (
+            <View style={styles.loadingMore}>
+              <ActivityIndicator size="small" color={c.primary} />
+            </View>
+          ) : null}
         />
-      )}
+      ))}
 
       {/* ── Product Mgmt ── */}
       {subTab === 'products' && (

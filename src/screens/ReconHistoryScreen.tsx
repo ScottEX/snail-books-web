@@ -9,6 +9,7 @@ import { usePaginatedList } from '../hooks/usePaginatedList';
 import DatePicker from '../components/DatePicker';
 import Toast from '../components/Toast';
 import EmptyState from '../components/EmptyState';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
@@ -421,10 +422,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 266 : 112 }}>
         {loading ? (
-          <View style={st.loading}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={st.loadingText}>{t('loading')}</Text>
-          </View>
+          <LoadingSpinner />
         ) : records.length === 0 ? (
           renderEmpty()
         ) : (
@@ -450,8 +448,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
   ...historyHeader(colors),
   list: { flex: 1, paddingHorizontal: 12 },
-  loading: { marginTop: 80, alignItems: 'center' },
-  loadingText: { marginTop: 12, fontSize: FONTS.sub.size, color: colors.primary },
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
   loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Card */

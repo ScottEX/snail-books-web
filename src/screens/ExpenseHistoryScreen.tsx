@@ -10,6 +10,7 @@ import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import Toast from "../components/Toast";
 import EmptyState from "../components/EmptyState";
+import LoadingSpinner from '../components/LoadingSpinner';
 import ImagePreview from '../components/ImagePreview';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -329,31 +330,34 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
                 </Animated.View>
       </>)}
 
-        {/* List — FlatList virtualises rows so off-screen items don't block scroll */}
-      <FlatList
-        testID="exp-scroll"
-        style={st.list}
-        data={visible}
-        keyExtractor={(e: any, i: number) => e.id != null ? `tx-${e.id}` : `tx-${i}`}
-        renderItem={renderItem}
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.4}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
-        ListEmptyComponent={!loading ? (
-          <EmptyState
-            icon={<ExpenseEmptyIcon color={colors.textSub} />}
-            title={t('noRecords')}
-            hint={t('emptyExpenseHint')}
-          />
-        ) : null}
-        ListFooterComponent={loading ? (
-          <View style={st.loading}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={st.loadingText}>...</Text>
-          </View>
-        ) : null}
-      />
+      {/* List */}
+      {(loading && records.length === 0) ? (
+        <LoadingSpinner />
+      ) : records.length === 0 ? (
+        <EmptyState
+          icon={<ExpenseEmptyIcon color={colors.textSub} />}
+          title={t('noRecords')}
+          hint={t('emptyExpenseHint')}
+        />
+      ) : (
+        <FlatList
+          testID="exp-scroll"
+          style={st.list}
+          data={visible}
+          keyExtractor={(e: any, i: number) => e.id != null ? `tx-${e.id}` : `tx-${i}`}
+          renderItem={renderItem}
+          onEndReached={onEndReached}
+          onEndReachedThreshold={0.4}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
+          ListFooterComponent={hasMore ? (
+            <View style={st.loadingMore}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={st.loadingMoreText}>{t('loading')}...</Text>
+            </View>
+          ) : null}
+        />
+      )}
 
       {previewData && (
         <ImagePreview
@@ -410,8 +414,8 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   dateText: { fontSize: FONTS.sub.size, color: colors.textSub, flexShrink: 0 },
   note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right', overflow: 'hidden' },
 
-  loading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
-  loadingText: { fontSize: FONTS.sub.size, color: colors.primary },
+  loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
+  loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Preview overlay */
 
   /* Filter panel — matches ReconHistoryScreen */
