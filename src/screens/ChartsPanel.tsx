@@ -194,6 +194,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
         <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
           <View style={chartStyles.titleRow}>
             <Text style={[chartStyles.title, { marginBottom: 0 }]}>{t('expenseBreakdown')}</Text>
+            <Text style={{ color: tickColor, fontSize: 10, marginTop: 2 }}>{t('thisMonth')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={{ color: tickColor, fontSize: 10 }}>{t('chartSwitchHint')}</Text>
               <TouchableOpacity

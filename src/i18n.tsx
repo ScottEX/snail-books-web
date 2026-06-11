@@ -198,6 +198,7 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: '美团外卖',
     mid: '追加',
     month: '本月',
+    thisMonth: '当月',
     monthExpense: '本月支出',
     monthIncome: '本月收入',
     monthProfit: '本月利润',
@@ -646,6 +647,7 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: '美團外賣',
     mid: '追加',
     month: '本月',
+    thisMonth: '当月',
     monthExpense: '本月支出',
     monthIncome: '本月收入',
     monthProfit: '本月利潤',
@@ -1096,6 +1098,7 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: 'Meituan Waimai',
     mid: 'Additional',
     month: 'Month',
+    thisMonth: 'This Month',
     monthExpense: 'Month Expense',
     monthIncome: 'Month Income',
     monthProfit: 'Month Profit',
@@ -1544,6 +1547,7 @@ export type I18nKey =
   | 'monthExpense'
   | 'monthIncome'
   | 'monthProfit'
+  | 'thisMonth'
   | 'monthlyProfit'
   | 'monthlyTrend'
   | 'nameJiang'
