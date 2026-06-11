@@ -70,7 +70,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   const [appliedFrom, setAppliedFrom] = useState(sd.offset(-30));
   const [appliedTo, setAppliedTo] = useState(sd.today);
   const [appliedCats, setAppliedCats] = useState('');
-  const reqIdRef = useRef(0);
+  const loadingRef = useRef(false);
   const pageRef = useRef(1);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [filterDateError, setFilterDateError] = useState(0);
@@ -124,11 +124,11 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
 
   // Fetch one page from server (with current filters)
   const loadPage = useCallback(async (pg: number, reset: boolean) => {
-    const reqId = ++reqIdRef.current;
+    if (loadingRef.current && !reset) return;
+    loadingRef.current = true;
     if (reset) setLoading(true);
     try {
       const tx: any = await api.getTransactions(pg, PAGE_SIZE, getFilterParams());
-      if (reqId !== reqIdRef.current) return;
       const exps = tx.transactions || [];
       setRecords(prev => reset ? exps : [...prev, ...exps]);
       setPage(pg);
@@ -136,16 +136,15 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
       setTotal(tx.total || 0);
       setTotalAll(tx.total_all ?? tx.total ?? 0);
       setHasMore(pg < (tx.pages || 1));
-    } catch {
-      if (reqId !== reqIdRef.current) return;
-      setToast(t('toastLoadFailed'));
-    }
+    } catch { setToast(t('toastLoadFailed')); }
     setLoading(false);
+    loadingRef.current = false;
   }, [getFilterParams]);
 
   // Initial load — trigger when filter params change
   const filterKey = `${appliedFrom}|${appliedTo}|${appliedCats}`;
   useEffect(() => {
+    setRecords([]);
     loadPage(1, true);
   }, [filterKey, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -214,7 +213,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
 
   // End-of-list pagination — replaces ScrollView onScroll, debounced 150ms
   const onEndReached = useCallback(() => {
-    if (!hasMore) return;
+    if (loadingRef.current || !hasMore) return;
     if (scrollTimerRef.current) return;
     scrollTimerRef.current = setTimeout(() => {
       scrollTimerRef.current = null;
