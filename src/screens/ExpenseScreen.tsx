@@ -665,6 +665,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     return `${y}年${m}月${d}日`;
                   })()}
                   fontSize={FONTS.subBold.size}
+                  showCalendarIcon
                   showChevron
                 />
               </View>
