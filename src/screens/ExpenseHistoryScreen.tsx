@@ -147,15 +147,18 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     } catch {
       if (reqId !== reqIdRef.current) return;
       setToast(t('toastLoadFailed'));
+    } finally {
+      // Only clear loading if this request wasn't superseded
+      if (reqId === reqIdRef.current) {
+        setLoading(false);
+        loadingRef.current = false;
+      }
     }
-    setLoading(false);
-    loadingRef.current = false;
   }, [getFilterParams]);
 
   // Initial load — trigger when filter params change
   const filterKey = `${appliedFrom}|${appliedTo}|${appliedCats}`;
   useEffect(() => {
-    setRecords([]);
     loadPage(1, true);
   }, [filterKey, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -53,7 +53,7 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
   if (options?.body && typeof options.body === 'string' && !mergedHeaders['Content-Type']) {
     mergedHeaders['Content-Type'] = 'application/json';
   }
-  const resp = await fetchWithTimeout(API_BASE + url, {
+  const resp = await fetch(API_BASE + url, {
     ...options,
     headers: mergedHeaders,
   });
@@ -189,7 +189,7 @@ export const api = {
   uploadExpenseImages: async (files: File[]) => {
     const form = new FormData();
     files.forEach(f => form.append('files', f));
-    const resp = await fetchWithTimeout(API_BASE + '/api/expenses/upload-images', {
+    const resp = await fetch(API_BASE + '/api/expenses/upload-images', {
       method: 'POST',
       headers: headers(),
       body: form,
