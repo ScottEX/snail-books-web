@@ -549,7 +549,7 @@ const getStyles = (c: ThemeColors) => {
     },
     /* Refund stamp */
     refundStamp: {
-      position: 'absolute', top: 10, right: 10, zIndex: 2,
+      position: 'absolute', top: 10, left: 10, zIndex: 2,
       borderWidth: 1.5, borderColor: c.danger, borderRadius: 6,
       paddingHorizontal: 10, paddingVertical: 4,
       backgroundColor: c.surface,

@@ -419,7 +419,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   amount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.danger },
   /* Refund stamp — absolute overlay, no transform/opacity */
   refundStamp: {
-    position: 'absolute', top: 8, right: 8, zIndex: 2,
+    position: 'absolute', top: 6, left: 6, zIndex: 2,
     borderWidth: 1.5, borderColor: colors.danger, borderRadius: 6,
     paddingHorizontal: 8, paddingVertical: 3,
     backgroundColor: colors.surface,
