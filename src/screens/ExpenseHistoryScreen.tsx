@@ -143,11 +143,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     return (
       <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
         <View style={st.row}>
-        {isRefund && (
-          <View pointerEvents="none" style={st.refundStamp}>
-            <Text style={st.refundStampText}>{t('refund')}</Text>
-          </View>
-        )}
         <View style={st.rowTop}>
           <View style={st.badges}>
             <View style={st.catBadge}>
@@ -391,7 +386,6 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   list: { flex: 1 },
   /* Row */
   row: {
-    position: 'relative' as any, overflow: 'visible' as any,
     backgroundColor: colors.surface, borderRadius: 12,
     paddingVertical: 14, paddingHorizontal: 14,
     marginBottom: 8,
@@ -417,16 +411,6 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   },
   payBadgeText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
   amount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.danger },
-  /* Refund stamp — absolute overlay, no transform/opacity */
-  refundStamp: {
-    position: 'absolute', top: 6, left: 6, zIndex: 2,
-    borderWidth: 1.5, borderColor: colors.danger, borderRadius: 6,
-    paddingHorizontal: 8, paddingVertical: 3,
-    backgroundColor: colors.surface,
-  } as any,
-  refundStampText: {
-    fontSize: 13, fontWeight: '700', color: colors.danger,
-  },
   filledBy: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {

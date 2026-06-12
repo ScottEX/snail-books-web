@@ -247,11 +247,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
           <>
             {/* Amount card — prominent at the top, theme-colored */}
             <View style={[styles.amountCard, { backgroundColor: amtBg }]}>
-              {Number(record.amount) < 0 && (
-                <View pointerEvents="none" style={styles.refundStamp}>
-                  <Text style={styles.refundStampText}>{t('refund')}</Text>
-                </View>
-              )}
               <View style={{ flex: 1 }}>
                 <Text style={styles.amountLabel}>{t('expTotalAmount')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
@@ -521,8 +516,7 @@ const getStyles = (c: ThemeColors) => {
     },
     // Amount card — prominent, left-aligned, theme-colored bg
     amountCard: {
-      position: 'relative' as any,
-      flexDirection: 'row' as const, overflow: 'visible' as any,
+      flexDirection: 'row' as const,
       alignItems: 'center' as const,
       borderRadius: 12,
       paddingVertical: 20,
@@ -546,16 +540,6 @@ const getStyles = (c: ThemeColors) => {
       fontWeight: '600' as const,
       marginRight: 2,
       marginBottom: 2,
-    },
-    /* Refund stamp */
-    refundStamp: {
-      position: 'absolute', top: 10, left: 10, zIndex: 2,
-      borderWidth: 1.5, borderColor: c.danger, borderRadius: 6,
-      paddingHorizontal: 10, paddingVertical: 4,
-      backgroundColor: c.surface,
-    } as any,
-    refundStampText: {
-      fontSize: 15, fontWeight: '700', color: c.danger,
     },
     amountUser: {
       alignItems: 'center' as const,
