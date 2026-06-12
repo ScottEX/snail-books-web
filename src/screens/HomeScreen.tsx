@@ -961,9 +961,9 @@ export default function HomeScreen({
                       expense={chartMonthly.expense || []}
                       profit={chartMonthly.profit || []}
                       categories={chartMonthly.categories || {}}
-                      dailyDates={dailyChartData.dates}
-                      dailyIncome={dailyChartData.income}
-                      dailyExpense={dailyChartData.expense}
+                      dailyDates={dailyRevenues.length > 0 ? dailyChartData.dates : []}
+                      dailyIncome={dailyRevenues.length > 0 ? dailyChartData.income : []}
+                      dailyExpense={dailyRevenues.length > 0 ? dailyChartData.expense : []}
                     />
                     </View>
                   )}
