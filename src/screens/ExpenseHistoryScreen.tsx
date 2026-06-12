@@ -141,14 +141,9 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     const previewImgs = parseImages(e.images);
     const isRefund = Number(e.amount || 0) < 0;
     return (
-      <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
-        <View style={[st.row, { position: 'relative' }]}>
-        {/* Refund stamp */}
-        {isRefund && (
-          <View style={st.refundStamp}>
-            <Text style={st.refundStampText}>{t('refund')}</Text>
-          </View>
-        )}
+      <View style={{ position: 'relative' }}>
+        <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
+          <View style={st.row}>
         <View style={st.rowTop}>
           <View style={st.badges}>
             <View style={st.catBadge}>
@@ -196,6 +191,13 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
         )}
       </View>
       </TouchableOpacity>
+        {/* Refund stamp — outside TouchableOpacity to avoid clipping */}
+        {isRefund && (
+          <View style={st.refundStamp}>
+            <Text style={st.refundStampText}>{t('refund')}</Text>
+          </View>
+        )}
+      </View>
     );
   }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, onExpDetail]);
 
