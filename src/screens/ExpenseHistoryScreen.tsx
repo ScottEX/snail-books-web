@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -94,7 +94,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   }, [appliedFrom, appliedTo, appliedCats]);
 
   // Paginated list hook (must be after getFilterParams)
-  const { records, page, total, totalAll, hasMore, loading, loadPage, onEndReached } = usePaginatedList({
+  const { records, page, total, totalAll, hasMore, loading, loadPage, handleScroll } = usePaginatedList({
     fetchPage: useCallback(async (pg: number, perPage: number) => {
       const tx: any = await api.getTransactions(pg, perPage, getFilterParams());
       return { items: tx.transactions || [], total: tx.total || 0, totalAll: tx.total_all, pages: tx.pages || 1 };
@@ -199,9 +199,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
       prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
     );
   };
-
-  // No client-side filtering — server handles it
-  const visible = records;
 
   // Date range validity — persistent hint while invalid (matches ReconHistoryScreen)
   const rangeInvalid = useMemo(() =>
@@ -331,31 +328,35 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
                 </Animated.View>
       </>)}
 
-      {/* List */}
-      <FlatList
+      {/* List — ScrollView avoids FlatList virtualisation bugs on web (cards disappearing mid-scroll) */}
+      <ScrollView
         testID="exp-scroll"
         style={st.list}
-        data={visible}
-        keyExtractor={(e: any, i: number) => e.id != null ? `tx-${e.id}` : `tx-${i}`}
-        renderItem={renderItem}
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.4}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
-        ListEmptyComponent={!loading ? (
+      >
+        {records.length === 0 && !loading ? (
           <EmptyState
             icon={<ExpenseEmptyIcon color={colors.textSub} />}
             title={t('noRecords')}
             hint={t('emptyExpenseHint')}
           />
-        ) : null}
-        ListFooterComponent={hasMore ? (
+        ) : (
+          records.map((e: any, i: number) => (
+            <View key={e.id != null ? `tx-${e.id}` : `tx-${i}`}>
+              {renderItem({ item: e, index: i })}
+            </View>
+          ))
+        )}
+        {hasMore && (
           <View style={st.loadingMore}>
             <ActivityIndicator size="small" color={colors.primary} />
             <Text style={st.loadingMoreText}>{t('loading')}...</Text>
           </View>
-        ) : null}
-      />
+        )}
+      </ScrollView>
 
       {/* Loading overlay — covers empty state during initial load */}
       {loading && records.length === 0 && (
