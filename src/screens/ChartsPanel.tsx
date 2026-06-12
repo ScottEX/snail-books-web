@@ -116,15 +116,19 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
   const expenseLabel = t('expense');
   const profitLabel = t('profit');
 
-  const lineData = months.map((m, i) => ({
+  // Build shared-line data (both month & day keys present for type compatibility)
+  interface LinePt { month: string; day: string; [key: string]: string | number }
+  const lineData: LinePt[] = months.map((m, i) => ({
     month: m.slice(5),
+    day: '',
     [incomeLabel]: income[i],
     [expenseLabel]: expense[i],
   }));
 
   // Daily line data (MM-DD labels)
-  const dailyLineData = hasDaily
+  const dailyLineData: LinePt[] = hasDaily
     ? (dailyDates || []).map((d, i) => ({
+        month: '',
         day: d.slice(5),
         [incomeLabel]: (dailyIncome || [])[i] || 0,
         [expenseLabel]: (dailyExpense || [])[i] || 0,
