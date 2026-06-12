@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated
+  View, Text, TouchableOpacity, FlatList, ScrollView, StyleSheet, ActivityIndicator, Animated
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -167,13 +167,14 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
             <View style={{ flex: 1 }} />
           )}
         </View>
-        {/* Image thumbnails — lazy + async + bg placeholder so JS thread stays free for scroll */}
+        {/* Image thumbnails — at most 3, horizontal scroll, no wrap (no reflow on load) */}
         {displayImgs.length > 0 && (
-          <View style={st.imgThumbs}>
-            {displayImgs.map((url: string, j: number) => (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
+            {displayImgs.slice(0, 3).map((url: string, j: number) => (
               <TouchableOpacity key={j}
                 onPress={() => setPreviewData({ images: previewImgs, idx: j })}
-                activeOpacity={0.8}>
+                activeOpacity={0.8}
+                style={{ marginRight: j < Math.min(displayImgs.length, 3) - 1 ? 6 : 0 }}>
                 {React.createElement('img', {
                   src: url,
                   loading: 'lazy' as any,
@@ -186,7 +187,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
                 })}
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         )}
       </View>
       </TouchableOpacity>
@@ -336,7 +337,17 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
         data={records}
         keyExtractor={(e: any, i: number) => e.id != null ? `tx-${e.id}` : `tx-${i}`}
         renderItem={renderItem}
-        getItemLayout={(_: any, index: number) => ({ length: 100, offset: 100 * index, index })}
+        getItemLayout={(data: any, index: number) => {
+          let offset = 0;
+          for (let i = 0; i < index; i++) {
+            const prev = data[i];
+            const pi = prev?.thumb_images ? parseImages(prev.thumb_images) : parseImages(prev?.images);
+            offset += pi.length > 0 ? 146 : 92;
+          }
+          const cur = data[index];
+          const ci = cur?.thumb_images ? parseImages(cur.thumb_images) : parseImages(cur?.images);
+          return { length: ci.length > 0 ? 146 : 92, offset, index };
+        }}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.4}
         removeClippedSubviews={false}
