@@ -330,6 +330,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
 
       {/* List — FlatList with stability props to prevent cards disappearing on web */}
       <FlatList
+        key={filterKey}
         testID="exp-scroll"
         style={st.list}
         data={records}
