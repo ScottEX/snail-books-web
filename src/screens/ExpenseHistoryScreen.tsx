@@ -141,13 +141,14 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     const previewImgs = parseImages(e.images);
     const isRefund = Number(e.amount || 0) < 0;
     return (
-      <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
-        <View style={st.row}>
-          {isRefund && (
-            <View style={st.refundStamp} pointerEvents="none">
-              <Text style={st.refundStampText}>{t('refund')}</Text>
-            </View>
-          )}
+      <View style={st.rowOuter}>
+        {isRefund && (
+          <View style={st.refundStamp} pointerEvents="none">
+            <Text style={st.refundStampText}>{t('refund')}</Text>
+          </View>
+        )}
+        <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
+          <View style={st.row}>
           <View style={st.rowTop}>
           <View style={st.badges}>
             <View style={st.catBadge}>
@@ -193,8 +194,9 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
             ))}
           </View>
         )}
+          </View>
+        </TouchableOpacity>
       </View>
-      </TouchableOpacity>
     );
   }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, onExpDetail]);
 
@@ -389,12 +391,15 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   ...historyHeader(colors),
   /* List — scrolls under absolute header (matches ReconHistoryScreen list) */
   list: { flex: 1 },
-  /* Row */
+  /* Row outer — positioning context for stamp, NO border-radius */
+  rowOuter: {
+    position: 'relative' as any, overflow: 'visible' as any,
+    marginBottom: 8,
+  },
+  /* Row — visual card with rounded corners */
   row: {
-    position: 'relative', overflow: 'visible' as any,
     backgroundColor: colors.surface, borderRadius: 12,
     paddingVertical: 14, paddingHorizontal: 14,
-    marginBottom: 8,
     borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',

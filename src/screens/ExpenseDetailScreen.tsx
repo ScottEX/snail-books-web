@@ -246,20 +246,19 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
         {!editMode && (
           <>
             {/* Amount card — prominent at the top, theme-colored */}
-            <View style={[styles.amountCard, { backgroundColor: amtBg, position: 'relative' }]}>
+            <View style={styles.amountCardOuter}>
               {/* Refund stamp */}
               {Number(record.amount) < 0 && (
                 <View style={styles.refundStamp}>
                   <Text style={styles.refundStampText}>{t('refund')}</Text>
                 </View>
               )}
-              <View style={{ flex: 1 }}>
+              <View style={[styles.amountCard, { backgroundColor: amtBg }]}>
                 <Text style={styles.amountLabel}>{t('expTotalAmount')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
                   <Text style={[styles.amountSymbol, { color: amtColor }]}>{Number(record.amount) < 0 ? '+' : '-'}¥</Text>
                   <Text style={[styles.amountValue, { color: amtColor }]}>{Math.abs(Number(record.amount || 0)).toFixed(2)}</Text>
                 </View>
-              </View>
               {currentUser ? (
                 <View style={styles.amountUser}>
                   <Image
@@ -269,6 +268,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                   <Text style={styles.amountUsername} numberOfLines={1}>{currentUser}</Text>
                 </View>
               ) : null}
+              </View>
             </View>
 
             <View style={styles.infoCard}>
@@ -521,6 +521,10 @@ const getStyles = (c: ThemeColors) => {
       paddingTop: 16,
     },
     // Amount card — prominent, left-aligned, theme-colored bg
+    amountCardOuter: {
+      position: 'relative' as any, overflow: 'visible' as any,
+      marginBottom: 16,
+    },
     amountCard: {
       flexDirection: 'row' as const, overflow: 'visible' as any,
       alignItems: 'center' as const,
