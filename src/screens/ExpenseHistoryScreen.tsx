@@ -144,13 +144,13 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
       <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
         <View style={st.row}>
         <View style={st.rowTop}>
-          {true && (
+          {isRefund && (
             <View style={{
               borderWidth: 1.5, borderColor: colors.danger, borderRadius: 4,
               paddingHorizontal: 6, paddingVertical: 1,
               backgroundColor: colors.surface,
             }} pointerEvents="none">
-              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.danger }}>退款TEST</Text>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.danger }}>{t('refund')}</Text>
             </View>
           )}
           <View style={st.badges}>
