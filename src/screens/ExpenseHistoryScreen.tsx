@@ -422,17 +422,15 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   },
   payBadgeText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
   amount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.danger },
-  /* Refund stamp */
+  /* Refund stamp — step 1: plain red box, no transform/opacity */
   refundStamp: {
-    position: 'absolute', top: 8, right: 8, zIndex: 10,
-    borderWidth: 1.5, borderColor: colors.danger, borderRadius: 6,
+    position: 'absolute', top: 8, right: 8,
+    borderWidth: 2, borderColor: colors.danger, borderRadius: 4,
     paddingHorizontal: 8, paddingVertical: 3,
-    backgroundColor: colors.surface,
-    transform: [{ rotate: '-12deg' }],
-    opacity: 0.85,
+    backgroundColor: '#ff0000',
   } as any,
   refundStampText: {
-    fontSize: 13, fontWeight: '700', color: colors.danger,
+    fontSize: 13, fontWeight: '700', color: '#ffffff',
   },
   filledBy: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },

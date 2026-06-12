@@ -254,11 +254,13 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                 </View>
               )}
               <View style={[styles.amountCard, { backgroundColor: amtBg }]}>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.amountLabel}>{t('expTotalAmount')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
                   <Text style={[styles.amountSymbol, { color: amtColor }]}>{Number(record.amount) < 0 ? '+' : '-'}¥</Text>
                   <Text style={[styles.amountValue, { color: amtColor }]}>{Math.abs(Number(record.amount || 0)).toFixed(2)}</Text>
                 </View>
+              </View>
               {currentUser ? (
                 <View style={styles.amountUser}>
                   <Image
