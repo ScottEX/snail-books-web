@@ -328,7 +328,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
                 </Animated.View>
       </>)}
 
-      {/* List — FlatList with stability props to prevent cards disappearing on web */}
+      {/* List — FlatList with getItemLayout prevents re-measure on append (Safari bug) */}
       <FlatList
         key={filterKey}
         testID="exp-scroll"
@@ -336,11 +336,10 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
         data={records}
         keyExtractor={(e: any, i: number) => e.id != null ? `tx-${e.id}` : `tx-${i}`}
         renderItem={renderItem}
+        getItemLayout={(_: any, index: number) => ({ length: 100, offset: 100 * index, index })}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.4}
         removeClippedSubviews={false}
-        windowSize={21}
-        maxToRenderPerBatch={15}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
         ListEmptyComponent={!loading ? (
