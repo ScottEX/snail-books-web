@@ -353,7 +353,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     handleImageSelect, removeImage,
     handleExpDateChange, resetForm,
     isAmountInvalid,
-    fmtDecInput, toDec2Comma,
+    fmtDecInput, fmtRefundInput, toDec2Comma,
+    isRefund, setIsRefund,
   } = useExpenseForm({
     onExpenseHistory,
     getPreviewUrl,
@@ -778,11 +779,28 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={st.expForm}>
               {/* 大金额输入 */}
               <View style={st.bigAmtWrap}>
-                <Text style={st.bigAmtLabel}>{t('amountLabel')}</Text>
-                <View style={st.bigAmtRow}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 6 }}>
+                  <Text style={st.bigAmtLabel}>{isRefund ? t('refund') : t('amountLabel')}</Text>
+                  <TouchableOpacity
+                    onPress={() => { setIsRefund(!isRefund); if (!isRefund) setExpAmount(''); }}
+                    activeOpacity={0.7}
+                    style={{
+                      padding: 4, borderRadius: 4,
+                      backgroundColor: isRefund ? withAlpha(colors.danger, 0.1) : withAlpha(colors.textMain, 0.06),
+                    }}
+                  >
+                    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                      <Path d="M3 10h6l2-4h2l2 4h6" stroke={isRefund ? colors.danger : colors.textSub} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <Path d="M5 10v7a3 3 0 003 3h8a3 3 0 003-3v-7" stroke={isRefund ? colors.danger : colors.textSub} strokeWidth="1.5" />
+                      <Circle cx="12" cy="15" r="1" fill={isRefund ? colors.danger : colors.textSub} />
+                    </Svg>
+                  </TouchableOpacity>
+                </View>
+                <View style={[st.bigAmtRow, isRefund && { borderColor: withAlpha(colors.danger, 0.3) }]}>
+                  {isRefund && <Text style={[st.bigAmtSymbol, { color: colors.danger }]}>-</Text>}
                   <Text style={st.bigAmtSymbol}>¥</Text>
                   <TextInput style={st.bigAmtInput}
-                    value={expAmount} onChangeText={(v: string) => setExpAmount(fmtDecInput(v))}
+                    value={expAmount} onChangeText={(v: string) => setExpAmount(fmtRefundInput(v))}
                     onBlur={() => { if (expAmount !== '') setExpAmount(toDec2Comma(expAmount)); }}
                     keyboardType="decimal-pad" placeholder="0.00"
                     placeholderTextColor={colors.textSub}
@@ -830,7 +848,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 leftLabel={t('expenseHistory')}
                 leftOnPress={() => onExpenseHistory?.()}
                 rightLabel={loadingExp ? '...' : t('confirmRecord')}
-                rightOnPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) > 0) setShowExpConfirm(true); }}
+                rightOnPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) !== 0) setShowExpConfirm(true); }}
                 rightDisabled={isAmountInvalid}
               />
             </View>

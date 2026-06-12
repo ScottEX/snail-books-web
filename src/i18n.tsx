@@ -312,6 +312,7 @@ const I18N: Record<string, Record<string, string>> = {
     reconciledBy: '对账人',
     recordedBy: '录入人',
     recrop: '重新裁剪',
+    refund: '退款',
     register: '注册',
     invoiceTitle: '开票信息',
     companyName: '公司名称',
@@ -767,6 +768,7 @@ const I18N: Record<string, Record<string, string>> = {
     reconciledBy: '對賬人',
     recordedBy: '錄入人',
     recrop: '重新裁剪',
+    refund: '退款',
     register: '註冊',
     invoiceTitle: '開票信息',
     companyName: '公司名稱',
@@ -1223,6 +1225,7 @@ const I18N: Record<string, Record<string, string>> = {
     reconciledBy: 'Reconciled by',
     recordedBy: 'By',
     recrop: 'Re-crop',
+    refund: 'Refund',
     register: 'Register',
     invoiceTitle: 'Invoice Info',
     companyName: 'Company Name',
@@ -1674,6 +1677,7 @@ export type I18nKey =
   | 'reconciledBy'
   | 'recordedBy'
   | 'recrop'
+  | 'refund'
   | 'register'
   | 'invoiceTitle' | 'companyName' | 'taxId' | 'bankName' | 'bankAccount' | 'addressPhone' | 'companyPhone' | 'invoiceSave' | 'invoiceSaving' | 'invoiceSaved'
   | 'registerBtn'

@@ -246,12 +246,18 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
         {!editMode && (
           <>
             {/* Amount card — prominent at the top, theme-colored */}
-            <View style={[styles.amountCard, { backgroundColor: amtBg }]}>
+            <View style={[styles.amountCard, { backgroundColor: amtBg, position: 'relative' }]}>
+              {/* Refund stamp */}
+              {Number(record.amount) < 0 && (
+                <View style={styles.refundStamp}>
+                  <Text style={styles.refundStampText}>{t('refund')}</Text>
+                </View>
+              )}
               <View style={{ flex: 1 }}>
                 <Text style={styles.amountLabel}>{t('expTotalAmount')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-                  <Text style={[styles.amountSymbol, { color: amtColor }]}>-¥</Text>
-                  <Text style={[styles.amountValue, { color: amtColor }]}>{Number(record.amount || 0).toFixed(2)}</Text>
+                  <Text style={[styles.amountSymbol, { color: amtColor }]}>{Number(record.amount) < 0 ? '+' : '-'}¥</Text>
+                  <Text style={[styles.amountValue, { color: amtColor }]}>{Math.abs(Number(record.amount || 0)).toFixed(2)}</Text>
                 </View>
               </View>
               {currentUser ? (
@@ -540,6 +546,17 @@ const getStyles = (c: ThemeColors) => {
       fontWeight: '600' as const,
       marginRight: 2,
       marginBottom: 2,
+    },
+    /* Refund stamp */
+    refundStamp: {
+      position: 'absolute', top: 10, right: 10, zIndex: 10,
+      borderWidth: 1.5, borderColor: c.danger, borderRadius: 6,
+      paddingHorizontal: 10, paddingVertical: 4,
+      transform: [{ rotate: '-12deg' }],
+      opacity: 0.85,
+    } as any,
+    refundStampText: {
+      fontSize: 15, fontWeight: '700', color: c.danger,
     },
     amountUser: {
       alignItems: 'center' as const,

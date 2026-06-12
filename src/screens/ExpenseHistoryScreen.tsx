@@ -139,9 +139,16 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     const thumbImgs = e.thumb_images ? parseImages(e.thumb_images) : [];
     const displayImgs = thumbImgs.length > 0 ? thumbImgs : parseImages(e.images);
     const previewImgs = parseImages(e.images);
+    const isRefund = Number(e.amount || 0) < 0;
     return (
       <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
-        <View style={st.row}>
+        <View style={[st.row, { position: 'relative' }]}>
+        {/* Refund stamp */}
+        {isRefund && (
+          <View style={st.refundStamp}>
+            <Text style={st.refundStampText}>{t('refund')}</Text>
+          </View>
+        )}
         <View style={st.rowTop}>
           <View style={st.badges}>
             <View style={st.catBadge}>
@@ -151,7 +158,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
               <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
             </View>
           </View>
-          <Text style={st.amount}>-¥{Number(e.amount || 0).toFixed(2)}</Text>
+          <Text style={[st.amount, isRefund && { color: colors.success }]}>{isRefund ? '+' : '-'}¥{Math.abs(Number(e.amount || 0)).toFixed(2)}</Text>
         </View>
         {currentUser ? (
           <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
@@ -410,6 +417,17 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   },
   payBadgeText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
   amount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.danger },
+  /* Refund stamp */
+  refundStamp: {
+    position: 'absolute', top: 8, right: 8, zIndex: 10,
+    borderWidth: 1.5, borderColor: colors.danger, borderRadius: 6,
+    paddingHorizontal: 8, paddingVertical: 3,
+    transform: [{ rotate: '-12deg' }],
+    opacity: 0.85,
+  } as any,
+  refundStampText: {
+    fontSize: 13, fontWeight: '700', color: colors.danger,
+  },
   filledBy: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   rowBottom: {
