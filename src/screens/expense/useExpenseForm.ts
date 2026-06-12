@@ -209,8 +209,9 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
       setExpDate(sd.today);
       setExpImages([]);
       setIsRefund(false);
-      await loadExpenses();
       onExpenseHistory?.();
+      // background reload — don't block navigation
+      loadExpenses();
     } catch {
       onToast(t('toastSubmitFailed'));
     }

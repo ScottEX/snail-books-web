@@ -424,6 +424,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     position: 'absolute', top: 8, right: 8, zIndex: 10,
     borderWidth: 1.5, borderColor: colors.danger, borderRadius: 6,
     paddingHorizontal: 8, paddingVertical: 3,
+    backgroundColor: colors.surface,
     transform: [{ rotate: '-12deg' }],
     opacity: 0.85,
   } as any,

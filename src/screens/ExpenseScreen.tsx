@@ -785,7 +785,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     onPress={() => { setIsRefund(!isRefund); if (!isRefund) setExpAmount(''); }}
                     activeOpacity={0.7}
                     style={{
-                      padding: 2, borderRadius: 4, marginTop: -1,
+                      padding: 2, borderRadius: 4, marginTop: -3,
                       backgroundColor: isRefund ? withAlpha(colors.danger, 0.1) : withAlpha(colors.textMain, 0.06),
                     }}
                   >
