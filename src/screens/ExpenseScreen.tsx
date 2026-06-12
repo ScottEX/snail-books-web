@@ -796,7 +796,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   </TouchableOpacity>
                 </View>
                 <View style={[st.bigAmtRow, isRefund && { borderColor: withAlpha(colors.danger, 0.3) }]}>
-                  {isRefund && <Text style={[st.bigAmtSymbol, { color: colors.danger }]}>-</Text>}
+                  {isRefund && <Text style={[st.bigAmtSymbol, { color: colors.danger }]}>+</Text>}
                   <Text style={st.bigAmtSymbol}>¥</Text>
                   <TextInput style={st.bigAmtInput}
                     value={expAmount} onChangeText={(v: string) => setExpAmount(fmtRefundInput(v))}
