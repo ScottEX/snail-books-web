@@ -97,7 +97,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
   const [category, setCategory] = useState(record.category || 'daily');
   const [account, setAccount] = useState(record.account || 'payWechat');
-  const [amount, setAmount] = useState(toDec2(record.amount));
+  const [amount, setAmount] = useState(toDec2(Math.abs(record.amount)));
   const [date, setDate] = useState(record.date || record.created_at?.slice(0, 10) || sd.today);
   const [note, setNote] = useState(record.note || '');
   const [images, setImages] = useState<string[]>(parseImages(record.images));
@@ -109,7 +109,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
   const hasChanges = category !== (record.category || 'daily') ||
     account !== (record.account || 'payWechat') ||
-    amount !== toDec2(record.amount) ||
+    amount !== toDec2(Math.abs(record.amount)) ||
     date !== (record.date || record.created_at?.slice(0, 10) || sd.today) ||
     note !== (record.note || '') ||
     JSON.stringify(images) !== JSON.stringify(parseImages(record.images)) ||
@@ -130,8 +130,9 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   }, [date]);
 
   const handleSave = async () => {
-    const amt = parseFloat(amount);
-    if (!amt || amt <= 0) { setToast(t('enterAmount')); return; }
+    const absAmt = parseFloat(amount);
+    if (!absAmt || absAmt <= 0) { setToast(t('enterAmount')); return; }
+    const amt = absAmt * (Number(record.amount) < 0 ? -1 : 1);
     setSaving(true);
     try {
       let finalImages = images;
@@ -349,7 +350,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
             <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>{t('expTotalAmount')}</Text>
             <View style={{ alignItems: 'center', paddingVertical: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 20, fontWeight: '600' as const, color: amtColor, marginRight: 2, marginBottom: 4 }}>{Number(amount) < 0 ? '+' : '-'}¥</Text>
+                <Text style={{ fontSize: 20, fontWeight: '600' as const, color: amtColor, marginRight: 2, marginBottom: 4 }}>{Number(record.amount) < 0 ? '+' : '-'}¥</Text>
                 {record.procurement_batch_id ? (
                   <Text style={{ fontSize: 36, fontWeight: '700' as const, color: c.textSub }}>{amount || '0.00'}</Text>
                 ) : (
@@ -430,7 +431,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               style={{ flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderColor: c.secondary }}
               onPress={() => {
                 setCategory(record.category || 'daily'); setAccount(record.account || 'payWechat');
-                setAmount(toDec2(record.amount)); setDate(record.date || record.created_at?.slice(0, 10) || sd.today);
+                setAmount(toDec2(Math.abs(record.amount))); setDate(record.date || record.created_at?.slice(0, 10) || sd.today);
                 setNote(record.note || ''); setImages(parseImages(record.images));
                 setThumbImages(parseImages(record.thumb_images));
                 newFiles.forEach(f => { const u = urlCache.current.get(f); if (u) URL.revokeObjectURL(u); });
