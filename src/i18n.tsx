@@ -205,6 +205,9 @@ const I18N: Record<string, Record<string, string>> = {
     monthProfit: '本月利润',
     monthlyProfit: '月度利润',
     monthlyTrend: '月度收支趋势',
+    dailyTrend: '每日收支趋势',
+    chartSwitchMonth: '月',
+    chartSwitchDay: '日',
     nameJiang: '江宽',
     nameLan: '蓝柳富',
     nameZhang: '张安武',
@@ -655,6 +658,9 @@ const I18N: Record<string, Record<string, string>> = {
     monthProfit: '本月利潤',
     monthlyProfit: '月度利潤',
     monthlyTrend: '月度收支趨勢',
+    dailyTrend: '每日收支趨勢',
+    chartSwitchMonth: '月',
+    chartSwitchDay: '日',
     nameJiang: '江寬',
     nameLan: '藍柳富',
     nameZhang: '張安武',
@@ -1107,6 +1113,9 @@ const I18N: Record<string, Record<string, string>> = {
     monthProfit: 'Month Profit',
     monthlyProfit: 'Monthly Profit',
     monthlyTrend: 'Monthly Trend',
+    dailyTrend: 'Daily Trend',
+    chartSwitchMonth: 'Month',
+    chartSwitchDay: 'Day',
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
     nameZhang: 'Zhang Anwu',
@@ -1554,6 +1563,9 @@ export type I18nKey =
   | 'thisMonth'
   | 'monthlyProfit'
   | 'monthlyTrend'
+  | 'dailyTrend'
+  | 'chartSwitchMonth'
+  | 'chartSwitchDay'
   | 'nameJiang'
   | 'nameLan'
   | 'nameZhang'

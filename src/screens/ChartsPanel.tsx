@@ -14,6 +14,9 @@ interface Props {
   expense: number[];
   profit: number[];
   categories: Record<string, number>;
+  dailyDates?: string[];
+  dailyIncome?: number[];
+  dailyExpense?: number[];
 }
 
 // ── Category → fixed color mapping (by i18n zh-CN key) ──
@@ -89,9 +92,11 @@ const tooltipStyles = StyleSheet.create({
   },
 });
 
-export default function ChartsPanel({ months, income, expense, profit, categories }: Props) {
+export default function ChartsPanel({ months, income, expense, profit, categories, dailyDates, dailyIncome, dailyExpense }: Props) {
   const { colors } = useTheme();
   const [showBar, setShowBar] = useState(false);
+  const [showDaily, setShowDaily] = useState(false);
+  const hasDaily = !!(dailyDates?.length);
 
   // Current month number from the data
   const currentMonth = months.length > 0 ? parseInt(months[months.length - 1].slice(5), 10) : new Date().getMonth() + 1;
@@ -116,6 +121,15 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
     [incomeLabel]: income[i],
     [expenseLabel]: expense[i],
   }));
+
+  // Daily line data (MM-DD labels)
+  const dailyLineData = hasDaily
+    ? (dailyDates || []).map((d, i) => ({
+        day: d.slice(5),
+        [incomeLabel]: (dailyIncome || [])[i] || 0,
+        [expenseLabel]: (dailyExpense || [])[i] || 0,
+      }))
+    : [];
 
   const profitData = months.map((m, i) => ({
     month: m.slice(5),
@@ -142,17 +156,34 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
 
   return (
     <View style={{ gap: 12, marginTop: 0 }}>
-      {/* ── 月度收支趋势（双线） ── */}
+      {/* ── 收支趋势（月度 / 每日切换） ── */}
       <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
         <View style={chartStyles.titleRow}>
-          <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyTrend')}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={[chartStyles.title, { color: subTextColor }]}>{showDaily ? t('dailyTrend') : t('monthlyTrend')}</Text>
+            {hasDaily && (
+              <TouchableOpacity
+                onPress={() => setShowDaily(!showDaily)}
+                activeOpacity={0.7}
+                style={{
+                  paddingHorizontal: 8, paddingVertical: 3,
+                  borderRadius: 6,
+                  backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                }}
+              >
+                <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '600' }}>
+                  {showDaily ? t('chartSwitchMonth') : t('chartSwitchDay')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
           <Text style={[chartStyles.axisHint, { color: tickColor }]}>{xLabel} · {yLabel}</Text>
         </View>
         <View style={chartStyles.chartWrap}>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={lineData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <LineChart data={showDaily && hasDaily ? dailyLineData : lineData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey={showDaily && hasDaily ? 'day' : 'month'} tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
               <Tooltip content={<ChartTooltip />} />
               <Legend
