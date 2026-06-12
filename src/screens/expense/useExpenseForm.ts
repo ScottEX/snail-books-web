@@ -193,7 +193,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
       }
       await api.createTransaction({
         type: 'expense',
-        amount: parseFloat(expAmount.replace(/,/g, '')),
+        amount: parseFloat(expAmount.replace(/,/g, '')) * (isRefund ? -1 : 1),
         category: expCategory,
         account: payMethod,
         note: expNote,
