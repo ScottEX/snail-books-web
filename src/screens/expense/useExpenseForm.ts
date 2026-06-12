@@ -161,9 +161,9 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
   // Format input allowing leading minus when refund mode
   const fmtRefundInput = useCallback((v: string) => {
     if (!isRefund) return fmtDecInput(v);
-    const hasMinus = v.startsWith('-');
-    const clean = fmtDecInput(hasMinus ? v.slice(1) : v);
-    return clean === '' || clean === '0' ? (hasMinus ? '-' : '') : (hasMinus ? '-' + clean : clean);
+    // UI already renders a red '-' sign — strip any leading '-' from input
+    const stripped = v.startsWith('-') ? v.slice(1) : v;
+    return fmtDecInput(stripped);
   }, [isRefund]);
 
   const handleAddExpense = useCallback(async () => {
