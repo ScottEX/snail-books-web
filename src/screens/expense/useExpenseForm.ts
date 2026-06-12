@@ -208,6 +208,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
       setExpNote('');
       setExpDate(sd.today);
       setExpImages([]);
+      setIsRefund(false);
       await loadExpenses();
       onExpenseHistory?.();
     } catch {
@@ -221,6 +222,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     expCategory,
     payMethod,
     expNote,
+    isRefund,
     clearUrlCache,
     loadExpenses,
     onExpenseHistory,
@@ -238,6 +240,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     setShowExpConfirm(false);
     setLoadingExp(false);
     setUploadingImg(false);
+    setIsRefund(false);
   }, []);
 
   // Derived: true when the form should be disabled (no amount, zero, or loading)
