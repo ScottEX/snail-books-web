@@ -141,10 +141,14 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     const previewImgs = parseImages(e.images);
     const isRefund = Number(e.amount || 0) < 0;
     return (
-      <View style={{ position: 'relative' }}>
-        <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
-          <View style={st.row}>
-        <View style={st.rowTop}>
+      <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
+        <View style={st.row}>
+          {isRefund && (
+            <View style={st.refundStamp} pointerEvents="none">
+              <Text style={st.refundStampText}>{t('refund')}</Text>
+            </View>
+          )}
+          <View style={st.rowTop}>
           <View style={st.badges}>
             <View style={st.catBadge}>
               <Text style={st.catBadgeText}>{trCat(e.category || '')}</Text>
@@ -191,13 +195,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
         )}
       </View>
       </TouchableOpacity>
-        {/* Refund stamp — outside TouchableOpacity to avoid clipping */}
-        {isRefund && (
-          <View style={st.refundStamp}>
-            <Text style={st.refundStampText}>{t('refund')}</Text>
-          </View>
-        )}
-      </View>
     );
   }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, onExpDetail]);
 
@@ -394,6 +391,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   list: { flex: 1 },
   /* Row */
   row: {
+    position: 'relative', overflow: 'visible' as any,
     backgroundColor: colors.surface, borderRadius: 12,
     paddingVertical: 14, paddingHorizontal: 14,
     marginBottom: 8,

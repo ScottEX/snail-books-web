@@ -522,7 +522,7 @@ const getStyles = (c: ThemeColors) => {
     },
     // Amount card — prominent, left-aligned, theme-colored bg
     amountCard: {
-      flexDirection: 'row' as const,
+      flexDirection: 'row' as const, overflow: 'visible' as any,
       alignItems: 'center' as const,
       borderRadius: 12,
       paddingVertical: 20,
