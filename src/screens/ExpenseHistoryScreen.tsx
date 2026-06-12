@@ -167,14 +167,14 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
             <View style={{ flex: 1 }} />
           )}
         </View>
-        {/* Image thumbnails — at most 3, horizontal scroll, no wrap (no reflow on load) */}
+        {/* Image thumbnails — horizontal scroll, no wrap (no reflow on load) */}
         {displayImgs.length > 0 && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
-            {displayImgs.slice(0, 3).map((url: string, j: number) => (
+            {displayImgs.map((url: string, j: number) => (
               <TouchableOpacity key={j}
                 onPress={() => setPreviewData({ images: previewImgs, idx: j })}
                 activeOpacity={0.8}
-                style={{ marginRight: j < Math.min(displayImgs.length, 3) - 1 ? 6 : 0 }}>
+                style={{ marginRight: j < displayImgs.length - 1 ? 6 : 0 }}>
                 {React.createElement('img', {
                   src: url,
                   loading: 'lazy' as any,
