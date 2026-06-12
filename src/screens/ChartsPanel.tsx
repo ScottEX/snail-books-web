@@ -93,6 +93,9 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
   const { colors } = useTheme();
   const [showBar, setShowBar] = useState(false);
 
+  // Current month number from the data
+  const currentMonth = months.length > 0 ? parseInt(months[months.length - 1].slice(5), 10) : new Date().getMonth() + 1;
+
   // ── Kill recharts blue focus ring ──
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -193,8 +196,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
       {donutData.length > 0 && (
         <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
           <View style={chartStyles.titleRow}>
-            <Text style={[chartStyles.title, { marginBottom: 0 }]}>{t('expenseBreakdown')}</Text>
-            <Text style={{ color: tickColor, fontSize: 10, marginTop: 2 }}>{t('thisMonth')}</Text>
+            <Text style={[chartStyles.title, { marginBottom: 0 }]}>{currentMonth + t('expenseBreakdownOfMonth')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={{ color: tickColor, fontSize: 10 }}>{t('chartSwitchHint')}</Text>
               <TouchableOpacity
