@@ -247,19 +247,13 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
           <>
             {/* Amount card — prominent at the top, theme-colored */}
             <View style={[styles.amountCard, { backgroundColor: amtBg }]}>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                  <Text style={styles.amountLabel}>{t('expTotalAmount')}</Text>
-                  {Number(record.amount) < 0 && (
-                    <View style={{
-                      borderWidth: 1.5, borderColor: c.danger, borderRadius: 4,
-                      paddingHorizontal: 6, paddingVertical: 1,
-                      backgroundColor: c.surface, marginLeft: 8,
-                    }} pointerEvents="none">
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: c.danger }}>{t('refund')}</Text>
-                    </View>
-                  )}
+              {Number(record.amount) < 0 && (
+                <View pointerEvents="none" style={styles.refundStamp}>
+                  <Text style={styles.refundStampText}>{t('refund')}</Text>
                 </View>
+              )}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.amountLabel}>{t('expTotalAmount')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
                   <Text style={[styles.amountSymbol, { color: amtColor }]}>{Number(record.amount) < 0 ? '+' : '-'}¥</Text>
                   <Text style={[styles.amountValue, { color: amtColor }]}>{Math.abs(Number(record.amount || 0)).toFixed(2)}</Text>
@@ -527,6 +521,7 @@ const getStyles = (c: ThemeColors) => {
     },
     // Amount card — prominent, left-aligned, theme-colored bg
     amountCard: {
+      position: 'relative' as any,
       flexDirection: 'row' as const, overflow: 'visible' as any,
       alignItems: 'center' as const,
       borderRadius: 12,
@@ -551,6 +546,16 @@ const getStyles = (c: ThemeColors) => {
       fontWeight: '600' as const,
       marginRight: 2,
       marginBottom: 2,
+    },
+    /* Refund stamp */
+    refundStamp: {
+      position: 'absolute', top: 10, right: 10, zIndex: 2,
+      borderWidth: 1.5, borderColor: c.danger, borderRadius: 6,
+      paddingHorizontal: 10, paddingVertical: 4,
+      backgroundColor: c.surface,
+    } as any,
+    refundStampText: {
+      fontSize: 15, fontWeight: '700', color: c.danger,
     },
     amountUser: {
       alignItems: 'center' as const,
