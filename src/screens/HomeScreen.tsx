@@ -25,6 +25,7 @@ import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
 import { useNavigationStack, type SubPage } from './home/useNavigationStack';
+import { useHomeData } from './home/useHomeData';
 import { useServerDate } from '../hooks/useServerDate';
 import DailyRevenuePanel from './home/DailyRevenuePanel';
 import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
@@ -55,12 +56,8 @@ export default function HomeScreen({
     setTabState(t);
     try { localStorage.setItem('active_tab', t); } catch {}
   };
-  const [summary, setSummary] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [chart, setChart] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+
+  // summary/transactions/chart/products → useHomeData
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount (so a new user's server-
   // side language actually reaches the lang selector).
@@ -117,10 +114,8 @@ export default function HomeScreen({
 
 
   // PDF push + popstate listener → useNavigationStack hook
-  const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
   const [bgReady, setBgReady] = useState(true); // default bg.jpg always ready
@@ -143,10 +138,18 @@ export default function HomeScreen({
   });
 
   // ── 收支总览数据（图表 Tab）──
-  const [businessSummary, setBusinessSummary] = useState<any>({});
-  const [chartExpenses, setChartExpenses] = useState<any[]>([]);
-  const [dailyRevenues, setDailyRevenues] = useState<any[]>([]);
-  const [chartMonthly, setChartMonthly] = useState<any>(null);
+  const {
+    summary, transactions, page, pages,
+    chart, chartMonthly, products,
+    businessSummary, dailyRevenues, chartExpenses,
+    last7Records, setLast7Records, avatarUrl,
+    loadData, loadAvatar,
+    todayExpenseChart, monthExpenseChart, todayIncome, monthIncome,
+    dailyChartData,
+    toDec2Comma,
+    handlePage,
+  } = useHomeData(tab, setToast);
+
   // Background image crop moved to shared BgCropModal component.
 
   const sd = useServerDate();
@@ -164,56 +167,15 @@ export default function HomeScreen({
     onRefreshLast7: (records: any[]) => setLast7Records(records),
   });
 
-  // Load last 7 days table
-  useEffect(() => {
-    let cancelled = false;
-    api.getLast7Days().then((r: any) => {
-      if (!cancelled) setLast7Records(r?.records || []);
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
 
-  const MONTHS_SHORT = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  // last7Days → useHomeData
 
-  const loadDataReqRef = useRef(0);
-  const loadData = useCallback(async () => {
-    const reqId = ++loadDataReqRef.current;
-    try {
-      const s = await api.getSummary();
-      if (reqId !== loadDataReqRef.current) return;
-      setSummary(s);
-      const tx = await api.getTransactions(1, 20);
-      if (reqId !== loadDataReqRef.current) return;
-      setTransactions(tx.transactions || []);
-      setPages(tx.pages || 1);
-      setPage(1);
-    } catch {
-      if (reqId !== loadDataReqRef.current) return;
-      setToast(t('toastLoadFailed'));
-    }
-  }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  // MONTHS_SHORT → useHomeData
+  // loadData → useHomeData
 
-  const loadAvatar = async () => {
-    const uid = getCurrentUserId();
-    if (!uid) return;
-    const CACHE_KEY = 'cached_avatar_b64';
-    // Serve from cache immediately to avoid flash
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (cached) setAvatarUrl(cached);
-    } catch {}
-    try {
-      const b64 = await api.getUserAvatar(uid);
-      if (b64) {
-        setAvatarUrl(b64);
-        try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
-      }
-    } catch {}
-  };
 
-  useEffect(() => { loadAvatar(); }, []);
+  // loadAvatar → useHomeData
 
   // Cross-screen bg sync: ProfileScreen theme button uploads a new
   // background and dispatches 'bg-changed' so we refresh here. The
@@ -266,98 +228,14 @@ export default function HomeScreen({
     }).catch(() => {});
   }, []);
 
-  const loadChart = async () => {
-    try { const d = await api.getChart(); setChart(d || []); } catch { setToast(t('toastLoadFailed')); }
-  };
 
-  const loadChartMonthly = async () => {
-    try { const d = await api.getChartMonthly(); setChartMonthly(d); } catch { /* silent */ }
-  };
+  // loadChart/loadChartMonthly/loadProducts → useHomeData
 
-  const loadProducts = async () => {
-    try { const p = await api.getProducts(); setProducts(p || []); } catch { setToast(t('toastLoadFailed')); }
-  };
 
-  useEffect(() => {
-    if (tab === 'chart') { loadChart(); loadChartMonthly(); }
-    if (tab === 'supply') { loadProducts(); }
-  }, [tab]);
+  // businessSummary/chartExpenses/dailyRevenues → useHomeData
 
-  // ── 收支总览数据 ──
-  const toDec2Comma = (v: any) => {
-    const n = parseFloat(String(v ?? 0)) || 0;
-    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
 
-  useEffect(() => {
-    // businessSummary
-    api.getBusinessSummary().then((data: any) => {
-      setBusinessSummary(data || {});
-    }).catch(() => {});
-
-    // expenses (for today/month summary cards)
-    (async () => {
-      try {
-        const all: any[] = [];
-        let p = 1;
-        while (true) {
-          const tx: any = await api.getTransactions(p, 100);
-          const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
-          all.push(...exps);
-          if (p >= (tx.pages || 1)) break;
-          p++;
-        }
-        setChartExpenses(all);
-      } catch {}
-    })();
-
-    // daily revenue (for today/month income cards)
-    (async () => {
-      try {
-        const todayStr = new Date().toISOString().slice(0, 10);
-        const monthStart = todayStr.slice(0, 7) + '-01';
-        const r: any = await api.getDailyRevenue(1, 31, undefined, undefined, undefined, undefined, monthStart, todayStr);
-        setDailyRevenues(r?.records || []);
-      } catch {}
-    })();
-  }, []);
-
-  // Compute chart summary values
-  const todayStr2 = sd.today;
-  const thisMonthPrefix2 = todayStr2.slice(0, 7);
-  const todayExpenseChart = chartExpenses
-    .filter((e: any) => e.date === todayStr2)
-    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
-  const monthExpenseChart = chartExpenses
-    .filter((e: any) => String(e.date || '').startsWith(thisMonthPrefix2))
-    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
-
-  const todayIncome = dailyRevenues
-    .filter((r: any) => r.date === todayStr2)
-    .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
-  const monthIncome = dailyRevenues
-    .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
-
-  // ── 每日图表数据（最近 12 天）──
-  const dailyChartData = useMemo(() => {
-    const dates: string[] = [];
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      dates.push(d.toISOString().slice(0, 10));
-    }
-    const dailyIncome = dates.map(date =>
-      dailyRevenues
-        .filter((r: any) => r.date === date)
-        .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0)
-    );
-    const dailyExpense = dates.map(date =>
-      chartExpenses
-        .filter((e: any) => e.date === date)
-        .reduce((s: number, e: any) => s + (e.amount || 0), 0)
-    );
-    return { dates, income: dailyIncome, expense: dailyExpense };
-  }, [dailyRevenues, chartExpenses]);
+  // Chart derived values → useHomeData functions
 
   // ── Inject glass-slider CSS ──
   useEffect(() => {
@@ -414,15 +292,8 @@ export default function HomeScreen({
     }
   };
 
-  const handlePage = async (p: number) => {
-    try {
-      const tx = await api.getTransactions(p, 20);
-      setTransactions(tx.transactions || []);
-      setPage(p);
-    } catch {
-      setToast(t('toastLoadFailed'));
-    }
-  };
+
+  // handlePage → useHomeData
 
   const handleDeleteTx = async (id: number) => {
     try {
@@ -842,10 +713,10 @@ export default function HomeScreen({
                   </View>
                   {/* 6 张收支卡片 */}
                   <ExpenseSummaryCards
-                    todayExpense={todayExpenseChart}
-                    monthExpense={monthExpenseChart}
-                    todayIncome={todayIncome}
-                    monthIncome={monthIncome}
+                    todayExpense={todayExpenseChart(sd.today)}
+                    monthExpense={monthExpenseChart(sd.today.slice(0, 7))}
+                    todayIncome={todayIncome(sd.today)}
+                    monthIncome={monthIncome()}
                   />
                   {/* 图表：月度趋势 + 分类占比 */}
                   {chartMonthly && (
