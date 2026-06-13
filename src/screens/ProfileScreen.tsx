@@ -185,7 +185,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     } catch {}
   };
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); fetchUnreviewedCount(); }, [refreshKey]);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); fetchUnreviewedCount(); }, []);
+  useEffect(() => { fetchUnreviewedCount(); }, [refreshKey]);
 
   const loadUserInfo = async () => {
     try {
