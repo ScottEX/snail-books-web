@@ -90,7 +90,7 @@ function lastDayOfMonth(y: number, m: number): string {
   return `${y}-${String(m).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
+export default function UserManagementScreen({ onBack, onUserSelect, onMarkReviewed }: Props) {
   const { colors: c } = useTheme();
   const sd = useServerDate();
   const swipeBack = useSwipeBack(onBack);
