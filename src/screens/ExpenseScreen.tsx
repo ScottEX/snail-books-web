@@ -14,7 +14,7 @@ import FadeInView from '../components/FadeInView';
 import DateErrorHint from '../components/DateErrorHint';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
+import { modalCardAnimation, uploadReceiptStyles } from '../sharedStyles';
 import { fmtAmt as fmt } from '../utils/format';
 import { blockNeg, fmtDecInput, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser } from '../utils/storage';
@@ -23,6 +23,7 @@ import DatePicker from '../components/DatePicker';
 import { useServerDate } from '../hooks/useServerDate';
 import CategoryChips from '../components/CategoryChips';
 import ButtonPair from '../components/ButtonPair';
+import CloseButton from '../components/CloseButton';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
@@ -861,9 +862,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('expConfirmTitle')}</Text>
-              <TouchableOpacity onPress={() => setShowExpConfirm(false)}>
-                <Text style={st.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => setShowExpConfirm(false)} />
             </View>
             <View style={{ padding: 20, gap: 16 }}>
               <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
@@ -884,9 +883,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
-              <TouchableOpacity onPress={hideToast}>
-                <Text style={st.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={hideToast} />
             </View>
             <View style={{ padding: 20, gap: 16 }}>
               <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
@@ -906,9 +903,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={[st.feeSheet, { maxWidth: 720 }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
-              <TouchableOpacity onPress={() => feeSheet.hide()}>
-                <Text style={st.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => feeSheet.hide()} />
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
@@ -979,9 +974,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={[st.feeSheet, { height: Dimensions.get('window').height * 0.75, width: '96%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
-              <TouchableOpacity onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }}>
-                <Text style={st.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} />
             </View>
             {/* Month filter */}
             <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center' }}>
@@ -1458,7 +1451,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
-  modalClose: { ...modalClose, },
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
     backgroundColor: colors.surface,

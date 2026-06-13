@@ -4,6 +4,7 @@ import { useTheme, withAlpha } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
 import ModalOverlay from './ModalOverlay';
+import CloseButton from './CloseButton';
 import { FONTS } from '../theme';
 
 interface Props {
@@ -94,9 +95,7 @@ export default function InvoiceModal({ visible, onClose }: Props) {
       <View style={[s.card, { backgroundColor: c.surface }]}>
         <View style={[s.header, { backgroundColor: c.primary }]}>
           <Text style={[s.title, { color: c.surface }]}>{t('invoiceTitle')}</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={[s.closeBtn, { color: c.surface }]}>✕</Text>
-          </TouchableOpacity>
+          <CloseButton onPress={onClose} />
         </View>
         <View style={s.body}>
           {FIELDS.map((f) => (
@@ -146,7 +145,6 @@ const s = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   title: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
-  closeBtn: { fontSize: 18, fontWeight: '300' as const },
   body: { padding: 24, gap: 14 },
   fieldRow: { gap: 4 },
   label: { fontSize: 12, fontWeight: '500' },

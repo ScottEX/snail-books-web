@@ -10,13 +10,14 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalCardAnimation } from '../sharedStyles';
 import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import LoadingSpinner from '../components/LoadingSpinner';
 import TextField from '../components/TextField';
 import ButtonPair from '../components/ButtonPair';
+import CloseButton from '../components/CloseButton';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -265,7 +266,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     ...modalCardAnimation, },
   modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
-  modalClose: { ...modalClose, },
   modalBody: { padding: 24 },
   modalInput: { paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 10, outline: 'none' },
   modalDeleteBox: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' as const },
@@ -1190,9 +1190,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{editingProduct ? t('procEditProduct') : t('procAddProduct')}</Text>
-              <TouchableOpacity onPress={() => closeSlideModal(() => setShowProductModal(false))}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => closeSlideModal(() => setShowProductModal(false))} />
             </View>
             <View style={styles.modalBody}>
               <TextField placeholder={t('procProductName')} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
@@ -1357,9 +1355,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   {itemsModalIsCart && itemsModalView === 'products' ? t('procAddProduct') : t('procOrderItems')}
                 </Text>
               </View>
-              <TouchableOpacity onPress={closeItemsModal}>
-                <Text style={styles.itemsModalClose}>✕</Text>
-              </TouchableOpacity>
+                <CloseButton onPress={closeItemsModal} />
             </View>
             {itemsModalIsCart && itemsModalView === 'products' ? (
               // ── Product picker view ──

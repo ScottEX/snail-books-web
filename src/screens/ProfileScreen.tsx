@@ -7,7 +7,7 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalCardAnimation } from '../sharedStyles';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
@@ -21,6 +21,7 @@ import { useAvatarCrop } from './profile/useAvatarCrop';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
+import CloseButton from '../components/CloseButton';
 import TextField from '../components/TextField';
 
 /* ========== MAIN SCREEN ========== */
@@ -562,9 +563,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <View style={mo.card}>
           <View style={mo.header}>
             <Text style={mo.title}>{t('deleteAccount')}</Text>
-            <TouchableOpacity onPress={() => setShowAdminBlockModal(false)}>
-              <Text style={mo.closeBtn}>✕</Text>
-            </TouchableOpacity>
+            <CloseButton onPress={() => setShowAdminBlockModal(false)} />
           </View>
           <View style={mo.body}>
             <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 16 }}>
@@ -581,9 +580,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <View style={mo.card}>
           <View style={mo.header}>
             <Text style={mo.title}>{t('deleteAccountConfirmTitle')}</Text>
-            <TouchableOpacity onPress={() => setShowDeleteModal(false)}>
-              <Text style={mo.closeBtn}>✕</Text>
-            </TouchableOpacity>
+            <CloseButton onPress={() => setShowDeleteModal(false)} />
           </View>
           <View style={mo.body}>
             <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 8 }}>
@@ -621,9 +618,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changePassword')}</Text>
-              <TouchableOpacity onPress={() => setShowPwModal(false)}>
-                <Text style={mo.closeBtn}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => setShowPwModal(false)} />
             </View>
             <View style={mo.body}>
               <TextField
@@ -663,9 +658,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changeEmail')}</Text>
-              <TouchableOpacity onPress={() => setShowEmailModal(false)}>
-                <Text style={mo.closeBtn}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => setShowEmailModal(false)} />
             </View>
             <View style={mo.body}>
               {emailStep === 'input' ? (
@@ -1094,7 +1087,6 @@ function getMo(colors: ThemeColors) {
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     },
     title: { fontSize: 14, fontWeight: '700', color: colors.surface },
-    closeBtn: { ...modalClose },
     body: { padding: 20, gap: 12 } as any,
     input: {
       paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8,

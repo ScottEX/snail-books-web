@@ -4,6 +4,7 @@ import { useTheme, ThemeColors, withAlpha } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 import ModalOverlay from './ModalOverlay';
+import CloseButton from './CloseButton';
 
 interface ConfirmModalProps {
   visible: boolean;
@@ -41,9 +42,7 @@ export default function ConfirmModal({
       <View style={styles.card}>
         <View style={[styles.header, { backgroundColor: hdr }]}>
           <Text style={styles.title}>{title}</Text>
-          <TouchableOpacity onPress={onCancel}>
-            <Text style={styles.closeBtn}>✕</Text>
-          </TouchableOpacity>
+          <CloseButton onPress={onCancel} />
         </View>
         <View style={styles.body}>
           <View style={styles.warningBox}>
@@ -79,7 +78,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   title: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
-  closeBtn: { fontSize: 18, color: c.surface, fontWeight: '300' },
   body: { padding: 24, gap: 18 },
   warningBox: {
     backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12,
