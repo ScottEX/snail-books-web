@@ -718,9 +718,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) setCropSrc(''); }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('avatarCropTitle')}</Text>
-            <TouchableOpacity onPress={() => setCropSrc('')} style={cropS.closeBtn as any}>
-              <Text style={cropS.closeBtnText}>✕</Text>
-            </TouchableOpacity>
+            <CloseButton onPress={() => setCropSrc('')} variant="circle" />
           </View>
           <View style={cropS.stage as any} ref={stageRef as any}>
             <canvas ref={canvasRef as any}
@@ -824,9 +822,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverCropSrc(''); setCoverCropResult(''); } }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('coverCropTitle')}</Text>
-            <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={cropS.closeBtn as any}>
-              <Text style={cropS.closeBtnText}>✕</Text>
-            </TouchableOpacity>
+            <CloseButton onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} variant="circle" />
           </View>
           <View style={cropS.stage as any} ref={coverStageRef as any}>
             <canvas ref={coverCanvasRef as any}
@@ -1103,8 +1099,6 @@ function getCropStyles() {
     overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
     header: { paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any,
     title: { fontSize: 14, fontWeight: '600' as const, color: '#fff', letterSpacing: -0.2 },
-    closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' } as any,
-    closeBtnText: { color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 },
     stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' } as any,
     guideWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any,
     guideCircle: {

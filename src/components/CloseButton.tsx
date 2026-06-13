@@ -1,14 +1,26 @@
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { modalClose } from '../sharedStyles';
 
 interface CloseButtonProps {
   onPress: () => void;
+  /** "plain" (default): simple ✕ on dark headers. "circle": 28×28 circle with semi-transparent white bg, for fullscreen dark overlays. */
+  variant?: 'plain' | 'circle';
 }
 
-/** Modal header close button — ✕, white 70% opacity, 18px light weight.
- *  Uses the shared modalClose style for consistent appearance across all modals. */
-export default function CloseButton({ onPress }: CloseButtonProps) {
+const circleS = StyleSheet.create({
+  btn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
+  text: { color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 },
+});
+
+export default function CloseButton({ onPress, variant = 'plain' }: CloseButtonProps) {
+  if (variant === 'circle') {
+    return (
+      <TouchableOpacity onPress={onPress} style={circleS.btn}>
+        <Text style={circleS.text}>✕</Text>
+      </TouchableOpacity>
+    );
+  }
   return (
     <TouchableOpacity onPress={onPress}>
       <Text style={modalClose}>✕</Text>

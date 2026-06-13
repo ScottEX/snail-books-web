@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { createPortal } from 'react-dom';
 import { t } from '../i18n';
 import { useCropCanvas } from '../hooks/useCropCanvas';
+import CloseButton from './CloseButton';
 
 interface BgCropModalProps {
   visible: boolean;
@@ -258,9 +259,7 @@ export default function BgCropModal({
       {/* Header */}
       <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any}>
         <Text style={{ fontSize: 14, fontWeight: '600' as any, color: '#fff', letterSpacing: -0.2 }}>{title || t('editBg')}</Text>
-        <TouchableOpacity onPress={close} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' } as any}>
-          <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 } as any}>✕</Text>
-        </TouchableOpacity>
+        <CloseButton onPress={close} variant="circle" />
       </View>
 
       {/* Stage — cropping phase: live canvas crop. preview phase: thumbnail. */}
