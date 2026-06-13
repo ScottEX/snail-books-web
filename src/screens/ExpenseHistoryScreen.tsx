@@ -114,11 +114,12 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   };
 
   // Parse images field from API (stored as JSON string '["url1","url2"]')
-  const parseImages = (raw: any): string[] => {
+  // Stable useCallback reference so renderItem / useMemo deps don't churn.
+  const parseImages = useCallback((raw: any): string[] => {
     if (!raw) return [];
     if (Array.isArray(raw)) return raw;
     try { const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; } catch { return []; }
-  };
+  }, []);
 
   const isFuture = (d: string) => d > sd.today;
   useEffect(() => { if (showFilter) setFilterDateError(0); }, [showFilter]);
@@ -133,68 +134,145 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   // Current user for displaying who filled each record
   const currentUser = getCurrentUser();
 
-  // Render a single transaction row (FlatList item) — uses thumb_images for the
-  // 48×48 list tile (fast, ~5-10KB) and falls back to full-size images for old
-  // data without thumb_images. Preview always opens the full-size images.
-  const renderItem = useCallback(({ item: e, index: i }: { item: any; index: number }) => {
-    const thumbImgs = e.thumb_images ? parseImages(e.thumb_images) : [];
-    const displayImgs = thumbImgs.length > 0 ? thumbImgs : parseImages(e.images);
-    const previewImgs = parseImages(e.images);
+  // Stable press handler (takes id, looks up record) — avoids inline arrow on each card.
+  const handleCardPress = useCallback((id: number) => {
+    const item = records.find((r: any) => r.id === id);
+    if (item) onExpDetail?.(item);
+  }, [records, onExpDetail]);
+
+  const handleImagePress = useCallback((imgs: string[], idx: number) => {
+    setPreviewData({ images: imgs, idx });
+  }, []);
+
+  // Card sub-component — React.memo prevents re-render of unchanged rows during scroll.
+  // Custom comparator uses item reference equality (records array is append-only on
+  // pagination, so unchanged items keep the same object reference across renders).
+  const ExpenseCard = React.memo(({
+    item: e,
+    onCardPress,
+    onImagePress,
+    colors,
+    st,
+    currentUser,
+  }: {
+    item: any;
+    onCardPress: (id: number) => void;
+    onImagePress: (imgs: string[], idx: number) => void;
+    colors: ThemeColors;
+    st: any;
+    currentUser: string | null;
+  }) => {
+    // Parse images inside card — only re-runs when item reference changes.
+    const thumbImgs = useMemo(() => {
+      if (!e.thumb_images) return [];
+      try { const arr = JSON.parse(e.thumb_images); return Array.isArray(arr) ? arr : []; } catch { return []; }
+    }, [e.thumb_images]);
+    const displayImgs = useMemo(() => {
+      if (thumbImgs.length > 0) return thumbImgs;
+      try { const arr = JSON.parse(e.images || '[]'); return Array.isArray(arr) ? arr : []; } catch { return []; }
+    }, [thumbImgs, e.images]);
+    const previewImgs = useMemo(() => {
+      try { const arr = JSON.parse(e.images || '[]'); return Array.isArray(arr) ? arr : []; } catch { return []; }
+    }, [e.images]);
     const isRefund = Number(e.amount || 0) < 0;
     return (
-      <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
+      <TouchableOpacity onPress={() => onCardPress(e.id)} activeOpacity={0.7}>
         <View style={st.row}>
-        <View style={st.rowTop}>
-          <View style={st.badges}>
-            <View style={st.catBadge}>
-              <Text style={st.catBadgeText}>{trCat(e.category || '')}</Text>
+          <View style={st.rowTop}>
+            <View style={st.badges}>
+              <View style={st.catBadge}>
+                <Text style={st.catBadgeText}>{trCat(e.category || '')}</Text>
+              </View>
+              <View style={st.payBadge}>
+                <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
+              </View>
             </View>
-            <View style={st.payBadge}>
-              <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
-            </View>
+            <Text style={[st.amount, isRefund && { color: colors.success }]}>{isRefund ? '+' : '-'}¥{Math.abs(Number(e.amount || 0)).toFixed(2)}</Text>
           </View>
-          <Text style={[st.amount, isRefund && { color: colors.success }]}>{isRefund ? '+' : '-'}¥{Math.abs(Number(e.amount || 0)).toFixed(2)}</Text>
-        </View>
-        {currentUser ? (
-          <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
-        ) : null}
-        <View style={st.rowBottom}>
-          <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
-          {e.proc_batch_number ? (
-            <Text style={st.note} numberOfLines={1}>{t('procNowBatch').replace('{n}', String(e.proc_batch_number))}</Text>
-          ) : e.note ? (
-            <Text style={st.note} numberOfLines={1}>{e.note}</Text>
-          ) : (
-            <View style={{ flex: 1 }} />
+          {currentUser ? (
+            <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
+          ) : null}
+          <View style={st.rowBottom}>
+            <Text style={st.dateText}>{fmtExpDate(e.date || (e.created_at || '').slice(0, 10))}</Text>
+            {e.proc_batch_number ? (
+              <Text style={st.note} numberOfLines={1}>{t('procNowBatch').replace('{n}', String(e.proc_batch_number))}</Text>
+            ) : e.note ? (
+              <Text style={st.note} numberOfLines={1}>{e.note}</Text>
+            ) : (
+              <View style={{ flex: 1 }} />
+            )}
+          </View>
+          {displayImgs.length > 0 && (
+            <View style={[st.imgThumbs, { marginTop: 4 }]}>
+              {displayImgs.map((url: string, j: number) => (
+                <TouchableOpacity key={j}
+                  onPress={() => onImagePress(previewImgs, j)}
+                  activeOpacity={0.8}
+                  style={st.imgThumbWrap}>
+                  {React.createElement('img', {
+                    src: url,
+                    loading: 'lazy' as any,
+                    decoding: 'async' as any,
+                    style: {
+                      width: 48, height: 48, borderRadius: 6, objectFit: 'cover',
+                      backgroundColor: colors.bg,
+                    } as any,
+                    alt: 'receipt',
+                  })}
+                </TouchableOpacity>
+              ))}
+            </View>
           )}
         </View>
-        {/* Image thumbnails — View (not ScrollView) for stable cell height on iOS Safari.
-            Wrap with flex so multi-image records break lines instead of horizontal scroll. */}
-        {displayImgs.length > 0 && (
-          <View style={[st.imgThumbs, { marginTop: 4 }]}>
-            {displayImgs.map((url: string, j: number) => (
-              <TouchableOpacity key={j}
-                onPress={() => setPreviewData({ images: previewImgs, idx: j })}
-                activeOpacity={0.8}
-                style={st.imgThumbWrap}>
-                {React.createElement('img', {
-                  src: url,
-                  loading: 'lazy' as any,
-                  decoding: 'async' as any,
-                  style: {
-                    width: 48, height: 48, borderRadius: 6, objectFit: 'cover',
-                    backgroundColor: colors.bg,
-                  } as any,
-                  alt: 'receipt',
-                })}
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </View>
       </TouchableOpacity>
     );
-  }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, onExpDetail]);
+  }, (prev, next) => {
+    // Item reference equality: records array is append-only, so unchanged rows
+    // keep the same object reference across FlatList reconcile cycles.
+    return prev.item === next.item && prev.colors === next.colors;
+  });
+
+  // Lightweight renderItem — no parseImages / no inline parsing, just delegation.
+  const renderItem = useCallback(({ item }: { item: any }) => (
+    <ExpenseCard
+      item={item}
+      onCardPress={handleCardPress}
+      onImagePress={handleImagePress}
+      colors={colors}
+      st={st}
+      currentUser={currentUser}
+    />
+  ), [colors, st, currentUser, handleCardPress, handleImagePress]);
+
+  // Pre-compute per-row height + cumulative offset for O(1) getItemLayout.
+  // Heights are tiered by image count (1-3 / 4-6 / 7+ rows) — more accurate than
+  // a fixed constant since multi-image rows actually wrap. Re-runs only when
+  // records or parseImages change.
+  const { itemHeights, itemOffsets } = useMemo(() => {
+    const heights: number[] = [];
+    const offsets: number[] = [];
+    let acc = 0;
+    (records as any[]).forEach((item, i) => {
+      offsets[i] = acc;
+      const ti = item?.thumb_images ? parseImages(item.thumb_images) : [];
+      const imgs = ti.length > 0 ? ti : parseImages(item?.images);
+      // 0 imgs = 92px; 1-3 = one row of 48px thumbs (110); 4-6 = two rows (164); 7+ = three rows (218)
+      const h = imgs.length === 0 ? 92
+              : imgs.length <= 3 ? 110
+              : imgs.length <= 6 ? 164
+              : 218;
+      heights[i] = h;
+      acc += h + 8; // 8 = cell marginBottom
+    });
+    return { itemHeights: heights, itemOffsets: offsets };
+  }, [records, parseImages]);
+
+  // O(1) getItemLayout — table lookup instead of O(n) loop per call.
+  const getItemLayout = useCallback((_data: any, index: number) => ({
+    length: itemHeights[index] ?? 92,
+    offset: itemOffsets[index] ?? index * 100,
+    index,
+  }), [itemHeights, itemOffsets]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
@@ -331,7 +409,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
                 </Animated.View>
       </>)}
 
-      {/* List — FlatList with getItemLayout prevents re-measure on append (Safari bug) */}
+      {/* List — FlatList with O(1) getItemLayout + small windowSize for iOS Safari */}
       <FlatList
         key={filterKey}
         testID="exp-scroll"
@@ -339,22 +417,14 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
         data={records}
         keyExtractor={(e: any, i: number) => e.id != null ? `tx-${e.id}` : `tx-${i}`}
         renderItem={renderItem}
-        getItemLayout={(data: any, index: number) => {
-          let offset = 0;
-          for (let i = 0; i < index; i++) {
-            const prev = data[i];
-            const ti = prev?.thumb_images ? parseImages(prev.thumb_images) : [];
-            const pi = ti.length > 0 ? ti : parseImages(prev?.images);
-            offset += pi.length > 0 ? 146 : 92;
-          }
-          const cur = data[index];
-          const ti = cur?.thumb_images ? parseImages(cur.thumb_images) : [];
-          const ci = ti.length > 0 ? ti : parseImages(cur?.images);
-          return { length: ci.length > 0 ? 146 : 92, offset, index };
-        }}
+        getItemLayout={getItemLayout}  // O(1) table lookup — see pre-computed itemHeights/itemOffsets above
         onEndReached={onEndReached}
         onEndReachedThreshold={0.6}  // 0.4→0.6：iOS Safari 快滑时主线程被 scroll 占用, fetch 回调被推迟，更早触发让下一页在用户到底前就加载完
         removeClippedSubviews={false}
+        windowSize={7}                 // 21→7：减少 iOS Safari 同时持有的 DOM 节点，缓解 compositor 压力
+        initialNumToRender={12}        // 首屏够用
+        maxToRenderPerBatch={8}        // 每批渲染不超过 8 cell
+        updateCellsBatchingPeriod={100} // 100ms 批量周期，让主线程有空间响应 scroll
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
         ListEmptyComponent={!loading ? (
