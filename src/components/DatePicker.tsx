@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Rect, Line } from 'react-native-svg';
 import { useTheme, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { getLang } from '../i18n';
 
 export interface DatePickerProps {
   /** 'YYYY-MM-DD' */
@@ -134,5 +135,12 @@ export default function DatePicker({
 function fmtLocalDate(d: string): string {
   if (!d) return '';
   const [y, m, day] = d.split('-');
+  const lang = getLang();
+  if (lang === 'en') {
+    const months = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+    return `${months[+m - 1]} ${+day}, ${y}`;
+  }
+  // zh-CN / zh-TW / default
   return `${y}年${+m}月${+day}日`;
 }
