@@ -206,19 +206,11 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
       const cached = sessionStorage.getItem(CACHE_KEY);
       if (cached) setAvatarUrl(cached);
     } catch {}
-    fetch(`/api/users/avatar?user_id=${uid}`)
-      .then(resp => resp.ok ? resp.blob() : null)
-      .then(blob => {
-        if (!blob) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          const b64 = reader.result as string;
-          setAvatarUrl(b64);
-          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
-        };
-        reader.readAsDataURL(blob);
-      })
-      .catch(() => {});
+    api.getUserAvatar(uid).then(b64 => {
+      if (!b64) return;
+      setAvatarUrl(b64);
+      try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
+    });
   }, []);
 
   const isRefundRecord = Number(record.amount) < 0;

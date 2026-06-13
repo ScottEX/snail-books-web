@@ -305,16 +305,10 @@ export default function HomeScreen({
       if (cached) setAvatarUrl(cached);
     } catch {}
     try {
-      const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const reader = new FileReader();
-        reader.onload = () => {
-          const b64 = reader.result as string;
-          setAvatarUrl(b64);
-          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
-        };
-        reader.readAsDataURL(blob);
+      const b64 = await api.getUserAvatar(uid);
+      if (b64) {
+        setAvatarUrl(b64);
+        try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
       }
     } catch {}
   };
@@ -609,7 +603,7 @@ export default function HomeScreen({
           />
         );
       case 'usermgmt':
-        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={async (u) => { if (!u.reviewed) { await fetch('/api/admin/users/mark-reviewed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: u.id }), credentials: 'include' }); setUserRefreshKey(k => k + 1); } setSelectedUser(u); pushPage('userdetail'); }} />;
+        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={async (u) => { if (!u.reviewed) { await api.admin.markReviewed(u.id); setUserRefreshKey(k => k + 1); } setSelectedUser(u); pushPage('userdetail'); }} />;
       case 'userdetail':
         return selectedUser ? (
           <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => setUserRefreshKey(k => k + 1)} />

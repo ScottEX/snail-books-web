@@ -238,16 +238,10 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       if (cached) setAvatarUrl(cached);
     } catch {}
     try {
-      const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const reader = new FileReader();
-        reader.onload = () => {
-          const b64 = reader.result as string;
-          setAvatarUrl(b64);
-          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
-        };
-        reader.readAsDataURL(blob);
+      const b64 = await api.getUserAvatar(uid);
+      if (b64) {
+        setAvatarUrl(b64);
+        try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
       }
     } catch {}
   };

@@ -59,21 +59,15 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   const checkAdmin = async () => {
     try {
-      const resp = await fetch('/api/admin/check', { credentials: 'include' });
-      if (resp.ok) {
-        const data = await resp.json();
-        setIsAdmin(data.is_admin === true);
-      }
+      const data = await api.admin.check();
+      setIsAdmin(data.is_admin === true);
     } catch {}
   };
 
   const fetchUnreviewedCount = async () => {
     try {
-      const resp = await fetch('/api/admin/users/unreviewed-count', { credentials: 'include' });
-      if (resp.ok) {
-        const data = await resp.json();
-        setUnreviewedCount(data.count ?? 0);
-      }
+      const data = await api.admin.getUnreviewedCount();
+      setUnreviewedCount(data.count ?? 0);
     } catch {}
   };
 
@@ -81,7 +75,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     if (unreviewedCount === 0) return;
     setUnreviewedCount(0);
     try {
-      await fetch('/api/admin/users/mark-reviewed', { method: 'POST', credentials: 'include' });
+      await api.admin.markReviewed();
     } catch {}
   };
 
@@ -157,16 +151,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       if (cached) setAvatarUrl(cached);
     } catch {}
     try {
-      const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const reader = new FileReader();
-        reader.onload = () => {
-          const b64 = reader.result as string;
-          setAvatarUrl(b64);
-          try { sessionStorage.setItem(CACHE_KEY_AVATAR, b64); } catch {}
-        };
-        reader.readAsDataURL(blob);
+      const b64 = await api.getUserAvatar(uid);
+      if (b64) {
+        setAvatarUrl(b64);
+        try { sessionStorage.setItem(CACHE_KEY_AVATAR, b64); } catch {}
       }
     } catch {}
   };
@@ -190,21 +178,18 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   const loadUserInfo = async () => {
     try {
-      const resp = await fetch('/api/users/me');
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.email) setEmail(data.email);
-        if (data.signature) setSignature(data.signature);
-        if (data.created_at) {
-          const days = Math.floor((Date.now() - new Date(data.created_at).getTime()) / 86400000);
-          setDaysSince(Math.max(1, days));
-        }
-        if (typeof data.enforce_single_session === 'number') {
-          setEnforceSingleSession(data.enforce_single_session);
-        }
-        if (typeof data.session_timeout_hours === 'number' && [1, 2, 6, 24].includes(data.session_timeout_hours)) {
-          setSessionTimeoutHours(data.session_timeout_hours);
-        }
+      const data = await api.admin.getMe();
+      if (data.email) setEmail(data.email);
+      if (data.signature) setSignature(data.signature);
+      if (data.created_at) {
+        const days = Math.floor((Date.now() - new Date(data.created_at).getTime()) / 86400000);
+        setDaysSince(Math.max(1, days));
+      }
+      if (typeof data.enforce_single_session === 'number') {
+        setEnforceSingleSession(data.enforce_single_session);
+      }
+      if (typeof data.session_timeout_hours === 'number' && [1, 2, 6, 24].includes(data.session_timeout_hours)) {
+        setSessionTimeoutHours(data.session_timeout_hours);
       }
     } catch {}
   };
