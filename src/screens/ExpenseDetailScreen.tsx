@@ -97,7 +97,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
   const [category, setCategory] = useState(record.category || 'daily');
   const [account, setAccount] = useState(record.account || 'payWechat');
-  const [amount, setAmount] = useState(toDec2(record.amount));
+  const [amount, setAmount] = useState(toDec2(Math.abs(record.amount)));
   const [date, setDate] = useState(record.date || record.created_at?.slice(0, 10) || sd.today);
   const [note, setNote] = useState(record.note || '');
   const [images, setImages] = useState<string[]>(parseImages(record.images));
@@ -109,7 +109,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
   const hasChanges = category !== (record.category || 'daily') ||
     account !== (record.account || 'payWechat') ||
-    amount !== toDec2(record.amount) ||
+    amount !== toDec2(Math.abs(record.amount)) ||
     date !== (record.date || record.created_at?.slice(0, 10) || sd.today) ||
     note !== (record.note || '') ||
     JSON.stringify(images) !== JSON.stringify(parseImages(record.images)) ||
