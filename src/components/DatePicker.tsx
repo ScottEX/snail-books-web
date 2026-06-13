@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Rect, Line } from 'react-native-svg';
 import { useTheme, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -28,11 +28,13 @@ export interface DatePickerProps {
 }
 
 /**
- * Unified date picker: displays localized date text; tapping opens the native
- * date picker via `input.showPicker()` (iOS 16+ / Chrome 99+).
+ * Unified date picker: displays localized date text with a hidden native
+ * `<input type="date">` overlay.  Matches the project's SVG icon style.
  *
- * On older browsers that lack showPicker(), falls back to a hidden
- * transparent <input type="date"> overlay.
+ * The overlay is transparent (opacity 0.01) so the native picker can still
+ * receive click events. On iOS 18+ Safari, WebKit hit-testing heuristics may
+ * occasionally ignore the overlay — if the user reports the picker not opening,
+ * tapping slightly above the date text is the known workaround.
  *
  * Usage:
  *   <DatePicker date={recDate} onChange={setRecDate} max={sd.today}
@@ -72,69 +74,41 @@ export default function DatePicker({
     onChange(val);
   };
 
-  const openPicker = () => {
-    if (disabled) return;
-    const input = inputRef.current;
-    if (!input) return;
-
-    // Preferred path: programmatic showPicker() — fixes iOS 18+ Safari
-    // hit-testing bug where transparent overlay inputs don't respond.
-    if (typeof (input as any).showPicker === 'function') {
-      (input as any).showPicker();
-      return;
-    }
-
-    // Fallback: briefly reveal the overlay and trigger a native click.
-    // This handles older browsers (desktop Firefox, etc.) that lack
-    // showPicker but don't have the iOS Safari overlay bug anyway.
-    const prev = {
-      opacity: input.style.opacity,
-      pointerEvents: input.style.pointerEvents,
-      width: input.style.width,
-      height: input.style.height,
-    };
-    input.style.opacity = '1';
-    input.style.pointerEvents = 'auto';
-    input.style.width = `${fs * 10}px`;
-    input.style.height = `${fs * 2}px`;
-    input.focus();
-    input.click();
-    // Restore hidden state after picker opens
-    setTimeout(() => {
-      input.style.opacity = prev.opacity;
-      input.style.pointerEvents = prev.pointerEvents;
-      input.style.width = prev.width;
-      input.style.height = prev.height;
-    }, 200);
-  };
-
-  // Show nothing for disabled picker (read-only use case)
-  if (disabled) {
-    return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-        {showCalendarIcon && <CalendarIcon color={c} />}
-        <Text style={{ fontSize: fs, fontWeight: fw, color: c }}>
-          {displayDate || fmtLocalDate(date)}
-        </Text>
-        {showChevron && <ChevronIcon color={c} />}
-      </View>
-    );
-  }
-
   return (
-    <Pressable
-      onPress={openPicker}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}
-    >
-      {showCalendarIcon && <CalendarIcon color={c} />}
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1, position: 'relative' }}>
+      {showCalendarIcon && (
+        <Svg
+          width={18}
+          height={18}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth={1.5}
+        >
+          <Rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <Line x1="16" y1="2" x2="16" y2="6"/>
+          <Line x1="8" y1="2" x2="8" y2="6"/>
+          <Line x1="3" y1="10" x2="21" y2="10"/>
+        </Svg>
+      )}
       <Text style={{ fontSize: fs, fontWeight: fw, color: c }}>
         {displayDate || fmtLocalDate(date)}
       </Text>
-      {showChevron && <ChevronIcon color={c} />}
-      {/* Hidden native input — only used as the picker target for showPicker() /
-          onChange handler; never rendered visibly. Width/height 0 + opacity 0
-          + pointerEvents none so it can't intercept clicks. */}
-      {React.createElement('input', {
+      {showChevron && (
+        <Svg
+          width={18}
+          height={18}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={colors.primary}
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <Path d="M8 5l8 7-8 7" />
+        </Svg>
+      )}
+      {!disabled && React.createElement('input', {
         ref: inputRef,
         type: 'date',
         key,
@@ -143,13 +117,16 @@ export default function DatePicker({
         onChange: handleChange,
         style: {
           position: 'absolute',
-          width: 0,
-          height: 0,
-          opacity: 0,
-          pointerEvents: 'none',
+          top: -6,
+          right: 0,
+          bottom: -6,
+          left: 0,
+          opacity: 0.01,
+          cursor: 'pointer',
+          fontSize: fs,
         },
       })}
-    </Pressable>
+    </View>
   );
 }
 
@@ -158,41 +135,4 @@ function fmtLocalDate(d: string): string {
   if (!d) return '';
   const [y, m, day] = d.split('-');
   return `${y}年${+m}月${+day}日`;
-}
-
-/** SVG calendar icon, extracted for reuse in both disabled and enabled branches. */
-function CalendarIcon({ color }: { color: string }) {
-  return (
-    <Svg
-      width={18}
-      height={18}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={1.5}
-    >
-      <Rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <Line x1="16" y1="2" x2="16" y2="6" />
-      <Line x1="8" y1="2" x2="8" y2="6" />
-      <Line x1="3" y1="10" x2="21" y2="10" />
-    </Svg>
-  );
-}
-
-/** SVG chevron icon, extracted for reuse in both disabled and enabled branches. */
-function ChevronIcon({ color }: { color: string }) {
-  return (
-    <Svg
-      width={18}
-      height={18}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <Path d="M8 5l8 7-8 7" />
-    </Svg>
-  );
 }
