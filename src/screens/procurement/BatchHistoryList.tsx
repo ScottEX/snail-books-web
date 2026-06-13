@@ -11,6 +11,12 @@ import { useTheme, withAlpha, ThemeColors } from '../../theme';
 import { FONTS } from '../../theme';
 import TrashIcon from '../../components/icons/TrashIcon';
 
+// Platform detection — RN-Web runs as 'web' on every browser, so Platform.OS
+// can't distinguish Safari from Chrome/Firefox. Used to tune FlatList windowSize.
+const isWebKit = typeof navigator !== 'undefined' &&
+  /Safari/.test(navigator.userAgent) &&
+  !/Chrome|CriOS|Edg|OPR|FxiOS/.test(navigator.userAgent);
+
 // ═══════════════════════════════════════════════
 // Local SVG Icon
 // ═══════════════════════════════════════════════
@@ -39,7 +45,9 @@ interface BatchRecord { id: number; batch_number: number; date: string; payment_
 interface Props {
   batches: BatchRecord[];
   loading: boolean;
-  total: number;
+  /** Whether more pages are available for fetch. Caller is responsible for
+   *  determining this (e.g. comparing fetched count to known total). */
+  hasMore: boolean;
   onViewDetail: (batch: BatchRecord) => void;
   onEdit: (batch: BatchRecord) => void;
   onDelete: (batch: BatchRecord) => void;
@@ -50,7 +58,7 @@ interface Props {
 // Styles
 // ═══════════════════════════════════════════════
 const getStyles = (c: ThemeColors) => StyleSheet.create({
-  historyList: { padding: 12, paddingBottom: 100 },
+  historyList: { paddingBottom: 100 },
   historyCard: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), marginBottom: 10, overflow: 'hidden' as const },
   histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
   histNo: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary },
@@ -71,77 +79,108 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 // Component
 // ═══════════════════════════════════════════════
-export default function BatchHistoryList({ batches, loading, total, onViewDetail, onEdit, onDelete, onLoadMore }: Props) {
+export default function BatchHistoryList({ batches, loading, hasMore, onViewDetail, onEdit, onDelete, onLoadMore }: Props) {
   const { colors: c } = useTheme();
   const styles = useMemo(() => getStyles(c), [c]);
+
+  // Card sub-component — React.memo prevents re-render of unchanged rows during scroll.
+  const BatchCard = React.memo(({
+    batch,
+    onViewDetail,
+    onEdit,
+    onDelete,
+    styles,
+    c,
+  }: {
+    batch: BatchRecord;
+    onViewDetail: (b: BatchRecord) => void;
+    onEdit: (b: BatchRecord) => void;
+    onDelete: (b: BatchRecord) => void;
+    styles: any;
+    c: ThemeColors;
+  }) => {
+    const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
+    return (
+      <View style={styles.historyCard}>
+        <TouchableOpacity onPress={() => onViewDetail(batch)} activeOpacity={0.7} style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
+          <View style={styles.histHead}>
+            <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={styles.histDate}>{batch.date}</Text>
+              <View style={styles.histActions}>
+                <TouchableOpacity
+                  style={styles.histActionBtn}
+                  onPress={(e) => { e.stopPropagation?.(); onEdit(batch); }}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <PencilIcon color={c.textSub} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.histActionBtn}
+                  onPress={(e) => { e.stopPropagation?.(); onDelete(batch); }}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <TrashIcon color={c.danger} size={14} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          <View style={styles.histBody}>
+            <View style={styles.histRow}>
+              <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
+              <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
+            </View>
+            <View style={styles.histRow}>
+              <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
+              <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
+            </View>
+            {batch.note ? (
+              <View style={styles.histRow}>
+                <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
+                <Text style={styles.histRowVal}>{batch.note}</Text>
+              </View>
+            ) : null}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+              <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
+              <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
+            </View>
+            {thumbImgs.length > 0 && (
+              <View style={styles.histImages}>
+                {thumbImgs.map((img: string, i: number) => (
+                  <Image key={i} source={{ uri: img }}
+                    style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
+                ))}
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  }, (prev, next) => prev.batch === next.batch && prev.c === next.c);
 
   return (
     <FlatList
       data={batches}
       keyExtractor={item => String(item.id)}
       contentContainerStyle={styles.historyList}
-      onEndReached={batches.length < total ? onLoadMore : undefined}
-      onEndReachedThreshold={0.4}
+      onEndReached={hasMore ? onLoadMore : undefined}
+      onEndReachedThreshold={0.6}  // 0.4→0.6：更早触发让下一页在用户到底前加载完
+      removeClippedSubviews={false}
+      windowSize={isWebKit ? 5 : 10}
+      initialNumToRender={isWebKit ? 8 : 12}
+      maxToRenderPerBatch={isWebKit ? 4 : 8}
+      updateCellsBatchingPeriod={100}
       renderItem={({ item: batch }) => (
-        <View style={styles.historyCard}>
-          <TouchableOpacity onPress={() => onViewDetail(batch)} activeOpacity={0.7} style={{ padding: 12 }}>
-            <View style={styles.histHead}>
-              <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Text style={styles.histDate}>{batch.date}</Text>
-                <View style={styles.histActions}>
-                  <TouchableOpacity
-                    style={styles.histActionBtn}
-                    onPress={(e) => { e.stopPropagation?.(); onEdit(batch); }}
-                    activeOpacity={0.7}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <PencilIcon color={c.textSub} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.histActionBtn}
-                    onPress={(e) => { e.stopPropagation?.(); onDelete(batch); }}
-                    activeOpacity={0.7}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <TrashIcon color={c.danger} size={14} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-            <View style={styles.histBody}>
-              <View style={styles.histRow}>
-                <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
-                <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
-              </View>
-              <View style={styles.histRow}>
-                <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
-                <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
-              </View>
-              {batch.note ? (
-                <View style={styles.histRow}>
-                  <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
-                  <Text style={styles.histRowVal}>{batch.note}</Text>
-                </View>
-              ) : null}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
-                <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
-              </View>
-              {(() => {
-                const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
-                return thumbImgs.length > 0 && (
-                  <View style={styles.histImages}>
-                    {thumbImgs.map((img: string, i: number) => (
-                      <Image key={i} source={{ uri: img }}
-                        style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
-                    ))}
-                  </View>
-                );
-              })()}
-            </View>
-          </TouchableOpacity>
-        </View>
+        <BatchCard
+          batch={batch}
+          onViewDetail={onViewDetail}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          styles={styles}
+          c={c}
+        />
       )}
       ListEmptyComponent={
         <EmptyState

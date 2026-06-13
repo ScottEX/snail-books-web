@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  FlatList, Image, ActivityIndicator, StyleSheet, Animated, PanResponder
+  Image, ActivityIndicator, StyleSheet, Animated, PanResponder
 } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -22,6 +22,7 @@ import ReceiptUpload from '../components/ReceiptUpload';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import PlusIcon from '../components/icons/PlusIcon';
+import BatchHistoryList from './procurement/BatchHistoryList';
 import { fmtDecInput } from '../utils/numbers';
 
 type SubTab = 'new' | 'history' | 'products';
@@ -276,20 +277,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // History
   historyList: { paddingVertical: 12, paddingBottom: 100 },
-  historyCard: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), marginBottom: 10, overflow: 'hidden' as const },
-  histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
-  histNo: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary },
-  histDate: { fontSize: FONTS.micro.size, color: c.textSub },
-  histActions: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
-  histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
-  histBody: { padding: 10 },
-  histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
-  histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
-  histRowVal: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textMain },
-  histPayBadge: { alignSelf: 'flex-start' as const, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: withAlpha(c.primary, 0.08), borderRadius: 12, marginTop: 4 },
-  histPayText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.primary },
-  histAmount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary, marginTop: 8 },
-  histImages: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 4, marginTop: 6 },
+  // History card styles moved to procurement/BatchHistoryList.tsx (shared with that component).
 
   // Success
   successOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
@@ -1070,88 +1058,24 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       {subTab === 'history' && (
         (loadingHist && batches.length === 0) ? (
           <LoadingSpinner />
-        ) : batches.length === 0 ? (
+        ) : filteredBatches.length === 0 ? (
           <EmptyState
             icon={<EmptyClipboardIcon color={c.textSub} />}
             title={t('procEmptyHistoryTitle')}
             hint={t('procEmptyHistoryHint')}
           />
         ) : (
-          <FlatList
-            data={filteredBatches}
-            keyExtractor={item => String(item.id)}
-            contentContainerStyle={styles.historyList}
-            onEndReached={hasMore ? onEndReached : undefined}
-            onEndReachedThreshold={0.4}
-            renderItem={({ item: batch }) => (
-            <View style={styles.historyCard}>
-              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
-                <View style={styles.histHead}>
-                  <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <Text style={styles.histDate}>{batch.date}</Text>
-                    <View style={styles.histActions}>
-                      <TouchableOpacity
-                        style={styles.histActionBtn}
-                        onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}
-                        activeOpacity={0.7}
-                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                      >
-                        <PencilIcon color={c.textSub} />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.histActionBtn}
-                        onPress={(e) => { e.stopPropagation?.(); openSlideModal(() => setDeleteBatchTarget(batch)); }}
-                        activeOpacity={0.7}
-                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                      >
-                        <TrashIcon color={c.danger} size={14} />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              <View style={styles.histBody}>
-                <View style={styles.histRow}>
-                  <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
-                  <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
-                </View>
-                <View style={styles.histRow}>
-                  <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
-                  <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
-                </View>
-                {batch.note ? (
-                  <View style={styles.histRow}>
-                    <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
-                    <Text style={styles.histRowVal}>{batch.note}</Text>
-                  </View>
-                ) : null}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
-                  <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
-                </View>
-                {(() => {
-                  // Prefer 128×128 thumb URLs (fast), fall back to full-size for old data
-                  const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
-                  return thumbImgs.length > 0 && (
-                    <View style={styles.histImages}>
-                      {thumbImgs.map((img: string, i: number) => (
-                        <Image key={i} source={{ uri: img }}
-                          style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
-                      ))}
-                    </View>
-                  );
-                })()}
-              </View>
-              </TouchableOpacity>
-            </View>
-          )}
-          ListFooterComponent={hasMore ? (
-            <View style={styles.loadingMore}>
-              <ActivityIndicator size="small" color={c.primary} />
-            </View>
-          ) : null}
-        />
-      ))}
+          <BatchHistoryList
+            batches={filteredBatches}
+            loading={hasMore}
+            hasMore={hasMore}
+            onViewDetail={openHistoryDetail}
+            onEdit={openEditBatch}
+            onDelete={(batch) => openSlideModal(() => setDeleteBatchTarget(batch))}
+            onLoadMore={onEndReached}
+          />
+        )
+      )}
 
       {/* ── Product Mgmt ── */}
       {subTab === 'products' && (
