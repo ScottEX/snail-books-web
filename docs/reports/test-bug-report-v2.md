@@ -200,7 +200,7 @@
 - **接口**: 前端 `LoginScreen.tsx:97-103` + 后端 `shared/validation.py:9-19`
 - **现象**:
   - 实际: `>=8 字符 + 字母 + 数字 + 特殊字符 (!@#$%^&*()...)`
-  - 文档: `test-cases-supplement.md §11` `6+ chars, letters + numbers`
+  - 文档: `../test-cases/test-cases-supplement.md §11` `6+ chars, letters + numbers`
   - 补缺档附录 A.8: `最少 6 位 + 字母+数字`
 - **影响**:
   - 文档对不上代码，新用户读文档设置密码会被前端拒绝

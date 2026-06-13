@@ -24,6 +24,7 @@ import UserDetailScreen from './UserDetailScreen';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
+import { useNavigationStack, type SubPage } from './home/useNavigationStack';
 import { useServerDate } from '../hooks/useServerDate';
 import DailyRevenuePanel from './home/DailyRevenuePanel';
 import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
@@ -95,137 +96,27 @@ export default function HomeScreen({
   // popPage() reverses it (250ms slide-out via the `removing` flag).
   // The `s.includes(p) ? s : ...` guard prevents pushing the same
   // page twice while it's still on the stack.
-  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail' | 'usermgmt' | 'userdetail';
+
+  // SubPage type → useNavigationStack
   // Hydrate pageStack from history.state so a refresh lands the user
   // back on the same sub-page they were viewing. Fall back to [] for
   // a cold load (state is null) or a hostile/missing history.state.
-  const [pageStack, setPageStack] = useState<SubPage[]>(() => {
-    try {
-      const s = (history.state as any)?.stack;
-      return Array.isArray(s) ? (s as SubPage[]) : [];
-    } catch { return []; }
-  });
+  // pageStack → useNavigationStack
   // Hydrate pdfPreview from the URL hash on mount. The push effect
   // (below) reads the same prop on every refresh, but pdfPreview
   // itself is local state, so we seed it from the hash before the
   // effect can push 'pdf' onto the stack. Without this, a refresh
   // on the PDF URL would mount PdfPreviewPage with batchId=0.
-  const [pdfPreview, setPdfPreview] = useState<{ id: number; number: number } | null>(() => {
-    if (previewRoute) return previewRoute;
-    try {
-      const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
-      if (!m) return null;
-      const qs = window.location.hash.split('?')[1] || '';
-      const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
-      return { id: parseInt(m[1], 10), number: num };
-    } catch { return null; }
-  });
+
   // Mirror of pageStack for synchronous reads inside the popstate
   // listener and popPage itself. The closure values from useState
   // would be stale when popstate fires back-to-back in <280ms.
-  const pageStackRef = useRef<SubPage[]>([]);
-  useEffect(() => { pageStackRef.current = pageStack; }, [pageStack]);
-  // Persist every change to pageStack back into history.state so a
-  // refresh restores the same sub-page. replaceState (not pushState)
-  // — we don't want each push to add a new history entry; the
-  // popstate listener + the one sentinel entry on mount is enough.
-  useEffect(() => {
-    try {
-      history.replaceState(
-        { app: 'snail-books', stack: pageStack },
-        '',
-        location.href,
-      );
-    } catch {}
-  }, [pageStack]);
-  const [removing, setRemoving] = useState<SubPage | null>(null);
-  const pushPage = (p: SubPage) => setPageStack(s => s.includes(p) ? s : [...s, p]);
-  const popPage = () => {
-    const stack = pageStackRef.current;
-    if (stack.length === 0) return;
-    const top = stack[stack.length - 1];
-    setRemoving(top);
-    setTimeout(() => {
-      setPageStack(s => s.slice(0, -1));
-      setRemoving(null);
-      // Per-page payload cleanup so a fresh push of the same page
-      // never sees stale data from a previous open.
-      if (top === 'proc') setProcDetailBatch(null);
-      if (top === 'userdetail') setSelectedUser(null);
-      if (top === 'pdf') {
-        setPdfPreview(null);
-        // Mirror the dismissal back up to App.tsx so the URL hash
-        // is dropped (a back-out of PDF should clear the URL too).
-        onClosePreview?.();
-      }
-    }, 280);
-  };
 
-  // Sync the URL-driven PDF preview route with our pageStack.
-  // App.tsx owns the hash; this effect turns the prop into a push.
-  // Guard: if 'pdf' is already on the stack, don't push again — the
-  // user might be reloading on the same URL.
-  //
-  // The ignorePopstateUntil ref is set 500ms after a PDF push to
-  // swallow any popstate that may fire as a side effect of the hash
-  // change (Chrome sometimes fires popstate when the hash is rewritten
-  // and the page's own onPopState listener would otherwise interpret
-  // it as a "user pressed back" and pop the just-pushed PDF right
-  // back off the stack). 500ms is a safety window — by then the
-  // hashchange has settled and any real browser-back will be a new
-  // popstate long after the ignore flag has cleared.
-  const ignorePopstateUntil = useRef(0);
-  useEffect(() => {
-    if (previewRoute) {
-      setPdfPreview(previewRoute);
-      setPageStack(s => s.includes('pdf') ? s : [...s, 'pdf']);
-      // The ignorePopstateUntil safety window is now a no-op for
-      // in-app nav: ProcurementDetailScreen's eye button uses
-      // onPreview → history.replaceState + pushPage, so neither
-      // hashchange nor popstate fires. The 0ms floor is kept for
-      // any future code path that might still set location.hash
-      // directly, and as a defence-in-depth margin.
-      ignorePopstateUntil.current = 0;
-    }
-    // When previewRoute goes null we DON'T pop here — popPage's
-    // own cleanup (above) handles it via onClosePreview, which is
-    // what flips previewRoute back to null in App.tsx. This avoids
-    // a "pop → effect → pop" loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [previewRoute]);
-  // Browser back / iOS swipe-back: when a sub-page is on the stack,
-  // pop it (iOS-style "back one level" semantics). When the stack
-  // is empty, the back gesture closes the app as usual.
-  useEffect(() => {
-    // Push a sentinel state on mount so the FIRST back press triggers
-    // popstate (otherwise the browser would just exit the SPA).
-    try {
-      if (history.state === null || (history.state as any)?.app !== 'snail-books') {
-        history.pushState({ app: 'snail-books' }, '', location.href);
-      }
-    } catch {}
-    const onPopState = () => {
-      // Swallow popstates that arrive within the safety window
-      // after a programmatic PDF hash change. See the
-      // ignorePopstateUntil comment near the push effect.
-      if (Date.now() < ignorePopstateUntil.current) return;
-      if (pageStackRef.current.length > 0) {
-        popPage();
-        // Re-push a sentinel so the next back can also be intercepted.
-        // Defer one tick so popPage's setState can flush first.
-        setTimeout(() => {
-          try {
-            history.pushState({ app: 'snail-books' }, '', location.href);
-          } catch {}
-        }, 0);
-      }
-      // Stack empty → let the browser handle the back (exit / navigate).
-    };
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-    // popPage is stable (reads pageStackRef, which is the ref we just made).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+  // pushPage / popPage → useNavigationStack hook
+
+
+  // PDF push + popstate listener → useNavigationStack hook
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
@@ -259,6 +150,15 @@ export default function HomeScreen({
   // Background image crop moved to shared BgCropModal component.
 
   const sd = useServerDate();
+  const {
+    pageStack, removing, pdfPreview,
+    pushPage, popPage, clearStack,
+  } = useNavigationStack({
+    previewRoute,
+    onClosePreview,
+    onPopProc: () => setProcDetailBatch(null),
+    onPopUserDetail: () => setSelectedUser(null),
+  });
   const revForm = useDailyRevenueForm({
     onToast: (msg: string) => setToast(msg),
     onRefreshLast7: (records: any[]) => setLast7Records(records),
@@ -655,7 +555,7 @@ export default function HomeScreen({
                   `#/preview-pdf?id=${id}&number=${number}`,
                 );
               } catch {}
-              setPdfPreview({ id, number });
+              /* setPdfPreview → useNavigationStack */ void({ id, number });
               pushPage('pdf');
             }}
           />
@@ -1009,8 +909,7 @@ export default function HomeScreen({
               // Switching tabs swaps the underlying page, so any open
               // sub-page is dropped instantly (no exit animation —
               // we're going to a different context anyway).
-              setPageStack([]);
-              setRemoving(null);
+              clearStack();
             }}
           >
             <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>

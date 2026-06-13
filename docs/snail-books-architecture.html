@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蓝姐螺蛳粉记账系统 — 全栈架构图</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', 'PingFang SC', 'Microsoft YaHei', monospace;
+      background: #020617;
+      min-height: 100vh;
+      padding: 2rem;
+      color: white;
+    }
+    .container { max-width: 1340px; margin: 0 auto; }
+    .header { margin-bottom: 2rem; }
+    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .pulse-dot { width: 12px; height: 12px; background: #22d3ee; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em; }
+    .subtitle { color: #94a3b8; font-size: 0.875rem; margin-left: 1.75rem; }
+    .diagram-container {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 1rem; border: 1px solid #1e293b;
+      padding: 1.5rem; overflow-x: auto;
+    }
+    svg { width: 100%; min-width: 1150px; display: block; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 2rem; }
+    .card { background: rgba(15, 23, 42, 0.5); border-radius: 0.75rem; border: 1px solid #1e293b; padding: 1.25rem; }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .card-dot.cyan { background: #22d3ee; }
+    .card-dot.emerald { background: #34d399; }
+    .card-dot.violet { background: #a78bfa; }
+    .card-dot.amber { background: #fbbf24; }
+    .card h3 { font-size: 0.875rem; font-weight: 600; }
+    .card ul { list-style: none; color: #94a3b8; font-size: 0.75rem; }
+    .card li { margin-bottom: 0.375rem; }
+    .footer { text-align: center; margin-top: 1.5rem; color: #475569; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>🍜 蓝姐螺蛳粉记账系统 — 全栈架构图</h1>
+      </div>
+      <p class="subtitle">Flask + SQLite + Expo React Native Web · 单机单进程部署 · gunicorn 单 worker</p>
+    </div>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1200 1040">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+          </marker>
+          <marker id="arrow-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee" />
+          </marker>
+          <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#34d399" />
+          </marker>
+          <marker id="arrow-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa" />
+          </marker>
+          <marker id="arrow-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- 背景网格 -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- ══════════════════════════════════════════════════════
+             用户层
+             ════════════════════════════════════════════════════ -->
+        <rect x="30" y="20" width="60" height="60" rx="8" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="60" y="43" fill="white" font-size="10" font-weight="600" text-anchor="middle">用户</text>
+        <text x="60" y="57" fill="#94a3b8" font-size="8" text-anchor="middle">浏览器</text>
+        <text x="60" y="71" fill="#94a3b8" font-size="7" text-anchor="middle">桌面/手机</text>
+
+        <!-- ══════════════════════════════════════════════════════
+             前端层
+             ════════════════════════════════════════════════════ -->
+        <rect x="120" y="10" width="1050" height="275" rx="12" fill="rgba(8,51,68,0.06)" stroke="#22d3ee" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="138" y="34" fill="#22d3ee" font-size="12" font-weight="700">前端层 · 浏览器端 · Expo SDK 56 + React 19 + TypeScript</text>
+        <text x="138" y="48" fill="#94a3b8" font-size="8">单页应用 (SPA) · Web Only · 手写路由栈 · 三语 i18n · 三套主题</text>
+
+        <!-- App.tsx 根组件 -->
+        <rect x="160" y="65" width="170" height="75" rx="6" fill="rgba(8,51,68,0.45)" stroke="#22d3ee" stroke-width="2"/>
+        <text x="245" y="88" fill="white" font-size="11" font-weight="700" text-anchor="middle">App.tsx · 根组件</text>
+        <text x="245" y="103" fill="#94a3b8" font-size="8" text-anchor="middle">ThemeProvider 主题</text>
+        <text x="245" y="116" fill="#94a3b8" font-size="8" text-anchor="middle">LangProvider 语言</text>
+        <text x="245" y="132" fill="#22d3ee" font-size="7" text-anchor="middle">hash 路由 · SessionKicked</text>
+
+        <!-- API Client -->
+        <rect x="160" y="165" width="170" height="50" rx="6" fill="rgba(8,51,68,0.35)" stroke="#22d3ee" stroke-width="1.2"/>
+        <text x="245" y="185" fill="white" font-size="10" font-weight="600" text-anchor="middle">api/client.ts · API 层</text>
+        <text x="245" y="200" fill="#94a3b8" font-size="8" text-anchor="middle">authFetch 统一认证</text>
+        <text x="245" y="212" fill="#22d3ee" font-size="7" text-anchor="middle">401 自动踢出 · Promise.reject</text>
+
+        <!-- i18n -->
+        <rect x="160" y="235" width="170" height="35" rx="6" fill="rgba(8,51,68,0.2)" stroke="#22d3ee" stroke-width="0.8"/>
+        <text x="245" y="250" fill="white" font-size="9" font-weight="600" text-anchor="middle">i18n.tsx · 国际化</text>
+        <text x="245" y="263" fill="#94a3b8" font-size="7" text-anchor="middle">zh-CN 简体 · zh-TW 繁体 · EN</text>
+
+        <!-- 页面区域 -->
+        <rect x="370" y="60" width="775" height="145" rx="8" fill="rgba(8,51,68,0.12)" stroke="#22d3ee" stroke-width="0.8" stroke-dasharray="4,4"/>
+        <text x="388" y="78" fill="#22d3ee" font-size="9" font-weight="700">页面组件 Screens (11 个页面)</text>
+
+        <!-- 第一行 -->
+        <rect x="385" y="90" width="130" height="45" rx="5" fill="rgba(8,51,68,0.35)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="450" y="108" fill="white" font-size="9" font-weight="600" text-anchor="middle">LoginScreen</text>
+        <text x="450" y="124" fill="#94a3b8" font-size="7" text-anchor="middle">登录注册 · 5种状态</text>
+
+        <rect x="525" y="90" width="130" height="45" rx="5" fill="rgba(8,51,68,0.35)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="590" y="108" fill="white" font-size="9" font-weight="600" text-anchor="middle">HomeScreen</text>
+        <text x="590" y="124" fill="#94a3b8" font-size="7" text-anchor="middle">首页 · 5tab 导航</text>
+
+        <rect x="665" y="90" width="130" height="45" rx="5" fill="rgba(8,51,68,0.35)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="730" y="108" fill="white" font-size="9" font-weight="600" text-anchor="middle">ExpenseScreen</text>
+        <text x="730" y="124" fill="#94a3b8" font-size="7" text-anchor="middle">收支对账 · 手续费</text>
+
+        <rect x="805" y="90" width="130" height="45" rx="5" fill="rgba(8,51,68,0.35)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="870" y="108" fill="white" font-size="9" font-weight="600" text-anchor="middle">ProfileScreen</text>
+        <text x="870" y="124" fill="#94a3b8" font-size="7" text-anchor="middle">个人中心 · 裁剪</text>
+
+        <rect x="945" y="90" width="130" height="45" rx="5" fill="rgba(8,51,68,0.35)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="1010" y="108" fill="white" font-size="9" font-weight="600" text-anchor="middle">PartnerScreen</text>
+        <text x="1010" y="124" fill="#94a3b8" font-size="7" text-anchor="middle">合伙人 · 分红</text>
+
+        <!-- 第二行 -->
+        <rect x="385" y="145" width="130" height="45" rx="5" fill="rgba(8,51,68,0.35)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="450" y="163" fill="white" font-size="9" font-weight="600" text-anchor="middle">Procurement</text>
+        <text x="450" y="179" fill="#94a3b8" font-size="7" text-anchor="middle">进货管理 · 购物车</text>
+
+        <rect x="525" y="145" width="130" height="45" rx="5" fill="rgba(8,51,68,0.25)" stroke="#22d3ee" stroke-width="0.8"/>
+        <text x="590" y="163" fill="white" font-size="9" text-anchor="middle">ReconHistory</text>
+        <text x="590" y="179" fill="#94a3b8" font-size="7" text-anchor="middle">对账历史记录</text>
+
+        <rect x="665" y="145" width="130" height="45" rx="5" fill="rgba(8,51,68,0.25)" stroke="#22d3ee" stroke-width="0.8"/>
+        <text x="730" y="163" fill="white" font-size="9" text-anchor="middle">ExpenseHistory</text>
+        <text x="730" y="179" fill="#94a3b8" font-size="7" text-anchor="middle">支出历史记录</text>
+
+        <rect x="805" y="145" width="130" height="45" rx="5" fill="rgba(8,51,68,0.25)" stroke="#22d3ee" stroke-width="0.8"/>
+        <text x="870" y="163" fill="white" font-size="9" text-anchor="middle">DailyRevenue</text>
+        <text x="870" y="179" fill="#94a3b8" font-size="7" text-anchor="middle">每日营收历史</text>
+
+        <rect x="945" y="145" width="130" height="45" rx="5" fill="rgba(8,51,68,0.25)" stroke="#22d3ee" stroke-width="0.8"/>
+        <text x="1010" y="163" fill="white" font-size="9" text-anchor="middle">PdfPreview</text>
+        <text x="1010" y="179" fill="#94a3b8" font-size="7" text-anchor="middle">采购单 PDF 预览</text>
+
+        <!-- 共享组件 -->
+        <rect x="370" y="210" width="775" height="62" rx="8" fill="rgba(8,51,68,0.08)" stroke="#22d3ee" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <text x="388" y="226" fill="#22d3ee" font-size="8" font-weight="700">共享组件 Components (13 个)</text>
+        <text x="390" y="245" fill="#94a3b8" font-size="7">Toast 提示</text>
+        <text x="460" y="245" fill="#94a3b8" font-size="7">ModalOverlay 弹窗容器</text>
+        <text x="588" y="245" fill="#94a3b8" font-size="7">SlideScreen 滑动页面</text>
+        <text x="715" y="245" fill="#94a3b8" font-size="7">BgCropModal 图片裁剪</text>
+        <text x="840" y="245" fill="#94a3b8" font-size="7">NumberTicker 数字动画</text>
+        <text x="960" y="245" fill="#94a3b8" font-size="7">FadeInView 淡入</text>
+        <text x="390" y="260" fill="#94a3b8" font-size="7">ThemePicker 主题选择</text>
+        <text x="505" y="260" fill="#94a3b8" font-size="7">ConfirmModal 确认弹窗</text>
+        <text x="625" y="260" fill="#94a3b8" font-size="7">LogoutConfirm 退出确认</text>
+        <text x="745" y="260" fill="#94a3b8" font-size="7">SessionKicked 被踢提示</text>
+        <text x="870" y="260" fill="#94a3b8" font-size="7">DateErrorHint 日期提示</text>
+        <text x="970" y="260" fill="#94a3b8" font-size="7">5 个 SVG 图标</text>
+
+        <!-- 箭头：用户 → App -->
+        <line x1="90" y1="50" x2="158" y2="50" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow-cyan)"/>
+        <text x="124" y="43" fill="#22d3ee" font-size="9" text-anchor="middle">HTTPS</text>
+
+        <!-- 箭头：App → Screens -->
+        <line x1="330" y1="100" x2="383" y2="100" stroke="#22d3ee" stroke-width="1.2" marker-end="url(#arrow-cyan)"/>
+        <text x="356" y="93" fill="#94a3b8" font-size="7" text-anchor="middle">渲染</text>
+
+        <!-- 箭头：API → 后端 -->
+        <path d="M 245 215 L 245 300 Q 245 320 265 320 L 680 320 Q 700 320 700 340 L 700 370" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-cyan)"/>
+        <text x="450" y="312" fill="#22d3ee" font-size="8">Fetch API (JSON)</text>
+        <text x="450" y="324" fill="#94a3b8" font-size="7">Cookie + Bearer Token 认证</text>
+
+        <!-- ══════════════════════════════════════════════════════
+             后端层
+             ════════════════════════════════════════════════════ -->
+        <rect x="30" y="310" width="1140" height="380" rx="12" fill="rgba(6,78,59,0.06)" stroke="#34d399" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="48" y="334" fill="#34d399" font-size="12" font-weight="700">后端层 · 服务器端 · Flask 3 + Python 3.12 · gunicorn 单 worker · 端口 :8600</text>
+        <text x="48" y="348" fill="#94a3b8" font-size="8">工厂模式创建 Flask 应用 · before_request 语言检测 · 静态文件服务 · SPA 回退路由</text>
+
+        <!-- app.py -->
+        <rect x="60" y="365" width="160" height="65" rx="6" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="2"/>
+        <text x="140" y="386" fill="white" font-size="11" font-weight="700" text-anchor="middle">app.py · 主入口</text>
+        <text x="140" y="402" fill="#94a3b8" font-size="8" text-anchor="middle">Flask 应用工厂</text>
+        <text x="140" y="416" fill="#94a3b8" font-size="8" text-anchor="middle">静态文件 & SPA 路由</text>
+        <text x="140" y="428" fill="#34d399" font-size="7" text-anchor="middle">518 行 · secret_key 环境变量</text>
+
+        <!-- 蓝图区域 -->
+        <rect x="260" y="360" width="480" height="240" rx="8" fill="rgba(6,78,59,0.15)" stroke="#34d399" stroke-width="0.8" stroke-dasharray="4,4"/>
+        <text x="278" y="380" fill="#34d399" font-size="10" font-weight="700">业务路由 Blueprints — routes/ (7 个模块)</text>
+
+        <!-- 路由卡片 -->
+        <rect x="275" y="395" width="140" height="52" rx="5" fill="rgba(6,78,59,0.38)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="345" y="414" fill="white" font-size="10" font-weight="600" text-anchor="middle">auth.py · 认证</text>
+        <text x="345" y="430" fill="#94a3b8" font-size="7" text-anchor="middle">登录 · 注册 · 验证 · 找回</text>
+        <text x="345" y="442" fill="#94a3b8" font-size="7" text-anchor="middle">SSO · Session · Token</text>
+
+        <rect x="425" y="395" width="140" height="52" rx="5" fill="rgba(6,78,59,0.38)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="495" y="414" fill="white" font-size="10" font-weight="600" text-anchor="middle">transactions.py</text>
+        <text x="495" y="430" fill="#94a3b8" font-size="7" text-anchor="middle">收入/支出 CRUD</text>
+        <text x="495" y="442" fill="#94a3b8" font-size="7" text-anchor="middle">分页 · 筛选 · 删除</text>
+
+        <rect x="575" y="395" width="140" height="52" rx="5" fill="rgba(6,78,59,0.38)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="645" y="414" fill="white" font-size="10" font-weight="600" text-anchor="middle">procurement.py</text>
+        <text x="645" y="430" fill="#94a3b8" font-size="7" text-anchor="middle">产品 · 购物车 · 进货批次</text>
+        <text x="645" y="442" fill="#94a3b8" font-size="7" text-anchor="middle">PDF 生成 · 分享链接</text>
+
+        <rect x="275" y="460" width="140" height="52" rx="5" fill="rgba(6,78,59,0.38)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="345" y="479" fill="white" font-size="10" font-weight="600" text-anchor="middle">data.py · 数据</text>
+        <text x="345" y="495" fill="#94a3b8" font-size="7" text-anchor="middle">对账 · 平台费 · 营收</text>
+        <text x="345" y="507" fill="#94a3b8" font-size="7" text-anchor="middle">经营汇总 · 迁移工具</text>
+
+        <rect x="425" y="460" width="140" height="52" rx="5" fill="rgba(6,78,59,0.38)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="495" y="479" fill="white" font-size="10" font-weight="600" text-anchor="middle">profile.py</text>
+        <text x="495" y="495" fill="#94a3b8" font-size="7" text-anchor="middle">用户资料 · 头像 · 封面</text>
+        <text x="495" y="507" fill="#94a3b8" font-size="7" text-anchor="middle">密码 · 邮箱 · 签名</text>
+
+        <rect x="575" y="460" width="140" height="52" rx="5" fill="rgba(6,78,59,0.38)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="645" y="479" fill="white" font-size="10" font-weight="600" text-anchor="middle">partners.py</text>
+        <text x="645" y="495" fill="#94a3b8" font-size="7" text-anchor="middle">合伙人 · 分红 CRUD</text>
+        <text x="645" y="507" fill="#94a3b8" font-size="7" text-anchor="middle">凭证图片上传</text>
+
+        <rect x="275" y="525" width="140" height="52" rx="5" fill="rgba(6,78,59,0.38)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="345" y="544" fill="white" font-size="10" font-weight="600" text-anchor="middle">settings.py</text>
+        <text x="345" y="560" fill="#94a3b8" font-size="7" text-anchor="middle">背景图 · 语言 · 主题</text>
+        <text x="345" y="572" fill="#94a3b8" font-size="7" text-anchor="middle">统计 · 图表 · OTA</text>
+
+        <!-- 共享工具区域 -->
+        <rect x="780" y="360" width="370" height="240" rx="8" fill="rgba(6,78,59,0.12)" stroke="#34d399" stroke-width="0.8" stroke-dasharray="3,3"/>
+        <text x="798" y="380" fill="#34d399" font-size="10" font-weight="700">共享工具模块 Shared — shared/ (6 个)</text>
+
+        <text x="795" y="402" fill="white" font-size="9" font-weight="600">db.py · 数据库</text>
+        <text x="920" y="402" fill="#94a3b8" font-size="8">SQLite · WAL · timeout=10</text>
+
+        <text x="795" y="420" fill="white" font-size="9" font-weight="600">auth.py · 认证装饰器</text>
+        <text x="920" y="420" fill="#94a3b8" font-size="8">login_required · SSO · 双模</text>
+
+        <text x="795" y="438" fill="white" font-size="9" font-weight="600">email.py · 邮件</text>
+        <text x="920" y="438" fill="#94a3b8" font-size="8">Resend API · HTML 模板</text>
+
+        <text x="795" y="456" fill="white" font-size="9" font-weight="600">rate_limit.py · 限流</text>
+        <text x="920" y="456" fill="#94a3b8" font-size="8">SQLite 持久化 · 15 分钟窗口</text>
+
+        <text x="795" y="474" fill="white" font-size="9" font-weight="600">validation.py · 校验</text>
+        <text x="920" y="474" fill="#94a3b8" font-size="8">密码强度 · 字段必填 · 邮箱格式</text>
+
+        <text x="795" y="492" fill="white" font-size="9" font-weight="600">i18n.py · 翻译</text>
+        <text x="920" y="492" fill="#94a3b8" font-size="8">包装 i18n_backend · 统一接口</text>
+
+        <!-- 安全机制说明 -->
+        <rect x="795" y="515" width="340" height="72" rx="6" fill="rgba(136,19,55,0.12)" stroke="#fb7185" stroke-width="0.8" stroke-dasharray="3,3"/>
+        <text x="810" y="532" fill="#fb7185" font-size="9" font-weight="700">内置安全机制</text>
+        <text x="810" y="548" fill="#94a3b8" font-size="7">• secrets 模块生成验证码 / Token</text>
+        <text x="810" y="562" fill="#94a3b8" font-size="7">• Cookie + Bearer Token 双模认证</text>
+        <text x="810" y="576" fill="#94a3b8" font-size="7">• SSO 单设备登录 · session 过期</text>
+
+        <!-- 箭头：app → Blueprints -->
+        <line x1="220" y1="398" x2="258" y2="398" stroke="#34d399" stroke-width="1.2" marker-end="url(#arrow-green)"/>
+        <text x="239" y="391" fill="#94a3b8" font-size="7" text-anchor="middle">注册</text>
+
+        <!-- 箭头：Blueprints → Shared -->
+        <line x1="740" y1="425" x2="778" y2="410" stroke="#34d399" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <line x1="740" y1="480" x2="778" y2="460" stroke="#34d399" stroke-width="0.8" stroke-dasharray="2,2"/>
+
+        <!-- ══════════════════════════════════════════════════════
+             数据层
+             ════════════════════════════════════════════════════ -->
+        <rect x="30" y="715" width="710" height="155" rx="12" fill="rgba(76,29,149,0.08)" stroke="#a78bfa" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="48" y="740" fill="#a78bfa" font-size="12" font-weight="700">数据层 · 持久化存储 · SQLite + 文件系统</text>
+        <text x="48" y="754" fill="#94a3b8" font-size="8">WAL 模式 · timeout=10 自动重试 · user_id 多租户 · 14 张业务表</text>
+
+        <!-- SQLite 数据库 -->
+        <rect x="60" y="775" width="200" height="78" rx="6" fill="rgba(76,29,149,0.45)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="160" y="796" fill="white" font-size="11" font-weight="700" text-anchor="middle">data/snail.db · SQLite</text>
+        <text x="160" y="812" fill="#94a3b8" font-size="7" text-anchor="middle">users · user_tokens · user_sessions</text>
+        <text x="160" y="824" fill="#94a3b8" font-size="7" text-anchor="middle">transactions · dividends · partners</text>
+        <text x="160" y="836" fill="#94a3b8" font-size="7" text-anchor="middle">products · procurement_batches · items</text>
+        <text x="160" y="848" fill="#94a3b8" font-size="7" text-anchor="middle">reconciliations · platform_fees · daily_revenue</text>
+
+        <!-- 文件存储 -->
+        <rect x="290" y="775" width="200" height="78" rx="6" fill="rgba(76,29,149,0.3)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="390" y="796" fill="white" font-size="11" font-weight="700" text-anchor="middle">user-images/ · 用户图片</text>
+        <text x="390" y="812" fill="#94a3b8" font-size="7" text-anchor="middle">avatars/ · 头像 (jpg/png/webp)</text>
+        <text x="390" y="824" fill="#94a3b8" font-size="7" text-anchor="middle">covers/ · 个人封面</text>
+        <text x="390" y="836" fill="#94a3b8" font-size="7" text-anchor="middle">home-bg-{uid}.jpg · 首页背景</text>
+        <text x="390" y="848" fill="#a78bfa" font-size="7" text-anchor="middle">5MB 限制 · Pillow 缩略图 · 优雅降级</text>
+
+        <rect x="520" y="775" width="200" height="78" rx="6" fill="rgba(76,29,149,0.3)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="620" y="796" fill="white" font-size="11" font-weight="700" text-anchor="middle">expense-imgs/ · 凭证照片</text>
+        <text x="620" y="812" fill="#94a3b8" font-size="7" text-anchor="middle">{user_id}/ 按用户分目录</text>
+        <text x="620" y="824" fill="#94a3b8" font-size="7" text-anchor="middle">UUID 随机文件名</text>
+        <text x="620" y="836" fill="#94a3b8" font-size="7" text-anchor="middle">_thumb.jpg 128×128 缩略图</text>
+        <text x="620" y="848" fill="#a78bfa" font-size="7" text-anchor="middle">永久缓存 · immutable</text>
+
+        <!-- 箭头：后端 → 数据 -->
+        <line x1="140" y1="430" x2="140" y2="773" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="6,3" marker-end="url(#arrow-violet)"/>
+        <text x="155" y="610" fill="#a78bfa" font-size="8">SQL 查询</text>
+        <line x1="140" y1="430" x2="390" y2="773" stroke="#a78bfa" stroke-width="0.8" stroke-dasharray="4,3"/>
+        <line x1="140" y1="430" x2="620" y2="773" stroke="#a78bfa" stroke-width="0.8" stroke-dasharray="4,3"/>
+
+        <!-- ══════════════════════════════════════════════════════
+             外部服务层
+             ════════════════════════════════════════════════════ -->
+        <rect x="770" y="715" width="400" height="155" rx="12" fill="rgba(136,19,55,0.06)" stroke="#fb7185" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="788" y="740" fill="#fb7185" font-size="12" font-weight="700">外部服务 · 部署管线</text>
+        <text x="788" y="754" fill="#94a3b8" font-size="8">第三方 API · 容器化 · 持续集成部署</text>
+
+        <!-- Resend -->
+        <rect x="800" y="775" width="155" height="78" rx="6" fill="rgba(136,19,55,0.35)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="877" y="796" fill="white" font-size="11" font-weight="700" text-anchor="middle">Resend 邮件 API</text>
+        <text x="877" y="812" fill="#94a3b8" font-size="7" text-anchor="middle">注册验证码 · 3 语模板</text>
+        <text x="877" y="824" fill="#94a3b8" font-size="7" text-anchor="middle">密码重置 · 邮箱更换</text>
+        <text x="877" y="836" fill="#94a3b8" font-size="7" text-anchor="middle">dev 模式: 直接返回前端</text>
+        <text x="877" y="848" fill="#fb7185" font-size="7" text-anchor="middle">RESEND_API_KEY 环境变量</text>
+
+        <!-- Docker -->
+        <rect x="975" y="775" width="85" height="38" rx="5" fill="rgba(136,19,55,0.2)" stroke="#fb7185" stroke-width="1"/>
+        <text x="1017" y="794" fill="white" font-size="9" font-weight="600" text-anchor="middle">Docker</text>
+        <text x="1017" y="808" fill="#94a3b8" font-size="7" text-anchor="middle">python:3.12</text>
+
+        <!-- CI/CD -->
+        <rect x="1075" y="775" width="80" height="38" rx="5" fill="rgba(136,19,55,0.2)" stroke="#fb7185" stroke-width="1"/>
+        <text x="1115" y="794" fill="white" font-size="9" font-weight="600" text-anchor="middle">CI/CD</text>
+        <text x="1115" y="808" fill="#94a3b8" font-size="7" text-anchor="middle">GitHub</text>
+
+        <!-- gunicorn 配置 -->
+        <rect x="975" y="822" width="180" height="35" rx="5" fill="rgba(136,19,55,0.12)" stroke="#fb7185" stroke-width="0.6"/>
+        <text x="1065" y="837" fill="#94a3b8" font-size="8" text-anchor="middle">gunicorn -w 1 · :8600</text>
+        <text x="1065" y="852" fill="#94a3b8" font-size="7" text-anchor="middle">单 worker · SQLite 安全</text>
+
+        <!-- 箭头：后端 → Resend -->
+        <path d="M 1090 395 Q 1130 395 1130 500 Q 1130 700 1035 700 L 877 773" fill="none" stroke="#fb7185" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-rose)"/>
+        <text x="1110" y="580" fill="#fb7185" font-size="7" text-anchor="middle">HTTPS</text>
+
+        <!-- 数据流说明框 -->
+        <rect x="715" y="638" width="440" height="62" rx="6" fill="rgba(15,23,42,0.8)" stroke="#1e293b" stroke-width="1"/>
+        <text x="935" y="656" fill="white" font-size="9" font-weight="600" text-anchor="middle">📋 请求生命周期</text>
+        <text x="935" y="674" fill="#94a3b8" font-size="8" text-anchor="middle">Browser → nginx 反代 → Flask :8600 → before_request(lang) →</text>
+        <text x="935" y="690" fill="#94a3b8" font-size="8" text-anchor="middle">login_required(认证) → Blueprint(业务) → get_db(SQLite) → JSON 响应</text>
+
+      </svg>
+    </div>
+
+    <!-- 信息卡片 -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot cyan"></div>
+          <h3>前端 (snail-books-web)</h3>
+        </div>
+        <ul>
+          <li>• Expo SDK 56 · React 19 · RN Web 0.85</li>
+          <li>• TypeScript strict 模式 · tsc 零错误</li>
+          <li>• 11 个页面 · 13 个组件 · 7 个 Hook</li>
+          <li>• 手写 push/pop 路由栈</li>
+          <li>• 三语 i18n (简中/繁中/英文)</li>
+          <li>• 三套主题色彩方案 (酒红/曜黑/青蓝)</li>
+          <li>• 共享 useCropCanvas 图片裁剪 Hook</li>
+          <li>• 41 个 API 方法统一 401 处理</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot emerald"></div>
+          <h3>后端 (snail-books-backend)</h3>
+        </div>
+        <ul>
+          <li>• Flask 3 · Python 3.12 · gunicorn 单 worker</li>
+          <li>• 7 个 Blueprint 业务模块</li>
+          <li>• 6 个共享工具模块 (db/auth/email...)</li>
+          <li>• Cookie + Bearer Token 双模认证</li>
+          <li>• SSO 单设备登录 · session 超时</li>
+          <li>• WeasyPrint PDF 生成 · 30s 超时保护</li>
+          <li>• Resend 邮件 · HTML 模板文件化</li>
+          <li>• 前后端 i18n 统一 JSON 源</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot violet"></div>
+          <h3>安全加固 (五轮审计)</h3>
+        </div>
+        <ul>
+          <li>• secrets 模块生成验证码和 Token</li>
+          <li>• SECRET_KEY 强制环境变量 · 无默认值</li>
+          <li>• debug=False · 生产安全</li>
+          <li>• 限流 SQLite 持久化 · 跨重启有效</li>
+          <li>• 邮箱验证不再被绕过</li>
+          <li>• 迁移端点需二次确认</li>
+          <li>• 用户只能删除自己的账户</li>
+          <li>• OTA 端点加登录保护</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot amber"></div>
+          <h3>部署与运维</h3>
+        </div>
+        <ul>
+          <li>• Docker · python:3.12-slim 镜像</li>
+          <li>• requirements.txt 版本锁定</li>
+          <li>• GitHub Actions 自动部署</li>
+          <li>• SCP 同步到生产服务器</li>
+          <li>• systemd 进程守护</li>
+          <li>• DB 迁移脚本 + 安全迁移模式</li>
+          <li>• 种子数据 70+ 产品 · 3 位合伙人</li>
+          <li>• 前端 SPA 由 Flask 直接托管</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="footer">
+      🍜 蓝姐螺蛳粉记账系统 · Flask + Expo RN Web · 单机单进程 · 五轮审计 25 项修复 · 2026-06
+    </p>
+  </div>
+</body>
+</html>
