@@ -130,7 +130,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   }, [date]);
 
   const handleSave = async () => {
-    const absAmt = parseFloat(amount);
+    const absAmt = parseFloat(amount) || Math.abs(Number(record.amount));
     if (!absAmt || absAmt <= 0) { setToast(t('enterAmount')); return; }
     const amt = absAmt * (Number(record.amount) < 0 ? -1 : 1);
     setSaving(true);
