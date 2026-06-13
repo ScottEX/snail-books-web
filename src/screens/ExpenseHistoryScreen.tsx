@@ -102,7 +102,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
 
   // Paginated list hook (must be after getFilterParams)
   const { records, page, total, totalAll, hasMore, loading, loadPage, onEndReached } = usePaginatedList({
-    pageSize: 30, // 30 条/页：翻页次数减少 1/3，cell 渲染压力比 10 大 3x 但 Safari 还能扛
+    pageSize: 20, // 统一 20 条/页，跟其他 3 个列表页保持一致
     fetchPage: useCallback(async (pg: number, perPage: number) => {
       const tx: any = await api.getTransactions(pg, perPage, getFilterParams());
       return { items: tx.transactions || [], total: tx.total || 0, totalAll: tx.total_all, pages: tx.pages || 1 };
