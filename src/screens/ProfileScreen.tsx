@@ -55,6 +55,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [signatureDraft, setSignatureDraft] = useState('');
   const [daysSince, setDaysSince] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [unreviewedCount, setUnreviewedCount] = useState(0);
 
   const checkAdmin = async () => {
     try {
@@ -63,6 +64,24 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         const data = await resp.json();
         setIsAdmin(data.is_admin === true);
       }
+    } catch {}
+  };
+
+  const fetchUnreviewedCount = async () => {
+    try {
+      const resp = await fetch('/api/admin/users/unreviewed-count', { credentials: 'include' });
+      if (resp.ok) {
+        const data = await resp.json();
+        setUnreviewedCount(data.count ?? 0);
+      }
+    } catch {}
+  };
+
+  const markReviewed = async () => {
+    if (unreviewedCount === 0) return;
+    setUnreviewedCount(0);
+    try {
+      await fetch('/api/admin/users/mark-reviewed', { method: 'POST', credentials: 'include' });
     } catch {}
   };
 
@@ -166,7 +185,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     } catch {}
   };
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); }, []);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); fetchUnreviewedCount(); }, []);
 
   const loadUserInfo = async () => {
     try {
@@ -920,13 +939,18 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             {isAdmin && (<>
             <View style={st.divider} />
             {/* User management row */}
-            <TouchableOpacity style={st.iconRow} onPress={() => onManageUsers?.()}>
+            <TouchableOpacity style={st.iconRow} onPress={() => { markReviewed(); onManageUsers?.(); }}>
               <View style={[st.iconWrap, st.iconUsers]}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B9BD5" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="9" cy="7" r="3"/><path d="M2 20c0-3 3.1-5.5 7-5.5s7 2.5 7 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 19c0-2 1.8-4 4-4s4 2 4 4"/>
                 </svg>
               </View>
               <Text style={st.iconLabel}>{t('userManagement')}</Text>
+              {unreviewedCount > 0 && (
+                <View style={{ backgroundColor: colors.danger, borderRadius: 10, minWidth: 20, height: 20, paddingHorizontal: 6, justifyContent: 'center', alignItems: 'center', marginLeft: 4 }}>
+                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{unreviewedCount > 99 ? '99+' : unreviewedCount}</Text>
+                </View>
+              )}
               <ChevronRight color={colors.textSub} />
             </TouchableOpacity>
             </>)}
