@@ -95,6 +95,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
 
   // Paginated list hook (must be after getFilterParams)
   const { records, page, total, totalAll, hasMore, loading, loadPage, onEndReached } = usePaginatedList({
+    pageSize: 30, // 30 条/页：翻页次数减少 1/3，cell 渲染压力比 10 大 3x 但 Safari 还能扛
     fetchPage: useCallback(async (pg: number, perPage: number) => {
       const tx: any = await api.getTransactions(pg, perPage, getFilterParams());
       return { items: tx.transactions || [], total: tx.total || 0, totalAll: tx.total_all, pages: tx.pages || 1 };
@@ -352,7 +353,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
           return { length: ci.length > 0 ? 146 : 92, offset, index };
         }}
         onEndReached={onEndReached}
-        onEndReachedThreshold={0.4}
+        onEndReachedThreshold={0.6}  // 0.4→0.6：iOS Safari 快滑时主线程被 scroll 占用, fetch 回调被推迟，更早触发让下一页在用户到底前就加载完
         removeClippedSubviews={false}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
