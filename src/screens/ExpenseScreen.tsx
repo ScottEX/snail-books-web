@@ -440,21 +440,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           {/* @ts-ignore */}
                           <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-                            color: (() => {
-                              if (diff > 0.005) return colors.primary;
-                              if (diff < -0.005) return colors.danger;
-                              return colors.textMain;
-                            })(),
+                            color: (Math.abs(diff) < 0.005 ? colors.textMain : colors.primary),
                             textShadow: '0 1px 3px rgba(0,0,0,0.1)',
                           } as any}>{diff >= 0 ? '+' : '-'}¥</Text>
                           {/* @ts-ignore */}
                           <Text style={{
                             fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
-                            color: (() => {
-                              if (diff > 0.005) return colors.primary;
-                              if (diff < -0.005) return colors.danger;
-                              return colors.textMain;
-                            })(),
+                            color: (Math.abs(diff) < 0.005 ? colors.textMain : colors.primary),
                             textShadow: '0 1px 3px rgba(0,0,0,0.1)',
                           } as any}>{toDec2Comma(Math.abs(diff))}</Text>
                         </View>

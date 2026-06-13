@@ -1203,7 +1203,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   chartGlassSymbol: {
     fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-    color: 'rgba(255,255,255,0.95)',
+    color: colors.primary,
     textShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   chartGlassValue: {
