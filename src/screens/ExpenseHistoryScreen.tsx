@@ -211,8 +211,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
                   style={st.imgThumbWrap}>
                   {React.createElement('img', {
                     src: url,
-                    loading: 'lazy' as any,
-                    decoding: 'async' as any,
                     style: {
                       width: 48, height: 48, borderRadius: 6, objectFit: 'cover',
                       backgroundColor: colors.bg,
