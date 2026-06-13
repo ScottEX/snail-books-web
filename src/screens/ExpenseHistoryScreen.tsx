@@ -341,11 +341,13 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
           let offset = 0;
           for (let i = 0; i < index; i++) {
             const prev = data[i];
-            const pi = prev?.thumb_images ? parseImages(prev.thumb_images) : parseImages(prev?.images);
+            const ti = prev?.thumb_images ? parseImages(prev.thumb_images) : [];
+            const pi = ti.length > 0 ? ti : parseImages(prev?.images);
             offset += pi.length > 0 ? 146 : 92;
           }
           const cur = data[index];
-          const ci = cur?.thumb_images ? parseImages(cur.thumb_images) : parseImages(cur?.images);
+          const ti = cur?.thumb_images ? parseImages(cur.thumb_images) : [];
+          const ci = ti.length > 0 ? ti : parseImages(cur?.images);
           return { length: ci.length > 0 ? 146 : 92, offset, index };
         }}
         onEndReached={onEndReached}

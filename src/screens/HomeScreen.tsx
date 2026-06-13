@@ -55,9 +55,6 @@ export default function HomeScreen({
     try { localStorage.setItem('active_tab', t); } catch {}
   };
   const [summary, setSummary] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
   const [chart, setChart] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   // Pulled from LangContext — re-renders on LangContext value change
@@ -282,11 +279,6 @@ export default function HomeScreen({
       const s = await api.getSummary();
       if (reqId !== loadDataReqRef.current) return;
       setSummary(s);
-      const tx = await api.getTransactions(1, 20);
-      if (reqId !== loadDataReqRef.current) return;
-      setTransactions(tx.transactions || []);
-      setPages(tx.pages || 1);
-      setPage(1);
     } catch {
       if (reqId !== loadDataReqRef.current) return;
       setToast(t('toastLoadFailed'));
@@ -514,25 +506,6 @@ export default function HomeScreen({
     try {
       await api.createTransaction({ type: txType, amount: parseFloat(amount), category, account, note });
       setAmount(''); setCategory(''); setAccount(''); setNote('');
-      loadData();
-    } catch {
-      setToast(t('toastSubmitFailed'));
-    }
-  };
-
-  const handlePage = async (p: number) => {
-    try {
-      const tx = await api.getTransactions(p, 20);
-      setTransactions(tx.transactions || []);
-      setPage(p);
-    } catch {
-      setToast(t('toastLoadFailed'));
-    }
-  };
-
-  const handleDeleteTx = async (id: number) => {
-    try {
-      await api.deleteTransaction(id);
       loadData();
     } catch {
       setToast(t('toastSubmitFailed'));
