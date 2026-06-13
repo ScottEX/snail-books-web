@@ -16,6 +16,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import LoadingSpinner from '../components/LoadingSpinner';
 import TextField from '../components/TextField';
+import ButtonPair from '../components/ButtonPair';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -267,11 +268,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   modalClose: { ...modalClose, },
   modalBody: { padding: 24 },
   modalInput: { paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 10, outline: 'none' },
-  modalBtnRow: { flexDirection: 'row' as const, gap: 8, marginTop: 10, width: '100%' as any },
-  modalBtnCancel: { flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const },
-  modalBtnCancelText: { fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight },
-  modalBtnConfirm: { flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: c.primary, alignItems: 'center' as const },
-  modalBtnConfirmText: { fontSize: FONTS.subBold.size, color: c.surface, fontWeight: FONTS.subBold.weight },
   modalDeleteBox: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' as const },
   modalDeleteText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' as const },
 
@@ -1221,14 +1217,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </View>
               <TextField placeholder={t('procProductPrice')} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="numeric" />
               <TextField placeholder={t('procProductNote')} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
-              <View style={styles.modalBtnRow}>
-                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setShowProductModal(false))}>
-                  <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.modalBtnConfirm} onPress={saveProduct}>
-                  <Text style={styles.modalBtnConfirmText}>{t('procSubmit')}</Text>
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={() => closeSlideModal(() => setShowProductModal(false))}
+                rightLabel={t('procSubmit')}
+                rightOnPress={saveProduct}
+              />
             </View>
           </Animated.View>
         </Animated.View>

@@ -869,14 +869,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
                 {t('expConfirmMsg')}
               </Text>
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <TouchableOpacity style={st.modalCancelBtn} onPress={() => setShowExpConfirm(false)}>
-                  <Text style={st.modalCancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={st.modalBtn} onPress={() => { setShowExpConfirm(false); handleAddExpense(); }}>
-                  <Text style={st.modalBtnText}>{t('confirm')}</Text>
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={() => setShowExpConfirm(false)}
+                rightLabel={t('confirm')}
+                rightOnPress={() => { setShowExpConfirm(false); handleAddExpense(); }}
+              />
             </View>
           </View>
         </ModalOverlay>
@@ -894,14 +892,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
                 {t('jokeRecon')}
               </Text>
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <TouchableOpacity style={st.modalCancelBtn} onPress={hideToast}>
-                  <Text style={st.modalCancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={st.modalBtn} onPress={() => { hideToast(); submitRecon(); }}>
-                  <Text style={st.modalBtnText}>{t('confirm')}</Text>
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={hideToast}
+                rightLabel={t('confirm')}
+                rightOnPress={() => { hideToast(); submitRecon(); }}
+              />
             </View>
           </View>
         </ModalOverlay>
@@ -1463,16 +1459,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
   modalClose: { ...modalClose, },
-  modalBtn: {
-    flex: 1, backgroundColor: colors.primary, borderRadius: 14,
-    paddingVertical: 10, alignItems: 'center',
-  },
-  modalBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface },
-  modalCancelBtn: {
-    flex: 1, backgroundColor: colors.bg, borderRadius: 14,
-    paddingVertical: 10, alignItems: 'center',
-  },
-  modalCancelText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
     backgroundColor: colors.surface,
