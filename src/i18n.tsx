@@ -12,6 +12,7 @@ const I18N: Record<string, Record<string, string>> = {
     allDividendRecords: '」的所有分红记录',
     amount: '金额',
     amountLabel: '输入金额（元）',
+    refundAmount: '退款金额',
     any: '不限',
     apply: '应用',
     atLeastOneFee: '至少输入一个平台的手续费',
@@ -460,6 +461,7 @@ const I18N: Record<string, Record<string, string>> = {
     allDividendRecords: '」的所有分紅記錄',
     amount: '金額',
     amountLabel: '輸入金額（元）',
+    refundAmount: '退款金額',
     any: '不限',
     apply: '應用',
     atLeastOneFee: '至少輸入一個平台的手續費',
@@ -910,6 +912,7 @@ const I18N: Record<string, Record<string, string>> = {
     allDividendRecords: '" all dividend records',
     amount: 'Amount',
     amountLabel: 'Amount (¥)',
+    refundAmount: 'Refund Amount',
     any: 'Any',
     apply: 'Apply',
     atLeastOneFee: 'Please enter at least one platform fee',
@@ -1362,6 +1365,7 @@ export type I18nKey =
   | 'allDividendRecords'
   | 'amount'
   | 'amountLabel'
+  | 'refundAmount'
   | 'any'
   | 'apply'
   | 'atLeastOneFee'
