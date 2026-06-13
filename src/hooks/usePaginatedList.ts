@@ -17,7 +17,7 @@ interface UsePaginatedListOptions<T> {
 
 export function usePaginatedList<T>({
   fetchPage,
-  pageSize = 10,
+  pageSize = 20,
   onError,
 }: UsePaginatedListOptions<T>) {
   const [records, setRecords] = useState<T[]>([]);

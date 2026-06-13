@@ -353,7 +353,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     handleImageSelect, removeImage,
     handleExpDateChange, resetForm,
     isAmountInvalid,
-    fmtDecInput, toDec2Comma,
+    fmtDecInput, fmtRefundInput, toDec2Comma,
+    isRefund, setIsRefund,
   } = useExpenseForm({
     onExpenseHistory,
     getPreviewUrl,
@@ -778,11 +779,31 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={st.expForm}>
               {/* 大金额输入 */}
               <View style={st.bigAmtWrap}>
-                <Text style={st.bigAmtLabel}>{t('amountLabel')}</Text>
-                <View style={st.bigAmtRow}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 6 }}>
+                  <Text style={st.bigAmtLabel}>{isRefund ? t('refundAmount') : t('amountLabel')}</Text>
+                  <TouchableOpacity
+                    onPress={() => { setIsRefund(!isRefund); if (!isRefund) setExpAmount(''); }}
+                    activeOpacity={0.7}
+                    style={{
+                      padding: 2, borderRadius: 4, marginTop: -5,
+                      backgroundColor: isRefund ? withAlpha(colors.danger, 0.1) : withAlpha(colors.textMain, 0.06),
+                    }}
+                  >
+                    <Svg width={18} height={18} viewBox="0 0 1024 1024">
+                      <Path d="M941 512c0 229.2-185.8 415-415 415S111 741.2 111 512 296.8 97 526 97c22.9 0 41.5 18.6 41.5 41.5S548.9 180 526 180c-183.4 0-332 148.6-332 332s148.6 332 332 332 332-148.6 332-332c0-22.9 18.6-41.5 41.5-41.5S941 489.1 941 512z m-356.3-83.2h65.8c22.9 0 41.5 18.6 41.5 41.5s-18.6 41.5-41.5 41.5h-83v41.5h83c22.9 0 41.5 18.6 41.5 41.5s-18.6 41.5-41.5 41.5h-83v83c0 22.9-18.6 41.5-41.5 41.5s-41.5-18.6-41.5-41.5v-83h-83c-22.9 0-41.5-18.6-41.5-41.5s18.6-41.5 41.5-41.5h83v-41.5h-83c-22.9 0-41.5-18.6-41.5-41.5s18.6-41.5 41.5-41.5h65.8L396.5 358c-16.2-16.2-16.2-42.5 0-58.7s42.5-16.2 58.7 0l70.8 70.8 70.8-70.8c16.2-16.2 42.5-16.2 58.7 0 16.2 16.2 16.2 42.5 0 58.7l-70.8 70.8z" fill={isRefund ? colors.danger : colors.textSub} />
+                      <Path d="M853.4 243.7l-88 88c-16.2 16.2-42.5 16.2-58.7 0s-16.2-42.5 0-58.7l88-88-88-88h234.8v234.8l-88.1-88.1z" fill={isRefund ? colors.danger : colors.textSub} />
+                    </Svg>
+                  </TouchableOpacity>
+                </View>
+                <View style={[st.bigAmtRow, isRefund && { borderColor: withAlpha(colors.danger, 0.3) }]}>
+                  {isRefund ? (
+                    <Text style={[st.bigAmtSymbol, { color: colors.danger }]}>+</Text>
+                  ) : (
+                    <Text style={st.bigAmtSymbol}>-</Text>
+                  )}
                   <Text style={st.bigAmtSymbol}>¥</Text>
                   <TextInput style={st.bigAmtInput}
-                    value={expAmount} onChangeText={(v: string) => setExpAmount(fmtDecInput(v))}
+                    value={expAmount} onChangeText={(v: string) => setExpAmount(fmtRefundInput(v))}
                     onBlur={() => { if (expAmount !== '') setExpAmount(toDec2Comma(expAmount)); }}
                     keyboardType="decimal-pad" placeholder="0.00"
                     placeholderTextColor={colors.textSub}
@@ -830,7 +851,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 leftLabel={t('expenseHistory')}
                 leftOnPress={() => onExpenseHistory?.()}
                 rightLabel={loadingExp ? '...' : t('confirmRecord')}
-                rightOnPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) > 0) setShowExpConfirm(true); }}
+                rightOnPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) !== 0) setShowExpConfirm(true); }}
                 rightDisabled={isAmountInvalid}
               />
             </View>

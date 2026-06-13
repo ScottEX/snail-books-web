@@ -55,9 +55,6 @@ export default function HomeScreen({
     try { localStorage.setItem('active_tab', t); } catch {}
   };
   const [summary, setSummary] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
   const [chart, setChart] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   // Pulled from LangContext — re-renders on LangContext value change
@@ -282,11 +279,6 @@ export default function HomeScreen({
       const s = await api.getSummary();
       if (reqId !== loadDataReqRef.current) return;
       setSummary(s);
-      const tx = await api.getTransactions(1, 20);
-      if (reqId !== loadDataReqRef.current) return;
-      setTransactions(tx.transactions || []);
-      setPages(tx.pages || 1);
-      setPage(1);
     } catch {
       if (reqId !== loadDataReqRef.current) return;
       setToast(t('toastLoadFailed'));
@@ -444,6 +436,27 @@ export default function HomeScreen({
   const monthIncome = dailyRevenues
     .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
 
+  // ── 每日图表数据（最近 12 天）──
+  const dailyChartData = useMemo(() => {
+    const dates: string[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      dates.push(d.toISOString().slice(0, 10));
+    }
+    const dailyIncome = dates.map(date =>
+      dailyRevenues
+        .filter((r: any) => r.date === date)
+        .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0)
+    );
+    const dailyExpense = dates.map(date =>
+      chartExpenses
+        .filter((e: any) => e.date === date)
+        .reduce((s: number, e: any) => s + (e.amount || 0), 0)
+    );
+    return { dates, income: dailyIncome, expense: dailyExpense };
+  }, [dailyRevenues, chartExpenses]);
+
   // ── Inject glass-slider CSS ──
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -493,25 +506,6 @@ export default function HomeScreen({
     try {
       await api.createTransaction({ type: txType, amount: parseFloat(amount), category, account, note });
       setAmount(''); setCategory(''); setAccount(''); setNote('');
-      loadData();
-    } catch {
-      setToast(t('toastSubmitFailed'));
-    }
-  };
-
-  const handlePage = async (p: number) => {
-    try {
-      const tx = await api.getTransactions(p, 20);
-      setTransactions(tx.transactions || []);
-      setPage(p);
-    } catch {
-      setToast(t('toastLoadFailed'));
-    }
-  };
-
-  const handleDeleteTx = async (id: number) => {
-    try {
-      await api.deleteTransaction(id);
       loadData();
     } catch {
       setToast(t('toastSubmitFailed'));
@@ -940,6 +934,9 @@ export default function HomeScreen({
                       expense={chartMonthly.expense || []}
                       profit={chartMonthly.profit || []}
                       categories={chartMonthly.categories || {}}
+                      dailyDates={dailyRevenues.length > 0 ? dailyChartData.dates : []}
+                      dailyIncome={dailyRevenues.length > 0 ? dailyChartData.income : []}
+                      dailyExpense={dailyRevenues.length > 0 ? dailyChartData.expense : []}
                     />
                     </View>
                   )}

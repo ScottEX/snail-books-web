@@ -46,6 +46,7 @@ const I18N: Record<string, Record<string, string>> = {
     chartSwitchHint: '点击切换视图',
     chartSwitchPie: '饼图',
     chartXAxis: '月份',
+    chartXAxisDay: '每日',
     chartYAxis: '金额（元）',
     chooseImage: '选择图片',
     clear: '清空',
@@ -139,6 +140,7 @@ const I18N: Record<string, Record<string, string>> = {
     expDate: '日期',
     expense: '支出',
     expenseBreakdown: '支出分类占比',
+    expenseBreakdownOfMonth: '月支出分类占比',
     expenseCategory: '支出分类',
     expenseDate: '支出日期',
     createdAt: '创建时间',
@@ -198,11 +200,15 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: '美团外卖',
     mid: '追加',
     month: '本月',
+    thisMonth: '当月',
     monthExpense: '本月支出',
     monthIncome: '本月收入',
     monthProfit: '本月利润',
     monthlyProfit: '月度利润',
     monthlyTrend: '月度收支趋势',
+    dailyTrend: '每日收支趋势',
+    chartSwitchMonth: '月',
+    chartSwitchDay: '日',
     nameJiang: '江宽',
     nameLan: '蓝柳富',
     nameZhang: '张安武',
@@ -306,6 +312,8 @@ const I18N: Record<string, Record<string, string>> = {
     reconciledBy: '对账人',
     recordedBy: '录入人',
     recrop: '重新裁剪',
+    refund: '退款',
+    refundAmount: '退款金额（元）',
     register: '注册',
     invoiceTitle: '开票信息',
     companyName: '公司名称',
@@ -494,6 +502,7 @@ const I18N: Record<string, Record<string, string>> = {
     chartSwitchHint: '點擊切換視圖',
     chartSwitchPie: '餅圖',
     chartXAxis: '月份',
+    chartXAxisDay: '每日',
     chartYAxis: '金額（元）',
     chooseImage: '選擇圖片',
     clear: '清空',
@@ -587,6 +596,7 @@ const I18N: Record<string, Record<string, string>> = {
     expDate: '日期',
     expense: '支出',
     expenseBreakdown: '支出分類佔比',
+    expenseBreakdownOfMonth: '月支出分類佔比',
     expenseCategory: '支出分類',
     expenseDate: '支出日期',
     createdAt: '創建時間',
@@ -646,11 +656,15 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: '美團外賣',
     mid: '追加',
     month: '本月',
+    thisMonth: '当月',
     monthExpense: '本月支出',
     monthIncome: '本月收入',
     monthProfit: '本月利潤',
     monthlyProfit: '月度利潤',
     monthlyTrend: '月度收支趨勢',
+    dailyTrend: '每日收支趨勢',
+    chartSwitchMonth: '月',
+    chartSwitchDay: '日',
     nameJiang: '江寬',
     nameLan: '藍柳富',
     nameZhang: '張安武',
@@ -755,6 +769,8 @@ const I18N: Record<string, Record<string, string>> = {
     reconciledBy: '對賬人',
     recordedBy: '錄入人',
     recrop: '重新裁剪',
+    refund: '退款',
+    refundAmount: '退款金額（元）',
     register: '註冊',
     invoiceTitle: '開票信息',
     companyName: '公司名稱',
@@ -944,6 +960,7 @@ const I18N: Record<string, Record<string, string>> = {
     chartSwitchHint: 'Tap to switch',
     chartSwitchPie: 'Pie Chart',
     chartXAxis: 'Month',
+    chartXAxisDay: 'Daily',
     chartYAxis: 'Amount (¥)',
     chooseImage: 'Choose Image',
     clear: 'Clear',
@@ -1037,6 +1054,7 @@ const I18N: Record<string, Record<string, string>> = {
     expDate: 'Date',
     expense: 'Expense',
     expenseBreakdown: 'Expense Breakdown',
+    expenseBreakdownOfMonth: ' Expense Breakdown',
     expenseCategory: 'Category',
     expenseDate: 'Expense Date',
     createdAt: 'Created At',
@@ -1096,11 +1114,15 @@ const I18N: Record<string, Record<string, string>> = {
     meituanWaimai: 'Meituan Waimai',
     mid: 'Additional',
     month: 'Month',
+    thisMonth: 'This Month',
     monthExpense: 'Month Expense',
     monthIncome: 'Month Income',
     monthProfit: 'Month Profit',
     monthlyProfit: 'Monthly Profit',
     monthlyTrend: 'Monthly Trend',
+    dailyTrend: 'Daily Trend',
+    chartSwitchMonth: 'Month',
+    chartSwitchDay: 'Day',
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
     nameZhang: 'Zhang Anwu',
@@ -1205,6 +1227,8 @@ const I18N: Record<string, Record<string, string>> = {
     reconciledBy: 'Reconciled by',
     recordedBy: 'By',
     recrop: 'Re-crop',
+    refund: 'Refund',
+    refundAmount: 'Refund Amount (¥)',
     register: 'Register',
     invoiceTitle: 'Invoice Info',
     companyName: 'Company Name',
@@ -1395,6 +1419,7 @@ export type I18nKey =
   | 'chartSwitchHint'
   | 'chartSwitchPie'
   | 'chartXAxis'
+  | 'chartXAxisDay'
   | 'chartYAxis'
   | 'chooseImage'
   | 'clear'
@@ -1487,6 +1512,7 @@ export type I18nKey =
   | 'expUpdated'
   | 'expense'
   | 'expenseBreakdown'
+  | 'expenseBreakdownOfMonth'
   | 'expenseCategory'
   | 'expenseDate'
   | 'expenseHistory'
@@ -1544,8 +1570,12 @@ export type I18nKey =
   | 'monthExpense'
   | 'monthIncome'
   | 'monthProfit'
+  | 'thisMonth'
   | 'monthlyProfit'
   | 'monthlyTrend'
+  | 'dailyTrend'
+  | 'chartSwitchMonth'
+  | 'chartSwitchDay'
   | 'nameJiang'
   | 'nameLan'
   | 'nameZhang'
@@ -1650,6 +1680,8 @@ export type I18nKey =
   | 'reconciledBy'
   | 'recordedBy'
   | 'recrop'
+  | 'refund'
+  | 'refundAmount'
   | 'register'
   | 'invoiceTitle' | 'companyName' | 'taxId' | 'bankName' | 'bankAccount' | 'addressPhone' | 'companyPhone' | 'invoiceSave' | 'invoiceSaving' | 'invoiceSaved'
   | 'registerBtn'
