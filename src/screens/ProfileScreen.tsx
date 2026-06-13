@@ -15,6 +15,7 @@ import BackArrow from '../components/icons/BackArrow';
 import CameraIcon from '../components/icons/CameraIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import { useProfileForms } from './profile/useProfileForms';
+import { useSignatureForm } from './profile/useSignatureForm';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
@@ -51,9 +52,12 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try { return getCurrentUser(); } catch { return ''; }
   }, []);
   const [email, setEmail] = useState('');
-  const [signature, setSignature] = useState('');
-  const [signatureEditing, setSignatureEditing] = useState(false);
-  const [signatureDraft, setSignatureDraft] = useState('');
+  const {
+    signature, setSignature,
+    signatureEditing, setSignatureEditing,
+    signatureDraft, setSignatureDraft,
+    handleSignatureSave, startEditing,
+  } = useSignatureForm();
   const [daysSince, setDaysSince] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
@@ -282,13 +286,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     finally { setCoverUploading(false); }
   };
 
-  const handleSignatureSave = async () => {
-    setSignatureEditing(false);
-    const val = signatureDraft.trim();
-    if (val === signature) return;
-    setSignature(val);
-    try { await api.saveSignature(val); } catch {}
-  };
+  // handleSignatureSave → useSignatureForm hook
 
   // ── Delete account ──
   const handleDeleteAccount = async () => {
@@ -767,7 +765,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               />
             </View>
           ) : (
-            <TouchableOpacity onPress={() => { setSignatureDraft(signature); setSignatureEditing(true); }}>
+            <TouchableOpacity onPress={startEditing}>
               <Text style={st.signatureText}>
                 {signature || t('signaturePlaceholder')}
               </Text>
