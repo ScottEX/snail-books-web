@@ -12,7 +12,7 @@ const I18N: Record<string, Record<string, string>> = {
     allDividendRecords: '」的所有分红记录',
     amount: '金额',
     amountLabel: '输入金额（元）',
-    refundAmount: '退款金额',
+    refundAmount: '退款金额（元）',
     any: '不限',
     apply: '应用',
     atLeastOneFee: '至少输入一个平台的手续费',
