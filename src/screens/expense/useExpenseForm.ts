@@ -36,7 +36,6 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
   const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
   const [loadingExp, setLoadingExp] = useState(false);
   const [showExpConfirm, setShowExpConfirm] = useState(false);
-  const [isRefund, setIsRefund] = useState(false);
 
   /* ── image compression ── */
   const compressImage = (file: File): Promise<File> => {
@@ -158,18 +157,8 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
   );
 
   /* ── submit ── */
-  // Format input allowing leading minus when refund mode
-  const fmtRefundInput = useCallback((v: string) => {
-    if (!isRefund) return fmtDecInput(v);
-    // UI already renders a red '-' sign — strip any leading '-' from input
-    const stripped = v.startsWith('-') ? v.slice(1) : v;
-    return fmtDecInput(stripped);
-  }, [isRefund]);
-
   const handleAddExpense = useCallback(async () => {
-    const raw = parseFloat(expAmount.replace(/,/g, ''));
-    if (!expAmount || raw === 0) return;
-    if (!isRefund && raw <= 0) return;
+    if (!expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0) return;
     if (sd.isFuture(expDate)) {
       return;
     }
@@ -193,7 +182,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
       }
       await api.createTransaction({
         type: 'expense',
-        amount: parseFloat(expAmount.replace(/,/g, '')) * (isRefund ? -1 : 1),
+        amount: parseFloat(expAmount.replace(/,/g, '')),
         category: expCategory,
         account: payMethod,
         note: expNote,
@@ -208,10 +197,8 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
       setExpNote('');
       setExpDate(sd.today);
       setExpImages([]);
-      setIsRefund(false);
+      await loadExpenses();
       onExpenseHistory?.();
-      // background reload — don't block navigation
-      loadExpenses();
     } catch {
       onToast(t('toastSubmitFailed'));
     }
@@ -223,7 +210,6 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     expCategory,
     payMethod,
     expNote,
-    isRefund,
     clearUrlCache,
     loadExpenses,
     onExpenseHistory,
@@ -241,12 +227,11 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     setShowExpConfirm(false);
     setLoadingExp(false);
     setUploadingImg(false);
-    setIsRefund(false);
   }, []);
 
   // Derived: true when the form should be disabled (no amount, zero, or loading)
   const isAmountInvalid =
-    !expAmount || parseFloat(expAmount.replace(/,/g, '')) === 0 || loadingExp;
+    !expAmount || parseFloat(expAmount.replace(/,/g, '')) <= 0 || loadingExp;
 
   return {
     // state
@@ -270,8 +255,6 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     loadingExp,
     showExpConfirm,
     setShowExpConfirm,
-    isRefund,
-    setIsRefund,
     // actions
     loadExpenses,
     handleAddExpense,
@@ -283,7 +266,6 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     isAmountInvalid,
     // formatters (re-exported for convenience)
     fmtDecInput,
-    fmtRefundInput,
     toDec2Comma,
   };
 }

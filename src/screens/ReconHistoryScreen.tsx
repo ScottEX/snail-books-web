@@ -27,12 +27,6 @@ function monthsBetween(from: string, to: string): number {
   return m;
 }
 
-// Platform detection — RN-Web runs as 'web' on every browser, so Platform.OS
-// can't distinguish Safari from Chrome/Firefox. Used to tune scroll throttle.
-const isWebKit = typeof navigator !== 'undefined' &&
-  /Safari/.test(navigator.userAgent) &&
-  !/Chrome|CriOS|Edg|OPR|FxiOS/.test(navigator.userAgent);
-
 function ReconEmptyIcon({ color }: { color: string }) {
   return (
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -157,25 +151,10 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
 
 
-  // Card sub-component — React.memo prevents re-render of unchanged rows during scroll.
-  // Comparator uses item reference equality (records array is append-only on pagination,
-  // so unchanged items keep the same object reference across renders).
-  const ReconCard = React.memo(({
-    r,
-    onPress,
-    colors,
-    st,
-    fmtDate,
-    fmtDateTime,
-  }: {
-    r: any;
-    onPress: () => void;
-    colors: ThemeColors;
-    st: any;
-    fmtDate: (d: string) => string;
-    fmtDateTime: (d: string) => string;
-  }) => (
-    <TouchableOpacity style={st.card} onPress={onPress} activeOpacity={0.7}>
+  // Card: compact summary (tap to open detail modal)
+  const renderCard = (r: any) => (
+    <TouchableOpacity key={r.id} style={st.card} onPress={() => setSelected(r)} activeOpacity={0.7}>
+      {/* Row 1: two dates */}
       <View style={st.dateRow}>
         <View style={st.dateItem}>
           <Text style={st.dateLabel}>{t('reconDate')}</Text>
@@ -187,12 +166,15 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           <Text style={st.dateVal}>{fmtDate(r.bill_date || r.date)}</Text>
         </View>
       </View>
+      {/* Reconciler */}
       {r.reconciled_by ? (
         <View style={st.reconByRow}>
           <Text style={st.reconByText}>{t('reconciledBy')}: {r.reconciled_by}</Text>
         </View>
       ) : null}
+      {/* Row 2: 3 vertical pair columns */}
       <View style={st.cardPairRow}>
+        {/* Col 1: 账面余额 / 卡余额 */}
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookBalance')}</Text>
@@ -204,6 +186,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <Text style={st.cardPairVal}>{fmtAmtFull(r.card_balance)}</Text>
           </View>
         </View>
+        {/* Col 2: 当前结余 / 现金 */}
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('currentBalance')}</Text>
@@ -215,6 +198,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <Text style={st.cardPairVal}>{fmtAmtFull(r.cash_balance)}</Text>
           </View>
         </View>
+        {/* Col 3: 账面差额 / 在途资金 */}
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookDiff')}</Text>
@@ -229,15 +213,10 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           </View>
         </View>
       </View>
+      {/* Tap hint */}
       <Text style={st.tapHint}>{t('tapForDetail')}</Text>
     </TouchableOpacity>
-  ), (prev, next) => prev.r === next.r && prev.colors === next.colors);
-
-  // Stable press handler for cards — takes id, looks up record.
-  const handleCardPress = useCallback((id: number) => {
-    const item = records.find((r: any) => r.id === id);
-    if (item) setSelected(item);
-  }, [records]);
+  );
 
   // Detail Modal: three vertical pairs + channel list
   const renderModal = () => {
@@ -440,7 +419,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </>)}
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
-        onScroll={handleScroll} scrollEventThrottle={isWebKit ? 32 : 16}  // Safari 32ms 平衡响应与卡顿，其他 16ms = 60fps
+        onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 266 : 112 }}>
         {loading ? (
           <LoadingSpinner />
@@ -448,17 +427,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           renderEmpty()
         ) : (
           <>
-            {records.map((r: any) => (
-              <ReconCard
-                key={r.id}
-                r={r}
-                onPress={() => handleCardPress(r.id)}
-                colors={colors}
-                st={st}
-                fmtDate={fmtDate}
-                fmtDateTime={fmtDateTime}
-              />
-            ))}
+            {records.map(renderCard)}
             {hasMore && (
               <View style={st.loadingMore}>
                 <ActivityIndicator size="small" color={colors.primary} />
