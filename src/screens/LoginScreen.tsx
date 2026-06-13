@@ -83,12 +83,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setBgReady(false); setAvatarReady(false);
     const timer = setTimeout(async () => {
       try {
-        let resp = await fetch(`/api/users/avatar?username=${encodeURIComponent(username)}`);
-        if (!resp.ok && username.includes('@')) {
-          resp = await fetch(`/api/users/avatar?email=${encodeURIComponent(username)}`);
-        }
-        if (resp.ok) {
-          const blob = await resp.blob();
+        const blob = await api.getUserAvatarByLogin(username);
+        if (blob) {
           setAvatarUrl(URL.createObjectURL(blob));
           setAvatarReady(true);
         } else {
@@ -97,9 +93,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       } catch { setAvatarUrl(''); setAvatarReady(true); }
 
       try {
-        const bgResp = await fetch(`/api/users/background?username=${encodeURIComponent(username)}`);
-        if (bgResp.ok) {
-          const blob = await bgResp.blob();
+        const blob = await api.getUserBackground(username);
+        if (blob) {
           setBgUrl(URL.createObjectURL(blob));
           setBgReady(true);
         } else {

@@ -398,4 +398,27 @@ export const api = {
       return null;
     }
   },
+
+  /** 登录态用：根据 username/email 拉头像 Blob */
+  getUserAvatarByLogin: async (identifier: string): Promise<Blob | null> => {
+    try {
+      let resp = await fetch(API_BASE + `/api/users/avatar?username=${encodeURIComponent(identifier)}`);
+      if (!resp.ok && identifier.includes('@')) {
+        resp = await fetch(API_BASE + `/api/users/avatar?email=${encodeURIComponent(identifier)}`);
+      }
+      return resp.ok ? resp.blob() : null;
+    } catch {
+      return null;
+    }
+  },
+
+  /** 登录态用：拉背景图 Blob */
+  getUserBackground: async (identifier: string): Promise<Blob | null> => {
+    try {
+      const resp = await fetch(API_BASE + `/api/users/background?username=${encodeURIComponent(identifier)}`);
+      return resp.ok ? resp.blob() : null;
+    } catch {
+      return null;
+    }
+  },
 };
