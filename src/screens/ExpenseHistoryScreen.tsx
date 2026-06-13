@@ -151,7 +151,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
               <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
             </View>
           </View>
-          <Text style={st.amount}>-¥{Number(e.amount || 0).toFixed(2)}</Text>
+          <Text style={[st.amount,  (Number(e.amount) < 0) && { color: colors.success }]}>{(Number(e.amount) < 0) ? '+' : '-'}¥{Math.abs(Number(e.amount || 0)).toFixed(2)}</Text>
         </View>
         {currentUser ? (
           <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
