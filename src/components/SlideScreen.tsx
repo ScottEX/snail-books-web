@@ -20,7 +20,6 @@ const SS_CSS = `
 @keyframes ss-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .ss-root{
   position:absolute;top:0;left:0;right:0;bottom:0;
-  transform:translateX(0);
 }
 .ss-root.ss-enter{animation:ss-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
 .ss-root.ss-exit{animation:ss-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
