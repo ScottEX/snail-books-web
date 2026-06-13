@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  View, Text, TouchableOpacity, FlatList, ScrollView, StyleSheet, ActivityIndicator, Animated
+  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -167,14 +167,15 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
             <View style={{ flex: 1 }} />
           )}
         </View>
-        {/* Image thumbnails — horizontal scroll, no wrap (no reflow on load) */}
+        {/* Image thumbnails — View (not ScrollView) for stable cell height on iOS Safari.
+            Wrap with flex so multi-image records break lines instead of horizontal scroll. */}
         {displayImgs.length > 0 && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
+          <View style={[st.imgThumbs, { marginTop: 4 }]}>
             {displayImgs.map((url: string, j: number) => (
               <TouchableOpacity key={j}
                 onPress={() => setPreviewData({ images: previewImgs, idx: j })}
                 activeOpacity={0.8}
-                style={{ marginRight: j < displayImgs.length - 1 ? 6 : 0 }}>
+                style={st.imgThumbWrap}>
                 {React.createElement('img', {
                   src: url,
                   loading: 'lazy' as any,
@@ -187,7 +188,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
                 })}
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         )}
       </View>
       </TouchableOpacity>
@@ -426,6 +427,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   amount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: colors.danger },
   filledBy: { fontSize: FONTS.micro.size, color: colors.textSub, marginTop: 2 },
   imgThumbs: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
+  imgThumbWrap: { width: 48, height: 48 },
   rowBottom: {
     flexDirection: 'row', alignItems: 'center', gap: 16,
   },
