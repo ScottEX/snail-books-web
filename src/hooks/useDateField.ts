@@ -39,5 +39,5 @@ export function useDateField({ sd, initial }: UseDateFieldOptions) {
     return true;
   }, [sd, value]);
 
-  return { value, setValue, key, error, reset, validate };
+  return { value, setValue, key, error, setError, reset, validate };
 }

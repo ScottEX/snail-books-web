@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, useReducer } from 'react';
 import { useDisclosure } from '../hooks/useDisclosure';
+import { useDateField } from '../hooks/useDateField';
 import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
@@ -156,10 +157,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   }, [activeTab]);
 
   /* ── 模块一：对账 ── */
-  const [recDate, setRecDate] = useState('');
-  useEffect(() => { if (sd.ready && recDate === '') setRecDate(sd.yesterday); }, [sd.ready, sd.yesterday, recDate]);
-  const [recDateKey, setRecDateKey] = useState(0);
-  const [recDateErr, setRecDateErr] = useState(0);
+  const recDate = useDateField({ sd, initial: '' });
   const [toast, setToast] = useState('');
   const [businessSummary, setBusinessSummary] = useState<any>({});
   const [cardBalance, setCardBalance] = useState('');
@@ -194,7 +192,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           return;
         }
         const last = data[0]; // most recent record
-        const match = data.find((r: any) => r.bill_date === recDate);
+        const match = data.find((r: any) => r.bill_date === recDate.value);
         if (match) {
           setCardBalance(toDec2(match.card_balance));
           setCashBalance(toDec2(match.cash_balance));
@@ -203,7 +201,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           setFlashSale(toDec2(match.flash_sale));
           setTuan(toDec2(match.tuan));
           setJd(toDec2(match.jd));
-        } else if (recDate >= (last.bill_date || '')) {
+        } else if (recDate.value >= (last.bill_date || '')) {
           setCardBalance(toDec2(last.card_balance));
           setCashBalance(toDec2(last.cash_balance));
           setDineIn(toDec2(last.dine_in));
@@ -219,7 +217,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         reconJustLoaded.current = true;
       } catch { setToast(t('toastLoadFailed')); }
     })();
-  }, [recDate]);
+  }, [recDate.value]);
 
   // Capture initial values after data load settles
   useEffect(() => {
@@ -232,11 +230,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
-    if (sd.ready && sd.isFuture(recDate)) { setToast(t('errDateFuture')); return; }
+    if (sd.ready && sd.isFuture(recDate.value)) { setToast(t('errDateFuture')); return; }
     try {
       const username = getCurrentUser();
       await api.createReconciliation({
-        bill_date: recDate,
+        bill_date: recDate.value,
         card_balance: toNum(cardBalance),
         cash_balance: toNum(cashBalance),
         dine_in: toNum(dineIn),
@@ -249,7 +247,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       setToast(t('reconComplete'));
       onReconHistory?.();
     } catch { setToast(t('toastSubmitFailed')); }
-  }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
+  }, [recDate.value, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
 
   const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
   const realTotal = toNum(cardBalance) + toNum(cashBalance) + channelTotal;
@@ -277,9 +275,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const feeHistory = useDisclosure(false);
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
   const feeHistoryFilterPicker = useDisclosure(false);
-  const [feeEntryDate, setFeeEntryDate] = useState('');
-  useEffect(() => { if (sd.ready && feeEntryDate === '') setFeeEntryDate(sd.today); }, [sd.ready, sd.today, feeEntryDate]);
-  const [feeDateErr, setFeeDateErr] = useState(0);
+  const feeDate = useDateField({ sd, initial: sd.today });
   const [feeMc, setFeeMc] = useState('');
   const [feeMw, setFeeMw] = useState('');
   const [feeEw, setFeeEw] = useState('');
@@ -312,14 +308,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
-    if (sd.isFuture(feeEntryDate)) { setToast(t('errDateFuture')); return; }
+    if (sd.isFuture(feeDate.value)) { setToast(t('errDateFuture')); return; }
     const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
     if (mc + mw + ew + mt === 0) { setToast(t('atLeastOneFee')); return; }
     setSavingFee(true);
     try {
       const r = await api.addPlatformFeeEntry({
         year: feeMonth.year, month: feeMonth.month,
-        entry_date: feeEntryDate,
+        entry_date: feeDate.value,
         meituan_cashier: mc, meituan_waimai: mw,
         shangou_waimai: ew, meituan_tuan: mt,
       });
@@ -370,9 +366,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   // Sync uncontrolled date inputs when state changes externally
   const recDateInputRef = useRef<HTMLInputElement>(null);
   const feeDateInputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (recDateInputRef.current) recDateInputRef.current.value = recDate; }, [recDate]);
+  useEffect(() => { if (recDateInputRef.current) recDateInputRef.current.value = recDate.value; }, [recDate.value]);
   useEffect(() => { if (expDateInputRef.current) expDateInputRef.current.value = expDate; }, [expDate]);
-  useEffect(() => { if (feeDateInputRef.current) feeDateInputRef.current.value = feeEntryDate; }, [feeEntryDate]);
+  useEffect(() => { if (feeDateInputRef.current) feeDateInputRef.current.value = feeDate.value; }, [feeDate.value]);
 
   /* ── 卡片摘要数据 ── */
   const feeTotal = feeMonth === 'all'
@@ -614,7 +610,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     feeHistory.show(); setFeeHistoryFilter('all');
                   } else {
                     setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
-                    setFeeDateErr(0); loadFeeData(); feeSheet.show();
+                    feeDate.setError(0); loadFeeData(); feeSheet.show();
                   }
                 }}
                 activeOpacity={0.7}
@@ -663,13 +659,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
               >
                 <DatePicker
-                  date={recDate}
-                  onChange={setRecDate}
+                  date={recDate.value}
+                  onChange={recDate.setValue}
                   max={sd.today}
-                  onFutureDate={() => setRecDateErr(c => c + 1)}
+                  onFutureDate={() => recDate.setError(Date.now())}
                   displayDate={(() => {
                     const l = getLang();
-                    const [y, m, d] = recDate.split('-');
+                    const [y, m, d] = recDate.value.split('-');
                     if (l.startsWith('en')) {
                       const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
                       return `${months[+m-1]} ${+d}, ${y}`;
@@ -682,7 +678,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 />
               </View>
             </View>
-            <DateErrorHint trigger={recDateErr} message={t('errDateFuture')} color={colors.danger} />
+            <DateErrorHint trigger={recDate.error} message={t('errDateFuture')} color={colors.danger} />
 
             <View style={st.row2}>
               <View style={st.inputGroup}>
@@ -911,16 +907,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
                 <View>
                   <DatePicker
-                    date={feeEntryDate}
-                    onChange={setFeeEntryDate}
+                    date={feeDate.value}
+                    onChange={feeDate.setValue}
                     max={sd.today}
-                    onFutureDate={() => setFeeDateErr(c => c + 1)}
-                    displayDate={fmtLocalDate(feeEntryDate)}
+                    onFutureDate={() => feeDate.setError(Date.now())}
+                    displayDate={fmtLocalDate(feeDate.value)}
                     fontSize={FONTS.subBold.size}
                     showCalendarIcon
                     showChevron
                   />
-                  <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} color={colors.danger} />
+                  <DateErrorHint trigger={feeDate.error} message={t('errDateFuture')} color={colors.danger} />
                 </View>
               </View>
 
