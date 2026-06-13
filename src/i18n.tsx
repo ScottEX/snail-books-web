@@ -925,7 +925,7 @@ const I18N: Record<string, Record<string, string>> = {
     addImage: 'Add',
     additional: 'Additional Capital',
     all: 'All',
-    allDividendRecords: '" all dividend records',
+    allDividendRecords: '」 all dividend records',
     amount: 'Amount',
     amountLabel: 'Amount (¥)',
     refundAmount: 'Refund Amount (¥)',
@@ -1374,7 +1374,7 @@ const I18N: Record<string, Record<string, string>> = {
     verifyNewWrongEmail: 'Wrong email address? ',
     verifying: 'Verifying...',
     wages: 'Wages',
-    willDelete: 'Will delete "',
+    willDelete: 'Will delete 「',
   },
 };
 
