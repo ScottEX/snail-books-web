@@ -136,7 +136,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       const r = await api.login(username, password, remember);
       setLoading(false);
       if (r.status === 'ok') {
-        if (r.token && typeof localStorage !== 'undefined') localStorage.setItem('token', r.token);
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('user', r.username || username);
           localStorage.setItem('user_id', String(r.user_id || ''));
