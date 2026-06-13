@@ -1183,7 +1183,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   chartGlassValue: {
     fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
-    color: 'rgba(255,255,255,0.95)',
+    color: colors.primary,
     textShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   chartGlassSubCard: {

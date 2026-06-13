@@ -441,7 +441,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               style={{ flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderColor: c.secondary }}
               onPress={() => {
                 setCategory(record.category || 'daily'); setAccount(record.account || 'payWechat');
-                setAmount(toDec2(record.amount)); setDate(record.date || record.created_at?.slice(0, 10) || sd.today);
+                setAmount(toDec2(Math.abs(record.amount))); setDate(record.date || record.created_at?.slice(0, 10) || sd.today);
                 setNote(record.note || ''); setImages(parseImages(record.images));
                 setThumbImages(parseImages(record.thumb_images));
                 newFiles.forEach(f => { const u = urlCache.current.get(f); if (u) URL.revokeObjectURL(u); });
