@@ -117,3 +117,29 @@ export const spinnerAnimation = {
     fontWeight: '500' as const,
   } as const,
 };
+
+// ─── 列表卡片（surface 背景 + 圆角 + padding）──────────
+/** 通用列表卡片：白底 + 圆角 14 + 内边距 14 */
+export const listCard = (colors: ThemeColors) => ({
+  backgroundColor: colors.surface,
+  borderRadius: 14,
+  padding: 14,
+});
+
+/** 紧凑卡片：圆角 12 + 上下 padding 2 */
+export const tightCard = (colors: ThemeColors) => ({
+  backgroundColor: colors.surface,
+  borderRadius: 12,
+  marginTop: 4,
+  paddingVertical: 2,
+});
+
+// ─── Section Title（小标题）──────────────────────
+/** 区块小标题：textSub 色 + 半粗 + 上下间距 */
+export const sectionTitle = (colors: ThemeColors, opts?: { uppercase?: boolean; size?: number }) => ({
+  fontSize: opts?.size ?? FONTS.microBold.size,
+  fontWeight: FONTS.microBold.weight as any,
+  color: colors.textSub,
+  paddingVertical: 10,
+  ...(opts?.uppercase ? { textTransform: 'uppercase' as any } : {}),
+});
