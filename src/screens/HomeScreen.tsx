@@ -444,6 +444,27 @@ export default function HomeScreen({
   const monthIncome = dailyRevenues
     .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
 
+  // ── 每日图表数据（最近 12 天）──
+  const dailyChartData = useMemo(() => {
+    const dates: string[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      dates.push(d.toISOString().slice(0, 10));
+    }
+    const dailyIncome = dates.map(date =>
+      dailyRevenues
+        .filter((r: any) => r.date === date)
+        .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0)
+    );
+    const dailyExpense = dates.map(date =>
+      chartExpenses
+        .filter((e: any) => e.date === date)
+        .reduce((s: number, e: any) => s + (e.amount || 0), 0)
+    );
+    return { dates, income: dailyIncome, expense: dailyExpense };
+  }, [dailyRevenues, chartExpenses]);
+
   // ── Inject glass-slider CSS ──
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -941,6 +962,9 @@ export default function HomeScreen({
                       expense={chartMonthly.expense || []}
                       profit={chartMonthly.profit || []}
                       categories={chartMonthly.categories || {}}
+                      dailyDates={dailyChartData.dates}
+                      dailyIncome={dailyChartData.income}
+                      dailyExpense={dailyChartData.expense}
                     />
                     </View>
                   )}
