@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, useReducer } from 'react';
+import { useDisclosure } from '../hooks/useDisclosure';
 import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
@@ -270,11 +271,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const feeMonthInited = useRef(false);
   const feeLoadId = useRef(0);  // guard against stale async responses
   useEffect(() => { if (sd.ready && !feeMonthInited.current) { feeMonthInited.current = true; setFeeMonth({ year: sd.year, month: sd.month }); } }, [sd.ready, sd.year, sd.month]);
-  const [showFeeMonthPicker, setShowFeeMonthPicker] = useState(false);
-  const [showFeeSheet, setShowFeeSheet] = useState(false);
-  const [showFeeHistory, setShowFeeHistory] = useState(false);
+  const feeMonthPicker = useDisclosure(false);
+  const feeSheet = useDisclosure(false);
+  const feeHistory = useDisclosure(false);
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
-  const [showFeeHistoryFilterPicker, setShowFeeHistoryFilterPicker] = useState(false);
+  const feeHistoryFilterPicker = useDisclosure(false);
   const [feeEntryDate, setFeeEntryDate] = useState('');
   useEffect(() => { if (sd.ready && feeEntryDate === '') setFeeEntryDate(sd.today); }, [sd.ready, sd.today, feeEntryDate]);
   const [feeDateErr, setFeeDateErr] = useState(0);
@@ -324,7 +325,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       if (r?.status === 'ok') {
         setFeeData(r?.data);
         setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
-        setShowFeeSheet(false);
+        feeSheet.hide();
         // Reload all months to keep totals accurate
         api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : [])).catch(() => {});
       } else {
@@ -578,7 +579,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   ref={pickerTriggerRef}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 2, position: 'relative', paddingTop: 2 }}
                   onPress={() => {
-                    if (!showFeeMonthPicker) {
+                    if (!feeMonthPicker.open) {
                       // Measure trigger position for dropdown placement
                       if (pickerTriggerRef.current && typeof (pickerTriggerRef.current as any).measure === 'function') {
                         (pickerTriggerRef.current as any).measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
@@ -587,10 +588,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       }
                       pickerAnim.setValue(0);
                       Animated.spring(pickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                      setShowFeeMonthPicker(true);
+                      feeMonthPicker.show();
                     } else {
                       Animated.timing(pickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-                        setShowFeeMonthPicker(false);
+                        feeMonthPicker.hide();
                       });
                     }
                   }}
@@ -609,10 +610,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
                 onPress={() => {
                   if (feeMonth === 'all') {
-                    setShowFeeHistory(true); setFeeHistoryFilter('all');
+                    feeHistory.show(); setFeeHistoryFilter('all');
                   } else {
                     setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
-                    setFeeDateErr(0); loadFeeData(); setShowFeeSheet(true);
+                    setFeeDateErr(0); loadFeeData(); feeSheet.show();
                   }
                 }}
                 activeOpacity={0.7}
@@ -905,11 +906,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           </View>
         </ModalOverlay>
       {/* Platform fee entry bottom sheet */}
-        <ModalOverlay visible={showFeeSheet} onClose={() => setShowFeeSheet(false)}>
+        <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()}>
           <View style={[st.feeSheet, { maxWidth: 720 }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
-              <TouchableOpacity onPress={() => setShowFeeSheet(false)}>
+              <TouchableOpacity onPress={() => feeSheet.hide()}>
                 <Text style={st.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -978,11 +979,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
 
       {/* Fee history bottom sheet — "全部" detail view */}
-        <ModalOverlay visible={showFeeHistory} onClose={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
+        <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }}>
           <View style={[st.feeSheet, { height: Dimensions.get('window').height * 0.75, width: '96%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
-              <TouchableOpacity onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
+              <TouchableOpacity onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }}>
                 <Text style={st.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -992,22 +993,22 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 ref={feeHistoryFilterTriggerRef}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, position: 'relative' }}
                 onPress={() => {
-                  if (!showFeeHistoryFilterPicker) {
+                  if (!feeHistoryFilterPicker.open) {
                     if (feeHistoryFilterTriggerRef.current) {
                       (feeHistoryFilterTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
                         setFeeHistoryPickerPos({ top: y + 30, left: x });
                         feeHistoryPickerAnim.setValue(0);
                         Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                        setShowFeeHistoryFilterPicker(true);
+                        feeHistoryFilterPicker.show();
                       });
                     } else {
                       feeHistoryPickerAnim.setValue(0);
                       Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                      setShowFeeHistoryFilterPicker(true);
+                      feeHistoryFilterPicker.show();
                     }
                   } else {
                     Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-                      setShowFeeHistoryFilterPicker(false);
+                      feeHistoryFilterPicker.hide();
                     });
                   }
                 }}
@@ -1056,7 +1057,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
       {/* Month picker dropdown — animated spring popover */}
-      {showFeeMonthPicker && (
+      {feeMonthPicker.open && (
         <>
           {/* Animated backdrop */}
           <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: pickerAnim }}>
@@ -1064,7 +1065,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               style={{ flex: 1 }}
               activeOpacity={1}
               onPress={() => {
-                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
+                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeMonthPicker.hide());
               }}
             />
           </Animated.View>
@@ -1087,7 +1088,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeMonth('all');
-                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
+                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeMonthPicker.hide());
               }}
               activeOpacity={0.6}
             >
@@ -1102,7 +1103,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeMonth({ year: f.year, month: f.month });
-                    Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
+                    Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeMonthPicker.hide());
                   }}
                   activeOpacity={0.6}
                 >
@@ -1114,14 +1115,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </>
       )}
       {/* Fee history filter dropdown — animated to match platform fee picker */}
-      {showFeeHistoryFilterPicker && createPortal(
+      {feeHistoryFilterPicker.open && createPortal(
         <>
           <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: feeHistoryPickerAnim }}>
             <TouchableOpacity
               style={{ flex: 1 }}
               activeOpacity={1}
               onPress={() => {
-                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeHistoryFilterPicker.hide());
               }}
             />
           </Animated.View>
@@ -1144,7 +1145,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeHistoryFilter('all');
-                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeHistoryFilterPicker.hide());
               }}
               activeOpacity={0.6}
             >
@@ -1159,7 +1160,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeHistoryFilter({ year: f.year, month: f.month });
-                    Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                    Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeHistoryFilterPicker.hide());
                   }}
                   activeOpacity={0.6}
                 >

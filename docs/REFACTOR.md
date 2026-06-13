@@ -185,7 +185,7 @@ export const api = {
 
 ---
 
-### P0-4. `usePaginatedList` 仅 4 处使用，遗漏 3 个明显候选
+### P0-4. `usePaginatedList` 仅 4 处使用，遗漏候选需逐一核验
 
 **当前使用**（已抽好的）：
 - `src/screens/ReconHistoryScreen.tsx`
@@ -193,20 +193,26 @@ export const api = {
 - `src/screens/DailyRevenueHistory.tsx`
 - `src/screens/ProcurementScreen.tsx`
 
-**明显应该用但未用**：
+**初步扫描出的「候选」（已逐一读代码核验）**：
 
-| 文件 | 当前 useEffect 数 | 推测内容 |
+| 文件 | 核验结果 | 详情 |
 |---|---|---|
-| `src/screens/HomeScreen.tsx` | 8 | 含分页/刷新 |
-| `src/screens/UserManagementScreen.tsx` | 5 | 用户列表分页 |
-| `src/screens/PdfPreviewPage.tsx` | 5 | PDF 历史分页 |
+| `src/screens/HomeScreen.tsx` | ⚠️ **部分是** | L59 有 `const [page, setPage] = useState(1)` + L60 `pages` — **是**交易列表分页（L287-289、L520-521 调用 `setPage`）。但 L102 还有独立的 `pageStack` / `setPageStack` / `pushPage` 是子页面导航栈，**与分页无关**。需要小心拆分。 |
+| `src/screens/UserManagementScreen.tsx` | ❌ **不是** | L122-130 `fetchUsers`：硬编码 `params.set('page', '1'); params.set('per_page', '100')`，**一次性拉全部 100 条**，没有 `setPage` 调用。前端再用 `useMemo` 做客户端筛选。**设计就是不分页，不该用 usePaginatedList**。 |
+| `src/screens/PdfPreviewPage.tsx` | ❌ **不是** | L94 `const [currentPage, setCurrentPage] = useState(1)` 是 **PDF 阅读器的页码**（PDF.js 的 `pageNumber` prop，L415）。与数据分页无关。 |
+
+> **审计经验教训**：本次初版曾把这 3 个文件都列为「应该用 usePaginatedList」——**这是错的**。靠 grep 关键词计数（`page`/`per_page` 出现次数）会**把不同语义的 `page` 混为一谈**。正确做法是先读上下文确认 `setPage` 是否真在调用，再判断是否需要分页 hook。
 
 **重构方案**：
 
-1. 先检查 `src/hooks/usePaginatedList.ts` 是否支持「筛选 + 排序 + 刷新」；如不支持，扩展。
-2. 在上述 3 个文件中改用 `usePaginatedList`，移除手写 `page, setPage, hasMore, loading` 等 state。
+1. **只有 `HomeScreen.tsx` 是真正候选**，但改造需要同时梳理：
+   - 把 `transactions` 列表分页（`page`/`pages`/`setPage`）抽到独立 hook
+   - 保留 `pageStack`/`pushPage`/`popPage` 子页面导航（**这是另一个关注点，不该被分页 hook 接管**）
+   - 建议命名：`useTransactionList()` 内部用 `usePaginatedList`
 
-**收益**：~100 行手写分页逻辑统一。
+2. **新增 1 处真正可用的候选**：`src/screens/expense/ExpenseHistoryScreen.tsx` 已经用了，但可推广到**未来**的新分页列表场景。
+
+**收益**：~50–80 行（仅 HomeScreen 一处）；更重要的是审计方法改进，避免后续误判。
 
 ---
 
