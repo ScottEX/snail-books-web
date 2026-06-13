@@ -584,10 +584,11 @@ export default function HomeScreen({
             onLangChange={() => loadData()}
             onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
             onManageUsers={() => pushPage('usermgmt')}
+            refreshKey={userRefreshKey}
           />
         );
       case 'usermgmt':
-        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={(u) => { setSelectedUser(u); pushPage('userdetail'); }} />;
+        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={async (u) => { if (!u.reviewed) { await fetch('/api/admin/users/mark-reviewed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: u.id }), credentials: 'include' }); setUserRefreshKey(k => k + 1); } setSelectedUser(u); pushPage('userdetail'); }} />;
       case 'userdetail':
         return selectedUser ? (
           <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => setUserRefreshKey(k => k + 1)} />
