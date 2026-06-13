@@ -47,6 +47,7 @@ const I18N: Record<string, Record<string, string>> = {
     chartSwitchHint: '点击切换视图',
     chartSwitchPie: '饼图',
     chartXAxis: '月份',
+    chartXAxisDay: '每日',
     chartYAxis: '金额（元）',
     chooseImage: '选择图片',
     clear: '清空',
@@ -504,6 +505,7 @@ const I18N: Record<string, Record<string, string>> = {
     chartSwitchHint: '點擊切換視圖',
     chartSwitchPie: '餅圖',
     chartXAxis: '月份',
+    chartXAxisDay: '每日',
     chartYAxis: '金額（元）',
     chooseImage: '選擇圖片',
     clear: '清空',
@@ -961,6 +963,7 @@ const I18N: Record<string, Record<string, string>> = {
     chartSwitchHint: 'Tap to switch',
     chartSwitchPie: 'Pie Chart',
     chartXAxis: 'Month',
+    chartXAxisDay: 'Daily',
     chartYAxis: 'Amount (¥)',
     chooseImage: 'Choose Image',
     clear: 'Clear',
@@ -1419,6 +1422,7 @@ export type I18nKey =
   | 'chartSwitchHint'
   | 'chartSwitchPie'
   | 'chartXAxis'
+  | 'chartXAxisDay'
   | 'chartYAxis'
   | 'chooseImage'
   | 'clear'
