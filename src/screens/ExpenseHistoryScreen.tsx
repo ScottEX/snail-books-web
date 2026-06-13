@@ -30,6 +30,13 @@ function monthsBetween(from: string, to: string): number {
   return m;
 }
 
+// Platform detection — RN-Web runs as 'web' on every browser, so Platform.OS
+// can't distinguish Safari from Chrome/Firefox. Use navigator.userAgent for
+// Safari-specific tuning of FlatList render window / initial batch size.
+const isWebKit = typeof navigator !== 'undefined' &&
+  /Safari/.test(navigator.userAgent) &&
+  !/Chrome|CriOS|Edg|OPR|FxiOS/.test(navigator.userAgent);
+
 function ExpenseEmptyIcon({ color }: { color: string }) {
   return (
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -216,6 +223,8 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
                     style: {
                       width: 48, height: 48, borderRadius: 6, objectFit: 'cover',
                       backgroundColor: colors.bg,
+                      willChange: 'transform' as any,    // 提示浏览器提前合成图层
+                      transform: 'translateZ(0)' as any,  // Safari 触发 GPU 合成层的兼容写法
                     } as any,
                     alt: 'receipt',
                   })}
@@ -227,9 +236,19 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
       </TouchableOpacity>
     );
   }, (prev, next) => {
-    // Item reference equality: records array is append-only, so unchanged rows
-    // keep the same object reference across FlatList reconcile cycles.
-    return prev.item === next.item && prev.colors === next.colors;
+    // Field-by-field compare covers all user-visible mutations (edit, delete, add).
+    // Item reference equality breaks when records are reloaded (filter / edit), and
+    // some flows only patch a single field — explicit field compare is safest.
+    return prev.item.id === next.item.id &&
+      prev.item.amount === next.item.amount &&
+      prev.item.category === next.item.category &&
+      prev.item.account === next.item.account &&
+      prev.item.note === next.item.note &&
+      prev.item.date === next.item.date &&
+      prev.item.proc_batch_number === next.item.proc_batch_number &&
+      prev.item.thumb_images === next.item.thumb_images &&
+      prev.item.images === next.item.images &&
+      prev.colors === next.colors;
   });
 
   // Lightweight renderItem — no parseImages / no inline parsing, just delegation.
@@ -268,11 +287,16 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
   }, [records, parseImages]);
 
   // O(1) getItemLayout — table lookup instead of O(n) loop per call.
-  const getItemLayout = useCallback((_data: any, index: number) => ({
-    length: itemHeights[index] ?? 92,
-    offset: itemOffsets[index] ?? index * 100,
-    index,
-  }), [itemHeights, itemOffsets]);
+  const getItemLayout = useCallback((_data: any, index: number) => {
+    if (index < 0 || index >= itemHeights.length) {
+      return { length: 92, offset: 0, index };
+    }
+    return {
+      length: itemHeights[index],
+      offset: itemOffsets[index],
+      index,
+    };
+  }, [itemHeights, itemOffsets]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
@@ -421,9 +445,9 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
         onEndReached={onEndReached}
         onEndReachedThreshold={0.6}  // 0.4→0.6：iOS Safari 快滑时主线程被 scroll 占用, fetch 回调被推迟，更早触发让下一页在用户到底前就加载完
         removeClippedSubviews={false}
-        windowSize={7}                 // 21→7：减少 iOS Safari 同时持有的 DOM 节点，缓解 compositor 压力
-        initialNumToRender={12}        // 首屏够用
-        maxToRenderPerBatch={8}        // 每批渲染不超过 8 cell
+        windowSize={isWebKit ? 5 : 10}    // Safari=5 减少 compositor 压力；其他=10 平衡渲染能力
+        initialNumToRender={isWebKit ? 8 : 12}  // Safari 首屏少一点避免主线程卡顿
+        maxToRenderPerBatch={isWebKit ? 4 : 8}  // Safari 每批少一点
         updateCellsBatchingPeriod={100} // 100ms 批量周期，让主线程有空间响应 scroll
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: showFilter ? 246 : 112, paddingHorizontal: 16, paddingBottom: 100 }}
