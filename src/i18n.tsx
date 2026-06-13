@@ -95,6 +95,8 @@ const I18N: Record<string, Record<string, string>> = {
     deleteRecord: '删除',
     disabledStatus: '禁用',
     graceStatus: '冷静期中',
+    newUserBadge: '新注册',
+    markRead: '已读',
     restoreAccount: '恢复账户',
     devCodeLabel: '🔧 开发模式 — 验证码',
     dineIn: '堂食',
@@ -544,6 +546,8 @@ const I18N: Record<string, Record<string, string>> = {
     deleteRecord: '刪除',
     disabledStatus: '禁用',
     graceStatus: '冷靜期中',
+    newUserBadge: '新註冊',
+    markRead: '已讀',
     restoreAccount: '恢復帳戶',
     devCodeLabel: '🔧 開發模式 — 驗證碼',
     dineIn: '堂食',
@@ -995,6 +999,8 @@ const I18N: Record<string, Record<string, string>> = {
     deleteRecord: 'Delete',
     disabledStatus: 'Disabled',
     graceStatus: 'Cooling Period',
+    newUserBadge: 'New',
+    markRead: 'Mark Read',
     restoreAccount: 'Restore Account',
     devCodeLabel: '🔧 Dev Mode — Verification Code',
     dineIn: 'Dine-in',
@@ -1444,6 +1450,8 @@ export type I18nKey =
   | 'dineIn'
   | 'disabledStatus'
   | 'graceStatus'
+  | 'newUserBadge'
+  | 'markRead'
   | 'restoreAccount'
   | 'discountAmount'
   | 'displayName'

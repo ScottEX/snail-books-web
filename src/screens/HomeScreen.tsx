@@ -587,7 +587,7 @@ export default function HomeScreen({
           />
         );
       case 'usermgmt':
-        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={(u) => { setSelectedUser(u); pushPage('userdetail'); }} />;
+        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={(u) => { setSelectedUser(u); pushPage('userdetail'); }} onMarkReviewed={async (userId) => { await fetch('/api/admin/users/mark-reviewed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: userId }), credentials: 'include' }); setUserRefreshKey(k => k + 1); }} />;
       case 'userdetail':
         return selectedUser ? (
           <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => setUserRefreshKey(k => k + 1)} />

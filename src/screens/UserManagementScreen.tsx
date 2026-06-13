@@ -13,6 +13,7 @@ interface UserItem {
   username: string;
   email: string;
   is_disabled: boolean;
+  reviewed: boolean;
   created_at: string;
   avatar: string;
   delete_scheduled: string;
@@ -21,6 +22,7 @@ interface UserItem {
 interface Props {
   onBack: () => void;
   onUserSelect: (user: UserItem) => void;
+  onMarkReviewed?: (userId: number) => void;
 }
 
 function BackArrowSvg({ color }: { color: string }) {
@@ -384,7 +386,14 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                   )}
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={st.userName}>{u.username}</Text>
+                  <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, gap: 6 }}>
+                    <Text style={st.userName}>{u.username}</Text>
+                    {!u.reviewed && (
+                      <View style={st.newBadge}>
+                        <Text style={st.newBadgeText}>{t('newUserBadge')}</Text>
+                      </View>
+                    )}
+                  </View>
                   {u.email ? <Text style={st.userEmail}>{u.email}</Text> : null}
                 </View>
                 <View style={[st.statusBadge, { backgroundColor: u.delete_scheduled ? withAlpha(c.warning, 0.12) : u.is_disabled ? withAlpha(c.danger, 0.08) : withAlpha(c.success, 0.08) }]}>
@@ -393,7 +402,17 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                     {u.delete_scheduled ? t('graceStatus') : u.is_disabled ? t('disabledStatus') : t('normalStatus')}
                   </Text>
                 </View>
-                <ChevronRightSvg color={c.textSub} />
+                {!u.reviewed ? (
+                  <TouchableOpacity
+                    style={st.markReadBtn}
+                    onPress={(e) => { e.stopPropagation(); onMarkReviewed?.(u.id); }}
+                    activeOpacity={0.6}
+                  >
+                    <Text style={st.markReadText}>{t('markRead')}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <ChevronRightSvg color={c.textSub} />
+                )}
               </TouchableOpacity>
             ))
           )}
@@ -522,6 +541,17 @@ const getStyles = (c: ThemeColors) => {
     avatar: { width: 40, height: 40, borderRadius: 20 },
     userName: { fontSize: 15, fontWeight: '600', color: c.textMain } as any,
     userEmail: { fontSize: 12, color: c.textSub, marginTop: 2 } as any,
+    newBadge: {
+      backgroundColor: withAlpha(c.warning, 0.15),
+      paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4,
+    },
+    newBadgeText: { fontSize: 10, fontWeight: '700', color: c.warning } as any,
+    markReadBtn: {
+      paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6,
+      backgroundColor: withAlpha(c.primary, 0.1),
+      marginRight: 4,
+    },
+    markReadText: { fontSize: 12, fontWeight: '600', color: c.primary } as any,
     statusBadge: {
       flexDirection: 'row' as const, alignItems: 'center' as const, gap: 5,
       paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6,
