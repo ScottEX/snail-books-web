@@ -31,7 +31,7 @@ function ChevronRight({ color }: { color: string }) {
 
 /* ========== MAIN SCREEN ========== */
 
-export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange, onManageUsers }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void; onManageUsers?: () => void }) {
+export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange, onManageUsers, refreshKey }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void; onManageUsers?: () => void; refreshKey?: number }) {
   const { colors, theme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -185,7 +185,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     } catch {}
   };
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); fetchUnreviewedCount(); }, []);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); fetchUnreviewedCount(); }, [refreshKey]);
 
   const loadUserInfo = async () => {
     try {
