@@ -350,7 +350,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                 <Switch
                   value={!isDisabled}
                   onValueChange={(v) => handleToggleDisabled(!v)}
-                  trackColor={{ false: withAlpha(c.danger, 0.3), true: c.success }}
+                  trackColor={{ false: withAlpha(c.textMain, 0.18), true: c.primary }}
                   thumbColor="#fff"
                   disabled={saving || isGrace}
                 />
