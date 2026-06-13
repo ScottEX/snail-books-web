@@ -75,7 +75,6 @@ let ddInjected = false;
 const FALLBACK_YEAR = new Date().getFullYear();
 const FALLBACK_YEARS = [FALLBACK_YEAR - 2, FALLBACK_YEAR - 1, FALLBACK_YEAR, FALLBACK_YEAR + 1];
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function fmtDate(d: Date): string {
   const y = d.getFullYear();
@@ -182,7 +181,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const statusLabel = statusFilter === 'normal' ? t('normalStatus') : statusFilter === 'disabled' ? t('disabledStatus') : statusFilter === 'grace' ? t('graceStatus') : t('all');
   const dateLabel = (dateFrom || dateTo)
     ? (dateFrom && dateTo && dateFrom.slice(0, 7) === dateTo.slice(0, 7)
-        ? (getLang() === 'en' ? `${EN_MONTHS[dropMonth - 1]} ${dropYear}` : `${dropYear}年${dropMonth}月`)
+        ? `${dropYear}年${dropMonth}月`
         : `${dateFrom || '…'} - ${dateTo || '…'}`)
     : t('registrationTime');
 
@@ -333,7 +332,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                     onPress={() => setDropMonth(m)}
                   >
                     <Text style={[st.monthBtnText, dropMonth === m && st.monthBtnTextOn]}>
-                      {getLang() === 'en' ? EN_MONTHS[m - 1] : `${m}${t('monthUnit')}`}
+                      {m}{t('monthUnit')}
                     </Text>
                   </TouchableOpacity>
                 ))}

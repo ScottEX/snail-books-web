@@ -26,12 +26,6 @@ function monthsBetween(from: string, to: string): number {
   return m;
 }
 
-// Platform detection — RN-Web runs as 'web' on every browser, so Platform.OS
-// can't distinguish Safari from Chrome/Firefox. Used to tune scroll throttle.
-const isWebKit = typeof navigator !== 'undefined' &&
-  /Safari/.test(navigator.userAgent) &&
-  !/Chrome|CriOS|Edg|OPR|FxiOS/.test(navigator.userAgent);
-
 function RevenueEmptyIcon({ color }: { color: string }) {
   return (
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -123,70 +117,6 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
 
 
   const st = useMemo(() => getSt(colors), [colors]);
-
-  // Card sub-component — React.memo prevents re-render of unchanged rows during scroll.
-  const RevenueCard = React.memo(({
-    rec,
-    colors,
-    st,
-    fmtDate,
-  }: {
-    rec: any;
-    colors: ThemeColors;
-    st: any;
-    fmtDate: (d: string) => string;
-  }) => {
-    const isEmpty = rec.status === '未录入' || !rec.recorded_by;
-    return (
-      <View style={st.card}>
-        <View style={st.cardTop}>
-          <Text style={st.cardDate}>{fmtDate(rec.date)}</Text>
-          <View style={[st.statusBadge, isEmpty ? st.statusBadgeEmpty : st.statusBadgeDone]}>
-            <View style={[st.statusDot, isEmpty ? st.statusDotEmpty : st.statusDotDone]} />
-            <Text style={[st.statusText, isEmpty ? st.statusTextEmpty : st.statusTextDone]}>
-              {isEmpty ? t('revNotEntered') : t('revEntered')}
-            </Text>
-          </View>
-        </View>
-        {rec.archived ? (
-          <View style={st.archivedBadge}>
-            <Text style={st.archivedBadgeText}>{t('revMarkArchive')}</Text>
-          </View>
-        ) : null}
-        <View style={st.cardAmounts}>
-          <View style={st.cardAmtCol}>
-            <Text style={[st.cardAmtVal, { color: rec.revenue > 0 ? colors.textMain : colors.textSub }]}>¥{toDec2(rec.revenue)}</Text>
-            <Text style={st.cardAmtLabel}>{t('revRevenue')}</Text>
-          </View>
-          <View style={st.cardAmtCol}>
-            <Text style={[st.cardAmtVal, { color: rec.turnover > 0 ? colors.textMain : colors.textSub }]}>¥{toDec2(rec.turnover)}</Text>
-            <Text style={st.cardAmtLabel}>{t('revTurnover')}</Text>
-          </View>
-          <View style={st.cardAmtCol}>
-            <Text style={[st.cardAmtVal, { color: rec.jd_revenue > 0 ? colors.textMain : colors.textSub }]}>¥{toDec2(rec.jd_revenue)}</Text>
-            <Text style={st.cardAmtLabel}>{t('revJD')}</Text>
-          </View>
-        </View>
-        <View style={st.cardFooter}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Text style={st.cardFooterText}>{t('recordedBy')}:</Text>
-            {rec.recorded_by ? (
-              <Text style={st.cardFooterText}>{rec.recorded_by}</Text>
-            ) : (
-              <Svg width={16} height={8} viewBox="0 0 16 8" fill="none" stroke={colors.secondary} strokeWidth={1.5} strokeLinecap="round">
-                <Path d="M2 4h12" />
-              </Svg>
-            )}
-          </View>
-        </View>
-        {rec.note ? (
-          <View style={st.cardNote}>
-            <Text style={st.cardNoteText}>{rec.note}</Text>
-          </View>
-        ) : null}
-      </View>
-    );
-  }, (prev, next) => prev.rec === next.rec && prev.colors === next.colors);
 
   return (
     <View style={st.root} {...swipeBack}>
@@ -291,7 +221,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
 
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
-        onScroll={handleScroll} scrollEventThrottle={isWebKit ? 32 : 16}  // Safari 32ms 平衡响应与卡顿，其他 16ms = 60fps
+        onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 166 : 112, paddingHorizontal: 16, paddingBottom: 100 }}>
         {loading ? (
           <LoadingSpinner />
@@ -303,14 +233,57 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
           />
         ) : (
           <>
-            {records.map((rec: any) => (
-              <RevenueCard
-                key={rec.date}
-                rec={rec}
-                colors={colors}
-                st={st}
-                fmtDate={fmtDate}
-              />
+            {records.map((rec: any, i: number) => (
+              <View key={i} style={st.card}>
+                <View style={st.cardTop}>
+                  <Text style={st.cardDate}>{fmtDate(rec.date)}</Text>
+                  <View style={[st.statusBadge, (rec.status === '未录入' || !rec.recorded_by) ? st.statusBadgeEmpty : st.statusBadgeDone]}>
+                    <View style={[st.statusDot, (rec.status === '未录入' || !rec.recorded_by) ? st.statusDotEmpty : st.statusDotDone]} />
+                    <Text style={[st.statusText, (rec.status === '未录入' || !rec.recorded_by) ? st.statusTextEmpty : st.statusTextDone]}>
+                      {rec.status === '未录入' || !rec.recorded_by ? t('revNotEntered') : t('revEntered')}
+                    </Text>
+                  </View>
+                </View>
+
+                {rec.archived ? (
+                  <View style={st.archivedBadge}>
+                    <Text style={st.archivedBadgeText}>{t('revMarkArchive')}</Text>
+                  </View>
+                ) : null}
+
+                <View style={st.cardAmounts}>
+                  <View style={st.cardAmtCol}>
+                    <Text style={[st.cardAmtVal, { color: rec.revenue > 0 ? colors.textMain : colors.textSub }]}>¥{toDec2(rec.revenue)}</Text>
+                    <Text style={st.cardAmtLabel}>{t('revRevenue')}</Text>
+                  </View>
+                  <View style={st.cardAmtCol}>
+                    <Text style={[st.cardAmtVal, { color: rec.turnover > 0 ? colors.textMain : colors.textSub }]}>¥{toDec2(rec.turnover)}</Text>
+                    <Text style={st.cardAmtLabel}>{t('revTurnover')}</Text>
+                  </View>
+                  <View style={st.cardAmtCol}>
+                    <Text style={[st.cardAmtVal, { color: rec.jd_revenue > 0 ? colors.textMain : colors.textSub }]}>¥{toDec2(rec.jd_revenue)}</Text>
+                    <Text style={st.cardAmtLabel}>{t('revJD')}</Text>
+                  </View>
+                </View>
+
+                <View style={st.cardFooter}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={st.cardFooterText}>{t('recordedBy')}:</Text>
+                    {rec.recorded_by ? (
+                      <Text style={st.cardFooterText}>{rec.recorded_by}</Text>
+                    ) : (
+                      <Svg width={16} height={8} viewBox="0 0 16 8" fill="none" stroke={colors.secondary} strokeWidth={1.5} strokeLinecap="round">
+                        <Path d="M2 4h12" />
+                      </Svg>
+                    )}
+                  </View>
+                </View>
+                {rec.note ? (
+                  <View style={st.cardNote}>
+                    <Text style={st.cardNoteText}>{rec.note}</Text>
+                  </View>
+                ) : null}
+              </View>
             ))}
             {hasMore && (
               <View style={st.loadingMore}>
