@@ -221,6 +221,8 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
       .catch(() => {});
   }, []);
 
+  const isRefundRecord = Number(record.amount) < 0;
+
   return (
     <View style={styles.container} {...swipeBack}>
       {/* Header — absolute glass, same as ProcurementDetailScreen */}
@@ -247,12 +249,18 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
         {!editMode && (
           <>
             {/* Amount card — prominent at the top, theme-colored */}
-            <View style={[styles.amountCard, { backgroundColor: amtBg }]}>
+            <View style={[styles.amountCard, { backgroundColor: isRefundRecord ? withAlpha(c.success, 0.10) : amtBg }]}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.amountLabel}>{t('expTotalAmount')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-                  <Text style={[styles.amountSymbol, { color: amtColor }]}>-¥</Text>
-                  <Text style={[styles.amountValue, { color: amtColor }]}>{Number(record.amount || 0).toFixed(2)}</Text>
+                  <Text style={[styles.amountSymbol, { color: isRefundRecord ? c.success : amtColor }]}>
+                    {isRefundRecord ? '+¥' : '-¥'}
+                  </Text>
+                  <Text style={[styles.amountValue, { color: isRefundRecord ? c.success : amtColor }]}>
+                    {isRefundRecord
+                      ? Math.abs(Number(record.amount || 0)).toFixed(2)
+                      : Number(record.amount || 0).toFixed(2)}
+                  </Text>
                 </View>
               </View>
               {currentUser ? (
@@ -350,12 +358,14 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
             <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>{t('expTotalAmount')}</Text>
             <View style={{ alignItems: 'center', paddingVertical: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 20, fontWeight: '600' as const, color: amtColor, marginRight: 2, marginBottom: 4 }}>-¥</Text>
+                <Text style={{ fontSize: 20, fontWeight: '600' as const, color: isRefundRecord ? c.success : amtColor, marginRight: 2, marginBottom: 4 }}>
+                  {isRefundRecord ? '+¥' : '-¥'}
+                </Text>
                 {record.procurement_batch_id ? (
-                  <Text style={{ fontSize: 36, fontWeight: '700' as const, color: c.textSub }}>{amount || '0.00'}</Text>
+                  <Text style={{ fontSize: 36, fontWeight: '700' as const, color: isRefundRecord ? c.success : c.textSub }}>{amount || '0.00'}</Text>
                 ) : (
                   <TextInput
-                    style={{ fontSize: 36, fontWeight: '700' as const, color: amtColor, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180, outline: 'none' } as any}
+                    style={{ fontSize: 36, fontWeight: '700' as const, color: isRefundRecord ? c.success : amtColor, borderWidth: 0, backgroundColor: 'transparent', textAlign: 'left', padding: 0, flex: 0, width: 180, outline: 'none' } as any}
                     value={amount} onChangeText={(v: string) => setAmount(fmtDecInput(v))}
                     onBlur={() => { if (amount !== '') setAmount(toDec2(amount)); }}
                     keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={c.textSub} />
