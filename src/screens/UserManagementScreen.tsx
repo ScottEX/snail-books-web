@@ -22,7 +22,6 @@ interface UserItem {
 interface Props {
   onBack: () => void;
   onUserSelect: (user: UserItem) => void;
-  onMarkReviewed?: (userId: number) => void;
 }
 
 function BackArrowSvg({ color }: { color: string }) {
@@ -90,7 +89,7 @@ function lastDayOfMonth(y: number, m: number): string {
   return `${y}-${String(m).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export default function UserManagementScreen({ onBack, onUserSelect, onMarkReviewed }: Props) {
+export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const { colors: c } = useTheme();
   const sd = useServerDate();
   const swipeBack = useSwipeBack(onBack);
@@ -402,17 +401,7 @@ export default function UserManagementScreen({ onBack, onUserSelect, onMarkRevie
                     {u.delete_scheduled ? t('graceStatus') : u.is_disabled ? t('disabledStatus') : t('normalStatus')}
                   </Text>
                 </View>
-                {!u.reviewed ? (
-                  <TouchableOpacity
-                    style={st.markReadBtn}
-                    onPress={(e) => { e.stopPropagation(); onMarkReviewed?.(u.id); }}
-                    activeOpacity={0.6}
-                  >
-                    <Text style={st.markReadText}>{t('markRead')}</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <ChevronRightSvg color={c.textSub} />
-                )}
+                <ChevronRightSvg color={c.textSub} />
               </TouchableOpacity>
             ))
           )}
