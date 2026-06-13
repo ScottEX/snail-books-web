@@ -18,6 +18,7 @@ import { useProfileForms } from './profile/useProfileForms';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
+import TextField from '../components/TextField';
 
 /* ========== MAIN SCREEN ========== */
 function ChevronRight({ color }: { color: string }) {
@@ -1028,13 +1029,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 8 }}>
               {t('deleteAccountGraceNote')}
             </Text>
-            <TextInput
-              style={[mo.input, { outline: 'none' } as any]}
+            <TextField
               placeholder={t('enterUsernameToConfirm')}
-              placeholderTextColor={colors.textSub}
               value={deleteConfirmUsername}
               onChangeText={setDeleteConfirmUsername}
-              autoFocus
             />
             <ButtonPair
               leftLabel={t('cancel')}
@@ -1068,28 +1066,22 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </TouchableOpacity>
             </View>
             <View style={mo.body}>
-              <TextInput
-                style={[mo.input, { outline: 'none' } as any]}
+              <TextField
                 placeholder={t('oldPassword')}
-                placeholderTextColor={colors.textSub}
                 secureTextEntry
                 value={oldPw}
                 onChangeText={setOldPw}
                 autoFocus
               />
-              <TextInput
-                style={[mo.input, { outline: 'none' } as any]}
+              <TextField
                 placeholder={t('newPassword')}
-                placeholderTextColor={colors.textSub}
                 secureTextEntry
                 value={newPw}
                 onChangeText={setNewPw}
               />
               <Text style={mo.pwHint}>{t('pwHint')}</Text>
-              <TextInput
-                style={[mo.input, { outline: 'none' } as any]}
+              <TextField
                 placeholder={t('confirmNewPassword')}
-                placeholderTextColor={colors.textSub}
                 secureTextEntry
                 value={confirmPw}
                 onChangeText={setConfirmPw}
