@@ -7,6 +7,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { getCurrentUserId } from '../utils/storage';
+import { api } from '../api/client';
 
 interface UserData {
   id: number;
@@ -126,7 +127,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const fetchDetail = useCallback(async () => {
     setLoading(true);
     try {
-      const resp = await fetch(`/api/admin/users/${user.id}`, { credentials: 'include', headers: { 'X-Lang': lang } });
+      const resp = await api.admin.getUser(user.id);
       if (resp.ok) {
         const d = (await resp.json()).data;
         setDetail(d);
@@ -149,12 +150,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     try {
       const body: Record<string, string | boolean> = {};
       body[field] = value;
-      const resp = await fetch(`/api/admin/users/${user.id}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'X-Lang': lang },
-        body: JSON.stringify(body),
-      });
+      const resp = await api.admin.updateUser(user.id, body);
       if (resp.ok && field === 'is_disabled') onUpdated();
     } catch {}
     setSaving(false);
@@ -175,11 +171,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     setDeleting(true);
     setDeleteError('');
     try {
-      const resp = await fetch(`/api/admin/users/${user.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { 'X-Lang': lang },
-      });
+      const resp = await api.admin.deleteUser(user.id);
       const data = await resp.json();
       if (resp.ok) {
         setDeleteScheduled(data.scheduled || '');
@@ -201,11 +193,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const handleRestore = async () => {
     setSaving(true);
     try {
-      const resp = await fetch(`/api/admin/users/${user.id}/restore`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'X-Lang': lang },
-      });
+      const resp = await api.admin.restoreUser(user.id);
       if (resp.ok) {
         setDeleteScheduled('');
         setDeleteBy('');

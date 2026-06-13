@@ -371,6 +371,11 @@ export const api = {
         ...(userId != null ? { body: JSON.stringify({ user_id: userId }) } : {}),
       }),
     getMe: () => authFetch('/api/users/me'),
+    getUser: (id: number | string) => authFetch(`/api/admin/users/${id}`),
+    updateUser: (id: number | string, body: Record<string, any>) =>
+      authFetch(`/api/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    deleteUser: (id: number | string) => authFetch(`/api/admin/users/${id}`, { method: 'DELETE' }),
+    restoreUser: (id: number | string) => authFetch(`/api/admin/users/${id}/restore`, { method: 'POST' }),
   },
 
   // Invoice info (system-level)
