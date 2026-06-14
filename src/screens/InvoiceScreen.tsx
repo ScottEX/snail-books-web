@@ -234,7 +234,18 @@ export default function InvoiceScreen({ onBack }: Props) {
   // File upload
   const [dFiles, setDFiles] = useState<File[]>([]);
   // Existing file path (for edit mode — already uploaded)
-  const [dExistingFilePath, setDExistingFilePath] = useState<string>('');
+  const [dExistingFilePath, setDExistingFilePath] = useState<string[]>([]);
+
+  // Parse file_path from backend (JSON array or legacy single string)
+  const parseFilePaths = (fp: string | null | undefined): string[] => {
+    if (!fp) return [];
+    if (fp.startsWith('[')) { try { return JSON.parse(fp); } catch { return [fp]; } }
+    return [fp];
+  };
+  const getFirstFilePath = (fp: string | null | undefined): string => {
+    const paths = parseFilePaths(fp);
+    return paths[0] || '';
+  };
 
   // Records (API-driven, no more stub)
   const [records, setRecords] = useState<InvoiceRecord[]>([]);
@@ -334,15 +345,16 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   // ── Share invoice file (iOS-friendly: navigator.share with File object) ──
   const handleInvoiceShare = async (r: InvoiceRecord) => {
-    if (!r.file_path) {
+    const firstPath = getFirstFilePath(r.file_path);
+    if (!firstPath) {
       showToast('⚠️ ' + t('invApplyAmount'));
       return;
     }
     try {
-      const url = api.getInvoiceFileUrl(r.file_path);
+      const url = api.getInvoiceFileUrl(firstPath);
       const resp = await fetch(url);
       const blob = await resp.blob();
-      const ext = (r.file_path.split('.').pop() || '').toLowerCase();
+      const ext = (firstPath.split('.').pop() || '').toLowerCase();
       const mime = r.file_type || (ext === 'pdf' ? 'application/pdf' : 'image/jpeg');
       const filename = r.invoice_number ? `${r.invoice_number}.${ext}` : `invoice-${r.id}.${ext}`;
       const file = new File([blob], filename, { type: mime });
@@ -401,24 +413,24 @@ export default function InvoiceScreen({ onBack }: Props) {
       };
       let rid: number;
       if (editingId) {
-        // Edit mode: upload file first (so it's available on the record), then PUT
-        if (dFiles.length > 0) {
-          await api.uploadInvoiceFile(editingId, dFiles[0]);
+        // Edit mode: upload all files first (so they're available on the record), then PUT
+        for (const f of dFiles) {
+          await api.uploadInvoiceFile(editingId, f);
         }
         await api.updateInvoiceRecord(editingId, payload);
         rid = editingId;
       } else {
-        // New mode: create record first to get rid, then upload
+        // New mode: create record first to get rid, then upload all files
         const res = await api.createInvoiceRecord(payload);
         rid = res.id;
-        if (dFiles.length > 0 && rid) {
-          await api.uploadInvoiceFile(rid, dFiles[0]);
+        for (const f of dFiles) {
+          await api.uploadInvoiceFile(rid, f);
         }
       }
       closeDrawer();
       setEditingId(null);
       setDFiles([]);
-      setDExistingFilePath('');
+      setDExistingFilePath([]);
       showToast('✅ ' + t('invRecSaveOk'));
       await loadRecords();
     } catch (e: any) {
@@ -443,7 +455,7 @@ export default function InvoiceScreen({ onBack }: Props) {
     setDStatus(forEdit ? (forEdit.status as InvStatus) : 'pending');
     setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
     setDFiles([]);
-    setDExistingFilePath(forEdit ? (forEdit.file_path || '') : '');
+    setDExistingFilePath(forEdit ? parseFilePaths(forEdit.file_path) : []);
     Animated.parallel([
       Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
       Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
@@ -480,7 +492,7 @@ export default function InvoiceScreen({ onBack }: Props) {
       setEditingId(null);
       setDStatus('pending');
       setDInvoiceNo('');
-      setDExistingFilePath('');
+      setDExistingFilePath([]);
       setDFiles([]);
     });
   };
@@ -664,7 +676,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                       <Text style={[s.invAmountLabel, { color: c.textSub }]}>{r.status === 'pending' ? t('invApplyAmount') : t('invTaxAmount')}</Text>
                     </View>
                     <View style={s.invActions}>
-                      {r.status === 'done' && r.file_path ? (
+                      {r.status === 'done' && getFirstFilePath(r.file_path) ? (
                         <>
                           <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => handleInvoiceShare(r)}>
                             <IcnDownloadSmall color={c.textSub} />
@@ -849,10 +861,10 @@ export default function InvoiceScreen({ onBack }: Props) {
               {(editingId || dStatus === 'done') && (
                 <View style={{ marginBottom: 8 }}>
                   <ReceiptUpload
-                    existingImages={editingId && dExistingFilePath ? [api.getInvoiceFileUrl(dExistingFilePath)] : []}
+                    existingImages={editingId && dExistingFilePath.length > 0 ? dExistingFilePath.map(p => api.getInvoiceFileUrl(p)) : []}
                     newFiles={dFiles}
-                    onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 1))}
-                    onRemoveExisting={() => { setDExistingFilePath(''); }}
+                    onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files])}
+                    onRemoveExisting={(i: number) => { setDExistingFilePath(prev => prev.filter((_, j) => j !== i)); }}
                     onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
                     getPreviewUrl={(f: File) => URL.createObjectURL(f)}
                     label={t('invUploadInvoice') as string}
@@ -875,7 +887,7 @@ export default function InvoiceScreen({ onBack }: Props) {
             {(() => {
               const submitDisabled = submitting || !dAmount || !data.company_name || !data.tax_id
                 || (dStatus === 'done' && !dInvoiceNo.trim())
-                || (dStatus === 'done' && dFiles.length === 0 && !dExistingFilePath);
+                || (dStatus === 'done' && dFiles.length === 0 && dExistingFilePath.length === 0);
               return (
             <TouchableOpacity
               style={[s.dSubmit, { backgroundColor: c.primary }, submitDisabled && { opacity: 0.4 }]}
