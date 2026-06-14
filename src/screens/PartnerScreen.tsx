@@ -8,6 +8,7 @@ import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
 import ConfirmModal from '../components/ConfirmModal';
 import InvoiceScreen from './InvoiceScreen';
+import SlideScreen from '../components/SlideScreen';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
@@ -426,10 +427,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
   });
 
   useEffect(() => { loadAvatar(); }, []);
-
-  if (showInvoice) {
-    return createPortal(<InvoiceScreen onBack={() => setShowInvoice(false)} />, document.body);
-  }
 
   return (
     <View style={s.root}>
@@ -920,6 +917,14 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
         document.body
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+
+      {/* ====== INVOICE SCREEN (slide-in overlay) ====== */}
+      <SlideScreen
+        visible={showInvoice}
+        onClose={() => setShowInvoice(false)}
+      >
+        {(close) => <InvoiceScreen onBack={close} />}
+      </SlideScreen>
     </View>
   );
 }

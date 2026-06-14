@@ -5,6 +5,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { api } from '../api/client';
 import { useEffect, useRef, useState } from 'react';
 import { FONTS } from '../theme';
+import { useSwipeBack } from '../hooks/useSwipeBack';
 
 /* ═══════════════ SVG ICONS (from reference HTML) ═══════════════ */
 
@@ -157,6 +158,7 @@ interface Props {
 
 export default function InvoiceScreen({ onBack }: Props) {
   const { colors: c } = useTheme();
+  const swipeBack = useSwipeBack(onBack);
   const [tab, setTab] = useState<number>(0);
   const [invType, setInvType] = useState<InvType>('vat');
   const [data, setData] = useState<InvoiceData>(EMPTY_INV);
@@ -262,7 +264,7 @@ export default function InvoiceScreen({ onBack }: Props) {
   const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : tp === 'general' ? sBadge.general : sBadge.receipt;
 
   return (
-    <View style={[s.root, { backgroundColor: c.bg }]}>
+    <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       {/* ═══ NAV ═══ */}
       <View style={[s.nav, { backgroundColor: c.bg }]}>
         <TouchableOpacity style={[s.navBtn, { backgroundColor: c.surface, borderColor: c.secondary }]} onPress={onBack}>
@@ -593,7 +595,7 @@ function InfoRow({ icon, iconBg, label, value, colors, mono, onPress }: {
 /* ═══════════════ STYLES ═══════════════ */
 
 const s = StyleSheet.create({
-  root: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, flex: 1 } as any,
+  root: { flex: 1 } as any,
   scroll: { flex: 1 } as any,
 
   /* NAV */
