@@ -53,6 +53,9 @@ interface ExpenseRecord {
   user_id?: number;
   procurement_batch_id?: number | null;
   proc_batch_number?: string | null;
+  proc_settled_at?: string | null;
+  proc_settled_by?: number | null;
+  proc_settled_by_username?: string | null;
 }
 
 function parseImages(raw: any): string[] {
@@ -328,6 +331,23 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                 </Text>
               </View>
             </View>
+
+            {/* Settlement info — only shown if this expense is linked to a settled procurement batch */}
+            {record.proc_settled_at ? (
+              <View style={styles.infoCard}>
+                <Text style={[styles.sectionTitle, { marginBottom: 8, color: c.success }]}>
+                  {t('procSettleInfo')}
+                </Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>{t('procSettleAt')}</Text>
+                  <Text style={styles.infoValue}>{record.proc_settled_at}</Text>
+                </View>
+                <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+                  <Text style={styles.infoLabel}>{t('procSettleBy')}</Text>
+                  <Text style={styles.infoValue}>{record.proc_settled_by_username || '—'}</Text>
+                </View>
+              </View>
+            ) : null}
 
             {displayImgs.length > 0 && (
               <View style={styles.section}>

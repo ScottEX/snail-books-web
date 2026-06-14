@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  ActivityIndicator, Image,
+  ActivityIndicator, Image, Switch,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
@@ -39,6 +39,9 @@ interface BatchRecord {
   images?: string[];
   thumb_images?: string[];
   items: BatchItem[];
+  settled_at?: string | null;
+  settled_by?: number | null;
+  settled_by_username?: string | null;
 }
 
 function ViewIcon({ color }: { color: string }) {
@@ -72,6 +75,13 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
+  // Local copy of the batch — lets us update settled_at / settled_by_username in place
+  // after the user flips the Switch, without waiting for the parent to re-pass the prop.
+  const [cur, setCur] = useState<BatchRecord | null>(batch);
+  useEffect(() => { setCur(batch); }, [batch]);
+  const [settling, setSettling] = useState(false);
+  const [showSettleConfirm, setShowSettleConfirm] = useState(false);
+  const [settleError, setSettleError] = useState('');
 
   const [timerSec, setTimerSec] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -86,7 +96,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [downloading]);
 
-  if (!batch) {
+  if (!cur) {
     return (
       <View style={styles.container} {...swipeBack}>
         <View style={styles.header}>
@@ -132,24 +142,24 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
       // off the stack. Fall back to the hash path for any future
       // caller that doesn't pass onPreview (e.g. a direct embed).
       if (onPreview) {
-        onPreview(batch.id, batch.batch_number);
+        onPreview(cur.id, cur.batch_number);
       } else {
-        window.location.hash = `#/preview-pdf?id=${batch.id}&number=${batch.batch_number}`;
+        window.location.hash = `#/preview-pdf?id=${cur.id}&number=${cur.batch_number}`;
       }
     } catch {
       // Fallback: open the login-required PDF endpoint in a new tab
-      window.open(`/api/procurement-batches/${batch.id}/pdf`, '_blank');
+      window.open(`/api/procurement-batches/${cur.id}/pdf`, '_blank');
     } finally {
       setDownloading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!batch || deleting) return;
+    if (!cur || deleting) return;
     setDeleting(true);
     setDeleteError('');
     try {
-      await api.deleteProcurementBatch(batch.id);
+      await api.deleteProcurementBatch(cur.id);
       setShowDeleteConfirm(false);
       setDeleting(false);
       onBack();
@@ -159,19 +169,41 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
     }
   };
 
+  // Settle — one-way, irreversible. Updates `cur` in place so the audit section
+  // and Switch flip immediately. The parent's list still shows the old state until
+  // the user navigates back and re-enters (acceptable; rare one-time action).
+  const handleSettle = async () => {
+    if (!cur || settling) return;
+    setSettling(true);
+    setSettleError('');
+    try {
+      const r: any = await api.settleProcurementBatch(cur.id);
+      if (r?.status === 'ok' && r.batch) {
+        setCur({ ...cur, ...r.batch });
+        setShowSettleConfirm(false);
+      } else {
+        setSettleError(r?.message || t('toastSubmitFailed'));
+      }
+    } catch (err: any) {
+      setSettleError(err?.message || t('toastSubmitFailed'));
+    } finally {
+      setSettling(false);
+    }
+  };
+
   const openPreview = (idx: number) => {
     setPreviewData({ images: images.length ? images : thumbImgs, idx });
   };
 
 
 
-  const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
-  const images: string[] = batch.images || [];
-  const items = batch.items || [];
+  const thumbImgs: string[] = (cur.thumb_images?.length ? cur.thumb_images : cur.images) || [];
+  const images: string[] = cur.images || [];
+  const items = cur.items || [];
 
   // Map DB payment_method values ('现金','微信','支付宝') to i18n keys
   const PAY_MAP: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
-  const paymentLabel = trPayment(batch.payment_method);
+  const paymentLabel = trPayment(cur.payment_method);
 
   return (
     <View style={styles.container} {...swipeBack}>
@@ -195,11 +227,24 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
         <View style={styles.batchInfoRow}>
           <View>
             <Text style={styles.batchLabel}>
-              {t('procNowBatch').replace('{n}', String(batch.batch_number))}
+              {t('procNowBatch').replace('{n}', String(cur.batch_number))}
             </Text>
-            <Text style={styles.batchDate}>{formatDate(batch.date)}</Text>
+            <Text style={styles.batchDate}>{formatDate(cur.date)}</Text>
           </View>
           <View style={styles.batchActions}>
+            {/* Settle switch — one-way, irreversible. To the LEFT of the PDF view button.
+                Natural size (≈52×31); row alignItems: center keeps it vertically aligned
+                with the other 36×36 action buttons. */}
+            <Switch
+              value={!!cur.settled_at}
+              onValueChange={(v) => {
+                // Only react to flip-ON; flipping OFF is ignored (irreversible).
+                if (v && !cur.settled_at) setShowSettleConfirm(true);
+              }}
+              disabled={settling}
+              trackColor={{ false: withAlpha(c.textMain, 0.18), true: '#3DBC75' }}
+              thumbColor="#fff"
+            />
             <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <ViewIcon color={c.primary} />
             </TouchableOpacity>
@@ -208,7 +253,13 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
                 <EditIcon color={c.primary} />
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.6} style={styles.actionBtn} disabled={deleting} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <TouchableOpacity
+              onPress={() => setShowDeleteConfirm(true)}
+              activeOpacity={0.6}
+              style={[styles.actionBtn, !!cur.settled_at && { opacity: 0.3 }]}
+              disabled={deleting || !!cur.settled_at}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <TrashIcon color={c.danger} />
             </TouchableOpacity>
           </View>
@@ -222,19 +273,36 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t('expenseCategory')}</Text>
-            <Text style={styles.infoValue}>{trCategory(batch.category)}</Text>
+            <Text style={styles.infoValue}>{trCategory(cur.category)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t('procOperator')}</Text>
             <Text style={styles.infoValue}>{getCurrentUser() || '—'}</Text>
           </View>
-          {batch.note ? (
+          {cur.note ? (
             <View style={[styles.infoRow, { borderBottomWidth: 0, paddingTop: 0 }]}>
               <Text style={styles.infoLabel}>{t('procNoteLabel')}</Text>
-              <Text style={styles.infoValue}>{batch.note}</Text>
+              <Text style={styles.infoValue}>{cur.note}</Text>
             </View>
           ) : null}
         </View>
+
+        {/* Settlement info — only shown if this batch has been settled */}
+        {cur.settled_at ? (
+          <View style={styles.infoCard}>
+            <Text style={[styles.sectionTitle, { marginBottom: 8, color: c.success }]}>
+              {t('procSettleInfo')}
+            </Text>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t('procSettleAt')}</Text>
+              <Text style={styles.infoValue}>{cur.settled_at}</Text>
+            </View>
+            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+              <Text style={styles.infoLabel}>{t('procSettleBy')}</Text>
+              <Text style={styles.infoValue}>{cur.settled_by_username || '—'}</Text>
+            </View>
+          </View>
+        ) : null}
 
         {/* Images */}
         {thumbImgs.length > 0 && (
@@ -259,7 +327,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
             <Text style={styles.sectionTitle}>{t('procOrderItems')}</Text>
             <View style={styles.totalWrap}>
               <Text style={styles.totalLabel}>{t('procTotal')}</Text>
-              <Text style={styles.totalAmt}>¥{batch.total.toFixed(2)}</Text>
+              <Text style={styles.totalAmt}>¥{cur.total.toFixed(2)}</Text>
             </View>
           </View>
           <View style={styles.itemsCard}>
@@ -299,12 +367,27 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
         message={deleteError ? (
           <Text style={{ color: c.danger, fontSize: FONTS.micro.size, textAlign: 'center' }}>{deleteError}</Text>
         ) : (
-          <>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>
+          <>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(cur.batch_number))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>
         )}
         confirmLabel={deleting ? '删除中…' : t('delete')}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }}
+      />
+
+      {/* Settle confirmation modal — one-way, irreversible */}
+      <ConfirmModal
+        visible={showSettleConfirm}
+        title={t('procSettleTitle')}
+        message={settleError ? (
+          <Text style={{ color: c.danger, fontSize: FONTS.micro.size, textAlign: 'center' }}>{settleError}</Text>
+        ) : (
+          <Text>{t('procSettleMsg')}</Text>
+        )}
+        confirmLabel={settling ? '清账中…' : t('procSettle')}
+        loading={settling}
+        onConfirm={handleSettle}
+        onCancel={() => { setShowSettleConfirm(false); setSettleError(''); }}
       />
 
       {previewData && (
@@ -343,7 +426,8 @@ const getStyles = (c: ThemeColors) => {
     },
     batchActions: {
       flexDirection: 'row' as const,
-      gap: 8,
+      alignItems: 'center' as const,
+      gap: 10,
       marginTop: 2,
     },
     batchLabel: {

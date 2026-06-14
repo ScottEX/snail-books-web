@@ -76,12 +76,34 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   const loadChartMonthly = async () => {
     try { const d = await api.getChartMonthly(); setChartMonthly(d); } catch { /* silent */ }
   };
+  const loadChartExpenses = async () => {
+    try {
+      const all: any[] = [];
+      let p = 1;
+      while (true) {
+        const tx: any = await api.getTransactions(p, 100);
+        const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
+        all.push(...exps);
+        if (p >= (tx.pages || 1)) break;
+        p++;
+      }
+      setChartExpenses(all);
+    } catch { /* silent */ }
+  };
+  const loadDailyRevenues = async () => {
+    try {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const monthStart = todayStr.slice(0, 7) + '-01';
+      const r: any = await api.getDailyRevenue(1, 31, undefined, undefined, undefined, undefined, monthStart, todayStr);
+      setDailyRevenues(r?.records || []);
+    } catch { /* silent */ }
+  };
   const loadProducts = async () => {
     try { const p = await api.getProducts(); setProducts(p || []); } catch { setToast(t('toastLoadFailed')); }
   };
 
   useEffect(() => {
-    if (tab === 'chart') { loadChart(); loadChartMonthly(); }
+    if (tab === 'chart') { loadChart(); loadChartMonthly(); loadChartExpenses(); loadDailyRevenues(); }
     if (tab === 'supply') { loadProducts(); }
   }, [tab]);
 
@@ -90,30 +112,8 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
     api.getBusinessSummary().then((data: any) => {
       setBusinessSummary(data || {});
     }).catch(() => {});
-
-    (async () => {
-      try {
-        const all: any[] = [];
-        let p = 1;
-        while (true) {
-          const tx: any = await api.getTransactions(p, 100);
-          const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
-          all.push(...exps);
-          if (p >= (tx.pages || 1)) break;
-          p++;
-        }
-        setChartExpenses(all);
-      } catch {}
-    })();
-
-    (async () => {
-      try {
-        const todayStr = new Date().toISOString().slice(0, 10);
-        const monthStart = todayStr.slice(0, 7) + '-01';
-        const r: any = await api.getDailyRevenue(1, 31, undefined, undefined, undefined, undefined, monthStart, todayStr);
-        setDailyRevenues(r?.records || []);
-      } catch {}
-    })();
+    loadChartExpenses();
+    loadDailyRevenues();
   }, []);
 
   // ── Derived chart values (needs sd.today) ──

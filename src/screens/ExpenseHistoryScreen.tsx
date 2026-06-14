@@ -43,6 +43,16 @@ function ExpenseEmptyIcon({ color }: { color: string }) {
     </Svg>
   );
 }
+// Stamp seal — expense (linked to procurement). Mirrors invoice 已作废 / procurement stamp.
+function IcnSealExp({ color, label }: { color: string; label: string }) {
+  return (
+    <Svg width={42} height={42} viewBox="0 0 42 42">
+      <Circle cx={21} cy={21} r={19.5} fill="none" stroke={color} strokeWidth={1.3} />
+      <Circle cx={21} cy={21} r={17} fill="none" stroke={color} strokeWidth={0.5} strokeDasharray="2.5 1.8" />
+      <text x={21} y={24} textAnchor="middle" fontSize={8} fontWeight="700" fill={color} transform="rotate(-12, 21, 21)">{label}</text>
+    </Svg>
+  );
+}
 
 export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void }) {
   const swipeBack = useSwipeBack(onBack);
@@ -143,6 +153,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
     return (
       <TouchableOpacity onPress={() => onExpDetail?.(e)} activeOpacity={0.7}>
         <View style={st.row}>
+        <View style={{ flex: 1, minWidth: 0 }}>
         <View style={st.rowTop}>
           <View style={st.badges}>
             <View style={st.catBadge}>
@@ -152,7 +163,18 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
               <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
             </View>
           </View>
-          <Text style={[st.amount,  (Number(e.amount) < 0) && { color: colors.success }]}>{(Number(e.amount) < 0) ? '+' : '-'}¥{Math.abs(Number(e.amount || 0)).toFixed(2)}</Text>
+          {/* Wrap amount + seal so the seal anchors to the amount text, not the row. */}
+          <View style={st.expAmountWrap}>
+            <Text style={[st.amount,  (Number(e.amount) < 0) && { color: colors.success }]}>{(Number(e.amount) < 0) ? '+' : '-'}¥{Math.abs(Number(e.amount || 0)).toFixed(2)}</Text>
+            {e.proc_batch_number ? (
+              <View style={st.expSealWrap} pointerEvents="none">
+                <IcnSealExp
+                  color={e.proc_settled_at ? colors.success : colors.warning}
+                  label={e.proc_settled_at ? t('procSettled') : t('procUnsettled')}
+                />
+              </View>
+            ) : null}
+          </View>
         </View>
         {currentUser ? (
           <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
@@ -188,10 +210,11 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
             ))}
           </View>
         )}
+        </View>
       </View>
       </TouchableOpacity>
     );
-  }, [currentUser, colors.bg, st, parseImages, trCat, trPay, fmtExpDate, t, onExpDetail]);
+  }, [currentUser, colors.bg, colors.success, colors.warning, st, parseImages, trCat, trPay, fmtExpDate, t, onExpDetail]);
 
   // Category toggle
   const toggleCat = (cat: string) => {
@@ -396,6 +419,8 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   },
   rowTop: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    position: 'relative' as const,
+    minHeight: 44,
   },
   badges: {
     flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1,
@@ -418,6 +443,15 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   },
   dateText: { fontSize: FONTS.sub.size, color: colors.textSub, flexShrink: 0 },
   note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right', overflow: 'hidden' },
+  expAmountWrap: {
+    position: 'relative' as const,
+  } as any,
+  expSealWrap: {
+    width: 42, height: 42, alignItems: 'center' as const, justifyContent: 'center' as const,
+    position: 'absolute' as const,
+    right: 0, top: '50%', marginTop: -36,
+    opacity: 0.75,
+  } as any,
 
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
   loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },

@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  FlatList, Image, ActivityIndicator, StyleSheet, Animated, PanResponder
+  FlatList, Image, ActivityIndicator, StyleSheet, Animated
 } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t } from '../i18n';
@@ -33,7 +33,7 @@ type PayMethod = 'payCash' | 'payWechat' | 'payAlipay';
 
 interface Product { id: number; name: string; spec: string; price: number; supplier: string; note?: string; }
 interface CartItem { product: Product; quantity: number; subtotal: number; }
-interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; thumb_images?: string[]; note: string; items: any[]; }
+interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; thumb_images?: string[]; note: string; items: any[]; settled_at?: string | null; settled_by?: number | null; settled_by_username?: string | null; }
 interface ProcStats { total_spent: number; total_income: number; batch_count: number; margin_pct: number; }
 
 // ═══════════════════════════════════════════════
@@ -75,6 +75,16 @@ function ChevronDownIcon({ color, size = 14 }: { color: string; size?: number })
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M6 9l6 6 6-6" />
+    </Svg>
+  );
+}
+// Stamp seal — procurement settle state (mirrors invoice 已作废 style)
+function IcnSealProc({ color, label }: { color: string; label: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 48 48">
+      <Circle cx={24} cy={24} r={22} fill="none" stroke={color} strokeWidth={1.4} />
+      <Circle cx={24} cy={24} r={19.5} fill="none" stroke={color} strokeWidth={0.5} strokeDasharray="3 2" />
+      <text x={24} y={27} textAnchor="middle" fontSize={9} fontWeight="700" fill={color} transform="rotate(-12, 24, 24)">{label}</text>
     </Svg>
   );
 }
@@ -280,6 +290,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histDate: { fontSize: FONTS.micro.size, color: c.textSub },
   histActions: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
   histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
+  histAmountRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, marginTop: 8, minHeight: 48, position: 'relative' as const },
+  histAmountNumberWrap: { position: 'relative' as const },
+  histAmountSealOverlay: { position: 'absolute' as const, right: 0, top: '50%', marginTop: -40, opacity: 0.75, zIndex: 2 },
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
   histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
@@ -347,6 +360,13 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // Edit mode: when set, the drawer is editing this batch instead of creating a new one
   const [editingBatchId, setEditingBatchId] = useState<number | null>(null);
   const [editingBatchNumber, setEditingBatchNumber] = useState<number>(0);
+  // True when the editing batch has been settled — locks the cart UI (no add/+/-, no 完成/添加产品)
+  // and the backend will preserve historical unit prices on save.
+  const [editingBatchSettled, setEditingBatchSettled] = useState(false);
+  // Historical unit prices for the editing batch, keyed by product_id.
+  // Populated ONLY when editing a settled batch. Cart view displays this when present
+  // (falls back to current product price for new / unsettled batches).
+  const [cartUnitPrices, setCartUnitPrices] = useState<Record<number, number>>({});
   // Server-side image URLs kept across edit (new uploads get appended)
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [existingThumbUrls, setExistingThumbUrls] = useState<string[]>([]);
@@ -453,6 +473,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       // Reset edit state when drawer is closed (in any way)
       if (editingBatchId !== null) {
         setEditingBatchId(null); setEditingBatchNumber(0);
+        setEditingBatchSettled(false); setCartUnitPrices({});
         setExistingImageUrls([]); setExistingThumbUrls([]);
         setEditSnapshot(null);
         setCart({}); setReceipts([]); setOrderNote('');
@@ -463,21 +484,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
   const overlayOpacity = overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.45] });
-
-  // ── Swipe down to close drawer ──
-  const dragY = useRef(new Animated.Value(0)).current;
-  const panResponder = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: (_: any, gs: any) => gs.dy > 8 && Math.abs(gs.dy) > Math.abs(gs.dx),
-    onPanResponderMove: (_: any, gs: any) => { if (gs.dy > 0) dragY.setValue(gs.dy); },
-    onPanResponderRelease: (_: any, gs: any) => {
-      if (gs.dy > 120 || gs.vy > 0.6) {
-        closeDrawer();
-        dragY.setValue(0);
-      } else {
-        Animated.spring(dragY, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
-      }
-    },
-  })).current;
 
   // todayStr replaced by useServerDate hook
 
@@ -620,9 +626,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       .map(([pid, qty]) => {
         const product = products.find(p => p.id === Number(pid));
         if (!product) return null;
-        return { product, quantity: qty, subtotal: product.price * qty };
+        // For SETTLED edits, use the snapshot (historical) unit price; otherwise current product price
+        const unitPrice = cartUnitPrices[product.id] ?? product.price;
+        return { product, quantity: qty, subtotal: unitPrice * qty };
       }).filter(Boolean) as CartItem[];
-  }, [cart, products]);
+  }, [cart, products, cartUnitPrices]);
 
   const cartTotal = useMemo(() => cartItems.reduce((s, i) => s + i.subtotal, 0), [cartItems]);
   const cartCount = cartItems.length;
@@ -750,6 +758,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             setCart({}); setReceipts([]); setOrderNote('');
             setExistingImageUrls([]); setExistingThumbUrls([]);
             setEditingBatchId(null); setEditingBatchNumber(0);
+            setEditingBatchSettled(false); setCartUnitPrices({});
             setOrderDate(sd.today); setPayMethod('payWechat');
             setShowDrawer(false); onDrawerClose?.();
             // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
@@ -803,12 +812,23 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setOrderNote(batch.note || '');
     // Rebuild cart from batch items: look up current product by id
     const newCart: Record<number, number> = {};
+    // For SETTLED batches, snapshot the historical unit prices so the cart displays them
+    // and the backend can preserve them on save. For unsettled, leave it empty — cart
+    // shows current product prices and backend uses current prices (intentional, so
+    // the user can fix entry errors by editing).
+    const newUnitPrices: Record<number, number> = {};
+    const isSettled = !!batch.settled_at;
     for (const it of batch.items) {
       const pid = it.product_id;
       const qty = it.quantity;
       if (pid && qty > 0) newCart[pid] = qty;
+      if (isSettled && pid && typeof it.unit_price === 'number') {
+        newUnitPrices[pid] = it.unit_price;
+      }
     }
     setCart(newCart);
+    setCartUnitPrices(newUnitPrices);
+    setEditingBatchSettled(isSettled);
     setReceipts([]);
     setExistingImageUrls(batch.images || []);
     setExistingThumbUrls(batch.thumb_images || []);
@@ -1083,7 +1103,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             onEndReachedThreshold={0.4}
             renderItem={({ item: batch }) => (
             <View style={styles.historyCard}>
-              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
+              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
                 <View style={styles.histHead}>
                   <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -1098,9 +1118,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                         <PencilIcon color={c.textSub} />
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={styles.histActionBtn}
-                        onPress={(e) => { e.stopPropagation?.(); openSlideModal(() => setDeleteBatchTarget(batch)); }}
-                        activeOpacity={0.7}
+                        style={[styles.histActionBtn, batch.settled_at && { opacity: 0.3 }]}
+                        onPress={(e) => { e.stopPropagation?.(); if (!batch.settled_at) openSlideModal(() => setDeleteBatchTarget(batch)); }}
+                        disabled={!!batch.settled_at}
+                        activeOpacity={batch.settled_at ? 1 : 0.7}
                         hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                       >
                         <TrashIcon color={c.danger} size={14} />
@@ -1108,38 +1129,48 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     </View>
                   </View>
                 </View>
-              <View style={styles.histBody}>
-                <View style={styles.histRow}>
-                  <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
-                  <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
-                </View>
-                <View style={styles.histRow}>
-                  <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
-                  <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
-                </View>
-                {batch.note ? (
+                <View style={[styles.histBody, { paddingHorizontal: 18 }]}>
                   <View style={styles.histRow}>
-                    <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
-                    <Text style={styles.histRowVal}>{batch.note}</Text>
+                    <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
+                    <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
                   </View>
-                ) : null}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
-                  <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
-                </View>
-                {(() => {
-                  // Prefer 128×128 thumb URLs (fast), fall back to full-size for old data
-                  const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
-                  return thumbImgs.length > 0 && (
-                    <View style={styles.histImages}>
-                      {thumbImgs.map((img: string, i: number) => (
-                        <Image key={i} source={{ uri: img }}
-                          style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
-                      ))}
+                  <View style={styles.histRow}>
+                    <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
+                    <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
+                  </View>
+                  {batch.note ? (
+                    <View style={styles.histRow}>
+                      <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
+                      <Text style={styles.histRowVal}>{batch.note}</Text>
                     </View>
-                  );
-                })()}
-              </View>
+                  ) : null}
+                  <View style={styles.histAmountRow}>
+                    <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
+                    {/* Wrap just the amount number in a relative View, so the seal's right edge
+                        sits on the right edge of the amount number. */}
+                    <View style={styles.histAmountNumberWrap}>
+                      <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
+                      <View style={styles.histAmountSealOverlay} pointerEvents="none">
+                        <IcnSealProc
+                          color={batch.settled_at ? c.success : c.warning}
+                          label={batch.settled_at ? t('procSettled') : t('procUnsettled')}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                  {(() => {
+                    // Prefer 128×128 thumb URLs (fast), fall back to full-size for old data
+                    const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
+                    return thumbImgs.length > 0 && (
+                      <View style={styles.histImages}>
+                        {thumbImgs.map((img: string, i: number) => (
+                          <Image key={i} source={{ uri: img }}
+                            style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
+                        ))}
+                      </View>
+                    );
+                  })()}
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -1253,9 +1284,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           <Animated.View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: overlayOpacity }]}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
           </Animated.View>
-          <Animated.View style={[styles.drawer, { transform: [{ translateY: Animated.add(drawerTranslateY, dragY) }] }]}>
-            <View style={styles.drawerHandle} {...panResponder.panHandlers} />
-            <View style={styles.drawerHead} {...panResponder.panHandlers}>
+          <Animated.View style={[styles.drawer, { transform: [{ translateY: drawerTranslateY }] }]}>
+            <View style={styles.drawerHandle} />
+            <View style={styles.drawerHead}>
               <Text style={styles.drawerHeadTitle}>
                 {editingBatchId !== null
                   ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
@@ -1436,12 +1467,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                         <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
                       </View>
                     ) : (
-                      cartItems.map((i, idx, arr) => (
+                      cartItems.map((i, idx, arr) => {
+                        // Display price: historical (snapshot) if available, else current product price
+                        const unitPrice = cartUnitPrices[i.product.id] ?? i.product.price;
+                        return (
                         <View key={i.product.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
                           <View style={{ flex: 1 }}>
                             <Text style={styles.itemsRowName}>{i.product.name}</Text>
                             <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
-                              ¥{i.product.price.toFixed(2)}
+                              ¥{unitPrice.toFixed(2)}
                             </Text>
                             <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, marginTop: 2 }}>
                               {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
@@ -1449,21 +1483,26 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                           </View>
                           <View style={styles.qtyRow}>
                             <TouchableOpacity
-                              style={[styles.qtyBtn, styles.qtyBtnMinus]}
+                              style={[styles.qtyBtn, styles.qtyBtnMinus, editingBatchSettled && { opacity: 0.35 }]}
                               onPress={() => updateQty(i.product.id, -1)}
+                              disabled={editingBatchSettled}
+                              activeOpacity={editingBatchSettled ? 1 : 0.6}
                             >
                               <Text style={styles.qtyBtnMinusText}>−</Text>
                             </TouchableOpacity>
                             <Text style={styles.qtyNum}>{i.quantity}</Text>
                             <TouchableOpacity
-                              style={[styles.qtyBtn, styles.qtyBtnPlus]}
+                              style={[styles.qtyBtn, styles.qtyBtnPlus, editingBatchSettled && { opacity: 0.35 }]}
                               onPress={() => updateQty(i.product.id, 1)}
+                              disabled={editingBatchSettled}
+                              activeOpacity={editingBatchSettled ? 1 : 0.6}
                             >
                               <Text style={styles.qtyBtnPlusText}>+</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
-                      ))
+                        );
+                      })
                     )}
                   </ScrollView>
                 </View>
@@ -1471,6 +1510,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
                   <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
                 </View>
+                {/* For settled batches, hide both the add-product entry and the done button —
+                    nothing in the cart can be modified, so there's nothing to confirm. The user
+                    closes the modal via the X button at the top of the modal. */}
+                {!editingBatchSettled && (
                 <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16, paddingTop: 4 }}>
                   <TouchableOpacity
                     style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08), alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
@@ -1485,6 +1528,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
                   </TouchableOpacity>
                 </View>
+                )}
               </>
             )}
           </Animated.View>
