@@ -311,7 +311,6 @@ export default function InvoiceScreen({ onBack }: Props) {
       const json = await api.updateInvoice({ ...data, inv_type: invType } as any);
       if (json.status === 'ok') {
         setOrig({ ...data, inv_type: invType });
-        showToast('✅ ' + t('invSaved'));
       }
     } catch { }
     isSaving.current = false;
@@ -431,7 +430,6 @@ export default function InvoiceScreen({ onBack }: Props) {
       setEditingId(null);
       setDFiles([]);
       setDExistingFilePath([]);
-      showToast('✅ ' + t('invRecSaveOk'));
       await loadRecords();
     } catch (e: any) {
       showToast('⚠️ ' + (e?.message || t('errSessionExpired')));
