@@ -718,7 +718,11 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) setCropSrc(''); }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('avatarCropTitle')}</Text>
-            <CloseButton onPress={() => setCropSrc('')} variant="circle" />
+            <TouchableOpacity onPress={() => setCropSrc('')} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
+              <Svg width="14" height="14" viewBox="0 0 1088 1024">
+                <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
+              </Svg>
+            </TouchableOpacity>
           </View>
           <View style={cropS.stage as any} ref={stageRef as any}>
             <canvas ref={canvasRef as any}
@@ -822,7 +826,11 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverCropSrc(''); setCoverCropResult(''); } }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('coverCropTitle')}</Text>
-            <CloseButton onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} variant="circle" />
+            <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
+              <Svg width="14" height="14" viewBox="0 0 1088 1024">
+                <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
+              </Svg>
+            </TouchableOpacity>
           </View>
           <View style={cropS.stage as any} ref={coverStageRef as any}>
             <canvas ref={coverCanvasRef as any}

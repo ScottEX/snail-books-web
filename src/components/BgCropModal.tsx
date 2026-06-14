@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { createPortal } from 'react-dom';
+import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { useCropCanvas } from '../hooks/useCropCanvas';
-import CloseButton from './CloseButton';
 import { useEffect, useRef, useState } from 'react';
 
 interface BgCropModalProps {
@@ -259,7 +259,11 @@ export default function BgCropModal({
       {/* Header */}
       <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any}>
         <Text style={{ fontSize: 14, fontWeight: '600' as any, color: '#fff', letterSpacing: -0.2 }}>{title || t('editBg')}</Text>
-        <CloseButton onPress={close} variant="circle" />
+        <TouchableOpacity onPress={close} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
+          <Svg width="14" height="14" viewBox="0 0 1088 1024">
+            <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
+          </Svg>
+        </TouchableOpacity>
       </View>
 
       {/* Stage — cropping phase: live canvas crop. preview phase: thumbnail. */}
