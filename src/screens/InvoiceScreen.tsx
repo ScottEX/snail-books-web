@@ -312,21 +312,18 @@ export default function InvoiceScreen({ onBack }: Props) {
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* ═══ ENTRY CARD ═══ */}
-        <View style={[s.entryCard, { backgroundColor: '#C91F37' }]}>
-          <View style={s.ecTop}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <TouchableOpacity style={s.ecBackBtn} onPress={onBack}>
-                <IcnBack color={c.textSub} />
-              </TouchableOpacity>
+        <View style={{ position: 'relative' } as any}>
+          {/* Floating back button — outside card, top-left */}
+          <TouchableOpacity style={s.backFloat} onPress={onBack}>
+            <IcnBack color="rgba(255,255,255,0.8)" />
+          </TouchableOpacity>
+          <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]}>
+            <View style={s.ecTop}>
               <View>
                 <Text style={[s.ecLabel, { color: 'rgba(255,255,255,0.55)' }]}>{t('invLabel')}</Text>
                 <Text style={[s.ecTitle, { color: '#fff' }]}>{t('invTitle')}</Text>
               </View>
             </View>
-            <View style={s.ecIcon}>
-              <IcnDoc color="rgba(255,255,255,0.85)" />
-            </View>
-          </View>
           <View style={s.ecStats}>
             <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
               <Text style={[s.ecStatNum, { color: '#fff' }]}>{totalCount}</Text>
@@ -354,6 +351,7 @@ export default function InvoiceScreen({ onBack }: Props) {
             <IcnPlus color="rgba(255,255,255,0.85)" />
             <Text style={[s.ecBtnText, { color: '#fff' }]}>{t('invApply')}</Text>
           </TouchableOpacity>
+        </View>
         </View>
 
         {/* ═══ TABS ═══ */}
@@ -688,7 +686,7 @@ const s = StyleSheet.create({
 
   /* ENTRY CARD — full width, no horizontal margin */
   entryCard: {
-    borderRadius: 0, paddingTop: 52, paddingRight: 20, paddingBottom: 18, paddingLeft: 20,
+    borderRadius: 0, paddingTop: 28, paddingRight: 20, paddingBottom: 18, paddingLeft: 20,
     position: 'relative', overflow: 'hidden' as any,
     // backgroundColor set inline via c.surface
     marginBottom: 14,
