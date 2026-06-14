@@ -154,6 +154,31 @@ export default function InvoiceScreen({ onBack }: Props) {
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
   const [loaded, setLoaded] = useState(false);
 
+  // Admin check
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await api.admin.check();
+        setIsAdmin(data.is_admin === true);
+      } catch { }
+    })();
+  }, []);
+
+  // User email for display
+  const [userEmail, setUserEmail] = useState('');
+  useEffect(() => {
+    const stored = (() => { try { return localStorage.getItem('email'); } catch { return null; } })();
+    if (stored) { setUserEmail(stored); return; }
+    (async () => {
+      try {
+        const j: any = await api.admin.getMe();
+        const u = j.user || j.data || j;
+        if (u.email) setUserEmail(u.email);
+      } catch { }
+    })();
+  }, []);
+
   // CSS injection for drawer animation
   useEffect(() => {
     const id = 'inv-drawer-css';
@@ -266,9 +291,8 @@ export default function InvoiceScreen({ onBack }: Props) {
     // Fetch batch list
     (async () => {
       try {
-        const res = await api.getProcurementBatches(1, 100);
-        const j = await res.json();
-        setBatchList(j.records || j.batches || j.data || []);
+        const j = await api.getProcurementBatches(1, 100);
+        setBatchList((j as any).records || (j as any).batches || (j as any).data || []);
       } catch { setBatchList([]); }
     })();
     // Reset batch
@@ -282,8 +306,7 @@ export default function InvoiceScreen({ onBack }: Props) {
     } else {
       (async () => {
         try {
-          const res = await api.admin.getMe();
-          const j = await res.json();
+          const j: any = await api.admin.getMe();
           const user = j.user || j.data || j;
           if (user.email) setDEmail(user.email);
         } catch { }
@@ -304,8 +327,7 @@ export default function InvoiceScreen({ onBack }: Props) {
     if (!dBatchId) return;
     (async () => {
       try {
-        const res = await api.getProcurementBatchDetail(dBatchId);
-        const j = await res.json();
+        const j: any = await api.getProcurementBatchDetail(dBatchId);
         const batch = j.batch || j.data || j;
         const amt = batch.total_amount || batch.amount || 0;
         setDAmount(Number(amt).toFixed(2));
@@ -374,21 +396,21 @@ export default function InvoiceScreen({ onBack }: Props) {
 
             {/* Header info — no edit button in section head; pencil on each row */}
             <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} />
-              <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onChange={(v) => setData({ ...data, tax_id: v })} />
-              <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} />
-              <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={data.phone} colors={c} mono onChange={(v) => setData({ ...data, phone: v })} />
+              <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} editable={isAdmin} />
+              <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onChange={(v) => setData({ ...data, tax_id: v })} editable={isAdmin} />
+              <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} editable={isAdmin} />
+              <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={formatPhone(data.phone)} colors={c} mono onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
             </View>
 
             {/* Bank info */}
             <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} />
-              <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onChange={(v) => setData({ ...data, bank_account: v })} />
+              <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} editable={isAdmin} />
+              <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
             </View>
 
-            {/* Email */}
+            {/* Email — shows logged-in user's email */}
             <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} value={data.email} colors={c} onChange={(v) => setData({ ...data, email: v })} />
+              <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} value={userEmail || data.email} colors={c} onChange={(v) => setData({ ...data, email: v })} />
             </View>
           </View>
         )}
@@ -556,11 +578,11 @@ export default function InvoiceScreen({ onBack }: Props) {
 
               {/* Date + Email side by side */}
               <View style={s.dRow}>
-                <View style={[s.dField, { width: 'calc(50% - 5px)' } as any]}>
+                <View style={[s.dField, { flex: 1, minWidth: 0 } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
-                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
+                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 10, paddingRight: 10, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
                 </View>
-                <View style={[s.dField, { width: 'calc(50% - 5px)' } as any]}>
+                <View style={[s.dField, { flex: 1, minWidth: 0 } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
                   <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
                 </View>
@@ -595,8 +617,14 @@ export default function InvoiceScreen({ onBack }: Props) {
 
 /* ═══════════════ EDITABLE INFO ROW ═══════════════ */
 
-function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange }: {
-  icon: React.ReactNode; iconBg: string; label: string; value: string; colors: ThemeColors; mono?: boolean; onChange: (v: string) => void;
+function formatPhone(phone: string): string {
+  const d = phone.replace(/\D/g, '');
+  if (d.length === 11) return `${d.slice(0,3)} ${d.slice(3,7)} ${d.slice(7)}`;
+  return phone;
+}
+
+function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, editable = true }: {
+  icon: React.ReactNode; iconBg: string; label: string; value: string; colors: ThemeColors; mono?: boolean; onChange: (v: string) => void; editable?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -630,14 +658,18 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange }:
   }
 
   return (
-    <TouchableOpacity style={[sIR.row, { borderBottomColor: colors.secondary }]} onPress={() => { setDraft(value); setEditing(true); }} activeOpacity={0.7}>
+    <View style={[sIR.row, { borderBottomColor: colors.secondary }]}>
       <View style={[sIR.icon, { backgroundColor: iconBg }]}>{icon}</View>
       <View style={sIR.body}>
         <Text style={[sIR.label, { color: colors.textSub }]}>{label}</Text>
         <Text style={[sIR.value, { color: value ? colors.textMain : colors.textSub, fontWeight: value ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value || t('invEmpty')}</Text>
       </View>
-      <PencilSvg color={colors.textSub} />
-    </TouchableOpacity>
+      {editable && (
+        <TouchableOpacity onPress={() => { setDraft(value); setEditing(true); }} activeOpacity={0.7}>
+          <PencilSvg color={colors.textSub} />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 }
 
