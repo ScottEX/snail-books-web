@@ -1118,9 +1118,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                         <PencilIcon color={c.textSub} />
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={styles.histActionBtn}
-                        onPress={(e) => { e.stopPropagation?.(); openSlideModal(() => setDeleteBatchTarget(batch)); }}
-                        activeOpacity={0.7}
+                        style={[styles.histActionBtn, batch.settled_at && { opacity: 0.3 }]}
+                        onPress={(e) => { e.stopPropagation?.(); if (!batch.settled_at) openSlideModal(() => setDeleteBatchTarget(batch)); }}
+                        disabled={!!batch.settled_at}
+                        activeOpacity={batch.settled_at ? 1 : 0.7}
                         hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                       >
                         <TrashIcon color={c.danger} size={14} />

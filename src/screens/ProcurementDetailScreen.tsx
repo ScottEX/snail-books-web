@@ -253,7 +253,13 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
                 <EditIcon color={c.primary} />
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.6} style={styles.actionBtn} disabled={deleting} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <TouchableOpacity
+              onPress={() => setShowDeleteConfirm(true)}
+              activeOpacity={0.6}
+              style={[styles.actionBtn, !!cur.settled_at && { opacity: 0.3 }]}
+              disabled={deleting || !!cur.settled_at}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <TrashIcon color={c.danger} />
             </TouchableOpacity>
           </View>
