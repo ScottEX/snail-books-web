@@ -54,18 +54,21 @@ export default function InvoiceModal({ visible, onClose }: Props) {
     setSaved(false);
     (async () => {
       try {
-        const [invData, admResp] = await Promise.all([
-          api.getInvoice(),
-          fetch('/api/admin/check', { credentials: 'include' }),
-        ]);
-        if (invData.status === 'ok' && invData.data) {
-          const d = { ...EMPTY, ...invData.data };
-          setData(d);
-          setOriginal(d);
-        }
+        // Check admin FIRST — api.getInvoice() is admin-only and triggers 403→logout for non-admin
+        const admResp = await fetch('/api/admin/check', { credentials: 'include' });
+        let isAdmin = false;
         if (admResp.ok) {
           const admJson = await admResp.json();
-          setIsAdmin(admJson.is_admin === true);
+          isAdmin = admJson.is_admin === true;
+          setIsAdmin(isAdmin);
+        }
+        if (isAdmin) {
+          const invData = await api.getInvoice();
+          if (invData.status === 'ok' && invData.data) {
+            const d = { ...EMPTY, ...invData.data };
+            setData(d);
+            setOriginal(d);
+          }
         }
       } catch {}
     })();
