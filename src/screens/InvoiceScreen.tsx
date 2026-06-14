@@ -580,7 +580,7 @@ export default function InvoiceScreen({ onBack }: Props) {
               <View style={s.dRow}>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
-                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 10, paddingRight: 10, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
+                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', height: 40, minWidth: 0, boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: c.secondary, backgroundColor: c.surface, color: c.textMain, outline: 'none' }} />
                 </View>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
