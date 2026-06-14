@@ -567,12 +567,12 @@ const s = StyleSheet.create({
   root: { flex: 1 } as any,
 
   /* FLOATING BACK BTN — over content, historyHeader style */
-  backFloat: { position: 'absolute', top: 16, right: 16, zIndex: 90, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.15)' } as any,
+  backFloat: { position: 'absolute', top: 16, left: 16, zIndex: 90, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.15)' } as any,
   scroll: { flex: 1 } as any,
 
   /* ENTRY CARD — full width, no horizontal margin */
   entryCard: {
-    borderRadius: 0, padding: 20, paddingBottom: 18,
+    borderRadius: 0, paddingTop: 52, paddingRight: 20, paddingBottom: 18, paddingLeft: 20,
     position: 'relative', overflow: 'hidden' as any,
     backgroundColor: '#C91F37',
     marginBottom: 14,
