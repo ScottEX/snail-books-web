@@ -292,7 +292,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
   histAmountRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, marginTop: 8, minHeight: 48, position: 'relative' as const },
   histAmountNumberWrap: { position: 'relative' as const },
-  histAmountSealOverlay: { position: 'absolute' as const, right: 0, top: '50%', marginTop: -24, opacity: 0.75, zIndex: 2 },
+  histAmountSealOverlay: { position: 'absolute' as const, right: 0, top: '50%', marginTop: -40, opacity: 0.75, zIndex: 2 },
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
   histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
@@ -360,6 +360,13 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // Edit mode: when set, the drawer is editing this batch instead of creating a new one
   const [editingBatchId, setEditingBatchId] = useState<number | null>(null);
   const [editingBatchNumber, setEditingBatchNumber] = useState<number>(0);
+  // True when the editing batch has been settled — locks the cart UI (no add/+/-, no 完成/添加产品)
+  // and the backend will preserve historical unit prices on save.
+  const [editingBatchSettled, setEditingBatchSettled] = useState(false);
+  // Historical unit prices for the editing batch, keyed by product_id.
+  // Populated ONLY when editing a settled batch. Cart view displays this when present
+  // (falls back to current product price for new / unsettled batches).
+  const [cartUnitPrices, setCartUnitPrices] = useState<Record<number, number>>({});
   // Server-side image URLs kept across edit (new uploads get appended)
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [existingThumbUrls, setExistingThumbUrls] = useState<string[]>([]);
@@ -466,6 +473,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       // Reset edit state when drawer is closed (in any way)
       if (editingBatchId !== null) {
         setEditingBatchId(null); setEditingBatchNumber(0);
+        setEditingBatchSettled(false); setCartUnitPrices({});
         setExistingImageUrls([]); setExistingThumbUrls([]);
         setEditSnapshot(null);
         setCart({}); setReceipts([]); setOrderNote('');
@@ -618,9 +626,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       .map(([pid, qty]) => {
         const product = products.find(p => p.id === Number(pid));
         if (!product) return null;
-        return { product, quantity: qty, subtotal: product.price * qty };
+        // For SETTLED edits, use the snapshot (historical) unit price; otherwise current product price
+        const unitPrice = cartUnitPrices[product.id] ?? product.price;
+        return { product, quantity: qty, subtotal: unitPrice * qty };
       }).filter(Boolean) as CartItem[];
-  }, [cart, products]);
+  }, [cart, products, cartUnitPrices]);
 
   const cartTotal = useMemo(() => cartItems.reduce((s, i) => s + i.subtotal, 0), [cartItems]);
   const cartCount = cartItems.length;
@@ -748,6 +758,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             setCart({}); setReceipts([]); setOrderNote('');
             setExistingImageUrls([]); setExistingThumbUrls([]);
             setEditingBatchId(null); setEditingBatchNumber(0);
+            setEditingBatchSettled(false); setCartUnitPrices({});
             setOrderDate(sd.today); setPayMethod('payWechat');
             setShowDrawer(false); onDrawerClose?.();
             // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
@@ -801,12 +812,23 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setOrderNote(batch.note || '');
     // Rebuild cart from batch items: look up current product by id
     const newCart: Record<number, number> = {};
+    // For SETTLED batches, snapshot the historical unit prices so the cart displays them
+    // and the backend can preserve them on save. For unsettled, leave it empty — cart
+    // shows current product prices and backend uses current prices (intentional, so
+    // the user can fix entry errors by editing).
+    const newUnitPrices: Record<number, number> = {};
+    const isSettled = !!batch.settled_at;
     for (const it of batch.items) {
       const pid = it.product_id;
       const qty = it.quantity;
       if (pid && qty > 0) newCart[pid] = qty;
+      if (isSettled && pid && typeof it.unit_price === 'number') {
+        newUnitPrices[pid] = it.unit_price;
+      }
     }
     setCart(newCart);
+    setCartUnitPrices(newUnitPrices);
+    setEditingBatchSettled(isSettled);
     setReceipts([]);
     setExistingImageUrls(batch.images || []);
     setExistingThumbUrls(batch.thumb_images || []);
@@ -1444,12 +1466,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                         <Text style={{ color: c.textSub, fontSize: FONTS.micro.size }}>—</Text>
                       </View>
                     ) : (
-                      cartItems.map((i, idx, arr) => (
+                      cartItems.map((i, idx, arr) => {
+                        // Display price: historical (snapshot) if available, else current product price
+                        const unitPrice = cartUnitPrices[i.product.id] ?? i.product.price;
+                        return (
                         <View key={i.product.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
                           <View style={{ flex: 1 }}>
                             <Text style={styles.itemsRowName}>{i.product.name}</Text>
                             <Text style={{ fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 }}>
-                              ¥{i.product.price.toFixed(2)}
+                              ¥{unitPrice.toFixed(2)}
                             </Text>
                             <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary, marginTop: 2 }}>
                               {t('procSubtotal')} ¥{i.subtotal.toFixed(2)}
@@ -1457,21 +1482,26 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                           </View>
                           <View style={styles.qtyRow}>
                             <TouchableOpacity
-                              style={[styles.qtyBtn, styles.qtyBtnMinus]}
+                              style={[styles.qtyBtn, styles.qtyBtnMinus, editingBatchSettled && { opacity: 0.35 }]}
                               onPress={() => updateQty(i.product.id, -1)}
+                              disabled={editingBatchSettled}
+                              activeOpacity={editingBatchSettled ? 1 : 0.6}
                             >
                               <Text style={styles.qtyBtnMinusText}>−</Text>
                             </TouchableOpacity>
                             <Text style={styles.qtyNum}>{i.quantity}</Text>
                             <TouchableOpacity
-                              style={[styles.qtyBtn, styles.qtyBtnPlus]}
+                              style={[styles.qtyBtn, styles.qtyBtnPlus, editingBatchSettled && { opacity: 0.35 }]}
                               onPress={() => updateQty(i.product.id, 1)}
+                              disabled={editingBatchSettled}
+                              activeOpacity={editingBatchSettled ? 1 : 0.6}
                             >
                               <Text style={styles.qtyBtnPlusText}>+</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
-                      ))
+                        );
+                      })
                     )}
                   </ScrollView>
                 </View>
@@ -1479,6 +1509,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
                   <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
                 </View>
+                {/* For settled batches, hide both the add-product entry and the done button —
+                    nothing in the cart can be modified, so there's nothing to confirm. The user
+                    closes the modal via the X button at the top of the modal. */}
+                {!editingBatchSettled && (
                 <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16, paddingTop: 4 }}>
                   <TouchableOpacity
                     style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08), alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
@@ -1493,6 +1527,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
                   </TouchableOpacity>
                 </View>
+                )}
               </>
             )}
           </Animated.View>

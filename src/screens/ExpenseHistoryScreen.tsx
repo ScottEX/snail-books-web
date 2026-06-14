@@ -449,7 +449,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   expSealWrap: {
     width: 42, height: 42, alignItems: 'center' as const, justifyContent: 'center' as const,
     position: 'absolute' as const,
-    right: 0, top: '50%', marginTop: -21,
+    right: 0, top: '50%', marginTop: -36,
     opacity: 0.75,
   } as any,
 
