@@ -107,7 +107,7 @@ const IcnSealActive = ({ color, label }: { color: string; label: string }) => (
   <svg width="52" height="52" viewBox="0 0 52 52">
     <circle cx="26" cy="26" r="24" fill="none" stroke={color} strokeWidth="1.5" />
     <circle cx="26" cy="26" r="21" fill="none" stroke={color} strokeWidth="0.5" strokeDasharray="3 2" />
-    <text x="26" y="31" textAnchor="middle" fontSize="11" fontWeight="700" fill={color}>{label}</text>
+    <text x="26" y="31" textAnchor="middle" fontSize="11" fontWeight="700" fill={color} transform="rotate(-12, 26, 26)">{label}</text>
   </svg>
 );
 
