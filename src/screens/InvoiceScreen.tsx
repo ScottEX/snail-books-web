@@ -130,6 +130,7 @@ interface InvoiceData {
   address: string;
   phone: string;
   email: string;
+
   inv_type: InvType;
 }
 
@@ -145,7 +146,7 @@ interface InvoiceRecord {
 }
 
 const EMPTY_INV: InvoiceData = {
-  company_name: '', tax_id: '', bank_name: '', bank_account: '', address: '', phone: '', email: '', inv_type: 'vat',
+  company_name: '', tax_id: '', bank_name: '', bank_account: '', address: '', phone: '', email: '', inv_type: 'vat' as InvType,
 };
 
 interface Props {
@@ -276,18 +277,18 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
-      {/* Floating back button */}
-      <TouchableOpacity style={s.backFloat} onPress={onBack}>
-        <IcnBack color="#fff" />
-      </TouchableOpacity>
-
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* ═══ ENTRY CARD ═══ */}
-        <View style={s.entryCard}>
+        <View style={[s.entryCard, { backgroundColor: '#C91F37' }]}>
           <View style={s.ecTop}>
-            <View>
-              <Text style={s.ecLabel}>{t('invLabel')}</Text>
-              <Text style={s.ecTitle}>{t('invCenter')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <TouchableOpacity style={s.ecBackBtn} onPress={onBack}>
+                <IcnBack color={c.textSub} />
+              </TouchableOpacity>
+              <View>
+                <Text style={[s.ecLabel, { color: 'rgba(255,255,255,0.55)' }]}>{t('invLabel')}</Text>
+                <Text style={[s.ecTitle, { color: '#fff' }]}>{t('invTitle')}</Text>
+              </View>
             </View>
             <View style={s.ecIcon}>
               <IcnDoc color="rgba(255,255,255,0.85)" />
@@ -295,19 +296,19 @@ export default function InvoiceScreen({ onBack }: Props) {
           </View>
           <View style={s.ecStats}>
             <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
-              <Text style={s.ecStatNum}>{totalCount}</Text>
-              <Text style={s.ecStatLbl}>{t('invTotalCount')}</Text>
+              <Text style={[s.ecStatNum, { color: '#fff' }]}>{totalCount}</Text>
+              <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invTotalCount')}</Text>
             </View>
             <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
-              <Text style={s.ecStatNum}>¥{(totalAmount / 10000).toFixed(1)}w</Text>
-              <Text style={s.ecStatLbl}>{t('invTotalAmount')}</Text>
+              <Text style={[s.ecStatNum, { color: '#fff' }]}>¥{(totalAmount / 10000).toFixed(1)}w</Text>
+              <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invTotalAmount')}</Text>
             </View>
             <View style={s.ecStat}>
-              <Text style={s.ecStatNum}>{pendingCount}</Text>
-              <Text style={s.ecStatLbl}>{t('invPending')}</Text>
+              <Text style={[s.ecStatNum, { color: '#fff' }]}>{pendingCount}</Text>
+              <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invPending')}</Text>
             </View>
           </View>
-          <TouchableOpacity style={s.ecBtn} onPress={() => {
+          <TouchableOpacity style={[s.ecBtn, { borderColor: 'rgba(255,255,255,0.22)' }]} onPress={() => {
             setDType(invType);
             setDAmount('');
             setDDate(new Date().toISOString().slice(0, 10));
@@ -316,7 +317,7 @@ export default function InvoiceScreen({ onBack }: Props) {
             openDrawer();
           }}>
             <IcnPlus color="rgba(255,255,255,0.85)" />
-            <Text style={s.ecBtnText}>{t('invApply')}</Text>
+            <Text style={[s.ecBtnText, { color: '#fff' }]}>{t('invApply')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -337,17 +338,6 @@ export default function InvoiceScreen({ onBack }: Props) {
             <View style={[s.tips, { backgroundColor: withAlpha(c.warning, 0.08), borderColor: withAlpha(c.warning, 0.2) }]}>
               <Text style={s.tipsIcon}>💡</Text>
               <Text style={[s.tipsText, { color: c.warning }]}>{t('invTips')}</Text>
-            </View>
-
-            {/* Invoice type preference — no edit button, chips only */}
-            <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <View style={[s.typeToggle, { borderBottomColor: c.secondary }]}>
-                {(['vat', 'general', 'receipt'] as InvType[]).map(tp => (
-                  <TouchableOpacity key={tp} style={[s.typeChip, invType === tp && { backgroundColor: withAlpha(c.primary, 0.08), borderColor: c.primary }]} onPress={() => setInvType(tp)}>
-                    <Text style={[s.typeChipText, { color: invType === tp ? c.primary : c.textSub }]}>{tp === 'vat' ? t('invVatSpecialFull') : tp === 'general' ? t('invGeneralFull') : t('invReceipt')}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
             </View>
 
             {/* Header info — no edit button in section head; pencil on each row */}
@@ -509,11 +499,11 @@ export default function InvoiceScreen({ onBack }: Props) {
               <View style={s.dRow}>
                 <View style={s.dField}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
-                  <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dDate} onChangeText={setDDate} placeholder="YYYY-MM-DD" placeholderTextColor={c.textSub} />
+                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
                 </View>
                 <View style={s.dField}>
-                  <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerRef')}</Text>
-                  <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dRef} onChangeText={setDRef} placeholder={t('invOptional')} placeholderTextColor={c.textSub} />
+                  <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBatch')}</Text>
+                  <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dRef} onChangeText={setDRef} placeholder={t('invDrawerBatchPlaceholder')} placeholderTextColor={c.textSub} />
                 </View>
               </View>
 
@@ -599,10 +589,11 @@ const s = StyleSheet.create({
   entryCard: {
     borderRadius: 0, paddingTop: 52, paddingRight: 20, paddingBottom: 18, paddingLeft: 20,
     position: 'relative', overflow: 'hidden' as any,
-    backgroundColor: '#C91F37',
+    // backgroundColor set inline via c.surface
     marginBottom: 14,
   } as any,
   ecTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 } as any,
+  ecBackBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', flexShrink: 0 } as any,
   ecLabel: { fontSize: 11, letterSpacing: 1.3, color: 'rgba(255,255,255,0.55)', marginBottom: 4, textTransform: 'uppercase' } as any,
   ecTitle: { fontSize: 18, fontWeight: '600', color: '#fff', letterSpacing: 0.3 } as any,
   ecIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' } as any,
