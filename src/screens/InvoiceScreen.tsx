@@ -864,7 +864,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                     onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 1))}
                     onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
                     getPreviewUrl={(f: File) => URL.createObjectURL(f)}
-                    label="上传发票"
+                    label={t('invUploadInvoice') as string}
                     accept="image/jpeg,image/png,image/webp,application/pdf"
                   />
                 </View>
