@@ -319,6 +319,7 @@ export const api = {
   getProcurementBatchDetail: (id: number) => authFetch(`/api/procurement-batches/${id}`),
   updateProcurementBatch: (id: number, data: any) => authFetch(`/api/procurement-batches/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProcurementBatch: (id: number) => authFetch(`/api/procurement-batches/${id}`, { method: 'DELETE' }),
+  settleProcurementBatch: (id: number) => authFetch(`/api/procurement-batches/${id}/settle`, { method: 'POST' }),
   getProcurementStats: () => authFetch('/api/procurement-stats'),
   getProcurementShareLink: (id: number): Promise<{ url: string }> => authFetch(`/api/procurement-batches/${id}/share-link`),
   // Shared cart

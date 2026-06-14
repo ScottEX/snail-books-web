@@ -33,7 +33,7 @@ type PayMethod = 'payCash' | 'payWechat' | 'payAlipay';
 
 interface Product { id: number; name: string; spec: string; price: number; supplier: string; note?: string; }
 interface CartItem { product: Product; quantity: number; subtotal: number; }
-interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; thumb_images?: string[]; note: string; items: any[]; }
+interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; thumb_images?: string[]; note: string; items: any[]; settled_at?: string | null; settled_by?: number | null; settled_by_username?: string | null; }
 interface ProcStats { total_spent: number; total_income: number; batch_count: number; margin_pct: number; }
 
 // ═══════════════════════════════════════════════
@@ -75,6 +75,24 @@ function ChevronDownIcon({ color, size = 14 }: { color: string; size?: number })
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M6 9l6 6 6-6" />
+    </Svg>
+  );
+}
+// Check icon — 14px, used in settle button
+function CheckSmallIcon({ color, size = 14 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M20 6L9 17l-5-5" />
+    </Svg>
+  );
+}
+// Stamp seal — procurement settle state (mirrors invoice 已作废 style)
+function IcnSealProc({ color, label }: { color: string; label: string }) {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 48 48">
+      <Circle cx={24} cy={24} r={22} fill="none" stroke={color} strokeWidth={1.4} />
+      <Circle cx={24} cy={24} r={19.5} fill="none" stroke={color} strokeWidth={0.5} strokeDasharray="3 2" />
+      <text x={24} y={27} textAnchor="middle" fontSize={9} fontWeight="700" fill={color} transform="rotate(-12, 24, 24)">{label}</text>
     </Svg>
   );
 }
@@ -280,6 +298,11 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histDate: { fontSize: FONTS.micro.size, color: c.textSub },
   histActions: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
   histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
+  histActionBtnDisabled: { opacity: 0.35 } as any,
+  histSealWrap: {
+    position: 'absolute' as const, right: 10, top: '50%' as any, marginTop: -24,
+    width: 48, height: 48, alignItems: 'center' as const, justifyContent: 'center' as const,
+  } as any,
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
   histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
@@ -354,6 +377,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [editSnapshot, setEditSnapshot] = useState<string | null>(null);
   // Delete confirmation target (batch record)
   const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
+  // Settle confirmation target (batch record) — one-way, irreversible
+  const [settleBatchTarget, setSettleBatchTarget] = useState<BatchRecord | null>(null);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [itemsModalIsCart, setItemsModalIsCart] = useState(false);
@@ -847,6 +872,28 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     }
   };
 
+  // Confirm settle batch — one-way, irreversible. Updates the row in place (no full list refetch).
+  const confirmSettleBatch = async () => {
+    if (!settleBatchTarget) return;
+    const targetId = settleBatchTarget.id;
+    setSettleBatchTarget(null);
+    try {
+      const r: any = await api.settleProcurementBatch(targetId);
+      if (r?.status === 'ok' && r.batch) {
+        // Patch the row in the local history list so the seal flips immediately
+        const updated = r.batch;
+        const patched = { ...settleBatchTarget, ...updated };
+        loadPage(1, true);
+        setToastMsg(t('procSettleSuccess')); setShowToast(true);
+      } else {
+        setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+      }
+    } catch (err) {
+      console.error('[procurement] settle error:', err);
+      setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+    }
+  };
+
   const removeExistingImage = (i: number) => {
     setExistingImageUrls(prev => prev.filter((_, idx) => idx !== i));
     setExistingThumbUrls(prev => prev.filter((_, idx) => idx !== i));
@@ -1068,12 +1115,25 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             onEndReachedThreshold={0.4}
             renderItem={({ item: batch }) => (
             <View style={styles.historyCard}>
-              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7} style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
+              <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
                 <View style={styles.histHead}>
                   <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <Text style={styles.histDate}>{batch.date}</Text>
                     <View style={styles.histActions}>
+                      <TouchableOpacity
+                        style={[styles.histActionBtn, batch.settled_at ? styles.histActionBtnDisabled : null]}
+                        onPress={(e) => {
+                          if (batch.settled_at) return;
+                          e.stopPropagation?.();
+                          openSlideModal(() => setSettleBatchTarget(batch));
+                        }}
+                        activeOpacity={0.7}
+                        disabled={!!batch.settled_at}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <CheckSmallIcon color={batch.settled_at ? c.textSub : c.success} size={14} />
+                      </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.histActionBtn}
                         onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}
@@ -1093,38 +1153,47 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     </View>
                   </View>
                 </View>
-              <View style={styles.histBody}>
-                <View style={styles.histRow}>
-                  <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
-                  <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
-                </View>
-                <View style={styles.histRow}>
-                  <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
-                  <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
-                </View>
-                {batch.note ? (
-                  <View style={styles.histRow}>
-                    <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
-                    <Text style={styles.histRowVal}>{batch.note}</Text>
-                  </View>
-                ) : null}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                  <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
-                  <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
-                </View>
-                {(() => {
-                  // Prefer 128×128 thumb URLs (fast), fall back to full-size for old data
-                  const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
-                  return thumbImgs.length > 0 && (
-                    <View style={styles.histImages}>
-                      {thumbImgs.map((img: string, i: number) => (
-                        <Image key={i} source={{ uri: img }}
-                          style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
-                      ))}
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={[styles.histBody, { flex: 1, paddingHorizontal: 18 }]}>
+                    <View style={styles.histRow}>
+                      <Text style={styles.histRowLabel}>{t('procOrderItems')}</Text>
+                      <Text style={styles.histRowVal}>{batch.items?.length || 0} {t('procUnit')}</Text>
                     </View>
-                  );
-                })()}
-              </View>
+                    <View style={styles.histRow}>
+                      <Text style={styles.histRowLabel}>{t('procPaymentMethod')}</Text>
+                      <Text style={styles.histRowVal}>{trPayment(batch.payment_method)}</Text>
+                    </View>
+                    {batch.note ? (
+                      <View style={styles.histRow}>
+                        <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
+                        <Text style={styles.histRowVal}>{batch.note}</Text>
+                      </View>
+                    ) : null}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                      <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
+                      <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
+                    </View>
+                    {(() => {
+                      // Prefer 128×128 thumb URLs (fast), fall back to full-size for old data
+                      const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
+                      return thumbImgs.length > 0 && (
+                        <View style={styles.histImages}>
+                          {thumbImgs.map((img: string, i: number) => (
+                            <Image key={i} source={{ uri: img }}
+                              style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
+                          ))}
+                        </View>
+                      );
+                    })()}
+                  </View>
+                  {/* Stamp seal — right side, vertically centered */}
+                  <View style={[styles.histSealWrap, { right: 8 }]}>
+                    <IcnSealProc
+                      color={batch.settled_at ? c.success : c.warning}
+                      label={batch.settled_at ? t('procSettled') : t('procUnsettled')}
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -1230,6 +1299,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         confirmLabel={t('delete')}
         onConfirm={() => confirmDeleteBatch()}
         onCancel={() => closeSlideModal(() => setDeleteBatchTarget(null))}
+      />
+
+      {/* ── Settle batch confirmation modal (one-way, irreversible) ── */}
+      <ConfirmModal
+        visible={settleBatchTarget !== null}
+        title={t('procSettleTitle')}
+        message={t('procSettleMsg')}
+        confirmLabel={t('procSettle')}
+        onConfirm={() => confirmSettleBatch()}
+        onCancel={() => closeSlideModal(() => setSettleBatchTarget(null))}
       />
 
       {/* ── Order Drawer (slides up) ── */}

@@ -39,6 +39,9 @@ interface BatchRecord {
   images?: string[];
   thumb_images?: string[];
   items: BatchItem[];
+  settled_at?: string | null;
+  settled_by?: number | null;
+  settled_by_username?: string | null;
 }
 
 function ViewIcon({ color }: { color: string }) {
@@ -235,6 +238,23 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
             </View>
           ) : null}
         </View>
+
+        {/* Settlement info — only shown if this batch has been settled */}
+        {batch.settled_at ? (
+          <View style={styles.infoCard}>
+            <Text style={[styles.sectionTitle, { marginBottom: 8, color: c.success }]}>
+              {t('procSettleInfo')}
+            </Text>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t('procSettleAt')}</Text>
+              <Text style={styles.infoValue}>{batch.settled_at}</Text>
+            </View>
+            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+              <Text style={styles.infoLabel}>{t('procSettleBy')}</Text>
+              <Text style={styles.infoValue}>{batch.settled_by_username || '—'}</Text>
+            </View>
+          </View>
+        ) : null}
 
         {/* Images */}
         {thumbImgs.length > 0 && (

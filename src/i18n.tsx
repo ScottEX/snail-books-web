@@ -1,6 +1,4 @@
-import { createContext, useContext } from 'react';
-import { api } from './api/client';
-import { useCallback, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const I18N: Record<string, Record<string, string>> = {
   'zh-CN': {
@@ -9,11 +7,13 @@ const I18N: Record<string, Record<string, string>> = {
     addFeeEntry: '录入手续费',
     addImage: '添加',
     additional: '追加投资',
+    addressPhone: '公司地址',
+    adminCannotDelete: '管理员账户无法注销。如需停用，请联系其他管理员操作。',
     all: '全部',
     allDividendRecords: '」的所有分红记录',
+    allowLogin: '允许登录',
     amount: '金额',
     amountLabel: '输入金额（元）',
-    refundAmount: '退款金额（元）',
     any: '不限',
     apply: '应用',
     atLeastOneFee: '至少输入一个平台的手续费',
@@ -22,10 +22,12 @@ const I18N: Record<string, Record<string, string>> = {
     avatarCropTitle: '调整头像',
     avatarSizeHint: '在不同场景下的显示效果',
     avatarUpdated: '头像已更新',
-    backToList: '返回列表',
-    stayPage: '留在本页',
     back: '返回',
+    backToList: '返回列表',
     backToLogin: '返回登录',
+    bankAccount: '银行账号',
+    bankName: '开户银行',
+    basicInfo: '基本信息',
     batchLabel: '{date} · 第{n}次分红',
     bgHint: '选择一张图片作为首页背景',
     bgResultHint: '将作为首页全屏背景',
@@ -45,7 +47,9 @@ const I18N: Record<string, Record<string, string>> = {
     changeEmail: '更换邮箱',
     changePassword: '修改密码',
     chartSwitchBar: '柱状图',
+    chartSwitchDay: '日',
     chartSwitchHint: '点击切换视图',
+    chartSwitchMonth: '月',
     chartSwitchPie: '饼图',
     chartXAxis: '月份',
     chartXAxisDay: '每日',
@@ -53,11 +57,8 @@ const I18N: Record<string, Record<string, string>> = {
     chooseImage: '选择图片',
     clear: '清空',
     codeSent: '验证码已发送',
-    last7Days: '近7天',
-    last30Days: '近30天',
-    last3Months: '近3月',
-    monthUnit: '月',
-    normalUser: '普通用户',
+    companyName: '公司名称',
+    companyPhone: '公司电话',
     confirm: '确认',
     confirmDelete: '确认删除？',
     confirmDeleteRecord: '确认删除',
@@ -71,6 +72,7 @@ const I18N: Record<string, Record<string, string>> = {
     coverCropTitle: '编辑封面',
     coverHint: '将作为个人中心顶部封面展示',
     coverUpdated: '封面已更新',
+    createdAt: '创建时间',
     cropFailed: '裁切失败，请重试',
     cropFlip: '翻转',
     cropPill: '拖动移动 · 双指缩放',
@@ -81,27 +83,25 @@ const I18N: Record<string, Record<string, string>> = {
     currentBalance: '当前结余',
     daily: '日常',
     dailyRevenue: '每日营收',
+    dailyTrend: '每日收支趋势',
     dangerZone: '危险操作',
     date: '日期',
+    dateFrom: '开始日期',
+    dateTo: '结束日期',
     delete: '删除',
-    deleteUser: '删除用户',
-    deleteUserConfirm: '确认删除该用户，该用户的所有数据（交易记录、进货记录等）也将一并删除',
-    deleteUserGraceNote: '账户将进入 5 天冷静期，期满后永久删除并转移经营数据至管理员。冷静期内您可随时恢复。',
     deleteAccount: '注销账户',
     deleteAccountBtn: '确认注销',
     deleteAccountConfirmMsg: '注销后所有数据将被永久删除，不可恢复。确定继续吗？',
     deleteAccountConfirmTitle: '确认注销账户',
-    deleteAccountSuccess: '账户已注销',
     deleteAccountGraceNote: '您的账户将进入 3 天冷静期，期满后永久注销。在此期间登录即可自动恢复账户。',
-    adminCannotDelete: '管理员账户无法注销。如需停用，请联系其他管理员操作。',
+    deleteAccountSuccess: '账户已注销',
     deleteRecord: '删除',
-    disabledStatus: '禁用',
-    graceStatus: '冷静期中',
-    newUserBadge: '新注册',
-    markRead: '已读',
-    restoreAccount: '恢复账户',
+    deleteUser: '删除用户',
+    deleteUserConfirm: '确认删除该用户，该用户的所有数据（交易记录、进货记录等）也将一并删除',
+    deleteUserGraceNote: '账户将进入 5 天冷静期，期满后永久删除并转移经营数据至管理员。冷静期内您可随时恢复。',
     devCodeLabel: '🔧 开发模式 — 验证码',
     dineIn: '堂食',
+    disabledStatus: '禁用',
     discountAmount: '优惠减免',
     displayName: '用户名称',
     distributedPool: '已派发分红池',
@@ -110,11 +110,11 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundFmt: '第{n}次分红 · {date}',
     dividendRoundOnly: '第{n}次分红',
     done: '完成',
-    downloadPdf: '下载PDF',
     downloadImage: '下载图片',
+    downloadPdf: '下载PDF',
+    edit: '编辑',
     editBg: '编辑背景图',
     editCover: '更换封面',
-    edit: '编辑',
     editProfile: '个人中心',
     email: '邮箱',
     emailAction: '邮件',
@@ -137,22 +137,21 @@ const I18N: Record<string, Record<string, string>> = {
     errPwNeedLetter: '密码必须包含字母',
     errPwNeedNumber: '密码必须包含数字',
     errPwNeedSpecial: '密码必须包含特殊字符',
-    errPwTooShort: '密码至少 8 位',
     errPwRequirements: '密码须8位以上，包含字母、数字、特殊字符',
+    errPwTooShort: '密码至少 8 位',
     errWrongCredentials: '账号或密码错误',
     expConfirmMsg: '提交后将无法修改，确定要记录吗？',
     expConfirmTitle: '确认记录',
     expDate: '日期',
+    expDetail: '支出详情',
+    expSavedMsg: '支出已更新，是否返回列表？',
+    expTotalAmount: '支出金额',
+    expUpdated: '支出已更新',
     expense: '支出',
     expenseBreakdown: '支出分类占比',
     expenseBreakdownOfMonth: '月支出分类占比',
     expenseCategory: '支出分类',
     expenseDate: '支出日期',
-    createdAt: '创建时间',
-    expDetail: '支出详情',
-    expTotalAmount: '支出金额',
-    expSavedMsg: '支出已更新，是否返回列表？',
-    expUpdated: '支出已更新',
     expenseHistory: '支出记录',
     expenseNote: '支出说明',
     feeAllMonths: '全部',
@@ -176,12 +175,11 @@ const I18N: Record<string, Record<string, string>> = {
     fundsInTransit: '在途资金',
     goBack: '返回',
     goods: '采购',
+    graceStatus: '冷静期中',
     imgNotLoaded: '图片未加载',
     income: '收入',
     initial: '初始出资',
     initialInvest: '初始出资',
-    invest: '出资',
-    investComplete: '出资完结',
     invApply: '申请开票',
     invApplyAmount: '申请金额',
     invAutoFilled: '已自动填入',
@@ -191,18 +189,15 @@ const I18N: Record<string, Record<string, string>> = {
     invDownload: '下载',
     invDownloading: '正在下载…',
     invDrawerAmount: '开票金额',
+    invDrawerBatch: '关联批次号',
+    invDrawerBatchPlaceholder: '选择采购批次号',
     invDrawerBuyer: '公司名称',
     invDrawerDate: '开票日期',
     invDrawerNote: '开票说明',
     invDrawerNotePlaceholder: '货物或服务名称（可选）',
-    invDrawerBatch: '关联批次号',
-    invDrawerBatchPlaceholder: '选择采购批次号',
     invDrawerRef: '关联单号',
     invDrawerTaxId: '公司税号',
     invDrawerType: '发票类型',
-    invSelectBatch: '选择批次',
-    invUploadFiles: '上传发票',
-    invUploadHint: '最多上传9张',
     invEdit: '编辑',
     invEditBank: '编辑银行信息',
     invEditInfo: '编辑开票信息',
@@ -226,6 +221,7 @@ const I18N: Record<string, Record<string, string>> = {
     invRecordsTab: '发票记录',
     invSave: '保存',
     invSaved: '保存成功',
+    invSelectBatch: '选择批次',
     invSettingsToast: '设置',
     invShareToast: '分享发票',
     invStatusDone: '已开具',
@@ -239,9 +235,17 @@ const I18N: Record<string, Record<string, string>> = {
     invTotalAmount: '开票总额',
     invTotalCount: '累计开票',
     invTypePref: '发票类型偏好',
+    invUploadFiles: '上传发票',
+    invUploadHint: '最多上传9张',
     invUrge: '催一下',
     invVatSpecial: '增值税专票',
     invVatSpecialFull: '增值税专用发票',
+    invest: '出资',
+    investComplete: '出资完结',
+    invoiceSave: '保存',
+    invoiceSaved: '成功',
+    invoiceSaving: '...',
+    invoiceTitle: '开票信息',
     issueDividend: '发起分红',
     issueProportional: '发起比例分红',
     janitor: '打杂',
@@ -249,16 +253,23 @@ const I18N: Record<string, Record<string, string>> = {
     jokeClosedLoop: '「一个董事长负责画饼，一个CEO负责烙饼，一个打杂的负责吃饼 —— 完美的商业闭环」',
     jokeRecon: '已为您载入最近一次对账数据，请核对账单日期是否正确。',
     language: '语言',
+    last30Days: '近30天',
+    last3Months: '近3月',
+    last7Days: '近7天',
+    lastLogin: '最后登录',
     linkCopied: '链接已复制',
     loadMore: '加载更多',
     loading: '加载中...',
     login: '登录',
     loginBtn: '登 录',
+    loginDisabledHint: '关闭后，用户将无法登录系统',
     loginPlaceholder: '用户名 / 邮箱',
+    loginStatus: '登录状态',
     logout: '退出登录',
     logoutConfirm: '确定要退出登录吗？',
     lpControl: '有限合伙控股',
     lpStructure: '有限合伙控股结构',
+    markRead: '已读',
     meituan: '美团',
     meituanCashier: '美团收银',
     meituanTuan: '美团团购',
@@ -268,24 +279,25 @@ const I18N: Record<string, Record<string, string>> = {
     monthExpense: '本月支出',
     monthIncome: '本月收入',
     monthProfit: '本月利润',
+    monthUnit: '月',
     monthlyProfit: '月度利润',
     monthlyTrend: '月度收支趋势',
-    dailyTrend: '每日收支趋势',
-    chartSwitchMonth: '月',
-    chartSwitchDay: '日',
     nameJiang: '江宽',
     nameLan: '蓝柳富',
     nameZhang: '张安武',
     newEmail: '新邮箱',
     newPassword: '新密码',
+    newUserBadge: '新注册',
     noDividendRecords: '暂无分红记录',
     noExpenseRecords: '暂无支出记录',
+    noRecords: '暂无记录',
     noUsers: '暂无用户',
     normalStatus: '正常',
-    noRecords: '暂无记录',
+    normalUser: '普通用户',
     notePlaceholder: '如：葱、香菜、电费',
     oldPassword: '当前密码',
     opacity: '透明度',
+    otherInfo: '其他信息',
     paidInRate: '实缴率',
     partnerSeats: '合伙席位',
     partnerStructure: '合伙架构',
@@ -301,6 +313,7 @@ const I18N: Record<string, Record<string, string>> = {
     pdfLoadFailed: 'PDF 加载失败',
     pdfLoading: '加载 PDF 中…',
     pendingPayback: '待回',
+    phone: '手机号',
     platformFee: '平台手续费',
     preferences: '偏好设置',
     procAddProduct: '添加产品',
@@ -354,6 +367,14 @@ const I18N: Record<string, Record<string, string>> = {
     procSearchPlaceholder: '搜索商品…',
     procSearchProducts: '搜索产品名、供应商…',
     procSelected: '已选',
+    procSettle: '清账',
+    procSettleAt: '清账时间',
+    procSettleBy: '经手人',
+    procSettleInfo: '清账信息',
+    procSettleMsg: '把这笔进货标记为已清账？清账后无法撤销。',
+    procSettleSuccess: '已标记为已清账',
+    procSettleTitle: '确认清账',
+    procSettled: '已清账',
     procSubmit: '提交进货单',
     procSubmitted: '进货单已提交',
     procSubmittedMsg: '本次进货记录已保存',
@@ -362,6 +383,7 @@ const I18N: Record<string, Record<string, string>> = {
     procTitle: '进货管理',
     procTotal: '本次合计',
     procUnit: '种',
+    procUnsettled: '未清账',
     procUpdated: '进货单已更新',
     procUpdatedMsg: '本次进货记录已更新',
     procViewDetail: '查看明细',
@@ -370,6 +392,7 @@ const I18N: Record<string, Record<string, string>> = {
     profileEmail: '电子邮箱',
     profit: '利润',
     pwHint: '8位以上，含字母+数字+特殊字符',
+    receiptExpenseLabel: '查看凭证',
     receivable: '应收总额',
     reconComplete: '对账完成',
     reconDate: '对账日期',
@@ -377,18 +400,11 @@ const I18N: Record<string, Record<string, string>> = {
     reconciledBy: '对账人',
     recordedBy: '录入人',
     recrop: '重新裁剪',
+    refundAmount: '退款金额（元）',
     register: '注册',
-    invoiceTitle: '开票信息',
-    companyName: '公司名称',
-    taxId: '公司税号',
-    bankName: '开户银行',
-    bankAccount: '银行账号',
-    addressPhone: '公司地址',
-    companyPhone: '公司电话',
-    invoiceSave: '保存',
-    invoiceSaving: '...',
-    invoiceSaved: '成功',
     registerBtn: '注 册',
+    registrationTime: '注册时间',
+    remarks: '备注',
     rememberMe: '记住我',
     rent: '房租',
     resendCode: '重新发送',
@@ -396,6 +412,7 @@ const I18N: Record<string, Record<string, string>> = {
     resetBtn: '重 置',
     resetDefault: '恢复默认',
     resetHint: '验证码已发送至',
+    restoreAccount: '恢复账户',
     retry: '重试',
     revCancelArchive: '取消歇业',
     revClosedReason: '今日歇业',
@@ -429,6 +446,7 @@ const I18N: Record<string, Record<string, string>> = {
     revYesterdayNA: '—',
     revenue: '营业额',
     revenueDate: '营收日期',
+    role: '角色',
     roundNote: '轮次备注',
     salary: '薪资',
     save: '保存',
@@ -444,30 +462,15 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: '超时时间',
     shangouWaimai: '闪购外卖',
     share: '分享',
-    shareTo: '已分享至 {label}',
     shareCalcResult: '穿透股权计算结果：',
     shareFailed: '分享失败',
     shareLink: '分享链接',
     sharePercent: '持股',
+    shareTo: '已分享至 {label}',
     shareholders: '位股东',
     signaturePlaceholder: '这个人很懒，什么都没留下...',
     ssoDesc: '最多一台设备同时登录',
     ssoLabel: '单设备登录',
-    userManagement: '用户管理',
-    userDetail: '用户详情',
-    basicInfo: '基本信息',
-    loginStatus: '登录状态',
-    otherInfo: '其他信息',
-    allowLogin: '允许登录',
-    loginDisabledHint: '关闭后，用户将无法登录系统',
-    phone: '手机号',
-    role: '角色',
-    remarks: '备注',
-    dateFrom: '开始日期',
-    dateTo: '结束日期',
-    statusFilter: '状态筛选',
-    registrationTime: '注册时间',
-    lastLogin: '最后登录',
     stampPrefixBurgundy: '以此身，阅尽这',
     stampPrefixObsidian: '时序轮转，流光已掷下第',
     stampPrefixTeal: '星霜未歇，我们已共渡',
@@ -475,6 +478,8 @@ const I18N: Record<string, Record<string, string>> = {
     stampSuffixObsidian: '道鞭影。',
     stampSuffixTeal: '次潮落潮生。',
     status: '状态',
+    statusFilter: '状态筛选',
+    stayPage: '留在本页',
     subscribedTotal: '认缴总额',
     subtitle: '生活不简单，尽量简单过',
     summary: '收支总览',
@@ -482,11 +487,9 @@ const I18N: Record<string, Record<string, string>> = {
     tabRecon: '对账',
     tabRevenue: '营业',
     tapForDetail: '点击卡片查看详情',
+    taxId: '公司税号',
     themeLabel: '主题',
     themePicker: '主题方案',
-    totalRecords: '共 {n} 条数据',
-    totalUsers: '共 {n} 个用户',
-    transactions: '交易记录',
     toastLoadFailed: '数据加载失败',
     toastSubmitFailed: '提交失败，请重试',
     today: '今日',
@@ -497,16 +500,20 @@ const I18N: Record<string, Record<string, string>> = {
     totalDividends: '累计分红',
     totalDividendsPaid: '累计分红',
     totalInvest: '总出资',
+    totalRecords: '共 {n} 条数据',
     totalToPool: '拟向红利池注入的总金额 (元)',
+    totalUsers: '共 {n} 个用户',
+    transactions: '交易记录',
     tuan: '团购',
     uploadFailed: '上传失败，请重试',
     uploadFailedShort: '上传失败',
     uploadImage: '凭证上传',
-    receiptExpenseLabel: '查看凭证',
     uploading: '上传中...',
     useThisAvatar: '使用此头像',
     useThisBg: '使用此背景图',
     useThisCover: '使用此封面',
+    userDetail: '用户详情',
+    userManagement: '用户管理',
     username: '账号',
     verifyBtn: '验 证',
     verifyCode: '验证码',
@@ -529,11 +536,13 @@ const I18N: Record<string, Record<string, string>> = {
     addFeeEntry: '錄入手續費',
     addImage: '添加',
     additional: '追加投資',
+    addressPhone: '公司地址',
+    adminCannotDelete: '管理員帳戶無法註銷。如需停用，請聯繫其他管理員操作。',
     all: '全部',
     allDividendRecords: '」的所有分紅記錄',
+    allowLogin: '允許登入',
     amount: '金額',
     amountLabel: '輸入金額（元）',
-    refundAmount: '退款金額（元）',
     any: '不限',
     apply: '應用',
     atLeastOneFee: '至少輸入一個平台的手續費',
@@ -542,10 +551,12 @@ const I18N: Record<string, Record<string, string>> = {
     avatarCropTitle: '調整頭像',
     avatarSizeHint: '在不同場景下的顯示效果',
     avatarUpdated: '頭像已更新',
-    backToList: '返回列表',
-    stayPage: '留在本頁',
     back: '返回',
+    backToList: '返回列表',
     backToLogin: '返回登錄',
+    bankAccount: '銀行賬號',
+    bankName: '開戶銀行',
+    basicInfo: '基本資訊',
     batchLabel: '{date} · 第{n}次分紅',
     bgHint: '選擇一張圖片作為首頁背景',
     bgResultHint: '將作為首頁全屏背景',
@@ -565,7 +576,9 @@ const I18N: Record<string, Record<string, string>> = {
     changeEmail: '更換郵箱',
     changePassword: '修改密碼',
     chartSwitchBar: '柱狀圖',
+    chartSwitchDay: '日',
     chartSwitchHint: '點擊切換視圖',
+    chartSwitchMonth: '月',
     chartSwitchPie: '餅圖',
     chartXAxis: '月份',
     chartXAxisDay: '每日',
@@ -573,11 +586,8 @@ const I18N: Record<string, Record<string, string>> = {
     chooseImage: '選擇圖片',
     clear: '清空',
     codeSent: '驗證碼已發送',
-    last7Days: '近7天',
-    last30Days: '近30天',
-    last3Months: '近3月',
-    monthUnit: '月',
-    normalUser: '普通用戶',
+    companyName: '公司名稱',
+    companyPhone: '公司電話',
     confirm: '確認',
     confirmDelete: '確認刪除？',
     confirmDeleteRecord: '確認刪除',
@@ -591,6 +601,7 @@ const I18N: Record<string, Record<string, string>> = {
     coverCropTitle: '編輯封面',
     coverHint: '將作為個人中心頂部封面展示',
     coverUpdated: '封面已更新',
+    createdAt: '創建時間',
     cropFailed: '裁切失敗，請重試',
     cropFlip: '翻轉',
     cropPill: '拖動移動 · 雙指縮放',
@@ -601,27 +612,25 @@ const I18N: Record<string, Record<string, string>> = {
     currentBalance: '當前結餘',
     daily: '日常',
     dailyRevenue: '每日營收',
+    dailyTrend: '每日收支趨勢',
     dangerZone: '危險操作',
     date: '日期',
+    dateFrom: '開始日期',
+    dateTo: '結束日期',
     delete: '刪除',
-    deleteUser: '刪除用戶',
-    deleteUserConfirm: '確認刪除該用戶，該用戶的所有數據（交易記錄、進貨記錄等）也將一併刪除',
-    deleteUserGraceNote: '帳戶將進入 5 天冷靜期，期滿後永久刪除並轉移經營數據至管理員。冷靜期內您可隨時恢復。',
     deleteAccount: '註銷帳戶',
     deleteAccountBtn: '確認註銷',
     deleteAccountConfirmMsg: '註銷後所有資料將被永久刪除，不可恢復。確定繼續嗎？',
     deleteAccountConfirmTitle: '確認註銷帳戶',
-    deleteAccountSuccess: '帳戶已註銷',
     deleteAccountGraceNote: '您的帳戶將進入 3 天冷靜期，期滿後永久註銷。在此期間登入即可自動恢復帳戶。',
-    adminCannotDelete: '管理員帳戶無法註銷。如需停用，請聯繫其他管理員操作。',
+    deleteAccountSuccess: '帳戶已註銷',
     deleteRecord: '刪除',
-    disabledStatus: '禁用',
-    graceStatus: '冷靜期中',
-    newUserBadge: '新註冊',
-    markRead: '已讀',
-    restoreAccount: '恢復帳戶',
+    deleteUser: '刪除用戶',
+    deleteUserConfirm: '確認刪除該用戶，該用戶的所有數據（交易記錄、進貨記錄等）也將一併刪除',
+    deleteUserGraceNote: '帳戶將進入 5 天冷靜期，期滿後永久刪除並轉移經營數據至管理員。冷靜期內您可隨時恢復。',
     devCodeLabel: '🔧 開發模式 — 驗證碼',
     dineIn: '堂食',
+    disabledStatus: '禁用',
     discountAmount: '優惠減免',
     displayName: '用戶名稱',
     distributedPool: '已派發分紅池',
@@ -630,11 +639,11 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundFmt: '第{n}次分紅 · {date}',
     dividendRoundOnly: '第{n}次分紅',
     done: '完成',
-    downloadPdf: '下載PDF',
     downloadImage: '下載圖片',
+    downloadPdf: '下載PDF',
+    edit: '編輯',
     editBg: '編輯背景圖',
     editCover: '更換封面',
-    edit: '編輯',
     editProfile: '個人中心',
     email: '郵箱',
     emailAction: '郵件',
@@ -657,22 +666,21 @@ const I18N: Record<string, Record<string, string>> = {
     errPwNeedLetter: '密碼必須包含字母',
     errPwNeedNumber: '密碼必須包含數字',
     errPwNeedSpecial: '密碼必須包含特殊字符',
-    errPwTooShort: '密碼至少 8 位',
     errPwRequirements: '密碼須8位以上，包含字母、數字、特殊字符',
+    errPwTooShort: '密碼至少 8 位',
     errWrongCredentials: '帳號或密碼錯誤',
     expConfirmMsg: '提交後將無法修改，確定要記錄嗎？',
     expConfirmTitle: '確認記錄',
     expDate: '日期',
+    expDetail: '支出詳情',
+    expSavedMsg: '支出已更新，是否返回列表？',
+    expTotalAmount: '支出金額',
+    expUpdated: '支出已更新',
     expense: '支出',
     expenseBreakdown: '支出分類佔比',
     expenseBreakdownOfMonth: '月支出分類佔比',
     expenseCategory: '支出分類',
     expenseDate: '支出日期',
-    createdAt: '創建時間',
-    expDetail: '支出詳情',
-    expTotalAmount: '支出金額',
-    expSavedMsg: '支出已更新，是否返回列表？',
-    expUpdated: '支出已更新',
     expenseHistory: '支出記錄',
     expenseNote: '支出說明',
     feeAllMonths: '全部',
@@ -696,12 +704,11 @@ const I18N: Record<string, Record<string, string>> = {
     fundsInTransit: '在途資金',
     goBack: '返回',
     goods: '採購',
+    graceStatus: '冷靜期中',
     imgNotLoaded: '圖片未加載',
     income: '收入',
     initial: '初始出資',
     initialInvest: '初始出資',
-    invest: '出資',
-    investComplete: '出資完結',
     invApply: '申請開票',
     invApplyAmount: '申請金額',
     invAutoFilled: '已自動填入',
@@ -711,18 +718,15 @@ const I18N: Record<string, Record<string, string>> = {
     invDownload: '下載',
     invDownloading: '正在下載…',
     invDrawerAmount: '開票金額',
+    invDrawerBatch: '關聯批次號',
+    invDrawerBatchPlaceholder: '選擇採購批次號',
     invDrawerBuyer: '公司名稱',
     invDrawerDate: '開票日期',
     invDrawerNote: '開票說明',
     invDrawerNotePlaceholder: '貨物或服務名稱（可選）',
-    invDrawerBatch: '關聯批次號',
-    invDrawerBatchPlaceholder: '選擇採購批次號',
     invDrawerRef: '關聯單號',
     invDrawerTaxId: '公司稅號',
     invDrawerType: '發票類型',
-    invSelectBatch: '選擇批次',
-    invUploadFiles: '上傳發票',
-    invUploadHint: '最多上傳9張',
     invEdit: '編輯',
     invEditBank: '編輯銀行信息',
     invEditInfo: '編輯開票信息',
@@ -746,6 +750,7 @@ const I18N: Record<string, Record<string, string>> = {
     invRecordsTab: '發票記錄',
     invSave: '保存',
     invSaved: '保存成功',
+    invSelectBatch: '選擇批次',
     invSettingsToast: '設置',
     invShareToast: '分享發票',
     invStatusDone: '已開具',
@@ -759,9 +764,17 @@ const I18N: Record<string, Record<string, string>> = {
     invTotalAmount: '開票總額',
     invTotalCount: '累計開票',
     invTypePref: '發票類型偏好',
+    invUploadFiles: '上傳發票',
+    invUploadHint: '最多上傳9張',
     invUrge: '催一下',
     invVatSpecial: '增值稅專票',
     invVatSpecialFull: '增值稅專用發票',
+    invest: '出資',
+    investComplete: '出資完結',
+    invoiceSave: '保存',
+    invoiceSaved: '成功',
+    invoiceSaving: '...',
+    invoiceTitle: '開票信息',
     issueDividend: '發起分紅',
     issueProportional: '發起比例分紅',
     janitor: '打雜',
@@ -769,16 +782,23 @@ const I18N: Record<string, Record<string, string>> = {
     jokeClosedLoop: '「一個董事長負責畫餅，一個CEO負責烙餅，一個打雜的負責吃餅 —— 完美的商業閉環」',
     jokeRecon: '已為您載入最近一次對賬數據，請核對賬單日期是否正確。',
     language: '語言',
+    last30Days: '近30天',
+    last3Months: '近3月',
+    last7Days: '近7天',
+    lastLogin: '最後登入',
     linkCopied: '連結已複製',
     loadMore: '載入更多',
     loading: '載入中...',
     login: '登錄',
     loginBtn: '登 錄',
+    loginDisabledHint: '關閉後，用戶將無法登入系統',
     loginPlaceholder: '用戶名 / 郵箱',
+    loginStatus: '登入狀態',
     logout: '登出',
     logoutConfirm: '確定要登出嗎？',
     lpControl: '有限合夥控股',
     lpStructure: '有限合夥控股結構',
+    markRead: '已讀',
     meituan: '美團',
     meituanCashier: '美團收銀',
     meituanTuan: '美團團購',
@@ -788,24 +808,25 @@ const I18N: Record<string, Record<string, string>> = {
     monthExpense: '本月支出',
     monthIncome: '本月收入',
     monthProfit: '本月利潤',
+    monthUnit: '月',
     monthlyProfit: '月度利潤',
     monthlyTrend: '月度收支趨勢',
-    dailyTrend: '每日收支趨勢',
-    chartSwitchMonth: '月',
-    chartSwitchDay: '日',
     nameJiang: '江寬',
     nameLan: '藍柳富',
     nameZhang: '張安武',
     newEmail: '新郵箱',
     newPassword: '新密碼',
+    newUserBadge: '新註冊',
     noDividendRecords: '暫無分紅記錄',
     noExpenseRecords: '暫無支出記錄',
+    noRecords: '暫無記錄',
     noUsers: '暫無用戶',
     normalStatus: '正常',
-    noRecords: '暫無記錄',
+    normalUser: '普通用戶',
     notePlaceholder: '如：蔥、香菜、電費',
     oldPassword: '當前密碼',
     opacity: '透明度',
+    otherInfo: '其他資訊',
     paidInRate: '實繳率',
     partnerSeats: '合夥席位',
     partnerStructure: '合夥架構',
@@ -821,6 +842,7 @@ const I18N: Record<string, Record<string, string>> = {
     pdfLoadFailed: 'PDF 載入失敗',
     pdfLoading: '載入 PDF 中…',
     pendingPayback: '待回',
+    phone: '手機號',
     platformFee: '平台手續費',
     preferences: '偏好設定',
     procAddProduct: '添加產品',
@@ -874,6 +896,14 @@ const I18N: Record<string, Record<string, string>> = {
     procSearchPlaceholder: '搜尋商品…',
     procSearchProducts: '搜尋產品名、供應商…',
     procSelected: '已選',
+    procSettle: '清賬',
+    procSettleAt: '清賬時間',
+    procSettleBy: '經辦人',
+    procSettleInfo: '清賬資訊',
+    procSettleMsg: '把這筆進貨標記為已清賬？清賬後無法撤銷。',
+    procSettleSuccess: '已標記為已清賬',
+    procSettleTitle: '確認清賬',
+    procSettled: '已清賬',
     procSubmit: '提交進貨單',
     procSubmitted: '進貨單已提交',
     procSubmittedMsg: '本次進貨記錄已儲存',
@@ -882,6 +912,7 @@ const I18N: Record<string, Record<string, string>> = {
     procTitle: '進貨管理',
     procTotal: '本次合計',
     procUnit: '種',
+    procUnsettled: '未清賬',
     procUpdated: '進貨單已更新',
     procUpdatedMsg: '本次進貨記錄已更新',
     procViewDetail: '檢視明細',
@@ -890,6 +921,7 @@ const I18N: Record<string, Record<string, string>> = {
     profileEmail: '電子郵箱',
     profit: '利潤',
     pwHint: '8位以上，含字母+數字+特殊字符',
+    receiptExpenseLabel: '查看憑證',
     receivable: '應收總額',
     reconComplete: '對賬完成',
     reconDate: '對賬日期',
@@ -897,18 +929,11 @@ const I18N: Record<string, Record<string, string>> = {
     reconciledBy: '對賬人',
     recordedBy: '錄入人',
     recrop: '重新裁剪',
+    refundAmount: '退款金額（元）',
     register: '註冊',
-    invoiceTitle: '開票信息',
-    companyName: '公司名稱',
-    taxId: '公司稅號',
-    bankName: '開戶銀行',
-    bankAccount: '銀行賬號',
-    addressPhone: '公司地址',
-    companyPhone: '公司電話',
-    invoiceSave: '保存',
-    invoiceSaving: '...',
-    invoiceSaved: '成功',
     registerBtn: '註 冊',
+    registrationTime: '註冊時間',
+    remarks: '備註',
     rememberMe: '記住我',
     rent: '房租',
     resendCode: '重新發送',
@@ -916,6 +941,7 @@ const I18N: Record<string, Record<string, string>> = {
     resetBtn: '重 置',
     resetDefault: '恢復默認',
     resetHint: '驗證碼已發送至',
+    restoreAccount: '恢復帳戶',
     retry: '重試',
     revCancelArchive: '取消歇業',
     revClosedReason: '今日歇業',
@@ -949,6 +975,7 @@ const I18N: Record<string, Record<string, string>> = {
     revYesterdayNA: '—',
     revenue: '營業額',
     revenueDate: '营收日期',
+    role: '角色',
     roundNote: '輪次備註',
     salary: '薪資',
     save: '保存',
@@ -964,30 +991,15 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: '超時時間',
     shangouWaimai: '閃購外賣',
     share: '分享',
-    shareTo: '已分享至 {label}',
     shareCalcResult: '穿透股權計算結果：',
     shareFailed: '分享失敗',
     shareLink: '分享連結',
     sharePercent: '持股',
+    shareTo: '已分享至 {label}',
     shareholders: '位股東',
     signaturePlaceholder: '這個人很懶，什麼都沒留下...',
     ssoDesc: '最多一台裝置同時登入',
     ssoLabel: '單一裝置登入',
-    userManagement: '用戶管理',
-    userDetail: '用戶詳情',
-    basicInfo: '基本資訊',
-    loginStatus: '登入狀態',
-    otherInfo: '其他資訊',
-    allowLogin: '允許登入',
-    loginDisabledHint: '關閉後，用戶將無法登入系統',
-    phone: '手機號',
-    role: '角色',
-    remarks: '備註',
-    dateFrom: '開始日期',
-    dateTo: '結束日期',
-    statusFilter: '狀態篩選',
-    registrationTime: '註冊時間',
-    lastLogin: '最後登入',
     stampPrefixBurgundy: '以此身，閱盡這',
     stampPrefixObsidian: '時序輪轉，流光已擲下第',
     stampPrefixTeal: '星霜未歇，我們已共渡',
@@ -995,6 +1007,8 @@ const I18N: Record<string, Record<string, string>> = {
     stampSuffixObsidian: '道鞭影。',
     stampSuffixTeal: '次潮落潮生。',
     status: '狀態',
+    statusFilter: '狀態篩選',
+    stayPage: '留在本頁',
     subscribedTotal: '認繳總額',
     subtitle: '生活不簡單，盡量簡單過',
     summary: '收支總覽',
@@ -1002,11 +1016,9 @@ const I18N: Record<string, Record<string, string>> = {
     tabRecon: '對賬',
     tabRevenue: '營業',
     tapForDetail: '點擊卡片檢視詳情',
+    taxId: '公司稅號',
     themeLabel: '主題',
     themePicker: '主題方案',
-    totalRecords: '共 {n} 筆資料',
-    totalUsers: '共 {n} 個用戶',
-    transactions: '交易記錄',
     toastLoadFailed: '資料載入失敗',
     toastSubmitFailed: '提交失敗，請重試',
     today: '今日',
@@ -1017,16 +1029,20 @@ const I18N: Record<string, Record<string, string>> = {
     totalDividends: '累計分紅',
     totalDividendsPaid: '累計分紅',
     totalInvest: '總出資',
+    totalRecords: '共 {n} 筆資料',
     totalToPool: '擬向紅利池注入的總金額 (元)',
+    totalUsers: '共 {n} 個用戶',
+    transactions: '交易記錄',
     tuan: '團購',
     uploadFailed: '上傳失敗，請重試',
     uploadFailedShort: '上傳失敗',
     uploadImage: '憑證上傳',
-    receiptExpenseLabel: '查看憑證',
     uploading: '上傳中...',
     useThisAvatar: '使用此頭像',
     useThisBg: '使用此背景圖',
     useThisCover: '使用此封面',
+    userDetail: '用戶詳情',
+    userManagement: '用戶管理',
     username: '帳號',
     verifyBtn: '驗 證',
     verifyCode: '驗證碼',
@@ -1049,11 +1065,13 @@ const I18N: Record<string, Record<string, string>> = {
     addFeeEntry: 'Add Fee',
     addImage: 'Add',
     additional: 'Additional Capital',
+    addressPhone: 'Company Address',
+    adminCannotDelete: 'Admin account cannot be deleted. Please contact another admin if you need to disable it.',
     all: 'All',
     allDividendRecords: '」 all dividend records',
+    allowLogin: 'Allow Login',
     amount: 'Amount',
     amountLabel: 'Amount (¥)',
-    refundAmount: 'Refund Amount (¥)',
     any: 'Any',
     apply: 'Apply',
     atLeastOneFee: 'Please enter at least one platform fee',
@@ -1062,10 +1080,12 @@ const I18N: Record<string, Record<string, string>> = {
     avatarCropTitle: 'Adjust Avatar',
     avatarSizeHint: 'Preview in different sizes',
     avatarUpdated: 'Avatar updated',
-    backToList: 'Back to list',
-    stayPage: 'Stay',
     back: 'Back',
+    backToList: 'Back to list',
     backToLogin: 'Back to login',
+    bankAccount: 'Bank Account',
+    bankName: 'Bank',
+    basicInfo: 'Basic Info',
     batchLabel: '{date} · Batch #{n}',
     bgHint: 'Choose an image as home page background',
     bgResultHint: 'Will be used as fullscreen home background',
@@ -1085,7 +1105,9 @@ const I18N: Record<string, Record<string, string>> = {
     changeEmail: 'Change Email',
     changePassword: 'Change Password',
     chartSwitchBar: 'Bar Chart',
+    chartSwitchDay: 'Day',
     chartSwitchHint: 'Tap to switch',
+    chartSwitchMonth: 'Month',
     chartSwitchPie: 'Pie Chart',
     chartXAxis: 'Month',
     chartXAxisDay: 'Daily',
@@ -1093,11 +1115,8 @@ const I18N: Record<string, Record<string, string>> = {
     chooseImage: 'Choose Image',
     clear: 'Clear',
     codeSent: 'Code sent',
-    last7Days: 'Last 7 days',
-    last30Days: 'Last 30 days',
-    last3Months: 'Last 3 months',
-    monthUnit: 'mo',
-    normalUser: 'User',
+    companyName: 'Company Name',
+    companyPhone: 'Company Phone',
     confirm: 'Confirm',
     confirmDelete: 'Confirm delete?',
     confirmDeleteRecord: 'Confirm Delete',
@@ -1111,6 +1130,7 @@ const I18N: Record<string, Record<string, string>> = {
     coverCropTitle: 'Edit Cover',
     coverHint: 'Will be displayed as your profile banner',
     coverUpdated: 'Cover Updated',
+    createdAt: 'Created At',
     cropFailed: 'Crop failed, please retry',
     cropFlip: 'Flip',
     cropPill: 'Drag · Pinch to zoom',
@@ -1121,27 +1141,25 @@ const I18N: Record<string, Record<string, string>> = {
     currentBalance: 'Balance',
     daily: 'OpEx',
     dailyRevenue: 'Daily Revenue',
+    dailyTrend: 'Daily Trend',
     dangerZone: 'Danger Zone',
     date: 'Date',
+    dateFrom: 'From',
+    dateTo: 'To',
     delete: 'Delete',
-    deleteUser: 'Delete User',
-    deleteUserConfirm: 'Are you sure you want to delete this user? All associated data (transactions, procurement records, etc.) will also be deleted.',
-    deleteUserGraceNote: 'Account will enter a 5-day grace period before being permanently deleted. Business data will be transferred to admin. You can restore at any time during the grace period.',
     deleteAccount: 'Delete Account',
     deleteAccountBtn: 'Confirm Deletion',
     deleteAccountConfirmMsg: 'All data will be permanently deleted and cannot be recovered. Are you sure?',
     deleteAccountConfirmTitle: 'Confirm Account Deletion',
-    deleteAccountSuccess: 'Account deleted',
     deleteAccountGraceNote: 'Your account will enter a 3-day grace period before being permanently deleted. Log in during this time to auto-restore it.',
-    adminCannotDelete: 'Admin account cannot be deleted. Please contact another admin if you need to disable it.',
+    deleteAccountSuccess: 'Account deleted',
     deleteRecord: 'Delete',
-    disabledStatus: 'Disabled',
-    graceStatus: 'Cooling Period',
-    newUserBadge: 'New',
-    markRead: 'Mark Read',
-    restoreAccount: 'Restore Account',
+    deleteUser: 'Delete User',
+    deleteUserConfirm: 'Are you sure you want to delete this user? All associated data (transactions, procurement records, etc.) will also be deleted.',
+    deleteUserGraceNote: 'Account will enter a 5-day grace period before being permanently deleted. Business data will be transferred to admin. You can restore at any time during the grace period.',
     devCodeLabel: '🔧 Dev Mode — Verification Code',
     dineIn: 'Dine-in',
+    disabledStatus: 'Disabled',
     discountAmount: 'Discount',
     displayName: 'Username',
     distributedPool: 'Distributed Pool',
@@ -1150,8 +1168,8 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundFmt: 'Dividend #{n} · {date}',
     dividendRoundOnly: 'Dividend #{n}',
     done: 'Done',
-    downloadPdf: 'Download PDF',
     downloadImage: 'Download Image',
+    downloadPdf: 'Download PDF',
     edit: 'Edit',
     editBg: 'Edit Background',
     editCover: 'Change Cover',
@@ -1177,22 +1195,21 @@ const I18N: Record<string, Record<string, string>> = {
     errPwNeedLetter: 'Password must contain a letter',
     errPwNeedNumber: 'Password must contain a number',
     errPwNeedSpecial: 'Password must contain a special char',
-    errPwTooShort: 'Password must be at least 8 chars',
     errPwRequirements: 'Password: 8+ chars, letters, digits, and a special character',
+    errPwTooShort: 'Password must be at least 8 chars',
     errWrongCredentials: 'Wrong username or password',
     expConfirmMsg: 'This cannot be edited after submission. Proceed?',
     expConfirmTitle: 'Confirm Record',
     expDate: 'Date',
+    expDetail: 'Expense Detail',
+    expSavedMsg: 'Expense updated. Return to list?',
+    expTotalAmount: 'Expense Amount',
+    expUpdated: 'Expense updated',
     expense: 'Expense',
     expenseBreakdown: 'Expense Breakdown',
     expenseBreakdownOfMonth: ' Expense Breakdown',
     expenseCategory: 'Category',
     expenseDate: 'Expense Date',
-    createdAt: 'Created At',
-    expDetail: 'Expense Detail',
-    expTotalAmount: 'Expense Amount',
-    expSavedMsg: 'Expense updated. Return to list?',
-    expUpdated: 'Expense updated',
     expenseHistory: 'Expense Records',
     expenseNote: 'Description',
     feeAllMonths: 'All',
@@ -1216,12 +1233,11 @@ const I18N: Record<string, Record<string, string>> = {
     fundsInTransit: 'Funds in Transit',
     goBack: 'Go back',
     goods: 'Purchase',
+    graceStatus: 'Cooling Period',
     imgNotLoaded: 'Image not loaded',
     income: 'Income',
     initial: 'Initial Capital',
     initialInvest: 'Initial Capital',
-    invest: 'Capital',
-    investComplete: 'Paid Up',
     invApply: 'Apply Invoice',
     invApplyAmount: 'Apply Amount',
     invAutoFilled: 'Auto-filled',
@@ -1231,18 +1247,15 @@ const I18N: Record<string, Record<string, string>> = {
     invDownload: 'Download',
     invDownloading: 'Downloading…',
     invDrawerAmount: 'Invoice Amount',
+    invDrawerBatch: 'Batch Ref',
+    invDrawerBatchPlaceholder: 'Select procurement batch',
     invDrawerBuyer: 'Company Name',
     invDrawerDate: 'Invoice Date',
     invDrawerNote: 'Description',
     invDrawerNotePlaceholder: 'Goods/service name (optional)',
-    invDrawerBatch: 'Batch Ref',
-    invDrawerBatchPlaceholder: 'Select procurement batch',
     invDrawerRef: 'Ref No.',
     invDrawerTaxId: 'Company Tax ID',
     invDrawerType: 'Invoice Type',
-    invSelectBatch: 'Select Batch',
-    invUploadFiles: 'Upload Invoices',
-    invUploadHint: 'Max 9 files',
     invEdit: 'Edit',
     invEditBank: 'Edit Bank Info',
     invEditInfo: 'Edit Invoice Info',
@@ -1266,6 +1279,7 @@ const I18N: Record<string, Record<string, string>> = {
     invRecordsTab: 'Records',
     invSave: 'Save',
     invSaved: 'Saved',
+    invSelectBatch: 'Select Batch',
     invSettingsToast: 'Settings',
     invShareToast: 'Share Invoice',
     invStatusDone: 'Issued',
@@ -1279,9 +1293,17 @@ const I18N: Record<string, Record<string, string>> = {
     invTotalAmount: 'Total Amount',
     invTotalCount: 'Total Invoices',
     invTypePref: 'Invoice Type Preference',
+    invUploadFiles: 'Upload Invoices',
+    invUploadHint: 'Max 9 files',
     invUrge: 'Urge',
     invVatSpecial: 'VAT Special',
     invVatSpecialFull: 'VAT Special Invoice',
+    invest: 'Capital',
+    investComplete: 'Paid Up',
+    invoiceSave: 'Save',
+    invoiceSaved: 'Saved',
+    invoiceSaving: '...',
+    invoiceTitle: 'Invoice Info',
     issueDividend: 'Issue Dividend',
     issueProportional: 'Issue Proportional Dividend',
     janitor: 'Helper',
@@ -1289,16 +1311,23 @@ const I18N: Record<string, Record<string, string>> = {
     jokeClosedLoop: '「One chairman paints the pie, one CEO bakes it, one helper eats it — the perfect business loop」',
     jokeRecon: 'The latest reconciliation data has been loaded. Please verify the bill date is correct.',
     language: 'Language',
+    last30Days: 'Last 30 days',
+    last3Months: 'Last 3 months',
+    last7Days: 'Last 7 days',
+    lastLogin: 'Last Login',
     linkCopied: 'Link copied',
     loadMore: 'Load More',
     loading: 'Loading...',
     login: 'Login',
     loginBtn: 'Login',
+    loginDisabledHint: 'When disabled, the user cannot log in',
     loginPlaceholder: 'Username / Email',
+    loginStatus: 'Login Status',
     logout: 'Logout',
     logoutConfirm: 'Are you sure you want to log out?',
     lpControl: 'Limited Partnership Control',
     lpStructure: 'LP Holding Structure',
+    markRead: 'Mark Read',
     meituan: 'Meituan',
     meituanCashier: 'Meituan POS',
     meituanTuan: 'Meituan Tuan',
@@ -1308,24 +1337,25 @@ const I18N: Record<string, Record<string, string>> = {
     monthExpense: 'Month Expense',
     monthIncome: 'Month Income',
     monthProfit: 'Month Profit',
+    monthUnit: 'mo',
     monthlyProfit: 'Monthly Profit',
     monthlyTrend: 'Monthly Trend',
-    dailyTrend: 'Daily Trend',
-    chartSwitchMonth: 'Month',
-    chartSwitchDay: 'Day',
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
     nameZhang: 'Zhang Anwu',
     newEmail: 'New Email',
     newPassword: 'New Password',
+    newUserBadge: 'New',
     noDividendRecords: 'No dividend records',
     noExpenseRecords: 'No expense records',
+    noRecords: 'No records yet',
     noUsers: 'No users',
     normalStatus: 'Normal',
-    noRecords: 'No records yet',
+    normalUser: 'User',
     notePlaceholder: 'e.g. scallions, cilantro, electricity',
     oldPassword: 'Current Password',
     opacity: 'Opacity',
+    otherInfo: 'Other Info',
     paidInRate: 'Paid-in rate',
     partnerSeats: 'Partner Seats',
     partnerStructure: 'Partner Structure',
@@ -1341,6 +1371,7 @@ const I18N: Record<string, Record<string, string>> = {
     pdfLoadFailed: 'Failed to load PDF',
     pdfLoading: 'Loading PDF…',
     pendingPayback: 'Pending',
+    phone: 'Phone',
     platformFee: 'Platform Fees',
     preferences: 'Preferences',
     procAddProduct: 'Add Product',
@@ -1394,6 +1425,14 @@ const I18N: Record<string, Record<string, string>> = {
     procSearchPlaceholder: 'Search products…',
     procSearchProducts: 'Search name, supplier…',
     procSelected: 'Selected',
+    procSettle: 'Settle',
+    procSettleAt: 'Settled at',
+    procSettleBy: 'Settled by',
+    procSettleInfo: 'Settlement',
+    procSettleMsg: 'Mark this batch as settled? This action cannot be undone.',
+    procSettleSuccess: 'Marked as settled',
+    procSettleTitle: 'Confirm Settlement',
+    procSettled: 'Settled',
     procSubmit: 'Submit Order',
     procSubmitted: 'Order Submitted',
     procSubmittedMsg: 'Procurement order saved',
@@ -1402,6 +1441,7 @@ const I18N: Record<string, Record<string, string>> = {
     procTitle: 'Procurement',
     procTotal: 'Total',
     procUnit: 'items',
+    procUnsettled: 'Unsettled',
     procUpdated: 'Order Updated',
     procUpdatedMsg: 'Procurement order updated',
     procViewDetail: 'View Details',
@@ -1410,6 +1450,7 @@ const I18N: Record<string, Record<string, string>> = {
     profileEmail: 'Email Address',
     profit: 'Profit',
     pwHint: '8+ chars, letter + number + special',
+    receiptExpenseLabel: 'View Receipt',
     receivable: 'Total Receivable',
     reconComplete: 'Complete Recon',
     reconDate: 'Date',
@@ -1417,18 +1458,11 @@ const I18N: Record<string, Record<string, string>> = {
     reconciledBy: 'Reconciled by',
     recordedBy: 'By',
     recrop: 'Re-crop',
+    refundAmount: 'Refund Amount (¥)',
     register: 'Register',
-    invoiceTitle: 'Invoice Info',
-    companyName: 'Company Name',
-    taxId: 'Company Tax ID',
-    bankName: 'Bank',
-    bankAccount: 'Bank Account',
-    addressPhone: 'Company Address',
-    companyPhone: 'Company Phone',
-    invoiceSave: 'Save',
-    invoiceSaving: '...',
-    invoiceSaved: 'Saved',
     registerBtn: 'Register',
+    registrationTime: 'Registration Time',
+    remarks: 'Remarks',
     rememberMe: 'Remember me',
     rent: 'Rent',
     resendCode: 'Resend',
@@ -1436,6 +1470,7 @@ const I18N: Record<string, Record<string, string>> = {
     resetBtn: 'Reset',
     resetDefault: 'Reset to Default',
     resetHint: 'Code sent to',
+    restoreAccount: 'Restore Account',
     retry: 'Retry',
     revCancelArchive: 'Reopen',
     revClosedReason: 'Closed for the day',
@@ -1469,6 +1504,7 @@ const I18N: Record<string, Record<string, string>> = {
     revYesterdayNA: '—',
     revenue: 'Revenue',
     revenueDate: 'Revenue Date',
+    role: 'Role',
     roundNote: 'Round Note',
     salary: 'Payroll',
     save: 'Save',
@@ -1484,30 +1520,15 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: 'Session timeout',
     shangouWaimai: 'Flash Waimai',
     share: 'Share',
-    shareTo: 'Shared to {label}',
     shareCalcResult: 'Share calculation result:',
     shareFailed: 'Share failed',
     shareLink: 'Share link',
     sharePercent: 'Share',
+    shareTo: 'Shared to {label}',
     shareholders: 'shareholders',
     signaturePlaceholder: 'This person is lazy and left nothing...',
     ssoDesc: 'Only one device can stay signed in at a time',
     ssoLabel: 'Single-device sign-in',
-    userManagement: 'User Management',
-    userDetail: 'User Detail',
-    basicInfo: 'Basic Info',
-    loginStatus: 'Login Status',
-    otherInfo: 'Other Info',
-    allowLogin: 'Allow Login',
-    loginDisabledHint: 'When disabled, the user cannot log in',
-    phone: 'Phone',
-    role: 'Role',
-    remarks: 'Remarks',
-    dateFrom: 'From',
-    dateTo: 'To',
-    statusFilter: 'Status Filter',
-    registrationTime: 'Registration Time',
-    lastLogin: 'Last Login',
     stampPrefixBurgundy: 'In this body, I have witnessed',
     stampPrefixObsidian: 'The light has cast its',
     stampPrefixTeal: 'Under starry frost, we have weathered',
@@ -1515,6 +1536,8 @@ const I18N: Record<string, Record<string, string>> = {
     stampSuffixObsidian: ' lash upon these seasons.',
     stampSuffixTeal: ' tides of rise and fall.',
     status: 'Status',
+    statusFilter: 'Status Filter',
+    stayPage: 'Stay',
     subscribedTotal: 'Total Subscription',
     subtitle: 'Life is not simple, keep it simple',
     summary: 'Summary',
@@ -1522,11 +1545,9 @@ const I18N: Record<string, Record<string, string>> = {
     tabRecon: 'Recon',
     tabRevenue: 'Revenue',
     tapForDetail: 'Tap card for details',
+    taxId: 'Company Tax ID',
     themeLabel: 'Theme',
     themePicker: 'Theme',
-    totalRecords: '{n} records total',
-    totalUsers: '{n} users total',
-    transactions: 'Transactions',
     toastLoadFailed: 'Failed to load data',
     toastSubmitFailed: 'Submit failed, please retry',
     today: 'Today',
@@ -1537,16 +1558,20 @@ const I18N: Record<string, Record<string, string>> = {
     totalDividends: 'Total Dividends',
     totalDividendsPaid: 'Total Dividends',
     totalInvest: 'Total Investment',
+    totalRecords: '{n} records total',
     totalToPool: 'Total amount to dividend pool (¥)',
+    totalUsers: '{n} users total',
+    transactions: 'Transactions',
     tuan: 'Group Buy',
     uploadFailed: 'Upload failed, please retry',
     uploadFailedShort: 'Upload failed',
     uploadImage: 'Upload Receipt',
-    receiptExpenseLabel: 'View Receipt',
     uploading: 'Uploading...',
     useThisAvatar: 'Use This Avatar',
     useThisBg: 'Use This Background',
     useThisCover: 'Use This Cover',
+    userDetail: 'User Detail',
+    userManagement: 'User Management',
     username: 'Account',
     verifyBtn: 'Verify',
     verifyCode: 'Verification Code',
@@ -1571,11 +1596,13 @@ export type I18nKey =
   | 'addFeeEntry'
   | 'addImage'
   | 'additional'
+  | 'addressPhone'
+  | 'adminCannotDelete'
   | 'all'
   | 'allDividendRecords'
+  | 'allowLogin'
   | 'amount'
   | 'amountLabel'
-  | 'refundAmount'
   | 'any'
   | 'apply'
   | 'atLeastOneFee'
@@ -1587,6 +1614,9 @@ export type I18nKey =
   | 'back'
   | 'backToList'
   | 'backToLogin'
+  | 'bankAccount'
+  | 'bankName'
+  | 'basicInfo'
   | 'batchLabel'
   | 'bgHint'
   | 'bgResultHint'
@@ -1606,7 +1636,9 @@ export type I18nKey =
   | 'changeEmail'
   | 'changePassword'
   | 'chartSwitchBar'
+  | 'chartSwitchDay'
   | 'chartSwitchHint'
+  | 'chartSwitchMonth'
   | 'chartSwitchPie'
   | 'chartXAxis'
   | 'chartXAxisDay'
@@ -1614,6 +1646,8 @@ export type I18nKey =
   | 'chooseImage'
   | 'clear'
   | 'codeSent'
+  | 'companyName'
+  | 'companyPhone'
   | 'confirm'
   | 'confirmDelete'
   | 'confirmDeleteRecord'
@@ -1627,6 +1661,7 @@ export type I18nKey =
   | 'coverCropTitle'
   | 'coverHint'
   | 'coverUpdated'
+  | 'createdAt'
   | 'cropFailed'
   | 'cropFlip'
   | 'cropPill'
@@ -1637,27 +1672,25 @@ export type I18nKey =
   | 'currentBalance'
   | 'daily'
   | 'dailyRevenue'
+  | 'dailyTrend'
   | 'dangerZone'
   | 'date'
+  | 'dateFrom'
+  | 'dateTo'
   | 'delete'
-  | 'deleteUser'
-  | 'deleteUserConfirm'
-  | 'deleteUserGraceNote'
   | 'deleteAccount'
   | 'deleteAccountBtn'
   | 'deleteAccountConfirmMsg'
   | 'deleteAccountConfirmTitle'
-  | 'deleteAccountSuccess'
   | 'deleteAccountGraceNote'
-  | 'adminCannotDelete'
+  | 'deleteAccountSuccess'
   | 'deleteRecord'
+  | 'deleteUser'
+  | 'deleteUserConfirm'
+  | 'deleteUserGraceNote'
   | 'devCodeLabel'
   | 'dineIn'
   | 'disabledStatus'
-  | 'graceStatus'
-  | 'newUserBadge'
-  | 'markRead'
-  | 'restoreAccount'
   | 'discountAmount'
   | 'displayName'
   | 'distributedPool'
@@ -1666,8 +1699,9 @@ export type I18nKey =
   | 'dividendRoundFmt'
   | 'dividendRoundOnly'
   | 'done'
-  | 'downloadPdf'
   | 'downloadImage'
+  | 'downloadPdf'
+  | 'edit'
   | 'editBg'
   | 'editCover'
   | 'editProfile'
@@ -1698,10 +1732,9 @@ export type I18nKey =
   | 'expConfirmMsg'
   | 'expConfirmTitle'
   | 'expDate'
-  | 'createdAt'
   | 'expDetail'
-  | 'expTotalAmount'
   | 'expSavedMsg'
+  | 'expTotalAmount'
   | 'expUpdated'
   | 'expense'
   | 'expenseBreakdown'
@@ -1731,12 +1764,11 @@ export type I18nKey =
   | 'fundsInTransit'
   | 'goBack'
   | 'goods'
+  | 'graceStatus'
   | 'imgNotLoaded'
   | 'income'
   | 'initial'
   | 'initialInvest'
-  | 'invest'
-  | 'investComplete'
   | 'invApply'
   | 'invApplyAmount'
   | 'invAutoFilled'
@@ -1778,12 +1810,12 @@ export type I18nKey =
   | 'invRecordsTab'
   | 'invSave'
   | 'invSaved'
+  | 'invSelectBatch'
   | 'invSettingsToast'
   | 'invShareToast'
   | 'invStatusDone'
   | 'invStatusPending'
   | 'invStatusRejected'
-  | 'invSelectBatch'
   | 'invSubmit'
   | 'invSubmitDone'
   | 'invTaxAmount'
@@ -1792,11 +1824,17 @@ export type I18nKey =
   | 'invTotalAmount'
   | 'invTotalCount'
   | 'invTypePref'
-  | 'invUrge'
   | 'invUploadFiles'
   | 'invUploadHint'
+  | 'invUrge'
   | 'invVatSpecial'
   | 'invVatSpecialFull'
+  | 'invest'
+  | 'investComplete'
+  | 'invoiceSave'
+  | 'invoiceSaved'
+  | 'invoiceSaving'
+  | 'invoiceTitle'
   | 'issueDividend'
   | 'issueProportional'
   | 'janitor'
@@ -1804,16 +1842,23 @@ export type I18nKey =
   | 'jokeClosedLoop'
   | 'jokeRecon'
   | 'language'
+  | 'last30Days'
+  | 'last3Months'
+  | 'last7Days'
+  | 'lastLogin'
   | 'linkCopied'
   | 'loadMore'
   | 'loading'
   | 'login'
   | 'loginBtn'
+  | 'loginDisabledHint'
   | 'loginPlaceholder'
+  | 'loginStatus'
   | 'logout'
   | 'logoutConfirm'
   | 'lpControl'
   | 'lpStructure'
+  | 'markRead'
   | 'meituan'
   | 'meituanCashier'
   | 'meituanTuan'
@@ -1823,24 +1868,25 @@ export type I18nKey =
   | 'monthExpense'
   | 'monthIncome'
   | 'monthProfit'
+  | 'monthUnit'
   | 'monthlyProfit'
   | 'monthlyTrend'
-  | 'dailyTrend'
-  | 'chartSwitchMonth'
-  | 'chartSwitchDay'
   | 'nameJiang'
   | 'nameLan'
   | 'nameZhang'
   | 'newEmail'
   | 'newPassword'
+  | 'newUserBadge'
   | 'noDividendRecords'
   | 'noExpenseRecords'
   | 'noRecords'
-  | 'notePlaceholder'
   | 'noUsers'
   | 'normalStatus'
+  | 'normalUser'
+  | 'notePlaceholder'
   | 'oldPassword'
   | 'opacity'
+  | 'otherInfo'
   | 'paidInRate'
   | 'partnerSeats'
   | 'partnerStructure'
@@ -1856,6 +1902,7 @@ export type I18nKey =
   | 'pdfLoadFailed'
   | 'pdfLoading'
   | 'pendingPayback'
+  | 'phone'
   | 'platformFee'
   | 'preferences'
   | 'procAddProduct'
@@ -1909,6 +1956,14 @@ export type I18nKey =
   | 'procSearchPlaceholder'
   | 'procSearchProducts'
   | 'procSelected'
+  | 'procSettle'
+  | 'procSettleAt'
+  | 'procSettleBy'
+  | 'procSettleInfo'
+  | 'procSettleMsg'
+  | 'procSettleSuccess'
+  | 'procSettleTitle'
+  | 'procSettled'
   | 'procSubmit'
   | 'procSubmitted'
   | 'procSubmittedMsg'
@@ -1917,6 +1972,7 @@ export type I18nKey =
   | 'procTitle'
   | 'procTotal'
   | 'procUnit'
+  | 'procUnsettled'
   | 'procUpdated'
   | 'procUpdatedMsg'
   | 'procViewDetail'
@@ -1925,6 +1981,7 @@ export type I18nKey =
   | 'profileEmail'
   | 'profit'
   | 'pwHint'
+  | 'receiptExpenseLabel'
   | 'receivable'
   | 'reconComplete'
   | 'reconDate'
@@ -1932,9 +1989,11 @@ export type I18nKey =
   | 'reconciledBy'
   | 'recordedBy'
   | 'recrop'
+  | 'refundAmount'
   | 'register'
-  | 'invoiceTitle' | 'invHeaderInfo' | 'invBankInfo' | 'invReceiveMethod' | 'companyName' | 'taxId' | 'bankName' | 'bankAccount' | 'addressPhone' | 'companyPhone' | 'invoiceSave' | 'invoiceSaving' | 'invoiceSaved'
   | 'registerBtn'
+  | 'registrationTime'
+  | 'remarks'
   | 'rememberMe'
   | 'rent'
   | 'resendCode'
@@ -1942,6 +2001,7 @@ export type I18nKey =
   | 'resetBtn'
   | 'resetDefault'
   | 'resetHint'
+  | 'restoreAccount'
   | 'retry'
   | 'revCancelArchive'
   | 'revClosedReason'
@@ -1975,10 +2035,10 @@ export type I18nKey =
   | 'revYesterdayNA'
   | 'revenue'
   | 'revenueDate'
+  | 'role'
   | 'roundNote'
   | 'salary'
   | 'save'
-  | 'stayPage'
   | 'saveImage'
   | 'saving'
   | 'searchUser'
@@ -1991,23 +2051,24 @@ export type I18nKey =
   | 'sessionTimeoutLabel'
   | 'shangouWaimai'
   | 'share'
-  | 'shareTo'
   | 'shareCalcResult'
   | 'shareFailed'
   | 'shareLink'
   | 'sharePercent'
+  | 'shareTo'
   | 'shareholders'
   | 'signaturePlaceholder'
   | 'ssoDesc'
   | 'ssoLabel'
   | 'stampPrefixBurgundy'
   | 'stampPrefixObsidian'
-  | 'userManagement'
   | 'stampPrefixTeal'
   | 'stampSuffixBurgundy'
   | 'stampSuffixObsidian'
   | 'stampSuffixTeal'
   | 'status'
+  | 'statusFilter'
+  | 'stayPage'
   | 'subscribedTotal'
   | 'subtitle'
   | 'summary'
@@ -2015,6 +2076,7 @@ export type I18nKey =
   | 'tabRecon'
   | 'tabRevenue'
   | 'tapForDetail'
+  | 'taxId'
   | 'themeLabel'
   | 'themePicker'
   | 'toastLoadFailed'
@@ -2028,17 +2090,19 @@ export type I18nKey =
   | 'totalDividendsPaid'
   | 'totalInvest'
   | 'totalRecords'
-  | 'totalUsers'
   | 'totalToPool'
+  | 'totalUsers'
+  | 'transactions'
   | 'tuan'
   | 'uploadFailed'
   | 'uploadFailedShort'
   | 'uploadImage'
-  | 'receiptExpenseLabel'
   | 'uploading'
   | 'useThisAvatar'
   | 'useThisBg'
   | 'useThisCover'
+  | 'userDetail'
+  | 'userManagement'
   | 'username'
   | 'verifyBtn'
   | 'verifyCode'
@@ -2054,25 +2118,6 @@ export type I18nKey =
   | 'verifying'
   | 'wages'
   | 'willDelete'
-  | 'userDetail'
-  | 'basicInfo'
-  | 'loginStatus'
-  | 'otherInfo'
-  | 'allowLogin'
-  | 'loginDisabledHint'
-  | 'phone'
-  | 'role'
-  | 'remarks'
-  | 'dateFrom'
-  | 'dateTo'
-  | 'statusFilter'
-  | 'registrationTime'
-  | 'lastLogin'
-  | 'last7Days'
-  | 'last30Days'
-  | 'last3Months'
-  | 'monthUnit'
-  | 'normalUser'
 
 type Lang = 'zh-CN' | 'zh-TW' | 'en';
 
@@ -2084,7 +2129,7 @@ export const langs: [Lang, string][] = [
 
 export function t(key: I18nKey | string): string {
   const lang = (typeof window !== 'undefined' ? (window as any).curLang : null) || 'zh-CN';
-  return I18N[lang]?.[key] ?? I18N['zh-CN']?.[key] ?? key;
+  return I18N[lang]?.[key] || I18N['zh-CN']?.[key] || key;
 }
 
 export function getLang(): string {
@@ -2107,9 +2152,7 @@ const LangContext = createContext<LangContextValue>({
 export function LangProvider({ children }: { children: React.ReactNode }): React.ReactNode {
   const [lang, setLangState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      const l = (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
-      (window as any).curLang = l;  // sync so standalone t() picks it up
-      return l;
+      return (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
     }
     return 'zh-CN';
   });
@@ -2120,8 +2163,6 @@ export function LangProvider({ children }: { children: React.ReactNode }): React
       (window as any).curLang = l;
       try { localStorage.setItem('lang', l); } catch {}
     }
-    // Persist to server so backend (emails, etc.) uses correct language
-    try { api.saveLang(l).catch(() => {}); } catch {}
   }, []);
 
   return (
