@@ -845,29 +845,14 @@ export default function InvoiceScreen({ onBack }: Props) {
               </View>
               )}
 
-              {/* Existing file preview (edit mode — show image for done records) */}
-              {editingId && dExistingFilePath ? (
-                <View style={[s.dField]}>
-                  <Text style={[s.dLabel, { color: c.textSub }]}>{t('invFileUploaded')}</Text>
-                  {dExistingFilePath.match(/\.(jpg|jpeg|png|webp)$/i) ? (
-                    <Image source={{ uri: api.getInvoiceFileUrl(dExistingFilePath) }} style={{ width: '100%', height: 220, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.04) }} resizeMode="contain" />
-                  ) : (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.04) }}>
-                      <Text style={{ fontSize: 13, color: c.textSub, flex: 1 }} numberOfLines={1}>{dExistingFilePath.split('/').pop()}</Text>
-                      <TouchableOpacity onPress={() => window.open(api.getInvoiceFileUrl(dExistingFilePath), '_blank')}>
-                        <Text style={{ fontSize: 12, color: c.primary }}>{t('invDownload')}</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              ) : null}
-
-              {/* File upload — only for done status */}
-              {dStatus === 'done' && (
+              {/* File upload — show when editing (existing file as thumbnail) or when status is done */}
+              {(editingId || dStatus === 'done') && (
                 <View style={{ marginBottom: 8 }}>
                   <ReceiptUpload
+                    existingImages={editingId && dExistingFilePath ? [api.getInvoiceFileUrl(dExistingFilePath)] : []}
                     newFiles={dFiles}
                     onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 1))}
+                    onRemoveExisting={() => { setDExistingFilePath(''); }}
                     onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
                     getPreviewUrl={(f: File) => URL.createObjectURL(f)}
                     label={t('invUploadInvoice') as string}
