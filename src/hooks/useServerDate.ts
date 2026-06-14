@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export interface ServerDate {
+interface ServerDate {
   /** 'YYYY-MM-DD' — today (Beijing time from server) */
   today: string;
   /** 'YYYY-MM-DD' — yesterday */

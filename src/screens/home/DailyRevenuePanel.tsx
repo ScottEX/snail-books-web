@@ -7,7 +7,7 @@ import { FONTS } from '../../theme';
 import DateErrorHint from '../../components/DateErrorHint';
 import DatePicker from '../../components/DatePicker';
 
-export interface DailyRevenuePanelProps {
+interface DailyRevenuePanelProps {
   revDate: string;
   revRevenue: string;
   revTurnover: string;

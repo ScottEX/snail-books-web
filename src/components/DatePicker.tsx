@@ -5,7 +5,7 @@ import { useTheme, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { getLang } from '../i18n';
 
-export interface DatePickerProps {
+interface DatePickerProps {
   /** 'YYYY-MM-DD' */
   date: string;
   /** Called with the selected date (YYYY-MM-DD) — only when valid (≤ max) */
