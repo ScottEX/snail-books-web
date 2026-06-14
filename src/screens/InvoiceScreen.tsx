@@ -329,7 +329,7 @@ export default function InvoiceScreen({ onBack }: Props) {
       try {
         const j: any = await api.getProcurementBatchDetail(dBatchId);
         const batch = j.batch || j.data || j;
-        const amt = batch.total_amount || batch.amount || 0;
+        const amt = batch.total || batch.total_amount || batch.amount || 0;
         setDAmount(Number(amt).toFixed(2));
       } catch { }
     })();
@@ -578,11 +578,11 @@ export default function InvoiceScreen({ onBack }: Props) {
 
               {/* Date + Email side by side */}
               <View style={s.dRow}>
-                <View style={[s.dField, { flex: 1, minWidth: 0 } as any]}>
+                <View style={[s.dField, { width: '50%', paddingRight: 5 } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
-                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 10, paddingRight: 10, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
+                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 10, paddingRight: 10, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
                 </View>
-                <View style={[s.dField, { flex: 1, minWidth: 0 } as any]}>
+                <View style={[s.dField, { width: '50%', paddingLeft: 5 } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
                   <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
                 </View>
@@ -778,7 +778,7 @@ const s = StyleSheet.create({
   dInput: { width: '100%', paddingVertical: 11, paddingHorizontal: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, outline: 'none' } as any,
   dAmountInput: { paddingLeft: 26 } as any,
   dAmountPrefix: { position: 'absolute', left: 14, top: '50%', fontSize: 14, fontFamily: 'DM Mono' } as any,
-  dRow: { flexDirection: 'row', gap: 10 } as any,
+  dRow: { flexDirection: 'row' } as any,
   dTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 14 } as any,
   dTypeChip: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8, borderWidth: 1.5 } as any,
   dTypeChipText: { fontSize: 13, fontWeight: '500' } as any,
