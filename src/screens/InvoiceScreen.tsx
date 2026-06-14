@@ -345,9 +345,22 @@ export default function InvoiceScreen({ onBack }: Props) {
             <TouchableOpacity style={[s.ecBackBtn, { backgroundColor: 'rgba(255,255,255,0.12)' }]} onPress={onBack}>
               <IcnBack color="rgba(255,255,255,0.8)" />
             </TouchableOpacity>
-            <Text style={[s.ecTitle, { color: '#fff' }]}>{t('invTitle')}</Text>
+            <Text style={[s.ecTitle, { color: '#fff', flex: 1 }]}>{t('invTitle')}</Text>
+            <TouchableOpacity style={[s.ecBtn, { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, flexShrink: 0 }]} onPress={() => {
+            setDType(invType);
+            setDBatchId(null);
+            setDAmount('');
+            setDDate(new Date().toISOString().slice(0, 10));
+            setDRef('');
+            setDNote('');
+            setDFiles([]);
+            openDrawer();
+          }}>
+            <IcnPlus color="rgba(255,255,255,0.85)" />
+            <Text style={[s.ecBtnText, { color: '#fff' }]}>{t('invApply')}</Text>
+          </TouchableOpacity>
           </View>
-          <View style={s.ecStats}>
+          <View style={[s.ecStats, { marginBottom: 0 }]}>
             <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
               <Text style={[s.ecStatNum, { color: '#fff' }]}>{totalCount}</Text>
               <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invTotalCount')}</Text>
@@ -361,19 +374,6 @@ export default function InvoiceScreen({ onBack }: Props) {
               <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invPending')}</Text>
             </View>
           </View>
-          <TouchableOpacity style={[s.ecBtn, { borderColor: 'rgba(255,255,255,0.22)' }]} onPress={() => {
-            setDType(invType);
-            setDBatchId(null);
-            setDAmount('');
-            setDDate(new Date().toISOString().slice(0, 10));
-            setDRef('');
-            setDNote('');
-            setDFiles([]);
-            openDrawer();
-          }}>
-            <IcnPlus color="rgba(255,255,255,0.85)" />
-            <Text style={[s.ecBtnText, { color: '#fff' }]}>{t('invApply')}</Text>
-          </TouchableOpacity>
         </View>
 
         {/* ═══ TABS ═══ */}
@@ -401,10 +401,13 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <Text style={[s.sectionTitleText, { color: c.textSub }]}>{t('invHeaderInfo')}</Text>
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
-              <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary, borderRadius: 12, marginBottom: 0 }]}>
+              <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, borderWidth: 0 }]}>
                 <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} editable={isAdmin} />
+                <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
                 <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onChange={(v) => setData({ ...data, tax_id: v })} editable={isAdmin} />
+                <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
                 <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} editable={isAdmin} />
+                <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
                 <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={formatPhone(data.phone)} colors={c} mono onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
               </View>
             </View>
@@ -415,8 +418,9 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <Text style={[s.sectionTitleText, { color: c.textSub }]}>{t('invBankInfo')}</Text>
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
-              <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary, borderRadius: 12, marginBottom: 0 }]}>
+              <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
                 <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} editable={isAdmin} />
+                <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
                 <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
               </View>
             </View>
@@ -427,7 +431,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <Text style={[s.sectionTitleText, { color: c.textSub }]}>{t('invReceiveMethod')}</Text>
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
-              <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary, borderRadius: 12, marginBottom: 0 }]}>
+              <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
                 <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} value={userEmail || data.email} colors={c} onChange={(v) => setData({ ...data, email: v })} />
               </View>
             </View>
@@ -599,7 +603,7 @@ export default function InvoiceScreen({ onBack }: Props) {
               <View style={s.dRow}>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
-                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', height: 40, minWidth: 0, boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 0, borderRadius: 10, fontSize: 14, backgroundColor: withAlpha(c.textMain, 0.03), color: c.textMain, outline: 'none' }} />
+                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 0, borderRadius: 10, fontSize: 14, backgroundColor: withAlpha(c.textMain, 0.03), color: c.textMain, outline: 'none' }} />
                 </View>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
@@ -712,12 +716,11 @@ const s = StyleSheet.create({
 
   /* ENTRY CARD — full width, no horizontal margin */
   entryCard: {
-    borderRadius: 0, paddingTop: 28, paddingRight: 20, paddingBottom: 18, paddingLeft: 20,
+    borderRadius: 0, paddingTop: 20, paddingRight: 20, paddingBottom: 14, paddingLeft: 20,
     position: 'relative', overflow: 'hidden' as any,
-    // backgroundColor set inline via c.surface
     marginBottom: 14,
   } as any,
-  ecTop: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 } as any,
+  ecTop: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 } as any,
   ecBackBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', flexShrink: 0 } as any,
   ecLabel: { fontSize: 11, letterSpacing: 1.3, color: 'rgba(255,255,255,0.55)', marginBottom: 4, textTransform: 'uppercase' } as any,
   ecTitle: { fontSize: 18, fontWeight: '600', color: '#fff', letterSpacing: 0.3 } as any,
@@ -823,7 +826,7 @@ const s = StyleSheet.create({
 /* ═══════════════ INFO ROW STYLES ═══════════════ */
 
 const sIR = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 16, borderBottomWidth: 1, gap: 12 } as any,
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 16, gap: 12 } as any,
   icon: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', flexShrink: 0 } as any,
   body: { flex: 1, minWidth: 0 } as any,
   label: { fontSize: 11, marginBottom: 2 } as any,
