@@ -287,6 +287,7 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   const openDrawer = () => {
     clearTimeout(drawerTimer.current);
+    setDType(invType);
     setDrawerOpen(true);
     setDrawerPhase('enter');
     drawerTimer.current = setTimeout(() => setDrawerPhase('idle'), 250);
@@ -348,13 +349,9 @@ export default function InvoiceScreen({ onBack }: Props) {
             </TouchableOpacity>
             <Text style={[s.ecTitle, { color: '#fff', flex: 1 }]}>{t('invTitle')}</Text>
             <TouchableOpacity style={[s.ecBtn, { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, flexShrink: 0 }]} onPress={() => {
-            setDType(invType);
-            setDBatchId(null);
-            setDAmount('');
             setDDate(new Date().toISOString().slice(0, 10));
             setDRef('');
             setDNote('');
-            setDFiles([]);
             openDrawer();
           }}>
             <IcnPlus color="rgba(255,255,255,0.85)" />
