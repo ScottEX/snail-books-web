@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   FlatList, Image, ActivityIndicator, StyleSheet, Animated, PanResponder
 } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
@@ -210,7 +210,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   drawerHandle: { width: 36, height: 4, backgroundColor: withAlpha(c.textMain, 0.15), borderRadius: 2, alignSelf: 'center' as const, marginTop: 10 },
   drawerHead: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 12, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.08) },
   drawerHeadTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.textMain },
-  drawerClose: { width: 30, height: 30, borderRadius: 15, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const, justifyContent: 'center' as const },
+  drawerClose: { padding: 4 },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
   drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 18, paddingVertical: 10, paddingBottom: 24 },
@@ -1262,7 +1262,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   : t('procConfirmOrder')}
               </Text>
               <TouchableOpacity style={styles.drawerClose} onPress={closeDrawer}>
-                <Text style={styles.drawerCloseText}>×</Text>
+                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.textSub} strokeWidth="2" fill="none">
+                  <Line x1="18" y1="6" x2="6" y2="18" />
+                  <Line x1="6" y1="6" x2="18" y2="18" />
+                </Svg>
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.drawerBody}>
