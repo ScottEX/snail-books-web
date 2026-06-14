@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { THEMES, DEFAULT_THEME_ID, getThemeKey, ThemeColors, withAlpha, FONTS } from '../theme';
 import { t } from '../i18n';
 import { onSessionKicked } from '../api/client';
 import ModalOverlay from './ModalOverlay';
 import CloseButton from './CloseButton';
+import { useEffect, useState } from 'react';
 
 /**
  * Read the per-user theme id from localStorage and resolve it to

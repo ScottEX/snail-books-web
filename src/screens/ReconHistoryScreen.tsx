@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
-import Svg, { Path, Rect, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { api } from '../api/client';
@@ -16,6 +15,7 @@ import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
 import { fmtAmtFull } from '../utils/format';
 import DateErrorHint from '../components/DateErrorHint';
 import BackArrow from '../components/icons/BackArrow';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Date format
 // Strict calendar months between two ISO dates (YYYY-MM-DD)

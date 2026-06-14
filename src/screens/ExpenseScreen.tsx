@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, useReducer } from 'react';
 import { useDisclosure } from '../hooks/useDisclosure';
 import { useDateField } from '../hooks/useDateField';
 import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
 } from 'react-native';
-import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
+import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -17,7 +16,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalCardAnimation, uploadReceiptStyles } from '../sharedStyles';
 import { fmtAmt as fmt } from '../utils/format';
-import { blockNeg, fmtDecInput, toDec2, toDec2Comma } from '../utils/numbers';
+import { blockNeg, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
 import DatePicker from '../components/DatePicker';
@@ -28,9 +27,9 @@ import CloseButton from '../components/CloseButton';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 /* ── helpers ── */
-const fmtInt = (n: number) => n.toLocaleString();
 // Date helpers replaced by useServerDate() hook (server time, not client)
 const fmtLocalDate = (s: string) => {
   const [y, m, d] = s.split('-');
@@ -345,15 +344,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     payMethod, setPayMethod,
     expNote, setExpNote,
     expImages, setExpImages,
-    uploadingImg,
-    expenses, expCatTotals,
+    expCatTotals,
     loadingExp,
     showExpConfirm, setShowExpConfirm,
-    handleAddExpense, loadExpenses,
+    handleAddExpense,
     handleImageSelect, removeImage,
-    handleExpDateChange, resetForm,
     isAmountInvalid,
-    fmtDecInput, fmtRefundInput, toDec2Comma,
+    fmtDecInput, fmtRefundInput,
     isRefund, setIsRefund,
   } = useExpenseForm({
     onExpenseHistory,
@@ -1011,7 +1008,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
             <ScrollView style={{ flex: 1, paddingHorizontal: 12, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-              {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
+              {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, _idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
                   { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: colors.info },

@@ -1,7 +1,6 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import Svg, { Path, Circle } from 'react-native-svg';
+import { useTheme, withAlpha } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 

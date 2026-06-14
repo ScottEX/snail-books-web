@@ -1,7 +1,6 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  TextInput, ActivityIndicator, Image, Dimensions,
+  TextInput, Image, Dimensions,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -25,6 +24,7 @@ import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
 import { useServerDate } from '../hooks/useServerDate';
 import DatePicker from '../components/DatePicker';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 // Date helpers replaced by useServerDate() hook (server time, not client)
 

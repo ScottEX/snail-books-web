@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, TextInput } from 'react-native';
-import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
@@ -8,6 +7,7 @@ import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { getCurrentUserId } from '../utils/storage';
 import { api } from '../api/client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface UserData {
   id: number;

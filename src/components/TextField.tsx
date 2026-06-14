@@ -5,8 +5,7 @@
 // 支持 label + error + rightIcon + 多行。
 // ═══════════════════════════════════════════
 
-import React from 'react';
-import { View, Text, TextInput, StyleSheet, type TextInputProps } from 'react-native';
+import { View, Text, TextInput, type TextInputProps } from 'react-native';
 import { useTheme, withAlpha } from '../theme';
 import { FONTS } from '../theme';
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { api } from '../../api/client';
 import { t } from '../../i18n';
 import { getCurrentUserId } from '../../utils/storage';

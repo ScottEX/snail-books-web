@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { useTheme, withAlpha } from '../theme';
 import { t } from '../i18n';
@@ -6,6 +5,7 @@ import { api } from '../api/client';
 import ModalOverlay from './ModalOverlay';
 import CloseButton from './CloseButton';
 import { FONTS } from '../theme';
+import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   visible: boolean;

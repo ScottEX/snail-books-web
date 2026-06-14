@@ -1,9 +1,9 @@
-import React, { useRef, useEffect } from 'react';
 import { Animated, Easing, View, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../theme';
 import { t } from '../i18n';
 import { spinnerAnimation } from '../sharedStyles';
+import { useEffect, useRef } from 'react';
 
 interface Props {
   /** Show "加载中..." label beneath the spinner (default: true) */

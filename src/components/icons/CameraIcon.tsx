@@ -1,4 +1,3 @@
-import React from 'react';
 import Svg, { Path, Circle } from 'react-native-svg';
 
 export default function CameraIcon({ color, size = 18, strokeWidth = 1.5 }: { color: string; size?: number; strokeWidth?: number }) {

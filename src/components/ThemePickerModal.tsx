@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { createPortal } from 'react-dom';
 import { useTheme, ThemeColors, withAlpha, FONTS } from '../theme';
@@ -7,6 +7,7 @@ import { modalCardAnimation } from '../sharedStyles';
 import ThemePicker from './ThemePicker';
 import CloseButton from './CloseButton';
 import BgCropModal from './BgCropModal';
+import { useEffect, useRef, useState } from 'react';
 
 interface ThemePickerModalProps {
   visible: boolean;

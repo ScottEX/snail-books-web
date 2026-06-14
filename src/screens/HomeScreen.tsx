@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animated, Image } from 'react-native';
-import { createPortal } from 'react-dom';
-import Svg, { Path, Circle } from 'react-native-svg';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Image } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -30,6 +28,7 @@ import { useServerDate } from '../hooks/useServerDate';
 import DailyRevenuePanel from './home/DailyRevenuePanel';
 import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
 import ChartsPanel from './ChartsPanel';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 

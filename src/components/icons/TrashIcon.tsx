@@ -1,4 +1,3 @@
-import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
 export default function TrashIcon({ color, size = 18 }: { color: string; size?: number }) {

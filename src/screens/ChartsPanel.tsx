@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import {
@@ -8,6 +7,7 @@ import {
 } from 'recharts';
 import { t } from '../i18n';
 import { useTheme } from '../theme';
+import { useEffect, useState } from 'react';
 
 interface Props {
   months: string[];

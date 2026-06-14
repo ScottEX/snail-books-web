@@ -1,4 +1,3 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
@@ -18,6 +17,7 @@ import { formatDate } from '../utils/format';
 import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
 import { getCurrentUser } from '../utils/storage';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface BatchItem {
   name?: string;

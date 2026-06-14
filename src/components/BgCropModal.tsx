@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { createPortal } from 'react-dom';
 import { t } from '../i18n';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import CloseButton from './CloseButton';
+import { useEffect, useRef, useState } from 'react';
 
 interface BgCropModalProps {
   visible: boolean;

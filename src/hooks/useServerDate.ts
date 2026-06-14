@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface ServerDate {
   /** 'YYYY-MM-DD' — today (Beijing time from server) */

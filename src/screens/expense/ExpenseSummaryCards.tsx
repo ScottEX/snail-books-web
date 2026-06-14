@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import NumberTicker from '../../components/NumberTicker';
-import { useTheme, withAlpha, ThemeColors } from '../../theme';
+import { useTheme, ThemeColors } from '../../theme';
 import { FONTS } from '../../theme';
 import { t } from '../../i18n';
 import { fmtAmtFull } from '../../utils/format';
+import { useMemo } from 'react';
 
 interface ExpenseSummaryCardsProps {
   todayExpense: number;

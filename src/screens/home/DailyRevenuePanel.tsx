@@ -1,4 +1,3 @@
-import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../../i18n';
@@ -6,6 +5,7 @@ import { useTheme, withAlpha, ThemeColors } from '../../theme';
 import { FONTS } from '../../theme';
 import DateErrorHint from '../../components/DateErrorHint';
 import DatePicker from '../../components/DatePicker';
+import { useMemo } from 'react';
 
 interface DailyRevenuePanelProps {
   revDate: string;

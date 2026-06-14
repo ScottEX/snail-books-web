@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text } from 'react-native';
 import Svg, { Path, Rect, Line } from 'react-native-svg';
-import { useTheme, ThemeColors } from '../theme';
+import { useTheme } from '../theme';
 import { FONTS } from '../theme';
 import { getLang } from '../i18n';
+import { useRef, useState } from 'react';
 
 interface DatePickerProps {
   /** 'YYYY-MM-DD' */
