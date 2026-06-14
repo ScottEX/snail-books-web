@@ -288,21 +288,17 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
 
-  // Load invoice data (admin-only — skip for non-admin to avoid 403 → forced logout)
+  // Load invoice data (backend allows all logged-in users since 4b00e12)
   useEffect(() => {
     (async () => {
       try {
-        const admResp = await fetch('/api/admin/check', { credentials: 'include' });
-        const isAdmin = admResp.ok && (await admResp.json()).is_admin === true;
-        if (isAdmin) {
-          const inv = await api.getInvoice();
-          if (inv.status === 'ok' && inv.data) {
-            const d = { ...EMPTY_INV, ...inv.data };
-            setData(d);
-            setOrig(d);
-            setDEmail(inv.data.email || '');
-            setInvType(inv.data.inv_type || 'vat');
-          }
+        const inv = await api.getInvoice();
+        if (inv.status === 'ok' && inv.data) {
+          const d = { ...EMPTY_INV, ...inv.data };
+          setData(d);
+          setOrig(d);
+          setDEmail(inv.data.email || '');
+          setInvType(inv.data.inv_type || 'vat');
         }
       } catch { }
       setLoaded(true);
