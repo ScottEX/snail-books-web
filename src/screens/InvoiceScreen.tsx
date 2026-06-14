@@ -105,15 +105,6 @@ const PencilSvg = ({ color }: { color: string }) => (
   </svg>
 );
 
-/** Stamp seal — rejected (作废) */
-const IcnSealRejected = ({ color, label }: { color: string; label: string }) => (
-  <svg width="52" height="52" viewBox="0 0 52 52">
-    <circle cx="26" cy="26" r="24" fill="none" stroke={color} strokeWidth="1.5" />
-    <circle cx="26" cy="26" r="21" fill="none" stroke={color} strokeWidth="0.5" strokeDasharray="3 2" />
-    <text x="26" y="30" textAnchor="middle" fontSize="11" fontWeight="700" fill={color} transform="rotate(-12, 26, 26)">{label}</text>
-  </svg>
-);
-
 /** Stamp seal — active (done: 已开票 / pending: 未开票) */
 const IcnSealActive = ({ color, label }: { color: string; label: string }) => (
   <svg width="52" height="52" viewBox="0 0 52 52">
@@ -153,7 +144,7 @@ const InvoiceEmptyIcon = ({ color }: { color: string }) => (
 
 /* ═══════════════ INVOICE SCREEN ═══════════════ */
 
-type InvType = 'vat' | 'general' | 'receipt';
+type InvType = 'vat' | 'general';
 type InvStatus = 'done' | 'pending';
 
 interface InvoiceData {
@@ -344,8 +335,8 @@ export default function InvoiceScreen({ onBack }: Props) {
     { key: 'general', label: t('invGeneral') },
   ];
 
-  const typeBadgeLabel = (tp: InvType) => tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt');
-  const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : tp === 'general' ? sBadge.general : sBadge.receipt;
+  const typeBadgeLabel = (tp: InvType) => tp === 'vat' ? t('invVatSpecial') : t('invGeneral');
+  const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : sBadge.general;
 
   // ── Share invoice file (iOS-friendly: navigator.share with File object) ──
   const handleInvoiceShare = async (r: InvoiceRecord) => {
@@ -750,9 +741,9 @@ export default function InvoiceScreen({ onBack }: Props) {
             <ScrollView style={s.drawerBody} contentContainerStyle={{ paddingBottom: 8 }}>
               <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerType')}</Text>
               <View style={s.dTypeRow}>
-                {(['vat', 'general', 'receipt'] as InvType[]).map(tp => (
+                {(['vat', 'general'] as InvType[]).map(tp => (
                   <TouchableOpacity key={tp} style={[s.dTypeChip, { backgroundColor: dType === tp ? c.primary : withAlpha(c.textMain, 0.06) }]} onPress={() => setDType(tp)}>
-                    <Text style={[s.dTypeChipText, { color: dType === tp ? c.surface : c.textSub }]}>{tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt')}</Text>
+                    <Text style={[s.dTypeChipText, { color: dType === tp ? c.surface : c.textSub }]}>{tp === 'vat' ? t('invVatSpecial') : t('invGeneral')}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1114,5 +1105,4 @@ const sIR = StyleSheet.create({
 const sBadge = StyleSheet.create({
   vat: {} as any,
   general: {} as any,
-  receipt: {} as any,
 });
