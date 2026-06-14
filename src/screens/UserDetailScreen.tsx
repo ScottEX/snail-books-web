@@ -127,18 +127,16 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const fetchDetail = useCallback(async () => {
     setLoading(true);
     try {
-      const resp = await api.admin.getUser(user.id);
-      if (resp.ok) {
-        const d = (await resp.json()).data;
-        setDetail(d);
-        setIsDisabled(d.is_disabled);
-        setRole(d.role || '');
-        setRemark(d.remark || '');
-        setPhone(d.phone || '');
-        setEmail(d.email || '');
-        setDeleteScheduled(d.delete_scheduled || '');
-        setDeleteBy(d.delete_by || '');
-      }
+      const resp: any = await api.admin.getUser(user.id);
+      const d = resp.data || resp;
+      setDetail(d);
+      setIsDisabled(d.is_disabled);
+      setRole(d.role || '');
+      setRemark(d.remark || '');
+      setPhone(d.phone || '');
+      setEmail(d.email || '');
+      setDeleteScheduled(d.delete_scheduled || '');
+      setDeleteBy(d.delete_by || '');
     } catch {}
     setLoading(false);
   }, [user.id, lang]);
@@ -150,8 +148,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     try {
       const body: Record<string, string | boolean> = {};
       body[field] = value;
-      const resp = await api.admin.updateUser(user.id, body);
-      if (resp.ok && field === 'is_disabled') onUpdated();
+      const resp: any = await api.admin.updateUser(user.id, body);
+      if (field === 'is_disabled') onUpdated();
     } catch {}
     setSaving(false);
   }, [user.id, lang, onUpdated]);
@@ -171,35 +169,26 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     setDeleting(true);
     setDeleteError('');
     try {
-      const resp = await api.admin.deleteUser(user.id);
-      const data = await resp.json();
-      if (resp.ok) {
-        setDeleteScheduled(data.scheduled || '');
-        setDeleteBy('admin');
-        setIsDisabled(true);
-        onUpdated();
-        setDeleting(false);
-        setShowDeleteConfirm(false);
-      } else {
-        setDeleteError(data?.message || '删除失败');
-        setDeleting(false);
-      }
+      const resp: any = await api.admin.deleteUser(user.id);
+      setDeleteScheduled(resp.scheduled || '');
+      setDeleteBy('admin');
+      setIsDisabled(true);
+      onUpdated();
     } catch (e: any) {
       setDeleteError(e?.message || '网络错误');
-      setDeleting(false);
     }
+    setDeleting(false);
+    setShowDeleteConfirm(false);
   };
 
   const handleRestore = async () => {
     setSaving(true);
     try {
-      const resp = await api.admin.restoreUser(user.id);
-      if (resp.ok) {
-        setDeleteScheduled('');
-        setDeleteBy('');
-        setIsDisabled(false);
-        onUpdated();
-      }
+      const resp: any = await api.admin.restoreUser(user.id);
+      setDeleteScheduled('');
+      setDeleteBy('');
+      setIsDisabled(false);
+      onUpdated();
     } catch {}
     setSaving(false);
   };
