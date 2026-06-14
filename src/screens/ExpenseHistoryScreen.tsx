@@ -450,7 +450,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     width: 42, height: 42, alignItems: 'center' as const, justifyContent: 'center' as const,
     position: 'absolute' as const,
     right: 0, top: '50%', marginTop: -21,
-    opacity: 0.55,
+    opacity: 0.75,
   } as any,
 
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },

@@ -292,7 +292,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
   histAmountRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, marginTop: 8, minHeight: 48, position: 'relative' as const },
   histAmountNumberWrap: { position: 'relative' as const },
-  histAmountSealOverlay: { position: 'absolute' as const, right: 0, top: '50%', marginTop: -24, opacity: 0.55, zIndex: 2 },
+  histAmountSealOverlay: { position: 'absolute' as const, right: 0, top: '50%', marginTop: -24, opacity: 0.75, zIndex: 2 },
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
   histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
