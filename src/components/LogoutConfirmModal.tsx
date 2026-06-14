@@ -1,10 +1,10 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
 import ModalOverlay from './ModalOverlay';
+import CloseButton from './CloseButton';
 
 interface LogoutConfirmModalProps {
   visible: boolean;
@@ -21,9 +21,7 @@ export default function LogoutConfirmModal({ visible, onClose, onLogout }: Logou
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('logout')}</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.closeBtn}>✕</Text>
-          </TouchableOpacity>
+          <CloseButton onPress={onClose} />
         </View>
         <View style={styles.body}>
           <Text style={styles.confirmText}>
@@ -57,7 +55,6 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   title: { fontSize: 14, fontWeight: '700', color: colors.surface },
-  closeBtn: { fontSize: 18, color: colors.surface, lineHeight: 20 },
   body: { padding: 24, alignItems: 'center', gap: 18 } as any,
   confirmText: { fontSize: FONTS.body.size, color: colors.textMain, textAlign: 'center' as any },
   btnRow: { flexDirection: 'row', gap: 12, width: '100%' },

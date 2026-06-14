@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, TextInput } from 'react-native';
-import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { getCurrentUserId } from '../utils/storage';
+import { api } from '../api/client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface UserData {
   id: number;
@@ -126,18 +127,16 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const fetchDetail = useCallback(async () => {
     setLoading(true);
     try {
-      const resp = await fetch(`/api/admin/users/${user.id}`, { credentials: 'include', headers: { 'X-Lang': lang } });
-      if (resp.ok) {
-        const d = (await resp.json()).data;
-        setDetail(d);
-        setIsDisabled(d.is_disabled);
-        setRole(d.role || '');
-        setRemark(d.remark || '');
-        setPhone(d.phone || '');
-        setEmail(d.email || '');
-        setDeleteScheduled(d.delete_scheduled || '');
-        setDeleteBy(d.delete_by || '');
-      }
+      const resp: any = await api.admin.getUser(user.id);
+      const d = resp.data || resp;
+      setDetail(d);
+      setIsDisabled(d.is_disabled);
+      setRole(d.role || '');
+      setRemark(d.remark || '');
+      setPhone(d.phone || '');
+      setEmail(d.email || '');
+      setDeleteScheduled(d.delete_scheduled || '');
+      setDeleteBy(d.delete_by || '');
     } catch {}
     setLoading(false);
   }, [user.id, lang]);
@@ -149,13 +148,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     try {
       const body: Record<string, string | boolean> = {};
       body[field] = value;
-      const resp = await fetch(`/api/admin/users/${user.id}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'X-Lang': lang },
-        body: JSON.stringify(body),
-      });
-      if (resp.ok && field === 'is_disabled') onUpdated();
+      const resp: any = await api.admin.updateUser(user.id, body);
+      if (field === 'is_disabled') onUpdated();
     } catch {}
     setSaving(false);
   }, [user.id, lang, onUpdated]);
@@ -175,43 +169,26 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     setDeleting(true);
     setDeleteError('');
     try {
-      const resp = await fetch(`/api/admin/users/${user.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { 'X-Lang': lang },
-      });
-      const data = await resp.json();
-      if (resp.ok) {
-        setDeleteScheduled(data.scheduled || '');
-        setDeleteBy('admin');
-        setIsDisabled(true);
-        onUpdated();
-        setDeleting(false);
-        setShowDeleteConfirm(false);
-      } else {
-        setDeleteError(data?.message || '删除失败');
-        setDeleting(false);
-      }
+      const resp: any = await api.admin.deleteUser(user.id);
+      setDeleteScheduled(resp.scheduled || '');
+      setDeleteBy('admin');
+      setIsDisabled(true);
+      onUpdated();
     } catch (e: any) {
       setDeleteError(e?.message || '网络错误');
-      setDeleting(false);
     }
+    setDeleting(false);
+    setShowDeleteConfirm(false);
   };
 
   const handleRestore = async () => {
     setSaving(true);
     try {
-      const resp = await fetch(`/api/admin/users/${user.id}/restore`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'X-Lang': lang },
-      });
-      if (resp.ok) {
-        setDeleteScheduled('');
-        setDeleteBy('');
-        setIsDisabled(false);
-        onUpdated();
-      }
+      const resp: any = await api.admin.restoreUser(user.id);
+      setDeleteScheduled('');
+      setDeleteBy('');
+      setIsDisabled(false);
+      onUpdated();
     } catch {}
     setSaving(false);
   };

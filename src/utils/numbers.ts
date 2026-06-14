@@ -2,7 +2,7 @@
 export const blockNeg = (s: string) => s.replace(/[^0-9.]/g, '');
 
 /** Strip leading zeros — keeps '0' and '0.xxx' intact */
-export const stripLeadingZeros = (s: string) => s.replace(/^0+(?=\d)/, '');
+const stripLeadingZeros = (s: string) => s.replace(/^0+(?=\d)/, '');
 
 /** Format decimal input — strip non-numeric, strip leading zeros, prepend '0' if starts with '.' */
 export const fmtDecInput = (s: string) => {

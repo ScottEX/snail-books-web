@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { Text } from 'react-native';
+import { useEffect, useState } from 'react';
 
 /** Red error hint that auto-dismisses after 3000ms. Triggered by bumping `trigger`. */
 export default function DateErrorHint({ trigger, message, color, textAlign = 'right' }: {

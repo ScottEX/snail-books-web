@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React from 'react';
 import {
   View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated
 } from 'react-native';
@@ -19,6 +19,7 @@ import { modalClose, historyHeader } from '../sharedStyles';
 import { getCurrentUser } from '../utils/storage';
 import DateErrorHint from '../components/DateErrorHint';
 import BackArrow from '../components/icons/BackArrow';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Date helpers replaced by useServerDate() hook
 // Strict calendar months between two ISO dates (YYYY-MM-DD)

@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Image } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { createPortal } from 'react-dom';
-import { t, getLang, useLang } from '../i18n';
+import { t, useLang } from '../i18n';
 import { useServerDate } from '../hooks/useServerDate';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
 import ConfirmModal from '../components/ConfirmModal';
-import InvoiceModal from '../components/InvoiceModal';
+import InvoiceScreen from './InvoiceScreen';
+import SlideScreen from '../components/SlideScreen';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
@@ -27,6 +27,7 @@ import { getCurrentUserId } from '../utils/storage';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
 import { fmtDecInput } from '../utils/numbers';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
@@ -238,16 +239,10 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       if (cached) setAvatarUrl(cached);
     } catch {}
     try {
-      const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const reader = new FileReader();
-        reader.onload = () => {
-          const b64 = reader.result as string;
-          setAvatarUrl(b64);
-          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
-        };
-        reader.readAsDataURL(blob);
+      const b64 = await api.getUserAvatar(uid);
+      if (b64) {
+        setAvatarUrl(b64);
+        try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
       }
     } catch {}
   };
@@ -922,7 +917,17 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
         document.body
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
-      <InvoiceModal visible={showInvoice} onClose={() => setShowInvoice(false)} />
+
+      {/* ====== INVOICE SCREEN (portaled to body — covers nav bar) ====== */}
+      {showInvoice && createPortal(
+        <SlideScreen
+          visible={showInvoice}
+          onClose={() => setShowInvoice(false)}
+        >
+          {(close) => <InvoiceScreen onBack={close} />}
+        </SlideScreen>,
+        document.body
+      )}
     </View>
   );
 }

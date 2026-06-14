@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, langs, useLang, I18nKey } from '../i18n';
@@ -6,6 +5,7 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { getCurrentUser } from '../utils/storage';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
@@ -83,12 +83,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setBgReady(false); setAvatarReady(false);
     const timer = setTimeout(async () => {
       try {
-        let resp = await fetch(`/api/users/avatar?username=${encodeURIComponent(username)}`);
-        if (!resp.ok && username.includes('@')) {
-          resp = await fetch(`/api/users/avatar?email=${encodeURIComponent(username)}`);
-        }
-        if (resp.ok) {
-          const blob = await resp.blob();
+        const blob = await api.getUserAvatarByLogin(username);
+        if (blob) {
           setAvatarUrl(URL.createObjectURL(blob));
           setAvatarReady(true);
         } else {
@@ -97,9 +93,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       } catch { setAvatarUrl(''); setAvatarReady(true); }
 
       try {
-        const bgResp = await fetch(`/api/users/background?username=${encodeURIComponent(username)}`);
-        if (bgResp.ok) {
-          const blob = await bgResp.blob();
+        const blob = await api.getUserBackground(username);
+        if (blob) {
           setBgUrl(URL.createObjectURL(blob));
           setBgReady(true);
         } else {
@@ -136,7 +131,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       const r = await api.login(username, password, remember);
       setLoading(false);
       if (r.status === 'ok') {
-        if (r.token && typeof localStorage !== 'undefined') localStorage.setItem('token', r.token);
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('user', r.username || username);
           localStorage.setItem('user_id', String(r.user_id || ''));
@@ -487,7 +481,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               </TouchableOpacity>
               <Text style={styles.verifyHint}>
                 {t('verifyNewNoEmail') || '一直没收到？别着急，您可以 '}
-                <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s` : t('verifyNewResend') || '重新发送'}</Text>
+                <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s` : t('verifyNewResend')}</Text>
                 {t('verifyNewOrSpam') || ' 或检查一下垃圾箱。'}
               </Text>
               <Text style={styles.verifyHint}>

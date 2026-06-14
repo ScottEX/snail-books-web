@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext } from 'react';
 import { api } from './api/client';
+import { useCallback, useState } from 'react';
 
 const I18N: Record<string, Record<string, string>> = {
   'zh-CN': {
@@ -47,6 +48,7 @@ const I18N: Record<string, Record<string, string>> = {
     chartSwitchHint: '点击切换视图',
     chartSwitchPie: '饼图',
     chartXAxis: '月份',
+    chartXAxisDay: '每日',
     chartYAxis: '金额（元）',
     chooseImage: '选择图片',
     clear: '清空',
@@ -109,6 +111,7 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundOnly: '第{n}次分红',
     done: '完成',
     downloadPdf: '下载PDF',
+    downloadImage: '下载图片',
     editBg: '编辑背景图',
     editCover: '更换封面',
     edit: '编辑',
@@ -142,6 +145,7 @@ const I18N: Record<string, Record<string, string>> = {
     expDate: '日期',
     expense: '支出',
     expenseBreakdown: '支出分类占比',
+    expenseBreakdownOfMonth: '月支出分类占比',
     expenseCategory: '支出分类',
     expenseDate: '支出日期',
     createdAt: '创建时间',
@@ -178,6 +182,66 @@ const I18N: Record<string, Record<string, string>> = {
     initialInvest: '初始出资',
     invest: '出资',
     investComplete: '出资完结',
+    invApply: '申请开票',
+    invApplyAmount: '申请金额',
+    invAutoFilled: '已自动填入',
+    invBankInfo: '银行信息',
+    invCenter: '发票管理中心',
+    invContact: '联系开票方',
+    invDownload: '下载',
+    invDownloading: '正在下载…',
+    invDrawerAmount: '开票金额',
+    invDrawerBuyer: '公司名称',
+    invDrawerDate: '开票日期',
+    invDrawerNote: '开票说明',
+    invDrawerNotePlaceholder: '货物或服务名称（可选）',
+    invDrawerBatch: '关联批次号',
+    invDrawerBatchPlaceholder: '选择采购批次号',
+    invDrawerRef: '关联单号',
+    invDrawerTaxId: '公司税号',
+    invDrawerType: '发票类型',
+    invSelectBatch: '选择批次',
+    invUploadFiles: '上传发票',
+    invUploadHint: '最多上传9张',
+    invEdit: '编辑',
+    invEditBank: '编辑银行信息',
+    invEditInfo: '编辑开票信息',
+    invEmail: '接收邮箱',
+    invEmpty: '暂无发票记录',
+    invExportToast: '导出记录功能',
+    invFilterAll: '全部',
+    invFilterDone: '已开具',
+    invFilterPending: '待开具',
+    invFilterRejected: '已作废',
+    invGeneral: '普通发票',
+    invGeneralFull: '增值税普通发票',
+    invHeaderInfo: '抬头信息',
+    invInfoTab: '开票信息',
+    invLabel: 'Invoice',
+    invOptional: '可选',
+    invPending: '待处理',
+    invReapply: '重新申请',
+    invReceipt: '收据',
+    invReceiveMethod: '收票方式',
+    invRecordsTab: '发票记录',
+    invSave: '保存',
+    invSaved: '保存成功',
+    invSettingsToast: '设置',
+    invShareToast: '分享发票',
+    invStatusDone: '已开具',
+    invStatusPending: '待开具',
+    invStatusRejected: '已作废',
+    invSubmit: '提交申请',
+    invSubmitDone: '申请已提交，预计1-3个工作日开具',
+    invTaxAmount: '含税金额',
+    invTips: '开票信息将自动填入申请表单，确保税号准确以免开具失败。',
+    invTitle: '开票管理中心',
+    invTotalAmount: '开票总额',
+    invTotalCount: '累计开票',
+    invTypePref: '发票类型偏好',
+    invUrge: '催一下',
+    invVatSpecial: '增值税专票',
+    invVatSpecialFull: '增值税专用发票',
     issueDividend: '发起分红',
     issueProportional: '发起比例分红',
     janitor: '打杂',
@@ -206,12 +270,16 @@ const I18N: Record<string, Record<string, string>> = {
     monthProfit: '本月利润',
     monthlyProfit: '月度利润',
     monthlyTrend: '月度收支趋势',
+    dailyTrend: '每日收支趋势',
+    chartSwitchMonth: '月',
+    chartSwitchDay: '日',
     nameJiang: '江宽',
     nameLan: '蓝柳富',
     nameZhang: '张安武',
     newEmail: '新邮箱',
     newPassword: '新密码',
     noDividendRecords: '暂无分红记录',
+    noExpenseRecords: '暂无支出记录',
     noUsers: '暂无用户',
     normalStatus: '正常',
     noRecords: '暂无记录',
@@ -376,6 +444,7 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: '超时时间',
     shangouWaimai: '闪购外卖',
     share: '分享',
+    shareTo: '已分享至 {label}',
     shareCalcResult: '穿透股权计算结果：',
     shareFailed: '分享失败',
     shareLink: '分享链接',
@@ -414,6 +483,7 @@ const I18N: Record<string, Record<string, string>> = {
     tabRevenue: '营业',
     tapForDetail: '点击卡片查看详情',
     themeLabel: '主题',
+    themePicker: '主题方案',
     totalRecords: '共 {n} 条数据',
     totalUsers: '共 {n} 个用户',
     transactions: '交易记录',
@@ -498,6 +568,7 @@ const I18N: Record<string, Record<string, string>> = {
     chartSwitchHint: '點擊切換視圖',
     chartSwitchPie: '餅圖',
     chartXAxis: '月份',
+    chartXAxisDay: '每日',
     chartYAxis: '金額（元）',
     chooseImage: '選擇圖片',
     clear: '清空',
@@ -560,6 +631,7 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundOnly: '第{n}次分紅',
     done: '完成',
     downloadPdf: '下載PDF',
+    downloadImage: '下載圖片',
     editBg: '編輯背景圖',
     editCover: '更換封面',
     edit: '編輯',
@@ -593,6 +665,7 @@ const I18N: Record<string, Record<string, string>> = {
     expDate: '日期',
     expense: '支出',
     expenseBreakdown: '支出分類佔比',
+    expenseBreakdownOfMonth: '月支出分類佔比',
     expenseCategory: '支出分類',
     expenseDate: '支出日期',
     createdAt: '創建時間',
@@ -629,6 +702,66 @@ const I18N: Record<string, Record<string, string>> = {
     initialInvest: '初始出資',
     invest: '出資',
     investComplete: '出資完結',
+    invApply: '申請開票',
+    invApplyAmount: '申請金額',
+    invAutoFilled: '已自動填入',
+    invBankInfo: '銀行信息',
+    invCenter: '發票管理中心',
+    invContact: '聯繫開票方',
+    invDownload: '下載',
+    invDownloading: '正在下載…',
+    invDrawerAmount: '開票金額',
+    invDrawerBuyer: '公司名稱',
+    invDrawerDate: '開票日期',
+    invDrawerNote: '開票說明',
+    invDrawerNotePlaceholder: '貨物或服務名稱（可選）',
+    invDrawerBatch: '關聯批次號',
+    invDrawerBatchPlaceholder: '選擇採購批次號',
+    invDrawerRef: '關聯單號',
+    invDrawerTaxId: '公司稅號',
+    invDrawerType: '發票類型',
+    invSelectBatch: '選擇批次',
+    invUploadFiles: '上傳發票',
+    invUploadHint: '最多上傳9張',
+    invEdit: '編輯',
+    invEditBank: '編輯銀行信息',
+    invEditInfo: '編輯開票信息',
+    invEmail: '接收郵箱',
+    invEmpty: '暫無發票記錄',
+    invExportToast: '導出記錄功能',
+    invFilterAll: '全部',
+    invFilterDone: '已開具',
+    invFilterPending: '待開具',
+    invFilterRejected: '已作廢',
+    invGeneral: '普通發票',
+    invGeneralFull: '增值稅普通發票',
+    invHeaderInfo: '抬頭信息',
+    invInfoTab: '開票信息',
+    invLabel: 'Invoice',
+    invOptional: '可選',
+    invPending: '待處理',
+    invReapply: '重新申請',
+    invReceipt: '收據',
+    invReceiveMethod: '收票方式',
+    invRecordsTab: '發票記錄',
+    invSave: '保存',
+    invSaved: '保存成功',
+    invSettingsToast: '設置',
+    invShareToast: '分享發票',
+    invStatusDone: '已開具',
+    invStatusPending: '待開具',
+    invStatusRejected: '已作廢',
+    invSubmit: '提交申請',
+    invSubmitDone: '申請已提交，預計1-3個工作日開具',
+    invTaxAmount: '含稅金額',
+    invTips: '開票信息將自動填入申請表單，確保稅號準確以免開具失敗。',
+    invTitle: '開票管理中心',
+    invTotalAmount: '開票總額',
+    invTotalCount: '累計開票',
+    invTypePref: '發票類型偏好',
+    invUrge: '催一下',
+    invVatSpecial: '增值稅專票',
+    invVatSpecialFull: '增值稅專用發票',
     issueDividend: '發起分紅',
     issueProportional: '發起比例分紅',
     janitor: '打雜',
@@ -657,6 +790,9 @@ const I18N: Record<string, Record<string, string>> = {
     monthProfit: '本月利潤',
     monthlyProfit: '月度利潤',
     monthlyTrend: '月度收支趨勢',
+    dailyTrend: '每日收支趨勢',
+    chartSwitchMonth: '月',
+    chartSwitchDay: '日',
     nameJiang: '江寬',
     nameLan: '藍柳富',
     nameZhang: '張安武',
@@ -828,6 +964,7 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: '超時時間',
     shangouWaimai: '閃購外賣',
     share: '分享',
+    shareTo: '已分享至 {label}',
     shareCalcResult: '穿透股權計算結果：',
     shareFailed: '分享失敗',
     shareLink: '分享連結',
@@ -913,7 +1050,7 @@ const I18N: Record<string, Record<string, string>> = {
     addImage: 'Add',
     additional: 'Additional Capital',
     all: 'All',
-    allDividendRecords: '" all dividend records',
+    allDividendRecords: '」 all dividend records',
     amount: 'Amount',
     amountLabel: 'Amount (¥)',
     refundAmount: 'Refund Amount (¥)',
@@ -951,6 +1088,7 @@ const I18N: Record<string, Record<string, string>> = {
     chartSwitchHint: 'Tap to switch',
     chartSwitchPie: 'Pie Chart',
     chartXAxis: 'Month',
+    chartXAxisDay: 'Daily',
     chartYAxis: 'Amount (¥)',
     chooseImage: 'Choose Image',
     clear: 'Clear',
@@ -958,7 +1096,7 @@ const I18N: Record<string, Record<string, string>> = {
     last7Days: 'Last 7 days',
     last30Days: 'Last 30 days',
     last3Months: 'Last 3 months',
-    monthUnit: '',
+    monthUnit: 'mo',
     normalUser: 'User',
     confirm: 'Confirm',
     confirmDelete: 'Confirm delete?',
@@ -1013,6 +1151,7 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundOnly: 'Dividend #{n}',
     done: 'Done',
     downloadPdf: 'Download PDF',
+    downloadImage: 'Download Image',
     edit: 'Edit',
     editBg: 'Edit Background',
     editCover: 'Change Cover',
@@ -1046,6 +1185,7 @@ const I18N: Record<string, Record<string, string>> = {
     expDate: 'Date',
     expense: 'Expense',
     expenseBreakdown: 'Expense Breakdown',
+    expenseBreakdownOfMonth: ' Expense Breakdown',
     expenseCategory: 'Category',
     expenseDate: 'Expense Date',
     createdAt: 'Created At',
@@ -1082,6 +1222,66 @@ const I18N: Record<string, Record<string, string>> = {
     initialInvest: 'Initial Capital',
     invest: 'Capital',
     investComplete: 'Paid Up',
+    invApply: 'Apply Invoice',
+    invApplyAmount: 'Apply Amount',
+    invAutoFilled: 'Auto-filled',
+    invBankInfo: 'Bank Info',
+    invCenter: 'Invoice Center',
+    invContact: 'Contact Issuer',
+    invDownload: 'Download',
+    invDownloading: 'Downloading…',
+    invDrawerAmount: 'Invoice Amount',
+    invDrawerBuyer: 'Company Name',
+    invDrawerDate: 'Invoice Date',
+    invDrawerNote: 'Description',
+    invDrawerNotePlaceholder: 'Goods/service name (optional)',
+    invDrawerBatch: 'Batch Ref',
+    invDrawerBatchPlaceholder: 'Select procurement batch',
+    invDrawerRef: 'Ref No.',
+    invDrawerTaxId: 'Company Tax ID',
+    invDrawerType: 'Invoice Type',
+    invSelectBatch: 'Select Batch',
+    invUploadFiles: 'Upload Invoices',
+    invUploadHint: 'Max 9 files',
+    invEdit: 'Edit',
+    invEditBank: 'Edit Bank Info',
+    invEditInfo: 'Edit Invoice Info',
+    invEmail: 'Receiving Email',
+    invEmpty: 'No invoice records',
+    invExportToast: 'Export records',
+    invFilterAll: 'All',
+    invFilterDone: 'Issued',
+    invFilterPending: 'Pending',
+    invFilterRejected: 'Voided',
+    invGeneral: 'General Invoice',
+    invGeneralFull: 'VAT General Invoice',
+    invHeaderInfo: 'Header Info',
+    invInfoTab: 'Invoice Info',
+    invLabel: 'Invoice',
+    invOptional: 'Optional',
+    invPending: 'Pending',
+    invReapply: 'Reapply',
+    invReceipt: 'Receipt',
+    invReceiveMethod: 'Receive Method',
+    invRecordsTab: 'Records',
+    invSave: 'Save',
+    invSaved: 'Saved',
+    invSettingsToast: 'Settings',
+    invShareToast: 'Share Invoice',
+    invStatusDone: 'Issued',
+    invStatusPending: 'Pending',
+    invStatusRejected: 'Voided',
+    invSubmit: 'Submit',
+    invSubmitDone: 'Submitted, estimated 1-3 business days',
+    invTaxAmount: 'Tax-incl. Amount',
+    invTips: 'Invoice info will auto-fill the application form. Ensure tax ID is correct.',
+    invTitle: 'Invoice Management',
+    invTotalAmount: 'Total Amount',
+    invTotalCount: 'Total Invoices',
+    invTypePref: 'Invoice Type Preference',
+    invUrge: 'Urge',
+    invVatSpecial: 'VAT Special',
+    invVatSpecialFull: 'VAT Special Invoice',
     issueDividend: 'Issue Dividend',
     issueProportional: 'Issue Proportional Dividend',
     janitor: 'Helper',
@@ -1110,6 +1310,9 @@ const I18N: Record<string, Record<string, string>> = {
     monthProfit: 'Month Profit',
     monthlyProfit: 'Monthly Profit',
     monthlyTrend: 'Monthly Trend',
+    dailyTrend: 'Daily Trend',
+    chartSwitchMonth: 'Month',
+    chartSwitchDay: 'Day',
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
     nameZhang: 'Zhang Anwu',
@@ -1281,6 +1484,7 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: 'Session timeout',
     shangouWaimai: 'Flash Waimai',
     share: 'Share',
+    shareTo: 'Shared to {label}',
     shareCalcResult: 'Share calculation result:',
     shareFailed: 'Share failed',
     shareLink: 'Share link',
@@ -1357,7 +1561,7 @@ const I18N: Record<string, Record<string, string>> = {
     verifyNewWrongEmail: 'Wrong email address? ',
     verifying: 'Verifying...',
     wages: 'Wages',
-    willDelete: 'Will delete "',
+    willDelete: 'Will delete 「',
   },
 };
 
@@ -1405,6 +1609,7 @@ export type I18nKey =
   | 'chartSwitchHint'
   | 'chartSwitchPie'
   | 'chartXAxis'
+  | 'chartXAxisDay'
   | 'chartYAxis'
   | 'chooseImage'
   | 'clear'
@@ -1462,6 +1667,7 @@ export type I18nKey =
   | 'dividendRoundOnly'
   | 'done'
   | 'downloadPdf'
+  | 'downloadImage'
   | 'editBg'
   | 'editCover'
   | 'editProfile'
@@ -1499,6 +1705,7 @@ export type I18nKey =
   | 'expUpdated'
   | 'expense'
   | 'expenseBreakdown'
+  | 'expenseBreakdownOfMonth'
   | 'expenseCategory'
   | 'expenseDate'
   | 'expenseHistory'
@@ -1530,6 +1737,66 @@ export type I18nKey =
   | 'initialInvest'
   | 'invest'
   | 'investComplete'
+  | 'invApply'
+  | 'invApplyAmount'
+  | 'invAutoFilled'
+  | 'invBankInfo'
+  | 'invCenter'
+  | 'invContact'
+  | 'invDownload'
+  | 'invDownloading'
+  | 'invDrawerAmount'
+  | 'invDrawerBatch'
+  | 'invDrawerBatchPlaceholder'
+  | 'invDrawerBuyer'
+  | 'invDrawerDate'
+  | 'invDrawerNote'
+  | 'invDrawerNotePlaceholder'
+  | 'invDrawerRef'
+  | 'invDrawerTaxId'
+  | 'invDrawerType'
+  | 'invEdit'
+  | 'invEditBank'
+  | 'invEditInfo'
+  | 'invEmail'
+  | 'invEmpty'
+  | 'invExportToast'
+  | 'invFilterAll'
+  | 'invFilterDone'
+  | 'invFilterPending'
+  | 'invFilterRejected'
+  | 'invGeneral'
+  | 'invGeneralFull'
+  | 'invHeaderInfo'
+  | 'invInfoTab'
+  | 'invLabel'
+  | 'invOptional'
+  | 'invPending'
+  | 'invReapply'
+  | 'invReceipt'
+  | 'invReceiveMethod'
+  | 'invRecordsTab'
+  | 'invSave'
+  | 'invSaved'
+  | 'invSettingsToast'
+  | 'invShareToast'
+  | 'invStatusDone'
+  | 'invStatusPending'
+  | 'invStatusRejected'
+  | 'invSelectBatch'
+  | 'invSubmit'
+  | 'invSubmitDone'
+  | 'invTaxAmount'
+  | 'invTips'
+  | 'invTitle'
+  | 'invTotalAmount'
+  | 'invTotalCount'
+  | 'invTypePref'
+  | 'invUrge'
+  | 'invUploadFiles'
+  | 'invUploadHint'
+  | 'invVatSpecial'
+  | 'invVatSpecialFull'
   | 'issueDividend'
   | 'issueProportional'
   | 'janitor'
@@ -1558,6 +1825,9 @@ export type I18nKey =
   | 'monthProfit'
   | 'monthlyProfit'
   | 'monthlyTrend'
+  | 'dailyTrend'
+  | 'chartSwitchMonth'
+  | 'chartSwitchDay'
   | 'nameJiang'
   | 'nameLan'
   | 'nameZhang'
@@ -1663,7 +1933,7 @@ export type I18nKey =
   | 'recordedBy'
   | 'recrop'
   | 'register'
-  | 'invoiceTitle' | 'companyName' | 'taxId' | 'bankName' | 'bankAccount' | 'addressPhone' | 'companyPhone' | 'invoiceSave' | 'invoiceSaving' | 'invoiceSaved'
+  | 'invoiceTitle' | 'invHeaderInfo' | 'invBankInfo' | 'invReceiveMethod' | 'companyName' | 'taxId' | 'bankName' | 'bankAccount' | 'addressPhone' | 'companyPhone' | 'invoiceSave' | 'invoiceSaving' | 'invoiceSaved'
   | 'registerBtn'
   | 'rememberMe'
   | 'rent'
@@ -1721,6 +1991,7 @@ export type I18nKey =
   | 'sessionTimeoutLabel'
   | 'shangouWaimai'
   | 'share'
+  | 'shareTo'
   | 'shareCalcResult'
   | 'shareFailed'
   | 'shareLink'

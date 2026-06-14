@@ -1,11 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { createPortal } from 'react-dom';
 import { useTheme, ThemeColors, withAlpha, FONTS } from '../theme';
 import { t } from '../i18n';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalCardAnimation } from '../sharedStyles';
 import ThemePicker from './ThemePicker';
+import CloseButton from './CloseButton';
 import BgCropModal from './BgCropModal';
+import { useEffect, useRef, useState } from 'react';
 
 interface ThemePickerModalProps {
   visible: boolean;
@@ -41,7 +43,6 @@ function getStyles(colors: ThemeColors) {
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     },
     title: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
-    closeBtn: { ...modalClose },
     body: { padding: 24 },
     hint: { fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center' as any },
     btnRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
@@ -129,9 +130,7 @@ export default function ThemePickerModal({
       <Animated.View style={[styles.card as any, { transform: [{ translateY: slide }] }]}>
         <View style={styles.header}>
           <Text style={styles.title}>{showCoverTools ? t('bgSettings') : (t('themeLabel') || '主题')}</Text>
-          <TouchableOpacity onPress={handleClose}>
-            <Text style={styles.closeBtn}>✕</Text>
-          </TouchableOpacity>
+          <CloseButton onPress={handleClose} />
         </View>
         <View style={styles.body}>
 

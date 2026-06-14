@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { THEMES, DEFAULT_THEME_ID, getThemeKey, ThemeColors, withAlpha, FONTS } from '../theme';
 import { t } from '../i18n';
 import { onSessionKicked } from '../api/client';
 import ModalOverlay from './ModalOverlay';
+import CloseButton from './CloseButton';
+import { useEffect, useState } from 'react';
 
 /**
  * Read the per-user theme id from localStorage and resolve it to
@@ -76,9 +77,7 @@ export default function SessionKickedModal() {
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('sessionKickedTitle') || '账号已退出'}</Text>
-          <TouchableOpacity onPress={handleClose}>
-            <Text style={styles.closeBtn}>✕</Text>
-          </TouchableOpacity>
+          <CloseButton onPress={handleClose} />
         </View>
         <View style={styles.body}>
           <View style={styles.warningBox}>
@@ -106,7 +105,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   title: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
-  closeBtn: { fontSize: 18, color: c.surface, fontWeight: '300' },
   body: { padding: 24, alignItems: 'center', gap: 18 },
   warningBox: {
     backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12,

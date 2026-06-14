@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 
@@ -10,6 +9,7 @@ interface ButtonPairProps {
   rightLabel: string;
   rightOnPress?: () => void;
   rightDisabled?: boolean;
+  rightLoading?: boolean;
 }
 
 export default function ButtonPair({
@@ -19,6 +19,7 @@ export default function ButtonPair({
   rightLabel,
   rightOnPress,
   rightDisabled = false,
+  rightLoading = false,
 }: ButtonPairProps) {
   const { colors: c } = useTheme();
   const st = getStyles(c);
@@ -34,12 +35,16 @@ export default function ButtonPair({
         <Text style={st.leftText}>{leftLabel}</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={[st.right, rightDisabled && { opacity: 0.4 }]}
+        style={[st.right, (rightDisabled || rightLoading) && { opacity: 0.4 }]}
         onPress={rightOnPress}
-        disabled={rightDisabled}
+        disabled={rightDisabled || rightLoading}
         activeOpacity={0.8}
       >
-        <Text style={st.rightText}>{rightLabel}</Text>
+        {rightLoading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={st.rightText}>{rightLabel}</Text>
+        )}
       </TouchableOpacity>
     </View>
   );

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, ResponsiveContainer, Area, ComposedChart,
@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { t } from '../i18n';
 import { useTheme } from '../theme';
+import { useEffect, useState } from 'react';
 
 interface Props {
   months: string[];
@@ -14,6 +15,9 @@ interface Props {
   expense: number[];
   profit: number[];
   categories: Record<string, number>;
+  dailyDates?: string[];
+  dailyIncome?: number[];
+  dailyExpense?: number[];
 }
 
 // ── Category → fixed color mapping (by i18n zh-CN key) ──
@@ -89,9 +93,30 @@ const tooltipStyles = StyleSheet.create({
   },
 });
 
-export default function ChartsPanel({ months, income, expense, profit, categories }: Props) {
+// ── SVG icons for month/day toggle ──
+const MonthIcon = ({ size, color }: { size: number; color: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="3" y="4" width="18" height="18" rx="2" stroke={color} strokeWidth="1.5" />
+    <Path d="M3 10h18" stroke={color} strokeWidth="1.5" />
+    <Path d="M8 2v4M16 2v4" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+  </Svg>
+);
+
+const DayIcon = ({ size, color }: { size: number; color: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx="12" cy="12" r="5" stroke={color} strokeWidth="1.5" />
+    <Path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+  </Svg>
+);
+
+export default function ChartsPanel({ months, income, expense, profit, categories, dailyDates, dailyIncome, dailyExpense }: Props) {
   const { colors } = useTheme();
   const [showBar, setShowBar] = useState(false);
+  const [showDaily, setShowDaily] = useState(false);
+  const hasDaily = !!(dailyDates?.length);
+
+  // Current month number from the data
+  const currentMonth = months.length > 0 ? parseInt(months[months.length - 1].slice(5), 10) : new Date().getMonth() + 1;
 
   // ── Kill recharts blue focus ring ──
   useEffect(() => {
@@ -113,6 +138,15 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
     [incomeLabel]: income[i],
     [expenseLabel]: expense[i],
   }));
+
+  // Daily line data (MM-DD labels)
+  const dailyLineData = hasDaily
+    ? (dailyDates || []).map((d, i) => ({
+    day: String(parseInt(d.slice(8), 10)),
+        [incomeLabel]: (dailyIncome || [])[i] || 0,
+        [expenseLabel]: (dailyExpense || [])[i] || 0,
+      }))
+    : [];
 
   const profitData = months.map((m, i) => ({
     month: m.slice(5),
@@ -139,17 +173,32 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
 
   return (
     <View style={{ gap: 12, marginTop: 0 }}>
-      {/* ── 月度收支趋势（双线） ── */}
+      {/* ── 收支趋势（月度 / 每日切换） ── */}
       <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
         <View style={chartStyles.titleRow}>
-          <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyTrend')}</Text>
-          <Text style={[chartStyles.axisHint, { color: tickColor }]}>{xLabel} · {yLabel}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={[chartStyles.title, { color: subTextColor }]}>{showDaily ? t('dailyTrend') : t('monthlyTrend')}</Text>
+            {hasDaily && (
+              <TouchableOpacity
+                onPress={() => setShowDaily(!showDaily)}
+                activeOpacity={0.7}
+                style={{
+                  paddingHorizontal: 8, paddingVertical: 3,
+                  borderRadius: 6,
+                  backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                }}
+              >
+                {showDaily ? <MonthIcon size={15} color={colors.primary} /> : <DayIcon size={15} color={colors.primary} />}
+              </TouchableOpacity>
+            )}
+          </View>
+          <Text style={[chartStyles.axisHint, { color: tickColor }]}>{(showDaily && hasDaily ? t('chartXAxisDay') : xLabel) + ' · ' + yLabel}</Text>
         </View>
         <View style={chartStyles.chartWrap}>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={lineData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <LineChart data={(showDaily && hasDaily ? dailyLineData as any : lineData) as any} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey={showDaily && hasDaily ? 'day' : 'month'} tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
               <Tooltip content={<ChartTooltip />} />
               <Legend
@@ -193,7 +242,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
       {donutData.length > 0 && (
         <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
           <View style={chartStyles.titleRow}>
-            <Text style={[chartStyles.title, { marginBottom: 0 }]}>{t('expenseBreakdown')}</Text>
+            <Text style={[chartStyles.title, { marginBottom: 0 }]}>{currentMonth + t('expenseBreakdownOfMonth')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={{ color: tickColor, fontSize: 10 }}>{t('chartSwitchHint')}</Text>
               <TouchableOpacity

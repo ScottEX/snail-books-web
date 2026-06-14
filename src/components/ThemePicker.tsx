@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme, withAlpha } from '../theme';
 import { FONTS } from '../theme';

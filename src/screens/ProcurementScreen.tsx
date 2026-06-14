@@ -1,20 +1,23 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   FlatList, Image, ActivityIndicator, StyleSheet, Animated, PanResponder
 } from 'react-native';
-import Svg, { Path, Rect, Circle } from 'react-native-svg';
-import { t, getLang } from '../i18n';
+import Svg, { Path, Circle, Line } from 'react-native-svg';
+import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalCardAnimation } from '../sharedStyles';
 import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import LoadingSpinner from '../components/LoadingSpinner';
+import TextField from '../components/TextField';
+import ButtonPair from '../components/ButtonPair';
+import CloseButton from '../components/CloseButton';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -23,6 +26,7 @@ import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import PlusIcon from '../components/icons/PlusIcon';
 import { fmtDecInput } from '../utils/numbers';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type SubTab = 'new' | 'history' | 'products';
 type PayMethod = 'payCash' | 'payWechat' | 'payAlipay';
@@ -206,7 +210,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   drawerHandle: { width: 36, height: 4, backgroundColor: withAlpha(c.textMain, 0.15), borderRadius: 2, alignSelf: 'center' as const, marginTop: 10 },
   drawerHead: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 12, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.08) },
   drawerHeadTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.textMain },
-  drawerClose: { width: 30, height: 30, borderRadius: 15, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const, justifyContent: 'center' as const },
+  drawerClose: { padding: 4 },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
   drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 18, paddingVertical: 10, paddingBottom: 24 },
@@ -263,14 +267,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     ...modalCardAnimation, },
   modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
-  modalClose: { ...modalClose, },
   modalBody: { padding: 24 },
   modalInput: { paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 10, outline: 'none' },
-  modalBtnRow: { flexDirection: 'row' as const, gap: 8, marginTop: 10, width: '100%' as any },
-  modalBtnCancel: { flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center' as const },
-  modalBtnCancelText: { fontSize: FONTS.sub.size, color: c.textSub, fontWeight: FONTS.sub.weight },
-  modalBtnConfirm: { flex: 1, paddingVertical: 13, borderRadius: 10, backgroundColor: c.primary, alignItems: 'center' as const },
-  modalBtnConfirmText: { fontSize: FONTS.subBold.size, color: c.surface, fontWeight: FONTS.subBold.weight },
   modalDeleteBox: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' as const },
   modalDeleteText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' as const },
 
@@ -1193,13 +1191,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{editingProduct ? t('procEditProduct') : t('procAddProduct')}</Text>
-              <TouchableOpacity onPress={() => closeSlideModal(() => setShowProductModal(false))}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => closeSlideModal(() => setShowProductModal(false))} />
             </View>
             <View style={styles.modalBody}>
-              <TextInput style={styles.modalInput} placeholder={t('procProductName')} placeholderTextColor={c.textSub} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
-              <TextInput style={styles.modalInput} placeholder={t('procProductSpec')} placeholderTextColor={c.textSub} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
+              <TextField placeholder={t('procProductName')} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
+              <TextField placeholder={t('procProductSpec')} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
               <View style={[styles.modalInput, { position: 'relative', justifyContent: 'center' }]}>
                 <Text style={{ fontSize: FONTS.sub.size, color: prodForm.supplier ? c.textMain : c.textSub }}>
                   {prodForm.supplier || t('procProductSupplier')}
@@ -1218,16 +1214,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   ))
                 )}
               </View>
-              <TextInput style={styles.modalInput} placeholder={t('procProductPrice')} placeholderTextColor={c.textSub} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="numeric" />
-              <TextInput style={styles.modalInput} placeholder={t('procProductNote')} placeholderTextColor={c.textSub} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
-              <View style={styles.modalBtnRow}>
-                <TouchableOpacity style={styles.modalBtnCancel} onPress={() => closeSlideModal(() => setShowProductModal(false))}>
-                  <Text style={styles.modalBtnCancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.modalBtnConfirm} onPress={saveProduct}>
-                  <Text style={styles.modalBtnConfirmText}>{t('procSubmit')}</Text>
-                </TouchableOpacity>
-              </View>
+              <TextField placeholder={t('procProductPrice')} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="numeric" />
+              <TextField placeholder={t('procProductNote')} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={() => closeSlideModal(() => setShowProductModal(false))}
+                rightLabel={t('procSubmit')}
+                rightOnPress={saveProduct}
+              />
             </View>
           </Animated.View>
         </Animated.View>
@@ -1268,7 +1262,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   : t('procConfirmOrder')}
               </Text>
               <TouchableOpacity style={styles.drawerClose} onPress={closeDrawer}>
-                <Text style={styles.drawerCloseText}>×</Text>
+                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.textSub} strokeWidth="2" fill="none">
+                  <Line x1="18" y1="6" x2="6" y2="18" />
+                  <Line x1="6" y1="6" x2="18" y2="18" />
+                </Svg>
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.drawerBody}>
@@ -1362,9 +1359,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   {itemsModalIsCart && itemsModalView === 'products' ? t('procAddProduct') : t('procOrderItems')}
                 </Text>
               </View>
-              <TouchableOpacity onPress={closeItemsModal}>
-                <Text style={styles.itemsModalClose}>✕</Text>
-              </TouchableOpacity>
+                <CloseButton onPress={closeItemsModal} />
             </View>
             {itemsModalIsCart && itemsModalView === 'products' ? (
               // ── Product picker view ──

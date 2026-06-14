@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SessionKickedModal from './src/components/SessionKickedModal';
@@ -112,16 +112,18 @@ export default function App() {
         {page === 'home' && (
           <HomeScreen
             onLogout={() => {
-              let savedLogin = '', rememberMe = '', lang = '';
+              let savedLogin = '', rememberMe = '', lang = '', apiBase = '';
               try {
                 savedLogin = localStorage.getItem('saved_login') || '';
                 rememberMe = localStorage.getItem('remember_me') || '';
                 lang = localStorage.getItem('lang') || '';
+                apiBase = localStorage.getItem('api_base') || '';
                 localStorage.clear();
                 sessionStorage.clear();
                 if (savedLogin) localStorage.setItem('saved_login', savedLogin);
                 if (rememberMe) localStorage.setItem('remember_me', rememberMe);
                 if (lang) localStorage.setItem('lang', lang);
+                if (apiBase) localStorage.setItem('api_base', apiBase);
               } catch {}
               // Clear history.state so stale sub-page stack isn't restored on next login
               try { history.replaceState(null, '', location.href); } catch {}

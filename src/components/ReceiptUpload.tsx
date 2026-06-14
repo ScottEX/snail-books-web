@@ -1,9 +1,10 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, Image, LayoutChangeEvent } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
+import { useCallback, useRef, useState } from 'react';
 
 interface Props {
   /** Existing image URLs (from server) */

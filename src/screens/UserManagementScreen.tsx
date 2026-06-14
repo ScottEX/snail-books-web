@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image } from 'react-native';
 import { createPortal } from 'react-dom';
-import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { t, getLang } from '../i18n';
 import { useServerDate } from '../hooks/useServerDate';
 import { historyHeader } from '../sharedStyles';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import EmptyState from '../components/EmptyState';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface UserItem {
   id: number;

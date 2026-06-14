@@ -184,7 +184,7 @@
 ### BUG-040 · 限流阈值实际 4 次（不是 5 次）
 - **接口**: 连续 6 次错误登录
 - **现象**: 第 4 次就 429，wait time 提示 8-13 分钟
-- **影响**: 实际是 4 次而非 DEVELOPMENT.md 说的 5 次
+- **影响**: 实际是 4 次而非 `../../DEVELOPMENT.md` 说的 5 次
 
 ### BUG-041 · DELETE 不存在 daily-revenue 返 200
 - **接口**: `DELETE /api/daily-revenue/999999`
@@ -196,7 +196,7 @@
 
 ### BUG-044 · SPA static 文件缓存策略
 - `app.py:91-95`: `if not no_cache: Cache-Control: public, max-age=31536000, immutable`
-- 现象: HTML 不缓存（no_cache=True 走 false 分支）—— 但 6/4 DEVELOPMENT.md 第 60 行说"bump sw.js cache"——但项目无 sw.js，service worker 注释过时
+- 现象: HTML 不缓存（no_cache=True 走 false 分支）—— 但 6/4 `../../DEVELOPMENT.md` 第 60 行说"bump sw.js cache"——但项目无 sw.js，service worker 注释过时
 - 影响: 误文档
 
 ### BUG-045 · `app.py:184` SPA fallback 优先级
@@ -229,7 +229,7 @@
 ### BUG-051 · LoginScreen password hint 与 DEVELOPER 规范文档冲突
 - **位置**: `src/screens/LoginScreen.tsx:384`
 - **实际显示**: "8位以上，含字母+数字+特殊字符"
-- **规范**: DEVELOPMENT.md 未明确
+- **规范**: `../../DEVELOPMENT.md` 未明确
 - **状态**: UI 与代码一致，但项目整体无统一密码规则文档
 
 ### BUG-052 · LoginScreen 无 OAuth / 第三方登录入口

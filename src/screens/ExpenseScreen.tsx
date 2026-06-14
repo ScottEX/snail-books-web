@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, useReducer } from 'react';
+import { useDisclosure } from '../hooks/useDisclosure';
+import { useDateField } from '../hooks/useDateField';
 import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
 } from 'react-native';
-import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
+import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import Toast from '../components/Toast';
@@ -13,21 +14,22 @@ import FadeInView from '../components/FadeInView';
 import DateErrorHint from '../components/DateErrorHint';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose, uploadReceiptStyles } from '../sharedStyles';
+import { modalCardAnimation, uploadReceiptStyles } from '../sharedStyles';
 import { fmtAmt as fmt } from '../utils/format';
-import { blockNeg, fmtDecInput, toDec2, toDec2Comma } from '../utils/numbers';
+import { blockNeg, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
 import DatePicker from '../components/DatePicker';
 import { useServerDate } from '../hooks/useServerDate';
 import CategoryChips from '../components/CategoryChips';
 import ButtonPair from '../components/ButtonPair';
+import CloseButton from '../components/CloseButton';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 /* ── helpers ── */
-const fmtInt = (n: number) => n.toLocaleString();
 // Date helpers replaced by useServerDate() hook (server time, not client)
 const fmtLocalDate = (s: string) => {
   const [y, m, d] = s.split('-');
@@ -154,19 +156,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   }, [activeTab]);
 
   /* ── 模块一：对账 ── */
-  const [recDate, setRecDate] = useState('');
-  useEffect(() => { if (sd.ready && recDate === '') setRecDate(sd.yesterday); }, [sd.ready, sd.yesterday, recDate]);
-  const [recDateKey, setRecDateKey] = useState(0);
-  const [recDateErr, setRecDateErr] = useState(0);
+  const recDate = useDateField({ sd, initial: '' });
   const [toast, setToast] = useState('');
   const [businessSummary, setBusinessSummary] = useState<any>({});
-  const [cardBalance, setCardBalance] = useState('');
-  const [cashBalance, setCashBalance] = useState('');
-  const [dineIn, setDineIn] = useState('');
-  const [meituan, setMeituan] = useState('');
-  const [flashSale, setFlashSale] = useState('');
-  const [tuan, setTuan] = useState('');
-  const [jd, setJd] = useState('');
+  const [reconForm, setReconForm] = useState({
+    cardBalance: '', cashBalance: '', dineIn: '', meituan: '',
+    flashSale: '', tuan: '', jd: '',
+  });
+  const updateRecon = (k: keyof typeof reconForm, v: string) =>
+    setReconForm(f => ({ ...f, [k]: v }));
+  const { cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd } = reconForm;
 
   const initReconValues = useRef({ card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' });
   const reconJustLoaded = useRef(false);
@@ -185,39 +184,39 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         const data = await api.getReconciliations(365);
         if (id !== reconLoadId.current) return; // stale
         if (!data || data.length === 0) {
-          setCardBalance(''); setCashBalance('');
-          setDineIn(''); setMeituan('');
-          setFlashSale(''); setTuan(''); setJd('');
+          updateRecon('cardBalance', ''); updateRecon('cashBalance', '');
+          updateRecon('dineIn', ''); updateRecon('meituan', '');
+          updateRecon('flashSale', ''); updateRecon('tuan', ''); updateRecon('jd', '');
           reconJustLoaded.current = true;
           return;
         }
         const last = data[0]; // most recent record
-        const match = data.find((r: any) => r.bill_date === recDate);
+        const match = data.find((r: any) => r.bill_date === recDate.value);
         if (match) {
-          setCardBalance(toDec2(match.card_balance));
-          setCashBalance(toDec2(match.cash_balance));
-          setDineIn(toDec2(match.dine_in));
-          setMeituan(toDec2(match.meituan));
-          setFlashSale(toDec2(match.flash_sale));
-          setTuan(toDec2(match.tuan));
-          setJd(toDec2(match.jd));
-        } else if (recDate >= (last.bill_date || '')) {
-          setCardBalance(toDec2(last.card_balance));
-          setCashBalance(toDec2(last.cash_balance));
-          setDineIn(toDec2(last.dine_in));
-          setMeituan(toDec2(last.meituan));
-          setFlashSale(toDec2(last.flash_sale));
-          setTuan(toDec2(last.tuan));
-          setJd(toDec2(last.jd));
+          updateRecon('cardBalance', toDec2(match.card_balance));
+          updateRecon('cashBalance', toDec2(match.cash_balance));
+          updateRecon('dineIn', toDec2(match.dine_in));
+          updateRecon('meituan', toDec2(match.meituan));
+          updateRecon('flashSale', toDec2(match.flash_sale));
+          updateRecon('tuan', toDec2(match.tuan));
+          updateRecon('jd', toDec2(match.jd));
+        } else if (recDate.value >= (last.bill_date || '')) {
+          updateRecon('cardBalance', toDec2(last.card_balance));
+          updateRecon('cashBalance', toDec2(last.cash_balance));
+          updateRecon('dineIn', toDec2(last.dine_in));
+          updateRecon('meituan', toDec2(last.meituan));
+          updateRecon('flashSale', toDec2(last.flash_sale));
+          updateRecon('tuan', toDec2(last.tuan));
+          updateRecon('jd', toDec2(last.jd));
         } else {
-          setCardBalance(''); setCashBalance('');
-          setDineIn(''); setMeituan('');
-          setFlashSale(''); setTuan(''); setJd('');
+          updateRecon('cardBalance', ''); updateRecon('cashBalance', '');
+          updateRecon('dineIn', ''); updateRecon('meituan', '');
+          updateRecon('flashSale', ''); updateRecon('tuan', ''); updateRecon('jd', '');
         }
         reconJustLoaded.current = true;
       } catch { setToast(t('toastLoadFailed')); }
     })();
-  }, [recDate]);
+  }, [recDate.value]);
 
   // Capture initial values after data load settles
   useEffect(() => {
@@ -230,11 +229,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
-    if (sd.ready && sd.isFuture(recDate)) { setToast(t('errDateFuture')); return; }
+    if (sd.ready && sd.isFuture(recDate.value)) { setToast(t('errDateFuture')); return; }
     try {
       const username = getCurrentUser();
       await api.createReconciliation({
-        bill_date: recDate,
+        bill_date: recDate.value,
         card_balance: toNum(cardBalance),
         cash_balance: toNum(cashBalance),
         dine_in: toNum(dineIn),
@@ -247,7 +246,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       setToast(t('reconComplete'));
       onReconHistory?.();
     } catch { setToast(t('toastSubmitFailed')); }
-  }, [recDate, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
+  }, [recDate.value, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
 
   const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
   const realTotal = toNum(cardBalance) + toNum(cashBalance) + channelTotal;
@@ -270,18 +269,18 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const feeMonthInited = useRef(false);
   const feeLoadId = useRef(0);  // guard against stale async responses
   useEffect(() => { if (sd.ready && !feeMonthInited.current) { feeMonthInited.current = true; setFeeMonth({ year: sd.year, month: sd.month }); } }, [sd.ready, sd.year, sd.month]);
-  const [showFeeMonthPicker, setShowFeeMonthPicker] = useState(false);
-  const [showFeeSheet, setShowFeeSheet] = useState(false);
-  const [showFeeHistory, setShowFeeHistory] = useState(false);
+  const feeMonthPicker = useDisclosure(false);
+  const feeSheet = useDisclosure(false);
+  const feeHistory = useDisclosure(false);
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
-  const [showFeeHistoryFilterPicker, setShowFeeHistoryFilterPicker] = useState(false);
-  const [feeEntryDate, setFeeEntryDate] = useState('');
-  useEffect(() => { if (sd.ready && feeEntryDate === '') setFeeEntryDate(sd.today); }, [sd.ready, sd.today, feeEntryDate]);
-  const [feeDateErr, setFeeDateErr] = useState(0);
-  const [feeMc, setFeeMc] = useState('');
-  const [feeMw, setFeeMw] = useState('');
-  const [feeEw, setFeeEw] = useState('');
-  const [feeMt, setFeeMt] = useState('');
+  const feeHistoryFilterPicker = useDisclosure(false);
+  const feeDate = useDateField({ sd, initial: sd.today });
+  const [feeForm, setFeeForm] = useState({
+    feeMc: '', feeMw: '', feeEw: '', feeMt: '',
+  });
+  const updateFee = (k: keyof typeof feeForm, v: string) =>
+    setFeeForm(f => ({ ...f, [k]: v }));
+  const { feeMc, feeMw, feeEw, feeMt } = feeForm;
   const [savingFee, setSavingFee] = useState(false);
   const pickerTriggerRef = useRef<any>(null);
   const feeHistoryFilterTriggerRef = useRef<any>(null);
@@ -310,21 +309,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
-    if (sd.isFuture(feeEntryDate)) { setToast(t('errDateFuture')); return; }
+    if (sd.isFuture(feeDate.value)) { setToast(t('errDateFuture')); return; }
     const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
     if (mc + mw + ew + mt === 0) { setToast(t('atLeastOneFee')); return; }
     setSavingFee(true);
     try {
       const r = await api.addPlatformFeeEntry({
         year: feeMonth.year, month: feeMonth.month,
-        entry_date: feeEntryDate,
+        entry_date: feeDate.value,
         meituan_cashier: mc, meituan_waimai: mw,
         shangou_waimai: ew, meituan_tuan: mt,
       });
       if (r?.status === 'ok') {
         setFeeData(r?.data);
-        setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
-        setShowFeeSheet(false);
+        setFeeForm({ feeMc: '', feeMw: '', feeEw: '', feeMt: '' });
+        feeSheet.hide();
         // Reload all months to keep totals accurate
         api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : [])).catch(() => {});
       } else {
@@ -345,15 +344,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     payMethod, setPayMethod,
     expNote, setExpNote,
     expImages, setExpImages,
-    uploadingImg,
-    expenses, expCatTotals,
+    expCatTotals,
     loadingExp,
     showExpConfirm, setShowExpConfirm,
-    handleAddExpense, loadExpenses,
+    handleAddExpense,
     handleImageSelect, removeImage,
-    handleExpDateChange, resetForm,
     isAmountInvalid,
-    fmtDecInput, fmtRefundInput, toDec2Comma,
+    fmtDecInput, fmtRefundInput,
     isRefund, setIsRefund,
   } = useExpenseForm({
     onExpenseHistory,
@@ -368,9 +365,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   // Sync uncontrolled date inputs when state changes externally
   const recDateInputRef = useRef<HTMLInputElement>(null);
   const feeDateInputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (recDateInputRef.current) recDateInputRef.current.value = recDate; }, [recDate]);
+  useEffect(() => { if (recDateInputRef.current) recDateInputRef.current.value = recDate.value; }, [recDate.value]);
   useEffect(() => { if (expDateInputRef.current) expDateInputRef.current.value = expDate; }, [expDate]);
-  useEffect(() => { if (feeDateInputRef.current) feeDateInputRef.current.value = feeEntryDate; }, [feeEntryDate]);
+  useEffect(() => { if (feeDateInputRef.current) feeDateInputRef.current.value = feeDate.value; }, [feeDate.value]);
 
   /* ── 卡片摘要数据 ── */
   const feeTotal = feeMonth === 'all'
@@ -440,21 +437,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           {/* @ts-ignore */}
                           <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-                            color: (() => {
-                              if (diff > 0.005) return colors.primary;
-                              if (diff < -0.005) return colors.danger;
-                              return colors.textMain;
-                            })(),
+                            color: (Math.abs(diff) < 0.005 ? colors.textMain : colors.primary),
                             textShadow: '0 1px 3px rgba(0,0,0,0.1)',
                           } as any}>{diff >= 0 ? '+' : '-'}¥</Text>
                           {/* @ts-ignore */}
                           <Text style={{
                             fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
-                            color: (() => {
-                              if (diff > 0.005) return colors.primary;
-                              if (diff < -0.005) return colors.danger;
-                              return colors.textMain;
-                            })(),
+                            color: (Math.abs(diff) < 0.005 ? colors.textMain : colors.primary),
                             textShadow: '0 1px 3px rgba(0,0,0,0.1)',
                           } as any}>{toDec2Comma(Math.abs(diff))}</Text>
                         </View>
@@ -586,7 +575,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   ref={pickerTriggerRef}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 2, position: 'relative', paddingTop: 2 }}
                   onPress={() => {
-                    if (!showFeeMonthPicker) {
+                    if (!feeMonthPicker.open) {
                       // Measure trigger position for dropdown placement
                       if (pickerTriggerRef.current && typeof (pickerTriggerRef.current as any).measure === 'function') {
                         (pickerTriggerRef.current as any).measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
@@ -595,10 +584,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       }
                       pickerAnim.setValue(0);
                       Animated.spring(pickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                      setShowFeeMonthPicker(true);
+                      feeMonthPicker.show();
                     } else {
                       Animated.timing(pickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-                        setShowFeeMonthPicker(false);
+                        feeMonthPicker.hide();
                       });
                     }
                   }}
@@ -617,10 +606,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
                 onPress={() => {
                   if (feeMonth === 'all') {
-                    setShowFeeHistory(true); setFeeHistoryFilter('all');
+                    feeHistory.show(); setFeeHistoryFilter('all');
                   } else {
-                    setFeeMc(''); setFeeMw(''); setFeeEw(''); setFeeMt('');
-                    setFeeDateErr(0); loadFeeData(); setShowFeeSheet(true);
+                    setFeeForm({ feeMc: '', feeMw: '', feeEw: '', feeMt: '' });
+                    feeDate.setError(0); loadFeeData(); feeSheet.show();
                   }
                 }}
                 activeOpacity={0.7}
@@ -669,13 +658,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
               >
                 <DatePicker
-                  date={recDate}
-                  onChange={setRecDate}
+                  date={recDate.value}
+                  onChange={recDate.setValue}
                   max={sd.today}
-                  onFutureDate={() => setRecDateErr(c => c + 1)}
+                  onFutureDate={() => recDate.setError(Date.now())}
                   displayDate={(() => {
                     const l = getLang();
-                    const [y, m, d] = recDate.split('-');
+                    const [y, m, d] = recDate.value.split('-');
                     if (l.startsWith('en')) {
                       const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
                       return `${months[+m-1]} ${+d}, ${y}`;
@@ -688,22 +677,22 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 />
               </View>
             </View>
-            <DateErrorHint trigger={recDateErr} message={t('errDateFuture')} color={colors.danger} />
+            <DateErrorHint trigger={recDate.error} message={t('errDateFuture')} color={colors.danger} />
 
             <View style={st.row2}>
               <View style={st.inputGroup}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Rect x="2" y="4" width="20" height="16" rx="2"/><Path d="M2 10h20"/><Rect x="5" y="14" width="3" height="2" rx="0.5"/></Svg><Text style={st.inputLabel}>{t('cardBalance')}</Text></View>
                 <InputWithFocus inputStyle={st.input}
-                  value={cardBalance} onChangeText={(v: string) => setCardBalance(blockNeg(v))}
-                  onBlur={() => { if (cardBalance !== '') setCardBalance(toDec2(cardBalance)); }}
+                  value={cardBalance} onChangeText={(v: string) => updateRecon('cardBalance', blockNeg(v))}
+                  onBlur={() => { if (cardBalance !== '') updateRecon('cardBalance', toDec2(cardBalance)); }}
                   keyboardType="decimal-pad"
                   placeholder="0.00" placeholderTextColor={colors.textSub} />
               </View>
               <View style={st.inputGroup}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ transform: [{ translateY: -1 }] }}><Rect x="2" y="5" width="20" height="14" rx="2"/><Circle cx="12" cy="12" r="2.5"/><Path d="M18.5 9l-1 0M18.5 15l-1 0M5.5 9l1 0M5.5 15l1 0"/></Svg><Text style={st.inputLabel}>{t('cashBalance')}</Text></View>
                 <InputWithFocus inputStyle={st.input}
-                  value={cashBalance} onChangeText={(v: string) => setCashBalance(blockNeg(v))}
-                  onBlur={() => { if (cashBalance !== '') setCashBalance(toDec2(cashBalance)); }}
+                  value={cashBalance} onChangeText={(v: string) => updateRecon('cashBalance', blockNeg(v))}
+                  onBlur={() => { if (cashBalance !== '') updateRecon('cashBalance', toDec2(cashBalance)); }}
                   keyboardType="decimal-pad"
                   placeholder="0.00" placeholderTextColor={colors.textSub} />
               </View>
@@ -720,24 +709,24 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('dineIn')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={dineIn} onChangeText={(v: string) => setDineIn(blockNeg(v))}
-                    onBlur={() => { if (dineIn !== '') setDineIn(toDec2(dineIn)); }}
+                    value={dineIn} onChangeText={(v: string) => updateRecon('dineIn', blockNeg(v))}
+                    onBlur={() => { if (dineIn !== '') updateRecon('dineIn', toDec2(dineIn)); }}
                     keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('meituan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={meituan} onChangeText={(v: string) => setMeituan(blockNeg(v))}
-                    onBlur={() => { if (meituan !== '') setMeituan(toDec2(meituan)); }}
+                    value={meituan} onChangeText={(v: string) => updateRecon('meituan', blockNeg(v))}
+                    onBlur={() => { if (meituan !== '') updateRecon('meituan', toDec2(meituan)); }}
                     keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('flashSale')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={flashSale} onChangeText={(v: string) => setFlashSale(blockNeg(v))}
-                    onBlur={() => { if (flashSale !== '') setFlashSale(toDec2(flashSale)); }}
+                    value={flashSale} onChangeText={(v: string) => updateRecon('flashSale', blockNeg(v))}
+                    onBlur={() => { if (flashSale !== '') updateRecon('flashSale', toDec2(flashSale)); }}
                     keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
@@ -747,16 +736,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('jd')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={jd} onChangeText={(v: string) => setJd(blockNeg(v))}
-                    onBlur={() => { if (jd !== '') setJd(toDec2(jd)); }}
+                    value={jd} onChangeText={(v: string) => updateRecon('jd', blockNeg(v))}
+                    onBlur={() => { if (jd !== '') updateRecon('jd', toDec2(jd)); }}
                     keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.channelChip, { flex: 1 }]} activeOpacity={1}>
                   <Text style={st.chipLabel}>{t('tuan')}</Text>
                   <InputWithFocus inputStyle={st.chipInput}
-                    value={tuan} onChangeText={(v: string) => setTuan(blockNeg(v))}
-                    onBlur={() => { if (tuan !== '') setTuan(toDec2(tuan)); }}
+                    value={tuan} onChangeText={(v: string) => updateRecon('tuan', blockNeg(v))}
+                    onBlur={() => { if (tuan !== '') updateRecon('tuan', toDec2(tuan)); }}
                     keyboardType="decimal-pad"
                     placeholder="0.00" placeholderTextColor={colors.textSub} />
                 </TouchableOpacity>
@@ -868,22 +857,18 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('expConfirmTitle')}</Text>
-              <TouchableOpacity onPress={() => setShowExpConfirm(false)}>
-                <Text style={st.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => setShowExpConfirm(false)} />
             </View>
             <View style={{ padding: 20, gap: 16 }}>
               <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
                 {t('expConfirmMsg')}
               </Text>
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <TouchableOpacity style={st.modalCancelBtn} onPress={() => setShowExpConfirm(false)}>
-                  <Text style={st.modalCancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={st.modalBtn} onPress={() => { setShowExpConfirm(false); handleAddExpense(); }}>
-                  <Text style={st.modalBtnText}>{t('confirm')}</Text>
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={() => setShowExpConfirm(false)}
+                rightLabel={t('confirm')}
+                rightOnPress={() => { setShowExpConfirm(false); handleAddExpense(); }}
+              />
             </View>
           </View>
         </ModalOverlay>
@@ -893,33 +878,27 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
-              <TouchableOpacity onPress={hideToast}>
-                <Text style={st.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={hideToast} />
             </View>
             <View style={{ padding: 20, gap: 16 }}>
               <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
                 {t('jokeRecon')}
               </Text>
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <TouchableOpacity style={st.modalCancelBtn} onPress={hideToast}>
-                  <Text style={st.modalCancelText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={st.modalBtn} onPress={() => { hideToast(); submitRecon(); }}>
-                  <Text style={st.modalBtnText}>{t('confirm')}</Text>
-                </TouchableOpacity>
-              </View>
+              <ButtonPair
+                leftLabel={t('cancel')}
+                leftOnPress={hideToast}
+                rightLabel={t('confirm')}
+                rightOnPress={() => { hideToast(); submitRecon(); }}
+              />
             </View>
           </View>
         </ModalOverlay>
       {/* Platform fee entry bottom sheet */}
-        <ModalOverlay visible={showFeeSheet} onClose={() => setShowFeeSheet(false)}>
+        <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()}>
           <View style={[st.feeSheet, { maxWidth: 720 }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
-              <TouchableOpacity onPress={() => setShowFeeSheet(false)}>
-                <Text style={st.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => feeSheet.hide()} />
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
@@ -927,16 +906,16 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
                 <View>
                   <DatePicker
-                    date={feeEntryDate}
-                    onChange={setFeeEntryDate}
+                    date={feeDate.value}
+                    onChange={feeDate.setValue}
                     max={sd.today}
-                    onFutureDate={() => setFeeDateErr(c => c + 1)}
-                    displayDate={fmtLocalDate(feeEntryDate)}
+                    onFutureDate={() => feeDate.setError(Date.now())}
+                    displayDate={fmtLocalDate(feeDate.value)}
                     fontSize={FONTS.subBold.size}
                     showCalendarIcon
                     showChevron
                   />
-                  <DateErrorHint trigger={feeDateErr} message={t('errDateFuture')} color={colors.danger} />
+                  <DateErrorHint trigger={feeDate.error} message={t('errDateFuture')} color={colors.danger} />
                 </View>
               </View>
 
@@ -950,10 +929,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
               {/* Fee rows */}
               {([
-                { k: 'meituanCashier', cur: feeData?.meituan_cashier || 0, val: feeMc, set: setFeeMc },
-                { k: 'meituanWaimai', cur: feeData?.meituan_waimai || 0, val: feeMw, set: setFeeMw },
-                { k: 'shangouWaimai', cur: feeData?.shangou_waimai || 0, val: feeEw, set: setFeeEw },
-                { k: 'meituanTuan', cur: feeData?.meituan_tuan || 0, val: feeMt, set: setFeeMt },
+                { k: 'meituanCashier', cur: feeData?.meituan_cashier || 0, val: feeMc, set: (v: string) => updateFee('feeMc', v) },
+                { k: 'meituanWaimai', cur: feeData?.meituan_waimai || 0, val: feeMw, set: (v: string) => updateFee('feeMw', v) },
+                { k: 'shangouWaimai', cur: feeData?.shangou_waimai || 0, val: feeEw, set: (v: string) => updateFee('feeEw', v) },
+                { k: 'meituanTuan', cur: feeData?.meituan_tuan || 0, val: feeMt, set: (v: string) => updateFee('feeMt', v) },
               ] as const).map((row) => {
                 const inputNum = toNum(row.val);
                 return (
@@ -986,13 +965,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
 
       {/* Fee history bottom sheet — "全部" detail view */}
-        <ModalOverlay visible={showFeeHistory} onClose={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
+        <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }}>
           <View style={[st.feeSheet, { height: Dimensions.get('window').height * 0.75, width: '96%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
-              <TouchableOpacity onPress={() => { setShowFeeHistory(false); setFeeHistoryFilter('all'); }}>
-                <Text style={st.modalClose}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} />
             </View>
             {/* Month filter */}
             <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center' }}>
@@ -1000,22 +977,22 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 ref={feeHistoryFilterTriggerRef}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, position: 'relative' }}
                 onPress={() => {
-                  if (!showFeeHistoryFilterPicker) {
+                  if (!feeHistoryFilterPicker.open) {
                     if (feeHistoryFilterTriggerRef.current) {
                       (feeHistoryFilterTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
                         setFeeHistoryPickerPos({ top: y + 30, left: x });
                         feeHistoryPickerAnim.setValue(0);
                         Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                        setShowFeeHistoryFilterPicker(true);
+                        feeHistoryFilterPicker.show();
                       });
                     } else {
                       feeHistoryPickerAnim.setValue(0);
                       Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                      setShowFeeHistoryFilterPicker(true);
+                      feeHistoryFilterPicker.show();
                     }
                   } else {
                     Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-                      setShowFeeHistoryFilterPicker(false);
+                      feeHistoryFilterPicker.hide();
                     });
                   }
                 }}
@@ -1031,7 +1008,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
             <ScrollView style={{ flex: 1, paddingHorizontal: 12, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-              {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, idx: number) => {
+              {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, _idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
                   { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: colors.info },
@@ -1064,7 +1041,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
       {/* Month picker dropdown — animated spring popover */}
-      {showFeeMonthPicker && (
+      {feeMonthPicker.open && (
         <>
           {/* Animated backdrop */}
           <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: pickerAnim }}>
@@ -1072,7 +1049,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               style={{ flex: 1 }}
               activeOpacity={1}
               onPress={() => {
-                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
+                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeMonthPicker.hide());
               }}
             />
           </Animated.View>
@@ -1095,7 +1072,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeMonth('all');
-                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
+                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeMonthPicker.hide());
               }}
               activeOpacity={0.6}
             >
@@ -1110,7 +1087,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeMonth({ year: f.year, month: f.month });
-                    Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeMonthPicker(false));
+                    Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeMonthPicker.hide());
                   }}
                   activeOpacity={0.6}
                 >
@@ -1122,14 +1099,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </>
       )}
       {/* Fee history filter dropdown — animated to match platform fee picker */}
-      {showFeeHistoryFilterPicker && createPortal(
+      {feeHistoryFilterPicker.open && createPortal(
         <>
           <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: feeHistoryPickerAnim }}>
             <TouchableOpacity
               style={{ flex: 1 }}
               activeOpacity={1}
               onPress={() => {
-                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeHistoryFilterPicker.hide());
               }}
             />
           </Animated.View>
@@ -1152,7 +1129,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => {
                 setFeeHistoryFilter('all');
-                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeHistoryFilterPicker.hide());
               }}
               activeOpacity={0.6}
             >
@@ -1167,7 +1144,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
                   onPress={() => {
                     setFeeHistoryFilter({ year: f.year, month: f.month });
-                    Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => setShowFeeHistoryFilterPicker(false));
+                    Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeHistoryFilterPicker.hide());
                   }}
                   activeOpacity={0.6}
                 >
@@ -1469,17 +1446,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
-  modalClose: { ...modalClose, },
-  modalBtn: {
-    flex: 1, backgroundColor: colors.primary, borderRadius: 14,
-    paddingVertical: 10, alignItems: 'center',
-  },
-  modalBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface },
-  modalCancelBtn: {
-    flex: 1, backgroundColor: colors.bg, borderRadius: 14,
-    paddingVertical: 10, alignItems: 'center',
-  },
-  modalCancelText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub },
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
     backgroundColor: colors.surface,

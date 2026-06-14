@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput, Switch } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Defs, LinearGradient as SVGGradient, Stop, Rect } from 'react-native-svg';
@@ -7,7 +6,7 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalCardAnimation } from '../sharedStyles';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
@@ -15,9 +14,15 @@ import BackArrow from '../components/icons/BackArrow';
 import CameraIcon from '../components/icons/CameraIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import { useProfileForms } from './profile/useProfileForms';
+import { useSignatureForm } from './profile/useSignatureForm';
+import { useCoverCrop } from './profile/useCoverCrop';
+import { useAvatarCrop } from './profile/useAvatarCrop';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
+import CloseButton from '../components/CloseButton';
+import TextField from '../components/TextField';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 /* ========== MAIN SCREEN ========== */
 function ChevronRight({ color }: { color: string }) {
@@ -34,12 +39,26 @@ function ChevronRight({ color }: { color: string }) {
 export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange, onManageUsers, refreshKey }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void; onManageUsers?: () => void; refreshKey?: number }) {
   const { colors, theme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const [avatarKey, setAvatarKey] = useState(0);
-  const [coverUrl, setCoverUrl] = useState('');
-  const [coverKey, setCoverKey] = useState(0);
-  const [coverOpacity, setCoverOpacity] = useState(1);
-  const [coverUploading, setCoverUploading] = useState(false);
+  const {
+    avatarUrl, setAvatarUrl, avatarKey, setAvatarKey,
+    cropSrc, cropResult, showResult, cropMsg,
+    setCropSrc, setCropResult, setShowResult, setCropMsg,
+    cropImgRef, canvasRef, stageRef, guideRef,
+    handleAvatarSelect, confirmCrop, doUpload,
+    loadAvatar,
+    cropState, clampCrop, drawCrop,
+  } = useAvatarCrop(onAvatarChange);
+  const {
+    coverUrl, setCoverUrl, coverKey, setCoverKey,
+    coverOpacity, setCoverUploading, coverUploading,
+    coverCropSrc, coverCropResult, coverShowResult, coverCropMsg,
+    setCoverCropSrc, setCoverCropResult, setCoverShowResult, setCoverCropMsg,
+    coverInputRef, coverCropImgRef, coverCanvasRef, coverStageRef, coverGuideRef,
+    handleCoverSelect, coverConfirmCrop, coverDoUpload,
+    handleCoverOpacityChange, handleCoverReset,
+    loadCover,
+    coverCropState, coverClampCrop, coverDrawCrop,
+  } = useCoverCrop();
   const [toast, setToast] = useState('');
 
   // Pulled from LangContext — re-renders on LangContext value change
@@ -50,30 +69,27 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try { return getCurrentUser(); } catch { return ''; }
   }, []);
   const [email, setEmail] = useState('');
-  const [signature, setSignature] = useState('');
-  const [signatureEditing, setSignatureEditing] = useState(false);
-  const [signatureDraft, setSignatureDraft] = useState('');
+  const {
+    signature, setSignature,
+    signatureEditing, setSignatureEditing,
+    signatureDraft, setSignatureDraft,
+    handleSignatureSave, startEditing,
+  } = useSignatureForm();
   const [daysSince, setDaysSince] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
 
   const checkAdmin = async () => {
     try {
-      const resp = await fetch('/api/admin/check', { credentials: 'include' });
-      if (resp.ok) {
-        const data = await resp.json();
-        setIsAdmin(data.is_admin === true);
-      }
+      const data = await api.admin.check();
+      setIsAdmin(data.is_admin === true);
     } catch {}
   };
 
   const fetchUnreviewedCount = async () => {
     try {
-      const resp = await fetch('/api/admin/users/unreviewed-count', { credentials: 'include' });
-      if (resp.ok) {
-        const data = await resp.json();
-        setUnreviewedCount(data.count ?? 0);
-      }
+      const data = await api.admin.getUnreviewedCount();
+      setUnreviewedCount(data.count ?? 0);
     } catch {}
   };
 
@@ -81,12 +97,11 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     if (unreviewedCount === 0) return;
     setUnreviewedCount(0);
     try {
-      await fetch('/api/admin/users/mark-reviewed', { method: 'POST', credentials: 'include' });
+      await api.admin.markReviewed();
     } catch {}
   };
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const coverInputRef = useRef<HTMLInputElement>(null);
 
   // Modals
   const {
@@ -110,101 +125,38 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [sessionTimeoutHours, setSessionTimeoutHours] = useState(1);
   const authPrefsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Crop state
-  const [cropSrc, setCropSrc] = useState('');
-  const [cropResult, setCropResult] = useState('');
-  const [showResult, setShowResult] = useState(false);
-  const [cropMsg, setCropMsg] = useState('');
-  const cropImgRef = useRef<HTMLImageElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const stageRef = useRef<HTMLDivElement | null>(null);
-  const guideRef = useRef<HTMLDivElement | null>(null);
-  const cropState = useRef({
-    x: 0, y: 0, scale: 1, rotation: 0, flipX: false, minScale: 1, maxScale: 8,
-    cropSize: 160,
-    drag: { active: false, sx: 0, sy: 0, ox: 0, oy: 0 },
-    pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
-  });
 
-  // Cover crop state
-  const [coverCropSrc, setCoverCropSrc] = useState('');
-  const [coverCropResult, setCoverCropResult] = useState('');
-  const [coverShowResult, setCoverShowResult] = useState(false);
-  const [coverCropMsg, setCoverCropMsg] = useState('');
-  const coverCropImgRef = useRef<HTMLImageElement | null>(null);
-  const coverCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const coverStageRef = useRef<HTMLDivElement | null>(null);
-  const coverGuideRef = useRef<HTMLDivElement | null>(null);
-  const coverCropState = useRef({
-    x: 0, y: 0, scale: 1, rotation: 0, flipX: false, minScale: 1, maxScale: 8,
-    cropW: 320, cropH: 208, cropRatio: 260/375,
-    drag: { active: false, sx: 0, sy: 0, ox: 0, oy: 0 },
-    pinch: { active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 },
-  });
+  // Avatar crop state → useAvatarCrop hook
+
+  // coverCrop state → useCoverCrop hook
 
   const st = useMemo(() => getStyles(colors), [colors]);
   const mo = useMemo(() => getMo(colors), [colors]);
   const cropS = useMemo(() => getCropStyles(), []);
 
-  // Load avatar (cached to avoid flash)
-  const CACHE_KEY_AVATAR = 'cached_avatar_b64';
-  const loadAvatar = async () => {
-    const uid = getCurrentUserId();
-    if (!uid) return;
-    // Serve from cache immediately
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY_AVATAR);
-      if (cached) setAvatarUrl(cached);
-    } catch {}
-    try {
-      const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const reader = new FileReader();
-        reader.onload = () => {
-          const b64 = reader.result as string;
-          setAvatarUrl(b64);
-          try { sessionStorage.setItem(CACHE_KEY_AVATAR, b64); } catch {}
-        };
-        reader.readAsDataURL(blob);
-      }
-    } catch {}
-  };
 
-  // Load cover
-  const loadCover = async () => {
-    try {
-      const r: any = await api.getProfileCover();
-      if (r?.url) setCoverUrl(r.url);
-    } catch {}
-    // Load cover opacity from localStorage
-    try {
-      const uid = getCurrentUserId();
-      const saved = localStorage.getItem(uid ? `cover-opacity-${uid}` : 'cover-opacity');
-      if (saved !== null) setCoverOpacity(parseFloat(saved));
-    } catch {}
-  };
+  // loadAvatar → useAvatarCrop.loadAvatar()
+
+
+  // loadCover → useCoverCrop.loadCover()
 
   useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); fetchUnreviewedCount(); }, []);
   useEffect(() => { fetchUnreviewedCount(); }, [refreshKey]);
 
   const loadUserInfo = async () => {
     try {
-      const resp = await fetch('/api/users/me');
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.email) setEmail(data.email);
-        if (data.signature) setSignature(data.signature);
-        if (data.created_at) {
-          const days = Math.floor((Date.now() - new Date(data.created_at).getTime()) / 86400000);
-          setDaysSince(Math.max(1, days));
-        }
-        if (typeof data.enforce_single_session === 'number') {
-          setEnforceSingleSession(data.enforce_single_session);
-        }
-        if (typeof data.session_timeout_hours === 'number' && [1, 2, 6, 24].includes(data.session_timeout_hours)) {
-          setSessionTimeoutHours(data.session_timeout_hours);
-        }
+      const data = await api.admin.getMe();
+      if (data.email) setEmail(data.email);
+      if (data.signature) setSignature(data.signature);
+      if (data.created_at) {
+        const days = Math.floor((Date.now() - new Date(data.created_at).getTime()) / 86400000);
+        setDaysSince(Math.max(1, days));
+      }
+      if (typeof data.enforce_single_session === 'number') {
+        setEnforceSingleSession(data.enforce_single_session);
+      }
+      if (typeof data.session_timeout_hours === 'number' && [1, 2, 6, 24].includes(data.session_timeout_hours)) {
+        setSessionTimeoutHours(data.session_timeout_hours);
       }
     } catch {}
   };
@@ -228,39 +180,14 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     persistAuthPrefs({ session_timeout_hours: h });
   };
 
-  // ── Cover upload flow (crop before upload) ──
-  const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { setToast(t('errFileSize')); e.target.value = ''; return; }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const src = reader.result as string;
-      setCoverCropSrc(src); setCoverCropMsg(''); setCoverShowResult(false);
-      const img = document.createElement('img') as HTMLImageElement;
-      img.onload = () => { coverCropImgRef.current = img; coverSetupCanvas(); coverFitImage(); coverDrawCrop(); };
-      img.src = src;
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
 
-  const handleCoverOpacityChange = (v: number) => {
-    setCoverOpacity(v);
-    try {
-      const uid = getCurrentUserId();
-      localStorage.setItem(uid ? `cover-opacity-${uid}` : 'cover-opacity', String(v));
-    } catch {}
-  };
+  // handleCoverSelect → useCoverCrop hook
 
-  const handleCoverReset = async () => {
-    setCoverUploading(true);
-    try {
-      await api.resetProfileCover();
-      setCoverUrl(''); setCoverKey(k => k + 1);
-    } catch {}
-    finally { setCoverUploading(false); }
-  };
+
+  // handleCoverOpacityChange → useCoverCrop hook
+
+
+  // handleCoverReset → useCoverCrop hook
 
   // Theme button is "set background image" (per user clarification).
   // ThemePickerModal self-contains the crop flow; we receive the
@@ -296,13 +223,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     finally { setCoverUploading(false); }
   };
 
-  const handleSignatureSave = async () => {
-    setSignatureEditing(false);
-    const val = signatureDraft.trim();
-    if (val === signature) return;
-    setSignature(val);
-    try { await api.saveSignature(val); } catch {}
-  };
+  // handleSignatureSave → useSignatureForm hook
 
   // ── Delete account ──
   const handleDeleteAccount = async () => {
@@ -321,385 +242,11 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     }
   };
 
-  // ── Avatar upload flow ──
-  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { setToast(t('errFileSize')); e.target.value = ''; return; }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const src = reader.result as string;
-      setCropSrc(src); setCropMsg(''); setShowResult(false);
-      const img = document.createElement('img') as HTMLImageElement;
-      img.onload = () => { cropImgRef.current = img; setupCanvas(); fitImage(); drawCrop(); };
-      img.src = src;
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
 
-  const setupCanvas = () => {
-    const stage = stageRef.current;
-    const canvas = canvasRef.current;
-    if (!stage || !canvas) return;
-    const rect = stage.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-    const s = cropState.current;
-    s.cropSize = Math.round(Math.min(rect.width, rect.height) * 0.76);
-    const guide = guideRef.current;
-    if (guide) {
-      guide.style.width = s.cropSize + 'px';
-      guide.style.height = s.cropSize + 'px';
-      guide.style.borderRadius = (s.cropSize / 2) + 'px';
-    }
-  };
+  // handleAvatarSelect → useAvatarCrop hook
+  // Avatar canvas functions → useAvatarCrop hook
+  // Cover crop canvas → useCoverCrop hook
 
-  const fitImage = () => {
-    const img = cropImgRef.current;
-    if (!img) return;
-    const s = cropState.current;
-    const sw = s.cropSize / img.naturalWidth;
-    const sh = s.cropSize / img.naturalHeight;
-    s.scale = Math.max(sw, sh) * 1.05;
-    s.minScale = Math.max(sw, sh);
-    s.x = 0; s.y = 0; s.rotation = 0; s.flipX = false;
-  };
-
-  const clampCrop = () => {
-    const img = cropImgRef.current;
-    if (!img) return;
-    const s = cropState.current;
-    const hw = (img.naturalWidth * s.scale) / 2;
-    const hh = (img.naturalHeight * s.scale) / 2;
-    const hr = s.cropSize / 2;
-    const maxX = hw - hr, maxY = hh - hr;
-    s.x = maxX > 0 ? Math.max(-maxX, Math.min(maxX, s.x)) : 0;
-    s.y = maxY > 0 ? Math.max(-maxY, Math.min(maxY, s.y)) : 0;
-  };
-
-  const drawCrop = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    const img = cropImgRef.current;
-    if (!ctx || !img) return;
-    const s = cropState.current;
-    ctx.clearRect(0, 0, canvas!.width, canvas!.height);
-    ctx.save();
-    ctx.translate(canvas!.width / 2 + s.x, canvas!.height / 2 + s.y);
-    ctx.rotate(s.rotation * Math.PI / 180);
-    if (s.flipX) ctx.scale(-1, 1);
-    ctx.scale(s.scale, s.scale);
-    ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
-    ctx.restore();
-  };
-
-  const zoomCrop = (delta: number, cx: number, cy: number) => {
-    const s = cropState.current;
-    const newScale = Math.max(s.minScale, Math.min(s.maxScale, s.scale * (1 + delta)));
-    const sd = newScale / s.scale;
-    s.x = cx + (s.x - cx) * sd;
-    s.y = cy + (s.y - cy) * sd;
-    s.scale = newScale;
-    clampCrop();
-    drawCrop();
-  };
-
-  const confirmCrop = () => {
-    try {
-      const img = cropImgRef.current;
-      if (!img) { setCropMsg('图片未加载'); return; }
-      const s = cropState.current;
-      const outSize = 400;
-      const output = document.createElement('canvas');
-      output.width = outSize; output.height = outSize;
-      const octx = output.getContext('2d')!;
-      octx.beginPath();
-      octx.arc(outSize / 2, outSize / 2, outSize / 2, 0, Math.PI * 2);
-      octx.clip();
-      const outScale = outSize / s.cropSize;
-      octx.translate(outSize / 2 + s.x * outScale, outSize / 2 + s.y * outScale);
-      octx.rotate(s.rotation * Math.PI / 180);
-      if (s.flipX) octx.scale(-1, 1);
-      octx.scale(s.scale * outScale, s.scale * outScale);
-      octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
-      setCropResult(output.toDataURL('image/jpeg', 0.92));
-      setShowResult(true);
-    } catch (e) { setCropMsg('裁切失败，请重试'); }
-  };
-
-  const doUpload = async () => {
-    if (!cropResult) return;
-    try {
-      const arr = cropResult.split(',');
-      const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
-      const bstr = atob(arr[1]);
-      const u8 = new Uint8Array(bstr.length);
-      for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
-      const blob = new Blob([u8], { type: mime });
-      const form = new FormData();
-      form.append('file', blob, 'avatar.jpg');
-      const resp = await api.uploadAvatar(form);
-      if (resp.status === 'ok') { setShowResult(false); setCropSrc(''); setCropResult(''); setAvatarKey(k => k + 1); try { sessionStorage.removeItem(CACHE_KEY_AVATAR); } catch {} loadAvatar(); onAvatarChange?.(); }
-      else { setCropMsg('上传失败'); }
-    } catch (e) { setCropMsg('上传失败，请重试'); }
-  };
-
-  // ── Pill auto-hide (3s) ──
-  const hidePill = () => {
-    const stage = stageRef.current;
-    if (!stage) return;
-    const pill = stage.querySelector('[data-pill]') as HTMLElement;
-    if (pill) pill.style.opacity = '0';
-  };
-
-  useEffect(() => {
-    if (!cropSrc || showResult) return;
-    const stage = stageRef.current;
-    if (!stage) return;
-    const timer = setTimeout(() => {
-      const pill = stage.querySelector('[data-pill]') as HTMLElement;
-      if (pill) pill.style.opacity = '0';
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [cropSrc, showResult]);
-
-  // ── Shared crop event binding (mouse / touch / wheel / resize) ──
-  const onCropSetup = () => { setupCanvas(); clampCrop(); drawCrop(); };
-  useCropCanvas({
-    active: !!cropSrc && !showResult,
-    canvasRef, stageRef, guideRef, stateRef: cropState,
-    scheduleDraw: drawCrop,
-    clampCrop,
-    zoomCrop,
-    onSetup: onCropSetup,
-    onBeforeDrag: hidePill,
-  });
-
-  // ── Cover crop handlers ──
-  const coverSetupCanvas = () => {
-    const stage = coverStageRef.current;
-    const canvas = coverCanvasRef.current;
-    if (!stage || !canvas) return;
-    const rect = stage.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-    const s = coverCropState.current;
-    s.cropW = Math.round(rect.width * 0.8);
-    s.cropRatio = 260 / rect.width;
-    s.cropH = Math.round(s.cropW * s.cropRatio);
-    const guide = coverGuideRef.current;
-    if (guide) {
-      guide.style.width = s.cropW + 'px';
-      guide.style.height = s.cropH + 'px';
-    }
-  };
-
-  const coverFitImage = () => {
-    const img = coverCropImgRef.current;
-    if (!img) return;
-    const s = coverCropState.current;
-    const sw = s.cropW / img.naturalWidth;
-    const sh = s.cropH / img.naturalHeight;
-    s.scale = Math.max(sw, sh) * 1.05;
-    s.minScale = Math.max(sw, sh);
-    s.x = 0; s.y = 0; s.rotation = 0; s.flipX = false;
-  };
-
-  const coverClampCrop = () => {
-    const img = coverCropImgRef.current;
-    if (!img) return;
-    const s = coverCropState.current;
-    const hw = (img.naturalWidth * s.scale) / 2;
-    const hh = (img.naturalHeight * s.scale) / 2;
-    const hrh = s.cropH / 2, hrw = s.cropW / 2;
-    const maxX = hw - hrw, maxY = hh - hrh;
-    s.x = maxX > 0 ? Math.max(-maxX, Math.min(maxX, s.x)) : 0;
-    s.y = maxY > 0 ? Math.max(-maxY, Math.min(maxY, s.y)) : 0;
-  };
-
-  const coverDrawCrop = () => {
-    const canvas = coverCanvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    const img = coverCropImgRef.current;
-    if (!ctx || !img) return;
-    const s = coverCropState.current;
-    ctx.clearRect(0, 0, canvas!.width, canvas!.height);
-    ctx.save();
-    ctx.translate(canvas!.width / 2 + s.x, canvas!.height / 2 + s.y);
-    ctx.rotate(s.rotation * Math.PI / 180);
-    if (s.flipX) ctx.scale(-1, 1);
-    ctx.scale(s.scale, s.scale);
-    ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
-    ctx.restore();
-  };
-
-  const coverZoomCrop = (delta: number, cx: number, cy: number) => {
-    const s = coverCropState.current;
-    const newScale = Math.max(s.minScale, Math.min(s.maxScale, s.scale * (1 + delta)));
-    const sd = newScale / s.scale;
-    s.x = cx + (s.x - cx) * sd;
-    s.y = cy + (s.y - cy) * sd;
-    s.scale = newScale;
-    coverClampCrop();
-    coverDrawCrop();
-  };
-
-  const coverConfirmCrop = () => {
-    try {
-      const img = coverCropImgRef.current;
-      if (!img) { setCoverCropMsg('图片未加载'); return; }
-      const s = coverCropState.current;
-      const outW = 720, outH = Math.round(outW * s.cropRatio);
-      const output = document.createElement('canvas');
-      output.width = outW; output.height = outH;
-      const octx = output.getContext('2d')!;
-      const outScale = outW / s.cropW;
-      octx.translate(outW / 2 + s.x * outScale, outH / 2 + s.y * outScale);
-      octx.rotate(s.rotation * Math.PI / 180);
-      if (s.flipX) octx.scale(-1, 1);
-      octx.scale(s.scale * outScale, s.scale * outScale);
-      octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
-      setCoverCropResult(output.toDataURL('image/jpeg', 0.92));
-      setCoverShowResult(true);
-    } catch { setCoverCropMsg('裁切失败，请重试'); }
-  };
-
-  const coverDoUpload = async () => {
-    if (!coverCropResult) return;
-    setCoverUploading(true);
-    try {
-      const arr = coverCropResult.split(',');
-      const mime = (arr[0].match(/:(.*?);/) || ['', 'image/jpeg'])[1];
-      const bstr = atob(arr[1]);
-      const u8 = new Uint8Array(bstr.length);
-      for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
-      const blob = new Blob([u8], { type: mime });
-      const file = new File([blob], 'cover.jpg', { type: mime });
-      const r: any = await api.uploadProfileCover(file);
-      if (r?.url) {
-        setCoverUrl(r.url); setCoverKey(k => k + 1);
-        setCoverCropSrc(''); setCoverCropResult(''); setCoverShowResult(false);
-      } else { setCoverCropMsg('上传失败'); }
-    } catch { setCoverCropMsg('上传失败，请重试'); }
-    finally { setCoverUploading(false); }
-  };
-
-  // ── Imperative cover crop event binding ──
-  useEffect(() => {
-    if (!coverCropSrc || coverShowResult) return;
-    const stage = coverStageRef.current;
-    const canvas = coverCanvasRef.current;
-    if (!stage || !canvas) return;
-
-    setTimeout(() => { coverSetupCanvas(); coverClampCrop(); coverDrawCrop(); }, 60);
-
-    let frameId = 0;
-    const scheduleDraw = () => { if (!frameId) frameId = requestAnimationFrame(() => { frameId = 0; coverDrawCrop(); }); };
-
-    const toLocal = (clientX: number, clientY: number) => {
-      const r = stage.getBoundingClientRect();
-      return { x: clientX - r.left - canvas.width / 2, y: clientY - r.top - canvas.height / 2 };
-    };
-
-    const guide = coverGuideRef.current;
-    const setGuideActive = (active: boolean) => {
-      if (!guide) return;
-      guide.style.borderColor = active ? '#fff' : 'rgba(255,255,255,0.8)';
-      guide.style.boxShadow = active
-        ? '0 0 0 9999px rgba(0,0,0,0.62)'
-        : '0 0 0 9999px rgba(0,0,0,0.55)';
-    };
-
-    const onResize = () => { coverSetupCanvas(); coverClampCrop(); coverDrawCrop(); };
-    window.addEventListener('resize', onResize);
-
-    const onMD = (e: MouseEvent) => {
-      const s = coverCropState.current; s.drag.active = true;
-      s.drag.sx = e.clientX; s.drag.sy = e.clientY;
-      s.drag.ox = s.x; s.drag.oy = s.y;
-      setGuideActive(true);
-    };
-    const onMM = (e: MouseEvent) => {
-      const s = coverCropState.current; if (!s.drag.active) return;
-      s.x = s.drag.ox + (e.clientX - s.drag.sx);
-      s.y = s.drag.oy + (e.clientY - s.drag.sy);
-      coverClampCrop(); scheduleDraw();
-    };
-    const onMU = () => { coverCropState.current.drag.active = false; setGuideActive(false); };
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const p = toLocal(e.clientX, e.clientY);
-      coverZoomCrop(e.deltaY > 0 ? -0.08 : 0.08, p.x, p.y);
-    };
-
-    const getDist = (ts: TouchList) => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
-    const onTS = (e: TouchEvent) => {
-      e.preventDefault();
-      const s = coverCropState.current;
-      if (e.touches.length === 1) {
-        s.drag.active = true;
-        s.drag.sx = e.touches[0].clientX; s.drag.sy = e.touches[0].clientY;
-        s.drag.ox = s.x; s.drag.oy = s.y;
-        setGuideActive(true);
-      } else if (e.touches.length === 2) {
-        s.drag.active = false; setGuideActive(false);
-        s.pinch.active = true;
-        s.pinch.startDist = getDist(e.touches);
-        s.pinch.startScale = s.scale;
-        const r = stage.getBoundingClientRect();
-        s.pinch.midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left - canvas.width / 2;
-        s.pinch.midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top - canvas.height / 2;
-      }
-    };
-    const onTM = (e: TouchEvent) => {
-      e.preventDefault();
-      const s = coverCropState.current;
-      if (s.drag.active && e.touches.length === 1) {
-        s.x = s.drag.ox + (e.touches[0].clientX - s.drag.sx);
-        s.y = s.drag.oy + (e.touches[0].clientY - s.drag.sy);
-        coverClampCrop(); scheduleDraw();
-      } else if (s.pinch.active && e.touches.length === 2) {
-        const d = getDist(e.touches);
-        const ns = Math.max(s.minScale, Math.min(s.maxScale, s.pinch.startScale * (d / s.pinch.startDist)));
-        const sd = ns / s.scale;
-        s.x = s.pinch.midX + (s.x - s.pinch.midX) * sd;
-        s.y = s.pinch.midY + (s.y - s.pinch.midY) * sd;
-        s.scale = ns; coverClampCrop(); scheduleDraw();
-      }
-    };
-    const onTE = (e: TouchEvent) => {
-      const s = coverCropState.current;
-      if (e.touches.length < 2) s.pinch.active = false;
-      if (e.touches.length === 0) { s.drag.active = false; setGuideActive(false); }
-    };
-
-    canvas.addEventListener('mousedown', onMD);
-    window.addEventListener('mousemove', onMM);
-    window.addEventListener('mouseup', onMU);
-    canvas.addEventListener('wheel', onWheel, { passive: false });
-    canvas.addEventListener('touchstart', onTS, { passive: false });
-    canvas.addEventListener('touchmove', onTM, { passive: false });
-    canvas.addEventListener('touchend', onTE);
-    canvas.addEventListener('touchcancel', onTE);
-
-    return () => {
-      canvas.removeEventListener('mousedown', onMD);
-      window.removeEventListener('mousemove', onMM);
-      window.removeEventListener('mouseup', onMU);
-      canvas.removeEventListener('wheel', onWheel);
-      canvas.removeEventListener('touchstart', onTS);
-      canvas.removeEventListener('touchmove', onTM);
-      canvas.removeEventListener('touchend', onTE);
-      canvas.removeEventListener('touchcancel', onTE);
-      window.removeEventListener('resize', onResize);
-      cancelAnimationFrame(frameId);
-    };
-  }, [coverCropSrc, coverShowResult]);
 
   return (
     <View style={st.root} {...swipeBack}>
@@ -781,7 +328,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               />
             </View>
           ) : (
-            <TouchableOpacity onPress={() => { setSignatureDraft(signature); setSignatureEditing(true); }}>
+            <TouchableOpacity onPress={startEditing}>
               <Text style={st.signatureText}>
                 {signature || t('signaturePlaceholder')}
               </Text>
@@ -1016,9 +563,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <View style={mo.card}>
           <View style={mo.header}>
             <Text style={mo.title}>{t('deleteAccount')}</Text>
-            <TouchableOpacity onPress={() => setShowAdminBlockModal(false)}>
-              <Text style={mo.closeBtn}>✕</Text>
-            </TouchableOpacity>
+            <CloseButton onPress={() => setShowAdminBlockModal(false)} />
           </View>
           <View style={mo.body}>
             <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 16 }}>
@@ -1035,21 +580,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <View style={mo.card}>
           <View style={mo.header}>
             <Text style={mo.title}>{t('deleteAccountConfirmTitle')}</Text>
-            <TouchableOpacity onPress={() => setShowDeleteModal(false)}>
-              <Text style={mo.closeBtn}>✕</Text>
-            </TouchableOpacity>
+            <CloseButton onPress={() => setShowDeleteModal(false)} />
           </View>
           <View style={mo.body}>
             <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 8 }}>
               {t('deleteAccountGraceNote')}
             </Text>
-            <TextInput
-              style={[mo.input, { outline: 'none' } as any]}
+            <TextField
               placeholder={t('enterUsernameToConfirm')}
-              placeholderTextColor={colors.textSub}
               value={deleteConfirmUsername}
               onChangeText={setDeleteConfirmUsername}
-              autoFocus
             />
             <ButtonPair
               leftLabel={t('cancel')}
@@ -1078,33 +618,25 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changePassword')}</Text>
-              <TouchableOpacity onPress={() => setShowPwModal(false)}>
-                <Text style={mo.closeBtn}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => setShowPwModal(false)} />
             </View>
             <View style={mo.body}>
-              <TextInput
-                style={[mo.input, { outline: 'none' } as any]}
+              <TextField
                 placeholder={t('oldPassword')}
-                placeholderTextColor={colors.textSub}
                 secureTextEntry
                 value={oldPw}
                 onChangeText={setOldPw}
                 autoFocus
               />
-              <TextInput
-                style={[mo.input, { outline: 'none' } as any]}
+              <TextField
                 placeholder={t('newPassword')}
-                placeholderTextColor={colors.textSub}
                 secureTextEntry
                 value={newPw}
                 onChangeText={setNewPw}
               />
               <Text style={mo.pwHint}>{t('pwHint')}</Text>
-              <TextInput
-                style={[mo.input, { outline: 'none' } as any]}
+              <TextField
                 placeholder={t('confirmNewPassword')}
-                placeholderTextColor={colors.textSub}
                 secureTextEntry
                 value={confirmPw}
                 onChangeText={setConfirmPw}
@@ -1126,9 +658,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changeEmail')}</Text>
-              <TouchableOpacity onPress={() => setShowEmailModal(false)}>
-                <Text style={mo.closeBtn}>✕</Text>
-              </TouchableOpacity>
+              <CloseButton onPress={() => setShowEmailModal(false)} />
             </View>
             <View style={mo.body}>
               {emailStep === 'input' ? (
@@ -1188,8 +718,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) setCropSrc(''); }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('avatarCropTitle')}</Text>
-            <TouchableOpacity onPress={() => setCropSrc('')} style={cropS.closeBtn as any}>
-              <Text style={cropS.closeBtnText}>✕</Text>
+            <TouchableOpacity onPress={() => setCropSrc('')} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
+              <Svg width="14" height="14" viewBox="0 0 1088 1024">
+                <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
+              </Svg>
             </TouchableOpacity>
           </View>
           <View style={cropS.stage as any} ref={stageRef as any}>
@@ -1294,8 +826,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverCropSrc(''); setCoverCropResult(''); } }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('coverCropTitle')}</Text>
-            <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={cropS.closeBtn as any}>
-              <Text style={cropS.closeBtnText}>✕</Text>
+            <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
+              <Svg width="14" height="14" viewBox="0 0 1088 1024">
+                <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
+              </Svg>
             </TouchableOpacity>
           </View>
           <View style={cropS.stage as any} ref={coverStageRef as any}>
@@ -1557,7 +1091,6 @@ function getMo(colors: ThemeColors) {
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     },
     title: { fontSize: 14, fontWeight: '700', color: colors.surface },
-    closeBtn: { ...modalClose },
     body: { padding: 20, gap: 12 } as any,
     input: {
       paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8,
@@ -1574,8 +1107,6 @@ function getCropStyles() {
     overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
     header: { paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any,
     title: { fontSize: 14, fontWeight: '600' as const, color: '#fff', letterSpacing: -0.2 },
-    closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' } as any,
-    closeBtnText: { color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 },
     stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' } as any,
     guideWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any,
     guideCircle: {

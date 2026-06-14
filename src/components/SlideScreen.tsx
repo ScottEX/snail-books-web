@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING } from '../theme';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Props {
   visible: boolean;

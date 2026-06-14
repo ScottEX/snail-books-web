@@ -361,7 +361,64 @@ export const api = {
   // Delete account (self-deletion only, CASCADE cleans up all user data)
   deleteAccount: (uid: number) => authFetch(`/api/users/${uid}/delete`, { method: 'POST' }),
 
+  // ── Admin ──
+  admin: {
+    check: () => authFetch('/api/admin/check'),
+    getUnreviewedCount: () => authFetch('/api/admin/users/unreviewed-count'),
+    markReviewed: (userId?: number) =>
+      authFetch('/api/admin/users/mark-reviewed', {
+        method: 'POST',
+        ...(userId != null ? { body: JSON.stringify({ user_id: userId }) } : {}),
+      }),
+    getMe: () => authFetch('/api/users/me'),
+    getUser: (id: number | string) => authFetch(`/api/admin/users/${id}`),
+    updateUser: (id: number | string, body: Record<string, any>) =>
+      authFetch(`/api/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    deleteUser: (id: number | string) => authFetch(`/api/admin/users/${id}`, { method: 'DELETE' }),
+    restoreUser: (id: number | string) => authFetch(`/api/admin/users/${id}/restore`, { method: 'POST' }),
+  },
+
   // Invoice info (system-level)
   getInvoice: () => authFetch('/api/admin/invoice'),
   updateInvoice: (data: Record<string, string>) => authFetch('/api/admin/invoice', { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** 获取用户头像，返回 base64 字符串，失败返回 null */
+  getUserAvatar: async (userId: number | string): Promise<string | null> => {
+    try {
+      const resp = await fetch(API_BASE + `/api/users/avatar?user_id=${userId}`);
+      if (!resp.ok) return null;
+      const blob = await resp.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
+  },
+
+  /** 登录态用：根据 username/email 拉头像 Blob */
+  getUserAvatarByLogin: async (identifier: string): Promise<Blob | null> => {
+    try {
+      let resp = await fetch(API_BASE + `/api/users/avatar?username=${encodeURIComponent(identifier)}`);
+      if (!resp.ok && identifier.includes('@')) {
+        resp = await fetch(API_BASE + `/api/users/avatar?email=${encodeURIComponent(identifier)}`);
+      }
+      return resp.ok ? resp.blob() : null;
+    } catch {
+      return null;
+    }
+  },
+
+  /** 登录态用：拉背景图 Blob */
+  getUserBackground: async (identifier: string): Promise<Blob | null> => {
+    try {
+      const resp = await fetch(API_BASE + `/api/users/background?username=${encodeURIComponent(identifier)}`);
+      return resp.ok ? resp.blob() : null;
+    } catch {
+      return null;
+    }
+  },
 };

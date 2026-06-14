@@ -1,7 +1,6 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  TextInput, ActivityIndicator, Image, Dimensions,
+  TextInput, Image, Dimensions,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -12,6 +11,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import ButtonPair from '../components/ButtonPair';
 import Toast from '../components/Toast';
 import ImagePreview from '../components/ImagePreview';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -24,6 +24,7 @@ import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
 import { useServerDate } from '../hooks/useServerDate';
 import DatePicker from '../components/DatePicker';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 // Date helpers replaced by useServerDate() hook (server time, not client)
 
@@ -206,19 +207,11 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
       const cached = sessionStorage.getItem(CACHE_KEY);
       if (cached) setAvatarUrl(cached);
     } catch {}
-    fetch(`/api/users/avatar?user_id=${uid}`)
-      .then(resp => resp.ok ? resp.blob() : null)
-      .then(blob => {
-        if (!blob) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          const b64 = reader.result as string;
-          setAvatarUrl(b64);
-          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
-        };
-        reader.readAsDataURL(blob);
-      })
-      .catch(() => {});
+    api.getUserAvatar(uid).then(b64 => {
+      if (!b64) return;
+      setAvatarUrl(b64);
+      try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
+    });
   }, []);
 
   const isRefundRecord = Number(record.amount) < 0;
@@ -436,25 +429,21 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
       {/* Edit mode bottom bar — fixed at bottom, equal width */}
       {editMode && (
         <View style={styles.bottomBar}>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity
-              style={{ flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderColor: c.secondary }}
-              onPress={() => {
-                setCategory(record.category || 'daily'); setAccount(record.account || 'payWechat');
-                setAmount(toDec2(Math.abs(record.amount))); setDate(record.date || record.created_at?.slice(0, 10) || sd.today);
-                setNote(record.note || ''); setImages(parseImages(record.images));
-                setThumbImages(parseImages(record.thumb_images));
-                newFiles.forEach(f => { const u = urlCache.current.get(f); if (u) URL.revokeObjectURL(u); });
-                urlCache.current.clear(); setNewFiles([]); setEditMode(false);
-              }} activeOpacity={0.7}>
-              <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain }}>{t('cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[{ flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', backgroundColor: c.primary }, (!hasChanges || saving) && { opacity: 0.4 }]}
-              onPress={handleSave} disabled={!hasChanges || saving} activeOpacity={0.8}>
-              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}>{t('confirm')}</Text>}
-            </TouchableOpacity>
-          </View>
+          <ButtonPair
+            leftLabel={t('cancel')}
+            leftOnPress={() => {
+              setCategory(record.category || 'daily'); setAccount(record.account || 'payWechat');
+              setAmount(toDec2(Math.abs(record.amount))); setDate(record.date || record.created_at?.slice(0, 10) || sd.today);
+              setNote(record.note || ''); setImages(parseImages(record.images));
+              setThumbImages(parseImages(record.thumb_images));
+              newFiles.forEach(f => { const u = urlCache.current.get(f); if (u) URL.revokeObjectURL(u); });
+              urlCache.current.clear(); setNewFiles([]); setEditMode(false);
+            }}
+            rightLabel={t('confirm')}
+            rightOnPress={handleSave}
+            rightDisabled={!hasChanges || saving}
+            rightLoading={saving}
+          />
         </View>
       )}
 

@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Animated, Image } from 'react-native';
-import { createPortal } from 'react-dom';
-import Svg, { Path, Circle } from 'react-native-svg';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Image } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -24,10 +22,13 @@ import UserDetailScreen from './UserDetailScreen';
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
+import { useNavigationStack, type SubPage } from './home/useNavigationStack';
+import { useHomeData } from './home/useHomeData';
 import { useServerDate } from '../hooks/useServerDate';
 import DailyRevenuePanel from './home/DailyRevenuePanel';
 import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
 import ChartsPanel from './ChartsPanel';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
@@ -54,12 +55,8 @@ export default function HomeScreen({
     setTabState(t);
     try { localStorage.setItem('active_tab', t); } catch {}
   };
-  const [summary, setSummary] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [chart, setChart] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+
+  // summary/transactions/chart/products → useHomeData
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount (so a new user's server-
   // side language actually reaches the lang selector).
@@ -95,141 +92,29 @@ export default function HomeScreen({
   // popPage() reverses it (250ms slide-out via the `removing` flag).
   // The `s.includes(p) ? s : ...` guard prevents pushing the same
   // page twice while it's still on the stack.
-  type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail' | 'usermgmt' | 'userdetail';
+
+  // SubPage type → useNavigationStack
   // Hydrate pageStack from history.state so a refresh lands the user
   // back on the same sub-page they were viewing. Fall back to [] for
   // a cold load (state is null) or a hostile/missing history.state.
-  const [pageStack, setPageStack] = useState<SubPage[]>(() => {
-    try {
-      const s = (history.state as any)?.stack;
-      return Array.isArray(s) ? (s as SubPage[]) : [];
-    } catch { return []; }
-  });
+  // pageStack → useNavigationStack
   // Hydrate pdfPreview from the URL hash on mount. The push effect
   // (below) reads the same prop on every refresh, but pdfPreview
   // itself is local state, so we seed it from the hash before the
   // effect can push 'pdf' onto the stack. Without this, a refresh
   // on the PDF URL would mount PdfPreviewPage with batchId=0.
-  const [pdfPreview, setPdfPreview] = useState<{ id: number; number: number } | null>(() => {
-    if (previewRoute) return previewRoute;
-    try {
-      const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
-      if (!m) return null;
-      const qs = window.location.hash.split('?')[1] || '';
-      const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
-      return { id: parseInt(m[1], 10), number: num };
-    } catch { return null; }
-  });
+
   // Mirror of pageStack for synchronous reads inside the popstate
   // listener and popPage itself. The closure values from useState
   // would be stale when popstate fires back-to-back in <280ms.
-  const pageStackRef = useRef<SubPage[]>([]);
-  useEffect(() => { pageStackRef.current = pageStack; }, [pageStack]);
-  // Persist every change to pageStack back into history.state so a
-  // refresh restores the same sub-page. replaceState (not pushState)
-  // — we don't want each push to add a new history entry; the
-  // popstate listener + the one sentinel entry on mount is enough.
-  useEffect(() => {
-    try {
-      history.replaceState(
-        { app: 'snail-books', stack: pageStack },
-        '',
-        location.href,
-      );
-    } catch {}
-  }, [pageStack]);
-  const [removing, setRemoving] = useState<SubPage | null>(null);
-  const pushPage = (p: SubPage) => setPageStack(s => s.includes(p) ? s : [...s, p]);
-  const popPage = () => {
-    const stack = pageStackRef.current;
-    if (stack.length === 0) return;
-    const top = stack[stack.length - 1];
-    setRemoving(top);
-    setTimeout(() => {
-      setPageStack(s => s.slice(0, -1));
-      setRemoving(null);
-      // Per-page payload cleanup so a fresh push of the same page
-      // never sees stale data from a previous open.
-      if (top === 'proc') setProcDetailBatch(null);
-      if (top === 'userdetail') setSelectedUser(null);
-      if (top === 'pdf') {
-        setPdfPreview(null);
-        // Mirror the dismissal back up to App.tsx so the URL hash
-        // is dropped (a back-out of PDF should clear the URL too).
-        onClosePreview?.();
-      }
-    }, 280);
-  };
 
-  // Sync the URL-driven PDF preview route with our pageStack.
-  // App.tsx owns the hash; this effect turns the prop into a push.
-  // Guard: if 'pdf' is already on the stack, don't push again — the
-  // user might be reloading on the same URL.
-  //
-  // The ignorePopstateUntil ref is set 500ms after a PDF push to
-  // swallow any popstate that may fire as a side effect of the hash
-  // change (Chrome sometimes fires popstate when the hash is rewritten
-  // and the page's own onPopState listener would otherwise interpret
-  // it as a "user pressed back" and pop the just-pushed PDF right
-  // back off the stack). 500ms is a safety window — by then the
-  // hashchange has settled and any real browser-back will be a new
-  // popstate long after the ignore flag has cleared.
-  const ignorePopstateUntil = useRef(0);
-  useEffect(() => {
-    if (previewRoute) {
-      setPdfPreview(previewRoute);
-      setPageStack(s => s.includes('pdf') ? s : [...s, 'pdf']);
-      // The ignorePopstateUntil safety window is now a no-op for
-      // in-app nav: ProcurementDetailScreen's eye button uses
-      // onPreview → history.replaceState + pushPage, so neither
-      // hashchange nor popstate fires. The 0ms floor is kept for
-      // any future code path that might still set location.hash
-      // directly, and as a defence-in-depth margin.
-      ignorePopstateUntil.current = 0;
-    }
-    // When previewRoute goes null we DON'T pop here — popPage's
-    // own cleanup (above) handles it via onClosePreview, which is
-    // what flips previewRoute back to null in App.tsx. This avoids
-    // a "pop → effect → pop" loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [previewRoute]);
-  // Browser back / iOS swipe-back: when a sub-page is on the stack,
-  // pop it (iOS-style "back one level" semantics). When the stack
-  // is empty, the back gesture closes the app as usual.
-  useEffect(() => {
-    // Push a sentinel state on mount so the FIRST back press triggers
-    // popstate (otherwise the browser would just exit the SPA).
-    try {
-      if (history.state === null || (history.state as any)?.app !== 'snail-books') {
-        history.pushState({ app: 'snail-books' }, '', location.href);
-      }
-    } catch {}
-    const onPopState = () => {
-      // Swallow popstates that arrive within the safety window
-      // after a programmatic PDF hash change. See the
-      // ignorePopstateUntil comment near the push effect.
-      if (Date.now() < ignorePopstateUntil.current) return;
-      if (pageStackRef.current.length > 0) {
-        popPage();
-        // Re-push a sentinel so the next back can also be intercepted.
-        // Defer one tick so popPage's setState can flush first.
-        setTimeout(() => {
-          try {
-            history.pushState({ app: 'snail-books' }, '', location.href);
-          } catch {}
-        }, 0);
-      }
-      // Stack empty → let the browser handle the back (exit / navigate).
-    };
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-    // popPage is stable (reads pageStackRef, which is the ref we just made).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const [last7Records, setLast7Records] = useState<any[]>([]);
+
+  // pushPage / popPage → useNavigationStack hook
+
+
+  // PDF push + popstate listener → useNavigationStack hook
   const [uploadingBg, setUploadingBg] = useState(false);
   const [toast, setToast] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
   const [bgReady, setBgReady] = useState(true); // default bg.jpg always ready
@@ -252,74 +137,44 @@ export default function HomeScreen({
   });
 
   // ── 收支总览数据（图表 Tab）──
-  const [businessSummary, setBusinessSummary] = useState<any>({});
-  const [chartExpenses, setChartExpenses] = useState<any[]>([]);
-  const [dailyRevenues, setDailyRevenues] = useState<any[]>([]);
-  const [chartMonthly, setChartMonthly] = useState<any>(null);
+  const {
+    summary, transactions, page, pages,
+    chart, chartMonthly, products,
+    businessSummary, dailyRevenues, chartExpenses,
+    last7Records, setLast7Records, avatarUrl,
+    loadData, loadAvatar,
+    todayExpenseChart, monthExpenseChart, todayIncome, monthIncome,
+    dailyChartData,
+    toDec2Comma,
+    handlePage,
+  } = useHomeData(tab, setToast);
+
   // Background image crop moved to shared BgCropModal component.
 
   const sd = useServerDate();
+  const {
+    pageStack, removing, pdfPreview,
+    pushPage, popPage, clearStack,
+  } = useNavigationStack({
+    previewRoute,
+    onClosePreview,
+    onPopProc: () => setProcDetailBatch(null),
+    onPopUserDetail: () => setSelectedUser(null),
+  });
   const revForm = useDailyRevenueForm({
     onToast: (msg: string) => setToast(msg),
     onRefreshLast7: (records: any[]) => setLast7Records(records),
   });
 
-  // Load last 7 days table
-  useEffect(() => {
-    let cancelled = false;
-    api.getLast7Days().then((r: any) => {
-      if (!cancelled) setLast7Records(r?.records || []);
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
 
-  const MONTHS_SHORT = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  // last7Days → useHomeData
 
-  const loadDataReqRef = useRef(0);
-  const loadData = useCallback(async () => {
-    const reqId = ++loadDataReqRef.current;
-    try {
-      const s = await api.getSummary();
-      if (reqId !== loadDataReqRef.current) return;
-      setSummary(s);
-      const tx = await api.getTransactions(1, 20);
-      if (reqId !== loadDataReqRef.current) return;
-      setTransactions(tx.transactions || []);
-      setPages(tx.pages || 1);
-      setPage(1);
-    } catch {
-      if (reqId !== loadDataReqRef.current) return;
-      setToast(t('toastLoadFailed'));
-    }
-  }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  // MONTHS_SHORT → useHomeData
+  // loadData → useHomeData
 
-  const loadAvatar = async () => {
-    const uid = getCurrentUserId();
-    if (!uid) return;
-    const CACHE_KEY = 'cached_avatar_b64';
-    // Serve from cache immediately to avoid flash
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (cached) setAvatarUrl(cached);
-    } catch {}
-    try {
-      const resp = await fetch(`/api/users/avatar?user_id=${uid}`);
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const reader = new FileReader();
-        reader.onload = () => {
-          const b64 = reader.result as string;
-          setAvatarUrl(b64);
-          try { sessionStorage.setItem(CACHE_KEY, b64); } catch {}
-        };
-        reader.readAsDataURL(blob);
-      }
-    } catch {}
-  };
 
-  useEffect(() => { loadAvatar(); }, []);
+  // loadAvatar → useHomeData
 
   // Cross-screen bg sync: ProfileScreen theme button uploads a new
   // background and dispatches 'bg-changed' so we refresh here. The
@@ -372,77 +227,14 @@ export default function HomeScreen({
     }).catch(() => {});
   }, []);
 
-  const loadChart = async () => {
-    try { const d = await api.getChart(); setChart(d || []); } catch { setToast(t('toastLoadFailed')); }
-  };
 
-  const loadChartMonthly = async () => {
-    try { const d = await api.getChartMonthly(); setChartMonthly(d); } catch { /* silent */ }
-  };
+  // loadChart/loadChartMonthly/loadProducts → useHomeData
 
-  const loadProducts = async () => {
-    try { const p = await api.getProducts(); setProducts(p || []); } catch { setToast(t('toastLoadFailed')); }
-  };
 
-  useEffect(() => {
-    if (tab === 'chart') { loadChart(); loadChartMonthly(); }
-    if (tab === 'supply') { loadProducts(); }
-  }, [tab]);
+  // businessSummary/chartExpenses/dailyRevenues → useHomeData
 
-  // ── 收支总览数据 ──
-  const toDec2Comma = (v: any) => {
-    const n = parseFloat(String(v ?? 0)) || 0;
-    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
 
-  useEffect(() => {
-    // businessSummary
-    api.getBusinessSummary().then((data: any) => {
-      setBusinessSummary(data || {});
-    }).catch(() => {});
-
-    // expenses (for today/month summary cards)
-    (async () => {
-      try {
-        const all: any[] = [];
-        let p = 1;
-        while (true) {
-          const tx: any = await api.getTransactions(p, 100);
-          const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
-          all.push(...exps);
-          if (p >= (tx.pages || 1)) break;
-          p++;
-        }
-        setChartExpenses(all);
-      } catch {}
-    })();
-
-    // daily revenue (for today/month income cards)
-    (async () => {
-      try {
-        const todayStr = new Date().toISOString().slice(0, 10);
-        const monthStart = todayStr.slice(0, 7) + '-01';
-        const r: any = await api.getDailyRevenue(1, 31, undefined, undefined, undefined, undefined, monthStart, todayStr);
-        setDailyRevenues(r?.records || []);
-      } catch {}
-    })();
-  }, []);
-
-  // Compute chart summary values
-  const todayStr2 = sd.today;
-  const thisMonthPrefix2 = todayStr2.slice(0, 7);
-  const todayExpenseChart = chartExpenses
-    .filter((e: any) => e.date === todayStr2)
-    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
-  const monthExpenseChart = chartExpenses
-    .filter((e: any) => String(e.date || '').startsWith(thisMonthPrefix2))
-    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
-
-  const todayIncome = dailyRevenues
-    .filter((r: any) => r.date === todayStr2)
-    .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
-  const monthIncome = dailyRevenues
-    .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
+  // Chart derived values → useHomeData functions
 
   // ── Inject glass-slider CSS ──
   useEffect(() => {
@@ -499,15 +291,8 @@ export default function HomeScreen({
     }
   };
 
-  const handlePage = async (p: number) => {
-    try {
-      const tx = await api.getTransactions(p, 20);
-      setTransactions(tx.transactions || []);
-      setPage(p);
-    } catch {
-      setToast(t('toastLoadFailed'));
-    }
-  };
+
+  // handlePage → useHomeData
 
   const handleDeleteTx = async (id: number) => {
     try {
@@ -588,7 +373,7 @@ export default function HomeScreen({
           />
         );
       case 'usermgmt':
-        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={async (u) => { if (!u.reviewed) { await fetch('/api/admin/users/mark-reviewed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: u.id }), credentials: 'include' }); setUserRefreshKey(k => k + 1); } setSelectedUser(u); pushPage('userdetail'); }} />;
+        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={async (u) => { if (!u.reviewed) { await api.admin.markReviewed(u.id); setUserRefreshKey(k => k + 1); } setSelectedUser(u); pushPage('userdetail'); }} />;
       case 'userdetail':
         return selectedUser ? (
           <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => setUserRefreshKey(k => k + 1)} />
@@ -640,7 +425,7 @@ export default function HomeScreen({
                   `#/preview-pdf?id=${id}&number=${number}`,
                 );
               } catch {}
-              setPdfPreview({ id, number });
+              /* setPdfPreview → useNavigationStack */ void({ id, number });
               pushPage('pdf');
             }}
           />
@@ -927,10 +712,10 @@ export default function HomeScreen({
                   </View>
                   {/* 6 张收支卡片 */}
                   <ExpenseSummaryCards
-                    todayExpense={todayExpenseChart}
-                    monthExpense={monthExpenseChart}
-                    todayIncome={todayIncome}
-                    monthIncome={monthIncome}
+                    todayExpense={todayExpenseChart(sd.today)}
+                    monthExpense={monthExpenseChart(sd.today.slice(0, 7))}
+                    todayIncome={todayIncome(sd.today)}
+                    monthIncome={monthIncome()}
                   />
                   {/* 图表：月度趋势 + 分类占比 */}
                   {chartMonthly && (
@@ -941,6 +726,9 @@ export default function HomeScreen({
                       expense={chartMonthly.expense || []}
                       profit={chartMonthly.profit || []}
                       categories={chartMonthly.categories || {}}
+                      dailyDates={dailyRevenues.length > 0 ? dailyChartData.dates : []}
+                      dailyIncome={dailyRevenues.length > 0 ? dailyChartData.income : []}
+                      dailyExpense={dailyRevenues.length > 0 ? dailyChartData.expense : []}
                     />
                     </View>
                   )}
@@ -991,8 +779,7 @@ export default function HomeScreen({
               // Switching tabs swaps the underlying page, so any open
               // sub-page is dropped instantly (no exit animation —
               // we're going to a different context anyway).
-              setPageStack([]);
-              setRemoving(null);
+              clearStack();
             }}
           >
             <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>
@@ -1179,7 +966,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   chartGlassSymbol: {
     fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-    color: 'rgba(255,255,255,0.95)',
+    color: colors.primary,
     textShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   chartGlassValue: {

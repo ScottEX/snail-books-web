@@ -1,7 +1,8 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ThemeColors, FONTS } from '../theme';
+import { useCallback, useRef, useState } from 'react';
 
 interface ImagePreviewProps {
   /** Image URLs to show */

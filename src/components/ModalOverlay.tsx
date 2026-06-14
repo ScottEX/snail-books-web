@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
 import { View, TouchableOpacity, Animated } from 'react-native';
 import { createPortal } from 'react-dom';
 import { MODAL_BACKDROP_OPACITY } from '../theme';
+import { useEffect, useRef, useState } from 'react';
 
 interface ModalOverlayProps {
   visible?: boolean;

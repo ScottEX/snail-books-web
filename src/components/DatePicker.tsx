@@ -1,10 +1,12 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text } from 'react-native';
 import Svg, { Path, Rect, Line } from 'react-native-svg';
-import { useTheme, ThemeColors } from '../theme';
+import { useTheme } from '../theme';
 import { FONTS } from '../theme';
+import { getLang } from '../i18n';
+import { useRef, useState } from 'react';
 
-export interface DatePickerProps {
+interface DatePickerProps {
   /** 'YYYY-MM-DD' */
   date: string;
   /** Called with the selected date (YYYY-MM-DD) — only when valid (≤ max) */
@@ -30,6 +32,11 @@ export interface DatePickerProps {
 /**
  * Unified date picker: displays localized date text with a hidden native
  * `<input type="date">` overlay.  Matches the project's SVG icon style.
+ *
+ * The overlay is transparent (opacity 0.01) so the native picker can still
+ * receive click events. On iOS 18+ Safari, WebKit hit-testing heuristics may
+ * occasionally ignore the overlay — if the user reports the picker not opening,
+ * tapping slightly above the date text is the known workaround.
  *
  * Usage:
  *   <DatePicker date={recDate} onChange={setRecDate} max={sd.today}
@@ -129,9 +136,12 @@ export default function DatePicker({
 function fmtLocalDate(d: string): string {
   if (!d) return '';
   const [y, m, day] = d.split('-');
-  // Simple heuristic: use Chinese locale by default (matches the rest of the app)
-  // The app's i18n uses getLang() but DatePicker is a pure display component —
-  // the parent can override via the `date` formatting if needed.
-  // For now, use Chinese format since that's the primary app language.
+  const lang = getLang();
+  if (lang === 'en') {
+    const months = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+    return `${months[+m - 1]} ${+day}, ${y}`;
+  }
+  // zh-CN / zh-TW / default
   return `${y}年${+m}月${+day}日`;
 }

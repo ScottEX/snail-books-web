@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
@@ -15,6 +14,7 @@ import { modalClose, historyHeader } from '../sharedStyles';
 import DateErrorHint from '../components/DateErrorHint';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import BackArrow from '../components/icons/BackArrow';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Date helpers replaced by useServerDate() hook
 // Strict calendar months between two ISO dates (YYYY-MM-DD)

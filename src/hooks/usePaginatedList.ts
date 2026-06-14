@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 
-export interface PaginatedResult<T> {
+interface PaginatedResult<T> {
   items: T[];
   total: number;
   totalAll?: number;

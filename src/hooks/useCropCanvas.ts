@@ -2,7 +2,7 @@ import { useEffect, useRef, RefObject, MutableRefObject } from 'react';
 
 /** Shared crop state shape used by all Canvas cropping components.
  *  Individual components may extend this with their own fields. */
-export interface CropStateCommon {
+interface CropStateCommon {
   x: number; y: number; scale: number; minScale: number; maxScale: number;
   drag: { active: boolean; sx: number; sy: number; ox: number; oy: number };
   pinch: { active: boolean; startDist: number; startScale: number; midX: number; midY: number };

@@ -12,7 +12,7 @@ const fmtDate = (d: Date) =>
 
 
 
-export interface DailyRevenueFormOptions {
+interface DailyRevenueFormOptions {
   /** Show a toast message after save/delete */
   onToast: (msg: string) => void;
   /** Refresh last 7 days records after save */
