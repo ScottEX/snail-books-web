@@ -215,6 +215,7 @@ export default function InvoiceScreen({ onBack }: Props) {
   // CSS injection for drawer animation
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerKey, setDrawerKey] = useState(0);
+  const closeGuardRef = useRef(0);  // prevent stale closeDrawer callback from overwriting openDrawer state
   const drawerAnim = useRef(new Animated.Value(0)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const [dType, setDType] = useState<InvType>('general');
@@ -429,6 +430,7 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   // ── Drawer animation ──
   const openDrawer = (forEdit?: InvoiceRecord) => {
+    closeGuardRef.current++;  // invalidate any in-flight close callback
     setDrawerKey(k => k + 1);
     setDrawerOpen(true);
     setEditingId(forEdit ? forEdit.id : null);
@@ -468,10 +470,12 @@ export default function InvoiceScreen({ onBack }: Props) {
     }
   };
   const closeDrawer = () => {
+    const guard = ++closeGuardRef.current;
     Animated.parallel([
       Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
       Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
     ]).start(() => {
+      if (guard !== closeGuardRef.current) return;  // superseded by a new openDrawer
       setDrawerOpen(false);
       setEditingId(null);
       setDStatus('pending');
@@ -834,7 +838,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <TextInput
                   style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]}
                   value={dInvoiceNo}
-                  onChangeText={setDInvoiceNo}
+                  onChangeText={(v) => setDInvoiceNo(v.replace(/[^a-zA-Z0-9]/g, ''))}
                   placeholder="NO.2026060001"
                   placeholderTextColor={c.textSub}
                 />
