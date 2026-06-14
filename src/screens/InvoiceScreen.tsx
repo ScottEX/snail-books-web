@@ -268,7 +268,7 @@ export default function InvoiceScreen({ onBack }: Props) {
       try {
         const res = await api.getProcurementBatches(1, 100);
         const j = await res.json();
-        setBatchList(j.batches || j.data || []);
+        setBatchList(j.records || j.batches || j.data || []);
       } catch { setBatchList([]); }
     })();
     // Reset batch
@@ -314,13 +314,10 @@ export default function InvoiceScreen({ onBack }: Props) {
         {/* ═══ ENTRY CARD ═══ */}
         <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]}>
           <View style={s.ecTop}>
-            <TouchableOpacity style={s.ecBackBtn} onPress={onBack}>
+            <TouchableOpacity style={[s.ecBackBtn, { backgroundColor: 'rgba(255,255,255,0.12)' }]} onPress={onBack}>
               <IcnBack color="rgba(255,255,255,0.8)" />
             </TouchableOpacity>
-            <View>
-              <Text style={[s.ecLabel, { color: 'rgba(255,255,255,0.55)' }]}>{t('invLabel')}</Text>
-              <Text style={[s.ecTitle, { color: '#fff' }]}>{t('invTitle')}</Text>
-            </View>
+            <Text style={[s.ecTitle, { color: '#fff' }]}>{t('invTitle')}</Text>
           </View>
           <View style={s.ecStats}>
             <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
@@ -554,24 +551,26 @@ export default function InvoiceScreen({ onBack }: Props) {
 
               {/* Date + Email side by side */}
               <View style={s.dRow}>
-                <View style={[s.dField, { flex: 1 }]}>
+                <View style={[s.dField, { width: 'calc(50% - 5px)' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
-                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
+                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
                 </View>
-                <View style={[s.dField, { flex: 1 }]}>
+                <View style={[s.dField, { width: 'calc(50% - 5px)' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
                   <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
                 </View>
               </View>
 
               {/* File upload — shared ReceiptUpload component */}
-              <ReceiptUpload
-                newFiles={dFiles}
-                onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 9))}
-                onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
-                getPreviewUrl={(f: File) => URL.createObjectURL(f)}
-                label={t('invUploadFiles') as string}
-              />
+              <View style={{ marginBottom: 8 }}>
+                <ReceiptUpload
+                  newFiles={dFiles}
+                  onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 9))}
+                  onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
+                  getPreviewUrl={(f: File) => URL.createObjectURL(f)}
+                  label={t('invUploadFiles') as string}
+                />
+              </View>
 
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerNote')}</Text>
@@ -653,7 +652,7 @@ const s = StyleSheet.create({
     // backgroundColor set inline via c.surface
     marginBottom: 14,
   } as any,
-  ecTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 } as any,
+  ecTop: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 } as any,
   ecBackBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', flexShrink: 0 } as any,
   ecLabel: { fontSize: 11, letterSpacing: 1.3, color: 'rgba(255,255,255,0.55)', marginBottom: 4, textTransform: 'uppercase' } as any,
   ecTitle: { fontSize: 18, fontWeight: '600', color: '#fff', letterSpacing: 0.3 } as any,
