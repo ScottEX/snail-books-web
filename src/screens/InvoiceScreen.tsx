@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet } from 'react-native';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -181,12 +181,18 @@ export default function InvoiceScreen({ onBack }: Props) {
     })();
   }, []);
 
-  // Drawer animation
-  const drawerAnim = useRef(new Animated.Value(0)).current;
-  const overlayAnim = useRef(new Animated.Value(0)).current;
-  const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
-  const overlayOpacity = overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+  // CSS injection for drawer animation
+  useEffect(() => {
+    const id = 'inv-drawer-css';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `@keyframes dr-fade-in { from{opacity:0} to{opacity:1} } @keyframes dr-slide-up { from{transform:translateY(100%)} to{transform:translateY(0)} } @keyframes dr-fade-out { from{opacity:1} to{opacity:0} } @keyframes dr-slide-down { from{transform:translateY(0)} to{transform:translateY(100%)} }`;
+    document.head.appendChild(style);
+  }, []);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerPhase, setDrawerPhase] = useState<'enter'|'idle'|'exit'|'hidden'>('hidden');
+  const drawerTimer = useRef<any>(null);
   const [dType, setDType] = useState<InvType>('vat');
   const [dAmount, setDAmount] = useState('');
   const [dDate, setDDate] = useState(new Date().toISOString().slice(0, 10));
@@ -280,12 +286,11 @@ export default function InvoiceScreen({ onBack }: Props) {
   const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : tp === 'general' ? sBadge.general : sBadge.receipt;
 
   const openDrawer = () => {
+    clearTimeout(drawerTimer.current);
     setDType(invType);
     setDrawerOpen(true);
-    Animated.parallel([
-      Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-    ]).start();
+    setDrawerPhase('enter');
+    drawerTimer.current = setTimeout(() => setDrawerPhase('idle'), 300);
     // Fetch batch list
     (async () => {
       try {
@@ -312,10 +317,12 @@ export default function InvoiceScreen({ onBack }: Props) {
     }
   };
   const closeDrawer = () => {
-    Animated.parallel([
-      Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => setDrawerOpen(false));
+    clearTimeout(drawerTimer.current);
+    setDrawerPhase('exit');
+    drawerTimer.current = setTimeout(() => {
+      setDrawerPhase('hidden');
+      setDrawerOpen(false);
+    }, 220);
   };
 
   // Auto-fill amount when batch selected
@@ -527,9 +534,8 @@ export default function InvoiceScreen({ onBack }: Props) {
 
       {/* ═══ DRAWER ═══ */}
       {drawerOpen && (
-        <>
-          <Animated.View style={[s.drawerOverlay, { opacity: overlayOpacity }]} onTouchEnd={() => closeDrawer()} />
-          <Animated.View style={[s.drawer, { backgroundColor: c.surface, transform: [{ translateY: drawerTranslateY }] }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
+        <View style={[s.drawerOverlay, { animationName: drawerPhase === 'enter' ? 'dr-fade-in' : drawerPhase === 'exit' ? 'dr-fade-out' : undefined, animationDuration: drawerPhase === 'exit' ? '0.2s' : '0.25s', animationFillMode: 'both', animationTimingFunction: 'ease' } as any]} onTouchEnd={() => closeDrawer()}>
+          <View style={[s.drawer, { backgroundColor: c.surface }, { animationName: drawerPhase === 'enter' ? 'dr-slide-up' : drawerPhase === 'exit' ? 'dr-slide-down' : undefined, animationDuration: drawerPhase === 'exit' ? '0.22s' : '0.3s', animationFillMode: 'both', animationTimingFunction: drawerPhase === 'enter' ? 'cubic-bezier(.2,0,.1,1)' : 'ease' } as any]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
             <View style={[s.drawerHandle, { backgroundColor: c.secondary }]} />
             <View style={[s.drawerHead, { borderBottomColor: c.secondary }]}>
               <Text style={[s.drawerTitle, { color: c.textMain }]}>{t('invApply')}</Text>
@@ -641,8 +647,8 @@ export default function InvoiceScreen({ onBack }: Props) {
             >
               <Text style={s.dSubmitText}>{t('invSubmit')}</Text>
             </TouchableOpacity>
-          </Animated.View>
-        </>
+          </View>
+        </View>
       )}
     </View>
   );
