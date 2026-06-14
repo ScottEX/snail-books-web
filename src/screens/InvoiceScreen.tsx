@@ -593,7 +593,7 @@ function InfoRow({ icon, iconBg, label, value, colors, mono, onPress }: {
 /* ═══════════════ STYLES ═══════════════ */
 
 const s = StyleSheet.create({
-  root: { flex: 1 } as any,
+  root: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, flex: 1 } as any,
   scroll: { flex: 1 } as any,
 
   /* NAV */
