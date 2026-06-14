@@ -161,8 +161,18 @@ export default function InvoiceScreen({ onBack }: Props) {
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
   const [loaded, setLoaded] = useState(false);
 
-  // Drawer (apply)
+  // CSS injection for drawer animation
+  useEffect(() => {
+    const id = 'inv-drawer-css';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `@keyframes dr-fade-in { from{opacity:0} to{opacity:1} } @keyframes dr-slide-up { from{transform:translateY(100%)} to{transform:translateY(0)} } @keyframes dr-fade-out { from{opacity:1} to{opacity:0} } @keyframes dr-slide-down { from{transform:translateY(0)} to{transform:translateY(100%)} }`;
+    document.head.appendChild(style);
+  }, []);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerPhase, setDrawerPhase] = useState<'enter'|'idle'|'exit'|'hidden'>('hidden');
+  const drawerTimer = useRef<any>(null);
   const [dType, setDType] = useState<InvType>('vat');
   const [dAmount, setDAmount] = useState('');
   const [dDate, setDDate] = useState(new Date().toISOString().slice(0, 10));
@@ -249,6 +259,21 @@ export default function InvoiceScreen({ onBack }: Props) {
   const typeBadgeLabel = (tp: InvType) => tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt');
   const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : tp === 'general' ? sBadge.general : sBadge.receipt;
 
+  const openDrawer = () => {
+    clearTimeout(drawerTimer.current);
+    setDrawerOpen(true);
+    setDrawerPhase('enter');
+    drawerTimer.current = setTimeout(() => setDrawerPhase('idle'), 250);
+  };
+  const closeDrawer = () => {
+    clearTimeout(drawerTimer.current);
+    setDrawerPhase('exit');
+    drawerTimer.current = setTimeout(() => {
+      setDrawerPhase('hidden');
+      setDrawerOpen(false);
+    }, 200);
+  };
+
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       {/* Floating back button */}
@@ -288,7 +313,7 @@ export default function InvoiceScreen({ onBack }: Props) {
             setDDate(new Date().toISOString().slice(0, 10));
             setDRef('');
             setDNote('');
-            setDrawerOpen(true);
+            openDrawer();
           }}>
             <IcnPlus color="rgba(255,255,255,0.85)" />
             <Text style={s.ecBtnText}>{t('invApply')}</Text>
@@ -444,12 +469,12 @@ export default function InvoiceScreen({ onBack }: Props) {
 
       {/* ═══ DRAWER ═══ */}
       {drawerOpen && (
-        <View style={s.drawerOverlay} onTouchEnd={() => setDrawerOpen(false)}>
-          <View style={[s.drawer, { backgroundColor: c.surface }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
+        <View style={[s.drawerOverlay, { animationName: drawerPhase === 'enter' ? 'dr-fade-in' : drawerPhase === 'exit' ? 'dr-fade-out' : undefined, animationDuration: drawerPhase === 'exit' ? '0.18s' : '0.2s', animationFillMode: 'both', animationTimingFunction: 'ease' } as any]} onTouchEnd={() => closeDrawer()}>
+          <View style={[s.drawer, { backgroundColor: c.surface }, { animationName: drawerPhase === 'enter' ? 'dr-slide-up' : drawerPhase === 'exit' ? 'dr-slide-down' : undefined, animationDuration: drawerPhase === 'exit' ? '0.2s' : '0.25s', animationFillMode: 'both', animationTimingFunction: drawerPhase === 'enter' ? 'cubic-bezier(.4,0,.2,1)' : 'ease' } as any]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
             <View style={[s.drawerHandle, { backgroundColor: c.secondary }]} />
             <View style={[s.drawerHead, { borderBottomColor: c.secondary }]}>
               <Text style={[s.drawerTitle, { color: c.textMain }]}>{t('invApply')}</Text>
-              <TouchableOpacity style={[s.drawerClose, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => setDrawerOpen(false)}>
+              <TouchableOpacity style={[s.drawerClose, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => closeDrawer()}>
                 <IcnClose />
               </TouchableOpacity>
             </View>
@@ -502,7 +527,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
               </View>
 
-              <TouchableOpacity style={[s.dSubmit, { backgroundColor: c.primary }]} onPress={() => { setDrawerOpen(false); showToast('✅ ' + t('invSubmitDone')); }}>
+              <TouchableOpacity style={[s.dSubmit, { backgroundColor: c.primary }]} onPress={() => { closeDrawer(); showToast('✅ ' + t('invSubmitDone')); }}>
                 <Text style={s.dSubmitText}>{t('invSubmit')}</Text>
               </TouchableOpacity>
             </ScrollView>
