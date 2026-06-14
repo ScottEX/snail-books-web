@@ -19,6 +19,8 @@ interface Props {
   maxThumbSize?: number;
   /** Label text override (default: 凭证上传) */
   label?: string;
+  /** Accept attribute for file input (default: image/jpeg,image/png,image/webp) */
+  accept?: string;
 }
 
 const GAP = 8;
@@ -33,6 +35,7 @@ export default function ReceiptUpload({
   getPreviewUrl,
   maxThumbSize = 120,
   label,
+  accept,
 }: Props) {
   const { colors: c } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,7 +98,7 @@ export default function ReceiptUpload({
       {React.createElement('input', {
         ref: fileInputRef,
         type: 'file',
-        accept: 'image/jpeg,image/png,image/webp',
+        accept: accept || 'image/jpeg,image/png,image/webp',
         multiple: true,
         onChange: handleFilePick,
         style: { display: 'none' },

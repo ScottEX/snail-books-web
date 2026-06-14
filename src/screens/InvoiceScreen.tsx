@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image } from 'react-native';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -10,6 +10,8 @@ import ReceiptUpload from '../components/ReceiptUpload';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import DatePicker from '../components/DatePicker';
 import EmptyState from '../components/EmptyState';
+import ConfirmModal from '../components/ConfirmModal';
+import TrashIcon from '../components/icons/TrashIcon';
 
 /* ═══════════════ SVG ICONS ═══════════════ */
 
@@ -83,17 +85,6 @@ const IcnShareSmall = ({ color }: { color: string }) => (
 const IcnClose = ({ color }: { color: string }) => (
   <Svg width="14" height="14" viewBox="0 0 1088 1024">
     <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill={color} />
-  </Svg>
-);
-
-/** Trash icon — small (12px) for inline card action */
-const IcnTrashSmall = ({ color }: { color: string }) => (
-  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <Polyline points="3 6 5 6 21 6" />
-    <Path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-    <Path d="M10 11v6" />
-    <Path d="M14 11v6" />
-    <Path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
   </Svg>
 );
 
@@ -375,7 +366,6 @@ export default function InvoiceScreen({ onBack }: Props) {
     try {
       await api.deleteInvoiceRecord(confirmDeleteId);
       setConfirmDeleteId(null);
-      showToast('✅ ' + t('invRecDeleteOk'));
       await loadRecords();
     } catch (e: any) {
       showToast('⚠️ ' + (e?.message || t('errSessionExpired')));
@@ -669,13 +659,9 @@ export default function InvoiceScreen({ onBack }: Props) {
                             <Text style={[s.invActBtnText, { color: c.primary }]}>{t('share')}</Text>
                           </TouchableOpacity>
                         </>
-                      ) : r.status === 'pending' ? (
-                        <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.warning, 0.08), borderColor: withAlpha(c.warning, 0.2) }]} onPress={() => openDrawer(r)}>
-                          <Text style={[s.invActBtnText, { color: c.warning }]}>{t('invRecMarkDone')}</Text>
-                        </TouchableOpacity>
                       ) : null}
-                      <TouchableOpacity style={[s.invActBtn, { backgroundColor: 'transparent', borderColor: withAlpha(c.textSub, 0.3), paddingHorizontal: 8 }]} onPress={() => setConfirmDeleteId(r.id)}>
-                        <IcnTrashSmall color={c.textSub} />
+                      <TouchableOpacity style={[s.invDelBtn, { backgroundColor: withAlpha(c.textMain, 0.05) }]} onPress={() => setConfirmDeleteId(r.id)}>
+                        <TrashIcon color={c.danger} size={14} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -696,33 +682,16 @@ export default function InvoiceScreen({ onBack }: Props) {
       )}
 
       {/* ═══ CONFIRM DELETE MODAL ═══ */}
-      {confirmDeleteId != null && (
-        <>
-          <View style={s.drawerOverlay}>
-            <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => !deleting && setConfirmDeleteId(null)} />
-          </View>
-          <View style={[s.confirmModal, { backgroundColor: c.surface }]}>
-            <Text style={[s.confirmTitle, { color: c.textMain }]}>⚠️ {t('invRecDeleteOk')}</Text>
-            <Text style={[s.confirmMsg, { color: c.textSub }]}>{t('invRecConfirmDelete')}</Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
-              <TouchableOpacity
-                style={[s.confirmBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary, flex: 1 }]}
-                onPress={() => setConfirmDeleteId(null)}
-                disabled={deleting}
-              >
-                <Text style={{ color: c.textMain, fontSize: 14, fontWeight: '500' }}>取消</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.confirmBtn, { backgroundColor: '#C0392B', borderColor: '#C0392B', flex: 1, opacity: deleting ? 0.5 : 1 }]}
-                onPress={handleConfirmDelete}
-                disabled={deleting}
-              >
-                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{deleting ? '...' : '删除'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </>
-      )}
+      <ConfirmModal
+        visible={confirmDeleteId != null}
+        title="确认删除"
+        message={t('invRecConfirmDelete')}
+        confirmLabel="删除"
+        confirmColor="#C0392B"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => !deleting && setConfirmDeleteId(null)}
+      />
 
       {/* ═══ DRAWER ═══ */}
       {drawerOpen && (
@@ -839,9 +808,11 @@ export default function InvoiceScreen({ onBack }: Props) {
                   ))}
                 </View>
               </View>
+              {/* Invoice number — only for done status */}
+              {dStatus === 'done' && (
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>
-                  {t('invRecInvoiceNo')}{dStatus === 'done' ? <Text style={{ color: c.primary }}>*</Text> : <Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11 } as any}>（待开票可空）</Text>}
+                  {t('invRecInvoiceNo')}<Text style={{ color: c.primary }}>*</Text>
                 </Text>
                 <TextInput
                   style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]}
@@ -849,32 +820,40 @@ export default function InvoiceScreen({ onBack }: Props) {
                   onChangeText={setDInvoiceNo}
                   placeholder="NO.2026060001"
                   placeholderTextColor={c.textSub}
-                  editable={dStatus === 'done'}
                 />
               </View>
+              )}
 
-              {/* Existing file preview (edit mode) */}
+              {/* Existing file preview (edit mode — show image for done records) */}
               {editingId && dExistingFilePath ? (
-                <View style={[s.dField, { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.04) }]}>
-                  <Text style={{ fontSize: 13, color: c.textSub, flex: 1 }} numberOfLines={1}>
-                    已上传文件: {dExistingFilePath.split('/').pop()}
-                  </Text>
-                  <TouchableOpacity onPress={() => handleInvoiceShare({ id: editingId, file_path: dExistingFilePath, file_type: '', invoice_number: dInvoiceNo, type: dType, company: data.company_name, tax_id: data.tax_id, amount: Number(dAmount), date: dDate, email: dEmail, status: dStatus })}>
-                    <Text style={{ fontSize: 12, color: c.primary }}>{t('invDownload')}</Text>
-                  </TouchableOpacity>
+                <View style={[s.dField]}>
+                  <Text style={[s.dLabel, { color: c.textSub }]}>已上传发票</Text>
+                  {dExistingFilePath.match(/\.(jpg|jpeg|png|webp)$/i) ? (
+                    <Image source={{ uri: api.getInvoiceFileUrl(dExistingFilePath) }} style={{ width: '100%', height: 220, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.04) }} resizeMode="contain" />
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.04) }}>
+                      <Text style={{ fontSize: 13, color: c.textSub, flex: 1 }} numberOfLines={1}>{dExistingFilePath.split('/').pop()}</Text>
+                      <TouchableOpacity onPress={() => window.open(api.getInvoiceFileUrl(dExistingFilePath), '_blank')}>
+                        <Text style={{ fontSize: 12, color: c.primary }}>{t('invDownload')}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ) : null}
 
-              {/* File upload — shared ReceiptUpload component */}
-              <View style={{ marginBottom: 8 }}>
-                <ReceiptUpload
-                  newFiles={dFiles}
-                  onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 9))}
-                  onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
-                  getPreviewUrl={(f: File) => URL.createObjectURL(f)}
-                  label={t('invUploadFiles') as string}
-                />
-              </View>
+              {/* File upload — only for done status */}
+              {dStatus === 'done' && (
+                <View style={{ marginBottom: 8 }}>
+                  <ReceiptUpload
+                    newFiles={dFiles}
+                    onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 1))}
+                    onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
+                    getPreviewUrl={(f: File) => URL.createObjectURL(f)}
+                    label="上传发票"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                  />
+                </View>
+              )}
 
               <View style={s.dField}>
                 <ExpenseNoteInput
@@ -887,13 +866,20 @@ export default function InvoiceScreen({ onBack }: Props) {
 
             </ScrollView>
             {/* Submit — fixed below scroll area, not inside */}
+            {(() => {
+              const submitDisabled = submitting || !dAmount || !data.company_name || !data.tax_id
+                || (dStatus === 'done' && !dInvoiceNo.trim())
+                || (dStatus === 'done' && dFiles.length === 0 && !dExistingFilePath);
+              return (
             <TouchableOpacity
-              style={[s.dSubmit, { backgroundColor: c.primary }, (submitting || !dAmount || !data.company_name || !data.tax_id) && { opacity: 0.4 }]}
-              disabled={submitting || !dAmount || !data.company_name || !data.tax_id}
+              style={[s.dSubmit, { backgroundColor: c.primary }, submitDisabled && { opacity: 0.4 }]}
+              disabled={submitDisabled}
               onPress={handleDrawerSubmit}
             >
               <Text style={s.dSubmitText}>{submitting ? '...' : (editingId ? t('invSave') : t('invSubmit'))}</Text>
             </TouchableOpacity>
+              );
+            })()}
           </Animated.View>
         </>
       )}
@@ -1043,6 +1029,7 @@ const s = StyleSheet.create({
   invAmountLabel: { fontSize: 10, marginTop: 1 } as any,
   invActions: { flexDirection: 'row', gap: 6 } as any,
   invActBtn: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 4 } as any,
+  invDelBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const },
   invActBtnText: { fontSize: 12, fontWeight: '500' } as any,
 
   /* EMPTY */
@@ -1054,16 +1041,6 @@ const s = StyleSheet.create({
   toastWrap: { position: 'fixed', bottom: 90, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 200 } as any,
   toast: { backgroundColor: 'rgba(28,28,26,0.88)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10 } as any,
   toastText: { color: '#fff', fontSize: 13, whiteSpace: 'nowrap' } as any,
-
-  /* CONFIRM MODAL (delete dialog) */
-  confirmModal: {
-    position: 'fixed' as any, top: '50%', left: '50%', transform: [{ translateX: '-50%' }, { translateY: '-50%' }] as any,
-    zIndex: 202, padding: 20, borderRadius: 16, minWidth: 300, maxWidth: 400,
-    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
-  } as any,
-  confirmTitle: { fontSize: 15, fontWeight: '600', marginBottom: 8 } as any,
-  confirmMsg: { fontSize: 13, lineHeight: 20 } as any,
-  confirmBtn: { paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1 } as any,
 
   /* DRAWER */
   drawerOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
