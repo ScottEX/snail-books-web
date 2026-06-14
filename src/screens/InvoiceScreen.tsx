@@ -252,8 +252,8 @@ export default function InvoiceScreen({ onBack }: Props) {
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       {/* ═══ NAV ═══ */}
-      <View style={[s.nav, { backgroundColor: c.bg }]}>
-        <TouchableOpacity style={[s.navBtn, { backgroundColor: c.bg }]} onPress={onBack}>
+      <View style={s.nav}>
+        <TouchableOpacity style={s.navBtn} onPress={onBack}>
           <IcnBack color={c.textMain} />
         </TouchableOpacity>
         <Text style={[s.navTitle, { color: c.textMain }]}>{t('invTitle')}</Text>
@@ -569,11 +569,11 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange }:
 
 const s = StyleSheet.create({
   root: { flex: 1 } as any,
-  scroll: { flex: 1 } as any,
 
-  /* NAV — frosted glass, matches historyHeader style */
-  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 48, paddingBottom: 10, backgroundColor: 'transparent', backdropFilter: 'saturate(200%) blur(30px)', borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' } as any,
-  navBtn: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, alignItems: 'center', justifyContent: 'center' } as any,
+  /* NAV — frosted glass, absolute positioned like historyHeader */
+  nav: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90, flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 20, paddingBottom: 8, paddingHorizontal: 16, backgroundColor: 'transparent', backdropFilter: 'saturate(200%) blur(30px)', borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' } as any,
+  navBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' } as any,
+  scroll: { flex: 1, marginTop: 48 } as any,
   navTitle: { fontSize: 16, fontWeight: '600' } as any,
   navRight: { flexDirection: 'row', gap: 8 } as any,
 
