@@ -307,7 +307,7 @@ export default function BgCropModal({
             />
             {/* Hint text — sits ABOVE the action buttons, matching the
                 avatar-result preview style. */}
-            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' } as any}>{t('bgResultHint') || '确认使用此图片，或返回再编辑'}</Text>
+            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' } as any}>{t('bgResultHint')}</Text>
             {/* Action buttons — inside the card, under the hint text */}
             <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 4 } as any}>
               <TouchableOpacity

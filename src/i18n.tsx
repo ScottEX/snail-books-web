@@ -111,6 +111,7 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundOnly: '第{n}次分红',
     done: '完成',
     downloadPdf: '下载PDF',
+    downloadImage: '下载图片',
     editBg: '编辑背景图',
     editCover: '更换封面',
     edit: '编辑',
@@ -383,6 +384,7 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: '超时时间',
     shangouWaimai: '闪购外卖',
     share: '分享',
+    shareTo: '已分享至 {label}',
     shareCalcResult: '穿透股权计算结果：',
     shareFailed: '分享失败',
     shareLink: '分享链接',
@@ -569,6 +571,7 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundOnly: '第{n}次分紅',
     done: '完成',
     downloadPdf: '下載PDF',
+    downloadImage: '下載圖片',
     editBg: '編輯背景圖',
     editCover: '更換封面',
     edit: '編輯',
@@ -841,6 +844,7 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: '超時時間',
     shangouWaimai: '閃購外賣',
     share: '分享',
+    shareTo: '已分享至 {label}',
     shareCalcResult: '穿透股權計算結果：',
     shareFailed: '分享失敗',
     shareLink: '分享連結',
@@ -1027,6 +1031,7 @@ const I18N: Record<string, Record<string, string>> = {
     dividendRoundOnly: 'Dividend #{n}',
     done: 'Done',
     downloadPdf: 'Download PDF',
+    downloadImage: 'Download Image',
     edit: 'Edit',
     editBg: 'Edit Background',
     editCover: 'Change Cover',
@@ -1299,6 +1304,7 @@ const I18N: Record<string, Record<string, string>> = {
     sessionTimeoutLabel: 'Session timeout',
     shangouWaimai: 'Flash Waimai',
     share: 'Share',
+    shareTo: 'Shared to {label}',
     shareCalcResult: 'Share calculation result:',
     shareFailed: 'Share failed',
     shareLink: 'Share link',
@@ -1481,6 +1487,7 @@ export type I18nKey =
   | 'dividendRoundOnly'
   | 'done'
   | 'downloadPdf'
+  | 'downloadImage'
   | 'editBg'
   | 'editCover'
   | 'editProfile'
@@ -1744,6 +1751,7 @@ export type I18nKey =
   | 'sessionTimeoutLabel'
   | 'shangouWaimai'
   | 'share'
+  | 'shareTo'
   | 'shareCalcResult'
   | 'shareFailed'
   | 'shareLink'

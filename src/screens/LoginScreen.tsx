@@ -481,7 +481,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               </TouchableOpacity>
               <Text style={styles.verifyHint}>
                 {t('verifyNewNoEmail') || '一直没收到？别着急，您可以 '}
-                <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s` : t('verifyNewResend') || '重新发送'}</Text>
+                <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s` : t('verifyNewResend')}</Text>
                 {t('verifyNewOrSpam') || ' 或检查一下垃圾箱。'}
               </Text>
               <Text style={styles.verifyHint}>
