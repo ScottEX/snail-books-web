@@ -918,13 +918,16 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
 
-      {/* ====== INVOICE SCREEN (slide-in overlay) ====== */}
-      <SlideScreen
-        visible={showInvoice}
-        onClose={() => setShowInvoice(false)}
-      >
-        {(close) => <InvoiceScreen onBack={close} />}
-      </SlideScreen>
+      {/* ====== INVOICE SCREEN (portaled to body — covers nav bar) ====== */}
+      {showInvoice && createPortal(
+        <SlideScreen
+          visible={showInvoice}
+          onClose={() => setShowInvoice(false)}
+        >
+          {(close) => <InvoiceScreen onBack={close} />}
+        </SlideScreen>,
+        document.body
+      )}
     </View>
   );
 }

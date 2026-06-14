@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 
-/* ═══════════════ SVG ICONS (from reference HTML) ═══════════════ */
+/* ═══════════════ SVG ICONS ═══════════════ */
 
 const IcnBack = ({ color }: { color: string }) => (
   <Svg width="16" height="16" viewBox="0 0 24 24">
@@ -40,18 +40,6 @@ const IcnPlus = ({ color }: { color: string }) => (
   <Svg width="14" height="14" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
     <Line x1="12" y1="5" x2="12" y2="19" />
     <Line x1="5" y1="12" x2="19" y2="12" />
-  </Svg>
-);
-const IcnPlusBig = ({ color }: { color: string }) => (
-  <Svg width="16" height="16" viewBox="0 0 24 24" stroke={color} strokeWidth="2.2" fill="none">
-    <Line x1="12" y1="5" x2="12" y2="19" />
-    <Line x1="5" y1="12" x2="19" y2="12" />
-  </Svg>
-);
-const IcnEdit = ({ color }: { color: string }) => (
-  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2.2" fill="none">
-    <Path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-    <Path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
   </Svg>
 );
 const IcnCompany = ({ color }: { color: string }) => (
@@ -90,11 +78,6 @@ const IcnPhone = ({ color }: { color: string }) => (
     <Path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.09a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
   </Svg>
 );
-const IcnArrowRight = ({ color }: { color: string }) => (
-  <Svg width="14" height="14" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
-    <Polyline points="9 18 15 12 9 6" />
-  </Svg>
-);
 const IcnAccount = ({ color }: { color: string }) => (
   <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
     <Line x1="12" y1="1" x2="12" y2="23" />
@@ -119,6 +102,14 @@ const IcnClose = () => (
   <Svg width="14" height="14" viewBox="0 0 1088 1024">
     <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
   </Svg>
+);
+
+/** Pen icon — same SVG as UserDetailScreen.PencilSvg */
+const PencilSvg = ({ color }: { color: string }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5Z" />
+    <path d="M15 5l4 4" />
+  </svg>
 );
 
 /* ═══════════════ INVOICE SCREEN ═══════════════ */
@@ -281,7 +272,7 @@ export default function InvoiceScreen({ onBack }: Props) {
         </View>
       </View>
 
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* ═══ ENTRY CARD ═══ */}
         <View style={s.entryCard}>
           <View style={s.ecTop}>
@@ -339,14 +330,7 @@ export default function InvoiceScreen({ onBack }: Props) {
               <Text style={[s.tipsText, { color: c.warning }]}>{t('invTips')}</Text>
             </View>
 
-            {/* Invoice type preference */}
-            <View style={s.sectionHead}>
-              <Text style={[s.shTitle, { color: c.textSub }]}>{t('invTypePref')}</Text>
-              <TouchableOpacity style={s.shAction} onPress={handleSaveInfo}>
-                <IcnEdit color={hasChanged ? c.primary : c.textSub} />
-                <Text style={{ fontSize: 12, color: hasChanged ? c.primary : c.textSub, fontWeight: '500', marginLeft: 3 }}>{t('invSave')}</Text>
-              </TouchableOpacity>
-            </View>
+            {/* Invoice type preference — no edit button, chips only */}
             <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
               <View style={[s.typeToggle, { borderBottomColor: c.secondary }]}>
                 {(['vat', 'general', 'receipt'] as InvType[]).map(tp => (
@@ -357,44 +341,23 @@ export default function InvoiceScreen({ onBack }: Props) {
               </View>
             </View>
 
-            {/* Header info */}
-            <View style={s.sectionHead}>
-              <Text style={[s.shTitle, { color: c.textSub }]}>{t('invHeaderInfo')}</Text>
-              <TouchableOpacity style={s.shAction} onPress={() => showToast('✏️ ' + t('invEditInfo'))}>
-                <IcnEdit color={c.textSub} />
-                <Text style={{ fontSize: 12, color: c.textSub, fontWeight: '500', marginLeft: 3 }}>{t('invEdit')}</Text>
-              </TouchableOpacity>
-            </View>
+            {/* Header info — no edit button in section head; pencil on each row */}
             <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <InfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onPress={() => showToast('✏️ ' + t('companyName'))} />
-              <InfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onPress={() => showToast('✏️ ' + t('taxId'))} />
-              <InfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onPress={() => showToast('✏️ ' + t('addressPhone'))} />
-              <InfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={data.phone} colors={c} mono onPress={() => showToast('✏️ ' + t('companyPhone'))} />
+              <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} />
+              <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onChange={(v) => setData({ ...data, tax_id: v })} />
+              <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} />
+              <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={data.phone} colors={c} mono onChange={(v) => setData({ ...data, phone: v })} />
             </View>
 
             {/* Bank info */}
-            <View style={s.sectionHead}>
-              <Text style={[s.shTitle, { color: c.textSub }]}>{t('invBankInfo')}</Text>
-              <TouchableOpacity style={s.shAction} onPress={() => showToast('✏️ ' + t('invEditBank'))}>
-                <IcnEdit color={c.textSub} />
-                <Text style={{ fontSize: 12, color: c.textSub, fontWeight: '500', marginLeft: 3 }}>{t('invEdit')}</Text>
-              </TouchableOpacity>
-            </View>
             <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <InfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onPress={() => showToast('✏️ ' + t('bankName'))} />
-              <InfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onPress={() => showToast('✏️ ' + t('bankAccount'))} />
+              <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} />
+              <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onChange={(v) => setData({ ...data, bank_account: v })} />
             </View>
 
             {/* Email */}
-            <View style={s.sectionHead}>
-              <Text style={[s.shTitle, { color: c.textSub }]}>{t('invReceiveMethod')}</Text>
-              <TouchableOpacity style={s.shAction} onPress={() => showToast('✏️ ' + t('invEdit'))}>
-                <IcnEdit color={c.textSub} />
-                <Text style={{ fontSize: 12, color: c.textSub, fontWeight: '500', marginLeft: 3 }}>{t('invEdit')}</Text>
-              </TouchableOpacity>
-            </View>
             <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <InfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} value={data.email} colors={c} onPress={() => showToast('✏️ ' + t('invEmail'))} />
+              <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} value={data.email} colors={c} onChange={(v) => setData({ ...data, email: v })} />
             </View>
           </View>
         )}
@@ -489,19 +452,6 @@ export default function InvoiceScreen({ onBack }: Props) {
         </View>
       )}
 
-      {/* ═══ FAB ═══ */}
-      <TouchableOpacity style={[s.fab, { backgroundColor: c.primary }]} onPress={() => {
-        setDType(invType);
-        setDAmount('');
-        setDDate(new Date().toISOString().slice(0, 10));
-        setDRef('');
-        setDNote('');
-        setDrawerOpen(true);
-      }}>
-        <IcnPlusBig color="#fff" />
-        <Text style={s.fabText}>{t('invApply')}</Text>
-      </TouchableOpacity>
-
       {/* ═══ DRAWER ═══ */}
       {drawerOpen && (
         <View style={s.drawerOverlay} onTouchEnd={() => setDrawerOpen(false)}>
@@ -573,21 +523,50 @@ export default function InvoiceScreen({ onBack }: Props) {
   );
 }
 
-/* ═══════════════ INFO ROW ═══════════════ */
+/* ═══════════════ EDITABLE INFO ROW ═══════════════ */
 
-function InfoRow({ icon, iconBg, label, value, colors, mono, onPress }: {
-  icon: React.ReactNode; iconBg: string; label: string; value: string; colors: ThemeColors; mono?: boolean; onPress: () => void;
+function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange }: {
+  icon: React.ReactNode; iconBg: string; label: string; value: string; colors: ThemeColors; mono?: boolean; onChange: (v: string) => void;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  const commit = () => {
+    if (draft !== value) onChange(draft);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <View style={[sIR.row, { borderBottomColor: colors.secondary }]}>
+        <View style={[sIR.icon, { backgroundColor: iconBg }]}>{icon}</View>
+        <View style={sIR.body}>
+          <Text style={[sIR.label, { color: colors.textSub }]}>{label}</Text>
+          <TextInput
+            style={[sIR.valueInput, { color: colors.textMain, fontFamily: mono ? 'DM Mono' : undefined } as any]}
+            value={draft}
+            onChangeText={setDraft}
+            onBlur={commit}
+            autoFocus
+            placeholder={value || '—'}
+            placeholderTextColor={colors.textSub}
+          />
+        </View>
+        <TouchableOpacity style={sIR.editBtn} onPress={commit}>
+          <PencilSvg color={colors.primary} />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
-    <TouchableOpacity style={[sIR.row, { borderBottomColor: colors.secondary }]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[sIR.row, { borderBottomColor: colors.secondary }]} onPress={() => { setDraft(value); setEditing(true); }} activeOpacity={0.7}>
       <View style={[sIR.icon, { backgroundColor: iconBg }]}>{icon}</View>
       <View style={sIR.body}>
         <Text style={[sIR.label, { color: colors.textSub }]}>{label}</Text>
         <Text style={[sIR.value, { color: value ? colors.textMain : colors.textSub, fontWeight: value ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value || t('invEmpty')}</Text>
       </View>
-      <View style={sIR.arrow}>
-        <IcnArrowRight color={colors.textSub} />
-      </View>
+      <PencilSvg color={colors.textSub} />
     </TouchableOpacity>
   );
 }
@@ -599,17 +578,17 @@ const s = StyleSheet.create({
   scroll: { flex: 1 } as any,
 
   /* NAV */
-  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 10 } as any,
+  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 10 } as any,
   navBtn: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, alignItems: 'center', justifyContent: 'center' } as any,
   navTitle: { fontSize: 16, fontWeight: '600' } as any,
   navRight: { flexDirection: 'row', gap: 8 } as any,
 
-  /* ENTRY CARD */
+  /* ENTRY CARD — full width, no horizontal margin */
   entryCard: {
-    marginHorizontal: 16, marginBottom: 14, borderRadius: 20, padding: 20,
-    paddingBottom: 18, position: 'relative', overflow: 'hidden' as any,
-    // Dark gradient via background color — approximated
+    borderRadius: 0, padding: 20, paddingBottom: 18,
+    position: 'relative', overflow: 'hidden' as any,
     backgroundColor: '#5A1010',
+    marginBottom: 14,
   } as any,
   ecTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 } as any,
   ecLabel: { fontSize: 11, letterSpacing: 1.3, color: 'rgba(255,255,255,0.55)', marginBottom: 4, textTransform: 'uppercase' } as any,
@@ -632,24 +611,16 @@ const s = StyleSheet.create({
   tabOn: { shadowOpacity: 0.08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } } as any,
   tabText: { fontSize: 13, fontWeight: '500' } as any,
 
-  /* SECTION HEAD */
-  sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 8 } as any,
-  shTitle: { fontSize: 12, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase' } as any,
-  shAction: { flexDirection: 'row', alignItems: 'center', gap: 3 } as any,
-
   /* TIPS */
   tips: { marginHorizontal: 16, marginBottom: 14, borderRadius: 12, padding: 12, flexDirection: 'row', gap: 10, alignItems: 'flex-start', borderWidth: 1 } as any,
   tipsIcon: { fontSize: 15, flexShrink: 0, marginTop: 1 } as any,
   tipsText: { fontSize: 12, lineHeight: 19, flex: 1 } as any,
 
-  /* INFO CARD */
-  infoCard: { borderRadius: 12, borderWidth: 1, overflow: 'hidden', marginHorizontal: 16, marginBottom: 14 } as any,
+  /* INFO CARD — full width, no horizontal margin */
+  infoCard: { borderRadius: 0, borderWidth: 1, borderLeftWidth: 0, borderRightWidth: 0, overflow: 'hidden', marginBottom: 14 } as any,
   typeToggle: { flexDirection: 'row', gap: 6, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 } as any,
   typeChip: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8, borderWidth: 1.5 } as any,
   typeChipText: { fontSize: 12, fontWeight: '500' } as any,
-
-  /* INFO ROW */
-  /* (defined below as sIR) */
 
   /* FILTER */
   filterRow: { marginBottom: 12 } as any,
@@ -695,15 +666,6 @@ const s = StyleSheet.create({
   toast: { backgroundColor: 'rgba(28,28,26,0.88)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10 } as any,
   toastText: { color: '#fff', fontSize: 13, whiteSpace: 'nowrap' } as any,
 
-  /* FAB */
-  fab: {
-    position: 'fixed', bottom: 24, left: '50%', transform: [{ translateX: '-50%' }],
-    paddingVertical: 14, paddingHorizontal: 28, borderRadius: 100,
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    boxShadow: '0 4px 16px rgba(122,26,26,0.35)', borderWidth: 0, whiteSpace: 'nowrap',
-  } as any,
-  fabText: { fontSize: 14, fontWeight: '600', color: '#fff' } as any,
-
   /* DRAWER */
   drawerOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' } as any,
   drawer: { width: '100%', maxWidth: 430, borderRadius: 20, maxHeight: '90vh', display: 'flex', flexDirection: 'column' } as any,
@@ -734,7 +696,8 @@ const sIR = StyleSheet.create({
   body: { flex: 1, minWidth: 0 } as any,
   label: { fontSize: 11, marginBottom: 2 } as any,
   value: { fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden' } as any,
-  arrow: { width: 14, height: 14, flexShrink: 0 } as any,
+  valueInput: { fontSize: 13, fontWeight: '500', borderWidth: 0, outline: 'none', background: 'transparent', padding: 0, flex: 1 } as any,
+  editBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexShrink: 0 } as any,
 });
 
 /* ═══════════════ BADGE STYLES ═══════════════ */
