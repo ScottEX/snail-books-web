@@ -400,17 +400,19 @@ export default function InvoiceScreen({ onBack }: Props) {
       };
       let rid: number;
       if (editingId) {
-        // Update existing
+        // Edit mode: upload file first (so it's available on the record), then PUT
+        if (dFiles.length > 0) {
+          await api.uploadInvoiceFile(editingId, dFiles[0]);
+        }
         await api.updateInvoiceRecord(editingId, payload);
         rid = editingId;
       } else {
-        // Create new
+        // New mode: create record first to get rid, then upload
         const res = await api.createInvoiceRecord(payload);
         rid = res.id;
-      }
-      // Upload file if any selected
-      if (dFiles.length > 0 && rid) {
-        await api.uploadInvoiceFile(rid, dFiles[0]);
+        if (dFiles.length > 0 && rid) {
+          await api.uploadInvoiceFile(rid, dFiles[0]);
+        }
       }
       closeDrawer();
       setEditingId(null);
