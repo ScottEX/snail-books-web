@@ -522,6 +522,7 @@ const I18N: Record<string, Record<string, string>> = {
     uploadFailed: '上传失败，请重试',
     uploadFailedShort: '上传失败',
     uploadImage: '凭证上传',
+    uploadFileTip: '支持 jpg/png/webp/pdf，单张最大 10MB',
     uploading: '上传中...',
     useThisAvatar: '使用此头像',
     useThisBg: '使用此背景图',
@@ -1065,6 +1066,7 @@ const I18N: Record<string, Record<string, string>> = {
     uploadFailed: '上傳失敗，請重試',
     uploadFailedShort: '上傳失敗',
     uploadImage: '憑證上傳',
+    uploadFileTip: '支援 jpg/png/webp/pdf，單張最大 10MB',
     uploading: '上傳中...',
     useThisAvatar: '使用此頭像',
     useThisBg: '使用此背景圖',
@@ -1608,6 +1610,7 @@ const I18N: Record<string, Record<string, string>> = {
     uploadFailed: 'Upload failed, please retry',
     uploadFailedShort: 'Upload failed',
     uploadImage: 'Upload Receipt',
+    uploadFileTip: 'Supports jpg/png/webp/pdf, max 10MB per file',
     uploading: 'Uploading...',
     useThisAvatar: 'Use This Avatar',
     useThisBg: 'Use This Background',
@@ -2153,6 +2156,7 @@ export type I18nKey =
   | 'uploadFailed'
   | 'uploadFailedShort'
   | 'uploadImage'
+  | 'uploadFileTip'
   | 'uploading'
   | 'useThisAvatar'
   | 'useThisBg'

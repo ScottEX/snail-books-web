@@ -91,7 +91,7 @@ export default function ReceiptUpload({
         {showTip && (
           <View style={{ backgroundColor: c.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
             <Text style={{ fontSize: FONTS.micro.size, color: c.surface, fontWeight: '500' as const }}>
-              支持 jpg/png/webp/pdf，单张最大 10MB
+              {t('uploadFileTip')}
             </Text>
           </View>
         )}
