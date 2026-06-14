@@ -694,10 +694,9 @@ export default function InvoiceScreen({ onBack }: Props) {
       {/* ═══ CONFIRM DELETE MODAL ═══ */}
       <ConfirmModal
         visible={confirmDeleteId != null}
-        title="确认删除"
+        title={t('confirmDeleteRecord')}
         message={t('invRecConfirmDelete')}
-        confirmLabel="删除"
-        confirmColor="#C0392B"
+        confirmLabel={t('confirmDeleteRecord')}
         loading={deleting}
         onConfirm={handleConfirmDelete}
         onCancel={() => !deleting && setConfirmDeleteId(null)}
@@ -809,7 +808,7 @@ export default function InvoiceScreen({ onBack }: Props) {
 
               {/* Status toggle (待开票 / 已开票) — capsule style, matches dTypeRow */}
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>开票状态</Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invStatus')}</Text>
                 <View style={s.dTypeRow}>
                   {(['pending', 'done'] as InvStatus[]).map(s_ => (
                     <TouchableOpacity
@@ -843,7 +842,7 @@ export default function InvoiceScreen({ onBack }: Props) {
               {/* Existing file preview (edit mode — show image for done records) */}
               {editingId && dExistingFilePath ? (
                 <View style={[s.dField]}>
-                  <Text style={[s.dLabel, { color: c.textSub }]}>已上传发票</Text>
+                  <Text style={[s.dLabel, { color: c.textSub }]}>{t('invFileUploaded')}</Text>
                   {dExistingFilePath.match(/\.(jpg|jpeg|png|webp)$/i) ? (
                     <Image source={{ uri: api.getInvoiceFileUrl(dExistingFilePath) }} style={{ width: '100%', height: 220, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.04) }} resizeMode="contain" />
                   ) : (
