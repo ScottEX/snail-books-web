@@ -773,7 +773,7 @@ const s = StyleSheet.create({
   drawerClose: { padding: 4 } as any,
   drawerBody: { flex: 1, paddingHorizontal: 20, paddingTop: 16 } as any,
 
-  dLabel: { fontSize: 12, fontWeight: '500', marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as any,
+  dLabel: { fontSize: 14, fontWeight: '500', marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as any,
   dField: { marginBottom: 14 } as any,
   dInput: { width: '100%', paddingVertical: 11, paddingHorizontal: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, outline: 'none' } as any,
   dAmountInput: { paddingLeft: 26 } as any,
