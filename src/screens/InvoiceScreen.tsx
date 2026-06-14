@@ -6,21 +6,13 @@ import { api } from '../api/client';
 import { useEffect, useRef, useState } from 'react';
 import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import ReceiptUpload from '../components/ReceiptUpload';
 
 /* ═══════════════ SVG ICONS ═══════════════ */
 
 const IcnBack = ({ color }: { color: string }) => (
   <Svg width="16" height="16" viewBox="0 0 24 24">
     <Polyline points="15 18 9 12 15 6" stroke={color} strokeWidth="2.2" fill="none" />
-  </Svg>
-);
-const IcnDoc = ({ color }: { color: string }) => (
-  <Svg width="22" height="22" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
-    <Path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-    <Polyline points="14 2 14 8 20 8" />
-    <Line x1="16" y1="13" x2="8" y2="13" />
-    <Line x1="16" y1="17" x2="8" y2="17" />
-    <Polyline points="10 9 9 9 8 9" />
   </Svg>
 );
 const IcnPlus = ({ color }: { color: string }) => (
@@ -186,7 +178,6 @@ export default function InvoiceScreen({ onBack }: Props) {
   const [batchList, setBatchList] = useState<any[]>([]);
   // File upload
   const [dFiles, setDFiles] = useState<File[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Records stub
   const [records] = useState<InvoiceRecord[]>([
@@ -312,18 +303,16 @@ export default function InvoiceScreen({ onBack }: Props) {
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* ═══ ENTRY CARD ═══ */}
-        <View style={{ position: 'relative' } as any}>
-          {/* Floating back button — outside card, top-left */}
-          <TouchableOpacity style={s.backFloat} onPress={onBack}>
-            <IcnBack color="rgba(255,255,255,0.8)" />
-          </TouchableOpacity>
-          <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]}>
-            <View style={s.ecTop}>
-              <View>
-                <Text style={[s.ecLabel, { color: 'rgba(255,255,255,0.55)' }]}>{t('invLabel')}</Text>
-                <Text style={[s.ecTitle, { color: '#fff' }]}>{t('invTitle')}</Text>
-              </View>
+        <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]}>
+          <View style={s.ecTop}>
+            <TouchableOpacity style={s.ecBackBtn} onPress={onBack}>
+              <IcnBack color="rgba(255,255,255,0.8)" />
+            </TouchableOpacity>
+            <View>
+              <Text style={[s.ecLabel, { color: 'rgba(255,255,255,0.55)' }]}>{t('invLabel')}</Text>
+              <Text style={[s.ecTitle, { color: '#fff' }]}>{t('invTitle')}</Text>
             </View>
+          </View>
           <View style={s.ecStats}>
             <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
               <Text style={[s.ecStatNum, { color: '#fff' }]}>{totalCount}</Text>
@@ -351,7 +340,6 @@ export default function InvoiceScreen({ onBack }: Props) {
             <IcnPlus color="rgba(255,255,255,0.85)" />
             <Text style={[s.ecBtnText, { color: '#fff' }]}>{t('invApply')}</Text>
           </TouchableOpacity>
-        </View>
         </View>
 
         {/* ═══ TABS ═══ */}
@@ -513,7 +501,7 @@ export default function InvoiceScreen({ onBack }: Props) {
 
               {/* Batch selector — above amount */}
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBatch')}<Text style={{ color: c.primary }}>*</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBatch')}</Text>
                 <select
                   value={dBatchId ?? ''}
                   onChange={(e: any) => {
@@ -530,7 +518,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                   <option value="">{t('invDrawerBatchPlaceholder')}</option>
                   {batchList.map((b: any) => (
                     <option key={b.id} value={b.id}>
-                      #{b.id} — {b.batch_name || b.name || ''} ¥{Number(b.total_amount || b.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      {t('procNowBatch').replace('{n}', String(b.batch_number))}
                     </option>
                   ))}
                 </select>
@@ -557,59 +545,24 @@ export default function InvoiceScreen({ onBack }: Props) {
 
               {/* Date + Email side by side */}
               <View style={s.dRow}>
-                <View style={s.dField}>
+                <View style={[s.dField, { flex: 1 }]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
                   <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
                 </View>
-                <View style={s.dField}>
+                <View style={[s.dField, { flex: 1 }]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
                   <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
                 </View>
               </View>
 
-              {/* File upload */}
-              <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invUploadFiles')}<Text style={{ fontWeight: '400', fontSize: 11, marginLeft: 8, color: c.textSub } as any}>{t('invUploadHint')}</Text></Text>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={(e: any) => {
-                    const files: File[] = Array.from(e.target.files || []);
-                    const merged = [...dFiles, ...files].slice(0, 9) as File[];
-                    setDFiles(merged);
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                  }}
-                />
-                {dFiles.length > 0 ? (
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-                    {dFiles.map((f, i) => (
-                      <View key={i} style={{ position: 'relative', width: 56, height: 56, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: c.secondary }}>
-                        <img src={URL.createObjectURL(f)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <TouchableOpacity
-                          style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}
-                          onPress={() => setDFiles(dFiles.filter((_, j) => j !== i))}
-                        >
-                          <IcnClose color="#fff" />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-                {dFiles.length < 9 && (
-                  <TouchableOpacity
-                    style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: c.secondary, borderRadius: 10, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' }}
-                    onPress={() => fileInputRef.current?.click()}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <IcnPlus color={c.textSub} />
-                      <Text style={{ fontSize: 13, color: c.textSub }}>{t('invUploadFiles')}</Text>
-                    </View>
-                  </TouchableOpacity>
-                )}
-              </View>
+              {/* File upload — shared ReceiptUpload component */}
+              <ReceiptUpload
+                newFiles={dFiles}
+                onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 9))}
+                onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
+                getPreviewUrl={(f: File) => URL.createObjectURL(f)}
+                label={t('invUploadFiles') as string}
+              />
 
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerNote')}</Text>
