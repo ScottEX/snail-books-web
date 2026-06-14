@@ -251,9 +251,9 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
-      {/* ═══ FLOATING BACK BTN ═══ */}
-      <TouchableOpacity style={[s.backBtn, { backgroundColor: c.bg }]} onPress={onBack}>
-        <IcnBack color={c.textMain} />
+      {/* Floating back button */}
+      <TouchableOpacity style={s.backFloat} onPress={onBack}>
+        <IcnBack color="#fff" />
       </TouchableOpacity>
 
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -265,15 +265,15 @@ export default function InvoiceScreen({ onBack }: Props) {
               <Text style={s.ecTitle}>{t('invCenter')}</Text>
             </View>
             <View style={s.ecIcon}>
-              <IcnDoc color="rgba(0,0,0,0.45)" />
+              <IcnDoc color="rgba(255,255,255,0.85)" />
             </View>
           </View>
           <View style={s.ecStats}>
-            <View style={[s.ecStat, { borderRightColor: 'rgba(0,0,0,0.08)' }]}>
+            <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
               <Text style={s.ecStatNum}>{totalCount}</Text>
               <Text style={s.ecStatLbl}>{t('invTotalCount')}</Text>
             </View>
-            <View style={[s.ecStat, { borderRightColor: 'rgba(0,0,0,0.08)' }]}>
+            <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
               <Text style={s.ecStatNum}>¥{(totalAmount / 10000).toFixed(1)}w</Text>
               <Text style={s.ecStatLbl}>{t('invTotalAmount')}</Text>
             </View>
@@ -290,7 +290,7 @@ export default function InvoiceScreen({ onBack }: Props) {
             setDNote('');
             setDrawerOpen(true);
           }}>
-            <IcnPlus color="rgba(0,0,0,0.45)" />
+            <IcnPlus color="rgba(255,255,255,0.85)" />
             <Text style={s.ecBtnText}>{t('invApply')}</Text>
           </TouchableOpacity>
         </View>
@@ -567,30 +567,30 @@ const s = StyleSheet.create({
   root: { flex: 1 } as any,
 
   /* FLOATING BACK BTN — over content, historyHeader style */
-  backBtn: { position: 'absolute', top: 20, left: 16, zIndex: 90, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)' } as any,
+  backFloat: { position: 'absolute', top: 16, right: 16, zIndex: 90, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.15)' } as any,
   scroll: { flex: 1 } as any,
 
   /* ENTRY CARD — full width, no horizontal margin */
   entryCard: {
     borderRadius: 0, padding: 20, paddingBottom: 18,
     position: 'relative', overflow: 'hidden' as any,
-    backgroundColor: '#00FF7F',
+    backgroundColor: '#C91F37',
     marginBottom: 14,
   } as any,
   ecTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 } as any,
-  ecLabel: { fontSize: 11, letterSpacing: 1.3, color: 'rgba(0,0,0,0.5)', marginBottom: 4, textTransform: 'uppercase' } as any,
-  ecTitle: { fontSize: 18, fontWeight: '600', color: '#1A1410', letterSpacing: 0.3 } as any,
+  ecLabel: { fontSize: 11, letterSpacing: 1.3, color: 'rgba(255,255,255,0.55)', marginBottom: 4, textTransform: 'uppercase' } as any,
+  ecTitle: { fontSize: 18, fontWeight: '600', color: '#fff', letterSpacing: 0.3 } as any,
   ecIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' } as any,
   ecStats: { flexDirection: 'row', marginBottom: 16, gap: 0 } as any,
   ecStat: { flex: 1, paddingHorizontal: 12, borderRightWidth: 1 } as any,
-  ecStatNum: { fontSize: 20, fontWeight: '600', color: '#1A1410', fontFamily: 'DM Mono', letterSpacing: -0.2 } as any,
-  ecStatLbl: { fontSize: 10, color: 'rgba(0,0,0,0.5)', marginTop: 2 } as any,
+  ecStatNum: { fontSize: 20, fontWeight: '600', color: '#fff', fontFamily: 'DM Mono', letterSpacing: -0.2 } as any,
+  ecStatLbl: { fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 } as any,
   ecBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    backgroundColor: 'rgba(0,0,0,0.08)', borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.15)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)',
     borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16,
   } as any,
-  ecBtnText: { fontSize: 13, fontWeight: '500', color: '#1A1410' } as any,
+  ecBtnText: { fontSize: 13, fontWeight: '500', color: '#fff' } as any,
 
   /* TABS */
   tabs: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 14, borderRadius: 10, padding: 3 } as any,
