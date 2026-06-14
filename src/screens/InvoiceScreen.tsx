@@ -377,11 +377,11 @@ export default function InvoiceScreen({ onBack }: Props) {
 
         {/* ═══ TABS ═══ */}
         <View style={[s.tabs, { backgroundColor: withAlpha(c.textMain, 0.06) }]}>
-          <TouchableOpacity style={[s.tab, tab === 0 && [s.tabOn, { backgroundColor: c.surface, shadowColor: c.textMain }]]} onPress={() => setTab(0)}>
-            <Text style={[s.tabText, { color: tab === 0 ? c.textMain : c.textSub }]}>{t('invInfoTab')}</Text>
+          <TouchableOpacity style={[s.tab, tab === 0 && [s.tabOn, { backgroundColor: c.primary, shadowColor: c.primary }]]} onPress={() => setTab(0)}>
+            <Text style={[s.tabText, { color: tab === 0 ? '#fff' : c.textSub }]}>{t('invInfoTab')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[s.tab, tab === 1 && [s.tabOn, { backgroundColor: c.surface, shadowColor: c.textMain }]]} onPress={() => setTab(1)}>
-            <Text style={[s.tabText, { color: tab === 1 ? c.textMain : c.textSub }]}>{t('invRecordsTab')}</Text>
+          <TouchableOpacity style={[s.tab, tab === 1 && [s.tabOn, { backgroundColor: c.primary, shadowColor: c.primary }]]} onPress={() => setTab(1)}>
+            <Text style={[s.tabText, { color: tab === 1 ? '#fff' : c.textSub }]}>{t('invRecordsTab')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -389,28 +389,46 @@ export default function InvoiceScreen({ onBack }: Props) {
         {tab === 0 && (
           <View>
             {/* Tips */}
-            <View style={[s.tips, { backgroundColor: withAlpha(c.warning, 0.08), borderColor: withAlpha(c.warning, 0.2) }]}>
+            <View style={[s.tips, { backgroundColor: withAlpha(c.warning, 0.08), borderWidth: 0 }]}>
               <Text style={s.tipsIcon}>💡</Text>
               <Text style={[s.tipsText, { color: c.warning }]}>{t('invTips')}</Text>
             </View>
 
-            {/* Header info — no edit button in section head; pencil on each row */}
-            <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} editable={isAdmin} />
-              <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onChange={(v) => setData({ ...data, tax_id: v })} editable={isAdmin} />
-              <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} editable={isAdmin} />
-              <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={formatPhone(data.phone)} colors={c} mono onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
+            {/* 抬头信息 */}
+            <View style={s.section}>
+              <View style={s.sectionTitleRow}>
+                <Text style={[s.sectionTitleText, { color: c.textSub }]}>{t('invHeaderInfo')}</Text>
+                <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
+              </View>
+              <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary, borderRadius: 12, marginBottom: 0 }]}>
+                <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onChange={(v) => setData({ ...data, tax_id: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={formatPhone(data.phone)} colors={c} mono onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
+              </View>
             </View>
 
-            {/* Bank info */}
-            <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} editable={isAdmin} />
-              <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
+            {/* 银行信息 */}
+            <View style={s.section}>
+              <View style={s.sectionTitleRow}>
+                <Text style={[s.sectionTitleText, { color: c.textSub }]}>{t('invBankInfo')}</Text>
+                <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
+              </View>
+              <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary, borderRadius: 12, marginBottom: 0 }]}>
+                <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
+              </View>
             </View>
 
-            {/* Email — shows logged-in user's email */}
-            <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
-              <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} value={userEmail || data.email} colors={c} onChange={(v) => setData({ ...data, email: v })} />
+            {/* 收票方式 */}
+            <View style={s.section}>
+              <View style={s.sectionTitleRow}>
+                <Text style={[s.sectionTitleText, { color: c.textSub }]}>{t('invReceiveMethod')}</Text>
+                <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
+              </View>
+              <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary, borderRadius: 12, marginBottom: 0 }]}>
+                <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} value={userEmail || data.email} colors={c} onChange={(v) => setData({ ...data, email: v })} />
+              </View>
             </View>
           </View>
         )}
@@ -720,6 +738,12 @@ const s = StyleSheet.create({
   tips: { marginHorizontal: 16, marginBottom: 14, borderRadius: 12, padding: 12, flexDirection: 'row', gap: 10, alignItems: 'flex-start', borderWidth: 1 } as any,
   tipsIcon: { fontSize: 15, flexShrink: 0, marginTop: 1 } as any,
   tipsText: { fontSize: 12, lineHeight: 19, flex: 1 } as any,
+
+  /* SECTION HEADER */
+  section: { paddingHorizontal: 0, marginTop: 12 } as any,
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 8, paddingHorizontal: 16 } as any,
+  sectionTitleText: { fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase' } as any,
+  sectionTitleLine: { flex: 1, height: 1 } as any,
 
   /* INFO CARD — full width, no horizontal margin */
   infoCard: { borderRadius: 0, borderWidth: 1, borderLeftWidth: 0, borderRightWidth: 0, overflow: 'hidden', marginBottom: 14 } as any,

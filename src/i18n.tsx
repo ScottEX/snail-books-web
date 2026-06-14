@@ -1933,7 +1933,7 @@ export type I18nKey =
   | 'recordedBy'
   | 'recrop'
   | 'register'
-  | 'invoiceTitle' | 'companyName' | 'taxId' | 'bankName' | 'bankAccount' | 'addressPhone' | 'companyPhone' | 'invoiceSave' | 'invoiceSaving' | 'invoiceSaved'
+  | 'invoiceTitle' | 'invHeaderInfo' | 'invBankInfo' | 'invReceiveMethod' | 'companyName' | 'taxId' | 'bankName' | 'bankAccount' | 'addressPhone' | 'companyPhone' | 'invoiceSave' | 'invoiceSaving' | 'invoiceSaved'
   | 'registerBtn'
   | 'rememberMe'
   | 'rent'
