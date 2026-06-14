@@ -251,14 +251,10 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
-      {/* ═══ NAV ═══ */}
-      <View style={s.nav}>
-        <TouchableOpacity style={s.navBtn} onPress={onBack}>
-          <IcnBack color={c.textMain} />
-        </TouchableOpacity>
-        <Text style={[s.navTitle, { color: c.textMain }]}>{t('invTitle')}</Text>
-        <View style={s.navRight} />
-      </View>
+      {/* ═══ FLOATING BACK BTN ═══ */}
+      <TouchableOpacity style={[s.backBtn, { backgroundColor: c.bg }]} onPress={onBack}>
+        <IcnBack color={c.textMain} />
+      </TouchableOpacity>
 
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* ═══ ENTRY CARD ═══ */}
@@ -570,12 +566,9 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange }:
 const s = StyleSheet.create({
   root: { flex: 1 } as any,
 
-  /* NAV — frosted glass, absolute positioned like historyHeader */
-  nav: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 90, flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 20, paddingBottom: 8, paddingHorizontal: 16, backgroundColor: 'transparent', backdropFilter: 'saturate(200%) blur(30px)', borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' } as any,
-  navBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' } as any,
-  scroll: { flex: 1, marginTop: 48 } as any,
-  navTitle: { fontSize: 16, fontWeight: '600' } as any,
-  navRight: { flexDirection: 'row', gap: 8 } as any,
+  /* FLOATING BACK BTN — over content, historyHeader style */
+  backBtn: { position: 'absolute', top: 20, left: 16, zIndex: 90, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)' } as any,
+  scroll: { flex: 1 } as any,
 
   /* ENTRY CARD — full width, no horizontal margin */
   entryCard: {
