@@ -154,6 +154,7 @@ interface InvoiceRecord {
   id: number;
   user_id?: number;
   procurement_batch_id?: number | null;
+  batch_number?: number | null;
   type: InvType;
   company: string;
   tax_id: string;
@@ -215,7 +216,7 @@ export default function InvoiceScreen({ onBack }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerAnim = useRef(new Animated.Value(0)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
-  const [dType, setDType] = useState<InvType>('vat');
+  const [dType, setDType] = useState<InvType>('general');
   const [dAmount, setDAmount] = useState('');
   const [dAmountFocus, setDAmountFocus] = useState(false);
   const [dDate, setDDate] = useState(new Date().toISOString().slice(0, 10));
@@ -427,7 +428,7 @@ export default function InvoiceScreen({ onBack }: Props) {
   const openDrawer = (forEdit?: InvoiceRecord) => {
     setDrawerOpen(true);
     setEditingId(forEdit ? forEdit.id : null);
-    setDType(forEdit ? (forEdit.type as InvType) : invType);
+    setDType(forEdit ? (forEdit.type as InvType) : 'general');
     setDAmount(forEdit ? String(forEdit.amount) : '');
     setDDate(forEdit ? forEdit.date : new Date().toISOString().slice(0, 10));
     setDRef('');
@@ -633,6 +634,12 @@ export default function InvoiceScreen({ onBack }: Props) {
                             <Text style={[s.invNo, { color: c.textSub }]}>{r.invoice_number}</Text>
                           </>
                         )}
+                        {!!r.batch_number && (
+                          <>
+                            <Text style={{ color: c.secondary }}>·</Text>
+                            <Text style={[s.invNo, { color: c.textSub }]}>{t('procNowBatch').replace('{n}', String(r.batch_number))}</Text>
+                          </>
+                        )}
                       </View>
                     </View>
                     <View style={s.invSealWrap}>
@@ -711,7 +718,7 @@ export default function InvoiceScreen({ onBack }: Props) {
             <ScrollView style={s.drawerBody} contentContainerStyle={{ paddingBottom: 8 }}>
               <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerType')}</Text>
               <View style={s.dTypeRow}>
-                {(['vat', 'general'] as InvType[]).map(tp => (
+                {(['general', 'vat'] as InvType[]).map(tp => (
                   <TouchableOpacity key={tp} style={[s.dTypeChip, { backgroundColor: dType === tp ? c.primary : withAlpha(c.textMain, 0.06) }]} onPress={() => setDType(tp)}>
                     <Text style={[s.dTypeChipText, { color: dType === tp ? c.surface : c.textSub }]}>{tp === 'vat' ? t('invVatSpecial') : t('invGeneral')}</Text>
                   </TouchableOpacity>
@@ -734,12 +741,18 @@ export default function InvoiceScreen({ onBack }: Props) {
                     outline: 'none', appearance: 'none',
                   }}
                 >
-                  <option value="">{t('invDrawerBatchPlaceholder')}</option>
-                  {batchList.map((b: any) => (
-                    <option key={b.id} value={b.id}>
-                      {t('procNowBatch').replace('{n}', String(b.batch_number))}
-                    </option>
-                  ))}
+                  {batchList.length > 0 ? (
+                    <>
+                      <option value="">{t('invDrawerBatchPlaceholder')}</option>
+                      {batchList.map((b: any) => (
+                        <option key={b.id} value={b.id}>
+                          {t('procNowBatch').replace('{n}', String(b.batch_number))}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    <option value="" disabled>{t('invDrawerBatchPlaceholder')}</option>
+                  )}
                 </select>
               </View>
 
