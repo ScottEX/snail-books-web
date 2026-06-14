@@ -238,11 +238,11 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
             <Switch
               value={!!cur.settled_at}
               onValueChange={(v) => {
-                // Only react to flip-ON; flipping OFF is disabled (irreversible).
+                // Only react to flip-ON; flipping OFF is ignored (irreversible).
                 if (v && !cur.settled_at) setShowSettleConfirm(true);
               }}
-              disabled={!!cur.settled_at || settling}
-              trackColor={{ false: withAlpha(c.textMain, 0.18), true: c.success }}
+              disabled={settling}
+              trackColor={{ false: withAlpha(c.textMain, 0.18), true: '#3DBC75' }}
               thumbColor="#fff"
             />
             <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
