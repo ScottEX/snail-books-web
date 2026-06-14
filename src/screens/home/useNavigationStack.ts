@@ -111,6 +111,7 @@ export function useNavigationStack({
     pageStack,
     removing,
     pdfPreview,
+    setPdfPreview,
     pushPage,
     popPage,
     clearStack: () => setPageStack([]),

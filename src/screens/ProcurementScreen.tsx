@@ -571,6 +571,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   useEffect(() => { if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; }, [orderDate]);
 
+  // Preload history count on mount so tab badge shows correct number
+  useEffect(() => { loadPage(1, true); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (subTab !== 'history') return;
     loadPage(1, true);

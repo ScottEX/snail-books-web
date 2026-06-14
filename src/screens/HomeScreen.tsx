@@ -153,7 +153,7 @@ export default function HomeScreen({
 
   const sd = useServerDate();
   const {
-    pageStack, removing, pdfPreview,
+    pageStack, removing, pdfPreview, setPdfPreview,
     pushPage, popPage, clearStack,
   } = useNavigationStack({
     previewRoute,
@@ -425,7 +425,7 @@ export default function HomeScreen({
                   `#/preview-pdf?id=${id}&number=${number}`,
                 );
               } catch {}
-              /* setPdfPreview → useNavigationStack */ void({ id, number });
+              setPdfPreview({ id, number });
               pushPage('pdf');
             }}
           />
