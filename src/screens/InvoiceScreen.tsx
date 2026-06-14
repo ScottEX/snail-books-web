@@ -323,8 +323,8 @@ export default function InvoiceScreen({ onBack }: Props) {
     { key: 'all', label: t('invFilterAll') },
     { key: 'pending', label: t('invFilterPending') },
     { key: 'done', label: t('invFilterDone') },
-    { key: 'vat', label: t('invVatSpecial') },
     { key: 'general', label: t('invGeneral') },
+    { key: 'vat', label: t('invVatSpecial') },
   ];
 
   const typeBadgeLabel = (tp: InvType) => tp === 'vat' ? t('invVatSpecial') : t('invGeneral');
