@@ -522,7 +522,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <IcnClose color="#1c1c1a" />
               </TouchableOpacity>
             </View>
-            <ScrollView style={s.drawerBody} contentContainerStyle={{ paddingBottom: 32 }}>
+            <ScrollView style={s.drawerBody} contentContainerStyle={{ paddingBottom: 8 }}>
               <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerType')}</Text>
               <View style={s.dTypeRow}>
                 {(['vat', 'general', 'receipt'] as InvType[]).map(tp => (
@@ -604,10 +604,15 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dNote} onChangeText={setDNote} placeholder={t('invDrawerNotePlaceholder')} placeholderTextColor={c.textSub} />
               </View>
 
-              <TouchableOpacity style={[s.dSubmit, { backgroundColor: c.primary }]} onPress={() => { closeDrawer(); showToast('✅ ' + t('invSubmitDone')); }}>
-                <Text style={s.dSubmitText}>{t('invSubmit')}</Text>
-              </TouchableOpacity>
             </ScrollView>
+            {/* Submit — fixed below scroll area, not inside */}
+            <TouchableOpacity
+              style={[s.dSubmit, { backgroundColor: c.primary }, (!dAmount || !data.company_name || !data.tax_id) && { opacity: 0.4 }]}
+              disabled={!dAmount || !data.company_name || !data.tax_id}
+              onPress={() => { closeDrawer(); showToast('✅ ' + t('invSubmitDone')); }}
+            >
+              <Text style={s.dSubmitText}>{t('invSubmit')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}
@@ -782,7 +787,7 @@ const s = StyleSheet.create({
   dTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 14 } as any,
   dTypeChip: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8, borderWidth: 1.5 } as any,
   dTypeChipText: { fontSize: 13, fontWeight: '500' } as any,
-  dSubmit: { width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 4 } as any,
+  dSubmit: { paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginHorizontal: 20, marginBottom: 16, marginTop: 8 } as any,
   dSubmitText: { fontSize: 15, fontWeight: '600', color: '#fff' } as any,
 });
 
