@@ -85,9 +85,9 @@ const IcnShareSmall = ({ color }: { color: string }) => (
     <Line x1="12" y1="2" x2="12" y2="15" />
   </Svg>
 );
-const IcnClose = () => (
+const IcnClose = ({ color }: { color: string }) => (
   <Svg width="14" height="14" viewBox="0 0 1088 1024">
-    <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
+    <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill={color} />
   </Svg>
 );
 
@@ -181,6 +181,13 @@ export default function InvoiceScreen({ onBack }: Props) {
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
 
+  // Batch selector
+  const [dBatchId, setDBatchId] = useState<number | null>(null);
+  const [batchList, setBatchList] = useState<any[]>([]);
+  // File upload
+  const [dFiles, setDFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Records stub
   const [records] = useState<InvoiceRecord[]>([
     { id: 1, type: 'vat', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-06-05', invoice_no: 'NO.2026060001', amount: 25600, status: 'done' },
@@ -265,6 +272,18 @@ export default function InvoiceScreen({ onBack }: Props) {
     setDrawerOpen(true);
     setDrawerPhase('enter');
     drawerTimer.current = setTimeout(() => setDrawerPhase('idle'), 250);
+    // Fetch batch list
+    (async () => {
+      try {
+        const res = await api.getProcurementBatches(1, 100);
+        const j = await res.json();
+        setBatchList(j.batches || j.data || []);
+      } catch { setBatchList([]); }
+    })();
+    // Reset batch
+    setDBatchId(null);
+    setDAmount('');
+    setDFiles([]);
   };
   const closeDrawer = () => {
     clearTimeout(drawerTimer.current);
@@ -274,6 +293,20 @@ export default function InvoiceScreen({ onBack }: Props) {
       setDrawerOpen(false);
     }, 200);
   };
+
+  // Auto-fill amount when batch selected
+  useEffect(() => {
+    if (!dBatchId) return;
+    (async () => {
+      try {
+        const res = await api.getProcurementBatchDetail(dBatchId);
+        const j = await res.json();
+        const batch = j.batch || j.data || j;
+        const amt = batch.total_amount || batch.amount || 0;
+        setDAmount(Number(amt).toFixed(2));
+      } catch { }
+    })();
+  }, [dBatchId]);
 
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
@@ -310,10 +343,12 @@ export default function InvoiceScreen({ onBack }: Props) {
           </View>
           <TouchableOpacity style={[s.ecBtn, { borderColor: 'rgba(255,255,255,0.22)' }]} onPress={() => {
             setDType(invType);
+            setDBatchId(null);
             setDAmount('');
             setDDate(new Date().toISOString().slice(0, 10));
             setDRef('');
             setDNote('');
+            setDFiles([]);
             openDrawer();
           }}>
             <IcnPlus color="rgba(255,255,255,0.85)" />
@@ -464,8 +499,8 @@ export default function InvoiceScreen({ onBack }: Props) {
             <View style={[s.drawerHandle, { backgroundColor: c.secondary }]} />
             <View style={[s.drawerHead, { borderBottomColor: c.secondary }]}>
               <Text style={[s.drawerTitle, { color: c.textMain }]}>{t('invApply')}</Text>
-              <TouchableOpacity style={[s.drawerClose, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => closeDrawer()}>
-                <IcnClose />
+              <TouchableOpacity style={s.drawerClose} onPress={() => closeDrawer()}>
+                <IcnClose color="#1c1c1a" />
               </TouchableOpacity>
             </View>
             <ScrollView style={s.drawerBody} contentContainerStyle={{ paddingBottom: 32 }}>
@@ -478,6 +513,32 @@ export default function InvoiceScreen({ onBack }: Props) {
                 ))}
               </View>
 
+              {/* Batch selector — above amount */}
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBatch')}<Text style={{ color: c.primary }}>*</Text></Text>
+                <select
+                  value={dBatchId ?? ''}
+                  onChange={(e: any) => {
+                    const id = e.target.value ? Number(e.target.value) : null;
+                    setDBatchId(id);
+                  }}
+                  style={{
+                    width: '100%', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14,
+                    borderWidth: 1.5, borderRadius: 8, fontSize: 14,
+                    borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain,
+                    outline: 'none', borderStyle: 'solid', appearance: 'none',
+                  }}
+                >
+                  <option value="">{t('invDrawerBatchPlaceholder')}</option>
+                  {batchList.map((b: any) => (
+                    <option key={b.id} value={b.id}>
+                      #{b.id} — {b.batch_name || b.name || ''} ¥{Number(b.total_amount || b.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </option>
+                  ))}
+                </select>
+              </View>
+
+              {/* Amount — auto-filled from batch, with thousand-separator */}
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: c.primary }}>*</Text></Text>
                 <View style={{ position: 'relative' }}>
@@ -496,25 +557,65 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface, fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
               </View>
 
+              {/* Date + Email side by side */}
               <View style={s.dRow}>
                 <View style={s.dField}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
                   <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain, outline: 'none', borderStyle: 'solid' }} />
                 </View>
                 <View style={s.dField}>
-                  <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBatch')}</Text>
-                  <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dRef} onChangeText={setDRef} placeholder={t('invDrawerBatchPlaceholder')} placeholderTextColor={c.textSub} />
+                  <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
+                  <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
                 </View>
+              </View>
+
+              {/* File upload */}
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invUploadFiles')}<Text style={{ fontWeight: '400', fontSize: 11, marginLeft: 8, color: c.textSub } as any}>{t('invUploadHint')}</Text></Text>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e: any) => {
+                    const files: File[] = Array.from(e.target.files || []);
+                    const merged = [...dFiles, ...files].slice(0, 9) as File[];
+                    setDFiles(merged);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                />
+                {dFiles.length > 0 ? (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                    {dFiles.map((f, i) => (
+                      <View key={i} style={{ position: 'relative', width: 56, height: 56, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: c.secondary }}>
+                        <img src={URL.createObjectURL(f)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <TouchableOpacity
+                          style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}
+                          onPress={() => setDFiles(dFiles.filter((_, j) => j !== i))}
+                        >
+                          <IcnClose color="#fff" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+                {dFiles.length < 9 && (
+                  <TouchableOpacity
+                    style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: c.secondary, borderRadius: 10, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' }}
+                    onPress={() => fileInputRef.current?.click()}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <IcnPlus color={c.textSub} />
+                      <Text style={{ fontSize: 13, color: c.textSub }}>{t('invUploadFiles')}</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
               </View>
 
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerNote')}</Text>
                 <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dNote} onChangeText={setDNote} placeholder={t('invDrawerNotePlaceholder')} placeholderTextColor={c.textSub} />
-              </View>
-
-              <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
-                <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
               </View>
 
               <TouchableOpacity style={[s.dSubmit, { backgroundColor: c.primary }]} onPress={() => { closeDrawer(); showToast('✅ ' + t('invSubmitDone')); }}>
@@ -669,11 +770,11 @@ const s = StyleSheet.create({
 
   /* DRAWER */
   drawerOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' } as any,
-  drawer: { width: '100%', maxWidth: 430, borderRadius: 20, maxHeight: '90vh', display: 'flex', flexDirection: 'column' } as any,
+  drawer: { width: '100%', maxWidth: 430, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90vh', display: 'flex', flexDirection: 'column' } as any,
   drawerHandle: { width: 36, height: 4, borderRadius: 2, marginTop: 12, alignSelf: 'center', flexShrink: 0 } as any,
   drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 12, borderBottomWidth: 1, flexShrink: 0 } as any,
   drawerTitle: { fontSize: 15, fontWeight: '600' } as any,
-  drawerClose: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' } as any,
+  drawerClose: { padding: 4 } as any,
   drawerBody: { flex: 1, paddingHorizontal: 20, paddingTop: 16 } as any,
 
   dLabel: { fontSize: 12, fontWeight: '500', marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as any,

@@ -195,9 +195,14 @@ const I18N: Record<string, Record<string, string>> = {
     invDrawerDate: '开票日期',
     invDrawerNote: '开票说明',
     invDrawerNotePlaceholder: '货物或服务名称（可选）',
+    invDrawerBatch: '关联批次号',
+    invDrawerBatchPlaceholder: '选择或输入采购批次',
     invDrawerRef: '关联单号',
     invDrawerTaxId: '纳税人识别号',
     invDrawerType: '发票类型',
+    invSelectBatch: '选择批次',
+    invUploadFiles: '上传凭证',
+    invUploadHint: '最多上传9张',
     invEdit: '编辑',
     invEditBank: '编辑银行信息',
     invEditInfo: '编辑开票信息',
@@ -710,9 +715,14 @@ const I18N: Record<string, Record<string, string>> = {
     invDrawerDate: '開票日期',
     invDrawerNote: '開票說明',
     invDrawerNotePlaceholder: '貨物或服務名稱（可選）',
+    invDrawerBatch: '關聯批次號',
+    invDrawerBatchPlaceholder: '選擇或輸入採購批次',
     invDrawerRef: '關聯單號',
     invDrawerTaxId: '納稅人識別號',
     invDrawerType: '發票類型',
+    invSelectBatch: '選擇批次',
+    invUploadFiles: '上傳憑證',
+    invUploadHint: '最多上傳9張',
     invEdit: '編輯',
     invEditBank: '編輯銀行信息',
     invEditInfo: '編輯開票信息',
@@ -1225,9 +1235,14 @@ const I18N: Record<string, Record<string, string>> = {
     invDrawerDate: 'Invoice Date',
     invDrawerNote: 'Description',
     invDrawerNotePlaceholder: 'Goods/service name (optional)',
+    invDrawerBatch: 'Batch Ref',
+    invDrawerBatchPlaceholder: 'Select or enter batch',
     invDrawerRef: 'Ref No.',
     invDrawerTaxId: 'Tax ID',
     invDrawerType: 'Invoice Type',
+    invSelectBatch: 'Select Batch',
+    invUploadFiles: 'Upload Receipts',
+    invUploadHint: 'Max 9 files',
     invEdit: 'Edit',
     invEditBank: 'Edit Bank Info',
     invEditInfo: 'Edit Invoice Info',
@@ -1731,6 +1746,8 @@ export type I18nKey =
   | 'invDownload'
   | 'invDownloading'
   | 'invDrawerAmount'
+  | 'invDrawerBatch'
+  | 'invDrawerBatchPlaceholder'
   | 'invDrawerBuyer'
   | 'invDrawerDate'
   | 'invDrawerNote'
@@ -1766,6 +1783,7 @@ export type I18nKey =
   | 'invStatusDone'
   | 'invStatusPending'
   | 'invStatusRejected'
+  | 'invSelectBatch'
   | 'invSubmit'
   | 'invSubmitDone'
   | 'invTaxAmount'
@@ -1775,6 +1793,8 @@ export type I18nKey =
   | 'invTotalCount'
   | 'invTypePref'
   | 'invUrge'
+  | 'invUploadFiles'
+  | 'invUploadHint'
   | 'invVatSpecial'
   | 'invVatSpecialFull'
   | 'issueDividend'
