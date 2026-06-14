@@ -124,7 +124,7 @@ export default function ReceiptUpload({
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth={1.5} strokeLinecap="round">
             <Path d="M12 5v14M5 12h14" />
           </Svg>
-          <Text style={{ fontSize: 10, color: c.textSub }}>{totalItems === 1 ? t('uploadImage') : ''}</Text>
+          <Text style={{ fontSize: 10, color: c.textSub }}>{totalItems === 1 ? (label || t('uploadImage')) : ''}</Text>
         </TouchableOpacity>
         )}
 
