@@ -83,14 +83,15 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     padding: 12, alignItems: 'center',
   },
   warningText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' },
-  btnRow: { flexDirection: 'row', gap: 8, width: '100%' },
+  btnRow: { flexDirection: 'row', gap: 10, width: '100%' },
   cancelBtn: {
-    flex: 1, paddingVertical: 13, borderRadius: 10,
+    flex: 1, paddingVertical: 13, borderRadius: 12,
     backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center',
+    borderWidth: 1, borderColor: c.secondary,
   },
   cancelText: { fontSize: FONTS.sub.size, fontWeight: '600', color: c.textMain },
   confirmBtn: {
-    flex: 1, paddingVertical: 13, borderRadius: 10, alignItems: 'center',
+    flex: 1, paddingVertical: 13, borderRadius: 12, alignItems: 'center',
   },
   confirmText: { fontSize: FONTS.sub.size, fontWeight: '600', color: c.surface },
   btnDisabled: { opacity: 0.5 },

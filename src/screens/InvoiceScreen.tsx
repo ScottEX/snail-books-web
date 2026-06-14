@@ -214,6 +214,7 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   // CSS injection for drawer animation
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerKey, setDrawerKey] = useState(0);
   const drawerAnim = useRef(new Animated.Value(0)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const [dType, setDType] = useState<InvType>('general');
@@ -426,6 +427,7 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   // ── Drawer animation ──
   const openDrawer = (forEdit?: InvoiceRecord) => {
+    setDrawerKey(k => k + 1);
     setDrawerOpen(true);
     setEditingId(forEdit ? forEdit.id : null);
     setDType(forEdit ? (forEdit.type as InvType) : 'general');
@@ -707,7 +709,7 @@ export default function InvoiceScreen({ onBack }: Props) {
           <Animated.View style={[s.drawerOverlay, { opacity: overlayOpacity }]}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
           </Animated.View>
-          <Animated.View style={[s.drawer, { backgroundColor: c.surface, transform: [{ translateY: drawerTranslateY }] }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
+          <Animated.View key={drawerKey} style={[s.drawer, { backgroundColor: c.surface, transform: [{ translateY: drawerTranslateY }] }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
             <View style={[s.drawerHandle, { backgroundColor: c.secondary }]} />
             <View style={[s.drawerHead, { borderBottomColor: c.secondary }]}>
               <Text style={[s.drawerTitle, { color: c.textMain }]}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
