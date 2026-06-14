@@ -275,6 +275,15 @@ export default function InvoiceScreen({ onBack }: Props) {
     setDBatchId(null);
     setDAmount('');
     setDFiles([]);
+    // Auto-fill user email
+    (async () => {
+      try {
+        const res = await api.admin.getMe();
+        const j = await res.json();
+        const user = j.user || j.data || j;
+        if (user.email) setDEmail(user.email);
+      } catch { }
+    })();
   };
   const closeDrawer = () => {
     clearTimeout(drawerTimer.current);
