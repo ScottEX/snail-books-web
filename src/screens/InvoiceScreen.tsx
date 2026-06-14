@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import ReceiptUpload from '../components/ReceiptUpload';
+import ExpenseNoteInput from '../components/ExpenseNoteInput';
 
 /* ═══════════════ SVG ICONS ═══════════════ */
 
@@ -352,10 +353,10 @@ export default function InvoiceScreen({ onBack }: Props) {
               <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invTotalCount')}</Text>
             </View>
             <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
-              <Text style={[s.ecStatNum, { color: '#fff' }]}>¥{(totalAmount / 10000).toFixed(1)}w</Text>
+              <Text style={[s.ecStatNum, { color: '#fff' }]}>¥{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
               <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invTotalAmount')}</Text>
             </View>
-            <View style={s.ecStat}>
+            <View style={[s.ecStat, { borderRightWidth: 0 }]}>
               <Text style={[s.ecStatNum, { color: '#fff' }]}>{pendingCount}</Text>
               <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invPending')}</Text>
             </View>
@@ -544,8 +545,8 @@ export default function InvoiceScreen({ onBack }: Props) {
               <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerType')}</Text>
               <View style={s.dTypeRow}>
                 {(['vat', 'general', 'receipt'] as InvType[]).map(tp => (
-                  <TouchableOpacity key={tp} style={[s.dTypeChip, dType === tp && { backgroundColor: withAlpha(c.primary, 0.08), borderColor: c.primary }]} onPress={() => setDType(tp)}>
-                    <Text style={[s.dTypeChipText, { color: dType === tp ? c.primary : c.textSub }]}>{tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt')}</Text>
+                  <TouchableOpacity key={tp} style={[s.dTypeChip, { backgroundColor: dType === tp ? c.primary : withAlpha(c.textMain, 0.06) }]} onPress={() => setDType(tp)}>
+                    <Text style={[s.dTypeChipText, { color: dType === tp ? c.surface : c.textSub }]}>{tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt')}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -561,9 +562,9 @@ export default function InvoiceScreen({ onBack }: Props) {
                   }}
                   style={{
                     width: '100%', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14,
-                    borderWidth: 1.5, borderRadius: 8, fontSize: 14,
-                    borderColor: 'rgba(120,120,120,0.2)', backgroundColor: c.surface, color: c.textMain,
-                    outline: 'none', borderStyle: 'solid', appearance: 'none',
+                    borderWidth: 0, borderRadius: 10, fontSize: 14,
+                    backgroundColor: withAlpha(c.textMain, 0.03), color: c.textMain,
+                    outline: 'none', appearance: 'none',
                   }}
                 >
                   <option value="">{t('invDrawerBatchPlaceholder')}</option>
@@ -580,29 +581,29 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: c.primary }}>*</Text></Text>
                 <View style={{ position: 'relative' }}>
                   <Text style={[s.dAmountPrefix, { color: c.textSub }]}>¥</Text>
-                  <TextInput style={[s.dInput, s.dAmountInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dAmount} onChangeText={setDAmount} placeholder="0.00" placeholderTextColor={c.textSub} keyboardType="decimal-pad" />
+                  <TextInput style={[s.dInput, s.dAmountInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={dAmount} onChangeText={setDAmount} placeholder="0.00" placeholderTextColor={c.textSub} keyboardType="decimal-pad" />
                 </View>
               </View>
 
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBuyer')}<Text style={{ color: c.primary }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
-                <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={data.company_name} editable={false} />
+                <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.company_name} editable={false} />
               </View>
 
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: c.primary }}>*</Text></Text>
-                <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface, fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
+                <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
               </View>
 
               {/* Date + Email side by side */}
               <View style={s.dRow}>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
-                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', height: 40, minWidth: 0, boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, borderColor: c.secondary, backgroundColor: c.surface, color: c.textMain, outline: 'none' }} />
+                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', height: 40, minWidth: 0, boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 0, borderRadius: 10, fontSize: 14, backgroundColor: withAlpha(c.textMain, 0.03), color: c.textMain, outline: 'none' }} />
                 </View>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
-                  <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
+                  <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
                 </View>
               </View>
 
@@ -618,8 +619,12 @@ export default function InvoiceScreen({ onBack }: Props) {
               </View>
 
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerNote')}</Text>
-                <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dNote} onChangeText={setDNote} placeholder={t('invDrawerNotePlaceholder')} placeholderTextColor={c.textSub} />
+                <ExpenseNoteInput
+                  label={t('invDrawerNote') as string}
+                  value={dNote}
+                  onChangeText={setDNote}
+                  placeholder={t('invDrawerNotePlaceholder')}
+                />
               </View>
 
             </ScrollView>
@@ -804,13 +809,13 @@ const s = StyleSheet.create({
 
   dLabel: { fontSize: 14, fontWeight: '500', marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as any,
   dField: { marginBottom: 14 } as any,
-  dInput: { width: '100%', paddingVertical: 11, paddingHorizontal: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, outline: 'none' } as any,
+  dInput: { width: '100%', paddingVertical: 11, paddingHorizontal: 14, borderWidth: 0, borderRadius: 10, fontSize: 14, outline: 'none' } as any,
   dAmountInput: { paddingLeft: 26 } as any,
   dAmountPrefix: { position: 'absolute', left: 14, top: '50%', fontSize: 14, fontFamily: 'DM Mono' } as any,
   dRow: { flexDirection: 'row', gap: 10 } as any,
   dTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 14 } as any,
-  dTypeChip: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8, borderWidth: 1.5 } as any,
-  dTypeChipText: { fontSize: 13, fontWeight: '500' } as any,
+  dTypeChip: { flex: 1, flexDirection: 'row', paddingVertical: 10, borderRadius: 22, alignItems: 'center', justifyContent: 'center' } as any,
+  dTypeChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight } as any,
   dSubmit: { paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginHorizontal: 20, marginBottom: 16, marginTop: 8 } as any,
   dSubmitText: { fontSize: 15, fontWeight: '600', color: '#fff' } as any,
 });
