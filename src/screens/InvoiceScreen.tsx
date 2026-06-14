@@ -377,9 +377,10 @@ export default function InvoiceScreen({ onBack }: Props) {
   // ── Submit drawer (create or update) ──
   const handleDrawerSubmit = async () => {
     if (submitting) return;
-    if (!dAmount || !data.company_name || !data.tax_id) return;
+    if (!dAmount) { showToast('⚠️ ' + t('invDrawerAmount')); return; }
+    if (!data.company_name || !data.tax_id) { showToast('⚠️ ' + t('invEmpty')); return; }
     if (dStatus === 'done' && !dInvoiceNo.trim()) {
-      showToast('⚠️ ' + t('invRecMarkDone'));
+      showToast('⚠️ ' + t('invRecInvoiceNo'));
       return;
     }
     setSubmitting(true);
