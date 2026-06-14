@@ -163,7 +163,18 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
               <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
             </View>
           </View>
-          <Text style={[st.amount,  (Number(e.amount) < 0) && { color: colors.success }]}>{(Number(e.amount) < 0) ? '+' : '-'}¥{Math.abs(Number(e.amount || 0)).toFixed(2)}</Text>
+          {/* Wrap amount + seal so the seal anchors to the amount text, not the row. */}
+          <View style={st.expAmountWrap}>
+            <Text style={[st.amount,  (Number(e.amount) < 0) && { color: colors.success }]}>{(Number(e.amount) < 0) ? '+' : '-'}¥{Math.abs(Number(e.amount || 0)).toFixed(2)}</Text>
+            {e.proc_batch_number ? (
+              <View style={st.expSealWrap} pointerEvents="none">
+                <IcnSealExp
+                  color={e.proc_settled_at ? colors.success : colors.warning}
+                  label={e.proc_settled_at ? t('procSettled') : t('procUnsettled')}
+                />
+              </View>
+            ) : null}
+          </View>
         </View>
         {currentUser ? (
           <Text style={st.filledBy}>{t('filledBy')}: {currentUser}</Text>
@@ -200,15 +211,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
           </View>
         )}
         </View>
-        {/* Stamp seal — only on expenses linked to a procurement batch */}
-        {e.proc_batch_number ? (
-          <View style={st.expSealWrap}>
-            <IcnSealExp
-              color={e.proc_settled_at ? colors.success : colors.warning}
-              label={e.proc_settled_at ? t('procSettled') : t('procUnsettled')}
-            />
-          </View>
-        ) : null}
       </View>
       </TouchableOpacity>
     );
@@ -441,6 +443,9 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   },
   dateText: { fontSize: FONTS.sub.size, color: colors.textSub, flexShrink: 0 },
   note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right', overflow: 'hidden' },
+  expAmountWrap: {
+    position: 'relative' as const,
+  } as any,
   expSealWrap: {
     width: 42, height: 42, alignItems: 'center' as const, justifyContent: 'center' as const,
     position: 'absolute' as const,
