@@ -9,6 +9,7 @@ import { useSwipeBack } from '../hooks/useSwipeBack';
 import ReceiptUpload from '../components/ReceiptUpload';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import DatePicker from '../components/DatePicker';
+import EmptyState from '../components/EmptyState';
 
 /* ═══════════════ SVG ICONS ═══════════════ */
 
@@ -122,6 +123,34 @@ const IcnSealActive = ({ color, label }: { color: string; label: string }) => (
   </svg>
 );
 
+/* ═══════════════ AMOUNT FORMATTERS ═══════════════ */
+
+/** Display-only formatter: 1234.5 → "1,234.50" (thousand-separated). Empty stays empty. */
+function formatAmountForDisplay(raw: string): string {
+  if (!raw) return '';
+  const num = Number(raw);
+  if (!isFinite(num) || isNaN(num)) return raw;
+  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/** Storage formatter: trim trailing zeros, normalize to plain decimal string. */
+function formatAmountForStorage(raw: string): string {
+  if (!raw) return '';
+  const num = Number(raw);
+  if (!isFinite(num) || isNaN(num)) return raw;
+  return num.toFixed(2);
+}
+
+/** Empty state icon for invoice records — FileText style */
+const InvoiceEmptyIcon = ({ color }: { color: string }) => (
+  <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <Path d="M14 2v6h6" />
+    <Line x1="8" y1="13" x2="16" y2="13" />
+    <Line x1="8" y1="17" x2="14" y2="17" />
+  </Svg>
+);
+
 /* ═══════════════ INVOICE SCREEN ═══════════════ */
 
 type InvType = 'vat' | 'general' | 'receipt';
@@ -206,6 +235,7 @@ export default function InvoiceScreen({ onBack }: Props) {
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const [dType, setDType] = useState<InvType>('vat');
   const [dAmount, setDAmount] = useState('');
+  const [dAmountFocus, setDAmountFocus] = useState(false);
   const [dDate, setDDate] = useState(new Date().toISOString().slice(0, 10));
   const [dRef, setDRef] = useState('');
   const [dNote, setDNote] = useState('');
@@ -596,10 +626,11 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <Text style={[s.emptyText, { color: c.textSub }]}>...</Text>
               </View>
             ) : filtered.length === 0 ? (
-              <View style={s.empty}>
-                <Text style={s.emptyIcon}>📄</Text>
-                <Text style={[s.emptyText, { color: c.textSub }]}>{t('invRecEmpty')}</Text>
-              </View>
+              <EmptyState
+                icon={<InvoiceEmptyIcon color={c.textSub} />}
+                title={t('noRecords')}
+                hint={t('emptyInvoiceHint')}
+              />
             ) : (
               filtered.map(r => (
                 <View key={r.id} style={[s.invCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
@@ -756,7 +787,16 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: c.primary }}>*</Text></Text>
                 <View style={{ position: 'relative' }}>
                   <Text style={[s.dAmountPrefix, { color: c.textSub }]}>¥</Text>
-                  <TextInput style={[s.dInput, s.dAmountInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={dAmount} onChangeText={setDAmount} placeholder="0.00" placeholderTextColor={c.textSub} keyboardType="decimal-pad" />
+                  <TextInput
+                    style={[s.dInput, s.dAmountInput, dAmountFocus && s.dAmountInputFocus, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]}
+                    value={dAmountFocus ? dAmount : formatAmountForDisplay(dAmount)}
+                    onFocus={() => setDAmountFocus(true)}
+                    onBlur={() => { setDAmountFocus(false); setDAmount(formatAmountForStorage(dAmount)); }}
+                    onChangeText={setDAmount}
+                    placeholder="0.00"
+                    placeholderTextColor={c.textSub}
+                    keyboardType="decimal-pad"
+                  />
                 </View>
               </View>
 
@@ -766,7 +806,7 @@ export default function InvoiceScreen({ onBack }: Props) {
               </View>
 
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: c.primary }}>*</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: c.primary }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
                 <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
               </View>
 
@@ -791,17 +831,17 @@ export default function InvoiceScreen({ onBack }: Props) {
                 </View>
               </View>
 
-              {/* Status toggle (pending / done) + invoice number */}
+              {/* Status toggle (待开票 / 已开票) — capsule style, matches dTypeRow */}
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>状态</Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>开票状态</Text>
+                <View style={s.dTypeRow}>
                   {(['pending', 'done'] as InvStatus[]).map(s_ => (
                     <TouchableOpacity
                       key={s_}
-                      style={{ flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center', borderWidth: 1.5, borderColor: dStatus === s_ ? c.primary : withAlpha(c.textMain, 0.15), backgroundColor: dStatus === s_ ? withAlpha(c.primary, 0.08) : 'transparent' }}
+                      style={[s.dTypeChip, { backgroundColor: dStatus === s_ ? c.primary : withAlpha(c.textMain, 0.06) }]}
                       onPress={() => setDStatus(s_)}
                     >
-                      <Text style={{ fontSize: 13, fontWeight: '500', color: dStatus === s_ ? c.primary : c.textSub }}>
+                      <Text style={[s.dTypeChipText, { color: dStatus === s_ ? c.surface : c.textSub }]}>
                         {s_ === 'pending' ? t('invRecStatusPending') : t('invRecStatusDone')}
                       </Text>
                     </TouchableOpacity>
@@ -810,7 +850,7 @@ export default function InvoiceScreen({ onBack }: Props) {
               </View>
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>
-                  票号{dStatus === 'done' ? <Text style={{ color: c.primary }}>*</Text> : <Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11 } as any}>（待开可空）</Text>}
+                  {t('invRecInvoiceNo')}{dStatus === 'done' ? <Text style={{ color: c.primary }}>*</Text> : <Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11 } as any}>（待开票可空）</Text>}
                 </Text>
                 <TextInput
                   style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]}
@@ -841,7 +881,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                   onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 9))}
                   onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
                   getPreviewUrl={(f: File) => URL.createObjectURL(f)}
-                  label={(dStatus === 'done' ? '已开必传' : '可选') as string}
+                  label={t('invUploadFiles') as string}
                 />
               </View>
 
@@ -1046,8 +1086,9 @@ const s = StyleSheet.create({
   dLabel: { fontSize: 14, fontWeight: '500', marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as any,
   dField: { marginBottom: 14 } as any,
   dInput: { width: '100%', paddingVertical: 11, paddingHorizontal: 14, borderWidth: 0, borderRadius: 10, fontSize: 14, outline: 'none' } as any,
-  dAmountInput: { paddingLeft: 26 } as any,
-  dAmountPrefix: { position: 'absolute', left: 14, top: '50%', fontSize: 14, fontFamily: 'DM Mono' } as any,
+  dAmountInput: { paddingLeft: 26, fontSize: 18, fontWeight: '700', fontFamily: 'DM Mono', letterSpacing: 0.2 } as any,
+  dAmountInputFocus: { fontSize: 18, fontWeight: '700' } as any,
+  dAmountPrefix: { position: 'absolute', left: 14, top: '50%', fontSize: 14, fontWeight: '600', fontFamily: 'DM Mono' } as any,
   dRow: { flexDirection: 'row', gap: 10 } as any,
   dTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 14 } as any,
   dTypeChip: { flex: 1, flexDirection: 'row', paddingVertical: 10, borderRadius: 22, alignItems: 'center', justifyContent: 'center' } as any,

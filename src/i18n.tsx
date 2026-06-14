@@ -120,6 +120,7 @@ const I18N: Record<string, Record<string, string>> = {
     emailAction: '邮件',
     emailBodyExtra: '（链接 24 小时内有效）',
     emptyExpenseHint: '每完成一次记账，这里就多一条记录',
+    emptyInvoiceHint: '每开一张发票，这里就多一张小卡片',
     emptyReconHint: '每完成一次对账，这里就多一张小卡片',
     enterAmount: '输入金额',
     enterCode: '输入6位验证码',
@@ -221,10 +222,11 @@ const I18N: Record<string, Record<string, string>> = {
     invRecDeleteOk: '已删除',
     invRecEditTitle: '编辑开票记录',
     invRecEmpty: '暂无开票记录',
+    invRecInvoiceNo: '发票票号',
     invRecMarkDone: '标记为已开',
     invRecSaveOk: '保存成功',
-    invRecStatusDone: '已开',
-    invRecStatusPending: '待开',
+    invRecStatusDone: '已开票',
+    invRecStatusPending: '待开票',
     invReceipt: '收据',
     invReceiveMethod: '收票方式',
     invRecordsTab: '发票记录',
@@ -658,6 +660,7 @@ const I18N: Record<string, Record<string, string>> = {
     emailAction: '郵件',
     emailBodyExtra: '（連結 24 小時內有效）',
     emptyExpenseHint: '每完成一次記賬，這裡就多一條記錄',
+    emptyInvoiceHint: '每開一張發票，這裡就多一張小卡片',
     emptyReconHint: '每完成一次對賬，這裡就多一張小卡片',
     enterAmount: '輸入金額',
     enterCode: '輸入驗證碼',
@@ -759,10 +762,11 @@ const I18N: Record<string, Record<string, string>> = {
     invRecDeleteOk: '已刪除',
     invRecEditTitle: '編輯開票記錄',
     invRecEmpty: '暫無開票記錄',
+    invRecInvoiceNo: '發票票號',
     invRecMarkDone: '標記為已開',
     invRecSaveOk: '保存成功',
-    invRecStatusDone: '已開',
-    invRecStatusPending: '待開',
+    invRecStatusDone: '已開票',
+    invRecStatusPending: '待開票',
     invReceipt: '收據',
     invReceiveMethod: '收票方式',
     invRecordsTab: '發票記錄',
@@ -1196,6 +1200,7 @@ const I18N: Record<string, Record<string, string>> = {
     emailAction: 'Email',
     emailBodyExtra: '(link valid for 24h)',
     emptyExpenseHint: 'Each expense record will appear here',
+    emptyInvoiceHint: 'Each invoice record will appear here',
     emptyReconHint: 'Each reconciliation adds a card here',
     enterAmount: 'Enter amount',
     enterCode: 'Enter code',
@@ -1297,6 +1302,7 @@ const I18N: Record<string, Record<string, string>> = {
     invRecDeleteOk: 'Deleted',
     invRecEditTitle: 'Edit Invoice Record',
     invRecEmpty: 'No invoice records',
+    invRecInvoiceNo: 'Invoice No.',
     invRecMarkDone: 'Mark as Done',
     invRecSaveOk: 'Saved',
     invRecStatusDone: 'Done',
@@ -1736,6 +1742,7 @@ export type I18nKey =
   | 'emailAction'
   | 'emailBodyExtra'
   | 'emptyExpenseHint'
+  | 'emptyInvoiceHint'
   | 'emptyReconHint'
   | 'enterAmount'
   | 'enterCode'
@@ -1837,6 +1844,7 @@ export type I18nKey =
   | 'invRecDeleteOk'
   | 'invRecEditTitle'
   | 'invRecEmpty'
+  | 'invRecInvoiceNo'
   | 'invRecMarkDone'
   | 'invRecSaveOk'
   | 'invRecStatusDone'
