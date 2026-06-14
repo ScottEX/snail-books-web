@@ -232,17 +232,21 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
             <Text style={styles.batchDate}>{formatDate(cur.date)}</Text>
           </View>
           <View style={styles.batchActions}>
-            {/* Settle switch — one-way, irreversible. To the LEFT of the PDF view button. */}
-            <Switch
-              value={!!cur.settled_at}
-              onValueChange={(v) => {
-                // Only react to flip-ON; flipping OFF is disabled (irreversible).
-                if (v && !cur.settled_at) setShowSettleConfirm(true);
-              }}
-              disabled={!!cur.settled_at || settling}
-              trackColor={{ false: withAlpha(c.textMain, 0.18), true: c.success }}
-              thumbColor="#fff"
-            />
+            {/* Settle switch — one-way, irreversible. To the LEFT of the PDF view button.
+                Wrapped in a 36×36 circle so its baseline matches the other action buttons. */}
+            <View style={styles.batchSwitchWrap}>
+              <Switch
+                value={!!cur.settled_at}
+                onValueChange={(v) => {
+                  // Only react to flip-ON; flipping OFF is disabled (irreversible).
+                  if (v && !cur.settled_at) setShowSettleConfirm(true);
+                }}
+                disabled={!!cur.settled_at || settling}
+                trackColor={{ false: withAlpha(c.textMain, 0.18), true: c.success }}
+                thumbColor="#fff"
+                style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
+              />
+            </View>
             <TouchableOpacity onPress={downloadPDF} activeOpacity={0.6} style={styles.actionBtn} disabled={downloading} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <ViewIcon color={c.primary} />
             </TouchableOpacity>
@@ -418,8 +422,14 @@ const getStyles = (c: ThemeColors) => {
     },
     batchActions: {
       flexDirection: 'row' as const,
+      alignItems: 'center' as const,
       gap: 8,
       marginTop: 2,
+    },
+    batchSwitchWrap: {
+      width: 36, height: 36, borderRadius: 18,
+      backgroundColor: withAlpha(c.bg, 0.30),
+      alignItems: 'center' as const, justifyContent: 'center' as const,
     },
     batchLabel: {
       fontSize: FONTS.subBold.size,

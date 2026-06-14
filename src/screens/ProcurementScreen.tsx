@@ -290,7 +290,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histDate: { fontSize: FONTS.micro.size, color: c.textSub },
   histActions: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
   histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
-  histAmountRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, marginTop: 8 },
+  histAmountRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, marginTop: 8, minHeight: 48, position: 'relative' as const },
+  histAmountTextWrap: { position: 'relative' as const, zIndex: 1 },
+  histAmountSealOverlay: { position: 'absolute' as const, right: 0, top: '50%', marginTop: -24, opacity: 0.55, zIndex: 2 },
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
   histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub },
@@ -1120,15 +1122,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     </View>
                   ) : null}
                   <View style={styles.histAmountRow}>
-                    <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10 }}>
+                    <View style={styles.histAmountTextWrap}>
                       <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
                       <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
                     </View>
-                    {/* Stamp seal — sits at the amount position (right side) */}
-                    <IcnSealProc
-                      color={batch.settled_at ? c.success : c.warning}
-                      label={batch.settled_at ? t('procSettled') : t('procUnsettled')}
-                    />
+                    {/* Stamp seal — overlays the amount text on the right (does NOT move the amount) */}
+                    <View style={styles.histAmountSealOverlay} pointerEvents="none">
+                      <IcnSealProc
+                        color={batch.settled_at ? c.success : c.warning}
+                        label={batch.settled_at ? t('procSettled') : t('procUnsettled')}
+                      />
+                    </View>
                   </View>
                   {(() => {
                     // Prefer 128×128 thumb URLs (fast), fall back to full-size for old data

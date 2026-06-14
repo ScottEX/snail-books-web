@@ -417,6 +417,8 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   },
   rowTop: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    position: 'relative' as const,
+    minHeight: 44,
   },
   badges: {
     flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1,
@@ -441,7 +443,9 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   note: { fontSize: FONTS.sub.size, color: colors.textSub, flex: 1, textAlign: 'right', overflow: 'hidden' },
   expSealWrap: {
     width: 42, height: 42, alignItems: 'center' as const, justifyContent: 'center' as const,
-    marginLeft: 8, alignSelf: 'center' as const,
+    position: 'absolute' as const,
+    right: 0, top: '50%', marginTop: -21,
+    opacity: 0.55,
   } as any,
 
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
