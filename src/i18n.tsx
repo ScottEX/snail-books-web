@@ -216,6 +216,15 @@ const I18N: Record<string, Record<string, string>> = {
     invOptional: '可选',
     invPending: '待处理',
     invReapply: '重新申请',
+    invRecAddTitle: '新增开票记录',
+    invRecConfirmDelete: '确定要删除这条开票记录吗？',
+    invRecDeleteOk: '已删除',
+    invRecEditTitle: '编辑开票记录',
+    invRecEmpty: '暂无开票记录',
+    invRecMarkDone: '标记为已开',
+    invRecSaveOk: '保存成功',
+    invRecStatusDone: '已开',
+    invRecStatusPending: '待开',
     invReceipt: '收据',
     invReceiveMethod: '收票方式',
     invRecordsTab: '发票记录',
@@ -745,6 +754,15 @@ const I18N: Record<string, Record<string, string>> = {
     invOptional: '可選',
     invPending: '待處理',
     invReapply: '重新申請',
+    invRecAddTitle: '新增開票記錄',
+    invRecConfirmDelete: '確定要刪除這條開票記錄嗎？',
+    invRecDeleteOk: '已刪除',
+    invRecEditTitle: '編輯開票記錄',
+    invRecEmpty: '暫無開票記錄',
+    invRecMarkDone: '標記為已開',
+    invRecSaveOk: '保存成功',
+    invRecStatusDone: '已開',
+    invRecStatusPending: '待開',
     invReceipt: '收據',
     invReceiveMethod: '收票方式',
     invRecordsTab: '發票記錄',
@@ -1274,6 +1292,15 @@ const I18N: Record<string, Record<string, string>> = {
     invOptional: 'Optional',
     invPending: 'Pending',
     invReapply: 'Reapply',
+    invRecAddTitle: 'New Invoice Record',
+    invRecConfirmDelete: 'Are you sure you want to delete this invoice record?',
+    invRecDeleteOk: 'Deleted',
+    invRecEditTitle: 'Edit Invoice Record',
+    invRecEmpty: 'No invoice records',
+    invRecMarkDone: 'Mark as Done',
+    invRecSaveOk: 'Saved',
+    invRecStatusDone: 'Done',
+    invRecStatusPending: 'Pending',
     invReceipt: 'Receipt',
     invReceiveMethod: 'Receive Method',
     invRecordsTab: 'Records',
@@ -1805,6 +1832,15 @@ export type I18nKey =
   | 'invOptional'
   | 'invPending'
   | 'invReapply'
+  | 'invRecAddTitle'
+  | 'invRecConfirmDelete'
+  | 'invRecDeleteOk'
+  | 'invRecEditTitle'
+  | 'invRecEmpty'
+  | 'invRecMarkDone'
+  | 'invRecSaveOk'
+  | 'invRecStatusDone'
+  | 'invRecStatusPending'
   | 'invReceipt'
   | 'invReceiveMethod'
   | 'invRecordsTab'

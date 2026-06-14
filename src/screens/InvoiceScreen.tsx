@@ -3,7 +3,7 @@ import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { api } from '../api/client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import ReceiptUpload from '../components/ReceiptUpload';
@@ -85,6 +85,17 @@ const IcnClose = ({ color }: { color: string }) => (
   </Svg>
 );
 
+/** Trash icon — small (12px) for inline card action */
+const IcnTrashSmall = ({ color }: { color: string }) => (
+  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <Polyline points="3 6 5 6 21 6" />
+    <Path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <Path d="M10 11v6" />
+    <Path d="M14 11v6" />
+    <Path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+  </Svg>
+);
+
 /** Pen icon — same SVG as UserDetailScreen.PencilSvg */
 const PencilSvg = ({ color }: { color: string }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -114,7 +125,7 @@ const IcnSealActive = ({ color, label }: { color: string; label: string }) => (
 /* ═══════════════ INVOICE SCREEN ═══════════════ */
 
 type InvType = 'vat' | 'general' | 'receipt';
-type InvStatus = 'done' | 'pending' | 'rejected';
+type InvStatus = 'done' | 'pending';
 
 interface InvoiceData {
   company_name: string;
@@ -130,13 +141,21 @@ interface InvoiceData {
 
 interface InvoiceRecord {
   id: number;
+  user_id?: number;
+  procurement_batch_id?: number | null;
   type: InvType;
   company: string;
   tax_id: string;
-  date: string;
-  invoice_no: string;
   amount: number;
+  date: string;
+  invoice_number: string;
+  email: string;
   status: InvStatus;
+  file_path?: string;
+  file_type?: string;
+  file_size?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const EMPTY_INV: InvoiceData = {
@@ -191,20 +210,27 @@ export default function InvoiceScreen({ onBack }: Props) {
   const [dRef, setDRef] = useState('');
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
+  const [dInvoiceNo, setDInvoiceNo] = useState('');
+  const [dStatus, setDStatus] = useState<InvStatus>('pending');
 
   // Batch selector
   const [dBatchId, setDBatchId] = useState<number | null>(null);
   const [batchList, setBatchList] = useState<any[]>([]);
   // File upload
   const [dFiles, setDFiles] = useState<File[]>([]);
+  // Existing file path (for edit mode — already uploaded)
+  const [dExistingFilePath, setDExistingFilePath] = useState<string>('');
 
-  // Records stub
-  const [records] = useState<InvoiceRecord[]>([
-    { id: 1, type: 'vat', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-06-05', invoice_no: 'NO.2026060001', amount: 25600, status: 'done' },
-    { id: 2, type: 'general', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-06-07', invoice_no: 'NO.2026060002', amount: 18300, status: 'pending' },
-    { id: 3, type: 'vat', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-05-20', invoice_no: 'NO.2026050008', amount: 8500, status: 'rejected' },
-  ]);
+  // Records (API-driven, no more stub)
+  const [records, setRecords] = useState<InvoiceRecord[]>([]);
+  const [recordsLoading, setRecordsLoading] = useState(false);
   const [filter, setFilter] = useState<string>('all');
+
+  // Edit / delete target
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Toast
   const [toast, setToast] = useState('');
@@ -215,6 +241,22 @@ export default function InvoiceScreen({ onBack }: Props) {
     clearTimeout(toastT.current);
     toastT.current = setTimeout(() => setToast(''), 2400);
   };
+
+  // Load records from API
+  const loadRecords = useCallback(async () => {
+    setRecordsLoading(true);
+    try {
+      const list = await api.getInvoiceRecords();
+      setRecords(Array.isArray(list) ? list : []);
+    } catch (e) {
+      console.error('loadRecords failed', e);
+      setRecords([]);
+    } finally {
+      setRecordsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadRecords(); }, [loadRecords]);
 
   // Load invoice data
   useEffect(() => {
@@ -259,7 +301,6 @@ export default function InvoiceScreen({ onBack }: Props) {
     if (filter === 'all') return true;
     if (filter === 'pending') return r.status === 'pending';
     if (filter === 'done') return r.status === 'done';
-    if (filter === 'rejected') return r.status === 'rejected';
     if (filter === 'vat') return r.type === 'vat';
     if (filter === 'general') return r.type === 'general';
     return true;
@@ -269,32 +310,132 @@ export default function InvoiceScreen({ onBack }: Props) {
     { key: 'all', label: t('invFilterAll') },
     { key: 'pending', label: t('invFilterPending') },
     { key: 'done', label: t('invFilterDone') },
-    { key: 'rejected', label: t('invFilterRejected') },
     { key: 'vat', label: t('invVatSpecial') },
     { key: 'general', label: t('invGeneral') },
   ];
 
   const typeBadgeLabel = (tp: InvType) => tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt');
   const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : tp === 'general' ? sBadge.general : sBadge.receipt;
+
+  // ── Share invoice file (iOS-friendly: navigator.share with File object) ──
+  const handleInvoiceShare = async (r: InvoiceRecord) => {
+    if (!r.file_path) {
+      showToast('⚠️ ' + t('invApplyAmount'));
+      return;
+    }
+    try {
+      const url = api.getInvoiceFileUrl(r.file_path);
+      const resp = await fetch(url);
+      const blob = await resp.blob();
+      const ext = (r.file_path.split('.').pop() || '').toLowerCase();
+      const mime = r.file_type || (ext === 'pdf' ? 'application/pdf' : 'image/jpeg');
+      const filename = r.invoice_number ? `${r.invoice_number}.${ext}` : `invoice-${r.id}.${ext}`;
+      const file = new File([blob], filename, { type: mime });
+      // navigator.share requires user gesture, which we have from onPress
+      // Type cast for TS — RN Web 兼容
+      const nav = navigator as any;
+      if (nav.share && nav.canShare && nav.canShare({ files: [file] })) {
+        await nav.share({ files: [file], title: filename });
+      } else {
+        // Fallback: open in new tab (iOS Safari 微信 will fetch as blob, not ideal but works)
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+      }
+    } catch (e) {
+      console.error('handleInvoiceShare failed', e);
+      showToast('⚠️ ' + t('errSessionExpired'));
+    }
+  };
+
+  // ── Confirm delete invoice record (physical delete) ──
+  const handleConfirmDelete = async () => {
+    if (confirmDeleteId == null || deleting) return;
+    setDeleting(true);
+    try {
+      await api.deleteInvoiceRecord(confirmDeleteId);
+      setConfirmDeleteId(null);
+      showToast('✅ ' + t('invRecDeleteOk'));
+      await loadRecords();
+    } catch (e: any) {
+      showToast('⚠️ ' + (e?.message || t('errSessionExpired')));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // ── Submit drawer (create or update) ──
+  const handleDrawerSubmit = async () => {
+    if (submitting) return;
+    if (!dAmount || !data.company_name || !data.tax_id) return;
+    if (dStatus === 'done' && !dInvoiceNo.trim()) {
+      showToast('⚠️ ' + t('invRecMarkDone'));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const payload = {
+        type: dType,
+        amount: Number(dAmount) || 0,
+        date: dDate,
+        company: data.company_name,
+        tax_id: data.tax_id,
+        invoice_number: dInvoiceNo.trim(),
+        email: dEmail.trim(),
+        status: dStatus,
+        procurement_batch_id: dBatchId,
+      };
+      let rid: number;
+      if (editingId) {
+        // Update existing
+        await api.updateInvoiceRecord(editingId, payload);
+        rid = editingId;
+      } else {
+        // Create new
+        const res = await api.createInvoiceRecord(payload);
+        rid = res.id;
+      }
+      // Upload file if any selected
+      if (dFiles.length > 0 && rid) {
+        await api.uploadInvoiceFile(rid, dFiles[0]);
+      }
+      closeDrawer();
+      setEditingId(null);
+      setDFiles([]);
+      setDExistingFilePath('');
+      showToast('✅ ' + t('invRecSaveOk'));
+      await loadRecords();
+    } catch (e: any) {
+      showToast('⚠️ ' + (e?.message || t('errSessionExpired')));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // ── Drawer animation ──
-  const openDrawer = () => {
+  const openDrawer = (forEdit?: InvoiceRecord) => {
     setDrawerOpen(true);
-    setDType(invType);
+    setEditingId(forEdit ? forEdit.id : null);
+    setDType(forEdit ? (forEdit.type as InvType) : invType);
+    setDAmount(forEdit ? String(forEdit.amount) : '');
+    setDDate(forEdit ? forEdit.date : new Date().toISOString().slice(0, 10));
+    setDRef('');
+    setDNote('');
+    setDInvoiceNo(forEdit ? (forEdit.invoice_number || '') : '');
+    setDStatus(forEdit ? (forEdit.status as InvStatus) : 'pending');
+    setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
+    setDFiles([]);
+    setDExistingFilePath(forEdit ? (forEdit.file_path || '') : '');
     Animated.parallel([
       Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
       Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
     ]).start();
-    // Fetch batch list
+    // Fetch batch list (lightweight, last 20)
     (async () => {
       try {
-        const j = await api.getProcurementBatches(1, 100);
-        setBatchList((j as any).records || (j as any).batches || (j as any).data || []);
+        const list = await api.getProcurementBatchesLite(20);
+        setBatchList(Array.isArray(list) ? list : []);
       } catch { setBatchList([]); }
     })();
-    // Reset batch
-    setDBatchId(null);
-    setDAmount('');
-    setDFiles([]);
     // Auto-fill user email from localStorage, fallback to API
     const stored = (() => { try { return localStorage.getItem('email'); } catch { return null; } })();
     if (stored) {
@@ -313,7 +454,14 @@ export default function InvoiceScreen({ onBack }: Props) {
     Animated.parallel([
       Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
       Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => setDrawerOpen(false));
+    ]).start(() => {
+      setDrawerOpen(false);
+      setEditingId(null);
+      setDStatus('pending');
+      setDInvoiceNo('');
+      setDExistingFilePath('');
+      setDFiles([]);
+    });
   };
 
   const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
@@ -443,17 +591,21 @@ export default function InvoiceScreen({ onBack }: Props) {
             </ScrollView>
 
             {/* Invoice cards */}
-            {filtered.length === 0 ? (
+            {recordsLoading ? (
+              <View style={s.empty}>
+                <Text style={[s.emptyText, { color: c.textSub }]}>...</Text>
+              </View>
+            ) : filtered.length === 0 ? (
               <View style={s.empty}>
                 <Text style={s.emptyIcon}>📄</Text>
-                <Text style={[s.emptyText, { color: c.textSub }]}>{t('invEmpty')}</Text>
+                <Text style={[s.emptyText, { color: c.textSub }]}>{t('invRecEmpty')}</Text>
               </View>
             ) : (
               filtered.map(r => (
                 <View key={r.id} style={[s.invCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
                   {/* Torn edge */}
                   <View style={[s.invTorn, { backgroundColor: c.primary }]} />
-                  <View style={[s.invTop, { borderBottomColor: c.secondary }]}>
+                  <TouchableOpacity activeOpacity={0.7} onPress={() => openDrawer(r)} style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 14, borderBottomWidth: 1, borderStyle: 'dashed', borderBottomColor: c.secondary, flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 4 } as any}>
                     <View style={[s.invBadge, typeBadgeClass(r.type)]}>
                       <Text style={[s.invBadgeText, { color: r.type === 'vat' ? c.primary : r.type === 'general' ? c.info : c.success }]}>{typeBadgeLabel(r.type)}</Text>
                     </View>
@@ -462,52 +614,47 @@ export default function InvoiceScreen({ onBack }: Props) {
                       <Text style={[s.invTax, { color: c.textSub }]}>{r.tax_id}</Text>
                       <View style={s.invMeta}>
                         <Text style={[s.invDate, { color: c.textSub }]}>{r.date}</Text>
-                        <Text style={{ color: c.secondary }}>·</Text>
-                        <Text style={[s.invNo, { color: c.textSub }]}>{r.invoice_no}</Text>
+                        {!!r.invoice_number && (
+                          <>
+                            <Text style={{ color: c.secondary }}>·</Text>
+                            <Text style={[s.invNo, { color: c.textSub }]}>{r.invoice_number}</Text>
+                          </>
+                        )}
                       </View>
                     </View>
                     <View style={s.invSealWrap}>
-                      {r.status === 'rejected' ? (
-                        <IcnSealRejected color="#C0392B" label={t('invStatusRejected')} />
-                      ) : r.status === 'done' ? (
-                        <IcnSealActive color={c.success} label={t('invStatusDone')} />
+                      {r.status === 'done' ? (
+                        <IcnSealActive color={c.success} label={t('invRecStatusDone')} />
                       ) : (
-                        <IcnSealActive color={c.warning} label={t('invStatusPending')} />
+                        <IcnSealActive color={c.warning} label={t('invRecStatusPending')} />
                       )}
                     </View>
-                  </View>
+                  </TouchableOpacity>
                   <View style={s.invBottom}>
                     <View>
-                      <Text style={[s.invAmount, { color: r.status === 'rejected' ? c.textSub : c.primary }]}>¥{r.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
-                      <Text style={[s.invAmountLabel, { color: c.textSub }]}>{r.status === 'pending' ? t('invApplyAmount') : r.status === 'done' ? t('invTaxAmount') : t('invStatusRejected')}</Text>
+                      <Text style={[s.invAmount, { color: c.primary }]}>¥{r.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                      <Text style={[s.invAmountLabel, { color: c.textSub }]}>{r.status === 'pending' ? t('invApplyAmount') : t('invTaxAmount')}</Text>
                     </View>
                     <View style={s.invActions}>
-                      {r.status === 'done' ? (
+                      {r.status === 'done' && r.file_path ? (
                         <>
-                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => showToast('⬇️ ' + t('invDownloading'))}>
+                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => handleInvoiceShare(r)}>
                             <IcnDownloadSmall color={c.textSub} />
                             <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invDownload')}</Text>
                           </TouchableOpacity>
-                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.primary, 0.08), borderColor: withAlpha(c.primary, 0.2) }]} onPress={() => showToast('↗️ ' + t('invShareToast'))}>
+                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.primary, 0.08), borderColor: withAlpha(c.primary, 0.2) }]} onPress={() => handleInvoiceShare(r)}>
                             <IcnShareSmall color={c.primary} />
                             <Text style={[s.invActBtnText, { color: c.primary }]}>{t('share')}</Text>
                           </TouchableOpacity>
                         </>
                       ) : r.status === 'pending' ? (
-                        <>
-                          <View style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary, opacity: 0.4 }]}>
-                            <IcnDownloadSmall color={c.textSub} />
-                            <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invDownload')}</Text>
-                          </View>
-                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.warning, 0.08), borderColor: withAlpha(c.warning, 0.2) }]} onPress={() => showToast('📞 ' + t('invContact'))}>
-                            <Text style={[s.invActBtnText, { color: c.warning }]}>{t('invUrge')}</Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : (
-                        <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => showToast('🔄 ' + t('invReapply'))}>
-                          <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invReapply')}</Text>
+                        <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.warning, 0.08), borderColor: withAlpha(c.warning, 0.2) }]} onPress={() => openDrawer(r)}>
+                          <Text style={[s.invActBtnText, { color: c.warning }]}>{t('invRecMarkDone')}</Text>
                         </TouchableOpacity>
-                      )}
+                      ) : null}
+                      <TouchableOpacity style={[s.invActBtn, { backgroundColor: 'transparent', borderColor: withAlpha(c.textSub, 0.3), paddingHorizontal: 8 }]} onPress={() => setConfirmDeleteId(r.id)}>
+                        <IcnTrashSmall color={c.textSub} />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
@@ -526,6 +673,35 @@ export default function InvoiceScreen({ onBack }: Props) {
         </View>
       )}
 
+      {/* ═══ CONFIRM DELETE MODAL ═══ */}
+      {confirmDeleteId != null && (
+        <>
+          <View style={s.drawerOverlay}>
+            <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => !deleting && setConfirmDeleteId(null)} />
+          </View>
+          <View style={[s.confirmModal, { backgroundColor: c.surface }]}>
+            <Text style={[s.confirmTitle, { color: c.textMain }]}>⚠️ {t('invRecDeleteOk')}</Text>
+            <Text style={[s.confirmMsg, { color: c.textSub }]}>{t('invRecConfirmDelete')}</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+              <TouchableOpacity
+                style={[s.confirmBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary, flex: 1 }]}
+                onPress={() => setConfirmDeleteId(null)}
+                disabled={deleting}
+              >
+                <Text style={{ color: c.textMain, fontSize: 14, fontWeight: '500' }}>取消</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.confirmBtn, { backgroundColor: '#C0392B', borderColor: '#C0392B', flex: 1, opacity: deleting ? 0.5 : 1 }]}
+                onPress={handleConfirmDelete}
+                disabled={deleting}
+              >
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{deleting ? '...' : '删除'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </>
+      )}
+
       {/* ═══ DRAWER ═══ */}
       {drawerOpen && (
         <>
@@ -535,7 +711,7 @@ export default function InvoiceScreen({ onBack }: Props) {
           <Animated.View style={[s.drawer, { backgroundColor: c.surface, transform: [{ translateY: drawerTranslateY }] }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
             <View style={[s.drawerHandle, { backgroundColor: c.secondary }]} />
             <View style={[s.drawerHead, { borderBottomColor: c.secondary }]}>
-              <Text style={[s.drawerTitle, { color: c.textMain }]}>{t('invApply')}</Text>
+              <Text style={[s.drawerTitle, { color: c.textMain }]}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
               <TouchableOpacity style={s.drawerClose} onPress={() => closeDrawer()}>
                 <IcnClose color="#1c1c1a" />
               </TouchableOpacity>
@@ -615,6 +791,49 @@ export default function InvoiceScreen({ onBack }: Props) {
                 </View>
               </View>
 
+              {/* Status toggle (pending / done) + invoice number */}
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>状态</Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {(['pending', 'done'] as InvStatus[]).map(s_ => (
+                    <TouchableOpacity
+                      key={s_}
+                      style={{ flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center', borderWidth: 1.5, borderColor: dStatus === s_ ? c.primary : withAlpha(c.textMain, 0.15), backgroundColor: dStatus === s_ ? withAlpha(c.primary, 0.08) : 'transparent' }}
+                      onPress={() => setDStatus(s_)}
+                    >
+                      <Text style={{ fontSize: 13, fontWeight: '500', color: dStatus === s_ ? c.primary : c.textSub }}>
+                        {s_ === 'pending' ? t('invRecStatusPending') : t('invRecStatusDone')}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>
+                  票号{dStatus === 'done' ? <Text style={{ color: c.primary }}>*</Text> : <Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11 } as any}>（待开可空）</Text>}
+                </Text>
+                <TextInput
+                  style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]}
+                  value={dInvoiceNo}
+                  onChangeText={setDInvoiceNo}
+                  placeholder="NO.2026060001"
+                  placeholderTextColor={c.textSub}
+                  editable={dStatus === 'done'}
+                />
+              </View>
+
+              {/* Existing file preview (edit mode) */}
+              {editingId && dExistingFilePath ? (
+                <View style={[s.dField, { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.04) }]}>
+                  <Text style={{ fontSize: 13, color: c.textSub, flex: 1 }} numberOfLines={1}>
+                    已上传文件: {dExistingFilePath.split('/').pop()}
+                  </Text>
+                  <TouchableOpacity onPress={() => handleInvoiceShare({ id: editingId, file_path: dExistingFilePath, file_type: '', invoice_number: dInvoiceNo, type: dType, company: data.company_name, tax_id: data.tax_id, amount: Number(dAmount), date: dDate, email: dEmail, status: dStatus })}>
+                    <Text style={{ fontSize: 12, color: c.primary }}>{t('invDownload')}</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+
               {/* File upload — shared ReceiptUpload component */}
               <View style={{ marginBottom: 8 }}>
                 <ReceiptUpload
@@ -622,7 +841,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                   onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 9))}
                   onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
                   getPreviewUrl={(f: File) => URL.createObjectURL(f)}
-                  label={t('invUploadFiles') as string}
+                  label={(dStatus === 'done' ? '已开必传' : '可选') as string}
                 />
               </View>
 
@@ -638,11 +857,11 @@ export default function InvoiceScreen({ onBack }: Props) {
             </ScrollView>
             {/* Submit — fixed below scroll area, not inside */}
             <TouchableOpacity
-              style={[s.dSubmit, { backgroundColor: c.primary }, (!dAmount || !data.company_name || !data.tax_id) && { opacity: 0.4 }]}
-              disabled={!dAmount || !data.company_name || !data.tax_id}
-              onPress={() => { closeDrawer(); showToast('✅ ' + t('invSubmitDone')); }}
+              style={[s.dSubmit, { backgroundColor: c.primary }, (submitting || !dAmount || !data.company_name || !data.tax_id) && { opacity: 0.4 }]}
+              disabled={submitting || !dAmount || !data.company_name || !data.tax_id}
+              onPress={handleDrawerSubmit}
             >
-              <Text style={s.dSubmitText}>{t('invSubmit')}</Text>
+              <Text style={s.dSubmitText}>{submitting ? '...' : (editingId ? t('invSave') : t('invSubmit'))}</Text>
             </TouchableOpacity>
           </Animated.View>
         </>
@@ -804,6 +1023,16 @@ const s = StyleSheet.create({
   toastWrap: { position: 'fixed', bottom: 90, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 200 } as any,
   toast: { backgroundColor: 'rgba(28,28,26,0.88)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10 } as any,
   toastText: { color: '#fff', fontSize: 13, whiteSpace: 'nowrap' } as any,
+
+  /* CONFIRM MODAL (delete dialog) */
+  confirmModal: {
+    position: 'fixed' as any, top: '50%', left: '50%', transform: [{ translateX: '-50%' }, { translateY: '-50%' }] as any,
+    zIndex: 202, padding: 20, borderRadius: 16, minWidth: 300, maxWidth: 400,
+    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
+  } as any,
+  confirmTitle: { fontSize: 15, fontWeight: '600', marginBottom: 8 } as any,
+  confirmMsg: { fontSize: 13, lineHeight: 20 } as any,
+  confirmBtn: { paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1 } as any,
 
   /* DRAWER */
   drawerOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },

@@ -383,6 +383,31 @@ export const api = {
   getInvoice: () => authFetch('/api/admin/invoice'),
   updateInvoice: (data: Record<string, string>) => authFetch('/api/admin/invoice', { method: 'PUT', body: JSON.stringify(data) }),
 
+  // Invoice records (开票记录 — user-level CRUD)
+  getInvoiceRecords: (filter?: { status?: 'pending' | 'done'; type?: 'vat' | 'general'; procurement_batch_id?: number }) => {
+    const qs = new URLSearchParams();
+    if (filter?.status) qs.set('status', filter.status);
+    if (filter?.type) qs.set('type', filter.type);
+    if (filter?.procurement_batch_id) qs.set('procurement_batch_id', String(filter.procurement_batch_id));
+    const q = qs.toString();
+    return authFetch(`/api/invoice-records${q ? '?' + q : ''}`);
+  },
+  getInvoiceRecord: (id: number) => authFetch(`/api/invoice-records/${id}`),
+  createInvoiceRecord: (data: Record<string, any>) => authFetch('/api/invoice-records', { method: 'POST', body: JSON.stringify(data) }),
+  updateInvoiceRecord: (id: number, data: Record<string, any>) => authFetch(`/api/invoice-records/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteInvoiceRecord: (id: number) => authFetch(`/api/invoice-records/${id}`, { method: 'DELETE' }),
+  uploadInvoiceFile: (id: number, file: File): Promise<{ status: string; file_path: string; file_type: string; file_size: number }> => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return authFetch(`/api/invoice-records/${id}/file`, { method: 'POST', body: fd });
+  },
+  getInvoiceFileUrl: (filePath: string) => {
+    // filePath is "user_id/uuid.ext" — pass through; the route is /api/invoice-files/<user_id>/<name>
+    return `${API_BASE}/api/invoice-files/${filePath}`;
+  },
+  // Lightweight procurement batch list (for invoice record batch selector)
+  getProcurementBatchesLite: (limit = 20) => authFetch(`/api/procurement-batches-lite?limit=${limit}`),
+
   /** 获取用户头像，返回 base64 字符串，失败返回 null */
   getUserAvatar: async (userId: number | string): Promise<string | null> => {
     try {
