@@ -8,6 +8,7 @@ import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import ReceiptUpload from '../components/ReceiptUpload';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
+import DatePicker from '../components/DatePicker';
 
 /* ═══════════════ SVG ICONS ═══════════════ */
 
@@ -401,7 +402,7 @@ export default function InvoiceScreen({ onBack }: Props) {
                 <Text style={[s.sectionTitleText, { color: c.textSub }]}>{t('invHeaderInfo')}</Text>
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
-              <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, borderWidth: 0 }]}>
+              <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, borderWidth: 0, marginHorizontal: 16 }]}>
                 <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
                 <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onChange={(v) => setData({ ...data, tax_id: v })} editable={isAdmin} />
@@ -603,7 +604,16 @@ export default function InvoiceScreen({ onBack }: Props) {
               <View style={s.dRow}>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
-                  <input type="date" value={dDate} onChange={(e: any) => setDDate(e.target.value)} style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', paddingTop: 11, paddingBottom: 11, paddingLeft: 14, paddingRight: 14, borderWidth: 0, borderRadius: 10, fontSize: 14, backgroundColor: withAlpha(c.textMain, 0.03), color: c.textMain, outline: 'none' }} />
+                  <View style={{ paddingVertical: 11, paddingHorizontal: 14, borderRadius: 10, backgroundColor: withAlpha(c.textMain, 0.03), overflow: 'visible' as any }}>
+                    <DatePicker
+                      date={dDate}
+                      onChange={setDDate}
+                      color={c.textMain}
+                      fontSize={FONTS.sub.size}
+                      showChevron
+                      showCalendarIcon
+                    />
+                  </View>
                 </View>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
