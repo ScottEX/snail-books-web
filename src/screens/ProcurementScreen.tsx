@@ -291,8 +291,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histActions: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
   histActionBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.04) },
   histAmountRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, marginTop: 8, minHeight: 48, position: 'relative' as const },
-  histAmountTextWrap: { position: 'relative' as const, zIndex: 1 },
-  histAmountNumberWrap: { position: 'relative' as const, alignSelf: 'flex-start' as const },
+  histAmountNumberWrap: { position: 'relative' as const },
   histAmountSealOverlay: { position: 'absolute' as const, right: 0, top: '50%', marginTop: -24, opacity: 0.55, zIndex: 2 },
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
@@ -1123,19 +1122,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     </View>
                   ) : null}
                   <View style={styles.histAmountRow}>
-                    <View style={styles.histAmountTextWrap}>
-                      <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
-                      {/* Wrap just the amount number in a relative View, so the seal's right edge
-                          sits on the right edge of the amount number, and its vertical center
-                          sits on the amount's vertical center. */}
-                      <View style={styles.histAmountNumberWrap}>
-                        <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
-                        <View style={styles.histAmountSealOverlay} pointerEvents="none">
-                          <IcnSealProc
-                            color={batch.settled_at ? c.success : c.warning}
-                            label={batch.settled_at ? t('procSettled') : t('procUnsettled')}
-                          />
-                        </View>
+                    <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>{t('procThisBatch')}</Text>
+                    {/* Wrap just the amount number in a relative View, so the seal's right edge
+                        sits on the right edge of the amount number. */}
+                    <View style={styles.histAmountNumberWrap}>
+                      <Text style={styles.histAmount}>¥{batch.total.toFixed(2)}</Text>
+                      <View style={styles.histAmountSealOverlay} pointerEvents="none">
+                        <IcnSealProc
+                          color={batch.settled_at ? c.success : c.warning}
+                          label={batch.settled_at ? t('procSettled') : t('procUnsettled')}
+                        />
                       </View>
                     </View>
                   </View>
