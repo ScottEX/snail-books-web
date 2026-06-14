@@ -7,7 +7,7 @@ import { api } from '../api/client';
 import Toast from '../components/Toast';
 import ModalOverlay from '../components/ModalOverlay';
 import ConfirmModal from '../components/ConfirmModal';
-import InvoiceModal from '../components/InvoiceModal';
+import InvoiceScreen from './InvoiceScreen';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
@@ -916,7 +916,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
         document.body
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
-      <InvoiceModal visible={showInvoice} onClose={() => setShowInvoice(false)} />
+      {showInvoice && <InvoiceScreen onBack={() => setShowInvoice(false)} />}
     </View>
   );
 }

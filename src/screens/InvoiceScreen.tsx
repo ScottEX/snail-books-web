@@ -1,0 +1,752 @@
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet } from 'react-native';
+import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
+import { t } from '../i18n';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { api } from '../api/client';
+import { useEffect, useRef, useState } from 'react';
+import { FONTS } from '../theme';
+
+/* ═══════════════ SVG ICONS (from reference HTML) ═══════════════ */
+
+const IcnBack = ({ color }: { color: string }) => (
+  <Svg width="16" height="16" viewBox="0 0 24 24">
+    <Polyline points="15 18 9 12 15 6" stroke={color} strokeWidth="2.2" fill="none" />
+  </Svg>
+);
+const IcnDownload = ({ color }: { color: string }) => (
+  <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
+    <Path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+    <Polyline points="7 10 12 15 17 10" />
+    <Line x1="12" y1="15" x2="12" y2="3" />
+  </Svg>
+);
+const IcnSettings = ({ color }: { color: string }) => (
+  <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
+    <Circle cx="12" cy="12" r="3" />
+    <Path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+  </Svg>
+);
+const IcnDoc = ({ color }: { color: string }) => (
+  <Svg width="22" height="22" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
+    <Path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+    <Polyline points="14 2 14 8 20 8" />
+    <Line x1="16" y1="13" x2="8" y2="13" />
+    <Line x1="16" y1="17" x2="8" y2="17" />
+    <Polyline points="10 9 9 9 8 9" />
+  </Svg>
+);
+const IcnPlus = ({ color }: { color: string }) => (
+  <Svg width="14" height="14" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
+    <Line x1="12" y1="5" x2="12" y2="19" />
+    <Line x1="5" y1="12" x2="19" y2="12" />
+  </Svg>
+);
+const IcnPlusBig = ({ color }: { color: string }) => (
+  <Svg width="16" height="16" viewBox="0 0 24 24" stroke={color} strokeWidth="2.2" fill="none">
+    <Line x1="12" y1="5" x2="12" y2="19" />
+    <Line x1="5" y1="12" x2="19" y2="12" />
+  </Svg>
+);
+const IcnEdit = ({ color }: { color: string }) => (
+  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2.2" fill="none">
+    <Path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+    <Path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </Svg>
+);
+const IcnCompany = ({ color }: { color: string }) => (
+  <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
+    <Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+    <Polyline points="9 22 9 12 15 12 15 22" />
+  </Svg>
+);
+const IcnTax = ({ color }: { color: string }) => (
+  <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
+    <Circle cx="12" cy="12" r="10" />
+    <Line x1="12" y1="8" x2="12" y2="12" />
+    <Line x1="12" y1="16" x2="12.01" y2="16" />
+  </Svg>
+);
+const IcnAddr = ({ color }: { color: string }) => (
+  <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
+    <Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+    <Circle cx="12" cy="10" r="3" />
+  </Svg>
+);
+const IcnBank = ({ color }: { color: string }) => (
+  <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
+    <Rect x="2" y="5" width="20" height="14" rx="2" />
+    <Line x1="2" y1="10" x2="22" y2="10" />
+  </Svg>
+);
+const IcnMail = ({ color }: { color: string }) => (
+  <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
+    <Path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <Polyline points="22,6 12,13 2,6" />
+  </Svg>
+);
+const IcnPhone = ({ color }: { color: string }) => (
+  <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
+    <Path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.09a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
+  </Svg>
+);
+const IcnArrowRight = ({ color }: { color: string }) => (
+  <Svg width="14" height="14" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
+    <Polyline points="9 18 15 12 9 6" />
+  </Svg>
+);
+const IcnAccount = ({ color }: { color: string }) => (
+  <Svg width="15" height="15" viewBox="0 0 24 24" stroke={color} strokeWidth="1.8" fill="none">
+    <Line x1="12" y1="1" x2="12" y2="23" />
+    <Path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+  </Svg>
+);
+const IcnDownloadSmall = ({ color }: { color: string }) => (
+  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
+    <Path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+    <Polyline points="7 10 12 15 17 10" />
+    <Line x1="12" y1="15" x2="12" y2="3" />
+  </Svg>
+);
+const IcnShareSmall = ({ color }: { color: string }) => (
+  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
+    <Path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+    <Polyline points="16 6 12 2 8 6" />
+    <Line x1="12" y1="2" x2="12" y2="15" />
+  </Svg>
+);
+const IcnClose = () => (
+  <Svg width="14" height="14" viewBox="0 0 1088 1024">
+    <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
+  </Svg>
+);
+
+/* ═══════════════ INVOICE SCREEN ═══════════════ */
+
+type InvType = 'vat' | 'general' | 'receipt';
+type InvStatus = 'done' | 'pending' | 'rejected';
+
+interface InvoiceData {
+  company_name: string;
+  tax_id: string;
+  bank_name: string;
+  bank_account: string;
+  address: string;
+  phone: string;
+  email: string;
+  inv_type: InvType;
+}
+
+interface InvoiceRecord {
+  id: number;
+  type: InvType;
+  company: string;
+  tax_id: string;
+  date: string;
+  invoice_no: string;
+  amount: number;
+  status: InvStatus;
+}
+
+const EMPTY_INV: InvoiceData = {
+  company_name: '', tax_id: '', bank_name: '', bank_account: '', address: '', phone: '', email: '', inv_type: 'vat',
+};
+
+interface Props {
+  onBack: () => void;
+}
+
+export default function InvoiceScreen({ onBack }: Props) {
+  const { colors: c } = useTheme();
+  const [tab, setTab] = useState<number>(0);
+  const [invType, setInvType] = useState<InvType>('vat');
+  const [data, setData] = useState<InvoiceData>(EMPTY_INV);
+  const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
+  const [loaded, setLoaded] = useState(false);
+
+  // Drawer (apply)
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [dType, setDType] = useState<InvType>('vat');
+  const [dAmount, setDAmount] = useState('');
+  const [dDate, setDDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dRef, setDRef] = useState('');
+  const [dNote, setDNote] = useState('');
+  const [dEmail, setDEmail] = useState('');
+
+  // Records stub
+  const [records] = useState<InvoiceRecord[]>([
+    { id: 1, type: 'vat', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-06-05', invoice_no: 'NO.2026060001', amount: 25600, status: 'done' },
+    { id: 2, type: 'general', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-06-07', invoice_no: 'NO.2026060002', amount: 18300, status: 'pending' },
+    { id: 3, type: 'vat', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-05-20', invoice_no: 'NO.2026050008', amount: 8500, status: 'rejected' },
+  ]);
+  const [filter, setFilter] = useState<string>('all');
+
+  // Toast
+  const [toast, setToast] = useState('');
+  const toastT = useRef<any>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    clearTimeout(toastT.current);
+    toastT.current = setTimeout(() => setToast(''), 2400);
+  };
+
+  // Load invoice data
+  useEffect(() => {
+    (async () => {
+      try {
+        const inv = await api.getInvoice();
+        if (inv.status === 'ok' && inv.data) {
+          const d = { ...EMPTY_INV, ...inv.data };
+          setData(d);
+          setOrig(d);
+          setDEmail(inv.data.email || '');
+          setInvType(inv.data.inv_type || 'vat');
+        }
+      } catch { }
+      setLoaded(true);
+    })();
+  }, []);
+
+  const hasChanged = JSON.stringify(data) !== JSON.stringify(orig);
+  const isSaving = useRef(false);
+
+  const handleSaveInfo = async () => {
+    if (!hasChanged || isSaving.current) return;
+    isSaving.current = true;
+    try {
+      const json = await api.updateInvoice({ ...data, inv_type: invType } as any);
+      if (json.status === 'ok') {
+        setOrig({ ...data, inv_type: invType });
+        showToast('✅ ' + t('invSaved'));
+      }
+    } catch { }
+    isSaving.current = false;
+  };
+
+  // Stats
+  const totalCount = records.length;
+  const totalAmount = records.reduce((s, r) => s + r.amount, 0);
+  const pendingCount = records.filter(r => r.status === 'pending').length;
+
+  // Filtered records
+  const filtered = records.filter(r => {
+    if (filter === 'all') return true;
+    if (filter === 'pending') return r.status === 'pending';
+    if (filter === 'done') return r.status === 'done';
+    if (filter === 'rejected') return r.status === 'rejected';
+    if (filter === 'vat') return r.type === 'vat';
+    if (filter === 'general') return r.type === 'general';
+    return true;
+  });
+
+  const FILTERS = [
+    { key: 'all', label: t('invFilterAll') },
+    { key: 'pending', label: t('invFilterPending') },
+    { key: 'done', label: t('invFilterDone') },
+    { key: 'rejected', label: t('invFilterRejected') },
+    { key: 'vat', label: t('invVatSpecial') },
+    { key: 'general', label: t('invGeneral') },
+  ];
+
+  const statusLabel = (s: InvStatus) => {
+    if (s === 'done') return t('invStatusDone');
+    if (s === 'pending') return t('invStatusPending');
+    return t('invStatusRejected');
+  };
+  const statusSealClass = (s: InvStatus) => {
+    if (s === 'done') return sSeal.done;
+    if (s === 'pending') return sSeal.pending;
+    return sSeal.rejected;
+  };
+  const typeBadgeLabel = (tp: InvType) => tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt');
+  const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : tp === 'general' ? sBadge.general : sBadge.receipt;
+
+  return (
+    <View style={[s.root, { backgroundColor: c.bg }]}>
+      {/* ═══ NAV ═══ */}
+      <View style={[s.nav, { backgroundColor: c.bg }]}>
+        <TouchableOpacity style={[s.navBtn, { backgroundColor: c.surface, borderColor: c.secondary }]} onPress={onBack}>
+          <IcnBack color={c.textMain} />
+        </TouchableOpacity>
+        <Text style={[s.navTitle, { color: c.textMain }]}>{t('invTitle')}</Text>
+        <View style={s.navRight}>
+          <TouchableOpacity style={[s.navBtn, { backgroundColor: c.surface, borderColor: c.secondary }]} onPress={() => showToast('📊 ' + t('invExportToast'))}>
+            <IcnDownload color={c.textSub} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.navBtn, { backgroundColor: c.surface, borderColor: c.secondary }]} onPress={() => showToast('⚙️ ' + t('invSettingsToast'))}>
+            <IcnSettings color={c.textSub} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* ═══ ENTRY CARD ═══ */}
+        <View style={s.entryCard}>
+          <View style={s.ecTop}>
+            <View>
+              <Text style={s.ecLabel}>{t('invLabel')}</Text>
+              <Text style={s.ecTitle}>{t('invCenter')}</Text>
+            </View>
+            <View style={s.ecIcon}>
+              <IcnDoc color="rgba(255,255,255,0.85)" />
+            </View>
+          </View>
+          <View style={s.ecStats}>
+            <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
+              <Text style={s.ecStatNum}>{totalCount}</Text>
+              <Text style={s.ecStatLbl}>{t('invTotalCount')}</Text>
+            </View>
+            <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)' }]}>
+              <Text style={s.ecStatNum}>¥{(totalAmount / 10000).toFixed(1)}w</Text>
+              <Text style={s.ecStatLbl}>{t('invTotalAmount')}</Text>
+            </View>
+            <View style={s.ecStat}>
+              <Text style={s.ecStatNum}>{pendingCount}</Text>
+              <Text style={s.ecStatLbl}>{t('invPending')}</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={s.ecBtn} onPress={() => {
+            setDType(invType);
+            setDAmount('');
+            setDDate(new Date().toISOString().slice(0, 10));
+            setDRef('');
+            setDNote('');
+            setDrawerOpen(true);
+          }}>
+            <IcnPlus color="rgba(255,255,255,0.85)" />
+            <Text style={s.ecBtnText}>{t('invApply')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ═══ TABS ═══ */}
+        <View style={[s.tabs, { backgroundColor: withAlpha(c.textMain, 0.06) }]}>
+          <TouchableOpacity style={[s.tab, tab === 0 && [s.tabOn, { backgroundColor: c.surface, shadowColor: c.textMain }]]} onPress={() => setTab(0)}>
+            <Text style={[s.tabText, { color: tab === 0 ? c.textMain : c.textSub }]}>{t('invInfoTab')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.tab, tab === 1 && [s.tabOn, { backgroundColor: c.surface, shadowColor: c.textMain }]]} onPress={() => setTab(1)}>
+            <Text style={[s.tabText, { color: tab === 1 ? c.textMain : c.textSub }]}>{t('invRecordsTab')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ═══ PANEL 0: INFO ═══ */}
+        {tab === 0 && (
+          <View>
+            {/* Tips */}
+            <View style={[s.tips, { backgroundColor: withAlpha(c.warning, 0.08), borderColor: withAlpha(c.warning, 0.2) }]}>
+              <Text style={s.tipsIcon}>💡</Text>
+              <Text style={[s.tipsText, { color: c.warning }]}>{t('invTips')}</Text>
+            </View>
+
+            {/* Invoice type preference */}
+            <View style={s.sectionHead}>
+              <Text style={[s.shTitle, { color: c.textSub }]}>{t('invTypePref')}</Text>
+              <TouchableOpacity style={s.shAction} onPress={handleSaveInfo}>
+                <IcnEdit color={hasChanged ? c.primary : c.textSub} />
+                <Text style={{ fontSize: 12, color: hasChanged ? c.primary : c.textSub, fontWeight: '500', marginLeft: 3 }}>{t('invSave')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
+              <View style={[s.typeToggle, { borderBottomColor: c.secondary }]}>
+                {(['vat', 'general', 'receipt'] as InvType[]).map(tp => (
+                  <TouchableOpacity key={tp} style={[s.typeChip, invType === tp && { backgroundColor: withAlpha(c.primary, 0.08), borderColor: c.primary }]} onPress={() => setInvType(tp)}>
+                    <Text style={[s.typeChipText, { color: invType === tp ? c.primary : c.textSub }]}>{tp === 'vat' ? t('invVatSpecialFull') : tp === 'general' ? t('invGeneralFull') : t('invReceipt')}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Header info */}
+            <View style={s.sectionHead}>
+              <Text style={[s.shTitle, { color: c.textSub }]}>{t('invHeaderInfo')}</Text>
+              <TouchableOpacity style={s.shAction} onPress={() => showToast('✏️ ' + t('invEditInfo'))}>
+                <IcnEdit color={c.textSub} />
+                <Text style={{ fontSize: 12, color: c.textSub, fontWeight: '500', marginLeft: 3 }}>{t('invEdit')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
+              <InfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onPress={() => showToast('✏️ ' + t('companyName'))} />
+              <InfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onPress={() => showToast('✏️ ' + t('taxId'))} />
+              <InfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onPress={() => showToast('✏️ ' + t('addressPhone'))} />
+              <InfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={data.phone} colors={c} mono onPress={() => showToast('✏️ ' + t('companyPhone'))} />
+            </View>
+
+            {/* Bank info */}
+            <View style={s.sectionHead}>
+              <Text style={[s.shTitle, { color: c.textSub }]}>{t('invBankInfo')}</Text>
+              <TouchableOpacity style={s.shAction} onPress={() => showToast('✏️ ' + t('invEditBank'))}>
+                <IcnEdit color={c.textSub} />
+                <Text style={{ fontSize: 12, color: c.textSub, fontWeight: '500', marginLeft: 3 }}>{t('invEdit')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
+              <InfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onPress={() => showToast('✏️ ' + t('bankName'))} />
+              <InfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onPress={() => showToast('✏️ ' + t('bankAccount'))} />
+            </View>
+
+            {/* Email */}
+            <View style={s.sectionHead}>
+              <Text style={[s.shTitle, { color: c.textSub }]}>{t('invReceiveMethod')}</Text>
+              <TouchableOpacity style={s.shAction} onPress={() => showToast('✏️ ' + t('invEdit'))}>
+                <IcnEdit color={c.textSub} />
+                <Text style={{ fontSize: 12, color: c.textSub, fontWeight: '500', marginLeft: 3 }}>{t('invEdit')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[s.infoCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
+              <InfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} value={data.email} colors={c} onPress={() => showToast('✏️ ' + t('invEmail'))} />
+            </View>
+          </View>
+        )}
+
+        {/* ═══ PANEL 1: RECORDS ═══ */}
+        {tab === 1 && (
+          <View>
+            {/* Filter */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterRow} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
+              {FILTERS.map(f => (
+                <TouchableOpacity key={f.key} style={[s.fc, { backgroundColor: c.surface, borderColor: c.secondary }, filter === f.key && { backgroundColor: c.primary, borderColor: c.primary }]} onPress={() => setFilter(f.key)}>
+                  <Text style={[s.fcText, { color: filter === f.key ? '#fff' : c.textSub }]}>{f.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Invoice cards */}
+            {filtered.length === 0 ? (
+              <View style={s.empty}>
+                <Text style={s.emptyIcon}>📄</Text>
+                <Text style={[s.emptyText, { color: c.textSub }]}>{t('invEmpty')}</Text>
+              </View>
+            ) : (
+              filtered.map(r => (
+                <View key={r.id} style={[s.invCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
+                  {/* Torn edge */}
+                  <View style={[s.invTorn, { backgroundColor: c.primary }]} />
+                  <View style={[s.invTop, { borderBottomColor: c.secondary }]}>
+                    <View style={[s.invBadge, typeBadgeClass(r.type)]}>
+                      <Text style={[s.invBadgeText, { color: r.type === 'vat' ? c.primary : r.type === 'general' ? c.info : c.success }]}>{typeBadgeLabel(r.type)}</Text>
+                    </View>
+                    <View style={s.invMain}>
+                      <Text style={[s.invCompany, { color: c.textMain }]} numberOfLines={1}>{r.company}</Text>
+                      <Text style={[s.invTax, { color: c.textSub }]}>{r.tax_id}</Text>
+                      <View style={s.invMeta}>
+                        <Text style={[s.invDate, { color: c.textSub }]}>{r.date}</Text>
+                        <Text style={{ color: c.secondary }}>·</Text>
+                        <Text style={[s.invNo, { color: c.textSub }]}>{r.invoice_no}</Text>
+                      </View>
+                    </View>
+                    <View style={[s.invSeal, statusSealClass(r.status), { borderColor: r.status === 'done' ? c.success : r.status === 'pending' ? c.warning : '#C0392B', backgroundColor: r.status === 'done' ? withAlpha(c.success, 0.08) : r.status === 'pending' ? withAlpha(c.warning, 0.08) : withAlpha(c.primary, 0.08) }]}>
+                      <Text style={[s.invSealText, { color: r.status === 'done' ? c.success : r.status === 'pending' ? c.warning : '#C0392B' }]}>{statusLabel(r.status)}</Text>
+                    </View>
+                  </View>
+                  <View style={s.invBottom}>
+                    <View>
+                      <Text style={[s.invAmount, { color: r.status === 'rejected' ? c.textSub : c.primary }]}>¥{r.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                      <Text style={[s.invAmountLabel, { color: c.textSub }]}>{r.status === 'pending' ? t('invApplyAmount') : r.status === 'done' ? t('invTaxAmount') : t('invStatusRejected')}</Text>
+                    </View>
+                    <View style={s.invActions}>
+                      {r.status === 'done' ? (
+                        <>
+                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => showToast('⬇️ ' + t('invDownloading'))}>
+                            <IcnDownloadSmall color={c.textSub} />
+                            <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invDownload')}</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.primary, 0.08), borderColor: withAlpha(c.primary, 0.2) }]} onPress={() => showToast('↗️ ' + t('invShareToast'))}>
+                            <IcnShareSmall color={c.primary} />
+                            <Text style={[s.invActBtnText, { color: c.primary }]}>{t('share')}</Text>
+                          </TouchableOpacity>
+                        </>
+                      ) : r.status === 'pending' ? (
+                        <>
+                          <View style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary, opacity: 0.4 }]}>
+                            <IcnDownloadSmall color={c.textSub} />
+                            <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invDownload')}</Text>
+                          </View>
+                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.warning, 0.08), borderColor: withAlpha(c.warning, 0.2) }]} onPress={() => showToast('📞 ' + t('invContact'))}>
+                            <Text style={[s.invActBtnText, { color: c.warning }]}>{t('invUrge')}</Text>
+                          </TouchableOpacity>
+                        </>
+                      ) : (
+                        <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => showToast('🔄 ' + t('invReapply'))}>
+                          <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invReapply')}</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* ═══ TOAST ═══ */}
+      {toast !== '' && (
+        <View style={s.toastWrap}>
+          <View style={s.toast}>
+            <Text style={s.toastText}>{toast}</Text>
+          </View>
+        </View>
+      )}
+
+      {/* ═══ FAB ═══ */}
+      <TouchableOpacity style={[s.fab, { backgroundColor: c.primary }]} onPress={() => {
+        setDType(invType);
+        setDAmount('');
+        setDDate(new Date().toISOString().slice(0, 10));
+        setDRef('');
+        setDNote('');
+        setDrawerOpen(true);
+      }}>
+        <IcnPlusBig color="#fff" />
+        <Text style={s.fabText}>{t('invApply')}</Text>
+      </TouchableOpacity>
+
+      {/* ═══ DRAWER ═══ */}
+      {drawerOpen && (
+        <View style={s.drawerOverlay} onTouchEnd={() => setDrawerOpen(false)}>
+          <View style={[s.drawer, { backgroundColor: c.surface }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
+            <View style={[s.drawerHandle, { backgroundColor: c.secondary }]} />
+            <View style={[s.drawerHead, { borderBottomColor: c.secondary }]}>
+              <Text style={[s.drawerTitle, { color: c.textMain }]}>{t('invApply')}</Text>
+              <TouchableOpacity style={[s.drawerClose, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => setDrawerOpen(false)}>
+                <IcnClose />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={s.drawerBody} contentContainerStyle={{ paddingBottom: 32 }}>
+              <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerType')}</Text>
+              <View style={s.dTypeRow}>
+                {(['vat', 'general', 'receipt'] as InvType[]).map(tp => (
+                  <TouchableOpacity key={tp} style={[s.dTypeChip, dType === tp && { backgroundColor: withAlpha(c.primary, 0.08), borderColor: c.primary }]} onPress={() => setDType(tp)}>
+                    <Text style={[s.dTypeChipText, { color: dType === tp ? c.primary : c.textSub }]}>{tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt')}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: c.primary }}>*</Text></Text>
+                <View style={{ position: 'relative' }}>
+                  <Text style={[s.dAmountPrefix, { color: c.textSub }]}>¥</Text>
+                  <TextInput style={[s.dInput, s.dAmountInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dAmount} onChangeText={setDAmount} placeholder="0.00" placeholderTextColor={c.textSub} keyboardType="decimal-pad" />
+                </View>
+              </View>
+
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBuyer')}<Text style={{ color: c.primary }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={data.company_name} editable={false} />
+              </View>
+
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: c.primary }}>*</Text></Text>
+                <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface, fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
+              </View>
+
+              <View style={s.dRow}>
+                <View style={s.dField}>
+                  <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerDate')}</Text>
+                  <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dDate} onChangeText={setDDate} placeholder="YYYY-MM-DD" placeholderTextColor={c.textSub} />
+                </View>
+                <View style={s.dField}>
+                  <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerRef')}</Text>
+                  <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dRef} onChangeText={setDRef} placeholder={t('invOptional')} placeholderTextColor={c.textSub} />
+                </View>
+              </View>
+
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerNote')}</Text>
+                <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dNote} onChangeText={setDNote} placeholder={t('invDrawerNotePlaceholder')} placeholderTextColor={c.textSub} />
+              </View>
+
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
+                <TextInput style={[s.dInput, { color: c.textMain, borderColor: c.secondary, backgroundColor: c.surface }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
+              </View>
+
+              <TouchableOpacity style={[s.dSubmit, { backgroundColor: c.primary }]} onPress={() => { setDrawerOpen(false); showToast('✅ ' + t('invSubmitDone')); }}>
+                <Text style={s.dSubmitText}>{t('invSubmit')}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+/* ═══════════════ INFO ROW ═══════════════ */
+
+function InfoRow({ icon, iconBg, label, value, colors, mono, onPress }: {
+  icon: React.ReactNode; iconBg: string; label: string; value: string; colors: ThemeColors; mono?: boolean; onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity style={[sIR.row, { borderBottomColor: colors.secondary }]} onPress={onPress} activeOpacity={0.7}>
+      <View style={[sIR.icon, { backgroundColor: iconBg }]}>{icon}</View>
+      <View style={sIR.body}>
+        <Text style={[sIR.label, { color: colors.textSub }]}>{label}</Text>
+        <Text style={[sIR.value, { color: value ? colors.textMain : colors.textSub, fontWeight: value ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value || t('invEmpty')}</Text>
+      </View>
+      <View style={sIR.arrow}>
+        <IcnArrowRight color={colors.textSub} />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+/* ═══════════════ STYLES ═══════════════ */
+
+const s = StyleSheet.create({
+  root: { flex: 1 } as any,
+  scroll: { flex: 1 } as any,
+
+  /* NAV */
+  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 10 } as any,
+  navBtn: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, alignItems: 'center', justifyContent: 'center' } as any,
+  navTitle: { fontSize: 16, fontWeight: '600' } as any,
+  navRight: { flexDirection: 'row', gap: 8 } as any,
+
+  /* ENTRY CARD */
+  entryCard: {
+    marginHorizontal: 16, marginBottom: 14, borderRadius: 20, padding: 20,
+    paddingBottom: 18, position: 'relative', overflow: 'hidden' as any,
+    // Dark gradient via background color — approximated
+    backgroundColor: '#5A1010',
+  } as any,
+  ecTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 } as any,
+  ecLabel: { fontSize: 11, letterSpacing: 1.3, color: 'rgba(255,255,255,0.55)', marginBottom: 4, textTransform: 'uppercase' } as any,
+  ecTitle: { fontSize: 18, fontWeight: '600', color: '#fff', letterSpacing: 0.3 } as any,
+  ecIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' } as any,
+  ecStats: { flexDirection: 'row', marginBottom: 16, gap: 0 } as any,
+  ecStat: { flex: 1, paddingHorizontal: 12, borderRightWidth: 1 } as any,
+  ecStatNum: { fontSize: 20, fontWeight: '600', color: '#fff', fontFamily: 'DM Mono', letterSpacing: -0.2 } as any,
+  ecStatLbl: { fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 } as any,
+  ecBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.15)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16,
+  } as any,
+  ecBtnText: { fontSize: 13, fontWeight: '500', color: '#fff' } as any,
+
+  /* TABS */
+  tabs: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 14, borderRadius: 10, padding: 3 } as any,
+  tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 } as any,
+  tabOn: { shadowOpacity: 0.08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } } as any,
+  tabText: { fontSize: 13, fontWeight: '500' } as any,
+
+  /* SECTION HEAD */
+  sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 8 } as any,
+  shTitle: { fontSize: 12, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase' } as any,
+  shAction: { flexDirection: 'row', alignItems: 'center', gap: 3 } as any,
+
+  /* TIPS */
+  tips: { marginHorizontal: 16, marginBottom: 14, borderRadius: 12, padding: 12, flexDirection: 'row', gap: 10, alignItems: 'flex-start', borderWidth: 1 } as any,
+  tipsIcon: { fontSize: 15, flexShrink: 0, marginTop: 1 } as any,
+  tipsText: { fontSize: 12, lineHeight: 19, flex: 1 } as any,
+
+  /* INFO CARD */
+  infoCard: { borderRadius: 12, borderWidth: 1, overflow: 'hidden', marginHorizontal: 16, marginBottom: 14 } as any,
+  typeToggle: { flexDirection: 'row', gap: 6, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 } as any,
+  typeChip: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8, borderWidth: 1.5 } as any,
+  typeChipText: { fontSize: 12, fontWeight: '500' } as any,
+
+  /* INFO ROW */
+  /* (defined below as sIR) */
+
+  /* FILTER */
+  filterRow: { marginBottom: 12 } as any,
+  fc: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1 } as any,
+  fcText: { fontSize: 12 } as any,
+
+  /* INVOICE CARD */
+  invCard: { marginHorizontal: 16, marginBottom: 12, borderRadius: 16, borderWidth: 1, overflow: 'hidden', position: 'relative' } as any,
+  invTorn: { position: 'absolute', top: 0, left: 0, right: 0, height: 4, opacity: 0.4 } as any,
+  invTop: {
+    paddingHorizontal: 16, paddingTop: 16, paddingBottom: 14,
+    borderBottomWidth: 1, borderStyle: 'dashed',
+    flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 4,
+  } as any,
+  invBadge: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6, borderWidth: 1, flexShrink: 0, marginTop: 2 } as any,
+  invBadgeText: { fontSize: 10, fontWeight: '600', letterSpacing: 0.6, whiteSpace: 'nowrap' } as any,
+  invMain: { flex: 1, minWidth: 0 } as any,
+  invCompany: { fontSize: 14, fontWeight: '600', marginBottom: 3 } as any,
+  invTax: { fontSize: 11, fontFamily: 'DM Mono', marginBottom: 4 } as any,
+  invMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' } as any,
+  invDate: { fontSize: 11 } as any,
+  invNo: { fontSize: 10, fontFamily: 'DM Mono' } as any,
+  invSeal: {
+    flexShrink: 0, width: 48, height: 48, borderRadius: 24,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 2,
+    transform: [{ rotate: '-12deg' }],
+  } as any,
+  invSealText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.6, lineHeight: 13, textAlign: 'center' } as any,
+  invBottom: { paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as any,
+  invAmount: { fontSize: 20, fontWeight: '700', fontFamily: 'DM Mono', letterSpacing: -0.2 } as any,
+  invAmountLabel: { fontSize: 10, marginTop: 1 } as any,
+  invActions: { flexDirection: 'row', gap: 6 } as any,
+  invActBtn: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 4 } as any,
+  invActBtnText: { fontSize: 12, fontWeight: '500' } as any,
+
+  /* EMPTY */
+  empty: { alignItems: 'center', paddingVertical: 48 } as any,
+  emptyIcon: { fontSize: 48, marginBottom: 12, opacity: 0.4 } as any,
+  emptyText: { fontSize: 14, lineHeight: 22 } as any,
+
+  /* TOAST */
+  toastWrap: { position: 'fixed', bottom: 90, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 200 } as any,
+  toast: { backgroundColor: 'rgba(28,28,26,0.88)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10 } as any,
+  toastText: { color: '#fff', fontSize: 13, whiteSpace: 'nowrap' } as any,
+
+  /* FAB */
+  fab: {
+    position: 'fixed', bottom: 24, left: '50%', transform: [{ translateX: '-50%' }],
+    paddingVertical: 14, paddingHorizontal: 28, borderRadius: 100,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    boxShadow: '0 4px 16px rgba(122,26,26,0.35)', borderWidth: 0, whiteSpace: 'nowrap',
+  } as any,
+  fabText: { fontSize: 14, fontWeight: '600', color: '#fff' } as any,
+
+  /* DRAWER */
+  drawerOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' } as any,
+  drawer: { width: '100%', maxWidth: 430, borderRadius: 20, maxHeight: '90vh', display: 'flex', flexDirection: 'column' } as any,
+  drawerHandle: { width: 36, height: 4, borderRadius: 2, marginTop: 12, alignSelf: 'center', flexShrink: 0 } as any,
+  drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 12, borderBottomWidth: 1, flexShrink: 0 } as any,
+  drawerTitle: { fontSize: 15, fontWeight: '600' } as any,
+  drawerClose: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' } as any,
+  drawerBody: { flex: 1, paddingHorizontal: 20, paddingTop: 16 } as any,
+
+  dLabel: { fontSize: 12, fontWeight: '500', marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as any,
+  dField: { marginBottom: 14 } as any,
+  dInput: { width: '100%', paddingVertical: 11, paddingHorizontal: 14, borderWidth: 1.5, borderRadius: 8, fontSize: 14, outline: 'none' } as any,
+  dAmountInput: { paddingLeft: 26 } as any,
+  dAmountPrefix: { position: 'absolute', left: 14, top: '50%', fontSize: 14, fontFamily: 'DM Mono' } as any,
+  dRow: { flexDirection: 'row', gap: 10 } as any,
+  dTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 14 } as any,
+  dTypeChip: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8, borderWidth: 1.5 } as any,
+  dTypeChipText: { fontSize: 13, fontWeight: '500' } as any,
+  dSubmit: { width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 4 } as any,
+  dSubmitText: { fontSize: 15, fontWeight: '600', color: '#fff' } as any,
+});
+
+/* ═══════════════ INFO ROW STYLES ═══════════════ */
+
+const sIR = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 16, borderBottomWidth: 1, gap: 12 } as any,
+  icon: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', flexShrink: 0 } as any,
+  body: { flex: 1, minWidth: 0 } as any,
+  label: { fontSize: 11, marginBottom: 2 } as any,
+  value: { fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden' } as any,
+  arrow: { width: 14, height: 14, flexShrink: 0 } as any,
+});
+
+/* ═══════════════ BADGE STYLES ═══════════════ */
+
+const sBadge = StyleSheet.create({
+  vat: {} as any,
+  general: {} as any,
+  receipt: {} as any,
+});
+
+/* ═══════════════ SEAL STYLES ═══════════════ */
+
+const sSeal = StyleSheet.create({
+  done: {} as any,
+  pending: {} as any,
+  rejected: {} as any,
+});
