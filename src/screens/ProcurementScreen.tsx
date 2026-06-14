@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  FlatList, Image, ActivityIndicator, StyleSheet, Animated, PanResponder
+  FlatList, Image, ActivityIndicator, StyleSheet, Animated
 } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t } from '../i18n';
@@ -463,21 +463,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
   const overlayOpacity = overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.45] });
-
-  // ── Swipe down to close drawer ──
-  const dragY = useRef(new Animated.Value(0)).current;
-  const panResponder = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: (_: any, gs: any) => gs.dy > 8 && Math.abs(gs.dy) > Math.abs(gs.dx),
-    onPanResponderMove: (_: any, gs: any) => { if (gs.dy > 0) dragY.setValue(gs.dy); },
-    onPanResponderRelease: (_: any, gs: any) => {
-      if (gs.dy > 120 || gs.vy > 0.6) {
-        closeDrawer();
-        dragY.setValue(0);
-      } else {
-        Animated.spring(dragY, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
-      }
-    },
-  })).current;
 
   // todayStr replaced by useServerDate hook
 
@@ -1253,9 +1238,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           <Animated.View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: overlayOpacity }]}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
           </Animated.View>
-          <Animated.View style={[styles.drawer, { transform: [{ translateY: Animated.add(drawerTranslateY, dragY) }] }]}>
-            <View style={styles.drawerHandle} {...panResponder.panHandlers} />
-            <View style={styles.drawerHead} {...panResponder.panHandlers}>
+          <Animated.View style={[styles.drawer, { transform: [{ translateY: drawerTranslateY }] }]}>
+            <View style={styles.drawerHandle} />
+            <View style={styles.drawerHead}>
               <Text style={styles.drawerHeadTitle}>
                 {editingBatchId !== null
                   ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
