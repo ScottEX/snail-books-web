@@ -427,6 +427,10 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 
   useEffect(() => { loadAvatar(); }, []);
 
+  if (showInvoice) {
+    return createPortal(<InvoiceScreen onBack={() => setShowInvoice(false)} />, document.body);
+  }
+
   return (
     <View style={s.root}>
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
@@ -916,7 +920,6 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
         document.body
       )}
       <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
-      {showInvoice && <InvoiceScreen onBack={() => setShowInvoice(false)} />}
     </View>
   );
 }
