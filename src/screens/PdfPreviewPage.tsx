@@ -281,6 +281,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         const d = dragRef.current;
         gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
         gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
+        // Lock horizontal axis when content fits the viewport
+        const vp = el.parentElement;
+        if (vp && el.scrollWidth * gRef.current.scale <= vp.clientWidth) {
+          gRef.current.tx = 0;
+        }
         // track velocity
         const now = performance.now();
         const dy = e.touches[0].clientY - velRef.current.ly;
