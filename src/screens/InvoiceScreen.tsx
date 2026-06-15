@@ -394,29 +394,14 @@ export default function InvoiceScreen({ onBack }: Props) {
   };
 
   // ── Preview handlers ──
-  const isPreviewPdf = (url: string) => /\.pdf(\?|$)/i.test(url);
-  
   const handlePreviewExisting = (index: number) => {
-    const urls = dExistingFilePath.map(p => api.getInvoiceFileUrl(p));
-    if (isPreviewPdf(urls[index])) {
-      window.open(urls[index], '_blank');
-      return;
-    }
-    setPreviewImages(urls);
+    setPreviewImages(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)));
     setPreviewIdx(index);
     setPreviewVisible(true);
   };
 
   const handlePreviewNew = (index: number) => {
-    const file = dFiles[index];
-    if (!file) return;
-    if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
-      const url = URL.createObjectURL(file);
-      window.open(url, '_blank');
-      return;
-    }
-    const urls = dFiles.map(f => URL.createObjectURL(f));
-    setPreviewImages(urls);
+    setPreviewImages(dFiles.map(f => URL.createObjectURL(f)));
     setPreviewIdx(index);
     setPreviewVisible(true);
   };
