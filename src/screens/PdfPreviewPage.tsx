@@ -408,7 +408,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
             <div className="pv-intro-overlay">
               <div className="pv-intro on">
                 <div className="pv-intro-text">{t('pdfGenerating')}</div>
-                <div className="pv-intro-sec" style={{ color: c.text }}>{introSec}s</div>
+                <div className="pv-intro-sec" style={{ color: c.textMain }}>{introSec}s</div>
               </div>
             </div>
           )}
