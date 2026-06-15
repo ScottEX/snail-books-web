@@ -12,6 +12,7 @@ import DatePicker from '../components/DatePicker';
 import EmptyState from '../components/EmptyState';
 import ConfirmModal from '../components/ConfirmModal';
 import TrashIcon from '../components/icons/TrashIcon';
+import ImagePreview from '../components/ImagePreview';
 
 /* ═══════════════ SVG ICONS ═══════════════ */
 
@@ -221,6 +222,10 @@ export default function InvoiceScreen({ onBack }: Props) {
   const [dFiles, setDFiles] = useState<File[]>([]);
   // Existing file path (for edit mode — already uploaded)
   const [dExistingFilePath, setDExistingFilePath] = useState<string[]>([]);
+  // Preview state
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [previewIdx, setPreviewIdx] = useState(0);
 
   // Parse file_path from backend (JSON array or legacy single string)
   const parseFilePaths = (fp: string | null | undefined): string[] => {
@@ -386,6 +391,34 @@ export default function InvoiceScreen({ onBack }: Props) {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // ── Preview handlers ──
+  const isPreviewPdf = (url: string) => /\.pdf(\?|$)/i.test(url);
+  
+  const handlePreviewExisting = (index: number) => {
+    const urls = dExistingFilePath.map(p => api.getInvoiceFileUrl(p));
+    if (isPreviewPdf(urls[index])) {
+      window.open(urls[index], '_blank');
+      return;
+    }
+    setPreviewImages(urls);
+    setPreviewIdx(index);
+    setPreviewVisible(true);
+  };
+
+  const handlePreviewNew = (index: number) => {
+    const file = dFiles[index];
+    if (!file) return;
+    if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+      const url = URL.createObjectURL(file);
+      window.open(url, '_blank');
+      return;
+    }
+    const urls = dFiles.map(f => URL.createObjectURL(f));
+    setPreviewImages(urls);
+    setPreviewIdx(index);
+    setPreviewVisible(true);
   };
 
   // ── Drawer animation ──
@@ -793,8 +826,8 @@ export default function InvoiceScreen({ onBack }: Props) {
               </View>
               )}
 
-              {/* File upload — show when editing (existing file as thumbnail) or when status is done */}
-              {(editingId || dStatus === 'done') && (
+              {/* File upload — only when status is done */}
+              {dStatus === 'done' && (
                 <View style={{ marginBottom: 8 }}>
                   <ReceiptUpload
                     existingImages={editingId && dExistingFilePath.length > 0 ? dExistingFilePath.map(p => api.getInvoiceFileUrl(p)) : []}
@@ -805,6 +838,9 @@ export default function InvoiceScreen({ onBack }: Props) {
                     getPreviewUrl={(f: File) => URL.createObjectURL(f)}
                     label={t('invUploadInvoice') as string}
                     accept="image/jpeg,image/png,image/webp,application/pdf"
+                    required
+                    onPreviewExisting={handlePreviewExisting}
+                    onPreviewNew={handlePreviewNew}
                   />
                 </View>
               )}
@@ -835,6 +871,14 @@ export default function InvoiceScreen({ onBack }: Props) {
               );
             })()}
           </Animated.View>
+
+          {/* Image preview overlay */}
+          <ImagePreview
+            images={previewImages}
+            initialIdx={previewIdx}
+            visible={previewVisible}
+            onClose={() => setPreviewVisible(false)}
+          />
         </>
       )}
     </View>

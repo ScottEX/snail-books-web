@@ -21,6 +21,12 @@ interface Props {
   label?: string;
   /** Accept attribute for file input (default: image/jpeg,image/png,image/webp,application/pdf) */
   accept?: string;
+  /** Optional callback when an existing thumbnail is tapped (for preview) */
+  onPreviewExisting?: (index: number) => void;
+  /** Optional callback when a new file thumbnail is tapped (for preview) */
+  onPreviewNew?: (index: number) => void;
+  /** Show * required indicator on label */
+  required?: boolean;
 }
 
 const GAP = 8;
@@ -39,6 +45,9 @@ export default function ReceiptUpload({
   maxThumbSize = 120,
   label,
   accept,
+  onPreviewExisting,
+  onPreviewNew,
+  required,
 }: Props) {
   const { colors: c } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,7 +88,7 @@ export default function ReceiptUpload({
       {/* Label + info tip */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, marginBottom: 0 }}>
-          {label || t('uploadImage')}
+          {label || t('uploadImage')}{required ? <Text style={{ color: '#E84040' }}> *</Text> : null}
         </Text>
         <TouchableOpacity
           onPress={() => setShowTip(!showTip)}
@@ -134,6 +143,11 @@ export default function ReceiptUpload({
         {/* Existing previews */}
         {existingImages.map((url: string, i: number) => (
           <View key={`existing-${i}`} style={{ position: 'relative' }}>
+            <TouchableOpacity
+              onPress={() => onPreviewExisting?.(i)}
+              activeOpacity={onPreviewExisting ? 0.7 : 1}
+              disabled={!onPreviewExisting}
+            >
             {isPdfUrl(url) ? (
               <View style={{ width: thumbSize, height: thumbSize, borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center', justifyContent: 'center', gap: 2 }}>
                 <Text style={{ fontSize: 22 }}>📄</Text>
@@ -142,6 +156,7 @@ export default function ReceiptUpload({
             ) : (
               <Image source={{ uri: url }} style={{ width: thumbSize, height: thumbSize, borderRadius: 8 }} />
             )}
+            </TouchableOpacity>
             {onRemoveExisting && (
               <TouchableOpacity
                 onPress={() => onRemoveExisting(i)}
@@ -159,6 +174,11 @@ export default function ReceiptUpload({
         {/* New file previews */}
         {newFiles.map((file: File, i: number) => (
           <View key={`new-${i}`} style={{ position: 'relative' }}>
+            <TouchableOpacity
+              onPress={() => onPreviewNew?.(i)}
+              activeOpacity={onPreviewNew ? 0.7 : 1}
+              disabled={!onPreviewNew}
+            >
             {isPdfFile(file) ? (
               <View style={{ width: thumbSize, height: thumbSize, borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center', justifyContent: 'center', gap: 2 }}>
                 <Text style={{ fontSize: 22 }}>📄</Text>
@@ -171,6 +191,7 @@ export default function ReceiptUpload({
                 <Text style={{ fontSize: 10, color: c.textSub }}>{file.name}</Text>
               </View>
             )}
+            </TouchableOpacity>
             {onRemoveNew && (
               <TouchableOpacity
                 onPress={() => onRemoveNew(i)}
