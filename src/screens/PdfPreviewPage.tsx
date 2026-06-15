@@ -14,7 +14,6 @@ interface Props {
   onBack: () => void;
 }
 
-const MIN_SCALE = 0.5;
 const MAX_SCALE = 4;
 const NAV_H = 56;
 
@@ -150,17 +149,19 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     if (!el) return;
     const g = gRef.current;
     const vp = el.parentElement; if (!vp) return;
+    // Snap scale below 1
+    if (g.scale < 1) { g.scale = 1; g.tx = 0; g.ty = 0; }
     const cw = el.scrollWidth * g.scale;
     const ch = el.scrollHeight * g.scale;
     const vw = vp.clientWidth;
     const vh = vp.clientHeight;
     const scrollW = Math.max(0, cw - vw);
     const scrollH = Math.max(0, ch - vh);
-    // Horizontal: center ± half overflow, with 20px overscroll
+    // Horizontal: locked at center when content fits, scrollable when zoomed in
     if (cw > vw) {
       g.tx = Math.max(-scrollW / 2 - 20, Math.min(scrollW / 2 + 20, g.tx));
     } else {
-      g.tx = Math.max(-20, Math.min(20, g.tx));
+      g.tx = 0;
     }
     g.ty = Math.max(-scrollH - 20, Math.min(20, g.ty));
   }, []);
@@ -204,8 +205,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           const vh = vp.clientHeight;
           const scrollW = Math.max(0, cw - vw);
           const scrollH = Math.max(0, ch - vh);
-          const leftLimit = cw > vw ? -scrollW / 2 - 20 : -20;
-          const rightLimit = cw > vw ? scrollW / 2 + 20 : 20;
+          const leftLimit = cw > vw ? -scrollW / 2 - 20 : 0;
+          const rightLimit = cw > vw ? scrollW / 2 + 20 : 0;
           const topLimit = -scrollH - 20;
           if (g.tx > rightLimit || g.tx < leftLimit || g.ty > 20 || g.ty < topLimit) {
             clamp(); applyTransform(true);
@@ -291,7 +292,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         velRef.current.lt = now;
         scheduleApply();
       } else if (e.touches.length === 2 && pinchRef.current.dist > 0) {
-        const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchRef.current.scale * (dist(e.touches) / pinchRef.current.dist)));
+        const ns = Math.max(1, Math.min(MAX_SCALE, pinchRef.current.scale * (dist(e.touches) / pinchRef.current.dist)));
         gRef.current.scale = ns;
         clamp(); applyTransform(false); flushZoom(false);
       }
@@ -329,7 +330,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
 
   const stepZoom = useCallback((delta: number) => {
     const g = gRef.current;
-    g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale + delta));
+    g.scale = Math.max(1, Math.min(MAX_SCALE, g.scale + delta));
     if (g.scale <= 1) { g.tx = 0; g.ty = 0; }
     clamp(); applyTransform(true); flushZoom(true);
   }, [clamp, applyTransform, flushZoom]);
