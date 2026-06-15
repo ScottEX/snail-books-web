@@ -328,6 +328,7 @@ const I18N: Record<string, Record<string, string>> = {
     pdfGenerating: '进货单PDF生成中…',
     pdfLoadFailed: 'PDF 加载失败',
     pdfLoading: '加载 PDF 中…',
+    pdfPageInfo: '第 {current} 页 / 共 {total} 页',
     pendingPayback: '待回',
     phone: '手机号',
     platformFee: '平台手续费',
@@ -481,6 +482,8 @@ const I18N: Record<string, Record<string, string>> = {
     shareCalcResult: '穿透股权计算结果：',
     shareFailed: '分享失败',
     shareLink: '分享链接',
+    sharePDF: '分享 PDF',
+    shareImage: '分享图片',
     sharePercent: '持股',
     shareTo: '已分享至 {label}',
     shareholders: '位股东',
@@ -1027,6 +1030,8 @@ const I18N: Record<string, Record<string, string>> = {
     shareCalcResult: '穿透股權計算結果：',
     shareFailed: '分享失敗',
     shareLink: '分享連結',
+    sharePDF: '分享 PDF',
+    shareImage: '分享圖片',
     sharePercent: '持股',
     shareTo: '已分享至 {label}',
     shareholders: '位股東',
@@ -1573,6 +1578,8 @@ const I18N: Record<string, Record<string, string>> = {
     shareCalcResult: 'Share calculation result:',
     shareFailed: 'Share failed',
     shareLink: 'Share link',
+    sharePDF: 'Share PDF',
+    shareImage: 'Share Image',
     sharePercent: 'Share',
     shareTo: 'Shared to {label}',
     shareholders: 'shareholders',
@@ -1968,6 +1975,7 @@ export type I18nKey =
   | 'pdfGenerating'
   | 'pdfLoadFailed'
   | 'pdfLoading'
+  | 'pdfPageInfo'
   | 'pendingPayback'
   | 'phone'
   | 'platformFee'
@@ -2121,6 +2129,8 @@ export type I18nKey =
   | 'shareCalcResult'
   | 'shareFailed'
   | 'shareLink'
+  | 'sharePDF'
+  | 'shareImage'
   | 'sharePercent'
   | 'shareTo'
   | 'shareholders'

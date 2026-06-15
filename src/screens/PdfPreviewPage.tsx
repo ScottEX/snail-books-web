@@ -89,7 +89,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [pageW, setPageW] = useState(340);
   const [shareOpen, setShareOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
-  const [introSec, setIntroSec] = useState(1);
   const [exiting, setExiting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const phRef = useRef(0); // page height
@@ -133,13 +132,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const velRef = useRef({ vy: 0, ly: 0, vx: 0, lx: 0, lt: 0 }); // velocity tracking
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
-
-  // intro elapsed counter (1 → 2 → 3 …), ticks while PDF loads
-  useEffect(() => {
-    if (!pdfLoading || pdfError) return;
-    const t = setTimeout(() => setIntroSec(s => s + 1), 1000);
-    return () => clearTimeout(t);
-  }, [introSec, pdfLoading, pdfError]);
 
   const applyTransform = useCallback((animated: boolean) => {
     const el = wrapRef.current; if (!el) return;
@@ -321,10 +313,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, [scheduleApply, clamp, applyTransform, flushZoom, startMomentum]);
 
   const doDownload = useCallback(() => {
+    if (!pdfBlobUrl) return;
     const a = document.createElement('a');
-    a.href = pdfUrl; a.download = `procurement_${batchId}.pdf`;
+    a.href = pdfBlobUrl; a.download = `procurement_${batchId}.pdf`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  }, [pdfUrl, batchId]);
+  }, [pdfBlobUrl, batchId]);
 
   const showToast = useCallback((icon: string, text: string) => {
     setToastMsg({ icon, text });
@@ -341,6 +334,27 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     showToast('🖼️', '图片已下载');
   }, [batchId, showToast]);
+
+  const doShare = useCallback(async () => {
+    if (!pdfBlobUrl) { showToast('⚠️', 'PDF 尚未加载'); return; }
+    try {
+      const res = await fetch(pdfBlobUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `procurement_${batchId}.pdf`, { type: 'application/pdf' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: title });
+        showToast('✅', '已分享');
+      } else {
+        doDownload();
+        showToast('📥', '已下载');
+      }
+    } catch (e: any) {
+      if (e?.name !== 'AbortError') {
+        doDownload();
+        showToast('📥', '已下载');
+      }
+    }
+  }, [pdfBlobUrl, batchId, title, doDownload, showToast, t]);
 
   const stepZoom = useCallback((delta: number) => {
     const g = gRef.current;
@@ -371,7 +385,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         </div>
 
         {/* Page pill */}
-        {numPages > 0 && <div className="pv-pill">第 {currentPage} 页 / 共 {numPages} 页</div>}
+        {numPages > 0 && <div className="pv-pill">{t('pdfPageInfo').replace('{current}', String(currentPage)).replace('{total}', String(numPages))}</div>}
 
         {/* Zoom indicator */}
         <div className={`pv-zi${zoomVis ? ' on' : ''}`}>{zoomPct}%</div>
@@ -380,12 +394,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         <div className="pv-vp">
           {/* Mask — blocks interaction while PDF loads */}
           {pdfLoading && !pdfError && <div className="pv-loading-mask" />}
-          {/* Intro elapsed toast — centered, shows while PDF loads */}
+          {/* Intro loading — centered, shows while PDF loads */}
           {pdfLoading && !pdfError && (
             <div className="pv-intro-overlay">
               <div className="pv-intro on">
                 <div className="pv-intro-text">{t('pdfGenerating')}</div>
-                <div className="pv-intro-sec" style={{ color: c.accent }}>{introSec}</div>
               </div>
             </div>
           )}
@@ -398,7 +411,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
               </svg>
               <div>{t('pdfLoadFailed')}</div>
               <div className="pv-err-msg">{pdfError}</div>
-              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); setIntroSec(1); }}>{t('retry')}</button>
+              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); }}>{t('retry')}</button>
             </div>
           )}
           <div className="pv-pdf-wrap" ref={wrapRef} style={{ visibility: pdfLoading ? 'hidden' : 'visible' }}>
@@ -445,17 +458,18 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
             <div className="pv-sh-handle" />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', padding: '0 8px' }}>
               {[
-                [t('payWechat'), '#07c160', 'M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z'],
-                [t('emailAction'), '#e06060', 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6'],
+                [t('sharePDF'), '#6c6c80', 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3'],
+                [t('shareImage'), '#4a90d9', 'M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z M21 15l-5-5L5 21'],
                 [t('downloadPdf'), '#6c6c80', 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3'],
                 [t('downloadImage'), '#4a90d9', 'M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z M21 15l-5-5L5 21'],
               ].map(([label, bg, path]) => (
                 <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '12px 8px', cursor: 'pointer', borderRadius: 12 }}
                   onClick={() => {
                     setShareOpen(false);
-                    if (label === t('downloadPdf')) doDownload();
+                    if (label === t('sharePDF')) doShare();
+                    else if (label === t('shareImage')) doDownloadImage();
+                    else if (label === t('downloadPdf')) doDownload();
                     else if (label === t('downloadImage')) doDownloadImage();
-                    else showToast('📤', t('shareTo').replace('{label}', label));
                   }}>
                   <div style={{ width: 50, height: 50, borderRadius: 14, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" strokeWidth="1.8" fill="none"><path d={path} /></svg>
