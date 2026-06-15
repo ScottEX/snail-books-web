@@ -164,9 +164,10 @@ const EMPTY_INV: InvoiceData = {
 
 interface Props {
   onBack: () => void;
+  filterBatchId?: number | null;
 }
 
-export default function InvoiceScreen({ onBack }: Props) {
+export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const [tab, setTab] = useState<number>(0);
@@ -259,7 +260,9 @@ export default function InvoiceScreen({ onBack }: Props) {
   const loadRecords = useCallback(async () => {
     setRecordsLoading(true);
     try {
-      const list = await api.getInvoiceRecords();
+      const filter: any = {};
+      if (filterBatchId) filter.procurement_batch_id = filterBatchId;
+      const list = await api.getInvoiceRecords(filter);
       setRecords(Array.isArray(list) ? list : []);
     } catch (e) {
       console.error('loadRecords failed', e);
@@ -267,7 +270,7 @@ export default function InvoiceScreen({ onBack }: Props) {
     } finally {
       setRecordsLoading(false);
     }
-  }, []);
+  }, [filterBatchId]);
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
 
