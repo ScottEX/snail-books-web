@@ -944,7 +944,7 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
 /* ═══════════════ STYLES ═══════════════ */
 
 const s = StyleSheet.create({
-  root: { flex: 1 } as any,
+  root: { flex: 1, position: 'relative' as any, overflow: 'hidden' as any } as any,
 
   /* FLOATING BACK BTN — over content, historyHeader style */
   backFloat: { position: 'absolute', top: 16, left: 16, zIndex: 90, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.15)' } as any,
@@ -1037,8 +1037,8 @@ const s = StyleSheet.create({
   toastText: { color: '#fff', fontSize: 13, whiteSpace: 'nowrap' } as any,
 
   /* DRAWER */
-  drawerOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
-  drawer: { position: 'fixed' as any, bottom: 0, left: 0, right: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90vh', zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any } as any,
+  drawerOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
+  drawer: { position: 'absolute' as any, bottom: 0, left: 0, right: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%', zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any } as any,
   drawerHandle: { width: 36, height: 4, borderRadius: 2, marginTop: 12, alignSelf: 'center', flexShrink: 0 } as any,
   drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 12, borderBottomWidth: 1, flexShrink: 0 } as any,
   drawerTitle: { fontSize: 15, fontWeight: '600' } as any,
