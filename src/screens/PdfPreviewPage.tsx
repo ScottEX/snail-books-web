@@ -48,18 +48,11 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-zoom-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-zoom-btn svg{width:16px;height:16px;stroke:#2C2626;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .pv-zoom-btn svg text{fill:#2C2626;stroke:none}
-.pv-toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,8px);background:rgba(30,30,34,.95);backdrop-filter:blur(16px);border:0.5px solid rgba(0,0,0,0.10);border-radius:10px;padding:10px 18px;font-size:12px;color:#F0EDE8;display:flex;align-items:center;gap:8px;z-index:200;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
-.pv-toast.on{opacity:1;transform:translate(-50%,0)}
 .pv-intro-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
 .pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
 .pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
 .pv-intro-sec{font-size:36px;font-weight:800;font-family:'DM Mono',monospace}
-.pv-sh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
-.pv-sh-overlay.open{opacity:1;pointer-events:auto}
-.pv-sh{position:absolute;bottom:0;left:0;right:0;max-height:70vh;background:#F9F7F4;border-radius:20px 20px 0 0;padding:16px 16px 24px;transform:translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
-.pv-sh-overlay.open .pv-sh{transform:translateY(0)}
-.pv-sh-handle{width:36px;height:4px;background:#D1CDC6;border-radius:2px;margin:0 auto 16px}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
 .pv-err svg{display:block}
 .pv-err-msg{font-size:13px;color:#999}
@@ -87,8 +80,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [zoomVis, setZoomVis] = useState(false);
   const [zoomPct, setZoomPct] = useState(100);
   const [pageW, setPageW] = useState(340);
-  const [shareOpen, setShareOpen] = useState(false);
-  const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
   const [exiting, setExiting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [introSec, setIntroSec] = useState(0);
@@ -128,7 +119,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const lastTapRef = useRef(0);
   const rafRef = useRef(0);
   const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const momRef = useRef(0); // momentum animation raf id
   const velRef = useRef({ vy: 0, ly: 0, vx: 0, lx: 0, lt: 0 }); // velocity tracking
 
@@ -328,42 +318,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }, [pdfBlobUrl, batchId]);
 
-  const showToast = useCallback((icon: string, text: string) => {
-    setToastMsg({ icon, text });
-    clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToastMsg(null), 2200);
-  }, []);
-
   const doDownloadImage = useCallback(() => {
     const canvas = document.querySelector('.pv-pdf-wrap canvas') as HTMLCanvasElement;
-    if (!canvas) { showToast('⚠️', 'PDF 未渲染'); return; }
+    if (!canvas) return;
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
     a.download = `procurement_${batchId}.png`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    showToast('🖼️', '图片已下载');
-  }, [batchId, showToast]);
-
-  const doShare = useCallback(async () => {
-    if (!pdfBlobUrl) { showToast('⚠️', 'PDF 尚未加载'); return; }
-    try {
-      const res = await fetch(pdfBlobUrl);
-      const blob = await res.blob();
-      const file = new File([blob], `procurement_${batchId}.pdf`, { type: 'application/pdf' });
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: title });
-        showToast('✅', '已分享');
-      } else {
-        doDownload();
-        showToast('📥', '已下载');
-      }
-    } catch (e: any) {
-      if (e?.name !== 'AbortError') {
-        doDownload();
-        showToast('📥', '已下载');
-      }
-    }
-  }, [pdfBlobUrl, batchId, title, doDownload, showToast, t]);
+  }, [batchId]);
 
   const stepZoom = useCallback((delta: number) => {
     const g = gRef.current;
@@ -388,8 +350,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
             <div className="pv-back" onClick={handleBack}><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></div>
             <div><div className="pv-title">{title}</div></div>
           </div>
-          <div className="pv-share-btn" onClick={() => setShareOpen(true)}>
-            <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div className="pv-share-btn" onClick={doDownload} title={t('downloadPdf')}>
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#8C8583" strokeWidth="2" fill="none"/><polyline points="7 10 12 15 17 10" stroke="#8C8583" strokeWidth="2" fill="none"/><line x1="12" y1="15" x2="12" y2="3" stroke="#8C8583" strokeWidth="2"/></svg>
+            </div>
+            <div className="pv-share-btn" onClick={doDownloadImage} title={t('downloadImage')}>
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="#8C8583" strokeWidth="2" fill="none"/><circle cx="8.5" cy="8.5" r="1.5" fill="#8C8583"/><polyline points="21 15 16 10 5 21" stroke="#8C8583" strokeWidth="2" fill="none"/><line x1="12" y1="18" x2="12" y2="12" stroke="#8C8583" strokeWidth="2"/><polyline points="9 15 12 12 15 15" stroke="#8C8583" strokeWidth="2" fill="none"/></svg>
+            </div>
           </div>
         </div>
 
@@ -456,38 +423,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
           </div>
           <div className="pv-zoom-btn" onClick={() => stepZoom(-0.25)}>
             <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>
-        </div>
-
-        {/* Toast */}
-        <div className={`pv-toast${toastMsg ? ' on' : ''}`}>{toastMsg && <><span>{toastMsg.icon}</span><span>{toastMsg.text}</span></>}</div>
-
-        {/* Share sheet — warm-white background */}
-        <div className={`pv-sh-overlay${shareOpen ? ' open' : ''}`} onClick={() => setShareOpen(false)}>
-          <div className="pv-sh" onClick={e => e.stopPropagation()}>
-            <div className="pv-sh-handle" />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', padding: '0 8px' }}>
-              {[
-                [t('sharePDF'), '#6c6c80', 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3'],
-                [t('shareImage'), '#4a90d9', 'M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z M21 15l-5-5L5 21'],
-                [t('downloadPdf'), '#6c6c80', 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3'],
-                [t('downloadImage'), '#4a90d9', 'M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z M21 15l-5-5L5 21'],
-              ].map(([label, bg, path]) => (
-                <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '12px 8px', cursor: 'pointer', borderRadius: 12 }}
-                  onClick={() => {
-                    setShareOpen(false);
-                    if (label === t('sharePDF')) doShare();
-                    else if (label === t('shareImage')) doDownloadImage();
-                    else if (label === t('downloadPdf')) doDownload();
-                    else if (label === t('downloadImage')) doDownloadImage();
-                  }}>
-                  <div style={{ width: 50, height: 50, borderRadius: 14, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" strokeWidth="1.8" fill="none"><path d={path} /></svg>
-                  </div>
-                  <span style={{ fontSize: 11, color: '#555' }}>{label}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>, document.body)}
