@@ -67,7 +67,6 @@ html.pv-lock{overflow:hidden;touch-action:none}
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
   const { colors: c } = useTheme();
-  const swipeBack = useSwipeBack(onBack);
   const st = useMemo(() => getStyles(c), [c]);
   const title = t('procPdfTitle').replace('{n}', String(batchNumber));
   const pdfUrl = `/api/procurement-batches/${batchId}/pdf`;
@@ -94,7 +93,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     setTimeout(onBack, EXIT_DURATION);
   }, [exiting, onBack]);
 
-  // Fetch PDF as blob with auth cookies, then create object URL for react-pdf
+  const swipeBack = useSwipeBack(handleBack);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -281,6 +280,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         const d = dragRef.current;
         gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
         gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
+        // Lock horizontal axis when content fits the viewport
+        const vp = el.parentElement;
+        if (vp && el.scrollWidth * gRef.current.scale <= vp.clientWidth) {
+          gRef.current.tx = 0;
+        }
         // track velocity
         const now = performance.now();
         const dy = e.touches[0].clientY - velRef.current.ly;
