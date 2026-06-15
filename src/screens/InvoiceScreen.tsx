@@ -153,6 +153,7 @@ interface InvoiceRecord {
   file_path?: string;
   file_type?: string;
   file_size?: number;
+  note?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -364,6 +365,7 @@ export default function InvoiceScreen({ onBack }: Props) {
         email: dEmail.trim(),
         status: dStatus,
         procurement_batch_id: dBatchId,
+        note: dNote.trim(),
       };
       let rid: number;
       if (editingId) {
@@ -416,7 +418,7 @@ export default function InvoiceScreen({ onBack }: Props) {
     setDAmount(forEdit ? String(forEdit.amount) : '');
     setDDate(forEdit ? forEdit.date : new Date().toISOString().slice(0, 10));
     setDRef('');
-    setDNote('');
+    setDNote(forEdit ? (forEdit.note || '') : '');
     setDInvoiceNo(forEdit ? (forEdit.invoice_number || '') : '');
     setDStatus(forEdit ? (forEdit.status as InvStatus) : 'pending');
     setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
@@ -731,7 +733,7 @@ export default function InvoiceScreen({ onBack }: Props) {
 
               {/* Amount — auto-filled from batch, with thousand-separator */}
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: c.primary }}>*</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: '#E84040' }}>*</Text></Text>
                 <View style={{ position: 'relative' }}>
                   <Text style={[s.dAmountPrefix, { color: c.textSub }]}>¥</Text>
                   <TextInput
@@ -748,12 +750,12 @@ export default function InvoiceScreen({ onBack }: Props) {
               </View>
 
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBuyer')}<Text style={{ color: c.primary }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBuyer')}<Text style={{ color: '#E84040' }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
                 <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.company_name} editable={false} />
               </View>
 
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: c.primary }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: '#E84040' }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
                 <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
               </View>
 
@@ -799,7 +801,7 @@ export default function InvoiceScreen({ onBack }: Props) {
               {dStatus === 'done' && (
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>
-                  {t('invRecInvoiceNo')}<Text style={{ color: c.primary }}>*</Text>
+                  {t('invRecInvoiceNo')}<Text style={{ color: '#E84040' }}>*</Text>
                 </Text>
                 <TextInput
                   style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]}
