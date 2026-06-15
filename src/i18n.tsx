@@ -219,6 +219,8 @@ const I18N: Record<string, Record<string, string>> = {
     invReapply: '重新申请',
     invRecAddTitle: '新增开票记录',
     invRecConfirmDelete: '确定要删除这条开票记录吗？',
+    invDelConfirmPrefix: '此操作将删除「',
+    invDelConfirmSuffix: '」开票数据，请谨慎操作。',
     invRecDeleteOk: '已删除',
     invRecEditTitle: '编辑开票记录',
     invRecEmpty: '暂无开票记录',
@@ -763,6 +765,8 @@ const I18N: Record<string, Record<string, string>> = {
     invReapply: '重新申請',
     invRecAddTitle: '新增開票記錄',
     invRecConfirmDelete: '確定要刪除這條開票記錄嗎？',
+    invDelConfirmPrefix: '此操作將刪除「',
+    invDelConfirmSuffix: '」開票數據，請謹慎操作。',
     invRecDeleteOk: '已刪除',
     invRecEditTitle: '編輯開票記錄',
     invRecEmpty: '暫無開票記錄',
@@ -1307,6 +1311,8 @@ const I18N: Record<string, Record<string, string>> = {
     invReapply: 'Reapply',
     invRecAddTitle: 'New Invoice Record',
     invRecConfirmDelete: 'Are you sure you want to delete this invoice record?',
+    invDelConfirmPrefix: 'This will delete invoice 「',
+    invDelConfirmSuffix: '」. Proceed with caution.',
     invRecDeleteOk: 'Deleted',
     invRecEditTitle: 'Edit Invoice Record',
     invRecEmpty: 'No invoice records',
@@ -1853,6 +1859,8 @@ export type I18nKey =
   | 'invReapply'
   | 'invRecAddTitle'
   | 'invRecConfirmDelete'
+  | 'invDelConfirmPrefix'
+  | 'invDelConfirmSuffix'
   | 'invRecDeleteOk'
   | 'invRecEditTitle'
   | 'invRecEmpty'

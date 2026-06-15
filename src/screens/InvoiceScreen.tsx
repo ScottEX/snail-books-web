@@ -669,7 +669,15 @@ export default function InvoiceScreen({ onBack }: Props) {
       <ConfirmModal
         visible={confirmDeleteId != null}
         title={t('confirmDeleteRecord')}
-        message={t('invRecConfirmDelete')}
+        message={
+          <>
+            {t('invDelConfirmPrefix')}
+            <Text style={{ fontWeight: '600', color: c.textMain }}>
+              {records.find(r => r.id === confirmDeleteId)?.invoice_number || '—'}
+            </Text>
+            {t('invDelConfirmSuffix')}
+          </>
+        }
         confirmLabel={t('confirmDeleteRecord')}
         loading={deleting}
         onConfirm={handleConfirmDelete}
