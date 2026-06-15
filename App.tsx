@@ -94,6 +94,13 @@ export default function App() {
     return () => window.removeEventListener('app:user-change', onUserChange);
   }, []);
 
+  // Signal splash screen to close when App has mounted and first render is done
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      requestAnimationFrame(() => { (window as any).__appReady = true; });
+    }
+  }, []);
+
   return (
     <LangProvider>
       {/* SessionKickedModal is rendered outside the keyed ThemeProvider
