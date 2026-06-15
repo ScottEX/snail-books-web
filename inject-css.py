@@ -24,7 +24,6 @@ with open(dist_index, 'r') as f:
 
 # CSS to inject (glass-morphism + background styles from production login page)
 INJECT_CSS = '''
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
     input, textarea { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
@@ -61,7 +60,7 @@ BOOT_JS = r'''<script>(function(){
   }
 })();</script>'''
 
-# Idle timeout: 2 minutes no API call → redirect to login
+# Idle timeout: 3 hours no API call → redirect to login
 IDLE_TIMEOUT_JS = r'''<script>
 (function(){
   var IDLE_MS = 180*60*1000; // 3 hours
@@ -107,6 +106,9 @@ PWA_TAGS = '''
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
 '''
 
+# Fonts: non-blocking <link> — avoids @import blocking splash CSS rendering on iOS Safari
+FONT_LINK = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;display=swap" media="print" onload="this.media=\'all\'">'
+
 # Inject idle timeout first (before any other scripts, so it wraps fetch early)
 html = html.replace('<head>', '<head>\n' + IDLE_TIMEOUT_JS)
 
@@ -116,6 +118,8 @@ html = html.replace('<head>', '<head>\n' + BOOT_JS)
 html = html.replace('<head>', '<head>\n' + INJECT_HEAD)
 # Insert PWA tags
 html = html.replace('<head>', '<head>\n' + PWA_TAGS)
+# Insert non-blocking font link
+html = html.replace('<head>', '<head>\n' + FONT_LINK)
 # Insert custom CSS into the existing expo-reset style block, or add a new one
 html = html.replace('</style>', '</style>\n<style>' + INJECT_CSS + '</style>')
 
