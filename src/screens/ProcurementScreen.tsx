@@ -1122,7 +1122,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                             {batch.invoice_status === 'done' ? t('invRecStatusDone') : t('invRecStatusPending')}
                           </Text>
                         </TouchableOpacity>
-                      ) : null}
+                      ) : (
+                        <TouchableOpacity
+                          onPress={(e) => { e.stopPropagation?.(); onInvoice?.(batch.id); }}
+                          activeOpacity={0.7}
+                          style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: withAlpha(c.primary, 0.10) }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '600', color: c.primary }}>
+                            {t('invToInvoice')}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                       <TouchableOpacity
                         style={styles.histActionBtn}
                         onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}

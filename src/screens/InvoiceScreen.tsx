@@ -373,11 +373,15 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
       };
       let rid: number;
       if (editingId) {
-        // Edit mode: upload all files first (so they're available on the record), then PUT
+        // Edit mode: upload new files first, then PUT with merged file_path
+        const uploadedPaths: string[] = [];
         for (const f of dFiles) {
-          await api.uploadInvoiceFile(editingId, f);
+          const res = await api.uploadInvoiceFile(editingId, f);
+          uploadedPaths.push(res.file_path);
         }
-        await api.updateInvoiceRecord(editingId, payload);
+        // Compute final file_path: kept existing (after deletions) + newly uploaded
+        const finalFilePath = JSON.stringify([...dExistingFilePath, ...uploadedPaths]);
+        await api.updateInvoiceRecord(editingId, { ...payload, file_path: finalFilePath });
         rid = editingId;
       } else {
         // New mode: create record first to get rid, then upload all files
