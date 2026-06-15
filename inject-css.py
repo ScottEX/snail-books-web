@@ -128,10 +128,13 @@ html = html.replace(
 # Fix title
 html = html.replace('<title>snail-books-web</title>', '<title>探秘</title>')
 
-# ── Splash screen: only shown after 2s of loading ──
-SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FBF7F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;transition:opacity .3s;opacity:0">
+# ── Splash screen: shown immediately, closed by App ready signal ──
+SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FBF7F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;opacity:1">
 <div style="text-align:center">
-<div style="font-size:48px;animation:pulse 1.8s ease-in-out infinite">🐌</div>
+<div style="position:relative;width:56px;height:56px;margin:0 auto">
+<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:48px;animation:bounce .6s ease-in-out infinite,frameA .4s steps(1) infinite">🐱</span>
+<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:48px;animation:bounce .6s ease-in-out infinite,frameB .4s steps(1) infinite">🐈</span>
+</div>
 <div style="font-size:18px;font-weight:600;color:#5C3D2E;margin-top:16px">探秘</div>
 <div style="margin-top:12px;display:flex;gap:6px;justify-content:center">
 <span style="width:6px;height:6px;border-radius:50%;background:#8B7355;animation:dot 1.2s ease-in-out infinite"></span>
@@ -141,18 +144,26 @@ SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;dis
 </div>
 </div>"""
 SPLASH_CSS = """
-@keyframes pulse{0%,100%{opacity:.4;transform:scale(.96)}50%{opacity:1;transform:scale(1)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes frameA{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes frameB{0%,49%{opacity:0}50%,100%{opacity:1}}
 @keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 """
 SPLASH_JS = """<script>
 (function(){
   var s=document.getElementById('splash');
-  var t=setTimeout(function(){s.style.opacity='1'},2000);
-  new MutationObserver(function(){
-    clearTimeout(t);
-    var root=document.getElementById('root');
-    if(root&&root.children.length){s.style.opacity='0';setTimeout(function(){s.remove()},300)}
-  }).observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
+  var TIMEOUT=20000,start=Date.now();
+  var check=setInterval(function(){
+    if(window.__appReady){
+      clearInterval(check);
+      s.style.transition='opacity .3s';
+      s.style.opacity='0';
+      setTimeout(function(){s.remove()},300);
+    }else if(Date.now()-start>TIMEOUT){
+      clearInterval(check);
+      s.innerHTML='<div style="text-align:center"><div style="font-size:48px;opacity:.4">🐱</div><div style="font-size:15px;color:#5C3D2E;margin-top:16px;font-weight:600">加载超时</div><div style="margin-top:10px;font-size:13px;color:#8B7355;cursor:pointer;text-decoration:underline" onclick="location.reload()">点击重试</div></div>';
+    }
+  },200);
 })();
 </script>"""
 
