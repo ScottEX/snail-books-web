@@ -68,20 +68,6 @@ const IcnAccount = ({ color }: { color: string }) => (
     <Path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
   </Svg>
 );
-const IcnDownloadSmall = ({ color }: { color: string }) => (
-  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
-    <Path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-    <Polyline points="7 10 12 15 17 10" />
-    <Line x1="12" y1="15" x2="12" y2="3" />
-  </Svg>
-);
-const IcnShareSmall = ({ color }: { color: string }) => (
-  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
-    <Path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
-    <Polyline points="16 6 12 2 8 6" />
-    <Line x1="12" y1="2" x2="12" y2="15" />
-  </Svg>
-);
 const IcnClose = ({ color }: { color: string }) => (
   <Svg width="14" height="14" viewBox="0 0 1088 1024">
     <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill={color} />
@@ -242,11 +228,6 @@ export default function InvoiceScreen({ onBack }: Props) {
     if (fp.startsWith('[')) { try { return JSON.parse(fp); } catch { return [fp]; } }
     return [fp];
   };
-  const getFirstFilePath = (fp: string | null | undefined): string => {
-    const paths = parseFilePaths(fp);
-    return paths[0] || '';
-  };
-
   // Records (API-driven, no more stub)
   const [records, setRecords] = useState<InvoiceRecord[]>([]);
   const [recordsLoading, setRecordsLoading] = useState(false);
@@ -341,37 +322,6 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   const typeBadgeLabel = (tp: InvType) => tp === 'vat' ? t('invVatSpecial') : t('invGeneral');
   const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : sBadge.general;
-
-  // ── Share invoice file (iOS-friendly: navigator.share with File object) ──
-  const handleInvoiceShare = async (r: InvoiceRecord) => {
-    const firstPath = getFirstFilePath(r.file_path);
-    if (!firstPath) {
-      showToast('⚠️ ' + t('invApplyAmount'));
-      return;
-    }
-    try {
-      const url = api.getInvoiceFileUrl(firstPath);
-      const resp = await fetch(url);
-      const blob = await resp.blob();
-      const ext = (firstPath.split('.').pop() || '').toLowerCase();
-      const mime = r.file_type || (ext === 'pdf' ? 'application/pdf' : 'image/jpeg');
-      const filename = r.invoice_number ? `${r.invoice_number}.${ext}` : `invoice-${r.id}.${ext}`;
-      const file = new File([blob], filename, { type: mime });
-      // navigator.share requires user gesture, which we have from onPress
-      // Type cast for TS — RN Web 兼容
-      const nav = navigator as any;
-      if (nav.share && nav.canShare && nav.canShare({ files: [file] })) {
-        await nav.share({ files: [file], title: filename });
-      } else {
-        // Fallback: open in new tab (iOS Safari 微信 will fetch as blob, not ideal but works)
-        const blobUrl = URL.createObjectURL(blob);
-        window.open(blobUrl, '_blank');
-      }
-    } catch (e) {
-      console.error('handleInvoiceShare failed', e);
-      showToast('⚠️ ' + t('errSessionExpired'));
-    }
-  };
 
   // ── Confirm delete invoice record (physical delete) ──
   const handleConfirmDelete = async () => {
@@ -674,18 +624,6 @@ export default function InvoiceScreen({ onBack }: Props) {
                       <Text style={[s.invAmountLabel, { color: c.textSub }]}>{r.status === 'pending' ? t('invApplyAmount') : t('invTaxAmount')}</Text>
                     </View>
                     <View style={s.invActions}>
-                      {r.status === 'done' && getFirstFilePath(r.file_path) ? (
-                        <>
-                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => handleInvoiceShare(r)}>
-                            <IcnDownloadSmall color={c.textSub} />
-                            <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invDownload')}</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.primary, 0.08), borderColor: withAlpha(c.primary, 0.2) }]} onPress={() => handleInvoiceShare(r)}>
-                            <IcnShareSmall color={c.primary} />
-                            <Text style={[s.invActBtnText, { color: c.primary }]}>{t('share')}</Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : null}
                       <TouchableOpacity style={[s.invDelBtn, { backgroundColor: withAlpha(c.textMain, 0.05) }]} onPress={() => setConfirmDeleteId(r.id)}>
                         <TrashIcon color={c.danger} size={14} />
                       </TouchableOpacity>
@@ -1044,9 +982,7 @@ const s = StyleSheet.create({
   invAmount: { fontSize: 20, fontWeight: '700', fontFamily: 'DM Mono', letterSpacing: -0.2 } as any,
   invAmountLabel: { fontSize: 10, marginTop: 1 } as any,
   invActions: { flexDirection: 'row', gap: 6 } as any,
-  invActBtn: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 4 } as any,
   invDelBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const },
-  invActBtnText: { fontSize: 12, fontWeight: '500' } as any,
 
   /* EMPTY */
   empty: { alignItems: 'center', paddingVertical: 48 } as any,
