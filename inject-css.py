@@ -101,8 +101,8 @@ INJECT_HEAD = '''
 PWA_TAGS = '''
     <meta name="theme-color" content="#1A1A2E" />
     <meta name="apple-mobile-web-app-title" content="探秘" />
-    <link rel="apple-touch-icon" href="/icon-180.png?v=3" />
-    <link rel="manifest" href="/manifest.json?v=3" />
+    <link rel="apple-touch-icon" href="/icon-180.png?v=4" />
+    <link rel="manifest" href="/manifest.json?v=4" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
 '''
 
