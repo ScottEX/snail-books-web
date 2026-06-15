@@ -67,7 +67,6 @@ html.pv-lock{overflow:hidden;touch-action:none}
 
 export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
   const { colors: c } = useTheme();
-  const swipeBack = useSwipeBack(onBack);
   const st = useMemo(() => getStyles(c), [c]);
   const title = t('procPdfTitle').replace('{n}', String(batchNumber));
   const pdfUrl = `/api/procurement-batches/${batchId}/pdf`;
@@ -94,7 +93,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     setTimeout(onBack, EXIT_DURATION);
   }, [exiting, onBack]);
 
-  // Fetch PDF as blob with auth cookies, then create object URL for react-pdf
+  const swipeBack = useSwipeBack(handleBack);
   useEffect(() => {
     let cancelled = false;
     (async () => {
