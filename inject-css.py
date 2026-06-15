@@ -84,18 +84,6 @@ IDLE_TIMEOUT_JS = r'''<script>
 })();
 </script>'''
 
-INJECT_HEAD = '''
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: { 'inter': ['Inter', 'sans-serif'], 'noto': ['Noto Sans SC', 'sans-serif'] }
-          }
-        }
-      }
-    </script>
-'''
 
 # ── PWA tags (no apple-mobile-web-app-capable — avoids iOS fullscreen white gap) ──
 PWA_TAGS = '''
@@ -114,8 +102,6 @@ html = html.replace('<head>', '<head>\n' + IDLE_TIMEOUT_JS)
 
 # Inject boot.js (for Capacitor config)
 html = html.replace('<head>', '<head>\n' + BOOT_JS)
-# Insert Tailwind CDN before </body> — not in <head>, to avoid blocking splash rendering
-html = html.replace('</body>', INJECT_HEAD + '\n</body>')
 # Insert PWA tags
 html = html.replace('<head>', '<head>\n' + PWA_TAGS)
 # Insert non-blocking font link
