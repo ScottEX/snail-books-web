@@ -475,7 +475,7 @@ export default function HomeScreen({
             onClose={popPage}
             stackIndex={idx}
             isTop={isTop}
-            top={p === 'profile' ? 48 : 0}
+            top={p === 'profile' || p === 'invoice' ? 48 : 0}
           >
             {renderSubPage(p)}
           </SlideScreen>

@@ -1109,20 +1109,20 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
                 <View style={styles.histHead}>
                   <Text style={styles.histNo}>{t('procNowBatch').replace('{n}', String(batch.batch_number))}</Text>
-                  {batch.invoice_status ? (
-                    <TouchableOpacity
-                      onPress={(e) => { e.stopPropagation?.(); onInvoice?.(batch.id); }}
-                      activeOpacity={0.7}
-                      style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: batch.invoice_status === 'done' ? withAlpha(c.success, 0.12) : withAlpha(c.warning, 0.12) }}
-                    >
-                      <Text style={{ fontSize: 11, fontWeight: '600', color: batch.invoice_status === 'done' ? c.success : c.warning }}>
-                        {batch.invoice_status === 'done' ? t('invRecStatusDone') : t('invRecStatusPending')}
-                      </Text>
-                    </TouchableOpacity>
-                  ) : null}
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <Text style={styles.histDate}>{batch.date}</Text>
                     <View style={styles.histActions}>
+                      {batch.invoice_status ? (
+                        <TouchableOpacity
+                          onPress={(e) => { e.stopPropagation?.(); onInvoice?.(batch.id); }}
+                          activeOpacity={0.7}
+                          style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: batch.invoice_status === 'done' ? withAlpha(c.success, 0.12) : withAlpha(c.warning, 0.12) }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '600', color: batch.invoice_status === 'done' ? c.success : c.warning }}>
+                            {batch.invoice_status === 'done' ? t('invRecStatusDone') : t('invRecStatusPending')}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
                       <TouchableOpacity
                         style={styles.histActionBtn}
                         onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}

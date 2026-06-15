@@ -170,7 +170,7 @@ interface Props {
 export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
-  const [tab, setTab] = useState<number>(0);
+  const [tab, setTab] = useState<number>(filterBatchId ? 1 : 0);
   const [invType, setInvType] = useState<InvType>('vat');
   const [data, setData] = useState<InvoiceData>(EMPTY_INV);
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
