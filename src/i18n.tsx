@@ -229,6 +229,7 @@ const I18N: Record<string, Record<string, string>> = {
     invRecSaveOk: '保存成功',
     invRecStatusDone: '已开票',
     invRecStatusPending: '待开票',
+    invToInvoice: '去开票',
     invStatus: '开票状态',
     invFileUploaded: '已上传发票',
     invUploadInvoice: '上传发票',
@@ -778,6 +779,7 @@ const I18N: Record<string, Record<string, string>> = {
     invRecSaveOk: '保存成功',
     invRecStatusDone: '已開票',
     invRecStatusPending: '待開票',
+    invToInvoice: '去開票',
     invStatus: '開票狀態',
     invFileUploaded: '已上傳發票',
     invUploadInvoice: '上傳發票',
@@ -1326,6 +1328,7 @@ const I18N: Record<string, Record<string, string>> = {
     invRecSaveOk: 'Saved',
     invRecStatusDone: 'Done',
     invRecStatusPending: 'Pending',
+    invToInvoice: 'Invoice',
     invStatus: 'Invoice Status',
     invFileUploaded: 'Uploaded Invoice',
     invUploadInvoice: 'Upload Invoice',
@@ -1876,6 +1879,7 @@ export type I18nKey =
   | 'invRecSaveOk'
   | 'invRecStatusDone'
   | 'invRecStatusPending'
+  | 'invToInvoice'
   | 'invStatus'
   | 'invFileUploaded'
   | 'invUploadInvoice'

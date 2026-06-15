@@ -162,7 +162,8 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
             <View style={st.payBadge}>
               <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
             </View>
-            {e.procurement_batch_id && e.invoice_status ? (
+            {e.procurement_batch_id ? (
+              e.invoice_status ? (
               <TouchableOpacity
                 onPress={() => onInvoice?.(e.procurement_batch_id)}
                 activeOpacity={0.7}
@@ -172,6 +173,17 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
                   {e.invoice_status === 'done' ? t('invRecStatusDone') : t('invRecStatusPending')}
                 </Text>
               </TouchableOpacity>
+              ) : (
+              <TouchableOpacity
+                onPress={() => onInvoice?.(e.procurement_batch_id)}
+                activeOpacity={0.7}
+                style={{ paddingHorizontal: 6, paddingVertical: 1, borderRadius: 5, backgroundColor: withAlpha(colors.primary, 0.10) }}
+              >
+                <Text style={{ fontSize: 10, fontWeight: '600', color: colors.primary }}>
+                  {t('invToInvoice')}
+                </Text>
+              </TouchableOpacity>
+              )
             ) : null}
           </View>
           {/* Wrap amount + seal so the seal anchors to the amount text, not the row. */}
