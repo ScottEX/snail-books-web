@@ -171,6 +171,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const [tab, setTab] = useState<number>(filterBatchId ? 1 : 0);
+  const [entryCardH, setEntryCardH] = useState(0);
   const [invType, setInvType] = useState<InvType>('vat');
   const [data, setData] = useState<InvoiceData>(EMPTY_INV);
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
@@ -488,7 +489,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* ═══ ENTRY CARD ═══ */}
-        <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]}>
+        <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h) setEntryCardH(h); }}>
           <View style={s.ecTop}>
             <TouchableOpacity style={[s.ecBackBtn, { backgroundColor: 'rgba(255,255,255,0.12)' }]} onPress={onBack}>
               <IcnBack color="rgba(255,255,255,0.8)" />
@@ -693,7 +694,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
           <Animated.View style={[s.drawerOverlay, { opacity: overlayOpacity }]}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
           </Animated.View>
-          <Animated.View key={drawerKey} style={[s.drawer, { backgroundColor: c.surface, transform: [{ translateY: drawerTranslateY }] }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
+          <Animated.View key={drawerKey} style={[s.drawer, { backgroundColor: c.surface, top: entryCardH || undefined, bottom: 0, transform: [{ translateY: drawerTranslateY }] }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
             <View style={[s.drawerHandle, { backgroundColor: c.secondary }]} />
             <View style={[s.drawerHead, { borderBottomColor: c.secondary }]}>
               <Text style={[s.drawerTitle, { color: c.textMain }]}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
@@ -1038,7 +1039,7 @@ const s = StyleSheet.create({
 
   /* DRAWER */
   drawerOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
-  drawer: { position: 'absolute' as any, bottom: 0, left: 0, right: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%', zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any } as any,
+  drawer: { position: 'absolute' as any, left: 0, right: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%', zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any } as any,
   drawerHandle: { width: 36, height: 4, borderRadius: 2, marginTop: 12, alignSelf: 'center', flexShrink: 0 } as any,
   drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 12, borderBottomWidth: 1, flexShrink: 0 } as any,
   drawerTitle: { fontSize: 15, fontWeight: '600' } as any,
