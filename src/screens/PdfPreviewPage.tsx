@@ -91,6 +91,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [toastMsg, setToastMsg] = useState<{ icon: string; text: string } | null>(null);
   const [exiting, setExiting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [introSec, setIntroSec] = useState(0);
   const phRef = useRef(0); // page height
   const numPagesRef = useRef(0);
   const setPageRef = useRef(setCurrentPage);
@@ -132,6 +133,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const velRef = useRef({ vy: 0, ly: 0, vx: 0, lx: 0, lt: 0 }); // velocity tracking
 
   useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
+
+  // Loading countdown timer
+  useEffect(() => {
+    if (!pdfLoading) { setIntroSec(0); return; }
+    setIntroSec(0);
+    const id = setInterval(() => setIntroSec(s => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [pdfLoading]);
 
   const applyTransform = useCallback((animated: boolean) => {
     const el = wrapRef.current; if (!el) return;
@@ -399,6 +408,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
             <div className="pv-intro-overlay">
               <div className="pv-intro on">
                 <div className="pv-intro-text">{t('pdfGenerating')}</div>
+                <div className="pv-intro-sec" style={{ color: c.text }}>{introSec}s</div>
               </div>
             </div>
           )}
