@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image } from 'react-native';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useTheme, withAlpha, ThemeColors, REQUIRED_COLOR } from '../theme';
 import { api } from '../api/client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { FONTS } from '../theme';
@@ -733,7 +733,7 @@ export default function InvoiceScreen({ onBack }: Props) {
 
               {/* Amount — auto-filled from batch, with thousand-separator */}
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: '#E84040' }}>*</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: REQUIRED_COLOR }}>*</Text></Text>
                 <View style={{ position: 'relative' }}>
                   <Text style={[s.dAmountPrefix, { color: c.textSub }]}>¥</Text>
                   <TextInput
@@ -750,12 +750,12 @@ export default function InvoiceScreen({ onBack }: Props) {
               </View>
 
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBuyer')}<Text style={{ color: '#E84040' }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBuyer')}<Text style={{ color: REQUIRED_COLOR }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
                 <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.company_name} editable={false} />
               </View>
 
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: '#E84040' }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: REQUIRED_COLOR }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
                 <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
               </View>
 
@@ -801,7 +801,7 @@ export default function InvoiceScreen({ onBack }: Props) {
               {dStatus === 'done' && (
               <View style={s.dField}>
                 <Text style={[s.dLabel, { color: c.textSub }]}>
-                  {t('invRecInvoiceNo')}<Text style={{ color: '#E84040' }}>*</Text>
+                  {t('invRecInvoiceNo')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>
                 </Text>
                 <TextInput
                   style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]}

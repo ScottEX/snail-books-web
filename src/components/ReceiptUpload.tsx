@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, LayoutChangeEvent } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme, withAlpha } from '../theme';
+import { useTheme, withAlpha, REQUIRED_COLOR } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 import { useCallback, useRef, useState } from 'react';
@@ -88,7 +88,7 @@ export default function ReceiptUpload({
       {/* Label + info tip */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: c.textSub, marginBottom: 0 }}>
-          {label || t('uploadImage')}{required ? <Text style={{ color: '#E84040' }}> *</Text> : null}
+          {label || t('uploadImage')}{required ? <Text style={{ color: REQUIRED_COLOR }}>*</Text> : null}
         </Text>
         <TouchableOpacity
           onPress={() => setShowTip(!showTip)}
