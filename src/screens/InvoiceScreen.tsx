@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image, ActivityIndicator } from 'react-native';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors, REQUIRED_COLOR } from '../theme';
@@ -865,7 +865,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               disabled={submitDisabled}
               onPress={handleDrawerSubmit}
             >
-              <Text style={s.dSubmitText}>{submitting ? '...' : (editingId ? t('invSave') : t('invSubmit'))}</Text>
+              {submitting
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Text style={s.dSubmitText}>{editingId ? t('invSave') : t('invSubmit')}</Text>
+              }
             </TouchableOpacity>
               );
             })()}
