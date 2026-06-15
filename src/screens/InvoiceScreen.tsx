@@ -1,14 +1,18 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image, ActivityIndicator } from 'react-native';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useTheme, withAlpha, ThemeColors, REQUIRED_COLOR } from '../theme';
 import { api } from '../api/client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import ReceiptUpload from '../components/ReceiptUpload';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import DatePicker from '../components/DatePicker';
+import EmptyState from '../components/EmptyState';
+import ConfirmModal from '../components/ConfirmModal';
+import TrashIcon from '../components/icons/TrashIcon';
+import ImagePreview from '../components/ImagePreview';
 
 /* ═══════════════ SVG ICONS ═══════════════ */
 
@@ -65,20 +69,6 @@ const IcnAccount = ({ color }: { color: string }) => (
     <Path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
   </Svg>
 );
-const IcnDownloadSmall = ({ color }: { color: string }) => (
-  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
-    <Path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-    <Polyline points="7 10 12 15 17 10" />
-    <Line x1="12" y1="15" x2="12" y2="3" />
-  </Svg>
-);
-const IcnShareSmall = ({ color }: { color: string }) => (
-  <Svg width="12" height="12" viewBox="0 0 24 24" stroke={color} strokeWidth="2" fill="none">
-    <Path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
-    <Polyline points="16 6 12 2 8 6" />
-    <Line x1="12" y1="2" x2="12" y2="15" />
-  </Svg>
-);
 const IcnClose = ({ color }: { color: string }) => (
   <Svg width="14" height="14" viewBox="0 0 1088 1024">
     <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill={color} />
@@ -93,15 +83,6 @@ const PencilSvg = ({ color }: { color: string }) => (
   </svg>
 );
 
-/** Stamp seal — rejected (作废) */
-const IcnSealRejected = ({ color, label }: { color: string; label: string }) => (
-  <svg width="52" height="52" viewBox="0 0 52 52">
-    <circle cx="26" cy="26" r="24" fill="none" stroke={color} strokeWidth="1.5" />
-    <circle cx="26" cy="26" r="21" fill="none" stroke={color} strokeWidth="0.5" strokeDasharray="3 2" />
-    <text x="26" y="30" textAnchor="middle" fontSize="11" fontWeight="700" fill={color} transform="rotate(-12, 26, 26)">{label}</text>
-  </svg>
-);
-
 /** Stamp seal — active (done: 已开票 / pending: 未开票) */
 const IcnSealActive = ({ color, label }: { color: string; label: string }) => (
   <svg width="52" height="52" viewBox="0 0 52 52">
@@ -111,10 +92,38 @@ const IcnSealActive = ({ color, label }: { color: string; label: string }) => (
   </svg>
 );
 
+/* ═══════════════ AMOUNT FORMATTERS ═══════════════ */
+
+/** Display-only formatter: 1234.5 → "1,234.50" (thousand-separated). Empty stays empty. */
+function formatAmountForDisplay(raw: string): string {
+  if (!raw) return '';
+  const num = Number(raw);
+  if (!isFinite(num) || isNaN(num)) return raw;
+  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/** Storage formatter: trim trailing zeros, normalize to plain decimal string. */
+function formatAmountForStorage(raw: string): string {
+  if (!raw) return '';
+  const num = Number(raw);
+  if (!isFinite(num) || isNaN(num)) return raw;
+  return num.toFixed(2);
+}
+
+/** Empty state icon for invoice records — FileText style */
+const InvoiceEmptyIcon = ({ color }: { color: string }) => (
+  <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <Path d="M14 2v6h6" />
+    <Line x1="8" y1="13" x2="16" y2="13" />
+    <Line x1="8" y1="17" x2="14" y2="17" />
+  </Svg>
+);
+
 /* ═══════════════ INVOICE SCREEN ═══════════════ */
 
-type InvType = 'vat' | 'general' | 'receipt';
-type InvStatus = 'done' | 'pending' | 'rejected';
+type InvType = 'vat' | 'general';
+type InvStatus = 'done' | 'pending';
 
 interface InvoiceData {
   company_name: string;
@@ -130,13 +139,23 @@ interface InvoiceData {
 
 interface InvoiceRecord {
   id: number;
+  user_id?: number;
+  procurement_batch_id?: number | null;
+  batch_number?: number | null;
   type: InvType;
   company: string;
   tax_id: string;
-  date: string;
-  invoice_no: string;
   amount: number;
+  date: string;
+  invoice_number: string;
+  email: string;
   status: InvStatus;
+  file_path?: string;
+  file_type?: string;
+  file_size?: number;
+  note?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const EMPTY_INV: InvoiceData = {
@@ -145,12 +164,14 @@ const EMPTY_INV: InvoiceData = {
 
 interface Props {
   onBack: () => void;
+  filterBatchId?: number | null;
 }
 
-export default function InvoiceScreen({ onBack }: Props) {
+export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
-  const [tab, setTab] = useState<number>(0);
+  const [tab, setTab] = useState<number>(filterBatchId ? 1 : 0);
+  const [entryCardH, setEntryCardH] = useState(0);
   const [invType, setInvType] = useState<InvType>('vat');
   const [data, setData] = useState<InvoiceData>(EMPTY_INV);
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
@@ -183,28 +204,48 @@ export default function InvoiceScreen({ onBack }: Props) {
 
   // CSS injection for drawer animation
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerKey, setDrawerKey] = useState(0);
+  const closeGuardRef = useRef(0);  // prevent stale closeDrawer callback from overwriting openDrawer state
   const drawerAnim = useRef(new Animated.Value(0)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
-  const [dType, setDType] = useState<InvType>('vat');
+  const [dType, setDType] = useState<InvType>('general');
   const [dAmount, setDAmount] = useState('');
+  const [dAmountFocus, setDAmountFocus] = useState(false);
   const [dDate, setDDate] = useState(new Date().toISOString().slice(0, 10));
   const [dRef, setDRef] = useState('');
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
+  const [dInvoiceNo, setDInvoiceNo] = useState('');
+  const [dStatus, setDStatus] = useState<InvStatus>('pending');
 
   // Batch selector
   const [dBatchId, setDBatchId] = useState<number | null>(null);
   const [batchList, setBatchList] = useState<any[]>([]);
   // File upload
   const [dFiles, setDFiles] = useState<File[]>([]);
+  // Existing file path (for edit mode — already uploaded)
+  const [dExistingFilePath, setDExistingFilePath] = useState<string[]>([]);
+  // Preview state
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [previewIdx, setPreviewIdx] = useState(0);
 
-  // Records stub
-  const [records] = useState<InvoiceRecord[]>([
-    { id: 1, type: 'vat', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-06-05', invoice_no: 'NO.2026060001', amount: 25600, status: 'done' },
-    { id: 2, type: 'general', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-06-07', invoice_no: 'NO.2026060002', amount: 18300, status: 'pending' },
-    { id: 3, type: 'vat', company: '柳味探秘科技有限公司', tax_id: '91450000MA5XXXXX12', date: '2026-05-20', invoice_no: 'NO.2026050008', amount: 8500, status: 'rejected' },
-  ]);
+  // Parse file_path from backend (JSON array or legacy single string)
+  const parseFilePaths = (fp: string | null | undefined): string[] => {
+    if (!fp) return [];
+    if (fp.startsWith('[')) { try { return JSON.parse(fp); } catch { return [fp]; } }
+    return [fp];
+  };
+  // Records (API-driven, no more stub)
+  const [records, setRecords] = useState<InvoiceRecord[]>([]);
+  const [recordsLoading, setRecordsLoading] = useState(false);
   const [filter, setFilter] = useState<string>('all');
+
+  // Edit / delete target
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Toast
   const [toast, setToast] = useState('');
@@ -216,7 +257,25 @@ export default function InvoiceScreen({ onBack }: Props) {
     toastT.current = setTimeout(() => setToast(''), 2400);
   };
 
-  // Load invoice data
+  // Load records from API
+  const loadRecords = useCallback(async () => {
+    setRecordsLoading(true);
+    try {
+      const filter: any = {};
+      if (filterBatchId) filter.procurement_batch_id = filterBatchId;
+      const list = await api.getInvoiceRecords(filter);
+      setRecords(Array.isArray(list) ? list : []);
+    } catch (e) {
+      console.error('loadRecords failed', e);
+      setRecords([]);
+    } finally {
+      setRecordsLoading(false);
+    }
+  }, [filterBatchId]);
+
+  useEffect(() => { loadRecords(); }, [loadRecords]);
+
+  // Load invoice data (backend allows all logged-in users since 4b00e12)
   useEffect(() => {
     (async () => {
       try {
@@ -243,7 +302,6 @@ export default function InvoiceScreen({ onBack }: Props) {
       const json = await api.updateInvoice({ ...data, inv_type: invType } as any);
       if (json.status === 'ok') {
         setOrig({ ...data, inv_type: invType });
-        showToast('✅ ' + t('invSaved'));
       }
     } catch { }
     isSaving.current = false;
@@ -259,7 +317,6 @@ export default function InvoiceScreen({ onBack }: Props) {
     if (filter === 'all') return true;
     if (filter === 'pending') return r.status === 'pending';
     if (filter === 'done') return r.status === 'done';
-    if (filter === 'rejected') return r.status === 'rejected';
     if (filter === 'vat') return r.type === 'vat';
     if (filter === 'general') return r.type === 'general';
     return true;
@@ -269,32 +326,119 @@ export default function InvoiceScreen({ onBack }: Props) {
     { key: 'all', label: t('invFilterAll') },
     { key: 'pending', label: t('invFilterPending') },
     { key: 'done', label: t('invFilterDone') },
-    { key: 'rejected', label: t('invFilterRejected') },
-    { key: 'vat', label: t('invVatSpecial') },
     { key: 'general', label: t('invGeneral') },
+    { key: 'vat', label: t('invVatSpecial') },
   ];
 
-  const typeBadgeLabel = (tp: InvType) => tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt');
-  const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : tp === 'general' ? sBadge.general : sBadge.receipt;
+  const typeBadgeLabel = (tp: InvType) => tp === 'vat' ? t('invVatSpecial') : t('invGeneral');
+  const typeBadgeClass = (tp: InvType) => tp === 'vat' ? sBadge.vat : sBadge.general;
+
+  // ── Confirm delete invoice record (physical delete) ──
+  const handleConfirmDelete = async () => {
+    if (confirmDeleteId == null || deleting) return;
+    setDeleting(true);
+    try {
+      await api.deleteInvoiceRecord(confirmDeleteId);
+      setConfirmDeleteId(null);
+      await loadRecords();
+    } catch (e: any) {
+      showToast('⚠️ ' + (e?.message || t('errSessionExpired')));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // ── Submit drawer (create or update) ──
+  const handleDrawerSubmit = async () => {
+    if (submitting) return;
+    if (!dAmount) { showToast('⚠️ ' + t('invDrawerAmount')); return; }
+    if (!data.company_name || !data.tax_id) { showToast('⚠️ ' + t('invEmpty')); return; }
+    if (dStatus === 'done' && !dInvoiceNo.trim()) {
+      showToast('⚠️ ' + t('invRecInvoiceNo'));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const payload = {
+        type: dType,
+        amount: Number(dAmount) || 0,
+        date: dDate,
+        company: data.company_name,
+        tax_id: data.tax_id,
+        invoice_number: dInvoiceNo.trim(),
+        email: dEmail.trim(),
+        status: dStatus,
+        procurement_batch_id: dBatchId,
+        note: dNote.trim(),
+      };
+      let rid: number;
+      if (editingId) {
+        // Edit mode: upload all files first (so they're available on the record), then PUT
+        for (const f of dFiles) {
+          await api.uploadInvoiceFile(editingId, f);
+        }
+        await api.updateInvoiceRecord(editingId, payload);
+        rid = editingId;
+      } else {
+        // New mode: create record first to get rid, then upload all files
+        const res = await api.createInvoiceRecord(payload);
+        rid = res.id;
+        for (const f of dFiles) {
+          await api.uploadInvoiceFile(rid, f);
+        }
+      }
+      closeDrawer();
+      setEditingId(null);
+      setDFiles([]);
+      setDExistingFilePath([]);
+      await loadRecords();
+    } catch (e: any) {
+      showToast('⚠️ ' + (e?.message || t('errSessionExpired')));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ── Preview handlers ──
+  const handlePreviewExisting = (index: number) => {
+    setPreviewImages(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)));
+    setPreviewIdx(index);
+    setPreviewVisible(true);
+  };
+
+  const handlePreviewNew = (index: number) => {
+    setPreviewImages(dFiles.map(f => URL.createObjectURL(f)));
+    setPreviewIdx(index);
+    setPreviewVisible(true);
+  };
+
   // ── Drawer animation ──
-  const openDrawer = () => {
+  const openDrawer = (forEdit?: InvoiceRecord) => {
+    closeGuardRef.current++;  // invalidate any in-flight close callback
+    setDrawerKey(k => k + 1);
     setDrawerOpen(true);
-    setDType(invType);
+    setEditingId(forEdit ? forEdit.id : null);
+    setDType(forEdit ? (forEdit.type as InvType) : 'general');
+    setDAmount(forEdit ? String(forEdit.amount) : '');
+    setDDate(forEdit ? forEdit.date : new Date().toISOString().slice(0, 10));
+    setDRef('');
+    setDNote(forEdit ? (forEdit.note || '') : '');
+    setDInvoiceNo(forEdit ? (forEdit.invoice_number || '') : '');
+    setDStatus(forEdit ? (forEdit.status as InvStatus) : 'pending');
+    setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
+    setDFiles([]);
+    setDExistingFilePath(forEdit ? parseFilePaths(forEdit.file_path) : []);
     Animated.parallel([
       Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
       Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
     ]).start();
-    // Fetch batch list
+    // Fetch batch list (lightweight, last 20)
     (async () => {
       try {
-        const j = await api.getProcurementBatches(1, 100);
-        setBatchList((j as any).records || (j as any).batches || (j as any).data || []);
+        const list = await api.getProcurementBatchesLite(20);
+        setBatchList(Array.isArray(list) ? list : []);
       } catch { setBatchList([]); }
     })();
-    // Reset batch
-    setDBatchId(null);
-    setDAmount('');
-    setDFiles([]);
     // Auto-fill user email from localStorage, fallback to API
     const stored = (() => { try { return localStorage.getItem('email'); } catch { return null; } })();
     if (stored) {
@@ -310,10 +454,19 @@ export default function InvoiceScreen({ onBack }: Props) {
     }
   };
   const closeDrawer = () => {
+    const guard = ++closeGuardRef.current;
     Animated.parallel([
       Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
       Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => setDrawerOpen(false));
+    ]).start(() => {
+      if (guard !== closeGuardRef.current) return;  // superseded by a new openDrawer
+      setDrawerOpen(false);
+      setEditingId(null);
+      setDStatus('pending');
+      setDInvoiceNo('');
+      setDExistingFilePath([]);
+      setDFiles([]);
+    });
   };
 
   const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
@@ -336,7 +489,7 @@ export default function InvoiceScreen({ onBack }: Props) {
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* ═══ ENTRY CARD ═══ */}
-        <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]}>
+        <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h) setEntryCardH(h); }}>
           <View style={s.ecTop}>
             <TouchableOpacity style={[s.ecBackBtn, { backgroundColor: 'rgba(255,255,255,0.12)' }]} onPress={onBack}>
               <IcnBack color="rgba(255,255,255,0.8)" />
@@ -443,17 +596,22 @@ export default function InvoiceScreen({ onBack }: Props) {
             </ScrollView>
 
             {/* Invoice cards */}
-            {filtered.length === 0 ? (
+            {recordsLoading ? (
               <View style={s.empty}>
-                <Text style={s.emptyIcon}>📄</Text>
-                <Text style={[s.emptyText, { color: c.textSub }]}>{t('invEmpty')}</Text>
+                <Text style={[s.emptyText, { color: c.textSub }]}>...</Text>
               </View>
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<InvoiceEmptyIcon color={c.textSub} />}
+                title={t('noRecords')}
+                hint={t('emptyInvoiceHint')}
+              />
             ) : (
               filtered.map(r => (
                 <View key={r.id} style={[s.invCard, { backgroundColor: c.surface, borderColor: c.secondary }]}>
                   {/* Torn edge */}
                   <View style={[s.invTorn, { backgroundColor: c.primary }]} />
-                  <View style={[s.invTop, { borderBottomColor: c.secondary }]}>
+                  <TouchableOpacity activeOpacity={0.7} onPress={() => openDrawer(r)} style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 14, borderBottomWidth: 1, borderStyle: 'dashed', borderBottomColor: c.secondary, flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 4 } as any}>
                     <View style={[s.invBadge, typeBadgeClass(r.type)]}>
                       <Text style={[s.invBadgeText, { color: r.type === 'vat' ? c.primary : r.type === 'general' ? c.info : c.success }]}>{typeBadgeLabel(r.type)}</Text>
                     </View>
@@ -462,52 +620,37 @@ export default function InvoiceScreen({ onBack }: Props) {
                       <Text style={[s.invTax, { color: c.textSub }]}>{r.tax_id}</Text>
                       <View style={s.invMeta}>
                         <Text style={[s.invDate, { color: c.textSub }]}>{r.date}</Text>
-                        <Text style={{ color: c.secondary }}>·</Text>
-                        <Text style={[s.invNo, { color: c.textSub }]}>{r.invoice_no}</Text>
+                        {!!r.invoice_number && (
+                          <>
+                            <Text style={{ color: c.secondary }}>·</Text>
+                            <Text style={[s.invNo, { color: c.textSub }]}>{r.invoice_number}</Text>
+                          </>
+                        )}
+                        {!!r.batch_number && (
+                          <>
+                            <Text style={{ color: c.secondary }}>·</Text>
+                            <Text style={[s.invNo, { color: c.textSub }]}>{t('procNowBatch').replace('{n}', String(r.batch_number))}</Text>
+                          </>
+                        )}
                       </View>
                     </View>
                     <View style={s.invSealWrap}>
-                      {r.status === 'rejected' ? (
-                        <IcnSealRejected color="#C0392B" label={t('invStatusRejected')} />
-                      ) : r.status === 'done' ? (
-                        <IcnSealActive color={c.success} label={t('invStatusDone')} />
+                      {r.status === 'done' ? (
+                        <IcnSealActive color={c.success} label={t('invRecStatusDone')} />
                       ) : (
-                        <IcnSealActive color={c.warning} label={t('invStatusPending')} />
+                        <IcnSealActive color={c.warning} label={t('invRecStatusPending')} />
                       )}
                     </View>
-                  </View>
+                  </TouchableOpacity>
                   <View style={s.invBottom}>
                     <View>
-                      <Text style={[s.invAmount, { color: r.status === 'rejected' ? c.textSub : c.primary }]}>¥{r.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
-                      <Text style={[s.invAmountLabel, { color: c.textSub }]}>{r.status === 'pending' ? t('invApplyAmount') : r.status === 'done' ? t('invTaxAmount') : t('invStatusRejected')}</Text>
+                      <Text style={[s.invAmount, { color: c.primary }]}>¥{r.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                      <Text style={[s.invAmountLabel, { color: c.textSub }]}>{r.status === 'pending' ? t('invApplyAmount') : t('invTaxAmount')}</Text>
                     </View>
                     <View style={s.invActions}>
-                      {r.status === 'done' ? (
-                        <>
-                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => showToast('⬇️ ' + t('invDownloading'))}>
-                            <IcnDownloadSmall color={c.textSub} />
-                            <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invDownload')}</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.primary, 0.08), borderColor: withAlpha(c.primary, 0.2) }]} onPress={() => showToast('↗️ ' + t('invShareToast'))}>
-                            <IcnShareSmall color={c.primary} />
-                            <Text style={[s.invActBtnText, { color: c.primary }]}>{t('share')}</Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : r.status === 'pending' ? (
-                        <>
-                          <View style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary, opacity: 0.4 }]}>
-                            <IcnDownloadSmall color={c.textSub} />
-                            <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invDownload')}</Text>
-                          </View>
-                          <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.warning, 0.08), borderColor: withAlpha(c.warning, 0.2) }]} onPress={() => showToast('📞 ' + t('invContact'))}>
-                            <Text style={[s.invActBtnText, { color: c.warning }]}>{t('invUrge')}</Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : (
-                        <TouchableOpacity style={[s.invActBtn, { backgroundColor: withAlpha(c.textMain, 0.06), borderColor: c.secondary }]} onPress={() => showToast('🔄 ' + t('invReapply'))}>
-                          <Text style={[s.invActBtnText, { color: c.textSub }]}>{t('invReapply')}</Text>
-                        </TouchableOpacity>
-                      )}
+                      <TouchableOpacity style={[s.invDelBtn, { backgroundColor: withAlpha(c.textMain, 0.05) }]} onPress={() => setConfirmDeleteId(r.id)}>
+                        <TrashIcon color={c.danger} size={14} />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
@@ -526,16 +669,35 @@ export default function InvoiceScreen({ onBack }: Props) {
         </View>
       )}
 
+      {/* ═══ CONFIRM DELETE MODAL ═══ */}
+      <ConfirmModal
+        visible={confirmDeleteId != null}
+        title={t('confirmDeleteRecord')}
+        message={
+          <>
+            {t('invDelConfirmPrefix')}
+            <Text style={{ fontWeight: '600', color: c.textMain }}>
+              {records.find(r => r.id === confirmDeleteId)?.invoice_number || '—'}
+            </Text>
+            {t('invDelConfirmSuffix')}
+          </>
+        }
+        confirmLabel={t('confirmDeleteRecord')}
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => !deleting && setConfirmDeleteId(null)}
+      />
+
       {/* ═══ DRAWER ═══ */}
       {drawerOpen && (
         <>
           <Animated.View style={[s.drawerOverlay, { opacity: overlayOpacity }]}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
           </Animated.View>
-          <Animated.View style={[s.drawer, { backgroundColor: c.surface, transform: [{ translateY: drawerTranslateY }] }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
+          <Animated.View key={drawerKey} style={[s.drawer, { backgroundColor: c.surface, top: entryCardH || undefined, bottom: 0, transform: [{ translateY: drawerTranslateY }] }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
             <View style={[s.drawerHandle, { backgroundColor: c.secondary }]} />
             <View style={[s.drawerHead, { borderBottomColor: c.secondary }]}>
-              <Text style={[s.drawerTitle, { color: c.textMain }]}>{t('invApply')}</Text>
+              <Text style={[s.drawerTitle, { color: c.textMain }]}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
               <TouchableOpacity style={s.drawerClose} onPress={() => closeDrawer()}>
                 <IcnClose color="#1c1c1a" />
               </TouchableOpacity>
@@ -543,9 +705,9 @@ export default function InvoiceScreen({ onBack }: Props) {
             <ScrollView style={s.drawerBody} contentContainerStyle={{ paddingBottom: 8 }}>
               <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerType')}</Text>
               <View style={s.dTypeRow}>
-                {(['vat', 'general', 'receipt'] as InvType[]).map(tp => (
+                {(['general', 'vat'] as InvType[]).map(tp => (
                   <TouchableOpacity key={tp} style={[s.dTypeChip, { backgroundColor: dType === tp ? c.primary : withAlpha(c.textMain, 0.06) }]} onPress={() => setDType(tp)}>
-                    <Text style={[s.dTypeChipText, { color: dType === tp ? c.surface : c.textSub }]}>{tp === 'vat' ? t('invVatSpecial') : tp === 'general' ? t('invGeneral') : t('invReceipt')}</Text>
+                    <Text style={[s.dTypeChipText, { color: dType === tp ? c.surface : c.textSub }]}>{tp === 'vat' ? t('invVatSpecial') : t('invGeneral')}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -566,31 +728,46 @@ export default function InvoiceScreen({ onBack }: Props) {
                     outline: 'none', appearance: 'none',
                   }}
                 >
-                  <option value="">{t('invDrawerBatchPlaceholder')}</option>
-                  {batchList.map((b: any) => (
-                    <option key={b.id} value={b.id}>
-                      {t('procNowBatch').replace('{n}', String(b.batch_number))}
-                    </option>
-                  ))}
+                  {batchList.length > 0 ? (
+                    <>
+                      <option value="">{t('invDrawerBatchPlaceholder')}</option>
+                      {batchList.map((b: any) => (
+                        <option key={b.id} value={b.id}>
+                          {t('procNowBatch').replace('{n}', String(b.batch_number))}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    <option value="" disabled>{t('invDrawerBatchPlaceholder')}</option>
+                  )}
                 </select>
               </View>
 
               {/* Amount — auto-filled from batch, with thousand-separator */}
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: c.primary }}>*</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerAmount')}<Text style={{ color: REQUIRED_COLOR }}>*</Text></Text>
                 <View style={{ position: 'relative' }}>
                   <Text style={[s.dAmountPrefix, { color: c.textSub }]}>¥</Text>
-                  <TextInput style={[s.dInput, s.dAmountInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={dAmount} onChangeText={setDAmount} placeholder="0.00" placeholderTextColor={c.textSub} keyboardType="decimal-pad" />
+                  <TextInput
+                    style={[s.dInput, s.dAmountInput, dAmountFocus && s.dAmountInputFocus, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]}
+                    value={dAmountFocus ? dAmount : formatAmountForDisplay(dAmount)}
+                    onFocus={() => setDAmountFocus(true)}
+                    onBlur={() => { setDAmountFocus(false); setDAmount(formatAmountForStorage(dAmount)); }}
+                    onChangeText={setDAmount}
+                    placeholder="0.00"
+                    placeholderTextColor={c.textSub}
+                    keyboardType="decimal-pad"
+                  />
                 </View>
               </View>
 
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBuyer')}<Text style={{ color: c.primary }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerBuyer')}<Text style={{ color: REQUIRED_COLOR }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
                 <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.company_name} editable={false} />
               </View>
 
               <View style={s.dField}>
-                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: c.primary }}>*</Text></Text>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: REQUIRED_COLOR }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
                 <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
               </View>
 
@@ -615,16 +792,57 @@ export default function InvoiceScreen({ onBack }: Props) {
                 </View>
               </View>
 
-              {/* File upload — shared ReceiptUpload component */}
-              <View style={{ marginBottom: 8 }}>
-                <ReceiptUpload
-                  newFiles={dFiles}
-                  onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files].slice(0, 9))}
-                  onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
-                  getPreviewUrl={(f: File) => URL.createObjectURL(f)}
-                  label={t('invUploadFiles') as string}
+              {/* Status toggle (待开票 / 已开票) — capsule style, matches dTypeRow */}
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>{t('invStatus')}</Text>
+                <View style={s.dTypeRow}>
+                  {(['pending', 'done'] as InvStatus[]).map(s_ => (
+                    <TouchableOpacity
+                      key={s_}
+                      style={[s.dTypeChip, { backgroundColor: dStatus === s_ ? c.primary : withAlpha(c.textMain, 0.06) }]}
+                      onPress={() => setDStatus(s_)}
+                    >
+                      <Text style={[s.dTypeChipText, { color: dStatus === s_ ? c.surface : c.textSub }]}>
+                        {s_ === 'pending' ? t('invRecStatusPending') : t('invRecStatusDone')}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              {/* Invoice number — only for done status */}
+              {dStatus === 'done' && (
+              <View style={s.dField}>
+                <Text style={[s.dLabel, { color: c.textSub }]}>
+                  {t('invRecInvoiceNo')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>
+                </Text>
+                <TextInput
+                  style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]}
+                  value={dInvoiceNo}
+                  onChangeText={(v) => setDInvoiceNo(v.replace(/[^a-zA-Z0-9]/g, ''))}
+                  placeholder="NO.2026060001"
+                  placeholderTextColor={c.textSub}
                 />
               </View>
+              )}
+
+              {/* File upload — only when status is done */}
+              {dStatus === 'done' && (
+                <View style={{ marginBottom: 8 }}>
+                  <ReceiptUpload
+                    existingImages={editingId && dExistingFilePath.length > 0 ? dExistingFilePath.map(p => api.getInvoiceFileUrl(p)) : []}
+                    newFiles={dFiles}
+                    onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files])}
+                    onRemoveExisting={(i: number) => { setDExistingFilePath(prev => prev.filter((_, j) => j !== i)); }}
+                    onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
+                    getPreviewUrl={(f: File) => URL.createObjectURL(f)}
+                    label={t('invUploadInvoice') as string}
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    required
+                    onPreviewExisting={handlePreviewExisting}
+                    onPreviewNew={handlePreviewNew}
+                  />
+                </View>
+              )}
 
               <View style={s.dField}>
                 <ExpenseNoteInput
@@ -637,14 +855,32 @@ export default function InvoiceScreen({ onBack }: Props) {
 
             </ScrollView>
             {/* Submit — fixed below scroll area, not inside */}
+            {(() => {
+              const submitDisabled = submitting || !dAmount || !data.company_name || !data.tax_id
+                || (dStatus === 'done' && !dInvoiceNo.trim())
+                || (dStatus === 'done' && dFiles.length === 0 && dExistingFilePath.length === 0);
+              return (
             <TouchableOpacity
-              style={[s.dSubmit, { backgroundColor: c.primary }, (!dAmount || !data.company_name || !data.tax_id) && { opacity: 0.4 }]}
-              disabled={!dAmount || !data.company_name || !data.tax_id}
-              onPress={() => { closeDrawer(); showToast('✅ ' + t('invSubmitDone')); }}
+              style={[s.dSubmit, { backgroundColor: c.primary }, submitDisabled && { opacity: 0.4 }]}
+              disabled={submitDisabled}
+              onPress={handleDrawerSubmit}
             >
-              <Text style={s.dSubmitText}>{t('invSubmit')}</Text>
+              {submitting
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Text style={s.dSubmitText}>{editingId ? t('invSave') : t('invSubmit')}</Text>
+              }
             </TouchableOpacity>
+              );
+            })()}
           </Animated.View>
+
+          {/* Image preview overlay */}
+          <ImagePreview
+            images={previewImages}
+            initialIdx={previewIdx}
+            visible={previewVisible}
+            onClose={() => setPreviewVisible(false)}
+          />
         </>
       )}
     </View>
@@ -712,7 +948,7 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
 /* ═══════════════ STYLES ═══════════════ */
 
 const s = StyleSheet.create({
-  root: { flex: 1 } as any,
+  root: { flex: 1, position: 'relative' as any, overflow: 'hidden' as any } as any,
 
   /* FLOATING BACK BTN — over content, historyHeader style */
   backFloat: { position: 'absolute', top: 16, left: 16, zIndex: 90, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.15)' } as any,
@@ -792,8 +1028,7 @@ const s = StyleSheet.create({
   invAmount: { fontSize: 20, fontWeight: '700', fontFamily: 'DM Mono', letterSpacing: -0.2 } as any,
   invAmountLabel: { fontSize: 10, marginTop: 1 } as any,
   invActions: { flexDirection: 'row', gap: 6 } as any,
-  invActBtn: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 4 } as any,
-  invActBtnText: { fontSize: 12, fontWeight: '500' } as any,
+  invDelBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const },
 
   /* EMPTY */
   empty: { alignItems: 'center', paddingVertical: 48 } as any,
@@ -806,8 +1041,8 @@ const s = StyleSheet.create({
   toastText: { color: '#fff', fontSize: 13, whiteSpace: 'nowrap' } as any,
 
   /* DRAWER */
-  drawerOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
-  drawer: { position: 'fixed' as any, bottom: 0, left: 0, right: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90vh', zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any } as any,
+  drawerOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
+  drawer: { position: 'absolute' as any, left: 0, right: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%', zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any } as any,
   drawerHandle: { width: 36, height: 4, borderRadius: 2, marginTop: 12, alignSelf: 'center', flexShrink: 0 } as any,
   drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 12, borderBottomWidth: 1, flexShrink: 0 } as any,
   drawerTitle: { fontSize: 15, fontWeight: '600' } as any,
@@ -817,8 +1052,9 @@ const s = StyleSheet.create({
   dLabel: { fontSize: 14, fontWeight: '500', marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as any,
   dField: { marginBottom: 14 } as any,
   dInput: { width: '100%', paddingVertical: 11, paddingHorizontal: 14, borderWidth: 0, borderRadius: 10, fontSize: 14, outline: 'none' } as any,
-  dAmountInput: { paddingLeft: 26 } as any,
-  dAmountPrefix: { position: 'absolute', left: 14, top: '50%', fontSize: 14, fontFamily: 'DM Mono' } as any,
+  dAmountInput: { paddingLeft: 26, fontSize: 18, fontWeight: '700', fontFamily: 'DM Mono', letterSpacing: 0.2 } as any,
+  dAmountInputFocus: { fontSize: 18, fontWeight: '700' } as any,
+  dAmountPrefix: { position: 'absolute', left: 14, top: '50%', fontSize: 14, fontWeight: '600', fontFamily: 'DM Mono' } as any,
   dRow: { flexDirection: 'row', gap: 10 } as any,
   dTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 14 } as any,
   dTypeChip: { flex: 1, flexDirection: 'row', paddingVertical: 10, borderRadius: 22, alignItems: 'center', justifyContent: 'center' } as any,
@@ -844,5 +1080,4 @@ const sIR = StyleSheet.create({
 const sBadge = StyleSheet.create({
   vat: {} as any,
   general: {} as any,
-  receipt: {} as any,
 });

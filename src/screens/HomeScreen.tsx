@@ -10,6 +10,7 @@ import ProcurementScreen from './ProcurementScreen';
 import ExpenseScreen from './ExpenseScreen';
 import ReconHistoryScreen from './ReconHistoryScreen';
 import ExpenseHistoryScreen from './ExpenseHistoryScreen';
+import InvoiceScreen from './InvoiceScreen';
 import ExpenseDetailScreen from './ExpenseDetailScreen';
 import DailyRevenueHistory from './DailyRevenueHistory';
 import ProcurementDetailScreen from './ProcurementDetailScreen';
@@ -71,6 +72,7 @@ export default function HomeScreen({
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
+  const [invoiceFilterBatchId, setInvoiceFilterBatchId] = useState<number | null>(null);
   const [expDetailRecord, setExpDetailRecord] = useState<any>(null);
   const [expenseRefreshKey, setExpenseRefreshKey] = useState(0);
   const [userRefreshKey, setUserRefreshKey] = useState(0);
@@ -153,7 +155,7 @@ export default function HomeScreen({
 
   const sd = useServerDate();
   const {
-    pageStack, removing, pdfPreview,
+    pageStack, removing, pdfPreview, setPdfPreview,
     pushPage, popPage, clearStack,
   } = useNavigationStack({
     previewRoute,
@@ -379,7 +381,7 @@ export default function HomeScreen({
           <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => setUserRefreshKey(k => k + 1)} />
         ) : null;
       case 'expense':
-        return <ExpenseHistoryScreen onBack={onBack} refreshKey={expenseRefreshKey} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} />;
+        return <ExpenseHistoryScreen onBack={onBack} refreshKey={expenseRefreshKey} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} />;
       case 'expdetail':
         return expDetailRecord ? (
           <ExpenseDetailScreen
@@ -425,7 +427,7 @@ export default function HomeScreen({
                   `#/preview-pdf?id=${id}&number=${number}`,
                 );
               } catch {}
-              /* setPdfPreview → useNavigationStack */ void({ id, number });
+              setPdfPreview({ id, number });
               pushPage('pdf');
             }}
           />
@@ -441,6 +443,13 @@ export default function HomeScreen({
             batchId={pdfPreview?.id ?? 0}
             batchNumber={pdfPreview?.number ?? 0}
             onBack={onBack}
+          />
+        );
+      case 'invoice':
+        return (
+          <InvoiceScreen
+            onBack={onBack}
+            filterBatchId={invoiceFilterBatchId}
           />
         );
     }
@@ -466,7 +475,7 @@ export default function HomeScreen({
             onClose={popPage}
             stackIndex={idx}
             isTop={isTop}
-            top={p === 'profile' ? 48 : 0}
+            top={p === 'profile' || p === 'invoice' ? 48 : 0}
           >
             {renderSubPage(p)}
           </SlideScreen>
@@ -508,7 +517,7 @@ export default function HomeScreen({
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} />
+          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} />
         ) : (
           <>
             {/* Underlying tab content */}

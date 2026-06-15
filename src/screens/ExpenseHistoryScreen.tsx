@@ -54,7 +54,7 @@ function IcnSealExp({ color, label }: { color: string; label: string }) {
   );
 }
 
-export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void }) {
+export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, onInvoice }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void; onInvoice?: (batchId: number) => void }) {
   const swipeBack = useSwipeBack(onBack);
   const [toast, setToast] = useState('');
   const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
@@ -162,6 +162,17 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail }
             <View style={st.payBadge}>
               <Text style={st.payBadgeText}>{trPay(e.account || '')}</Text>
             </View>
+            {e.procurement_batch_id && e.invoice_status ? (
+              <TouchableOpacity
+                onPress={() => onInvoice?.(e.procurement_batch_id)}
+                activeOpacity={0.7}
+                style={{ paddingHorizontal: 6, paddingVertical: 1, borderRadius: 5, backgroundColor: e.invoice_status === 'done' ? withAlpha(colors.success, 0.12) : withAlpha(colors.warning, 0.12) }}
+              >
+                <Text style={{ fontSize: 10, fontWeight: '600', color: e.invoice_status === 'done' ? colors.success : colors.warning }}>
+                  {e.invoice_status === 'done' ? t('invRecStatusDone') : t('invRecStatusPending')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
           {/* Wrap amount + seal so the seal anchors to the amount text, not the row. */}
           <View style={st.expAmountWrap}>

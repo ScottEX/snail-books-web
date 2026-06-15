@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail' | 'usermgmt' | 'userdetail';
+export type SubPage = 'profile' | 'recon' | 'expense' | 'daily' | 'proc' | 'pdf' | 'expdetail' | 'usermgmt' | 'userdetail' | 'invoice';
 
 interface UseNavigationStackParams {
   /** URL-driven PDF preview route from App.tsx */
@@ -111,6 +111,7 @@ export function useNavigationStack({
     pageStack,
     removing,
     pdfPreview,
+    setPdfPreview,
     pushPage,
     popPage,
     clearStack: () => setPageStack([]),

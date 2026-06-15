@@ -274,7 +274,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const feeHistory = useDisclosure(false);
   const [feeHistoryFilter, setFeeHistoryFilter] = useState<'all' | { year: number; month: number }>('all');
   const feeHistoryFilterPicker = useDisclosure(false);
-  const feeDate = useDateField({ sd, initial: sd.today });
+  const feeDate = useDateField({ sd, initial: '' });
+  // Default to today's date once server date is ready
+  useEffect(() => { if (sd.ready && sd.today) feeDate.setValue(sd.today); }, [sd.ready]);
   const [feeForm, setFeeForm] = useState({
     feeMc: '', feeMw: '', feeEw: '', feeMt: '',
   });

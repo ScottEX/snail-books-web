@@ -79,11 +79,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
 
-  const checkAdmin = async () => {
+  const checkAdmin = async (): Promise<boolean> => {
     try {
       const data = await api.admin.check();
-      setIsAdmin(data.is_admin === true);
-    } catch {}
+      const ok = data.is_admin === true;
+      setIsAdmin(ok);
+      return ok;
+    } catch { setIsAdmin(false); return false; }
   };
 
   const fetchUnreviewedCount = async () => {
@@ -94,7 +96,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   };
 
   const markReviewed = async () => {
-    if (unreviewedCount === 0) return;
+    if (unreviewedCount === 0 || !isAdmin) return;
     setUnreviewedCount(0);
     try {
       await api.admin.markReviewed();
@@ -140,8 +142,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   // loadCover → useCoverCrop.loadCover()
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin(); fetchUnreviewedCount(); }, []);
-  useEffect(() => { fetchUnreviewedCount(); }, [refreshKey]);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin().then(ok => { if (ok) fetchUnreviewedCount(); }); }, []);
+  useEffect(() => { if (isAdmin) fetchUnreviewedCount(); }, [refreshKey]);
 
   const loadUserInfo = async () => {
     try {

@@ -120,6 +120,7 @@ const I18N: Record<string, Record<string, string>> = {
     emailAction: '邮件',
     emailBodyExtra: '（链接 24 小时内有效）',
     emptyExpenseHint: '每完成一次记账，这里就多一条记录',
+    emptyInvoiceHint: '每开一张发票，这里就多一张小卡片',
     emptyReconHint: '每完成一次对账，这里就多一张小卡片',
     enterAmount: '输入金额',
     enterCode: '输入6位验证码',
@@ -216,6 +217,21 @@ const I18N: Record<string, Record<string, string>> = {
     invOptional: '可选',
     invPending: '待处理',
     invReapply: '重新申请',
+    invRecAddTitle: '新增开票记录',
+    invRecConfirmDelete: '确定要删除这条开票记录吗？',
+    invDelConfirmPrefix: '此操作将删除「',
+    invDelConfirmSuffix: '」开票数据，请谨慎操作。',
+    invRecDeleteOk: '已删除',
+    invRecEditTitle: '编辑开票记录',
+    invRecEmpty: '暂无开票记录',
+    invRecInvoiceNo: '发票票号',
+    invRecMarkDone: '标记为已开',
+    invRecSaveOk: '保存成功',
+    invRecStatusDone: '已开票',
+    invRecStatusPending: '待开票',
+    invStatus: '开票状态',
+    invFileUploaded: '已上传发票',
+    invUploadInvoice: '上传发票',
     invReceipt: '收据',
     invReceiveMethod: '收票方式',
     invRecordsTab: '发票记录',
@@ -312,6 +328,7 @@ const I18N: Record<string, Record<string, string>> = {
     pdfGenerating: '进货单PDF生成中…',
     pdfLoadFailed: 'PDF 加载失败',
     pdfLoading: '加载 PDF 中…',
+    pdfPageInfo: '第 {current} 页 / 共 {total} 页',
     pendingPayback: '待回',
     phone: '手机号',
     platformFee: '平台手续费',
@@ -465,6 +482,8 @@ const I18N: Record<string, Record<string, string>> = {
     shareCalcResult: '穿透股权计算结果：',
     shareFailed: '分享失败',
     shareLink: '分享链接',
+    sharePDF: '分享 PDF',
+    shareImage: '分享图片',
     sharePercent: '持股',
     shareTo: '已分享至 {label}',
     shareholders: '位股东',
@@ -508,6 +527,7 @@ const I18N: Record<string, Record<string, string>> = {
     uploadFailed: '上传失败，请重试',
     uploadFailedShort: '上传失败',
     uploadImage: '凭证上传',
+    uploadFileTip: '支持 jpg/png/webp/pdf，单张最大 10MB',
     uploading: '上传中...',
     useThisAvatar: '使用此头像',
     useThisBg: '使用此背景图',
@@ -649,6 +669,7 @@ const I18N: Record<string, Record<string, string>> = {
     emailAction: '郵件',
     emailBodyExtra: '（連結 24 小時內有效）',
     emptyExpenseHint: '每完成一次記賬，這裡就多一條記錄',
+    emptyInvoiceHint: '每開一張發票，這裡就多一張小卡片',
     emptyReconHint: '每完成一次對賬，這裡就多一張小卡片',
     enterAmount: '輸入金額',
     enterCode: '輸入驗證碼',
@@ -745,6 +766,21 @@ const I18N: Record<string, Record<string, string>> = {
     invOptional: '可選',
     invPending: '待處理',
     invReapply: '重新申請',
+    invRecAddTitle: '新增開票記錄',
+    invRecConfirmDelete: '確定要刪除這條開票記錄嗎？',
+    invDelConfirmPrefix: '此操作將刪除「',
+    invDelConfirmSuffix: '」開票數據，請謹慎操作。',
+    invRecDeleteOk: '已刪除',
+    invRecEditTitle: '編輯開票記錄',
+    invRecEmpty: '暫無開票記錄',
+    invRecInvoiceNo: '發票票號',
+    invRecMarkDone: '標記為已開',
+    invRecSaveOk: '保存成功',
+    invRecStatusDone: '已開票',
+    invRecStatusPending: '待開票',
+    invStatus: '開票狀態',
+    invFileUploaded: '已上傳發票',
+    invUploadInvoice: '上傳發票',
     invReceipt: '收據',
     invReceiveMethod: '收票方式',
     invRecordsTab: '發票記錄',
@@ -994,6 +1030,8 @@ const I18N: Record<string, Record<string, string>> = {
     shareCalcResult: '穿透股權計算結果：',
     shareFailed: '分享失敗',
     shareLink: '分享連結',
+    sharePDF: '分享 PDF',
+    shareImage: '分享圖片',
     sharePercent: '持股',
     shareTo: '已分享至 {label}',
     shareholders: '位股東',
@@ -1037,6 +1075,7 @@ const I18N: Record<string, Record<string, string>> = {
     uploadFailed: '上傳失敗，請重試',
     uploadFailedShort: '上傳失敗',
     uploadImage: '憑證上傳',
+    uploadFileTip: '支援 jpg/png/webp/pdf，單張最大 10MB',
     uploading: '上傳中...',
     useThisAvatar: '使用此頭像',
     useThisBg: '使用此背景圖',
@@ -1178,6 +1217,7 @@ const I18N: Record<string, Record<string, string>> = {
     emailAction: 'Email',
     emailBodyExtra: '(link valid for 24h)',
     emptyExpenseHint: 'Each expense record will appear here',
+    emptyInvoiceHint: 'Each invoice record will appear here',
     emptyReconHint: 'Each reconciliation adds a card here',
     enterAmount: 'Enter amount',
     enterCode: 'Enter code',
@@ -1274,6 +1314,21 @@ const I18N: Record<string, Record<string, string>> = {
     invOptional: 'Optional',
     invPending: 'Pending',
     invReapply: 'Reapply',
+    invRecAddTitle: 'New Invoice Record',
+    invRecConfirmDelete: 'Are you sure you want to delete this invoice record?',
+    invDelConfirmPrefix: 'This will delete invoice 「',
+    invDelConfirmSuffix: '」. Proceed with caution.',
+    invRecDeleteOk: 'Deleted',
+    invRecEditTitle: 'Edit Invoice Record',
+    invRecEmpty: 'No invoice records',
+    invRecInvoiceNo: 'Invoice No.',
+    invRecMarkDone: 'Mark as Done',
+    invRecSaveOk: 'Saved',
+    invRecStatusDone: 'Done',
+    invRecStatusPending: 'Pending',
+    invStatus: 'Invoice Status',
+    invFileUploaded: 'Uploaded Invoice',
+    invUploadInvoice: 'Upload Invoice',
     invReceipt: 'Receipt',
     invReceiveMethod: 'Receive Method',
     invRecordsTab: 'Records',
@@ -1523,6 +1578,8 @@ const I18N: Record<string, Record<string, string>> = {
     shareCalcResult: 'Share calculation result:',
     shareFailed: 'Share failed',
     shareLink: 'Share link',
+    sharePDF: 'Share PDF',
+    shareImage: 'Share Image',
     sharePercent: 'Share',
     shareTo: 'Shared to {label}',
     shareholders: 'shareholders',
@@ -1566,6 +1623,7 @@ const I18N: Record<string, Record<string, string>> = {
     uploadFailed: 'Upload failed, please retry',
     uploadFailedShort: 'Upload failed',
     uploadImage: 'Upload Receipt',
+    uploadFileTip: 'Supports jpg/png/webp/pdf, max 10MB per file',
     uploading: 'Uploading...',
     useThisAvatar: 'Use This Avatar',
     useThisBg: 'Use This Background',
@@ -1709,6 +1767,7 @@ export type I18nKey =
   | 'emailAction'
   | 'emailBodyExtra'
   | 'emptyExpenseHint'
+  | 'emptyInvoiceHint'
   | 'emptyReconHint'
   | 'enterAmount'
   | 'enterCode'
@@ -1805,6 +1864,21 @@ export type I18nKey =
   | 'invOptional'
   | 'invPending'
   | 'invReapply'
+  | 'invRecAddTitle'
+  | 'invRecConfirmDelete'
+  | 'invDelConfirmPrefix'
+  | 'invDelConfirmSuffix'
+  | 'invRecDeleteOk'
+  | 'invRecEditTitle'
+  | 'invRecEmpty'
+  | 'invRecInvoiceNo'
+  | 'invRecMarkDone'
+  | 'invRecSaveOk'
+  | 'invRecStatusDone'
+  | 'invRecStatusPending'
+  | 'invStatus'
+  | 'invFileUploaded'
+  | 'invUploadInvoice'
   | 'invReceipt'
   | 'invReceiveMethod'
   | 'invRecordsTab'
@@ -1901,6 +1975,7 @@ export type I18nKey =
   | 'pdfGenerating'
   | 'pdfLoadFailed'
   | 'pdfLoading'
+  | 'pdfPageInfo'
   | 'pendingPayback'
   | 'phone'
   | 'platformFee'
@@ -2054,6 +2129,8 @@ export type I18nKey =
   | 'shareCalcResult'
   | 'shareFailed'
   | 'shareLink'
+  | 'sharePDF'
+  | 'shareImage'
   | 'sharePercent'
   | 'shareTo'
   | 'shareholders'
@@ -2097,6 +2174,7 @@ export type I18nKey =
   | 'uploadFailed'
   | 'uploadFailedShort'
   | 'uploadImage'
+  | 'uploadFileTip'
   | 'uploading'
   | 'useThisAvatar'
   | 'useThisBg'

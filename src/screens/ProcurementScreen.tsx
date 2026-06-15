@@ -33,7 +33,7 @@ type PayMethod = 'payCash' | 'payWechat' | 'payAlipay';
 
 interface Product { id: number; name: string; spec: string; price: number; supplier: string; note?: string; }
 interface CartItem { product: Product; quantity: number; subtotal: number; }
-interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; thumb_images?: string[]; note: string; items: any[]; settled_at?: string | null; settled_by?: number | null; settled_by_username?: string | null; }
+interface BatchRecord { id: number; batch_number: number; date: string; payment_method: string; category: string; total: number; images: string[]; thumb_images?: string[]; note: string; items: any[]; settled_at?: string | null; settled_by?: number | null; settled_by_username?: string | null; invoice_status?: string | null; }
 interface ProcStats { total_spent: number; total_income: number; batch_count: number; margin_pct: number; }
 
 // ═══════════════════════════════════════════════
@@ -323,7 +323,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════
-export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void }) {
+export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed, onInvoice }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void; onInvoice?: (batchId: number) => void }) {
   const { colors: c } = useTheme();
   const sd = useServerDate();
   const styles = useMemo(() => getStyles(c), [c]);
@@ -570,6 +570,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   }, []);
 
   useEffect(() => { if (orderDateInputRef.current) orderDateInputRef.current.value = orderDate; }, [orderDate]);
+
+  // Preload history count on mount so tab badge shows correct number
+  useEffect(() => { loadPage(1, true); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (subTab !== 'history') return;
@@ -1109,6 +1112,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <Text style={styles.histDate}>{batch.date}</Text>
                     <View style={styles.histActions}>
+                      {batch.invoice_status ? (
+                        <TouchableOpacity
+                          onPress={(e) => { e.stopPropagation?.(); onInvoice?.(batch.id); }}
+                          activeOpacity={0.7}
+                          style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: batch.invoice_status === 'done' ? withAlpha(c.success, 0.12) : withAlpha(c.warning, 0.12) }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '600', color: batch.invoice_status === 'done' ? c.success : c.warning }}>
+                            {batch.invoice_status === 'done' ? t('invRecStatusDone') : t('invRecStatusPending')}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
                       <TouchableOpacity
                         style={styles.histActionBtn}
                         onPress={(e) => { e.stopPropagation?.(); openEditBatch(batch); }}

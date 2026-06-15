@@ -58,6 +58,9 @@ export const EXIT_EASING = 'cubic-bezier(0.55, 0.055, 0.675, 0.19)';
 // ═══════════════════════════════════════════
 export const MODAL_BACKDROP_OPACITY = 0.8;
 
+/** Required indicator (*) color — same across all themes */
+export const REQUIRED_COLOR = '#E84040';
+
 // ─── 方案一：勃艮第红与暖沙白 ───
 const theme1: Theme = {
   id: 'burgundy-warm',
