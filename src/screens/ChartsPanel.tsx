@@ -59,11 +59,27 @@ const fmtY = (v: number) => {
 const ChartTooltip = ({ active, payload, label, monthLabel }: any) => {
   if (!active || !payload?.length) return null;
   const displayLabel = String(label ?? '');
+  // Deduplicate by name — Area+Line combos produce duplicate "利润" entries.
+  // Keep the entry with a valid color (from Line stroke) when available.
+  const seen = new Set<string>();
+  const deduped: any[] = [];
+  for (const p of payload) {
+    if (seen.has(p.name)) continue;
+    seen.add(p.name);
+    deduped.push(p);
+  }
+  // If first entry has no color but a later dup did, swap in the colored one
+  for (let i = 0; i < deduped.length; i++) {
+    if (!deduped[i].color) {
+      const colored = payload.find((q: any) => q.name === deduped[i].name && q.color);
+      if (colored) deduped[i] = colored;
+    }
+  }
   return (
     <View style={tooltipStyles.wrapper}>
       {monthLabel ? <Text style={tooltipStyles.monthLabel}>{monthLabel}</Text> : null}
       <Text style={tooltipStyles.label}>{displayLabel}</Text>
-      {payload.map((p: any, i: number) => (
+      {deduped.map((p: any, i: number) => (
         <Text key={i} style={[tooltipStyles.value, { color: p.color }]}>
           {p.name}: ¥{Number(p.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </Text>
