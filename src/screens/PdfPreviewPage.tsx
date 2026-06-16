@@ -317,14 +317,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   }, [scheduleApply, clamp, applyTransform, flushZoom, startMomentum]);
 
   const doDownload = useCallback(() => {
-    if (!pdfBlobUrl) return;
-    const a = document.createElement('a');
-    a.href = pdfBlobUrl;
-    a.download = `procurement_${batchId}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }, [pdfBlobUrl, batchId]);
+    // Open server URL — address bar shows real URL, not blob:.
+    // User can share from browser → recipient gets a real server link.
+    window.open(pdfUrl, '_blank');
+  }, [pdfUrl]);
 
   const doDownloadImage = useCallback(() => {
     const canvas = document.querySelector('.pv-pdf-wrap canvas') as HTMLCanvasElement;
