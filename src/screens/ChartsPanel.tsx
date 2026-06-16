@@ -56,14 +56,31 @@ const fmtY = (v: number) => {
 };
 
 /** Custom tooltip — dark popup, always looks good */
-const ChartTooltip = ({ active, payload, label }: any) => {
+const ChartTooltip = ({ active, payload, label, monthLabel, accentFallback }: any) => {
   if (!active || !payload?.length) return null;
   const displayLabel = String(label ?? '');
+  // Deduplicate by name — Area+Line combos produce duplicate "利润" entries.
+  // Keep the entry with a valid color (from Line stroke) when available.
+  const seen = new Set<string>();
+  const deduped: any[] = [];
+  for (const p of payload) {
+    if (seen.has(p.name)) continue;
+    seen.add(p.name);
+    deduped.push(p);
+  }
+  // If first entry has no color but a later dup did, swap in the colored one
+  for (let i = 0; i < deduped.length; i++) {
+    if (!deduped[i].color) {
+      const colored = payload.find((q: any) => q.name === deduped[i].name && q.color);
+      if (colored) deduped[i] = colored;
+    }
+  }
   return (
     <View style={tooltipStyles.wrapper}>
+      {monthLabel ? <Text style={tooltipStyles.monthLabel}>{monthLabel}</Text> : null}
       <Text style={tooltipStyles.label}>{displayLabel}</Text>
-      {payload.map((p: any, i: number) => (
-        <Text key={i} style={[tooltipStyles.value, { color: p.color }]}>
+      {deduped.map((p: any, i: number) => (
+        <Text key={i} style={[tooltipStyles.value, { color: accentFallback || p.color }]}>
           {p.name}: ¥{Number(p.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </Text>
       ))}
@@ -85,6 +102,12 @@ const tooltipStyles = StyleSheet.create({
     fontSize: 11,
     marginBottom: 4,
     fontWeight: '500',
+  },
+  monthLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
   },
   value: {
     fontSize: 12,
@@ -225,16 +248,16 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
             <ComposedChart data={profitData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={colors.primary} stopOpacity={0.15} />
-                  <stop offset="100%" stopColor={colors.primary} stopOpacity={0} />
+                  <stop offset="0%" stopColor={colors.accent} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={colors.accent} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
               <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
-              <Tooltip content={<ChartTooltip />} />
+              <Tooltip content={<ChartTooltip accentFallback={colors.accent} />} />
               <Area type="monotone" dataKey={profitLabel} stroke="none" fill="url(#profitGrad)" />
-              <Line type="monotone" dataKey={profitLabel} stroke={colors.primary} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.primary }} />
+              <Line type="monotone" dataKey={profitLabel} stroke={colors.accent} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.accent }} />
             </ComposedChart>
           </ResponsiveContainer>
         </View>
@@ -269,7 +292,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
                   <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
                   <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip content={<ChartTooltip monthLabel={monthName(currentMonth)} />} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
                     {donutData.map((d, i) => (
                       <Cell key={i} fill={getCatColor(d.key, isLight, i)} />
@@ -292,7 +315,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
                       <Cell key={i} fill={getCatColor(d.key, isLight, i)} />
                     ))}
                   </Pie>
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip content={<ChartTooltip monthLabel={monthName(currentMonth)} />} />
                 </PieChart>
               )}
             </ResponsiveContainer>
