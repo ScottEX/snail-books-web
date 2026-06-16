@@ -56,11 +56,12 @@ const fmtY = (v: number) => {
 };
 
 /** Custom tooltip — dark popup, always looks good */
-const ChartTooltip = ({ active, payload, label }: any) => {
+const ChartTooltip = ({ active, payload, label, monthLabel }: any) => {
   if (!active || !payload?.length) return null;
   const displayLabel = String(label ?? '');
   return (
     <View style={tooltipStyles.wrapper}>
+      {monthLabel ? <Text style={tooltipStyles.monthLabel}>{monthLabel}</Text> : null}
       <Text style={tooltipStyles.label}>{displayLabel}</Text>
       {payload.map((p: any, i: number) => (
         <Text key={i} style={[tooltipStyles.value, { color: p.color }]}>
@@ -85,6 +86,12 @@ const tooltipStyles = StyleSheet.create({
     fontSize: 11,
     marginBottom: 4,
     fontWeight: '500',
+  },
+  monthLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
   },
   value: {
     fontSize: 12,
@@ -269,7 +276,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
                   <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
                   <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip content={<ChartTooltip monthLabel={monthName(currentMonth)} />} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
                     {donutData.map((d, i) => (
                       <Cell key={i} fill={getCatColor(d.key, isLight, i)} />
@@ -292,7 +299,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
                       <Cell key={i} fill={getCatColor(d.key, isLight, i)} />
                     ))}
                   </Pie>
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip content={<ChartTooltip monthLabel={monthName(currentMonth)} />} />
                 </PieChart>
               )}
             </ResponsiveContainer>
