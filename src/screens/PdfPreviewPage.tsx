@@ -339,8 +339,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         if ((e as DOMException).name === 'AbortError') return;
       }
     }
-    // 3. Last resort: open PDF in new tab
-    window.open(pdfUrl, '_blank');
+    // 3. Last resort: trigger browser download via server URL (not blob!)
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = `procurement_${batchId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }, [batchId, title, pdfUrl]);
 
   const doDownloadImage = useCallback(() => {
