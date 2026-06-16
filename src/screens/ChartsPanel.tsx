@@ -80,7 +80,7 @@ const ChartTooltip = ({ active, payload, label, monthLabel, accentFallback }: an
       {monthLabel ? <Text style={tooltipStyles.monthLabel}>{monthLabel}</Text> : null}
       <Text style={tooltipStyles.label}>{displayLabel}</Text>
       {deduped.map((p: any, i: number) => (
-        <Text key={i} style={[tooltipStyles.value, { color: p.color || accentFallback }]}>
+        <Text key={i} style={[tooltipStyles.value, { color: accentFallback || p.color }]}>
           {p.name}: ¥{Number(p.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </Text>
       ))}
