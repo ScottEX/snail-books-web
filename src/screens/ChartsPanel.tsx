@@ -58,8 +58,7 @@ const fmtY = (v: number) => {
 /** Custom tooltip — dark popup, always looks good */
 const ChartTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
-  const labelStr = String(label ?? '');
-  const displayLabel = labelStr.includes('月') ? labelStr : labelStr + '月';
+  const displayLabel = String(label ?? '');
   return (
     <View style={tooltipStyles.wrapper}>
       <Text style={tooltipStyles.label}>{displayLabel}</Text>
@@ -133,8 +132,11 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
   const expenseLabel = t('expense');
   const profitLabel = t('profit');
 
+  // Month name helper (1-indexed)
+  const monthName = (n: number) => t(('month' + n) as any) || String(n);
+
   const lineData = months.map((m, i) => ({
-    month: m.slice(5),
+    month: monthName(parseInt(m.slice(5), 10)),
     [incomeLabel]: income[i],
     [expenseLabel]: expense[i],
   }));
@@ -149,7 +151,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
     : [];
 
   const profitData = months.map((m, i) => ({
-    month: m.slice(5),
+    month: monthName(parseInt(m.slice(5), 10)),
     [profitLabel]: profit[i],
   }));
 
@@ -242,7 +244,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
       {donutData.length > 0 && (
         <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
           <View style={chartStyles.titleRow}>
-            <Text style={[chartStyles.title, { marginBottom: 0 }]}>{currentMonth + t('expenseBreakdownOfMonth')}</Text>
+            <Text style={[chartStyles.title, { marginBottom: 0 }]}>{monthName(currentMonth) + t('expenseBreakdownOfMonth')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={{ color: tickColor, fontSize: 10 }}>{t('chartSwitchHint')}</Text>
               <TouchableOpacity

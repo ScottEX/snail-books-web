@@ -299,6 +299,18 @@ const I18N: Record<string, Record<string, string>> = {
     monthUnit: '月',
     monthlyProfit: '月度利润',
     monthlyTrend: '月度收支趋势',
+    month1: '1月',
+    month2: '2月',
+    month3: '3月',
+    month4: '4月',
+    month5: '5月',
+    month6: '6月',
+    month7: '7月',
+    month8: '8月',
+    month9: '9月',
+    month10: '10月',
+    month11: '11月',
+    month12: '12月',
     nameJiang: '江宽',
     nameLan: '蓝柳富',
     nameZhang: '张安武',
@@ -849,6 +861,18 @@ const I18N: Record<string, Record<string, string>> = {
     monthUnit: '月',
     monthlyProfit: '月度利潤',
     monthlyTrend: '月度收支趨勢',
+    month1: '1月',
+    month2: '2月',
+    month3: '3月',
+    month4: '4月',
+    month5: '5月',
+    month6: '6月',
+    month7: '7月',
+    month8: '8月',
+    month9: '9月',
+    month10: '10月',
+    month11: '11月',
+    month12: '12月',
     nameJiang: '江寬',
     nameLan: '藍柳富',
     nameZhang: '張安武',
@@ -1398,6 +1422,18 @@ const I18N: Record<string, Record<string, string>> = {
     monthUnit: 'mo',
     monthlyProfit: 'Monthly Profit',
     monthlyTrend: 'Monthly Trend',
+    month1: 'Jan',
+    month2: 'Feb',
+    month3: 'Mar',
+    month4: 'Apr',
+    month5: 'May',
+    month6: 'Jun',
+    month7: 'Jul',
+    month8: 'Aug',
+    month9: 'Sep',
+    month10: 'Oct',
+    month11: 'Nov',
+    month12: 'Dec',
     nameJiang: 'Jiang Kuan',
     nameLan: 'Lan Liufu',
     nameZhang: 'Zhang Anwu',
@@ -1949,6 +1985,18 @@ export type I18nKey =
   | 'monthUnit'
   | 'monthlyProfit'
   | 'monthlyTrend'
+  | 'month1'
+  | 'month2'
+  | 'month3'
+  | 'month4'
+  | 'month5'
+  | 'month6'
+  | 'month7'
+  | 'month8'
+  | 'month9'
+  | 'month10'
+  | 'month11'
+  | 'month12'
   | 'nameJiang'
   | 'nameLan'
   | 'nameZhang'

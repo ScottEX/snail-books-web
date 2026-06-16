@@ -99,12 +99,12 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
       >
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {[
-            { label: t('revQuickToday'), d: td },
-            { label: t('revQuickYesterday'), d: yesterdayDateStr() },
-            { label: t('revQuickDB4'), d: dayBeforeDateStr() },
+            { key: 'today', label: t('revQuickToday'), d: td },
+            { key: 'yesterday', label: t('revQuickYesterday'), d: yesterdayDateStr() },
+            { key: 'db4', label: t('revQuickDB4'), d: dayBeforeDateStr() },
           ].map((pill) => (
             <TouchableOpacity
-              key={pill.d}
+              key={pill.key}
               onPress={() => pickDate(pill.d)}
               activeOpacity={0.7}
               style={{
