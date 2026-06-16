@@ -71,12 +71,10 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     // do NOT redirect here so the user actually sees the modal.
     if (kickCode === 'session_kicked') {
       _emitSessionKicked();
-    } else if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-      // Use replaceState instead of location.replace to avoid full page reload
-      // (which would re-show the splash screen). App.tsx's 'app:user-change'
-      // listener already flips page to 'login' without a reload.
-      history.replaceState(null, '', '/login');
     }
+    // Note: no page redirect here. App.tsx's 'app:user-change' listener
+    // already switches page to 'login' and bumps appKey to remount
+    // ThemeProvider — no full page reload needed.
     return Promise.reject(new Error(kickMsg || 'Unauthorized'));
   }
   if (resp.status === 403) {
@@ -84,7 +82,6 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     localStorage.removeItem('user');
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('app:user-change'));
-      if (window.location.pathname !== '/login') history.replaceState(null, '', '/login');
     }
     return Promise.reject(new Error('Account disabled'));
   }
@@ -193,8 +190,8 @@ export const api = {
     });
     if (resp.status === 401 || resp.status === 403) {
       localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') {
-        history.replaceState(null, '', '/login');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('app:user-change'));
       }
       throw new Error('Unauthorized');
     }
