@@ -101,7 +101,7 @@ const theme2: Theme = {
   colors: {
     bg: '#F3F4F6',
     surface: '#FFFFFF',
-    primary: '#171A1F',
+    primary: '#C5A880',
     accent: '#C5A880',
     secondary: '#E5E7EB',
     textMain: '#111827',
