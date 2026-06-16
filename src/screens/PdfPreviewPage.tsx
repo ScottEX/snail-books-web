@@ -328,25 +328,17 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         return;
       } catch (e) {
         if ((e as DOMException).name === 'AbortError') return;
+        // any other error → fall through to download
       }
     }
-    // 2. Fallback: share server URL (not blob!) → recipient clicks to download
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, url: window.location.origin + pdfUrl });
-        return;
-      } catch (e) {
-        if ((e as DOMException).name === 'AbortError') return;
-      }
-    }
-    // 3. Last resort: blob URL download — forces download (not inline preview)
+    // 2. Fallback: force browser download via blob URL → user shares the downloaded file
     const a = document.createElement('a');
     a.href = pdfBlobUrl;
     a.download = `procurement_${batchId}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [batchId, title, pdfUrl, pdfBlobUrl]);
+  }, [batchId, title, pdfBlobUrl]);
 
   const doDownloadImage = useCallback(() => {
     const canvas = document.querySelector('.pv-pdf-wrap canvas') as HTMLCanvasElement;
