@@ -56,7 +56,7 @@ const fmtY = (v: number) => {
 };
 
 /** Custom tooltip — dark popup, always looks good */
-const ChartTooltip = ({ active, payload, label, monthLabel }: any) => {
+const ChartTooltip = ({ active, payload, label, monthLabel, accentFallback }: any) => {
   if (!active || !payload?.length) return null;
   const displayLabel = String(label ?? '');
   // Deduplicate by name — Area+Line combos produce duplicate "利润" entries.
@@ -80,7 +80,7 @@ const ChartTooltip = ({ active, payload, label, monthLabel }: any) => {
       {monthLabel ? <Text style={tooltipStyles.monthLabel}>{monthLabel}</Text> : null}
       <Text style={tooltipStyles.label}>{displayLabel}</Text>
       {deduped.map((p: any, i: number) => (
-        <Text key={i} style={[tooltipStyles.value, { color: p.color }]}>
+        <Text key={i} style={[tooltipStyles.value, { color: p.color || accentFallback }]}>
           {p.name}: ¥{Number(p.value).toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </Text>
       ))}
@@ -255,7 +255,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
               <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
-              <Tooltip content={<ChartTooltip />} />
+              <Tooltip content={<ChartTooltip accentFallback={colors.accent} />} />
               <Area type="monotone" dataKey={profitLabel} stroke="none" fill="url(#profitGrad)" />
               <Line type="monotone" dataKey={profitLabel} stroke={colors.accent} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.accent }} />
             </ComposedChart>
