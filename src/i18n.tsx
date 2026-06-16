@@ -150,7 +150,7 @@ const I18N: Record<string, Record<string, string>> = {
     expUpdated: '支出已更新',
     expense: '支出',
     expenseBreakdown: '支出分类占比',
-    expenseBreakdownOfMonth: '月支出分类占比',
+    expenseBreakdownOfMonth: '支出分类占比',
     expenseCategory: '支出分类',
     expenseDate: '支出日期',
     expenseHistory: '支出记录',
@@ -712,7 +712,7 @@ const I18N: Record<string, Record<string, string>> = {
     expUpdated: '支出已更新',
     expense: '支出',
     expenseBreakdown: '支出分類佔比',
-    expenseBreakdownOfMonth: '月支出分類佔比',
+    expenseBreakdownOfMonth: '支出分類佔比',
     expenseCategory: '支出分類',
     expenseDate: '支出日期',
     expenseHistory: '支出記錄',
@@ -2282,7 +2282,9 @@ const LangContext = createContext<LangContextValue>({
 export function LangProvider({ children }: { children: React.ReactNode }): React.ReactNode {
   const [lang, setLangState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
+      const cur = (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
+      (window as any).curLang = cur; // 同步给 t()/getLang() 使用
+      return cur;
     }
     return 'zh-CN';
   });
