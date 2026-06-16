@@ -339,14 +339,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         if ((e as DOMException).name === 'AbortError') return;
       }
     }
-    // 3. Last resort: trigger browser download via server URL (not blob!)
+    // 3. Last resort: blob URL download — forces download (not inline preview)
     const a = document.createElement('a');
-    a.href = pdfUrl;
+    a.href = pdfBlobUrl;
     a.download = `procurement_${batchId}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [batchId, title, pdfUrl]);
+  }, [batchId, title, pdfUrl, pdfBlobUrl]);
 
   const doDownloadImage = useCallback(() => {
     const canvas = document.querySelector('.pv-pdf-wrap canvas') as HTMLCanvasElement;
