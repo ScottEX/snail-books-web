@@ -72,7 +72,10 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     if (kickCode === 'session_kicked') {
       _emitSessionKicked();
     } else if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-      window.location.replace('/login');
+      // Use replaceState instead of location.replace to avoid full page reload
+      // (which would re-show the splash screen). App.tsx's 'app:user-change'
+      // listener already flips page to 'login' without a reload.
+      history.replaceState(null, '', '/login');
     }
     return Promise.reject(new Error(kickMsg || 'Unauthorized'));
   }
@@ -81,7 +84,7 @@ async function authFetch<T = any>(url: string, options?: RequestInit): Promise<T
     localStorage.removeItem('user');
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('app:user-change'));
-      if (window.location.pathname !== '/login') window.location.replace('/login');
+      if (window.location.pathname !== '/login') history.replaceState(null, '', '/login');
     }
     return Promise.reject(new Error('Account disabled'));
   }
@@ -191,7 +194,7 @@ export const api = {
     if (resp.status === 401 || resp.status === 403) {
       localStorage.removeItem('user');
       if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+        history.replaceState(null, '', '/login');
       }
       throw new Error('Unauthorized');
     }
