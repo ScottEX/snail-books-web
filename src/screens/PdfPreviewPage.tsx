@@ -340,14 +340,30 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     document.body.removeChild(a);
   }, [batchId, title]);
 
-  const doDownloadImage = useCallback(() => {
+  const doDownloadImage = useCallback(async () => {
     const canvas = document.querySelector('.pv-pdf-wrap canvas') as HTMLCanvasElement;
     if (!canvas) return;
+    const dataUrl = canvas.toDataURL('image/png');
+    const resp = await fetch(dataUrl);
+    const blob = await resp.blob();
+    const file = new File([blob], `procurement_${batchId}.png`, { type: 'image/png' });
+    // 1. Try real file sharing
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title });
+        return;
+      } catch (e) {
+        if ((e as DOMException).name === 'AbortError') return;
+      }
+    }
+    // 2. Fallback: download
     const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
+    a.href = dataUrl;
     a.download = `procurement_${batchId}.png`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  }, [batchId]);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, [batchId, title]);
 
   const stepZoom = useCallback((delta: number) => {
     const g = gRef.current;
