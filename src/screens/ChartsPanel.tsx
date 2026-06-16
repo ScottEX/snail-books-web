@@ -248,8 +248,8 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
             <ComposedChart data={profitData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={colors.primary} stopOpacity={0.15} />
-                  <stop offset="100%" stopColor={colors.primary} stopOpacity={0} />
+                  <stop offset="0%" stopColor={colors.accent} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={colors.accent} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
@@ -257,7 +257,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
               <Tooltip content={<ChartTooltip />} />
               <Area type="monotone" dataKey={profitLabel} stroke="none" fill="url(#profitGrad)" />
-              <Line type="monotone" dataKey={profitLabel} stroke={colors.primary} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.primary }} />
+              <Line type="monotone" dataKey={profitLabel} stroke={colors.accent} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.accent }} />
             </ComposedChart>
           </ResponsiveContainer>
         </View>
