@@ -76,7 +76,7 @@ const theme1: Theme = {
     bg: '#F9F7F4',
     surface: '#FFFFFF',
     primary: '#7D2329',
-    accent: '#7D2329',
+    accent: '#EAE5E0',  // 暖沙白
     secondary: '#EAE5E0',
     textMain: '#2C2626',
     textSub: '#8C8583',
@@ -102,7 +102,7 @@ const theme2: Theme = {
     bg: '#F3F4F6',
     surface: '#FFFFFF',
     primary: '#C5A880',
-    accent: '#C5A880',
+    accent: '#171A1F',  // 曜石黑
     secondary: '#E5E7EB',
     textMain: '#111827',
     textSub: '#6B7280',
@@ -128,7 +128,7 @@ const theme3: Theme = {
     bg: '#F4F5F4',
     surface: '#FFFFFF',
     primary: '#2A4B4B',
-    accent: '#2A4B4B',
+    accent: '#D4C5B2',  // 燕麦色
     secondary: '#E1E5E4',
     textMain: '#1B2626',
     textSub: '#738080',
