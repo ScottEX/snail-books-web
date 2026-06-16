@@ -321,6 +321,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     const blob = pdfBlobRef.current;
     if (!blob) return;
     const file = new File([blob], `procurement_${batchId}.pdf`, { type: 'application/pdf' });
+    // 1. Best: share actual file bytes → WeChat gets real PDF attachment
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({ files: [file], title });
@@ -329,6 +330,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         if ((e as DOMException).name === 'AbortError') return;
       }
     }
+    // 2. Fallback: share server URL (not blob!) → recipient clicks to download
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url: window.location.origin + pdfUrl });
+        return;
+      } catch (e) {
+        if ((e as DOMException).name === 'AbortError') return;
+      }
+    }
+    // 3. Last resort: open PDF in new tab
     window.open(pdfUrl, '_blank');
   }, [batchId, title, pdfUrl]);
 
