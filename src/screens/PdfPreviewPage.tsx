@@ -74,6 +74,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
   const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
+  const pdfBlobRef = useRef<Blob | null>(null);
   const [pdfError, setPdfError] = useState('');
   const [zoomVis, setZoomVis] = useState(false);
   const [zoomPct, setZoomPct] = useState(100);
@@ -102,7 +103,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const blob = await res.blob();
         if (blob.size === 0) throw new Error('Empty PDF (0 bytes)');
-        if (!cancelled) setPdfBlobUrl(URL.createObjectURL(blob));
+        if (!cancelled) { setPdfBlobUrl(URL.createObjectURL(blob)); pdfBlobRef.current = blob; }
       } catch (e: any) {
         if (!cancelled) { setPdfError(e?.message || String(e)); setPdfLoading(false); }
       }
@@ -316,12 +317,28 @@ export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) 
     };
   }, [scheduleApply, clamp, applyTransform, flushZoom, startMomentum]);
 
-  const doDownload = useCallback(() => {
-    if (!pdfBlobUrl) return;
+  const doDownload = useCallback(async () => {
+    const blob = pdfBlobRef.current;
+    if (!blob) return;
+    const file = new File([blob], `procurement_${batchId}.pdf`, { type: 'application/pdf' });
+    // 1. Try real file sharing (works on HTTPS, Chrome, Android)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title });
+        return;
+      } catch (e) {
+        if ((e as DOMException).name === 'AbortError') return;
+      }
+    }
+    // 2. Fallback: octet-stream blob forces Safari to download (not preview)
+    const dlBlob = new Blob([blob], { type: 'application/octet-stream' });
     const a = document.createElement('a');
-    a.href = pdfBlobUrl; a.download = `procurement_${batchId}.pdf`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  }, [pdfBlobUrl, batchId]);
+    a.href = URL.createObjectURL(dlBlob);
+    a.download = `procurement_${batchId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, [batchId, title]);
 
   const doDownloadImage = useCallback(() => {
     const canvas = document.querySelector('.pv-pdf-wrap canvas') as HTMLCanvasElement;
