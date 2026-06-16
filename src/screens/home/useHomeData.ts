@@ -90,6 +90,12 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
       setChartExpenses(all);
     } catch { /* silent */ }
   };
+  const loadBusinessSummary = async () => {
+    try {
+      const data: any = await api.getBusinessSummary();
+      setBusinessSummary(data || {});
+    } catch { /* silent */ }
+  };
   const loadDailyRevenues = async () => {
     try {
       const todayStr = new Date().toISOString().slice(0, 10);
@@ -103,15 +109,13 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   };
 
   useEffect(() => {
-    if (tab === 'chart') { loadChart(); loadChartMonthly(); loadChartExpenses(); loadDailyRevenues(); }
+    if (tab === 'chart') { loadChart(); loadChartMonthly(); loadChartExpenses(); loadDailyRevenues(); loadBusinessSummary(); }
     if (tab === 'supply') { loadProducts(); }
   }, [tab]);
 
   // ── Business summary + derived expense/revenue data ──
   useEffect(() => {
-    api.getBusinessSummary().then((data: any) => {
-      setBusinessSummary(data || {});
-    }).catch(() => {});
+    loadBusinessSummary();
     loadChartExpenses();
     loadDailyRevenues();
   }, []);

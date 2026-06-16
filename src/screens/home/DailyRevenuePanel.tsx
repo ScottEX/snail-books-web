@@ -248,6 +248,8 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
             setRevMarkedClosed(next);
             if (next && !revNote.trim()) {
               setRevNote(t('revClosedReason'));
+            } else if (!next && revNote.trim() === t('revClosedReason')) {
+              setRevNote('');
             }
           }}
           activeOpacity={0.7}

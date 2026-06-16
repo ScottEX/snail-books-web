@@ -154,7 +154,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
           }} />
         </Animated.View>
         <Animated.View style={{
-          position: 'fixed' as any, top: 108, left: 12, right: 12, zIndex: 9999,
+          position: 'fixed' as any, top: 100, left: 12, right: 12, zIndex: 9999,
           opacity: filterAnim,
           transform: [
             { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
