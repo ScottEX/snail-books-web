@@ -1031,7 +1031,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                             <TextInput
                               style={{ width: 70, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain, borderWidth: 1, borderColor: c.primary, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, outline: 'none', backgroundColor: c.surface } as any}
                               value={editPriceVal} onChangeText={(v) => setEditPriceVal(fmtDecInput(v))}
-                              onBlur={() => commitPrice(p.id)} autoFocus keyboardType="numeric"
+                              onBlur={() => commitPrice(p.id)} autoFocus keyboardType="decimal-pad"
                             />
                           ) : (
                             <>
@@ -1269,7 +1269,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   ))
                 )}
               </View>
-              <TextField placeholder={t('procProductPrice')} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="numeric" />
+              <TextField placeholder={t('procProductPrice')} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="decimal-pad" />
               <TextField placeholder={t('procProductNote')} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
               <ButtonPair
                 leftLabel={t('cancel')}
