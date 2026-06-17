@@ -1,4 +1,4 @@
-# 蓝姐螺蛳粉 (snail-books-web)
+# 柳味探秘 (snail-books-web)
 
 React Native (Expo) Web 前端，记账 & 营收管理。
 

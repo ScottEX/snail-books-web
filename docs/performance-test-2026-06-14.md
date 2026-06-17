@@ -119,14 +119,14 @@ $ curl http://8.135.58.90:8601/api/frontend.zip
 | 项 | 结果 |
 |------|------|
 | 页面可访问 | ✅ HTTP 200 |
-| Page Title | "探秘"（**不是 README 写的"蓝姐螺蛳粉"** — 简化版）|
+| Page Title | "探秘"（**不是 README 写的"柳味探秘"** — 简化版）|
 | 登录表单 | ✅ 渲染（用户名/邮箱、密码、登录/注册）|
 | 语言切换器 | ✅ 简/繁/EN |
 | 元素数 | 12 |
 | Performance API | ❌ 浏览器 perf 不可用（返空对象）|
 
 **疑问**：
-- title "探秘" — staging 是否部署的简化版？或 i18n 没拉 README 改的"蓝姐螺蛳粉"？
+- title "探秘" — staging 是否部署的简化版？或 i18n 没拉 README 改的"柳味探秘"？
 - 需要确认是否 staging 代码是 develop 分支的最新版
 
 ---
@@ -152,7 +152,7 @@ $ curl http://8.135.58.90:8601/api/frontend.zip
 
 | # | 问题 | 证据 | 影响 |
 |---|------|------|------|
-| **P2-1** | staging title 显示 "探秘" | 浏览器实测 | i18n 品牌名不一致（README 写的"蓝姐螺蛳粉"） |
+| **P2-1** | staging title 显示 "探秘" | 浏览器实测 | i18n 品牌名不一致（README 写的"柳味探秘"） |
 | **P2-2** | 浏览器 perf API 不可用 | browser_console 返空 | 测试覆盖不全（无法测 LCP/FCP） |
 
 ---
@@ -211,7 +211,7 @@ $ curl http://8.135.58.90:8601/api/frontend.zip
 
 ⚠️ **测试覆盖不全** —— 业务端点延迟只测到 401 拦截（100ms 统一），**未测真实业务延迟**（DB JOIN / 复杂查询）。建议补测用 token。
 
-⚠️ **staging title "探秘" 不是 "蓝姐螺蛳粉"** —— 可能是 i18n 品牌名在 dev/staging 简化了，**也可能 staging 部署的不是 develop 最新版**——需要查 deployment 流水线。
+⚠️ **staging title "探秘" 不是 "柳味探秘"** —— 可能是 i18n 品牌名在 dev/staging 简化了，**也可能 staging 部署的不是 develop 最新版**——需要查 deployment 流水线。
 
 ---
 
