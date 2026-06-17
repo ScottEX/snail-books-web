@@ -255,7 +255,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
               <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
-              <Tooltip content={<ChartTooltip accentFallback={colors.accent} />} />
+              <Tooltip content={<ChartTooltip accentFallback={colors.primary} />} />
               <Area type="monotone" dataKey={profitLabel} stroke="none" fill="url(#profitGrad)" />
               <Line type="monotone" dataKey={profitLabel} stroke={colors.accent} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: colors.accent }} />
             </ComposedChart>
