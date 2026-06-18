@@ -287,6 +287,7 @@ const I18N: Record<string, Record<string, string>> = {
     logoutConfirm: '确定要退出登录吗？',
     lpControl: '有限合伙控股',
     lpStructure: '有限合伙控股结构',
+    manager: '店长',
     markRead: '已读',
     meituan: '美团',
     meituanCashier: '美团收银',
@@ -856,6 +857,7 @@ const I18N: Record<string, Record<string, string>> = {
     logoutConfirm: '確定要登出嗎？',
     lpControl: '有限合夥控股',
     lpStructure: '有限合夥控股結構',
+    manager: '店長',
     markRead: '已讀',
     meituan: '美團',
     meituanCashier: '美團收銀',
@@ -1424,6 +1426,7 @@ const I18N: Record<string, Record<string, string>> = {
     logoutConfirm: 'Are you sure you want to log out?',
     lpControl: 'Limited Partnership Control',
     lpStructure: 'LP Holding Structure',
+    manager: 'Manager',
     markRead: 'Mark Read',
     meituan: 'Meituan',
     meituanCashier: 'Meituan POS',
@@ -1635,6 +1638,7 @@ const I18N: Record<string, Record<string, string>> = {
     sharePDF: 'Share PDF',
     shareImage: 'Share Image',
     sharePercent: 'Share',
+    staff: 'Staff',
     shareTo: 'Shared to {label}',
     shareholders: 'shareholders',
     signaturePlaceholder: 'This person is lazy and left nothing...',
@@ -1994,6 +1998,7 @@ export type I18nKey =
   | 'logoutConfirm'
   | 'lpControl'
   | 'lpStructure'
+  | 'manager'
   | 'markRead'
   | 'meituan'
   | 'meituanCashier'
@@ -2206,6 +2211,7 @@ export type I18nKey =
   | 'sharePDF'
   | 'shareImage'
   | 'sharePercent'
+  | 'staff'
   | 'shareTo'
   | 'shareholders'
   | 'signaturePlaceholder'
