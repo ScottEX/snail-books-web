@@ -590,7 +590,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               return (
                 <TableGroup key={note} title={translateDividendNote(note, items[0].date)} type="dividend" total={total}
                   themeColors={colors} styles={tg}
-                  items={items.map((d: any) => ({ name: translateName(d.partner), sub: '', amount: d.amount }))}
+                  items={items.map((d: any) => ({ name: translateName(d.partner, d.name_pinyin, d.name_tw), sub: '', amount: d.amount }))}
                   onDelete={() => setShowDelete(note)} />
               );
             })}
