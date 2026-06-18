@@ -224,7 +224,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
   const fetchPartnerList = useCallback(async () => {
     try {
-      const data: any = await api.partners.getPartners();
+      const data: any = await api.getPartners();
       setPartnerList(Array.isArray(data) ? data : []);
     } catch {}
   }, []);
