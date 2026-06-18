@@ -499,7 +499,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
           <View style={s.partnerGrid}>
             {partners.map((p: any) => {
               const initInv = p.init_capital || 0;
-              const midInv = p.investment - initInv;
+              const midInv = p.add_amount || 0;
               const pct = p.investment > 0 ? Number((p.total_dividends / p.investment * 100).toFixed(0)) : 0;
               const rem = Math.max(0, p.investment - p.total_dividends);
               const isBack = p.total_dividends >= p.investment;
@@ -576,7 +576,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
             )}
             {(filter === 'all' || filter === 'mid') && (
               <TableGroup title={`${t('additional')} · ${formatDate(partners[0]?.add_date || '2025-01-21')}`} type="mid"
-                total={partners.reduce((s: number, p: any) => s + (p.investment || 0) - (p.init_capital || 0), 0)}
+                total={partners.reduce((s: number, p: any) => s + (p.add_amount || 0), 0)}
                 themeColors={colors} styles={tg}
                 items={partners.map((p: any) => ({
                   name: translateName(p.name),
@@ -712,7 +712,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 </View>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('additional')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{((showDetail.investment || 0) - (showDetail.init_capital || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={ds.cellNumSmall}>¥{(showDetail.add_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
               </View>
               {showDetail.investment > 0 && (
