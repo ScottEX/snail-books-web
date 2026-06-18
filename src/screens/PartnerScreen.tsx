@@ -12,7 +12,7 @@ import SlideScreen from '../components/SlideScreen';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalClose } from '../sharedStyles';
 
 import {
   partnerShare, translateName, translateDividendNote, getRoleKey,
@@ -27,7 +27,6 @@ import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
 import { fmtDecInput } from '../utils/numbers';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useModalClose, modalExitStyle } from '../hooks/useModalClose';
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
@@ -78,9 +77,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [showDetail, setShowDetail] = useState<any>(null);
-  const { exiting: detailExiting, handleClose: handleCloseDetail } = useModalClose(() => setShowDetail(null));
   const [showOrg, setShowOrg] = useState(false);
-  const { exiting: orgExiting, handleClose: handleCloseOrg } = useModalClose(() => setShowOrg(false));
   const [showInvoice, setShowInvoice] = useState(false);
   const [divAmount, setDivAmount] = useState('');
   const [divRoundNum, setDivRoundNum] = useState(0);
@@ -687,15 +684,15 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       />
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
-      {(showDetail || detailExiting) && (
-        <ModalOverlay visible={!!showDetail && !detailExiting} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={handleCloseDetail}>
-          <View style={[mo.modalCard, { maxWidth: 360 }, detailExiting && modalExitStyle as any]} onStartShouldSetResponder={() => true}>
+      {showDetail && (
+        <ModalOverlay visible={!!showDetail} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
+          <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{translateName(showDetail.name, showDetail.name_pinyin, showDetail.name_tw)}</Text>
                 <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(showDetail.name, showDetail.linked_user_role))} · {t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%</Text>
               </View>
-              <TouchableOpacity onPress={handleCloseDetail}>
+              <TouchableOpacity onPress={() => setShowDetail(null)}>
                 <Text style={mo.close}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -766,14 +763,14 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       )}
 
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
-        <ModalOverlay visible={showOrg && !orgExiting} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={handleCloseOrg}>
-          <View style={[mo.modalCard, { maxWidth: 360 }, orgExiting && modalExitStyle as any]} onStartShouldSetResponder={() => true}>
+        <ModalOverlay visible={showOrg} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowOrg(false)}>
+          <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{t('partnerStructure')}</Text>
                 <Text style={mo.sub}>{t('lpControl')}</Text>
               </View>
-              <TouchableOpacity onPress={handleCloseOrg}>
+              <TouchableOpacity onPress={() => setShowOrg(false)}>
                 <Text style={mo.close}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -1057,7 +1054,7 @@ const getMo = (colors: ThemeColors) => StyleSheet.create({
   modalCard: {
     backgroundColor: colors.surface, borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
-    ...modalCardAnimation,
+
     // @ts-ignore
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
   },

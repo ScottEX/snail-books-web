@@ -23,13 +23,13 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
       slide.setValue(-300);
       fade.setValue(0);
       Animated.parallel([
-        Animated.spring(slide, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
-        Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(slide, { toValue: 0, useNativeDriver: false, bounciness: 4, speed: 14 }),
+        Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: false }),
       ]).start();
     } else if (show) {
       Animated.parallel([
-        Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: true }),
-        Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: false }),
+        Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: false }),
       ]).start(() => setShow(false));
     }
   }, [visible]);

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native
 import { createPortal } from 'react-dom';
 import { useTheme, ThemeColors, withAlpha, FONTS } from '../theme';
 import { t } from '../i18n';
-import { modalCardAnimation } from '../sharedStyles';
+
 import ThemePicker from './ThemePicker';
 import CloseButton from './CloseButton';
 import BgCropModal from './BgCropModal';
@@ -35,7 +35,7 @@ function getStyles(colors: ThemeColors) {
       backgroundColor: colors.surface, borderRadius: 16, width: 340, maxWidth: '90%',
       overflow: 'hidden' as any,
       // @ts-ignore
-      ...modalCardAnimation,
+
     },
     header: {
       backgroundColor: colors.primary,

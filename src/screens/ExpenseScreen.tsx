@@ -14,7 +14,7 @@ import FadeInView from '../components/FadeInView';
 import DateErrorHint from '../components/DateErrorHint';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, uploadReceiptStyles } from '../sharedStyles';
+import { uploadReceiptStyles } from '../sharedStyles';
 import { fmtAmt as fmt, fmtAmtFull } from '../utils/format';
 import { blockNeg, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser } from '../utils/storage';
@@ -1438,7 +1438,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 20, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
-    ...modalCardAnimation,
+
     // @ts-ignore
     boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
   },
@@ -1458,7 +1458,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     display: 'flex', flexDirection: 'column',
     width: '96%', maxWidth: 500,
     // @ts-ignore
-    ...modalCardAnimation,
+
     // @ts-ignore
     boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
   },

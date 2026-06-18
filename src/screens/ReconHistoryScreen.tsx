@@ -11,7 +11,7 @@ import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose, historyHeader } from '../sharedStyles';
+import { modalClose, historyHeader } from '../sharedStyles';
 import { fmtAmtFull } from '../utils/format';
 import DateErrorHint from '../components/DateErrorHint';
 import BackArrow from '../components/icons/BackArrow';
@@ -487,7 +487,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
     // @ts-ignore
-    ...modalCardAnimation,
+
   },
   modalHeader: {
     backgroundColor: colors.primary,
