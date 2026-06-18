@@ -116,6 +116,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [remark, setRemark] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [realName, setRealName] = useState('');
   const [deleteScheduled, setDeleteScheduled] = useState('');
   const [deleteBy, setDeleteBy] = useState('');
   const [showRolePicker, setShowRolePicker] = useState(false);
@@ -135,6 +136,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setRemark(d.remark || '');
       setPhone(d.phone || '');
       setEmail(d.email || '');
+      setRealName(d.real_name || '');
       setDeleteScheduled(d.delete_scheduled || '');
       setDeleteBy(d.delete_by || '');
     } catch {}
@@ -294,6 +296,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                 <Text style={st.infoLabel}>{t('username')}</Text>
                 <Text style={st.infoValue}>{detail.username}</Text>
               </View>
+              <View style={st.divider} />
+              <EditableField label={t('realName')} value={realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} />
               <View style={st.divider} />
               <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} />
               <View style={st.divider} />
