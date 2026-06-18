@@ -77,6 +77,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [showDetail, setShowDetail] = useState<any>(null);
+  const [detailPartner, setDetailPartner] = useState<any>(null);
   const [showOrg, setShowOrg] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [divAmount, setDivAmount] = useState('');
@@ -504,7 +505,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
               const rem = Math.max(0, p.investment - p.total_dividends);
               const isBack = p.total_dividends >= p.investment;
               return (
-                <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => setShowDetail(p)}>
+                <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => { setShowDetail(p); setDetailPartner(p); }}>
                   <View style={s.partnerHeader}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Text style={s.partnerName}>{translateName(p.name, p.name_pinyin, p.name_tw)}</Text>
@@ -685,12 +686,12 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
         <ModalOverlay visible={!!showDetail} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
-          {showDetail && (
+          {detailPartner && (
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
-                <Text style={mo.title}>{translateName(showDetail.name, showDetail.name_pinyin, showDetail.name_tw)}</Text>
-                <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(showDetail.name, showDetail.linked_user_role))} · {t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%</Text>
+                <Text style={mo.title}>{translateName(detailPartner.name, detailPartner.name_pinyin, detailPartner.name_tw)}</Text>
+                <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(detailPartner.name, detailPartner.linked_user_role))} · {t('sharePercent')} {(detailPartner.share * 100).toFixed(0)}%</Text>
               </View>
               <TouchableOpacity onPress={() => setShowDetail(null)}>
                 <Text style={mo.close}>✕</Text>
@@ -700,41 +701,41 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
               <View style={ds.grid}>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('totalInvest')}</Text>
-                  <Text style={ds.cellNum}>¥{(showDetail.investment || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={ds.cellNum}>¥{(detailPartner.investment || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: withAlpha(colors.primary, 0.1) }]}>
                   <Text style={[ds.cellLabel, { color: colors.primary }]}>{t('totalDividends')}</Text>
-                  <Text style={[ds.cellNum, { color: colors.primary, fontSize: FONTS.micro.size }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={[ds.cellNum, { color: colors.primary, fontSize: FONTS.micro.size }]}>¥{(detailPartner.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{(showDetail.init_capital || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={ds.cellNumSmall}>¥{(detailPartner.init_capital || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('additional')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{(showDetail.add_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={ds.cellNumSmall}>¥{(detailPartner.add_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
               </View>
-              {showDetail.investment > 0 && (
+              {detailPartner.investment > 0 && (
                 <View style={ds.progressWrap}>
                   <View style={ds.progressLabel}>
                     <Text style={ds.progressLabelText}>{t('paybackProgress')}</Text>
                     <Text style={[ds.progressLabelText, { fontWeight: '600' }]}>
-                      {t('paybackRate')} {Math.min(100, Math.round((showDetail.total_dividends || 0) / showDetail.investment * 100))}%
+                      {t('paybackRate')} {Math.min(100, Math.round((detailPartner.total_dividends || 0) / detailPartner.investment * 100))}%
                     </Text>
                   </View>
                   <View style={ds.progressBar}>
                     <View style={[ds.progressFill, {
-                      width: `${Math.min(100, ((showDetail.total_dividends || 0) / showDetail.investment * 100))}%` as any,
-                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? colors.success : colors.primary,
+                      width: `${Math.min(100, ((detailPartner.total_dividends || 0) / detailPartner.investment * 100))}%` as any,
+                      backgroundColor: (detailPartner.total_dividends || 0) >= detailPartner.investment ? colors.success : colors.primary,
                     }]} />
                   </View>
                   <View style={{ marginTop: 4 }}>
-                    {(showDetail.total_dividends || 0) >= showDetail.investment ? (
+                    {(detailPartner.total_dividends || 0) >= detailPartner.investment ? (
                       <Text style={{ fontSize: FONTS.micro.size, color: colors.success, fontWeight: FONTS.micro.weight }}>{t('fullyPaidBackDetail')}</Text>
                     ) : (
                       <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>
-                        {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {t('pendingPayback')} ¥{(detailPartner.investment - (detailPartner.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </Text>
                     )}
                   </View>
@@ -744,7 +745,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
               <View>
                 <Text style={ds.historyTitle}>{t('dividendHistory')}</Text>
                 {(() => {
-                  const hist = getPartnerHistory(showDetail.name);
+                  const hist = getPartnerHistory(detailPartner.name);
                   return hist.length > 0 ? (
                     hist.map((h, i) => (
                       <View key={i} style={ds.historyRow}>
