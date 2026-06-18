@@ -2,11 +2,14 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, Te
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
+import { modalCardAnimation, modalClose } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import ModalOverlay from '../components/ModalOverlay';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { getCurrentUserId } from '../utils/storage';
 import { api } from '../api/client';
+import { translateName } from './partner/usePartnerData';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface UserData {
@@ -475,18 +478,21 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }} />
 
       {/* Partner Picker Modal */}
-      {showPartnerPicker && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 100, justifyContent: 'center', alignItems: 'center' }}
-          onStartShouldSetResponder={() => true} onResponderRelease={() => setShowPartnerPicker(false)}>
-          <View style={{ backgroundColor: c.surface, borderRadius: 14, padding: 20, width: 280, maxHeight: 400 }}
-            onStartShouldSetResponder={() => true}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: c.textMain, marginBottom: 12 }}>{t('selectPartner')}</Text>
+      <ModalOverlay visible={showPartnerPicker} overlayStyle={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 }} contentStyle={{ alignItems: 'center', justifyContent: 'center' }} onClose={() => setShowPartnerPicker(false)}>
+        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '100%', overflow: 'hidden', ...modalCardAnimation as any, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' } as any} onStartShouldSetResponder={() => true}>
+          <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: c.surface }}>{t('selectPartner')}</Text>
+            <TouchableOpacity onPress={() => setShowPartnerPicker(false)}>
+              <Text style={{ ...modalClose as any }}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ padding: 16 }}>
             {partnerList.map((p: any) => (
               <TouchableOpacity key={p.id}
                 onPress={() => handleLinkPartner(p.id, p.name)}
                 style={{ paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.08) }}
                 activeOpacity={0.7}>
-                <Text style={{ fontSize: 15, color: c.textMain }}>{p.name}</Text>
+                <Text style={{ fontSize: 15, color: c.textMain }}>{translateName(p.name, p.name_pinyin, p.name_tw)}</Text>
               </TouchableOpacity>
             ))}
             <TouchableOpacity onPress={() => setShowPartnerPicker(false)}
@@ -496,7 +502,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      </ModalOverlay>
     </View>
   );
 }
