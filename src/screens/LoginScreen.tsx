@@ -15,8 +15,13 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [bgUrl, setBgUrl] = useState('');
-  const [bgReady, setBgReady] = useState(false);
+  // Read cached custom background synchronously so it appears instantly
+  const [bgUrl, setBgUrl] = useState(() => {
+    try { return localStorage.getItem('bg-image') || ''; } catch { return ''; }
+  });
+  const [bgReady, setBgReady] = useState(() => {
+    try { return !!localStorage.getItem('bg-image'); } catch { return false; }
+  });
   const [avatarReady, setAvatarReady] = useState(false);
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
@@ -79,8 +84,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   // Fetch avatar & background when username changes (debounced)
   useEffect(() => {
-    if (!username) { setAvatarUrl(''); setBgUrl(''); setBgReady(false); setAvatarReady(false); return; }
-    setBgReady(false); setAvatarReady(false);
+    if (!username) { setAvatarUrl(''); setAvatarReady(false); return; }
+    // Don't reset bgReady — keep cached background visible while API refreshes
+    setAvatarReady(false);
     const timer = setTimeout(async () => {
       try {
         const blob = await api.getUserAvatarByLogin(username);
@@ -104,6 +110,18 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     }, 400);
     return () => clearTimeout(timer);
   }, [username]);
+
+  // Signal splash screen to close once the actual background image is loaded
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!bgReady) return;
+    const bgSrc = bgUrl || '/img/bg.jpg?v=2';
+    const img = document.createElement('img');
+    const done = () => { (window as any).__appReady = true; };
+    img.onload = done;
+    img.onerror = done;
+    img.src = bgSrc;
+  }, [bgReady, bgUrl]);
 
   const validatePassword = (pw: string): string => {
     let ok = true;
@@ -269,8 +287,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   return (
     <View style={styles.container}>
-      {/* Background layers — default always visible, custom fades in on top */}
-      <View style={styles.bgWrapper} />
+      {/* Background layers — default only when no custom bg, custom fades in on top */}
+      {!bgUrl && <View style={styles.bgWrapper} />}
       <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none', filter: bgReady && bgUrl ? 'blur(0)' : 'blur(16px)' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
       <View style={styles.bgOverlay} />
       <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>

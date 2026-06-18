@@ -76,6 +76,7 @@ export default function HomeScreen({
   const [expDetailRecord, setExpDetailRecord] = useState<any>(null);
   const [expenseRefreshKey, setExpenseRefreshKey] = useState(0);
   const [userRefreshKey, setUserRefreshKey] = useState(0);
+  const [partnerRefreshKey, setPartnerRefreshKey] = useState(0);
   // External signal for ProcurementScreen.edit flow. When set, the
   // newly-mounted ProcurementScreen instance (which mounts when
   // popPage flips pageStack empty after the 280ms slide-out) will
@@ -161,7 +162,7 @@ export default function HomeScreen({
     previewRoute,
     onClosePreview,
     onPopProc: () => setProcDetailBatch(null),
-    onPopUserDetail: () => setSelectedUser(null),
+    onPopUserDetail: () => { setSelectedUser(null); setPartnerRefreshKey(k => k + 1); },
   });
   const revForm = useDailyRevenueForm({
     onToast: (msg: string) => setToast(msg),
@@ -228,6 +229,17 @@ export default function HomeScreen({
       }
     }).catch(() => {});
   }, []);
+
+  // Signal splash screen to close once the actual background image is loaded
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!bgReady) return;
+    const img = document.createElement('img');
+    const done = () => { (window as any).__appReady = true; };
+    img.onload = done;
+    img.onerror = done;
+    img.src = `${bgImage}?v=${bgVersion}`;
+  }, [bgReady, bgImage, bgVersion]);
 
 
   // loadChart/loadChartMonthly/loadProducts → useHomeData
@@ -515,7 +527,7 @@ export default function HomeScreen({
       {pageStack.length === 0 && (
       <View style={styles.page}>
         {tab === 'partner' ? (
-          <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} />
+          <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} refreshKey={partnerRefreshKey} />
         ) : tab === 'supply' ? (
           <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} />
         ) : (

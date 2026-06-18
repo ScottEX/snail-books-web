@@ -6,7 +6,7 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
-import { modalCardAnimation } from '../sharedStyles';
+
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
@@ -1085,7 +1085,7 @@ function getMo(colors: ThemeColors) {
     card: {
       backgroundColor: colors.surface, borderRadius: 16,
       width: 340, maxWidth: '90%', overflow: 'hidden' as any,
-      ...modalCardAnimation,
+
     },
     header: {
       backgroundColor: colors.primary,

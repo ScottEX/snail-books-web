@@ -12,7 +12,7 @@ import SlideScreen from '../components/SlideScreen';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
-import { modalCardAnimation, modalClose } from '../sharedStyles';
+import { modalClose } from '../sharedStyles';
 
 import {
   partnerShare, translateName, translateDividendNote, getRoleKey,
@@ -58,7 +58,7 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
 }
 
 
-export default function PartnerScreen({ onBack, onProfile }: { onBack: () => void; onProfile?: () => void }) {
+export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { onBack: () => void; onProfile?: () => void; refreshKey?: number }) {
   const sd = useServerDate();
   const [toast, setToast] = useState('');
   const [cropMsg, setCropMsg] = useState('');
@@ -71,12 +71,13 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
     grouped,
     groupKeys,
     getPartnerHistory,
-  } = usePartnerData(setToast);
+  } = usePartnerData(setToast, refreshKey);
   const [showDividend, setShowDividend] = useState(false);
   const [showDelete, setShowDelete] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [showDetail, setShowDetail] = useState<any>(null);
+  const [detailPartner, setDetailPartner] = useState<any>(null);
   const [showOrg, setShowOrg] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [divAmount, setDivAmount] = useState('');
@@ -497,14 +498,45 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 
           {/* ====== PARTNER CARDS ====== */}
           <View style={s.partnerGrid}>
-            {partners.map((p: any) => {
+            {loadingData ? (
+              [0, 1, 2].map(i => (
+                <View key={i} style={[s.partnerCard, { pointerEvents: 'none' as any }]}>
+                  {/* header skeleton */}
+                  <View style={s.partnerHeader}>
+                    <View style={{ width: '60%', height: 16, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 6 }} />
+                    <View style={{ width: 40, height: 20, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 10 }} />
+                  </View>
+                  {/* data row skeleton */}
+                  <View style={s.partnerDataRow}>
+                    {[0, 1, 2].map(j => (
+                      <View key={j} style={[s.partnerDataCell, { gap: 6 }]}>
+                        <View style={{ width: 36, height: 10, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 4 }} />
+                        <View style={{ width: 52, height: 14, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4 }} />
+                      </View>
+                    ))}
+                  </View>
+                  {/* footer skeleton */}
+                  <View style={s.partnerFooter}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <View style={{ width: 64, height: 12, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 4 }} />
+                      <View style={{ width: 48, height: 12, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4 }} />
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+                      <View style={{ width: 40, height: 12, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 4 }} />
+                      <View style={{ width: 56, height: 12, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 4 }} />
+                    </View>
+                  </View>
+                </View>
+              ))
+            ) : (
+            partners.map((p: any) => {
               const initInv = p.init_capital || 0;
               const midInv = p.add_amount || 0;
               const pct = p.investment > 0 ? Number((p.total_dividends / p.investment * 100).toFixed(0)) : 0;
               const rem = Math.max(0, p.investment - p.total_dividends);
               const isBack = p.total_dividends >= p.investment;
               return (
-                <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => setShowDetail(p)}>
+                <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => { setShowDetail(p); setDetailPartner(p); }}>
                   <View style={s.partnerHeader}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Text style={s.partnerName}>{translateName(p.name, p.name_pinyin, p.name_tw)}</Text>
@@ -544,7 +576,8 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                   </View>
                 </TouchableOpacity>
               );
-            })}
+            })
+            )}
           </View>
 
           {/* ====== CAPITAL LEDGER ====== */}
@@ -590,7 +623,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               return (
                 <TableGroup key={note} title={translateDividendNote(note, items[0].date)} type="dividend" total={total}
                   themeColors={colors} styles={tg}
-                  items={items.map((d: any) => ({ name: translateName(d.partner), sub: '', amount: d.amount }))}
+                  items={items.map((d: any) => ({ name: translateName(d.partner, d.name_pinyin, d.name_tw), sub: '', amount: d.amount }))}
                   onDelete={() => setShowDelete(note)} />
               );
             })}
@@ -684,13 +717,13 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
       />
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
-      {showDetail && (
         <ModalOverlay visible={!!showDetail} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
+          {detailPartner && (
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
-                <Text style={mo.title}>{translateName(showDetail.name, showDetail.name_pinyin, showDetail.name_tw)}</Text>
-                <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(showDetail.name))} · {t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%</Text>
+                <Text style={mo.title}>{translateName(detailPartner.name, detailPartner.name_pinyin, detailPartner.name_tw)}</Text>
+                <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(detailPartner.name, detailPartner.linked_user_role))} · {t('sharePercent')} {(detailPartner.share * 100).toFixed(0)}%</Text>
               </View>
               <TouchableOpacity onPress={() => setShowDetail(null)}>
                 <Text style={mo.close}>✕</Text>
@@ -700,41 +733,41 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               <View style={ds.grid}>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('totalInvest')}</Text>
-                  <Text style={ds.cellNum}>¥{(showDetail.investment || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={ds.cellNum}>¥{(detailPartner.investment || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: withAlpha(colors.primary, 0.1) }]}>
                   <Text style={[ds.cellLabel, { color: colors.primary }]}>{t('totalDividends')}</Text>
-                  <Text style={[ds.cellNum, { color: colors.primary, fontSize: FONTS.micro.size }]}>¥{(showDetail.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={[ds.cellNum, { color: colors.primary, fontSize: FONTS.micro.size }]}>¥{(detailPartner.total_dividends || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{(showDetail.init_capital || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={ds.cellNumSmall}>¥{(detailPartner.init_capital || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('additional')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{(showDetail.add_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={ds.cellNumSmall}>¥{(detailPartner.add_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
               </View>
-              {showDetail.investment > 0 && (
+              {detailPartner.investment > 0 && (
                 <View style={ds.progressWrap}>
                   <View style={ds.progressLabel}>
                     <Text style={ds.progressLabelText}>{t('paybackProgress')}</Text>
                     <Text style={[ds.progressLabelText, { fontWeight: '600' }]}>
-                      {t('paybackRate')} {Math.min(100, Math.round((showDetail.total_dividends || 0) / showDetail.investment * 100))}%
+                      {t('paybackRate')} {Math.min(100, Math.round((detailPartner.total_dividends || 0) / detailPartner.investment * 100))}%
                     </Text>
                   </View>
                   <View style={ds.progressBar}>
                     <View style={[ds.progressFill, {
-                      width: `${Math.min(100, ((showDetail.total_dividends || 0) / showDetail.investment * 100))}%` as any,
-                      backgroundColor: (showDetail.total_dividends || 0) >= showDetail.investment ? colors.success : colors.primary,
+                      width: `${Math.min(100, ((detailPartner.total_dividends || 0) / detailPartner.investment * 100))}%` as any,
+                      backgroundColor: (detailPartner.total_dividends || 0) >= detailPartner.investment ? colors.success : colors.primary,
                     }]} />
                   </View>
                   <View style={{ marginTop: 4 }}>
-                    {(showDetail.total_dividends || 0) >= showDetail.investment ? (
+                    {(detailPartner.total_dividends || 0) >= detailPartner.investment ? (
                       <Text style={{ fontSize: FONTS.micro.size, color: colors.success, fontWeight: FONTS.micro.weight }}>{t('fullyPaidBackDetail')}</Text>
                     ) : (
                       <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>
-                        {t('pendingPayback')} ¥{(showDetail.investment - (showDetail.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {t('pendingPayback')} ¥{(detailPartner.investment - (detailPartner.total_dividends || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </Text>
                     )}
                   </View>
@@ -744,7 +777,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               <View>
                 <Text style={ds.historyTitle}>{t('dividendHistory')}</Text>
                 {(() => {
-                  const hist = getPartnerHistory(showDetail.name);
+                  const hist = getPartnerHistory(detailPartner.name);
                   return hist.length > 0 ? (
                     hist.map((h, i) => (
                       <View key={i} style={ds.historyRow}>
@@ -759,8 +792,8 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               </View>
             </View>
           </View>
+          )}
         </ModalOverlay>
-      )}
 
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
         <ModalOverlay visible={showOrg} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowOrg(false)}>
@@ -768,26 +801,26 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{t('partnerStructure')}</Text>
-                <Text style={mo.sub}>{t('lpControl')}</Text>
+                <Text style={[mo.sub, { color: colors.textSub }]}>{t('lpControl')}</Text>
               </View>
               <TouchableOpacity onPress={() => setShowOrg(false)}>
                 <Text style={mo.close}>✕</Text>
               </TouchableOpacity>
             </View>
             <View style={org.body}>
-              {[
-                { name: t('nameZhang'), role: t('chairman'), pct: '34%', isChairman: true },
-                { name: t('nameJiang'), role: t('ceo'), pct: '33%', isChairman: false },
-                { name: t('nameLan'), role: t('janitor'), pct: '33%', isChairman: false },
-              ].map(({ name, role, pct, isChairman }, i) => (
-                <View key={name} style={{ alignItems: 'center', width: '100%' }}>
+              {partners.map((p: any, i: number) => {
+                const roleKey = getRoleKey(p.name, p.linked_user_role);
+                const isChairman = roleKey === 'chairman';
+                return (
+                <View key={p.id} style={{ alignItems: 'center', width: '100%' }}>
                   {i > 0 && <View style={org.line} />}
                   <View style={org.node}>
-                    <Text style={[org.nodeName, isChairman && { color: colors.primary }]}>{name}</Text>
-                    <Text style={org.nodeRole}>{role} · {pct}</Text>
+                    <Text style={[org.nodeName, isChairman && { color: colors.primary }]}>{translateName(p.name, p.name_pinyin, p.name_tw)}</Text>
+                    <Text style={org.nodeRole}>{t(roleKey)} · {(p.share * 100).toFixed(0)}%</Text>
                   </View>
                 </View>
-              ))}
+                );
+              })}
               <Text style={org.joke}>{t('jokeClosedLoop')}</Text>
             </View>
           </View>
@@ -1054,7 +1087,7 @@ const getMo = (colors: ThemeColors) => StyleSheet.create({
   modalCard: {
     backgroundColor: colors.surface, borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
-    ...modalCardAnimation,
+
     // @ts-ignore
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
   },

@@ -49,7 +49,6 @@ INJECT_CSS = '''
     @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
     .fade-in { animation: fadeIn .4s ease; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes modalIn { from{opacity:0;transform:translateY(-300px)} to{opacity:1;transform:translateY(0)} }
 '''
 
 BOOT_JS = r'''<script>(function(){

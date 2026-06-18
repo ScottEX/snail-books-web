@@ -287,6 +287,7 @@ const I18N: Record<string, Record<string, string>> = {
     logoutConfirm: '确定要退出登录吗？',
     lpControl: '有限合伙控股',
     lpStructure: '有限合伙控股结构',
+    manager: '店长',
     markRead: '已读',
     meituan: '美团',
     meituanCashier: '美团收银',
@@ -323,7 +324,7 @@ const I18N: Record<string, Record<string, string>> = {
     noRecords: '暂无记录',
     noUsers: '暂无用户',
     normalStatus: '正常',
-    normalUser: '普通用户',
+    normalUser: '打杂',
     notePlaceholder: '如：葱、香菜、电费',
     oldPassword: '当前密码',
     opacity: '透明度',
@@ -502,6 +503,7 @@ const I18N: Record<string, Record<string, string>> = {
     shareTo: '已分享至 {label}',
     shareholders: '位股东',
     signaturePlaceholder: '这个人很懒，什么都没留下...',
+    staff: '员工',
     ssoDesc: '最多一台设备同时登录',
     ssoLabel: '单设备登录',
     stampPrefixBurgundy: '以此身，阅尽这',
@@ -564,6 +566,12 @@ const I18N: Record<string, Record<string, string>> = {
     verifying: '验证中...',
     wages: '工资',
     willDelete: '将删除「',
+    linkedPartner: '关联合伙人',
+    unlinked: '未关联',
+    linkPartner: '关联',
+    unlinkPartner: '解除关联',
+    confirmUnlinkMsg: '确认解除与 {name} 的关联？',
+    selectPartner: '选择合伙人',
   },
   'zh-TW': {
     accountInfo: '帳號資訊',
@@ -851,6 +859,7 @@ const I18N: Record<string, Record<string, string>> = {
     logoutConfirm: '確定要登出嗎？',
     lpControl: '有限合夥控股',
     lpStructure: '有限合夥控股結構',
+    manager: '店長',
     markRead: '已讀',
     meituan: '美團',
     meituanCashier: '美團收銀',
@@ -887,7 +896,7 @@ const I18N: Record<string, Record<string, string>> = {
     noRecords: '暫無記錄',
     noUsers: '暫無用戶',
     normalStatus: '正常',
-    normalUser: '普通用戶',
+    normalUser: '打雜',
     notePlaceholder: '如：蔥、香菜、電費',
     oldPassword: '當前密碼',
     opacity: '透明度',
@@ -1065,6 +1074,7 @@ const I18N: Record<string, Record<string, string>> = {
     shareTo: '已分享至 {label}',
     shareholders: '位股東',
     signaturePlaceholder: '這個人很懶，什麼都沒留下...',
+    staff: '員工',
     ssoDesc: '最多一台裝置同時登入',
     ssoLabel: '單一裝置登入',
     stampPrefixBurgundy: '以此身，閱盡這',
@@ -1127,6 +1137,12 @@ const I18N: Record<string, Record<string, string>> = {
     verifying: '驗證中...',
     wages: '工資',
     willDelete: '將刪除「',
+    linkedPartner: '關聯合夥人',
+    unlinked: '未關聯',
+    linkPartner: '關聯',
+    unlinkPartner: '解除關聯',
+    confirmUnlinkMsg: '確認解除與 {name} 的關聯？',
+    selectPartner: '選擇合夥人',
   },
   'en': {
     accountInfo: 'Account Info',
@@ -1414,6 +1430,7 @@ const I18N: Record<string, Record<string, string>> = {
     logoutConfirm: 'Are you sure you want to log out?',
     lpControl: 'Limited Partnership Control',
     lpStructure: 'LP Holding Structure',
+    manager: 'Manager',
     markRead: 'Mark Read',
     meituan: 'Meituan',
     meituanCashier: 'Meituan POS',
@@ -1450,7 +1467,7 @@ const I18N: Record<string, Record<string, string>> = {
     noRecords: 'No records yet',
     noUsers: 'No users',
     normalStatus: 'Normal',
-    normalUser: 'User',
+    normalUser: 'Helper',
     notePlaceholder: 'e.g. scallions, cilantro, electricity',
     oldPassword: 'Current Password',
     opacity: 'Opacity',
@@ -1625,6 +1642,7 @@ const I18N: Record<string, Record<string, string>> = {
     sharePDF: 'Share PDF',
     shareImage: 'Share Image',
     sharePercent: 'Share',
+    staff: 'Staff',
     shareTo: 'Shared to {label}',
     shareholders: 'shareholders',
     signaturePlaceholder: 'This person is lazy and left nothing...',
@@ -1690,6 +1708,12 @@ const I18N: Record<string, Record<string, string>> = {
     verifying: 'Verifying...',
     wages: 'Wages',
     willDelete: 'Will delete 「',
+    linkedPartner: 'Linked Partner',
+    unlinked: 'Unlinked',
+    linkPartner: 'Link',
+    unlinkPartner: 'Unlink',
+    confirmUnlinkMsg: 'Confirm unlink from {name}?',
+    selectPartner: 'Select Partner',
   },
 };
 
@@ -1979,6 +2003,7 @@ export type I18nKey =
   | 'logoutConfirm'
   | 'lpControl'
   | 'lpStructure'
+  | 'manager'
   | 'markRead'
   | 'meituan'
   | 'meituanCashier'
@@ -2191,6 +2216,7 @@ export type I18nKey =
   | 'sharePDF'
   | 'shareImage'
   | 'sharePercent'
+  | 'staff'
   | 'shareTo'
   | 'shareholders'
   | 'signaturePlaceholder'
@@ -2256,6 +2282,12 @@ export type I18nKey =
   | 'verifying'
   | 'wages'
   | 'willDelete'
+  | 'linkedPartner'
+  | 'unlinked'
+  | 'linkPartner'
+  | 'unlinkPartner'
+  | 'confirmUnlinkMsg'
+  | 'selectPartner'
 
 type Lang = 'zh-CN' | 'zh-TW' | 'en';
 

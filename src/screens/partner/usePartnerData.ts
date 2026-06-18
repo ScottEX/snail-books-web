@@ -29,12 +29,16 @@ export function translateDividendNote(note: string | null, date?: string): strin
   return note;
 }
 
-export function getRoleKey(name: string): I18nKey {
-  const map: Record<string, I18nKey> = { '张安武': 'chairman', '江宽': 'ceo', '蓝柳富': 'janitor' };
-  return map[name] || 'janitor';
+export function getRoleKey(name: string, linkedRole?: string): I18nKey {
+  if (linkedRole) {
+    const map: Record<string, I18nKey> = { '董事长': 'chairman', 'CEO': 'ceo', '店长': 'manager', '员工': 'staff', '普通用户': 'janitor', '打杂': 'janitor' };
+    return map[linkedRole] || 'janitor';
+  }
+  const nameMap: Record<string, I18nKey> = { '张安武': 'chairman', '江宽': 'ceo', '蓝柳富': 'janitor' };
+  return nameMap[name] || 'janitor';
 }
 
-export function usePartnerData(setToast: (msg: string) => void) {
+export function usePartnerData(setToast: (msg: string) => void, refreshKey = 0) {
   const [partners, setPartners] = useState<any[]>([]);
   const [dividends, setDividends] = useState<any[]>([]);
   const [totalDiv, setTotalDiv] = useState(0);
@@ -52,7 +56,7 @@ export function usePartnerData(setToast: (msg: string) => void) {
     setLoadingData(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [refreshKey]);
 
   const grouped = useMemo(() => {
     const g: Record<string, any[]> = {};

@@ -2,11 +2,14 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, Te
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
+import { modalClose } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import ModalOverlay from '../components/ModalOverlay';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { getCurrentUserId } from '../utils/storage';
 import { api } from '../api/client';
+import { translateName } from './partner/usePartnerData';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface UserData {
@@ -23,6 +26,8 @@ interface UserData {
   signature: string;
   delete_scheduled: string;
   delete_by: string;
+  linked_partner_id: number | null;
+  linked_partner_name: string;
 }
 
 interface Props {
@@ -31,16 +36,16 @@ interface Props {
   onUpdated: () => void;
 }
 
-const ROLES = ['董事长', 'CEO', '店长', '员工', '普通用户'];
+const ROLES = ['董事长', 'CEO', '店长', '员工', '打杂'];
 const ROLE_EN = ['Chairman', 'CEO', 'Manager', 'Staff', 'User'];
-const ROLE_TW = ['董事長', 'CEO', '店長', '員工', '普通用戶'];
+const ROLE_TW = ['董事長', 'CEO', '店長', '員工', '打雜'];
 
 const ROLE_COLORS: Record<string, string> = {
   '董事长': '#C84047',  // 勃艮第红
   'CEO': '#E8953A',     // 琥珀
   '店长': '#3A7CA5',     // 靛蓝
   '员工': '#5B8C5A',     // 橄榄绿
-  '普通用户': '#8C8583', // 灰
+  '打杂': '#8C8583', // 灰
 };
 
 function getRoleLabel(role: string, lang: string): string {
@@ -132,8 +137,15 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [showRolePicker, setShowRolePicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [linkedPartnerId, setLinkedPartnerId] = useState<number | null>(null);
+  const [linkedPartnerName, setLinkedPartnerName] = useState('');
+  const [linkedPartnerNamePinyin, setLinkedPartnerNamePinyin] = useState('');
+  const [linkedPartnerNameTW, setLinkedPartnerNameTW] = useState('');
+  const [showPartnerPicker, setShowPartnerPicker] = useState(false);
+  const [partnerList, setPartnerList] = useState<any[]>([]);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -151,6 +163,10 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setRealNameTW(d.real_name_tw || '');
       setDeleteScheduled(d.delete_scheduled || '');
       setDeleteBy(d.delete_by || '');
+      setLinkedPartnerId(d.linked_partner_id ?? null);
+      setLinkedPartnerName(d.linked_partner_name || '');
+      setLinkedPartnerNamePinyin(d.linked_partner_name_pinyin || '');
+      setLinkedPartnerNameTW(d.linked_partner_name_tw || '');
     } catch {}
     setLoading(false);
   }, [user.id]);
@@ -169,6 +185,12 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         const d = detailResp.data || detailResp;
         setRealNamePinyin(d.real_name_pinyin || '');
         setRealNameTW(d.real_name_tw || '');
+        // sync linked partner name
+        if (d.linked_partner_name) {
+          setLinkedPartnerName(d.linked_partner_name);
+          setLinkedPartnerNamePinyin(d.linked_partner_name_pinyin || '');
+          setLinkedPartnerNameTW(d.linked_partner_name_tw || '');
+        }
       }
       if (field === 'is_disabled') onUpdated();
     } catch {}
@@ -213,6 +235,38 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     } catch {}
     setSaving(false);
   };
+
+  const fetchPartnerList = useCallback(async () => {
+    try {
+      const data: any = await api.getPartners();
+      setPartnerList(Array.isArray(data) ? data : []);
+    } catch {}
+  }, []);
+
+  const handleLinkPartner = useCallback(async (partnerId: number, partnerName: string) => {
+    setShowPartnerPicker(false);
+    setSaving(true);
+    try {
+      await api.admin.updateUser(user.id, { linked_partner_id: partnerId });
+      setLinkedPartnerId(partnerId);
+      setLinkedPartnerName(realName || partnerName);
+      setLinkedPartnerNamePinyin(realNamePinyin || '');
+      setLinkedPartnerNameTW(realNameTW || '');
+    } catch {}
+    setSaving(false);
+  }, [user.id, realName]);
+
+  const handleUnlinkPartner = useCallback(async () => {
+    setSaving(true);
+    try {
+      await api.admin.updateUser(user.id, { linked_partner_id: null });
+      setLinkedPartnerId(null);
+      setLinkedPartnerName('');
+      setLinkedPartnerNamePinyin('');
+      setLinkedPartnerNameTW('');
+    } catch {}
+    setSaving(false);
+  }, [user.id]);
 
   const fmtDate = (d: string) => {
     if (!d) return '—';
@@ -359,6 +413,30 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
           )}
 
+          {/* Linked Partner */}
+          <View style={st.section}>
+            <View style={st.sectionTitleRow}>
+              <Text style={st.sectionTitleText}>{t('linkedPartner')}</Text>
+              <View style={st.sectionTitleLine} />
+            </View>
+            <View style={st.card}>
+              <View style={st.toggleRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={st.toggleLabel}>{linkedPartnerId ? translateName(linkedPartnerName, linkedPartnerNamePinyin, linkedPartnerNameTW) : t('unlinked')}</Text>
+                </View>
+                {linkedPartnerId ? (
+                  <TouchableOpacity onPress={() => setShowUnlinkConfirm(true)} disabled={saving} activeOpacity={0.7}>
+                    <Text style={{ color: c.danger, fontSize: 13, fontWeight: '500' }}>{t('unlinkPartner')}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity onPress={() => { fetchPartnerList(); setShowPartnerPicker(true); }} disabled={saving} activeOpacity={0.7}>
+                    <Text style={{ color: c.primary, fontSize: 13, fontWeight: '500' }}>{t('linkPartner')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </View>
+
           {/* Other Info */}
           <View style={st.section}>
             <View style={st.sectionTitleRow}>
@@ -370,8 +448,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
                 <Text style={st.infoLabel}>{t('role')}</Text>
                 <TouchableOpacity onPress={() => setShowRolePicker(!showRolePicker)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <View style={[st.roleBadge, { backgroundColor: withAlpha(getRoleColor(role || '普通用户'), 0.1) }]}>
-                    <Text style={[st.infoValue, { color: getRoleColor(role || '普通用户') }]}>{getRoleLabel(role, lang)}</Text>
+                  <View style={[st.roleBadge, { backgroundColor: withAlpha(getRoleColor(role || '打杂'), 0.1) }]}>
+                    <Text style={[st.infoValue, { color: getRoleColor(role || '打杂') }]}>{getRoleLabel(role, lang)}</Text>
                   </View>
                   <PencilSvg color={c.textSub} />
                 </TouchableOpacity>
@@ -413,6 +491,42 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }} />
+
+      <ConfirmModal visible={showUnlinkConfirm}
+        title={t('unlinkPartner')}
+        message={<Text>{t('confirmUnlinkMsg').replace('{name}', linkedPartnerName)}</Text>}
+        confirmLabel={t('unlinkPartner')}
+        cancelLabel={t('cancel')}
+        loading={saving}
+        onConfirm={() => { setShowUnlinkConfirm(false); handleUnlinkPartner(); }}
+        onCancel={() => setShowUnlinkConfirm(false)} />
+
+      {/* Partner Picker Modal */}
+      <ModalOverlay visible={showPartnerPicker} overlayStyle={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 }} contentStyle={{ alignItems: 'center', justifyContent: 'center' }} onClose={() => setShowPartnerPicker(false)}>
+        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '100%', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' } as any} onStartShouldSetResponder={() => true}>
+          <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: c.surface }}>{t('selectPartner')}</Text>
+            <TouchableOpacity onPress={() => setShowPartnerPicker(false)}>
+              <Text style={{ ...modalClose as any }}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ padding: 16 }}>
+            {partnerList.filter((p: any) => !p.linked_user_id).map((p: any) => (
+              <TouchableOpacity key={p.id}
+                onPress={() => handleLinkPartner(p.id, p.name)}
+                style={{ paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.08) }}
+                activeOpacity={0.7}>
+                <Text style={{ fontSize: 15, color: c.textMain }}>{translateName(p.name, p.name_pinyin, p.name_tw)}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={() => setShowPartnerPicker(false)}
+              style={{ marginTop: 12, alignItems: 'center', paddingVertical: 8 }}
+              activeOpacity={0.7}>
+              <Text style={{ fontSize: 13, color: c.textSub }}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ModalOverlay>
     </View>
   );
 }
