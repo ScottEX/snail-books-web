@@ -234,7 +234,7 @@ export default function HomeScreen({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!bgReady) return;
-    const img = new Image();
+    const img = document.createElement('img');
     const done = () => { (window as any).__appReady = true; };
     img.onload = done;
     img.onerror = done;

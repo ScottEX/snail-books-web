@@ -116,7 +116,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     if (typeof window === 'undefined') return;
     if (!bgReady) return;
     const bgSrc = bgUrl || '/img/bg.jpg?v=2';
-    const img = new Image();
+    const img = document.createElement('img');
     const done = () => { (window as any).__appReady = true; };
     img.onload = done;
     img.onerror = done;
