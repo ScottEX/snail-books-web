@@ -26,7 +26,8 @@ import { getCurrentUserId } from '../utils/storage';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
 import { fmtDecInput } from '../utils/numbers';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useModalClose, modalExitStyle } from '../hooks/useModalClose';
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
@@ -77,25 +78,9 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [showDetail, setShowDetail] = useState<any>(null);
-  const [detailExiting, setDetailExiting] = useState(false);
-
-  const handleCloseDetail = useCallback(() => {
-    setDetailExiting(true);
-    setTimeout(() => {
-      setShowDetail(null);
-      setDetailExiting(false);
-    }, 200);
-  }, []);
+  const { exiting: detailExiting, handleClose: handleCloseDetail } = useModalClose(() => setShowDetail(null));
   const [showOrg, setShowOrg] = useState(false);
-  const [orgExiting, setOrgExiting] = useState(false);
-
-  const handleCloseOrg = useCallback(() => {
-    setOrgExiting(true);
-    setTimeout(() => {
-      setShowOrg(false);
-      setOrgExiting(false);
-    }, 200);
-  }, []);
+  const { exiting: orgExiting, handleClose: handleCloseOrg } = useModalClose(() => setShowOrg(false));
   const [showInvoice, setShowInvoice] = useState(false);
   const [divAmount, setDivAmount] = useState('');
   const [divRoundNum, setDivRoundNum] = useState(0);
@@ -704,7 +689,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
       {(showDetail || detailExiting) && (
         <ModalOverlay visible={!!showDetail && !detailExiting} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={handleCloseDetail}>
-          <View style={[mo.modalCard, { maxWidth: 360 }, detailExiting && { animationName: 'modalOut', animationDuration: '0.18s', animationTimingFunction: 'ease', animationFillMode: 'forwards' } as any]} onStartShouldSetResponder={() => true}>
+          <View style={[mo.modalCard, { maxWidth: 360 }, detailExiting && modalExitStyle as any]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{translateName(showDetail.name, showDetail.name_pinyin, showDetail.name_tw)}</Text>
@@ -782,7 +767,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
 
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
         <ModalOverlay visible={showOrg && !orgExiting} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={handleCloseOrg}>
-          <View style={[mo.modalCard, { maxWidth: 360 }, orgExiting && { animationName: 'modalOut', animationDuration: '0.18s', animationTimingFunction: 'ease', animationFillMode: 'forwards' } as any]} onStartShouldSetResponder={() => true}>
+          <View style={[mo.modalCard, { maxWidth: 360 }, orgExiting && modalExitStyle as any]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{t('partnerStructure')}</Text>
