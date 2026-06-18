@@ -174,7 +174,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
 
   const calcPreview = (total: number) => {
     setDivPreview(partners.map((p: any) => ({
-      name: translateName(p.name),
+      name: translateName(p.name, p.name_pinyin),
       share: (partnerShare[p.name] ?? 0.33) * 100,
       amount: parseFloat((total * (partnerShare[p.name] ?? 0.33)).toFixed(2)),
     })));
@@ -507,7 +507,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 <TouchableOpacity key={p.id} style={s.partnerCard} onPress={() => setShowDetail(p)}>
                   <View style={s.partnerHeader}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={s.partnerName}>{translateName(p.name)}</Text>
+                      <Text style={s.partnerName}>{translateName(p.name, p.name_pinyin)}</Text>
                       <Text style={s.partnerPct}>{(p.share * 100).toFixed(0)}%</Text>
                     </View>
                     <View style={s.paidBadge}>
@@ -569,7 +569,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 total={partners.reduce((s: number, p: any) => s + (p.init_capital || 0), 0)}
                 themeColors={colors} styles={tg}
                 items={partners.map((p: any) => ({
-                  name: translateName(p.name),
+                  name: translateName(p.name, p.name_pinyin),
                   sub: `${(p.share * 100).toFixed(0)}%`,
                   amount: p.init_capital || 0,
                 }))} />
@@ -579,7 +579,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 total={partners.reduce((s: number, p: any) => s + (p.add_amount || 0), 0)}
                 themeColors={colors} styles={tg}
                 items={partners.map((p: any) => ({
-                  name: translateName(p.name),
+                  name: translateName(p.name, p.name_pinyin),
                   sub: `${(p.share * 100).toFixed(0)}%`,
                   amount: (p.investment || 0) - (p.init_capital || 0),
                 }))} />
@@ -647,7 +647,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
               <View style={moBody.preview}>
                 <Text style={moBody.previewTitle}>{t('shareCalcResult')}</Text>
                 {(divPreview.length > 0 ? divPreview : partners.map((p: any) => ({
-                  name: translateName(p.name),
+                  name: translateName(p.name, p.name_pinyin),
                   share: (partnerShare[p.name] ?? 0.33) * 100,
                   amount: 0,
                 }))).map((item: any) => (
@@ -689,7 +689,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
-                <Text style={mo.title}>{translateName(showDetail.name)}</Text>
+                <Text style={mo.title}>{translateName(showDetail.name, showDetail.name_pinyin)}</Text>
                 <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(showDetail.name))} · {t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%</Text>
               </View>
               <TouchableOpacity onPress={() => setShowDetail(null)}>
