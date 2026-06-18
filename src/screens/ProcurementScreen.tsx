@@ -14,7 +14,7 @@ import { useServerDate } from '../hooks/useServerDate';
 import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
-import LoadingSpinner from '../components/LoadingSpinner';
+
 import TextField from '../components/TextField';
 import ButtonPair from '../components/ButtonPair';
 import CloseButton from '../components/CloseButton';
@@ -1089,8 +1089,37 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
       {/* ── History ── */}
       {subTab === 'history' && (
-        (loadingHist && batches.length === 0) ? (
-          <LoadingSpinner />
+        loadingHist ? (
+          <View style={styles.historyList}>
+            {[...Array(5)].map((_, i) => (
+              <View key={i} style={[styles.historyCard, { pointerEvents: 'none' as any }]}>
+                {/* header skeleton */}
+                <View style={styles.histHead}>
+                  <View style={{ width: 100, height: 14, backgroundColor: withAlpha(c.textSub, 0.08), borderRadius: 4 }} />
+                  <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+                    <View style={{ width: 60, height: 12, backgroundColor: withAlpha(c.textSub, 0.06), borderRadius: 4 }} />
+                    <View style={{ width: 20, height: 20, backgroundColor: withAlpha(c.textSub, 0.06), borderRadius: 4 }} />
+                    <View style={{ width: 20, height: 20, backgroundColor: withAlpha(c.textSub, 0.06), borderRadius: 4 }} />
+                  </View>
+                </View>
+                {/* body skeleton */}
+                <View style={[styles.histBody, { paddingHorizontal: 18 }]}>
+                  <View style={[styles.histRow, { marginBottom: 6 }]}>
+                    <View style={{ width: 56, height: 12, backgroundColor: withAlpha(c.textSub, 0.05), borderRadius: 4 }} />
+                    <View style={{ width: 40, height: 12, backgroundColor: withAlpha(c.textSub, 0.06), borderRadius: 4 }} />
+                  </View>
+                  <View style={[styles.histRow, { marginBottom: 6 }]}>
+                    <View style={{ width: 64, height: 12, backgroundColor: withAlpha(c.textSub, 0.05), borderRadius: 4 }} />
+                    <View style={{ width: 32, height: 12, backgroundColor: withAlpha(c.textSub, 0.06), borderRadius: 4 }} />
+                  </View>
+                  <View style={[styles.histAmountRow, { marginTop: 4 }]}>
+                    <View style={{ width: 48, height: 12, backgroundColor: withAlpha(c.textSub, 0.05), borderRadius: 4 }} />
+                    <View style={{ width: 80, height: 20, backgroundColor: withAlpha(c.primary, 0.08), borderRadius: 4 }} />
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
         ) : batches.length === 0 ? (
           <EmptyState
             icon={<EmptyClipboardIcon color={c.textSub} />}
