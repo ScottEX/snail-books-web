@@ -81,9 +81,17 @@ function UndoIconSvg({ color }: { color: string }) {
 }
 
 // EditableField extracted outside to prevent re-mount on parent re-render
-function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c }: {
-  label: string; value: string; onChangeText: (t: string) => void; onBlurSave: () => void; placeholder?: string; c: ThemeColors;
+function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c, editable = true }: {
+  label: string; value: string; onChangeText: (t: string) => void; onBlurSave: () => void; placeholder?: string; c: ThemeColors; editable?: boolean;
 }) {
+  if (!editable) {
+    return (
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
+        <Text style={{ fontSize: 14, color: c.textSub, flexShrink: 0 }}>{label}</Text>
+        <Text style={{ fontSize: 14, fontWeight: '500', color: c.textMain }}>{value || placeholder || '—'}</Text>
+      </View>
+    );
+  }
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
       <Text style={{ fontSize: 14, color: c.textSub, flexShrink: 0 }}>{label}</Text>
@@ -153,6 +161,12 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       const body: Record<string, string | boolean> = {};
       body[field] = value;
       const resp: any = await api.admin.updateUser(user.id, body);
+      if (field === 'real_name') {
+        // 重新拉取详情以更新拼音
+        const detailResp: any = await api.admin.getUser(user.id);
+        const d = detailResp.data || detailResp;
+        setRealNamePinyin(d.real_name_pinyin || '');
+      }
       if (field === 'is_disabled') onUpdated();
     } catch {}
     setSaving(false);
@@ -299,7 +313,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                 <Text style={st.infoValue}>{detail.username}</Text>
               </View>
               <View style={st.divider} />
-              <EditableField label={t('realName')} value={lang === 'en' ? (realNamePinyin || realName) : realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} />
+              <EditableField label={t('realName')} value={lang === 'en' ? (realNamePinyin || realName) : realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} editable={lang === 'zh-CN'} />
               <View style={st.divider} />
               <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} />
               <View style={st.divider} />
