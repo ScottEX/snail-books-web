@@ -103,7 +103,8 @@ const I18N: Record<string, Record<string, string>> = {
     dineIn: '堂食',
     disabledStatus: '禁用',
     discountAmount: '优惠减免',
-    displayName: '用户名称',
+    displayName: '登录账号',
+    realName: '用户姓名',
     distributedPool: '已派发分红池',
     dividend: '分红',
     dividendHistory: '分红历史',
@@ -343,7 +344,7 @@ const I18N: Record<string, Record<string, string>> = {
     pdfLoading: '加载 PDF 中…',
     pdfPageInfo: '第 {current} 页 / 共 {total} 页',
     pendingPayback: '待回',
-    phone: '手机号',
+    phone: '手机号码',
     platformFee: '平台手续费',
     preferences: '偏好设置',
     procAddProduct: '添加产品',
@@ -547,7 +548,8 @@ const I18N: Record<string, Record<string, string>> = {
     useThisCover: '使用此封面',
     userDetail: '用户详情',
     userManagement: '用户管理',
-    username: '账号',
+    username: '登录账号',
+    userId: '用户ID',
     verifyBtn: '验 证',
     verifyCode: '验证码',
     verifyEmail: '验证邮箱',
@@ -665,7 +667,8 @@ const I18N: Record<string, Record<string, string>> = {
     dineIn: '堂食',
     disabledStatus: '禁用',
     discountAmount: '優惠減免',
-    displayName: '用戶名稱',
+    displayName: '登入帳號',
+    realName: '用戶姓名',
     distributedPool: '已派發分紅池',
     dividend: '分紅',
     dividendHistory: '分紅歷史',
@@ -904,7 +907,7 @@ const I18N: Record<string, Record<string, string>> = {
     pdfLoadFailed: 'PDF 載入失敗',
     pdfLoading: '載入 PDF 中…',
     pendingPayback: '待回',
-    phone: '手機號',
+    phone: '手機號碼',
     platformFee: '平台手續費',
     preferences: '偏好設定',
     procAddProduct: '添加產品',
@@ -1108,7 +1111,8 @@ const I18N: Record<string, Record<string, string>> = {
     useThisCover: '使用此封面',
     userDetail: '用戶詳情',
     userManagement: '用戶管理',
-    username: '帳號',
+    username: '登入帳號',
+    userId: '用戶ID',
     verifyBtn: '驗 證',
     verifyCode: '驗證碼',
     verifyEmail: '驗證郵箱',
@@ -1226,7 +1230,8 @@ const I18N: Record<string, Record<string, string>> = {
     dineIn: 'Dine-in',
     disabledStatus: 'Disabled',
     discountAmount: 'Discount',
-    displayName: 'Username',
+    displayName: 'Login Account',
+    realName: 'Real Name',
     distributedPool: 'Distributed Pool',
     dividend: 'Dividend',
     dividendHistory: 'Dividend History',
@@ -1434,9 +1439,9 @@ const I18N: Record<string, Record<string, string>> = {
     month10: 'Oct',
     month11: 'Nov',
     month12: 'Dec',
-    nameJiang: 'Jiang Kuan',
-    nameLan: 'Lan Liufu',
-    nameZhang: 'Zhang Anwu',
+    nameJiang: 'Kuan Jiang',
+    nameLan: 'Liu-Fu Lan',
+    nameZhang: 'An-Wu Zhang',
     newEmail: 'New Email',
     newPassword: 'New Password',
     newUserBadge: 'New',
@@ -1465,7 +1470,7 @@ const I18N: Record<string, Record<string, string>> = {
     pdfLoadFailed: 'Failed to load PDF',
     pdfLoading: 'Loading PDF…',
     pendingPayback: 'Pending',
-    phone: 'Phone',
+    phone: 'Phone Number',
     platformFee: 'Platform Fees',
     preferences: 'Preferences',
     procAddProduct: 'Add Product',
@@ -1669,7 +1674,8 @@ const I18N: Record<string, Record<string, string>> = {
     useThisCover: 'Use This Cover',
     userDetail: 'User Detail',
     userManagement: 'User Management',
-    username: 'Account',
+    username: 'Login Account',
+    userId: 'User ID',
     verifyBtn: 'Verify',
     verifyCode: 'Verification Code',
     verifyEmail: 'Verify Email',
@@ -1790,6 +1796,7 @@ export type I18nKey =
   | 'disabledStatus'
   | 'discountAmount'
   | 'displayName'
+  | 'realName'
   | 'distributedPool'
   | 'dividend'
   | 'dividendHistory'
@@ -2234,6 +2241,7 @@ export type I18nKey =
   | 'userDetail'
   | 'userManagement'
   | 'username'
+  | 'userId'
   | 'verifyBtn'
   | 'verifyCode'
   | 'verifyEmail'
