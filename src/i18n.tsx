@@ -564,6 +564,11 @@ const I18N: Record<string, Record<string, string>> = {
     verifying: '验证中...',
     wages: '工资',
     willDelete: '将删除「',
+    linkedPartner: '关联合伙人',
+    unlinked: '未关联',
+    linkPartner: '关联',
+    unlinkPartner: '解除关联',
+    selectPartner: '选择合伙人',
   },
   'zh-TW': {
     accountInfo: '帳號資訊',
@@ -1127,6 +1132,11 @@ const I18N: Record<string, Record<string, string>> = {
     verifying: '驗證中...',
     wages: '工資',
     willDelete: '將刪除「',
+    linkedPartner: '關聯合夥人',
+    unlinked: '未關聯',
+    linkPartner: '關聯',
+    unlinkPartner: '解除關聯',
+    selectPartner: '選擇合夥人',
   },
   'en': {
     accountInfo: 'Account Info',
@@ -1690,6 +1700,11 @@ const I18N: Record<string, Record<string, string>> = {
     verifying: 'Verifying...',
     wages: 'Wages',
     willDelete: 'Will delete 「',
+    linkedPartner: 'Linked Partner',
+    unlinked: 'Unlinked',
+    linkPartner: 'Link',
+    unlinkPartner: 'Unlink',
+    selectPartner: 'Select Partner',
   },
 };
 
@@ -2256,6 +2271,11 @@ export type I18nKey =
   | 'verifying'
   | 'wages'
   | 'willDelete'
+  | 'linkedPartner'
+  | 'unlinked'
+  | 'linkPartner'
+  | 'unlinkPartner'
+  | 'selectPartner'
 
 type Lang = 'zh-CN' | 'zh-TW' | 'en';
 

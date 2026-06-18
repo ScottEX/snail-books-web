@@ -23,6 +23,8 @@ interface UserData {
   signature: string;
   delete_scheduled: string;
   delete_by: string;
+  linked_partner_id: number | null;
+  linked_partner_name: string;
 }
 
 interface Props {
@@ -134,6 +136,10 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [linkedPartnerId, setLinkedPartnerId] = useState<number | null>(null);
+  const [linkedPartnerName, setLinkedPartnerName] = useState('');
+  const [showPartnerPicker, setShowPartnerPicker] = useState(false);
+  const [partnerList, setPartnerList] = useState<any[]>([]);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -151,6 +157,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setRealNameTW(d.real_name_tw || '');
       setDeleteScheduled(d.delete_scheduled || '');
       setDeleteBy(d.delete_by || '');
+      setLinkedPartnerId(d.linked_partner_id ?? null);
+      setLinkedPartnerName(d.linked_partner_name || '');
     } catch {}
     setLoading(false);
   }, [user.id]);
@@ -213,6 +221,34 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     } catch {}
     setSaving(false);
   };
+
+  const fetchPartnerList = useCallback(async () => {
+    try {
+      const data: any = await api.partners.getPartners();
+      setPartnerList(Array.isArray(data) ? data : []);
+    } catch {}
+  }, []);
+
+  const handleLinkPartner = useCallback(async (partnerId: number, partnerName: string) => {
+    setShowPartnerPicker(false);
+    setSaving(true);
+    try {
+      await api.admin.updateUser(user.id, { linked_partner_id: partnerId });
+      setLinkedPartnerId(partnerId);
+      setLinkedPartnerName(partnerName);
+    } catch {}
+    setSaving(false);
+  }, [user.id]);
+
+  const handleUnlinkPartner = useCallback(async () => {
+    setSaving(true);
+    try {
+      await api.admin.updateUser(user.id, { linked_partner_id: null });
+      setLinkedPartnerId(null);
+      setLinkedPartnerName('');
+    } catch {}
+    setSaving(false);
+  }, [user.id]);
 
   const fmtDate = (d: string) => {
     if (!d) return '—';
@@ -359,6 +395,30 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
           )}
 
+          {/* Linked Partner */}
+          <View style={st.section}>
+            <View style={st.sectionTitleRow}>
+              <Text style={st.sectionTitleText}>{t('linkedPartner')}</Text>
+              <View style={st.sectionTitleLine} />
+            </View>
+            <View style={st.card}>
+              <View style={st.toggleRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={st.toggleLabel}>{linkedPartnerId ? linkedPartnerName : t('unlinked')}</Text>
+                </View>
+                {linkedPartnerId ? (
+                  <TouchableOpacity onPress={handleUnlinkPartner} disabled={saving} activeOpacity={0.7}>
+                    <Text style={{ color: c.danger, fontSize: 13, fontWeight: '500' }}>{t('unlinkPartner')}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity onPress={() => { fetchPartnerList(); setShowPartnerPicker(true); }} disabled={saving} activeOpacity={0.7}>
+                    <Text style={{ color: c.primary, fontSize: 13, fontWeight: '500' }}>{t('linkPartner')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </View>
+
           {/* Other Info */}
           <View style={st.section}>
             <View style={st.sectionTitleRow}>
@@ -413,6 +473,30 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }} />
+
+      {/* Partner Picker Modal */}
+      {showPartnerPicker && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 100, justifyContent: 'center', alignItems: 'center' }}
+          onStartShouldSetResponder={() => true} onResponderRelease={() => setShowPartnerPicker(false)}>
+          <View style={{ backgroundColor: c.surface, borderRadius: 14, padding: 20, width: 280, maxHeight: 400 }}
+            onStartShouldSetResponder={() => true}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: c.textMain, marginBottom: 12 }}>{t('selectPartner')}</Text>
+            {partnerList.map((p: any) => (
+              <TouchableOpacity key={p.id}
+                onPress={() => handleLinkPartner(p.id, p.name)}
+                style={{ paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.08) }}
+                activeOpacity={0.7}>
+                <Text style={{ fontSize: 15, color: c.textMain }}>{p.name}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={() => setShowPartnerPicker(false)}
+              style={{ marginTop: 12, alignItems: 'center', paddingVertical: 8 }}
+              activeOpacity={0.7}>
+              <Text style={{ fontSize: 13, color: c.textSub }}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
