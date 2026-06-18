@@ -483,7 +483,6 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         message={<Text>{t('confirmUnlinkMsg').replace('{name}', linkedPartnerName)}</Text>}
         confirmLabel={t('unlinkPartner')}
         cancelLabel={t('cancel')}
-        confirmColor={c.danger}
         loading={saving}
         onConfirm={() => { setShowUnlinkConfirm(false); handleUnlinkPartner(); }}
         onCancel={() => setShowUnlinkConfirm(false)} />
