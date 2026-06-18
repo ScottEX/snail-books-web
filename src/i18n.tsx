@@ -549,6 +549,7 @@ const I18N: Record<string, Record<string, string>> = {
     userDetail: '用户详情',
     userManagement: '用户管理',
     username: '账号',
+    userId: '用户ID',
     verifyBtn: '验 证',
     verifyCode: '验证码',
     verifyEmail: '验证邮箱',
@@ -1111,6 +1112,7 @@ const I18N: Record<string, Record<string, string>> = {
     userDetail: '用戶詳情',
     userManagement: '用戶管理',
     username: '帳號',
+    userId: '用戶ID',
     verifyBtn: '驗 證',
     verifyCode: '驗證碼',
     verifyEmail: '驗證郵箱',
@@ -1673,6 +1675,7 @@ const I18N: Record<string, Record<string, string>> = {
     userDetail: 'User Detail',
     userManagement: 'User Management',
     username: 'Account',
+    userId: 'User ID',
     verifyBtn: 'Verify',
     verifyCode: 'Verification Code',
     verifyEmail: 'Verify Email',
@@ -2238,6 +2241,7 @@ export type I18nKey =
   | 'userDetail'
   | 'userManagement'
   | 'username'
+  | 'userId'
   | 'verifyBtn'
   | 'verifyCode'
   | 'verifyEmail'

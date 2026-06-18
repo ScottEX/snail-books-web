@@ -286,13 +286,13 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             </View>
             <View style={st.card}>
               <View style={st.infoRow}>
-                <Text style={st.infoLabel}>{t('username')}</Text>
-                <Text style={st.infoValue}>{detail.username}</Text>
+                <Text style={st.infoLabel}>{t('userId')}</Text>
+                <Text style={st.infoValue}>{detail.id}</Text>
               </View>
               <View style={st.divider} />
               <View style={st.infoRow}>
-                <Text style={st.infoLabel}>User ID</Text>
-                <Text style={st.infoValue}>{detail.id}</Text>
+                <Text style={st.infoLabel}>{t('username')}</Text>
+                <Text style={st.infoValue}>{detail.username}</Text>
               </View>
               <View style={st.divider} />
               <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} />
