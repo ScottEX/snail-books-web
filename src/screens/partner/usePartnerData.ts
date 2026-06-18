@@ -31,7 +31,7 @@ export function translateDividendNote(note: string | null, date?: string): strin
 
 export function getRoleKey(name: string, linkedRole?: string): I18nKey {
   if (linkedRole) {
-    const map: Record<string, I18nKey> = { '董事长': 'chairman', 'CEO': 'ceo', '店长': 'manager', '员工': 'staff', '普通用户': 'janitor' };
+    const map: Record<string, I18nKey> = { '董事长': 'chairman', 'CEO': 'ceo', '店长': 'manager', '员工': 'staff', '普通用户': 'janitor', '打杂': 'janitor' };
     return map[linkedRole] || 'janitor';
   }
   const nameMap: Record<string, I18nKey> = { '张安武': 'chairman', '江宽': 'ceo', '蓝柳富': 'janitor' };

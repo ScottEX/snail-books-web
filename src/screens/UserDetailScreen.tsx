@@ -36,16 +36,16 @@ interface Props {
   onUpdated: () => void;
 }
 
-const ROLES = ['董事长', 'CEO', '店长', '员工', '普通用户'];
+const ROLES = ['董事长', 'CEO', '店长', '员工', '打杂'];
 const ROLE_EN = ['Chairman', 'CEO', 'Manager', 'Staff', 'User'];
-const ROLE_TW = ['董事長', 'CEO', '店長', '員工', '普通用戶'];
+const ROLE_TW = ['董事長', 'CEO', '店長', '員工', '打雜'];
 
 const ROLE_COLORS: Record<string, string> = {
   '董事长': '#C84047',  // 勃艮第红
   'CEO': '#E8953A',     // 琥珀
   '店长': '#3A7CA5',     // 靛蓝
   '员工': '#5B8C5A',     // 橄榄绿
-  '普通用户': '#8C8583', // 灰
+  '打杂': '#8C8583', // 灰
 };
 
 function getRoleLabel(role: string, lang: string): string {
@@ -448,8 +448,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
                 <Text style={st.infoLabel}>{t('role')}</Text>
                 <TouchableOpacity onPress={() => setShowRolePicker(!showRolePicker)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <View style={[st.roleBadge, { backgroundColor: withAlpha(getRoleColor(role || '普通用户'), 0.1) }]}>
-                    <Text style={[st.infoValue, { color: getRoleColor(role || '普通用户') }]}>{getRoleLabel(role, lang)}</Text>
+                  <View style={[st.roleBadge, { backgroundColor: withAlpha(getRoleColor(role || '打杂'), 0.1) }]}>
+                    <Text style={[st.infoValue, { color: getRoleColor(role || '打杂') }]}>{getRoleLabel(role, lang)}</Text>
                   </View>
                   <PencilSvg color={c.textSub} />
                 </TouchableOpacity>
