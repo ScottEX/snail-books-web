@@ -569,6 +569,7 @@ const I18N: Record<string, Record<string, string>> = {
     unlinked: '未关联',
     linkPartner: '关联',
     unlinkPartner: '解除关联',
+    confirmUnlinkMsg: '确认解除与 {name} 的关联？',
     selectPartner: '选择合伙人',
   },
   'zh-TW': {
@@ -1138,6 +1139,7 @@ const I18N: Record<string, Record<string, string>> = {
     unlinked: '未關聯',
     linkPartner: '關聯',
     unlinkPartner: '解除關聯',
+    confirmUnlinkMsg: '確認解除與 {name} 的關聯？',
     selectPartner: '選擇合夥人',
   },
   'en': {
@@ -1708,6 +1710,7 @@ const I18N: Record<string, Record<string, string>> = {
     unlinked: 'Unlinked',
     linkPartner: 'Link',
     unlinkPartner: 'Unlink',
+    confirmUnlinkMsg: 'Confirm unlink from {name}?',
     selectPartner: 'Select Partner',
   },
 };
@@ -2281,6 +2284,7 @@ export type I18nKey =
   | 'unlinked'
   | 'linkPartner'
   | 'unlinkPartner'
+  | 'confirmUnlinkMsg'
   | 'selectPartner'
 
 type Lang = 'zh-CN' | 'zh-TW' | 'en';

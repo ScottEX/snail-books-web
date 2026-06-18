@@ -137,6 +137,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [showRolePicker, setShowRolePicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [linkedPartnerId, setLinkedPartnerId] = useState<number | null>(null);
@@ -410,7 +411,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   <Text style={st.toggleLabel}>{linkedPartnerId ? linkedPartnerName : t('unlinked')}</Text>
                 </View>
                 {linkedPartnerId ? (
-                  <TouchableOpacity onPress={handleUnlinkPartner} disabled={saving} activeOpacity={0.7}>
+                  <TouchableOpacity onPress={() => setShowUnlinkConfirm(true)} disabled={saving} activeOpacity={0.7}>
                     <Text style={{ color: c.danger, fontSize: 13, fontWeight: '500' }}>{t('unlinkPartner')}</Text>
                   </TouchableOpacity>
                 ) : (
@@ -476,6 +477,16 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }} />
+
+      <ConfirmModal visible={showUnlinkConfirm}
+        title={t('unlinkPartner')}
+        message={<Text>{t('confirmUnlinkMsg').replace('{name}', linkedPartnerName)}</Text>}
+        confirmLabel={t('unlinkPartner')}
+        cancelLabel={t('cancel')}
+        confirmColor={c.danger}
+        loading={saving}
+        onConfirm={() => { setShowUnlinkConfirm(false); handleUnlinkPartner(); }}
+        onCancel={() => setShowUnlinkConfirm(false)} />
 
       {/* Partner Picker Modal */}
       <ModalOverlay visible={showPartnerPicker} overlayStyle={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 }} contentStyle={{ alignItems: 'center', justifyContent: 'center' }} onClose={() => setShowPartnerPicker(false)}>
