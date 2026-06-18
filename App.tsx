@@ -94,11 +94,14 @@ export default function App() {
     return () => window.removeEventListener('app:user-change', onUserChange);
   }, []);
 
-  // Signal splash screen to close when App has mounted and first render is done
+  // Signal splash screen to close after background image is preloaded
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      requestAnimationFrame(() => { (window as any).__appReady = true; });
-    }
+    if (typeof window === 'undefined') return;
+    const markReady = () => { (window as any).__appReady = true; };
+    const img = new Image();
+    img.onload = markReady;
+    img.onerror = markReady; // fallback: still show app if bg fails
+    img.src = '/img/bg.jpg?v=2';
   }, []);
 
   return (
