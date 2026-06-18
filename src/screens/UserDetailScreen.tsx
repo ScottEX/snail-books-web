@@ -181,6 +181,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         const d = detailResp.data || detailResp;
         setRealNamePinyin(d.real_name_pinyin || '');
         setRealNameTW(d.real_name_tw || '');
+        // sync linked partner name
+        if (d.linked_partner_name) setLinkedPartnerName(d.linked_partner_name);
       }
       if (field === 'is_disabled') onUpdated();
     } catch {}
