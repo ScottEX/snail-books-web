@@ -126,6 +126,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [email, setEmail] = useState('');
   const [realName, setRealName] = useState('');
   const [realNamePinyin, setRealNamePinyin] = useState('');
+  const [realNameTW, setRealNameTW] = useState('');
   const [deleteScheduled, setDeleteScheduled] = useState('');
   const [deleteBy, setDeleteBy] = useState('');
   const [showRolePicker, setShowRolePicker] = useState(false);
@@ -147,6 +148,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setEmail(d.email || '');
       setRealName(d.real_name || '');
       setRealNamePinyin(d.real_name_pinyin || '');
+      setRealNameTW(d.real_name_tw || '');
       setDeleteScheduled(d.delete_scheduled || '');
       setDeleteBy(d.delete_by || '');
     } catch {}
@@ -162,10 +164,11 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       body[field] = value;
       const resp: any = await api.admin.updateUser(user.id, body);
       if (field === 'real_name') {
-        // 重新拉取详情以更新拼音
+        // 重新拉取详情以更新拼音和繁体
         const detailResp: any = await api.admin.getUser(user.id);
         const d = detailResp.data || detailResp;
         setRealNamePinyin(d.real_name_pinyin || '');
+        setRealNameTW(d.real_name_tw || '');
       }
       if (field === 'is_disabled') onUpdated();
     } catch {}
@@ -313,7 +316,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                 <Text style={st.infoValue}>{detail.username}</Text>
               </View>
               <View style={st.divider} />
-              <EditableField label={t('realName')} value={lang === 'en' ? (realNamePinyin || realName) : realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} editable={lang === 'zh-CN'} />
+              <EditableField label={t('realName')} value={lang === 'en' ? (realNamePinyin || realName) : lang === 'zh-TW' ? (realNameTW || realName) : realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} editable={lang === 'zh-CN'} />
               <View style={st.divider} />
               <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} />
               <View style={st.divider} />
