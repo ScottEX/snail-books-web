@@ -50,6 +50,7 @@ INJECT_CSS = '''
     .fade-in { animation: fadeIn .4s ease; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
     @keyframes modalIn { from{opacity:0;transform:translateY(-300px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes modalOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-300px)} }
 '''
 
 BOOT_JS = r'''<script>(function(){

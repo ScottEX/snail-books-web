@@ -26,7 +26,7 @@ import { getCurrentUserId } from '../utils/storage';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
 import { fmtDecInput } from '../utils/numbers';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
@@ -78,6 +78,15 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   const [deleteError, setDeleteError] = useState('');
   const [showDetail, setShowDetail] = useState<any>(null);
   const [showOrg, setShowOrg] = useState(false);
+  const [orgExiting, setOrgExiting] = useState(false);
+
+  const handleCloseOrg = useCallback(() => {
+    setOrgExiting(true);
+    setTimeout(() => {
+      setShowOrg(false);
+      setOrgExiting(false);
+    }, 200);
+  }, []);
   const [showInvoice, setShowInvoice] = useState(false);
   const [divAmount, setDivAmount] = useState('');
   const [divRoundNum, setDivRoundNum] = useState(0);
@@ -763,14 +772,14 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       )}
 
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
-        <ModalOverlay visible={showOrg} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowOrg(false)}>
-          <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
+        <ModalOverlay visible={showOrg && !orgExiting} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={handleCloseOrg}>
+          <View style={[mo.modalCard, { maxWidth: 360 }, orgExiting && { animationName: 'modalOut', animationDuration: '0.18s', animationTimingFunction: 'ease', animationFillMode: 'forwards' } as any]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{t('partnerStructure')}</Text>
                 <Text style={mo.sub}>{t('lpControl')}</Text>
               </View>
-              <TouchableOpacity onPress={() => setShowOrg(false)}>
+              <TouchableOpacity onPress={handleCloseOrg}>
                 <Text style={mo.close}>✕</Text>
               </TouchableOpacity>
             </View>
