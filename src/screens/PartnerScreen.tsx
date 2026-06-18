@@ -775,19 +775,19 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
               </TouchableOpacity>
             </View>
             <View style={org.body}>
-              {[
-                { name: t('nameZhang'), role: t('chairman'), pct: '34%', isChairman: true },
-                { name: t('nameJiang'), role: t('ceo'), pct: '33%', isChairman: false },
-                { name: t('nameLan'), role: t('janitor'), pct: '33%', isChairman: false },
-              ].map(({ name, role, pct, isChairman }, i) => (
-                <View key={name} style={{ alignItems: 'center', width: '100%' }}>
+              {partners.map((p: any, i: number) => {
+                const roleKey = getRoleKey(p.name);
+                const isChairman = roleKey === 'chairman';
+                return (
+                <View key={p.id} style={{ alignItems: 'center', width: '100%' }}>
                   {i > 0 && <View style={org.line} />}
                   <View style={org.node}>
-                    <Text style={[org.nodeName, isChairman && { color: colors.primary }]}>{name}</Text>
-                    <Text style={org.nodeRole}>{role} · {pct}</Text>
+                    <Text style={[org.nodeName, isChairman && { color: colors.primary }]}>{translateName(p.name, p.name_pinyin, p.name_tw)}</Text>
+                    <Text style={org.nodeRole}>{t(roleKey)} · {(p.share * 100).toFixed(0)}%</Text>
                   </View>
                 </View>
-              ))}
+                );
+              })}
               <Text style={org.joke}>{t('jokeClosedLoop')}</Text>
             </View>
           </View>
