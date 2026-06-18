@@ -117,6 +117,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [realName, setRealName] = useState('');
+  const [realNamePinyin, setRealNamePinyin] = useState('');
   const [deleteScheduled, setDeleteScheduled] = useState('');
   const [deleteBy, setDeleteBy] = useState('');
   const [showRolePicker, setShowRolePicker] = useState(false);
@@ -137,6 +138,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setPhone(d.phone || '');
       setEmail(d.email || '');
       setRealName(d.real_name || '');
+      setRealNamePinyin(d.real_name_pinyin || '');
       setDeleteScheduled(d.delete_scheduled || '');
       setDeleteBy(d.delete_by || '');
     } catch {}
@@ -297,7 +299,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                 <Text style={st.infoValue}>{detail.username}</Text>
               </View>
               <View style={st.divider} />
-              <EditableField label={t('realName')} value={realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} />
+              <EditableField label={t('realName')} value={lang === 'en' ? (realNamePinyin || realName) : realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} />
               <View style={st.divider} />
               <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} />
               <View style={st.divider} />
