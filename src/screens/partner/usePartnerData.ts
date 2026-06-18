@@ -3,11 +3,8 @@ import { t, I18nKey } from '../../i18n';
 import { api } from '../../api/client';
 import { formatDate } from '../../utils/format';
 
-// 合伙人持股/初始投资/姓名映射硬编码
+// 合伙人持股映射硬编码
 export const partnerShare: Record<string, number> = { '张安武': 0.34, '江宽': 0.33, '蓝柳富': 0.33 };
-export const initCapital: Record<string, number> = { '张安武': 44200, '江宽': 42900, '蓝柳富': 42900 };
-export const initDate: Record<string, string> = { '张安武': '2024-04-01', '江宽': '2024-04-01', '蓝柳富': '2024-04-01' };
-export const addDate: Record<string, string> = { '张安武': '2025-01-21', '江宽': '2025-01-21', '蓝柳富': '2025-01-21' };
 const nameMap: Record<string, string> = { '张安武': 'nameZhang', '江宽': 'nameJiang', '蓝柳富': 'nameLan' };
 
 export function translateName(name: string): string {
