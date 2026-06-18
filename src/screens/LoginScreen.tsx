@@ -275,8 +275,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   return (
     <View style={styles.container}>
-      {/* Background layers — default always visible, custom fades in on top */}
-      <View style={styles.bgWrapper} />
+      {/* Background layers — default only when no custom bg, custom fades in on top */}
+      {!bgUrl && <View style={styles.bgWrapper} />}
       <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none', filter: bgReady && bgUrl ? 'blur(0)' : 'blur(16px)' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
       <View style={styles.bgOverlay} />
       <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
