@@ -15,8 +15,13 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [bgUrl, setBgUrl] = useState('');
-  const [bgReady, setBgReady] = useState(false);
+  // Read cached custom background synchronously so it appears instantly
+  const [bgUrl, setBgUrl] = useState(() => {
+    try { return localStorage.getItem('bg-image') || ''; } catch { return ''; }
+  });
+  const [bgReady, setBgReady] = useState(() => {
+    try { return !!localStorage.getItem('bg-image'); } catch { return false; }
+  });
   const [avatarReady, setAvatarReady] = useState(false);
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
