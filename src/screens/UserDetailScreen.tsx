@@ -142,6 +142,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [deleteError, setDeleteError] = useState('');
   const [linkedPartnerId, setLinkedPartnerId] = useState<number | null>(null);
   const [linkedPartnerName, setLinkedPartnerName] = useState('');
+  const [linkedPartnerNamePinyin, setLinkedPartnerNamePinyin] = useState('');
+  const [linkedPartnerNameTW, setLinkedPartnerNameTW] = useState('');
   const [showPartnerPicker, setShowPartnerPicker] = useState(false);
   const [partnerList, setPartnerList] = useState<any[]>([]);
 
@@ -163,6 +165,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setDeleteBy(d.delete_by || '');
       setLinkedPartnerId(d.linked_partner_id ?? null);
       setLinkedPartnerName(d.linked_partner_name || '');
+      setLinkedPartnerNamePinyin(d.linked_partner_name_pinyin || '');
+      setLinkedPartnerNameTW(d.linked_partner_name_tw || '');
     } catch {}
     setLoading(false);
   }, [user.id]);
@@ -182,7 +186,11 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         setRealNamePinyin(d.real_name_pinyin || '');
         setRealNameTW(d.real_name_tw || '');
         // sync linked partner name
-        if (d.linked_partner_name) setLinkedPartnerName(d.linked_partner_name);
+        if (d.linked_partner_name) {
+          setLinkedPartnerName(d.linked_partner_name);
+          setLinkedPartnerNamePinyin(d.linked_partner_name_pinyin || '');
+          setLinkedPartnerNameTW(d.linked_partner_name_tw || '');
+        }
       }
       if (field === 'is_disabled') onUpdated();
     } catch {}
@@ -242,6 +250,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       await api.admin.updateUser(user.id, { linked_partner_id: partnerId });
       setLinkedPartnerId(partnerId);
       setLinkedPartnerName(realName || partnerName);
+      setLinkedPartnerNamePinyin(realNamePinyin || '');
+      setLinkedPartnerNameTW(realNameTW || '');
     } catch {}
     setSaving(false);
   }, [user.id, realName]);
@@ -252,6 +262,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       await api.admin.updateUser(user.id, { linked_partner_id: null });
       setLinkedPartnerId(null);
       setLinkedPartnerName('');
+      setLinkedPartnerNamePinyin('');
+      setLinkedPartnerNameTW('');
     } catch {}
     setSaving(false);
   }, [user.id]);
@@ -410,7 +422,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             <View style={st.card}>
               <View style={st.toggleRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={st.toggleLabel}>{linkedPartnerId ? linkedPartnerName : t('unlinked')}</Text>
+                  <Text style={st.toggleLabel}>{linkedPartnerId ? translateName(linkedPartnerName, linkedPartnerNamePinyin, linkedPartnerNameTW) : t('unlinked')}</Text>
                 </View>
                 {linkedPartnerId ? (
                   <TouchableOpacity onPress={() => setShowUnlinkConfirm(true)} disabled={saving} activeOpacity={0.7}>
