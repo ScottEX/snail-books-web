@@ -7,10 +7,12 @@ import { formatDate } from '../../utils/format';
 export const partnerShare: Record<string, number> = { '张安武': 0.34, '江宽': 0.33, '蓝柳富': 0.33 };
 const nameMap: Record<string, string> = { '张安武': 'nameZhang', '江宽': 'nameJiang', '蓝柳富': 'nameLan' };
 
-export function translateName(name: string, pinyin?: string): string {
+export function translateName(name: string, pinyin?: string, tw?: string): string {
   const key = nameMap[name];
   if (key) return t(key as I18nKey);
-  if (pinyin && getLang() === 'en') return pinyin;
+  const lang = getLang();
+  if (lang === 'en' && pinyin) return pinyin;
+  if (lang === 'zh-TW' && tw) return tw;
   return name;
 }
 
