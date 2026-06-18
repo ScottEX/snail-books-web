@@ -85,7 +85,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   // Fetch avatar & background when username changes (debounced)
   useEffect(() => {
     if (!username) { setAvatarUrl(''); setBgUrl(''); setBgReady(false); setAvatarReady(false); return; }
-    setBgReady(false); setAvatarReady(false);
+    // Don't reset bgReady — keep cached background visible while API refreshes
+    setAvatarReady(false);
     const timer = setTimeout(async () => {
       try {
         const blob = await api.getUserAvatarByLogin(username);
