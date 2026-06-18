@@ -769,7 +769,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{t('partnerStructure')}</Text>
-                <Text style={mo.sub}>{t('lpControl')}</Text>
+                <Text style={[mo.sub, { color: colors.textSub }]}>{t('lpControl')}</Text>
               </View>
               <TouchableOpacity onPress={() => setShowOrg(false)}>
                 <Text style={mo.close}>✕</Text>
