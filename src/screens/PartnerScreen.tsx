@@ -498,7 +498,38 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
 
           {/* ====== PARTNER CARDS ====== */}
           <View style={s.partnerGrid}>
-            {partners.map((p: any) => {
+            {loadingData ? (
+              [0, 1, 2].map(i => (
+                <View key={i} style={[s.partnerCard, { pointerEvents: 'none' as any }]}>
+                  {/* header skeleton */}
+                  <View style={s.partnerHeader}>
+                    <View style={{ width: '60%', height: 16, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 6 }} />
+                    <View style={{ width: 40, height: 20, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 10 }} />
+                  </View>
+                  {/* data row skeleton */}
+                  <View style={s.partnerDataRow}>
+                    {[0, 1, 2].map(j => (
+                      <View key={j} style={[s.partnerDataCell, { gap: 6 }]}>
+                        <View style={{ width: 36, height: 10, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 4 }} />
+                        <View style={{ width: 52, height: 14, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4 }} />
+                      </View>
+                    ))}
+                  </View>
+                  {/* footer skeleton */}
+                  <View style={s.partnerFooter}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <View style={{ width: 64, height: 12, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 4 }} />
+                      <View style={{ width: 48, height: 12, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4 }} />
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+                      <View style={{ width: 40, height: 12, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 4 }} />
+                      <View style={{ width: 56, height: 12, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 4 }} />
+                    </View>
+                  </View>
+                </View>
+              ))
+            ) : (
+            partners.map((p: any) => {
               const initInv = p.init_capital || 0;
               const midInv = p.add_amount || 0;
               const pct = p.investment > 0 ? Number((p.total_dividends / p.investment * 100).toFixed(0)) : 0;
@@ -545,7 +576,8 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
                   </View>
                 </TouchableOpacity>
               );
-            })}
+            })
+            )}
           </View>
 
           {/* ====== CAPITAL LEDGER ====== */}
