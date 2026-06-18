@@ -514,7 +514,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               <Text style={[s.ecStatNum, { color: '#fff' }]}>{totalCount}</Text>
               <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invTotalCount')}</Text>
             </View>
-            <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)', flex: 1.5 }]}>
+            <View style={[s.ecStat, { borderRightColor: 'rgba(255,255,255,0.12)', flex: 2 }]}>
               <Text style={[s.ecStatNum, { color: '#fff' }]}>¥{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
               <Text style={[s.ecStatLbl, { color: 'rgba(255,255,255,0.5)' }]}>{t('invTotalAmount')}</Text>
             </View>
