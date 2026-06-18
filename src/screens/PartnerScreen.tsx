@@ -15,8 +15,7 @@ import { FONTS } from '../theme';
 import { modalCardAnimation, modalClose } from '../sharedStyles';
 
 import {
-  partnerShare, initCapital, initDate, addDate,
-  translateName, translateDividendNote, getRoleKey,
+  partnerShare, translateName, translateDividendNote, getRoleKey,
   usePartnerData,
 } from './partner/usePartnerData';
 
@@ -501,7 +500,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
           {/* ====== PARTNER CARDS ====== */}
           <View style={s.partnerGrid}>
             {partners.map((p: any) => {
-              const initInv = initCapital[p.name] ?? 42900;
+              const initInv = p.init_capital || 0;
               const midInv = p.investment - initInv;
               const pct = p.investment > 0 ? Number((p.total_dividends / p.investment * 100).toFixed(0)) : 0;
               const rem = Math.max(0, p.investment - p.total_dividends);
@@ -568,22 +567,24 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
             </View>
 
             {(filter === 'all' || filter === 'invest') && (
-              <TableGroup title={`${t('initial')} · ${formatDate('2024-04-01')}`} type="invest" total={130000}
+              <TableGroup title={`${t('initial')} · ${formatDate(partners[0]?.init_date || '2024-04-01')}`} type="invest"
+                total={partners.reduce((s: number, p: any) => s + (p.init_capital || 0), 0)}
                 themeColors={colors} styles={tg}
-                items={[
-                  { name: translateName('张安武'), sub: '34%', amount: 44200 },
-                  { name: translateName('江宽'), sub: '33%', amount: 42900 },
-                  { name: translateName('蓝柳富'), sub: '33%', amount: 42900 },
-                ]} />
+                items={partners.map((p: any) => ({
+                  name: translateName(p.name),
+                  sub: `${(p.share * 100).toFixed(0)}%`,
+                  amount: p.init_capital || 0,
+                }))} />
             )}
             {(filter === 'all' || filter === 'mid') && (
-              <TableGroup title={`${t('additional')} · ${formatDate('2025-01-21')}`} type="mid" total={30162}
+              <TableGroup title={`${t('additional')} · ${formatDate(partners[0]?.add_date || '2025-01-21')}`} type="mid"
+                total={partners.reduce((s: number, p: any) => s + (p.investment || 0) - (p.init_capital || 0), 0)}
                 themeColors={colors} styles={tg}
-                items={[
-                  { name: translateName('张安武'), sub: '34%', amount: 10255.08 },
-                  { name: translateName('江宽'), sub: '33%', amount: 9953.46 },
-                  { name: translateName('蓝柳富'), sub: '33%', amount: 9953.46 },
-                ]} />
+                items={partners.map((p: any) => ({
+                  name: translateName(p.name),
+                  sub: `${(p.share * 100).toFixed(0)}%`,
+                  amount: (p.investment || 0) - (p.init_capital || 0),
+                }))} />
             )}
             {(filter === 'all' || filter === 'dividend') && groupKeys.map(note => {
               const items = grouped[note];
@@ -709,11 +710,11 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
                 </View>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('initialInvest')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{(initCapital[showDetail.name] ?? 42900).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={ds.cellNumSmall}>¥{(showDetail.init_capital || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
                 <View style={[ds.cell, { backgroundColor: colors.bg }]}>
                   <Text style={ds.cellLabel}>{t('additional')}</Text>
-                  <Text style={ds.cellNumSmall}>¥{((showDetail.investment || 0) - (initCapital[showDetail.name] || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+                  <Text style={ds.cellNumSmall}>¥{((showDetail.investment || 0) - (showDetail.init_capital || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
                 </View>
               </View>
               {showDetail.investment > 0 && (
