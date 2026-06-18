@@ -78,6 +78,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [daysSince, setDaysSince] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
+  const [partnerName, setPartnerName] = useState('');
 
   const checkAdmin = async (): Promise<boolean> => {
     try {
@@ -150,6 +151,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       const data = await api.admin.getMe();
       if (data.email) setEmail(data.email);
       if (data.signature) setSignature(data.signature);
+      if (data.partner_name) setPartnerName(data.partner_name);
       if (data.created_at) {
         const days = Math.floor((Date.now() - new Date(data.created_at).getTime()) / 86400000);
         setDaysSince(Math.max(1, days));
@@ -354,6 +356,22 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               <Text style={st.iconLabel}>{t('displayName')}</Text>
               <Text style={st.iconValue}>{username}</Text>
             </View>
+            {partnerName ? (
+              <>
+                <View style={st.divider} />
+                <View style={st.iconRow}>
+                  <View style={[st.iconWrap, st.iconUser]}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5bb8c2" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="5" width="18" height="14" rx="2"/>
+                      <circle cx="12" cy="10" r="2"/>
+                      <path d="M8 17c0-1.5 1.8-2.8 4-2.8s4 1.3 4 2.8"/>
+                    </svg>
+                  </View>
+                  <Text style={st.iconLabel}>{t('realName')}</Text>
+                  <Text style={st.iconValue}>{partnerName}</Text>
+                </View>
+              </>
+            ) : null}
             <View style={st.divider} />
             <View style={st.iconRow}>
               <View style={[st.iconWrap, st.iconMail]}>

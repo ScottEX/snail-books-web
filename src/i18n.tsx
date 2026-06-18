@@ -104,6 +104,7 @@ const I18N: Record<string, Record<string, string>> = {
     disabledStatus: '禁用',
     discountAmount: '优惠减免',
     displayName: '用户名称',
+    realName: '用户姓名',
     distributedPool: '已派发分红池',
     dividend: '分红',
     dividendHistory: '分红历史',
@@ -666,6 +667,7 @@ const I18N: Record<string, Record<string, string>> = {
     disabledStatus: '禁用',
     discountAmount: '優惠減免',
     displayName: '用戶名稱',
+    realName: '用戶姓名',
     distributedPool: '已派發分紅池',
     dividend: '分紅',
     dividendHistory: '分紅歷史',
@@ -1227,6 +1229,7 @@ const I18N: Record<string, Record<string, string>> = {
     disabledStatus: 'Disabled',
     discountAmount: 'Discount',
     displayName: 'Username',
+    realName: 'Real Name',
     distributedPool: 'Distributed Pool',
     dividend: 'Dividend',
     dividendHistory: 'Dividend History',
@@ -1790,6 +1793,7 @@ export type I18nKey =
   | 'disabledStatus'
   | 'discountAmount'
   | 'displayName'
+  | 'realName'
   | 'distributedPool'
   | 'dividend'
   | 'dividendHistory'
