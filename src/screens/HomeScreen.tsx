@@ -230,6 +230,17 @@ export default function HomeScreen({
     }).catch(() => {});
   }, []);
 
+  // Signal splash screen to close once the actual background image is loaded
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!bgReady) return;
+    const img = new Image();
+    const done = () => { (window as any).__appReady = true; };
+    img.onload = done;
+    img.onerror = done;
+    img.src = `${bgImage}?v=${bgVersion}`;
+  }, [bgReady, bgImage, bgVersion]);
+
 
   // loadChart/loadChartMonthly/loadProducts → useHomeData
 

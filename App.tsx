@@ -94,27 +94,24 @@ export default function App() {
     return () => window.removeEventListener('app:user-change', onUserChange);
   }, []);
 
-  // Signal splash screen to close after background images are preloaded
+  // Preload background image into browser cache; LoginScreen/HomeScreen
+  // will signal __appReady once the actual background is rendered.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const markReady = () => { (window as any).__appReady = true; };
 
     try {
       const cached = localStorage.getItem('bg-image');
       if (cached && cached !== '/img/bg.jpg?v=2') {
-        // Custom background exists → preload only that
-        const img = new Image();
-        img.onload = markReady;
-        img.onerror = markReady;
-        img.src = cached;
+        const img = new Image(); img.src = cached;
       } else {
-        // No custom background → preload default
-        const img = new Image();
-        img.onload = markReady;
-        img.onerror = markReady;
-        img.src = '/img/bg.jpg?v=2';
+        const img = new Image(); img.src = '/img/bg.jpg?v=2';
       }
     } catch {}
+
+    // Safety timeout — if no screen signals __appReady within 8s, release splash
+    setTimeout(() => {
+      if (!(window as any).__appReady) (window as any).__appReady = true;
+    }, 8000);
   }, []);
 
   return (

@@ -111,6 +111,18 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     return () => clearTimeout(timer);
   }, [username]);
 
+  // Signal splash screen to close once the actual background image is loaded
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!bgReady) return;
+    const bgSrc = bgUrl || '/img/bg.jpg?v=2';
+    const img = new Image();
+    const done = () => { (window as any).__appReady = true; };
+    img.onload = done;
+    img.onerror = done;
+    img.src = bgSrc;
+  }, [bgReady, bgUrl]);
+
   const validatePassword = (pw: string): string => {
     let ok = true;
     if (pw.length < 8) ok = false;
