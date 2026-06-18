@@ -77,6 +77,15 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [showDetail, setShowDetail] = useState<any>(null);
+  const [detailExiting, setDetailExiting] = useState(false);
+
+  const handleCloseDetail = useCallback(() => {
+    setDetailExiting(true);
+    setTimeout(() => {
+      setShowDetail(null);
+      setDetailExiting(false);
+    }, 200);
+  }, []);
   const [showOrg, setShowOrg] = useState(false);
   const [orgExiting, setOrgExiting] = useState(false);
 
@@ -693,15 +702,15 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       />
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
-      {showDetail && (
-        <ModalOverlay visible={!!showDetail} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
-          <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
+      {(showDetail || detailExiting) && (
+        <ModalOverlay visible={!!showDetail && !detailExiting} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={handleCloseDetail}>
+          <View style={[mo.modalCard, { maxWidth: 360 }, detailExiting && { animationName: 'modalOut', animationDuration: '0.18s', animationTimingFunction: 'ease', animationFillMode: 'forwards' } as any]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{translateName(showDetail.name, showDetail.name_pinyin, showDetail.name_tw)}</Text>
                 <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(showDetail.name, showDetail.linked_user_role))} · {t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%</Text>
               </View>
-              <TouchableOpacity onPress={() => setShowDetail(null)}>
+              <TouchableOpacity onPress={handleCloseDetail}>
                 <Text style={mo.close}>✕</Text>
               </TouchableOpacity>
             </View>
