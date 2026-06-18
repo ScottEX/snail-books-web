@@ -690,7 +690,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
             <View style={mo.header}>
               <View>
                 <Text style={mo.title}>{translateName(showDetail.name, showDetail.name_pinyin, showDetail.name_tw)}</Text>
-                <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(showDetail.name))} · {t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%</Text>
+                <Text style={[mo.sub, { color: colors.textSub }]}>{t(getRoleKey(showDetail.name, showDetail.linked_user_role))} · {t('sharePercent')} {(showDetail.share * 100).toFixed(0)}%</Text>
               </View>
               <TouchableOpacity onPress={() => setShowDetail(null)}>
                 <Text style={mo.close}>✕</Text>
@@ -776,7 +776,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
             </View>
             <View style={org.body}>
               {partners.map((p: any, i: number) => {
-                const roleKey = getRoleKey(p.name);
+                const roleKey = getRoleKey(p.name, p.linked_user_role);
                 const isChairman = roleKey === 'chairman';
                 return (
                 <View key={p.id} style={{ alignItems: 'center', width: '100%' }}>
