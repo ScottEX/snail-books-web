@@ -97,24 +97,22 @@ export default function App() {
   // Signal splash screen to close after background images are preloaded
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    let pending = 1; // default bg.jpg
-    const markReady = () => { if (--pending <= 0) (window as any).__appReady = true; };
+    const markReady = () => { (window as any).__appReady = true; };
 
-    // 1. Default background
-    const img1 = new Image();
-    img1.onload = markReady;
-    img1.onerror = markReady;
-    img1.src = '/img/bg.jpg?v=2';
-
-    // 2. Custom background (if cached in localStorage)
     try {
       const cached = localStorage.getItem('bg-image');
       if (cached && cached !== '/img/bg.jpg?v=2') {
-        pending++;
-        const img2 = new Image();
-        img2.onload = markReady;
-        img2.onerror = markReady;
-        img2.src = cached;
+        // Custom background exists → preload only that
+        const img = new Image();
+        img.onload = markReady;
+        img.onerror = markReady;
+        img.src = cached;
+      } else {
+        // No custom background → preload default
+        const img = new Image();
+        img.onload = markReady;
+        img.onerror = markReady;
+        img.src = '/img/bg.jpg?v=2';
       }
     } catch {}
   }, []);
