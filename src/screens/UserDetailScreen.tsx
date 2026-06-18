@@ -139,7 +139,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setDeleteBy(d.delete_by || '');
     } catch {}
     setLoading(false);
-  }, [user.id, lang]);
+  }, [user.id]);
 
   useEffect(() => { fetchDetail(); }, [fetchDetail]);
 
@@ -152,7 +152,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       if (field === 'is_disabled') onUpdated();
     } catch {}
     setSaving(false);
-  }, [user.id, lang, onUpdated]);
+  }, [user.id, onUpdated]);
 
   const handleToggleDisabled = useCallback((val: boolean) => {
     setIsDisabled(val);
