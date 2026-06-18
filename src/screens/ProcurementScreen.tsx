@@ -1091,7 +1091,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       {subTab === 'history' && (
         loadingHist ? (
           <View style={styles.historyList}>
-            {[...Array(5)].map((_, i) => (
+            {[...Array(10)].map((_, i) => (
               <View key={i} style={[styles.historyCard, { pointerEvents: 'none' as any }]}>
                 {/* header skeleton */}
                 <View style={styles.histHead}>
