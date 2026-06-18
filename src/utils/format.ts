@@ -16,10 +16,13 @@ export function fmtAmtFull(n: number): string {
   return '\u00A5' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-/** Format ISO date string (yyyy-mm-dd) to locale-aware display: en→"Jun 5, 2026", zh→"2026年06月05日" */
+/** Format ISO date string (yyyy-mm-dd) or datetime (yyyy-mm-dd HH:MM:SS) to locale-aware display:
+ *  en→"Jun 5, 2026", zh→"2026年06月05日". Time portion is ignored. */
 export function formatDate(dateStr: string): string {
   if (!dateStr) return dateStr;
-  const parts = dateStr.split('-');
+  // Strip time portion if present
+  const dateOnly = dateStr.split(' ')[0];
+  const parts = dateOnly.split('-');
   if (parts.length !== 3) return dateStr;
   const [y, m, d] = parts;
   const lang = getLang();
