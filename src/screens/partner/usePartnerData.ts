@@ -34,7 +34,7 @@ export function getRoleKey(name: string): I18nKey {
   return map[name] || 'janitor';
 }
 
-export function usePartnerData(setToast: (msg: string) => void) {
+export function usePartnerData(setToast: (msg: string) => void, refreshKey = 0) {
   const [partners, setPartners] = useState<any[]>([]);
   const [dividends, setDividends] = useState<any[]>([]);
   const [totalDiv, setTotalDiv] = useState(0);
@@ -52,7 +52,7 @@ export function usePartnerData(setToast: (msg: string) => void) {
     setLoadingData(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [refreshKey]);
 
   const grouped = useMemo(() => {
     const g: Record<string, any[]> = {};

@@ -58,7 +58,7 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
 }
 
 
-export default function PartnerScreen({ onBack, onProfile }: { onBack: () => void; onProfile?: () => void }) {
+export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { onBack: () => void; onProfile?: () => void; refreshKey?: number }) {
   const sd = useServerDate();
   const [toast, setToast] = useState('');
   const [cropMsg, setCropMsg] = useState('');
@@ -71,7 +71,7 @@ export default function PartnerScreen({ onBack, onProfile }: { onBack: () => voi
     grouped,
     groupKeys,
     getPartnerHistory,
-  } = usePartnerData(setToast);
+  } = usePartnerData(setToast, refreshKey);
   const [showDividend, setShowDividend] = useState(false);
   const [showDelete, setShowDelete] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
