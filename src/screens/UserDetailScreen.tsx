@@ -511,7 +511,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             </TouchableOpacity>
           </View>
           <View style={{ padding: 16 }}>
-            {partnerList.map((p: any) => (
+            {partnerList.filter((p: any) => !p.linked_user_id).map((p: any) => (
               <TouchableOpacity key={p.id}
                 onPress={() => handleLinkPartner(p.id, p.name)}
                 style={{ paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.08) }}
