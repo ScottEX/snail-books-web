@@ -241,10 +241,10 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     try {
       await api.admin.updateUser(user.id, { linked_partner_id: partnerId });
       setLinkedPartnerId(partnerId);
-      setLinkedPartnerName(partnerName);
+      setLinkedPartnerName(realName || partnerName);
     } catch {}
     setSaving(false);
-  }, [user.id]);
+  }, [user.id, realName]);
 
   const handleUnlinkPartner = useCallback(async () => {
     setSaving(true);
