@@ -146,6 +146,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   // WebAuthn (Face ID)
   const [hasFaceID, setHasFaceID] = useState(false);
   const [faceIDLoading, setFaceIDLoading] = useState(false);
+  const [webauthnSupported] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !!(window as any).PublicKeyCredential;
+  });
 
 
   // Avatar crop state → useAvatarCrop hook
@@ -594,7 +598,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <View style={st.sectionTitleLine} />
           </View>
           <View style={st.authCard}>
-            {/* Face ID row */}
+            {/* Face ID row — only on devices that support WebAuthn */}
+            {webauthnSupported && (
             <View style={st.authRow}>
               <View style={st.authHeaderRow}>
                 <View style={[st.iconWrap, st.iconFace]}>
@@ -616,6 +621,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </View>
               <Text style={st.authDesc}>{t('faceIDDesc') || '使用面容或指纹快速登录'}</Text>
             </View>
+            )}
             <View style={st.divider} />
             {/* SSO row */}
             <View style={st.authRow}>
