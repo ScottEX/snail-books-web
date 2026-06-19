@@ -596,7 +596,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
         {/* ═══ PANEL 1: RECORDS ═══ */}
         {tab === 1 && (
-          <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+          <View style={s.scroll}>
             {/* Filter */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterRow} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
               {FILTERS.map(f => (
@@ -605,6 +605,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
 
             {/* Invoice cards */}
             {recordsLoading ? (
@@ -665,9 +667,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                     </View>
                   </View>
                 </View>
-              ))
+              ))}
             )}
           </ScrollView>
+          </View>
         )}
 
 
