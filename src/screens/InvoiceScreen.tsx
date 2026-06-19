@@ -598,7 +598,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         {tab === 1 && (
           <View style={s.scroll}>
             {/* Filter */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterRow} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[s.filterRow, { maxHeight: 36 }]} contentContainerStyle={{ paddingHorizontal: 16, gap: 6, alignItems: 'center' }}>
               {FILTERS.map(f => (
                 <TouchableOpacity key={f.key} style={[s.fc, { backgroundColor: c.surface, borderColor: c.secondary }, filter === f.key && { backgroundColor: c.primary, borderColor: c.primary }]} onPress={() => setFilter(f.key)}>
                   <Text style={[s.fcText, { color: filter === f.key ? '#fff' : c.textSub }]}>{f.label}</Text>
