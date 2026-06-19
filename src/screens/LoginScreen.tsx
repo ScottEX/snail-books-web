@@ -479,9 +479,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                 <Animated.View style={{ transform: [{ scale: breatheAnim }], alignItems: 'center' }}>
                   <TouchableOpacity onPress={handleFaceIDLogin} style={styles.faceBtn} disabled={loading}>
                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="2" width="20" height="20" rx="5"/>
-                      <circle cx="12" cy="9.5" r="2.5"/>
-                      <path d="M7.5 17c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/>
+                      <rect x="2" y="2" width="20" height="20" rx="6"/>
+                      <circle cx="9" cy="9" r="1" fill={colors.surface} stroke="none"/>
+                      <circle cx="15" cy="9" r="1" fill={colors.surface} stroke="none"/>
+                      <path d="M9 14 Q12 16.5 15 14"/>
                     </svg>
                   </TouchableOpacity>
                 </Animated.View>
@@ -508,9 +509,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     {pwdHasFaceID && (
                       <TouchableOpacity onPress={switchToFaceMode} style={{ paddingHorizontal: 10, paddingVertical: 6 }}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="3" width="18" height="18" rx="4"/>
-                          <circle cx="12" cy="9.5" r="2.5"/>
-                          <path d="M7.5 17c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/>
+                          <rect x="3" y="3" width="18" height="18" rx="5"/>
+                          <circle cx="9" cy="9" r="0.8" fill={colors.primary} stroke="none"/>
+                          <circle cx="15" cy="9" r="0.8" fill={colors.primary} stroke="none"/>
+                          <path d="M9 13.5 Q12 15.5 15 13.5"/>
                         </svg>
                       </TouchableOpacity>
                     )}
