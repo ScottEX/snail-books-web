@@ -210,7 +210,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       try {
         const resp = await api.webauthnCheck(username);
         setPwdHasFaceID(resp.has_credential);
-      } catch { setPwdHasFaceID(false); }
+        // Keep hasFaceID in sync with current user
+        setHasFaceID(resp.has_credential);
+        if (resp.has_credential) {
+          setFaceUsername(resp.username);
+        } else {
+          setFaceUsername('');
+        }
+      } catch { setPwdHasFaceID(false); setHasFaceID(false); setFaceUsername(''); }
     }, 500);
     return () => clearTimeout(timer);
   }, [username, faceMode]);
