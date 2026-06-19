@@ -131,6 +131,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             localStorage.removeItem('webauthn_bound');
             localStorage.removeItem('webauthn_user');
             localStorage.removeItem('webauthn_credential_id');
+            localStorage.removeItem('webauthn_user_id_b64');
           }
         }).catch(() => {});
       } else {
@@ -310,6 +311,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               localStorage.removeItem('webauthn_bound');
               localStorage.removeItem('webauthn_user');
               localStorage.removeItem('webauthn_credential_id');
+              localStorage.removeItem('webauthn_user_id_b64');
             }
           }
         } catch {}

@@ -232,6 +232,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             // Store credential ID so we can signal the device to delete
             // the key when the user unbinds Face ID later.
             localStorage.setItem('webauthn_credential_id', credential.id);
+            // Store WebAuthn user.id bytes for signalAllAcceptedCredentials
+            localStorage.setItem('webauthn_user_id_b64', user.id);
           }
           setToast(completeResp.message || '面容登录已开启');
         } else {
@@ -270,21 +272,36 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             }
           } catch {}
         }
-        if (credIdB64 && typeof window !== 'undefined' && (window as any).PublicKeyCredential &&
-            typeof (window as any).PublicKeyCredential.signalUnknownCredential === 'function') {
-          try {
-            // Safari 26+ known bug: promise may never resolve.
-            // Race with a 5s timeout so unbind doesn't hang forever.
-            await Promise.race([
-              (window as any).PublicKeyCredential.signalUnknownCredential({
-                rpId: 'test.rowanlan.xyz',
-                credentialId: base64urlToArrayBuffer(credIdB64),
-              }),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
-            ]);
-          } catch {
-            // Timeout or Safari bug — signal may or may not have been sent.
-            // Proceed with server-side deletion regardless.
+        if (credIdB64 && typeof window !== 'undefined' && (window as any).PublicKeyCredential) {
+          const PKC = (window as any).PublicKeyCredential;
+          // Try both Signal APIs — Safari 26+ bug may affect one but not the other.
+          // 1. signalUnknownCredential: delete a specific credential by ID
+          if (typeof PKC.signalUnknownCredential === 'function') {
+            try {
+              await Promise.race([
+                PKC.signalUnknownCredential({
+                  rpId: 'test.rowanlan.xyz',
+                  credentialId: base64urlToArrayBuffer(credIdB64),
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+              ]);
+            } catch { /* Safari bug — ignore */ }
+          }
+          // 2. signalAllAcceptedCredentials: tell iOS this user has NO valid credentials
+          const userIdB64 = (() => {
+            try { return localStorage.getItem('webauthn_user_id_b64'); } catch { return null; }
+          })();
+          if (typeof PKC.signalAllAcceptedCredentials === 'function' && userIdB64) {
+            try {
+              await Promise.race([
+                PKC.signalAllAcceptedCredentials({
+                  rpId: 'test.rowanlan.xyz',
+                  userId: base64urlToArrayBuffer(userIdB64),
+                  allAcceptedCredentialIds: [],  // empty = no valid credentials for this user
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+              ]);
+            } catch { /* Safari bug — ignore */ }
           }
         }
         const resp = await api.webauthnDelete();
@@ -293,6 +310,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           localStorage.removeItem('webauthn_bound');
           localStorage.removeItem('webauthn_user');
           localStorage.removeItem('webauthn_credential_id');
+          localStorage.removeItem('webauthn_user_id_b64');
         }
         setToast(resp.message || '面容登录已关闭');
       } catch (e: any) {
