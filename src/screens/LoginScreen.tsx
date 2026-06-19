@@ -220,18 +220,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       // Step 1: get challenge from server
       const beginResp = await api.webauthnLoginBegin();
       const challenge = base64urlToArrayBuffer(beginResp.challenge);
-      const allowCredentials = (beginResp.allowCredentials || []).map((c: any) => ({
-        id: base64urlToArrayBuffer(c.id),
-        type: c.type,
-        transports: c.transports,
-      }));
 
       // Step 2: get assertion from authenticator (Face ID)
+      // Don't pass allowCredentials — resident keys are discoverable,
+      // so iOS goes straight to Face ID without the "Use Passkey" sheet.
       const credential = await navigator.credentials.get({
         publicKey: {
           challenge,
           rpId: beginResp.rpId,
-          allowCredentials: allowCredentials.length ? allowCredentials : undefined,
           userVerification: 'required',
           timeout: beginResp.timeout || 60000,
         },
