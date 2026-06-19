@@ -261,6 +261,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       }
     } catch (e: any) {
       setLoading(false);
+      // User cancelled — don't show error
+      if (e?.name === 'NotAllowedError') return;
       if (e?.message) { setMsg(e.message); setMsgKey(''); }
       else { setMsg('面容登录失败，请重试'); setMsgKey(''); }
     }
