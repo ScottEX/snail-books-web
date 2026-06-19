@@ -232,7 +232,15 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           setToast(completeResp.message || '绑定失败');
         }
       } catch (e: any) {
-        setToast(e?.message || '绑定失败，请重试');
+        // User cancelled — don't show error
+        const name = (e as any)?.name || '';
+        const msg = (e as any)?.message || '';
+        if (name === 'NotAllowedError' || name === 'AbortError' ||
+            msg.includes('not allowed') || msg.includes('denied permission')) {
+          // silently ignore
+        } else {
+          setToast(e?.message || '绑定失败，请重试');
+        }
       } finally {
         setFaceIDLoading(false);
       }
