@@ -275,8 +275,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       const r = await api.login(username, password, remember);
       setLoading(false);
       if (r.status === 'ok') {
+        const loggedUser = r.username || username;
         if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('user', r.username || username);
+          localStorage.setItem('user', loggedUser);
           localStorage.setItem('user_id', String(r.user_id || ''));
           if (remember) {
             localStorage.setItem('saved_login', username);
@@ -286,6 +287,18 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
+        // Sync Face ID state for this user
+        api.webauthnCheck(loggedUser).then((resp: any) => {
+          if (typeof localStorage !== 'undefined') {
+            if (resp.has_credential) {
+              localStorage.setItem('webauthn_bound', '1');
+              localStorage.setItem('webauthn_user', resp.username || loggedUser);
+            } else {
+              localStorage.removeItem('webauthn_bound');
+              localStorage.removeItem('webauthn_user');
+            }
+          }
+        }).catch(() => {});
         onLogin();
       } else if (r.need_verify) {
         setEmail(r.email); setStep('verify'); setMsg(''); setMsgKey('');
