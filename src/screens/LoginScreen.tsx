@@ -68,10 +68,13 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [remember, setRemember] = useState(() => {
     try { return localStorage.getItem('remember_me') === 'true'; } catch { return false; }
   });
+  const webauthnAvailable = typeof window !== 'undefined' && !!(window as any).PublicKeyCredential;
   const [hasFaceID, setHasFaceID] = useState(() => {
+    if (!webauthnAvailable) return false;
     try { return localStorage.getItem('webauthn_bound') === '1'; } catch { return false; }
   });
   const [faceMode, setFaceMode] = useState(() => {
+    if (!webauthnAvailable) return false;
     try { return localStorage.getItem('webauthn_bound') === '1'; } catch { return false; }
   });
   const [faceUsername, setFaceUsername] = useState(() => {
@@ -108,6 +111,8 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       if (getCurrentUser()) onLogin();
     }
     if (typeof localStorage !== 'undefined') {
+      // If this device doesn't support WebAuthn, never enter face mode.
+      if (!webauthnAvailable) return;
       const bound = localStorage.getItem('webauthn_bound');
       if (bound === '1') {
         // Verify the locally-stored user still has a credential on the server.
@@ -228,6 +233,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   // When in password mode, check if typed username has Face ID
   useEffect(() => {
+    if (!webauthnAvailable) { setPwdHasFaceID(false); return; }
     if (faceMode) return;
     if (!username) { setPwdHasFaceID(false); return; }
     const timer = setTimeout(async () => {
