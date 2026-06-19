@@ -179,13 +179,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     // Stay in face mode if user has a credential
     if (faceUsername && hasFaceID) {
       setFaceMode(true);
+      setUsername(faceUsername);
     } else {
       setFaceMode(false);
-    }
-    // restore saved login username
-    if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem('saved_login');
-      if (saved) setUsername(saved);
+      // restore saved login username
+      if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem('saved_login');
+        if (saved) setUsername(saved);
+      }
     }
   };
 
