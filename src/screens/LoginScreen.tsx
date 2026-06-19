@@ -129,24 +129,27 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           }
         }).catch(() => {});
       } else {
-        // No local flag — check server if any credential exists
-        import('../api/client').then(({ api }) => {
-          api.webauthnLoginBegin().then((resp: any) => {
-            if (resp.allowCredentials?.length > 0) {
-              setHasFaceID(true);
-              localStorage.setItem('webauthn_bound', '1');
-              // Also fetch username and enter face mode
-              api.webauthnCheck().then((r: any) => {
-                if (r.has_credential && r.username) {
-                  setFaceUsername(r.username);
-                  setUsername(r.username);
-                  localStorage.setItem('webauthn_user', r.username);
-                  setFaceMode(true);
-                }
-              }).catch(() => {});
-            }
-          }).catch(() => {});
-        });
+        // No local flag — only check the saved-login user, not all server users.
+        // Scanning the whole server picks up ANY user with a credential (e.g.
+        // Rowan-Lan) and auto-enters Face ID mode even after a different user
+        // (JiangKuan) just logged out, which is wrong.
+        const savedUser = (() => {
+          try { return localStorage.getItem('saved_login'); } catch { return ''; }
+        })();
+        if (savedUser) {
+          import('../api/client').then(({ api }) => {
+            api.webauthnCheck(savedUser).then((r: any) => {
+              if (r.has_credential && r.username) {
+                setHasFaceID(true);
+                setFaceUsername(r.username);
+                setUsername(r.username);
+                localStorage.setItem('webauthn_bound', '1');
+                localStorage.setItem('webauthn_user', r.username);
+                setFaceMode(true);
+              }
+            }).catch(() => {});
+          });
+        }
       }
     }
   }, []);
