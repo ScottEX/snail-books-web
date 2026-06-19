@@ -75,7 +75,20 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       if (getCurrentUser()) onLogin();
     }
     if (typeof localStorage !== 'undefined') {
-      setHasFaceID(localStorage.getItem('webauthn_bound') === '1');
+      const bound = localStorage.getItem('webauthn_bound');
+      if (bound === '1') {
+        setHasFaceID(true);
+      } else {
+        // No local flag — check server if any credential exists
+        import('../api/client').then(({ api }) => {
+          api.webauthnLoginBegin().then((resp: any) => {
+            if (resp.allowCredentials?.length > 0) {
+              setHasFaceID(true);
+              localStorage.setItem('webauthn_bound', '1');
+            }
+          }).catch(() => {});
+        });
+      }
     }
   }, []);
 
