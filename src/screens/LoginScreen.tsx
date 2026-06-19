@@ -441,8 +441,15 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
                 <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleFaceIDLogin} style={[styles.btnDark, { marginTop: 10, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }]} disabled={loading}>
-                <Text style={[styles.btnDarkText, { fontSize: 14 }]}>🔒 {t('faceIDLogin') || '面容登录'}</Text>
+              <TouchableOpacity onPress={handleFaceIDLogin} style={styles.btnDark} disabled={loading}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+                    <circle cx="12" cy="10" r="3"/>
+                    <path d="M7 18c0-3 2.2-5 5-5s5 2 5 5"/>
+                  </svg>
+                  <Text style={styles.btnDarkText}>{t('faceIDLogin') || '面容登录'}</Text>
+                </View>
               </TouchableOpacity>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
