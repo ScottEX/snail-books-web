@@ -491,9 +491,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* ═══ ENTRY CARD ═══ */}
-        <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h) setEntryCardH(h); }}>
+      {/* ═══ ENTRY CARD ═══ */}
+      <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h) setEntryCardH(h); }}>
           <View style={s.ecTop}>
             <TouchableOpacity style={[s.ecBackBtn, { backgroundColor: 'rgba(255,255,255,0.12)' }]} onPress={onBack}>
               <IcnBack color="rgba(255,255,255,0.8)" />
@@ -537,6 +536,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
         {/* ═══ PANEL 0: INFO ═══ */}
         {tab === 0 && (
+          <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
           <View>
             {/* Tips */}
             <View style={[s.tips, { backgroundColor: withAlpha(c.warning, 0.08), borderWidth: 0 }]}>
@@ -585,11 +585,12 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               </View>
             </View>
           </View>
+          </ScrollView>
         )}
 
         {/* ═══ PANEL 1: RECORDS ═══ */}
         {tab === 1 && (
-          <View>
+          <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
             {/* Filter */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterRow} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
               {FILTERS.map(f => (
@@ -660,9 +661,9 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 </View>
               ))
             )}
-          </View>
+          </ScrollView>
         )}
-      </ScrollView>
+
 
       {/* ═══ TOAST ═══ */}
       {toast !== '' && (
