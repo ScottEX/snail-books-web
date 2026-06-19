@@ -506,16 +506,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                         </Svg>
                       </TouchableOpacity>
                     ) : null}
-                    {pwdHasFaceID && (
-                      <TouchableOpacity onPress={switchToFaceMode} style={{ paddingHorizontal: 10, paddingVertical: 6 }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="3" width="18" height="18" rx="5"/>
-                          <circle cx="9" cy="9" r="0.8" fill={colors.primary} stroke="none"/>
-                          <circle cx="15" cy="9" r="0.8" fill={colors.primary} stroke="none"/>
-                          <path d="M9 13.5 Q12 15.5 15 13.5"/>
-                        </svg>
-                      </TouchableOpacity>
-                    )}
                   </View>
                 </View>
                 <View style={styles.fieldWrap}>
@@ -553,6 +543,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     </View>
                     <Text style={{ fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)' }}>{t('rememberMe') || '记住我'}</Text>
                   </TouchableOpacity>
+                  {pwdHasFaceID && (
+                    <TouchableOpacity onPress={switchToFaceMode}>
+                      <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>{t('faceIDLogin') || '面容登录'}</Text>
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
                     <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
                   </TouchableOpacity>
