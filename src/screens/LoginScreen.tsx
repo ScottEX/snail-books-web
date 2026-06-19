@@ -474,20 +474,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               /* ── Face ID mode ── */
               <View style={styles.formSection}>
                 <View style={styles.faceUserRow}>
-                  <View style={styles.faceAvatar}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="8" r="4"/>
-                      <path d="M5 21c0-4 3.1-7 7-7s7 3 7 7"/>
-                    </svg>
-                  </View>
                   <Text style={styles.faceUsername}>{faceUsername}</Text>
                 </View>
                 <Animated.View style={{ transform: [{ scale: breatheAnim }], alignItems: 'center' }}>
                   <TouchableOpacity onPress={handleFaceIDLogin} style={styles.faceBtn} disabled={loading}>
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="7" r="4"/>
-                      <path d="M4 21c0-5 3.6-8 8-8s8 3 8 8"/>
-                      <path d="M12 3v2" strokeWidth="0.8" opacity="0.4"/>
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="2" width="20" height="20" rx="5"/>
+                      <circle cx="12" cy="9.5" r="2.5"/>
+                      <path d="M7.5 17c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/>
                     </svg>
                   </TouchableOpacity>
                 </Animated.View>
@@ -513,9 +507,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     ) : null}
                     {pwdHasFaceID && (
                       <TouchableOpacity onPress={switchToFaceMode} style={{ paddingHorizontal: 10, paddingVertical: 6 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="8" r="4"/>
-                          <path d="M5 21c0-4 3.1-7 7-7s7 3 7 7"/>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="4"/>
+                          <circle cx="12" cy="9.5" r="2.5"/>
+                          <path d="M7.5 17c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/>
                         </svg>
                       </TouchableOpacity>
                     )}
