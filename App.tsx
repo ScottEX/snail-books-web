@@ -133,7 +133,7 @@ export default function App() {
           <HomeScreen
             onLogout={() => {
               let savedLogin = '', rememberMe = '', lang = '', apiBase = '',
-                  webauthnBound = '', webauthnUser = '';
+                  webauthnBound = '', webauthnUser = '', webauthnCredentialId = '';
               try {
                 savedLogin = localStorage.getItem('saved_login') || '';
                 rememberMe = localStorage.getItem('remember_me') || '';
@@ -141,6 +141,7 @@ export default function App() {
                 apiBase = localStorage.getItem('api_base') || '';
                 webauthnBound = localStorage.getItem('webauthn_bound') || '';
                 webauthnUser = localStorage.getItem('webauthn_user') || '';
+                webauthnCredentialId = localStorage.getItem('webauthn_credential_id') || '';
                 localStorage.clear();
                 sessionStorage.clear();
                 if (savedLogin) localStorage.setItem('saved_login', savedLogin);
@@ -149,6 +150,7 @@ export default function App() {
                 if (apiBase) localStorage.setItem('api_base', apiBase);
                 if (webauthnBound) localStorage.setItem('webauthn_bound', webauthnBound);
                 if (webauthnUser) localStorage.setItem('webauthn_user', webauthnUser);
+                if (webauthnCredentialId) localStorage.setItem('webauthn_credential_id', webauthnCredentialId);
               } catch {}
               // Clear history.state so stale sub-page stack isn't restored on next login
               try { history.replaceState(null, '', location.href); } catch {}

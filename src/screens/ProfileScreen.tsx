@@ -229,6 +229,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           if (typeof localStorage !== 'undefined') {
             localStorage.setItem('webauthn_bound', '1');
             localStorage.setItem('webauthn_user', localStorage.getItem('user') || '');
+            // Store credential ID so we can signal the device to delete
+            // the key when the user unbinds Face ID later.
+            localStorage.setItem('webauthn_credential_id', credential.id);
           }
           setToast(completeResp.message || '面容登录已开启');
         } else {
@@ -251,11 +254,40 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       // Disable Face ID
       setFaceIDLoading(true);
       try {
+        // Signal the device to delete the credential from its secure storage.
+        // This prevents the Face ID picker from showing stale credentials
+        // (e.g. JiangKuan's key after unbind) when another user logs in.
+        let credIdB64 = (() => {
+          try { return localStorage.getItem('webauthn_credential_id'); } catch { return null; }
+        })();
+        // Fallback: if credential ID not in localStorage (e.g. password-login),
+        // fetch it from the server so we can still signal the device.
+        if (!credIdB64) {
+          try {
+            const statusResp = await api.webauthnStatus();
+            if (statusResp.credential_id) {
+              credIdB64 = statusResp.credential_id;
+            }
+          } catch {}
+        }
+        if (credIdB64 && typeof PublicKeyCredential !== 'undefined' &&
+            typeof (PublicKeyCredential as any).signalUnknownCredential === 'function') {
+          try {
+            await (PublicKeyCredential as any).signalUnknownCredential({
+              rpId: 'test.rowanlan.xyz',
+              credentialId: base64urlToArrayBuffer(credIdB64),
+            });
+          } catch {
+            // Safari 26+ known bug: promise may not resolve, but signal still sent.
+            // Swallow the error and proceed with server-side deletion.
+          }
+        }
         const resp = await api.webauthnDelete();
         setHasFaceID(false);
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem('webauthn_bound');
           localStorage.removeItem('webauthn_user');
+          localStorage.removeItem('webauthn_credential_id');
         }
         setToast(resp.message || '面容登录已关闭');
       } catch (e: any) {
@@ -271,6 +303,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try {
       const resp = await api.webauthnStatus();
       setHasFaceID(resp.has_credential);
+      if (resp.has_credential && resp.credential_id && typeof localStorage !== 'undefined') {
+        localStorage.setItem('webauthn_credential_id', resp.credential_id);
+      }
     } catch {}
   };
   const pickTimeout = (h: number) => {

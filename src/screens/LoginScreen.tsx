@@ -130,6 +130,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             setFaceUsername('');
             localStorage.removeItem('webauthn_bound');
             localStorage.removeItem('webauthn_user');
+            localStorage.removeItem('webauthn_credential_id');
           }
         }).catch(() => {});
       } else {
@@ -308,6 +309,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             } else {
               localStorage.removeItem('webauthn_bound');
               localStorage.removeItem('webauthn_user');
+              localStorage.removeItem('webauthn_credential_id');
             }
           }
         } catch {}
@@ -368,6 +370,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.setItem('user_id', String(loginResp.user_id || ''));
           localStorage.setItem('webauthn_bound', '1');
           localStorage.setItem('webauthn_user', loginResp.username);
+          localStorage.setItem('webauthn_credential_id', credential.id);
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
