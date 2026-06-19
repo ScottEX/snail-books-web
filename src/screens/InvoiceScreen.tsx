@@ -440,7 +440,13 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     (async () => {
       try {
         const list = await api.getProcurementBatchesLite();
-        setBatchList(Array.isArray(list) ? list : []);
+        let batches = Array.isArray(list) ? list : [];
+        // When editing, the record's own linked batch may be excluded by
+        // the "un-invoiced" filter — add it back so the dropdown shows it
+        if (forEdit && forEdit.procurement_batch_id && !batches.find((b: any) => b.id === forEdit.procurement_batch_id)) {
+          batches = [{ id: forEdit.procurement_batch_id, batch_number: forEdit.batch_number, date: forEdit.date }, ...batches];
+        }
+        setBatchList(batches);
       } catch { setBatchList([]); }
     })();
     // Auto-fill user email from localStorage, fallback to API
