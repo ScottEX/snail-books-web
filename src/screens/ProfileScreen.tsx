@@ -539,9 +539,12 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             {/* Face ID row */}
             <View style={st.authRow}>
               <View style={st.authHeaderRow}>
-                <View style={[st.iconWrap, st.iconShield]}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M8 1l-4 4v6c0 5.6 8 10 8 10s8-4.4 8-10V5l-4-4H8z"/>
+                <View style={[st.iconWrap, st.iconFace]}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="4"/>
+                    <circle cx="9" cy="10" r="0.8" fill={colors.primary} stroke="none"/>
+                    <circle cx="15" cy="10" r="0.8" fill={colors.primary} stroke="none"/>
+                    <path d="M9 13.5 Q12 15.5 15 13.5"/>
                   </svg>
                 </View>
                 <Text style={st.authLabel}>{t('faceIDLabel') || '面容登录'}</Text>
@@ -1129,6 +1132,7 @@ function getStyles(colors: ThemeColors) {
       fontSize: 12, color: colors.textSub, lineHeight: 16, marginLeft: 42,
     },
     iconShield: { backgroundColor: withAlpha(colors.primary, 0.12) },
+    iconFace: { backgroundColor: withAlpha(colors.primary, 0.12) },
     iconClock: { backgroundColor: 'rgba(255,180,80,0.12)' },
     iconUsers: { backgroundColor: 'rgba(91,155,213,0.12)' },
     capsuleRow: {
