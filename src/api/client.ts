@@ -449,11 +449,14 @@ export const api = {
   },
 
   // ── WebAuthn (Face ID) ──
-  webauthnLoginBegin: (credentialId?: string) =>
+  webauthnLoginBegin: (credentialId?: string, username?: string) =>
     fetch(API_BASE + '/api/webauthn/login/begin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Lang': getLang() },
-      body: JSON.stringify(credentialId ? { credential_id: credentialId } : {}),
+      body: JSON.stringify(
+        credentialId ? { credential_id: credentialId } :
+        username ? { username } : {}
+      ),
     }).then(async (r) => {
       const data = await r.json();
       if (!r.ok) throw new Error(data.message || 'Login begin failed');

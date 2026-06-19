@@ -270,16 +270,21 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             }
           } catch {}
         }
-        if (credIdB64 && typeof PublicKeyCredential !== 'undefined' &&
-            typeof (PublicKeyCredential as any).signalUnknownCredential === 'function') {
+        if (credIdB64 && typeof window !== 'undefined' && (window as any).PublicKeyCredential &&
+            typeof (window as any).PublicKeyCredential.signalUnknownCredential === 'function') {
           try {
-            await (PublicKeyCredential as any).signalUnknownCredential({
-              rpId: 'test.rowanlan.xyz',
-              credentialId: base64urlToArrayBuffer(credIdB64),
-            });
+            // Safari 26+ known bug: promise may never resolve.
+            // Race with a 5s timeout so unbind doesn't hang forever.
+            await Promise.race([
+              (window as any).PublicKeyCredential.signalUnknownCredential({
+                rpId: 'test.rowanlan.xyz',
+                credentialId: base64urlToArrayBuffer(credIdB64),
+              }),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+            ]);
           } catch {
-            // Safari 26+ known bug: promise may not resolve, but signal still sent.
-            // Swallow the error and proceed with server-side deletion.
+            // Timeout or Safari bug — signal may or may not have been sent.
+            // Proceed with server-side deletion regardless.
           }
         }
         const resp = await api.webauthnDelete();

@@ -336,19 +336,29 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     }
     setLoading(true);
     try {
-      // Step 1: get challenge from server
-      const beginResp = await api.webauthnLoginBegin();
+      // Step 1: get challenge + allowed credentials for this user.
+      // When username is known, scope to that user so iOS only shows their
+      // credential in the Face ID picker — not stale ones from other users.
+      const targetUser = faceUsername || username;
+      const beginResp = await api.webauthnLoginBegin(undefined, targetUser || undefined);
       const challenge = base64urlToArrayBuffer(beginResp.challenge);
 
       // Step 2: get assertion from authenticator (Face ID)
-      // Don't pass allowCredentials — resident keys are discoverable,
-      // so iOS goes straight to Face ID without the "Use Passkey" sheet.
+      // Pass allowCredentials when targetUser is known to restrict the
+      // picker to that user only. Without it, iOS discovers ALL resident
+      // keys for this RP — including unbound ones (e.g. JiangKuan).
+      const allowCredentials = beginResp.allowCredentials?.map((c: any) => ({
+        id: base64urlToArrayBuffer(c.id),
+        type: c.type,
+        transports: c.transports,
+      }));
       const credential = await navigator.credentials.get({
         publicKey: {
           challenge,
           rpId: beginResp.rpId,
           userVerification: 'required',
           timeout: beginResp.timeout || 60000,
+          ...(targetUser && allowCredentials?.length ? { allowCredentials } : {}),
         },
       }) as PublicKeyCredential;
 
