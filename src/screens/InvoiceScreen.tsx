@@ -667,7 +667,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                     </View>
                   </View>
                 </View>
-              ))}
+              ))
             )}
           </ScrollView>
           </View>
