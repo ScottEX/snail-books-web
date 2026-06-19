@@ -95,12 +95,22 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       const bound = localStorage.getItem('webauthn_bound');
       if (bound === '1') {
         setHasFaceID(true);
-        // Fetch face username and enter face mode
+        // Use local username immediately — no flash
+        const localUser = localStorage.getItem('webauthn_user');
+        if (localUser) {
+          setFaceUsername(localUser);
+          setUsername(localUser);
+          setFaceMode(true);
+        }
+        // Still verify with server in background
         api.webauthnCheck().then((resp: any) => {
           if (resp.has_credential && resp.username) {
-            setFaceUsername(resp.username);
-            setUsername(resp.username);
-            setFaceMode(true);
+            if (resp.username !== localUser) {
+              setFaceUsername(resp.username);
+              setUsername(resp.username);
+              localStorage.setItem('webauthn_user', resp.username);
+            }
+            if (!localUser) setFaceMode(true);
           }
         }).catch(() => {});
       } else {
@@ -115,6 +125,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                 if (r.has_credential && r.username) {
                   setFaceUsername(r.username);
                   setUsername(r.username);
+                  localStorage.setItem('webauthn_user', r.username);
                   setFaceMode(true);
                 }
               }).catch(() => {});
@@ -309,6 +320,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.setItem('user', loginResp.username);
           localStorage.setItem('user_id', String(loginResp.user_id || ''));
           localStorage.setItem('webauthn_bound', '1');
+          localStorage.setItem('webauthn_user', loginResp.username);
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
