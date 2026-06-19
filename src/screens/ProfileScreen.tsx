@@ -7,6 +7,22 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 
+// Base64url helpers for WebAuthn
+function arrayBufferToBase64url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = base64.length % 4 ? 4 - (base64.length % 4) : 0;
+  const binary = atob(base64 + '='.repeat(pad));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
@@ -127,6 +143,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [sessionTimeoutHours, setSessionTimeoutHours] = useState(1);
   const authPrefsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // WebAuthn (Face ID)
+  const [hasFaceID, setHasFaceID] = useState(false);
+  const [faceIDLoading, setFaceIDLoading] = useState(false);
+
 
   // Avatar crop state → useAvatarCrop hook
 
@@ -142,7 +162,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   // loadCover → useCoverCrop.loadCover()
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin().then(ok => { if (ok) fetchUnreviewedCount(); }); }, []);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); loadFaceIDStatus(); checkAdmin().then(ok => { if (ok) fetchUnreviewedCount(); }); }, []);
   useEffect(() => { if (isAdmin) fetchUnreviewedCount(); }, [refreshKey]);
 
   const loadUserInfo = async () => {
@@ -176,6 +196,66 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     const nv = v ? 1 : 0;
     setEnforceSingleSession(nv);
     persistAuthPrefs({ enforce_single_session: nv });
+  };
+
+  const toggleFaceID = async (v: boolean) => {
+    if (faceIDLoading) return;
+    if (v) {
+      // Enable Face ID — start registration
+      setFaceIDLoading(true);
+      try {
+        const beginResp = await api.webauthnRegisterBegin();
+        const challenge = base64urlToArrayBuffer(beginResp.challenge);
+        const user = beginResp.user;
+        const credential = await navigator.credentials.create({
+          publicKey: {
+            challenge,
+            rp: beginResp.rp,
+            user: { id: base64urlToArrayBuffer(user.id), name: user.name, displayName: user.displayName },
+            pubKeyCredParams: beginResp.pubKeyCredParams,
+            timeout: beginResp.timeout || 60000,
+            authenticatorSelection: beginResp.authenticatorSelection,
+            attestation: beginResp.attestation || 'none',
+          },
+        }) as PublicKeyCredential;
+        const response = credential.response as AuthenticatorAttestationResponse;
+        const completeResp = await api.webauthnRegisterComplete({
+          id: credential.id,
+          clientDataJSON: arrayBufferToBase64url(response.clientDataJSON),
+          attestationObject: arrayBufferToBase64url(response.attestationObject),
+        });
+        if (completeResp.status === 'ok') {
+          setHasFaceID(true);
+          setToast(completeResp.message || '面容登录已开启');
+        } else {
+          setToast(completeResp.message || '绑定失败');
+        }
+      } catch (e: any) {
+        setToast(e?.message || '绑定失败，请重试');
+      } finally {
+        setFaceIDLoading(false);
+      }
+    } else {
+      // Disable Face ID
+      setFaceIDLoading(true);
+      try {
+        const resp = await api.webauthnDelete();
+        setHasFaceID(false);
+        setToast(resp.message || '面容登录已关闭');
+      } catch (e: any) {
+        setToast(e?.message || '解绑失败');
+      } finally {
+        setFaceIDLoading(false);
+      }
+    }
+  };
+
+  // Load Face ID status
+  const loadFaceIDStatus = async () => {
+    try {
+      const resp = await api.webauthnStatus();
+      setHasFaceID(resp.has_credential);
+    } catch {}
   };
   const pickTimeout = (h: number) => {
     setSessionTimeoutHours(h);
@@ -440,6 +520,28 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <View style={st.sectionTitleLine} />
           </View>
           <View style={st.authCard}>
+            {/* Face ID row */}
+            {typeof window !== 'undefined' && window.PublicKeyCredential ? (
+              <View style={st.authRow}>
+                <View style={st.authHeaderRow}>
+                  <View style={[st.iconWrap, st.iconShield]}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 1l-4 4v6c0 5.6 8 10 8 10s8-4.4 8-10V5l-4-4H8z"/>
+                    </svg>
+                  </View>
+                  <Text style={st.authLabel}>{t('faceIDLabel') || '面容登录'}</Text>
+                  <Switch
+                    value={hasFaceID}
+                    onValueChange={toggleFaceID}
+                    trackColor={{ false: withAlpha(colors.textMain, 0.18), true: colors.primary }}
+                    thumbColor="#fff"
+                    disabled={faceIDLoading}
+                  />
+                </View>
+                <Text style={st.authDesc}>{t('faceIDDesc') || '使用面容或指纹快速登录'}</Text>
+              </View>
+            ) : null}
+            {typeof window !== 'undefined' && window.PublicKeyCredential ? <View style={st.divider} /> : null}
             {/* SSO row */}
             <View style={st.authRow}>
               <View style={st.authHeaderRow}>

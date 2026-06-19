@@ -7,6 +7,23 @@ import { FONTS } from '../theme';
 import { getCurrentUser } from '../utils/storage';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+// Base64url helpers for WebAuthn
+function arrayBufferToBase64url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = base64.length % 4 ? 4 - (base64.length % 4) : 0;
+  const binary = atob(base64 + '='.repeat(pad));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -160,14 +177,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
-        // NOTE: do NOT save getLang() here. At this point localStorage
-        // may still hold the PREVIOUS user's language (the one who
-        // was last signed in on this browser). Saving it now would
-        // overwrite the NEW user's server-side language preference.
-        // Instead, App.tsx dispatches 'app:user-change' from onLogin
-        // → ThemeProvider remounts → api.getLang() pulls the real
-        // per-user language → setLang() writes curLang + localStorage
-        // and the fire-and-forget PUT back is a no-op.
         onLogin();
       } else if (r.need_verify) {
         setEmail(r.email); setStep('verify'); setMsg(''); setMsgKey('');
@@ -179,6 +188,63 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     } catch (e: any) {
       setLoading(false);
       if (e?.message) { setMsg(e.message); setMsgKey(''); } else { setMsgKey('errNetworkError'); setMsg(''); }
+    }
+  };
+
+  const handleFaceIDLogin = async () => {
+    if (loading) return;
+    // Check browser support
+    if (typeof window === 'undefined' || !window.PublicKeyCredential) {
+      setMsg('此设备不支持面容登录'); setMsgKey('');
+      return;
+    }
+    setLoading(true);
+    try {
+      // Step 1: get challenge from server
+      const beginResp = await api.webauthnLoginBegin();
+      const challenge = base64urlToArrayBuffer(beginResp.challenge);
+      const allowCredentials = (beginResp.allowCredentials || []).map((c: any) => ({
+        id: base64urlToArrayBuffer(c.id),
+        type: c.type,
+        transports: c.transports,
+      }));
+
+      // Step 2: get assertion from authenticator (Face ID)
+      const credential = await navigator.credentials.get({
+        publicKey: {
+          challenge,
+          rpId: beginResp.rpId,
+          allowCredentials: allowCredentials.length ? allowCredentials : undefined,
+          userVerification: 'required',
+          timeout: beginResp.timeout || 60000,
+        },
+      }) as PublicKeyCredential;
+
+      const response = credential.response as AuthenticatorAssertionResponse;
+
+      // Step 3: send to server for verification
+      const loginResp = await api.webauthnLoginComplete({
+        id: credential.id,
+        clientDataJSON: arrayBufferToBase64url(response.clientDataJSON),
+        authenticatorData: arrayBufferToBase64url(response.authenticatorData),
+        signature: arrayBufferToBase64url(response.signature),
+        userHandle: response.userHandle ? arrayBufferToBase64url(response.userHandle) : '',
+      });
+
+      setLoading(false);
+      if (loginResp.status === 'ok') {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('user', loginResp.username);
+          localStorage.setItem('user_id', String(loginResp.user_id || ''));
+          localStorage.removeItem('active_tab');
+          localStorage.removeItem('expense_active_tab');
+        }
+        onLogin();
+      }
+    } catch (e: any) {
+      setLoading(false);
+      if (e?.message) { setMsg(e.message); setMsgKey(''); }
+      else { setMsg('面容登录失败，请重试'); setMsgKey(''); }
     }
   };
 
@@ -375,6 +441,11 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
                 <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
               </TouchableOpacity>
+              {typeof window !== 'undefined' && window.PublicKeyCredential ? (
+                <TouchableOpacity onPress={handleFaceIDLogin} style={[styles.btnDark, { marginTop: 10, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }]} disabled={loading}>
+                  <Text style={[styles.btnDarkText, { fontSize: 14 }]}>🔒 {t('faceIDLogin') || '面容登录'}</Text>
+                </TouchableOpacity>
+              ) : null}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>

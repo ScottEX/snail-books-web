@@ -447,4 +447,31 @@ export const api = {
       return null;
     }
   },
+
+  // ── WebAuthn (Face ID) ──
+  webauthnLoginBegin: (credentialId?: string) =>
+    fetch(API_BASE + '/api/webauthn/login/begin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Lang': getLang() },
+      body: JSON.stringify(credentialId ? { credential_id: credentialId } : {}),
+    }).then(async (r) => {
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message || 'Login begin failed');
+      return data;
+    }),
+  webauthnLoginComplete: (credential: any) =>
+    fetch(API_BASE + '/api/webauthn/login/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Lang': getLang() },
+      body: JSON.stringify(credential),
+    }).then(async (r) => {
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message || 'Login failed');
+      return data;
+    }),
+  webauthnRegisterBegin: () => authFetch('/api/webauthn/register/begin'),
+  webauthnRegisterComplete: (credential: any) =>
+    authFetch('/api/webauthn/register/complete', { method: 'POST', body: JSON.stringify(credential) }),
+  webauthnStatus: () => authFetch('/api/webauthn/status'),
+  webauthnDelete: () => authFetch('/api/webauthn/credentials', { method: 'DELETE' }),
 };
