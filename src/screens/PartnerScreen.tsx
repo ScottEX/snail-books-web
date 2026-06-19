@@ -28,6 +28,14 @@ import ButtonPair from '../components/ButtonPair';
 import { fmtDecInput } from '../utils/numbers';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+const ROLE_COLORS: Record<string, string> = {
+  '董事长': '#C84047',
+  'CEO': '#E8953A',
+  '店长': '#3A7CA5',
+  '员工': '#5B8C5A',
+  '打杂': '#8C8583',
+};
+
 /* ========== SVG ICONS (exact 8600 paths) ========== */
 
 function IconBuilding({ color = '#7D2329' }: { color?: string }) {
@@ -811,12 +819,18 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
               {partners.map((p: any, i: number) => {
                 const roleKey = getRoleKey(p.name, p.linked_user_role);
                 const isChairman = roleKey === 'chairman';
+                const roleColor = ROLE_COLORS[p.linked_user_role] || '#8C8583';
+                const remark = p.linked_user_remark || '';
                 return (
                 <View key={p.id} style={{ alignItems: 'center', width: '100%' }}>
                   {i > 0 && <View style={org.line} />}
                   <View style={org.node}>
                     <Text style={[org.nodeName, isChairman && { color: colors.primary }]}>{translateName(p.name, p.name_pinyin, p.name_tw)}</Text>
-                    <Text style={org.nodeRole}>{t(roleKey)} · {(p.share * 100).toFixed(0)}%</Text>
+                    <Text style={org.nodeRole}>
+                      <Text style={{ color: roleColor }}>{t(roleKey)}</Text>
+                      <Text> · {(p.share * 100).toFixed(0)}%</Text>
+                      {remark ? <Text> ｜ {remark}</Text> : null}
+                    </Text>
                   </View>
                 </View>
                 );
