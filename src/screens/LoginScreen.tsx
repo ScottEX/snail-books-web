@@ -30,7 +30,15 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(() => {
+    try {
+      if (localStorage.getItem('webauthn_bound') === '1') {
+        const u = localStorage.getItem('webauthn_user');
+        if (u) return u;
+      }
+      return localStorage.getItem('saved_login') || '';
+    } catch { return ''; }
+  });
   const [avatarUrl, setAvatarUrl] = useState('');
   // Read cached custom background synchronously so it appears instantly
   const [bgUrl, setBgUrl] = useState(() => {
@@ -55,14 +63,27 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
-  const [showPw2, setShowPw2] = useState(false);  // separate toggle for confirm password on register
+  const [showPw2, setShowPw2] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [remember, setRemember] = useState(false);
-  const [hasFaceID, setHasFaceID] = useState(false);
-  const [faceMode, setFaceMode] = useState(false);
-  const [faceUsername, setFaceUsername] = useState('');
-  const [pwdHasFaceID, setPwdHasFaceID] = useState(false);  // whether the username in password mode has Face ID
-  const [devCode, setDevCode] = useState('');  // dev mode: verification code
+  const [remember, setRemember] = useState(() => {
+    try { return localStorage.getItem('remember_me') === 'true'; } catch { return false; }
+  });
+  const [hasFaceID, setHasFaceID] = useState(() => {
+    try { return localStorage.getItem('webauthn_bound') === '1'; } catch { return false; }
+  });
+  const [faceMode, setFaceMode] = useState(() => {
+    try { return localStorage.getItem('webauthn_bound') === '1'; } catch { return false; }
+  });
+  const [faceUsername, setFaceUsername] = useState(() => {
+    try {
+      if (localStorage.getItem('webauthn_bound') === '1') {
+        return localStorage.getItem('webauthn_user') || '';
+      }
+    } catch {}
+    return '';
+  });
+  const [pwdHasFaceID, setPwdHasFaceID] = useState(false);
+  const [devCode, setDevCode] = useState('');
   const codeRef = useRef<any>(null);
   const scrollRef = useRef<ScrollView>(null);
   const breatheAnim = useRef(new Animated.Value(1)).current;
@@ -83,26 +104,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem('saved_login');
-      if (saved) {
-        setUsername(saved);
-        // Restore remember preference for this saved user
-        setRemember(localStorage.getItem('remember_me') === 'true');
-      }
+      // Already logged in? redirect
       if (getCurrentUser()) onLogin();
     }
     if (typeof localStorage !== 'undefined') {
       const bound = localStorage.getItem('webauthn_bound');
       if (bound === '1') {
-        setHasFaceID(true);
-        // Use local username immediately — no flash
+        // Background verify — update if server has a different username
         const localUser = localStorage.getItem('webauthn_user');
-        if (localUser) {
-          setFaceUsername(localUser);
-          setUsername(localUser);
-          setFaceMode(true);
-        }
-        // Still verify with server in background
         api.webauthnCheck().then((resp: any) => {
           if (resp.has_credential && resp.username) {
             if (resp.username !== localUser) {
@@ -110,7 +119,13 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               setUsername(resp.username);
               localStorage.setItem('webauthn_user', resp.username);
             }
-            if (!localUser) setFaceMode(true);
+          } else {
+            // Credential was deleted — clear local state
+            setHasFaceID(false);
+            setFaceMode(false);
+            setFaceUsername('');
+            localStorage.removeItem('webauthn_bound');
+            localStorage.removeItem('webauthn_user');
           }
         }).catch(() => {});
       } else {
