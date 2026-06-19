@@ -441,11 +441,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
                 <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
               </TouchableOpacity>
-              {typeof window !== 'undefined' && window.PublicKeyCredential ? (
-                <TouchableOpacity onPress={handleFaceIDLogin} style={[styles.btnDark, { marginTop: 10, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }]} disabled={loading}>
-                  <Text style={[styles.btnDarkText, { fontSize: 14 }]}>🔒 {t('faceIDLogin') || '面容登录'}</Text>
-                </TouchableOpacity>
-              ) : null}
+              <TouchableOpacity onPress={handleFaceIDLogin} style={[styles.btnDark, { marginTop: 10, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }]} disabled={loading}>
+                <Text style={[styles.btnDarkText, { fontSize: 14 }]}>🔒 {t('faceIDLogin') || '面容登录'}</Text>
+              </TouchableOpacity>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>

@@ -521,27 +521,25 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
           <View style={st.authCard}>
             {/* Face ID row */}
-            {typeof window !== 'undefined' && window.PublicKeyCredential ? (
-              <View style={st.authRow}>
-                <View style={st.authHeaderRow}>
-                  <View style={[st.iconWrap, st.iconShield]}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M8 1l-4 4v6c0 5.6 8 10 8 10s8-4.4 8-10V5l-4-4H8z"/>
-                    </svg>
-                  </View>
-                  <Text style={st.authLabel}>{t('faceIDLabel') || '面容登录'}</Text>
-                  <Switch
-                    value={hasFaceID}
-                    onValueChange={toggleFaceID}
-                    trackColor={{ false: withAlpha(colors.textMain, 0.18), true: colors.primary }}
-                    thumbColor="#fff"
-                    disabled={faceIDLoading}
-                  />
+            <View style={st.authRow}>
+              <View style={st.authHeaderRow}>
+                <View style={[st.iconWrap, st.iconShield]}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M8 1l-4 4v6c0 5.6 8 10 8 10s8-4.4 8-10V5l-4-4H8z"/>
+                  </svg>
                 </View>
-                <Text style={st.authDesc}>{t('faceIDDesc') || '使用面容或指纹快速登录'}</Text>
+                <Text style={st.authLabel}>{t('faceIDLabel') || '面容登录'}</Text>
+                <Switch
+                  value={hasFaceID}
+                  onValueChange={toggleFaceID}
+                  trackColor={{ false: withAlpha(colors.textMain, 0.18), true: colors.primary }}
+                  thumbColor="#fff"
+                  disabled={faceIDLoading}
+                />
               </View>
-            ) : null}
-            {typeof window !== 'undefined' && window.PublicKeyCredential ? <View style={st.divider} /> : null}
+              <Text style={st.authDesc}>{t('faceIDDesc') || '使用面容或指纹快速登录'}</Text>
+            </View>
+            <View style={st.divider} />
             {/* SSO row */}
             <View style={st.authRow}>
               <View style={st.authHeaderRow}>
