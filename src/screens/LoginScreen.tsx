@@ -136,7 +136,12 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const goLogin = () => {
     setStep('login'); reset();
     setPassword(''); setPassword2(''); setEmail('');
-    setFaceMode(false);  // exit face mode when switching to login
+    // Stay in face mode if user has a credential
+    if (faceUsername && hasFaceID) {
+      setFaceMode(true);
+    } else {
+      setFaceMode(false);
+    }
     // restore saved login username
     if (typeof localStorage !== 'undefined') {
       const saved = localStorage.getItem('saved_login');
