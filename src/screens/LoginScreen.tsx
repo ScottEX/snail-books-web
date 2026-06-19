@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
@@ -59,10 +59,27 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState(false);
   const [hasFaceID, setHasFaceID] = useState(false);
+  const [faceMode, setFaceMode] = useState(false);
+  const [faceUsername, setFaceUsername] = useState('');
+  const [pwdHasFaceID, setPwdHasFaceID] = useState(false);  // whether the username in password mode has Face ID
   const [devCode, setDevCode] = useState('');  // dev mode: verification code
   const codeRef = useRef<any>(null);
   const scrollRef = useRef<ScrollView>(null);
+  const breatheAnim = useRef(new Animated.Value(1)).current;
   const { colors } = useTheme();
+
+  // Breathing glow animation for Face ID button
+  useEffect(() => {
+    if (!faceMode) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breatheAnim, { toValue: 1.06, duration: 2000, useNativeDriver: true }),
+        Animated.timing(breatheAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [faceMode]);
 
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
@@ -78,6 +95,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       const bound = localStorage.getItem('webauthn_bound');
       if (bound === '1') {
         setHasFaceID(true);
+        // Fetch face username and enter face mode
+        api.webauthnCheck().then((resp: any) => {
+          if (resp.has_credential && resp.username) {
+            setFaceUsername(resp.username);
+            setUsername(resp.username);
+            setFaceMode(true);
+          }
+        }).catch(() => {});
       } else {
         // No local flag — check server if any credential exists
         import('../api/client').then(({ api }) => {
@@ -85,6 +110,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             if (resp.allowCredentials?.length > 0) {
               setHasFaceID(true);
               localStorage.setItem('webauthn_bound', '1');
+              // Also fetch username and enter face mode
+              api.webauthnCheck().then((r: any) => {
+                if (r.has_credential && r.username) {
+                  setFaceUsername(r.username);
+                  setUsername(r.username);
+                  setFaceMode(true);
+                }
+              }).catch(() => {});
             }
           }).catch(() => {});
         });
@@ -103,11 +136,19 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const goLogin = () => {
     setStep('login'); reset();
     setPassword(''); setPassword2(''); setEmail('');
+    setFaceMode(false);  // exit face mode when switching to login
     // restore saved login username
     if (typeof localStorage !== 'undefined') {
       const saved = localStorage.getItem('saved_login');
       if (saved) setUsername(saved);
     }
+  };
+
+  const switchToFaceMode = () => {
+    setFaceMode(true);
+    setFaceUsername(username);
+    setPassword('');
+    setMsg(''); setMsgKey('');
   };
 
   const goRegister = () => {
@@ -144,6 +185,19 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     }, 400);
     return () => clearTimeout(timer);
   }, [username]);
+
+  // When in password mode, check if typed username has Face ID
+  useEffect(() => {
+    if (faceMode) return;
+    if (!username) { setPwdHasFaceID(false); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const resp = await api.webauthnCheck(username);
+        setPwdHasFaceID(resp.has_credential);
+      } catch { setPwdHasFaceID(false); }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [username, faceMode]);
 
   // Signal splash screen to close once the actual background image is loaded
   useEffect(() => {
@@ -416,73 +470,98 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
           {/* LOGIN */}
           {step === 'login' && (
-            <View style={styles.formSection}>
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>{t('username')}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TextInput style={[styles.textInput, { flex: 1 }]} value={username} onChangeText={setUsername}
-                    placeholder={t('loginPlaceholder') || '用户名 / 邮箱'} placeholderTextColor="rgba(255,255,255,0.55)"
-                    onSubmitEditing={handleLogin} />
-                  {username ? (
-                    <TouchableOpacity onPress={() => setUsername('')} style={{ padding: 8, marginLeft: -36 }}>
-                      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12" />
+            faceMode ? (
+              /* ── Face ID mode ── */
+              <View style={styles.formSection}>
+                <View style={styles.faceUserRow}>
+                  <View style={styles.faceAvatar}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="8" r="4"/>
+                      <path d="M5 21c0-4 3.1-7 7-7s7 3 7 7"/>
+                    </svg>
+                  </View>
+                  <Text style={styles.faceUsername}>{faceUsername}</Text>
+                </View>
+                <Animated.View style={{ transform: [{ scale: breatheAnim }], alignItems: 'center' }}>
+                  <TouchableOpacity onPress={handleFaceIDLogin} style={styles.faceBtn} disabled={loading}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="7" r="4"/>
+                      <path d="M4 21c0-5 3.6-8 8-8s8 3 8 8"/>
+                      <path d="M12 3v2" strokeWidth="0.8" opacity="0.4"/>
+                    </svg>
+                  </TouchableOpacity>
+                </Animated.View>
+                <TouchableOpacity onPress={() => { setFaceMode(false); }}>
+                  <Text style={styles.faceSwitch}>{t('usePasswordLogin') || '使用密码登录'}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              /* ── Password mode ── */
+              <View style={styles.formSection}>
+                <View style={styles.fieldWrap}>
+                  <Text style={styles.fieldLabel}>{t('username')}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TextInput style={[styles.textInput, { flex: 1 }]} value={username} onChangeText={setUsername}
+                      placeholder={t('loginPlaceholder') || '用户名 / 邮箱'} placeholderTextColor="rgba(255,255,255,0.55)"
+                      onSubmitEditing={handleLogin} />
+                    {username ? (
+                      <TouchableOpacity onPress={() => setUsername('')} style={{ padding: 8, marginLeft: -36 }}>
+                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2} strokeLinecap="round">
+                          <Path d="M18 6L6 18M6 6l12 12" />
+                        </Svg>
+                      </TouchableOpacity>
+                    ) : null}
+                    {pwdHasFaceID && (
+                      <TouchableOpacity onPress={switchToFaceMode} style={{ paddingHorizontal: 10, paddingVertical: 6 }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="8" r="4"/>
+                          <path d="M5 21c0-4 3.1-7 7-7s7 3 7 7"/>
+                        </svg>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.fieldWrap}>
+                  <Text style={styles.fieldLabel}>{t('password')}</Text>
+                  <View style={styles.pwWrap}>
+                    <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
+                      placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)"
+                      secureTextEntry={!showPw} onSubmitEditing={handleLogin} />
+                    <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
+                      <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                        {showPw ? (
+                          <>
+                            <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                            <Path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                            <Path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+                            <Line x1="1" y1="1" x2="23" y2="23" />
+                          </>
+                        ) : (
+                          <>
+                            <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <Circle cx="12" cy="12" r="3" />
+                          </>
+                        )}
                       </Svg>
                     </TouchableOpacity>
-                  ) : null}
+                  </View>
                 </View>
-              </View>
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>{t('password')}</Text>
-                <View style={styles.pwWrap}>
-                  <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
-                    placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)"
-                    secureTextEntry={!showPw} onSubmitEditing={handleLogin} />
-                  <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
-                    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      {showPw ? (
-                        <>
-                          <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                          <Path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                          <Path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                          <Line x1="1" y1="1" x2="23" y2="23" />
-                        </>
-                      ) : (
-                        <>
-                          <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                          <Circle cx="12" cy="12" r="3" />
-                        </>
-                      )}
-                    </Svg>
+                <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
+                  <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
+                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
+                      {remember && <Text style={{ fontSize: FONTS.micro.size, color: colors.surface }}>✓</Text>}
+                    </View>
+                    <Text style={{ fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)' }}>{t('rememberMe') || '记住我'}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
+                    <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
-                <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
-              </TouchableOpacity>
-              {hasFaceID && (
-              <TouchableOpacity onPress={handleFaceIDLogin} style={styles.btnDark} disabled={loading}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M5 21c0-4 3.1-7 7-7s7 3 7 7"/>
-                  </svg>
-                  <Text style={styles.btnDarkText}>{t('faceIDLogin') || '面容登录'}</Text>
-                </View>
-              </TouchableOpacity>
-              )}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
-                    {remember && <Text style={{ fontSize: FONTS.micro.size, color: colors.surface }}>✓</Text>}
-                  </View>
-                  <Text style={{ fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)' }}>{t('rememberMe') || '记住我'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
-                  <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            )
           )}
 
           {/* REGISTER */}
@@ -771,5 +850,22 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: FONTS.micro.weight, marginBottom: 8 },
   devCodeValue: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.surface, letterSpacing: 8 },
+  // Face ID mode
+  faceUserRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 24 },
+  faceAvatar: {
+    width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+  },
+  faceUsername: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: 'rgba(255,255,255,0.8)' },
+  faceBtn: {
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+    marginBottom: 24,
+    // @ts-ignore
+    boxShadow: '0 0 24px rgba(255,255,255,0.06)',
+  },
+  faceSwitch: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.35)', textAlign: 'center' },
   copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });

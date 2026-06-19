@@ -474,4 +474,6 @@ export const api = {
     authFetch('/api/webauthn/register/complete', { method: 'POST', body: JSON.stringify(credential) }),
   webauthnStatus: () => authFetch('/api/webauthn/status'),
   webauthnDelete: () => authFetch('/api/webauthn/credentials', { method: 'DELETE' }),
+  webauthnCheck: (username?: string) =>
+    fetch(API_BASE + '/api/webauthn/check' + (username ? '?username=' + encodeURIComponent(username) : '')).then(r => r.json()),
 };
