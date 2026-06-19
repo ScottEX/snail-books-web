@@ -110,10 +110,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     if (typeof localStorage !== 'undefined') {
       const bound = localStorage.getItem('webauthn_bound');
       if (bound === '1') {
-        // Background verify — update if server has a different username
+        // Verify the locally-stored user still has a credential on the server.
+        // Must pass localUser — webauthnCheck() without username returns the
+        // FIRST credential in the DB, which could be a different user (e.g.
+        // Rowan-Lan) and would incorrectly override a valid JiangKuan entry.
         const localUser = localStorage.getItem('webauthn_user');
-        api.webauthnCheck().then((resp: any) => {
+        api.webauthnCheck(localUser || undefined).then((resp: any) => {
           if (resp.has_credential && resp.username) {
+            // Same user still has a credential — update username if casing changed
             if (resp.username !== localUser) {
               setFaceUsername(resp.username);
               setUsername(resp.username);
