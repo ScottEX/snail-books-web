@@ -436,10 +436,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
       Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
       Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
     ]).start();
-    // Fetch batch list (lightweight, last 20)
+    // Fetch batch list (lightweight, all un-invoiced batches)
     (async () => {
       try {
-        const list = await api.getProcurementBatchesLite(20);
+        const list = await api.getProcurementBatchesLite();
         setBatchList(Array.isArray(list) ? list : []);
       } catch { setBatchList([]); }
     })();
