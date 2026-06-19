@@ -958,7 +958,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               <Text style={styles.statLbl}>{t('procCumulative')}</Text>
             </View>
             <View style={styles.statPill}>
-              <Text style={styles.statNum}>{stats.margin_pct}%</Text>
+              <Text style={styles.statNum}>{stats.margin_pct.toFixed(2)}%</Text>
               <Text style={styles.statLbl}>{t('procMargin')}</Text>
             </View>
           </View>
