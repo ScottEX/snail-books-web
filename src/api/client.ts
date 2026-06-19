@@ -406,7 +406,7 @@ export const api = {
     return `${API_BASE}/api/invoice-files/${filePath}`;
   },
   // Lightweight procurement batch list (for invoice record batch selector)
-  getProcurementBatchesLite: (limit = 20) => authFetch(`/api/procurement-batches-lite?limit=${limit}`),
+  getProcurementBatchesLite: () => authFetch(`/api/procurement-batches-lite`),
 
   /** 获取用户头像，返回 base64 字符串，失败返回 null */
   getUserAvatar: async (userId: number | string): Promise<string | null> => {
