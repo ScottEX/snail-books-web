@@ -294,8 +294,13 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
-        // Sync Face ID state for this user
-        api.webauthnCheck(loggedUser).then((resp: any) => {
+        // Sync Face ID state for this user BEFORE navigating away.
+        // Must await — a fire-and-forget races with ProfileScreen's
+        // bind/unbind: if the user unbinds Face ID before this Promise
+        // resolves, the late .then() would re-set webauthn_bound='1',
+        // and the next logout→login cycle would show the wrong user.
+        try {
+          const resp = await api.webauthnCheck(loggedUser);
           if (typeof localStorage !== 'undefined') {
             if (resp.has_credential) {
               localStorage.setItem('webauthn_bound', '1');
@@ -305,7 +310,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               localStorage.removeItem('webauthn_user');
             }
           }
-        }).catch(() => {});
+        } catch {}
         onLogin();
       } else if (r.need_verify) {
         setEmail(r.email); setStep('verify'); setMsg(''); setMsgKey('');
