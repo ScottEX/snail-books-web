@@ -226,6 +226,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         });
         if (completeResp.status === 'ok') {
           setHasFaceID(true);
+          if (typeof localStorage !== 'undefined') localStorage.setItem('webauthn_bound', '1');
           setToast(completeResp.message || '面容登录已开启');
         } else {
           setToast(completeResp.message || '绑定失败');
@@ -241,6 +242,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       try {
         const resp = await api.webauthnDelete();
         setHasFaceID(false);
+        if (typeof localStorage !== 'undefined') localStorage.removeItem('webauthn_bound');
         setToast(resp.message || '面容登录已关闭');
       } catch (e: any) {
         setToast(e?.message || '解绑失败');

@@ -58,6 +58,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [showPw2, setShowPw2] = useState(false);  // separate toggle for confirm password on register
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [hasFaceID, setHasFaceID] = useState(false);
   const [devCode, setDevCode] = useState('');  // dev mode: verification code
   const codeRef = useRef<any>(null);
   const scrollRef = useRef<ScrollView>(null);
@@ -72,6 +73,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         setRemember(localStorage.getItem('remember_me') === 'true');
       }
       if (getCurrentUser()) onLogin();
+    }
+    if (typeof localStorage !== 'undefined') {
+      setHasFaceID(localStorage.getItem('webauthn_bound') === '1');
     }
   }, []);
 
@@ -236,6 +240,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('user', loginResp.username);
           localStorage.setItem('user_id', String(loginResp.user_id || ''));
+          localStorage.setItem('webauthn_bound', '1');
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
@@ -441,6 +446,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
                 <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
               </TouchableOpacity>
+              {hasFaceID && (
               <TouchableOpacity onPress={handleFaceIDLogin} style={styles.btnDark} disabled={loading}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={colors.surface} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -450,6 +456,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   <Text style={styles.btnDarkText}>{t('faceIDLogin') || '面容登录'}</Text>
                 </View>
               </TouchableOpacity>
+              )}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
