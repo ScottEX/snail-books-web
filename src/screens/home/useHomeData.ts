@@ -131,6 +131,8 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
     .filter((e: any) => String(e.date || '').startsWith(monthPrefix))
     .reduce((s: number, e: any) => s + (e.amount || 0), 0);
 
+  const toNum = (v: any) => parseFloat(String(v ?? 0)) || 0;
+
   // Backend-computed expense amounts (fast, 1 query in business-summary)
   const todayExpenseSummary = toNum(businessSummary.today_expense_amount);
   const monthExpenseSummary = toNum(businessSummary.month_expense_amount);
@@ -162,8 +164,6 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
     );
     return { dates, income, expense };
   }, [dailyRevenues, chartExpenses]);
-
-  const toNum = (v: any) => parseFloat(String(v ?? 0)) || 0;
 
   const toDec2Comma = (v: any) => {
     const n = parseFloat(String(v ?? 0)) || 0;
