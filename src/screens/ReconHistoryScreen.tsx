@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import useSlideModal from '../hooks/useSlideModal';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
@@ -40,6 +41,11 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState<any>(null);
   const [toast, setToast] = useState('');
   const swipeBack = useSwipeBack(onBack);
+
+  // ── Detail modal animation (shared slide-from-top hook) ──
+  const detail = useSlideModal();
+  const openDetail = (r: any) => detail.open(() => setSelected(r));
+  const closeDetail = () => detail.close(() => setSelected(null));
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
   const filDateFromRef = useRef<HTMLInputElement>(null);
   const filDateToRef = useRef<HTMLInputElement>(null);
@@ -153,7 +159,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   // Card: compact summary (tap to open detail modal)
   const renderCard = (r: any) => (
-    <TouchableOpacity key={r.id} style={st.card} onPress={() => setSelected(r)} activeOpacity={0.7}>
+    <TouchableOpacity key={r.id} style={st.card} onPress={() => openDetail(r)} activeOpacity={0.7}>
       {/* Row 1: two dates */}
       <View style={st.dateRow}>
         <View style={st.dateItem}>
@@ -223,9 +229,11 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     if (!selected) return null;
     const r = selected;
     return (
-      <View style={st.mask} onTouchStart={(e: any) => e.stopPropagation()}>
-        <TouchableOpacity style={st.maskBg} activeOpacity={1} onPress={() => setSelected(null)} />
-        <View style={st.modal}>
+      <View style={st.mask} onTouchStart={(e: any) => e.stopPropagation()} pointerEvents="box-none">
+        <Animated.View style={[st.maskBg, { opacity: detail.modalOverlay }]}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDetail} />
+        </Animated.View>
+        <Animated.View style={[st.modal, { transform: [{ translateY: detail.modalSlide }] }]}>
           {/* Header */}
           <View style={st.modalHeader}>
             <View>
@@ -235,7 +243,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                 <Text style={st.modalDateSub}>{t('reconciledBy')}: {r.reconciled_by}</Text>
               ) : null}
             </View>
-            <TouchableOpacity onPress={() => setSelected(null)} activeOpacity={0.6}>
+            <TouchableOpacity onPress={closeDetail} activeOpacity={0.6}>
               <Text style={st.modalClose}>{'\u2715'}</Text>
             </TouchableOpacity>
           </View>
@@ -297,7 +305,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             ))}
           </View>
           </ScrollView>
-        </View>
+        </Animated.View>
       </View>
     );
   };

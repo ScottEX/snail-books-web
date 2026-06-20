@@ -619,7 +619,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                   disabled={faceIDLoading}
                 />
               </View>
-              <Text style={st.authDesc}>{t('faceIDDesc') || '使用面容或指纹快速登录'}</Text>
+              <Text style={st.authDesc}>{t('faceIDDesc') || '使用面容快速登录'}</Text>
             </View>
             )}
             <View style={st.divider} />
