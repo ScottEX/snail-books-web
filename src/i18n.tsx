@@ -504,6 +504,10 @@ const I18N: Record<string, Record<string, string>> = {
     shareholders: '位股东',
     signaturePlaceholder: '这个人很懒，什么都没留下...',
     staff: '员工',
+    faceIDDesc: '使用面容或指纹快速登录',
+    faceIDLabel: '面容登录',
+    faceIDLogin: '面容登录',
+    usePasswordLogin: '密码登录',
     ssoDesc: '最多一台设备同时登录',
     ssoLabel: '单设备登录',
     stampPrefixBurgundy: '以此身，阅尽这',
@@ -1075,6 +1079,10 @@ const I18N: Record<string, Record<string, string>> = {
     shareholders: '位股東',
     signaturePlaceholder: '這個人很懶，什麼都沒留下...',
     staff: '員工',
+    faceIDDesc: '使用面容或指紋快速登入',
+    faceIDLabel: '面容登入',
+    faceIDLogin: '面容登入',
+    usePasswordLogin: '密碼登錄',
     ssoDesc: '最多一台裝置同時登入',
     ssoLabel: '單一裝置登入',
     stampPrefixBurgundy: '以此身，閱盡這',
@@ -1646,6 +1654,10 @@ const I18N: Record<string, Record<string, string>> = {
     shareTo: 'Shared to {label}',
     shareholders: 'shareholders',
     signaturePlaceholder: 'This person is lazy and left nothing...',
+    faceIDDesc: 'Sign in with Face ID or fingerprint',
+    faceIDLabel: 'Face ID',
+    faceIDLogin: 'Face ID',
+    usePasswordLogin: 'Password Login',
     ssoDesc: 'Only one device can stay signed in at a time',
     ssoLabel: 'Single-device sign-in',
     stampPrefixBurgundy: 'In this body, I have witnessed',
@@ -2220,6 +2232,9 @@ export type I18nKey =
   | 'shareTo'
   | 'shareholders'
   | 'signaturePlaceholder'
+  | 'faceIDDesc'
+  | 'faceIDLabel'
+  | 'faceIDLogin'
   | 'ssoDesc'
   | 'ssoLabel'
   | 'stampPrefixBurgundy'

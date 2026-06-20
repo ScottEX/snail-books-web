@@ -7,6 +7,22 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import Toast from '../components/Toast';
 
+// Base64url helpers for WebAuthn
+function arrayBufferToBase64url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = base64.length % 4 ? 4 - (base64.length % 4) : 0;
+  const binary = atob(base64 + '='.repeat(pad));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
@@ -127,6 +143,14 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [sessionTimeoutHours, setSessionTimeoutHours] = useState(1);
   const authPrefsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // WebAuthn (Face ID)
+  const [hasFaceID, setHasFaceID] = useState(false);
+  const [faceIDLoading, setFaceIDLoading] = useState(false);
+  const [webauthnSupported] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !!(window as any).PublicKeyCredential;
+  });
+
 
   // Avatar crop state → useAvatarCrop hook
 
@@ -142,7 +166,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   // loadCover → useCoverCrop.loadCover()
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); checkAdmin().then(ok => { if (ok) fetchUnreviewedCount(); }); }, []);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); loadFaceIDStatus(); checkAdmin().then(ok => { if (ok) fetchUnreviewedCount(); }); }, []);
   useEffect(() => { if (isAdmin) fetchUnreviewedCount(); }, [refreshKey]);
 
   const loadUserInfo = async () => {
@@ -176,6 +200,140 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     const nv = v ? 1 : 0;
     setEnforceSingleSession(nv);
     persistAuthPrefs({ enforce_single_session: nv });
+  };
+
+  const toggleFaceID = async (v: boolean) => {
+    if (faceIDLoading) return;
+    if (v) {
+      // Enable Face ID — start registration
+      setFaceIDLoading(true);
+      try {
+        const beginResp = await api.webauthnRegisterBegin();
+        const challenge = base64urlToArrayBuffer(beginResp.challenge);
+        const user = beginResp.user;
+        const credential = await navigator.credentials.create({
+          publicKey: {
+            challenge,
+            rp: beginResp.rp,
+            user: { id: base64urlToArrayBuffer(user.id), name: user.name, displayName: user.displayName },
+            pubKeyCredParams: beginResp.pubKeyCredParams,
+            timeout: beginResp.timeout || 60000,
+            authenticatorSelection: beginResp.authenticatorSelection,
+            attestation: beginResp.attestation || 'none',
+          },
+        }) as PublicKeyCredential;
+        const response = credential.response as AuthenticatorAttestationResponse;
+        const completeResp = await api.webauthnRegisterComplete({
+          id: credential.id,
+          clientDataJSON: arrayBufferToBase64url(response.clientDataJSON),
+          attestationObject: arrayBufferToBase64url(response.attestationObject),
+        });
+        if (completeResp.status === 'ok') {
+          setHasFaceID(true);
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('webauthn_bound', '1');
+            localStorage.setItem('webauthn_user', localStorage.getItem('user') || '');
+            // Store credential ID so we can signal the device to delete
+            // the key when the user unbinds Face ID later.
+            localStorage.setItem('webauthn_credential_id', credential.id);
+            // Store WebAuthn user.id bytes for signalAllAcceptedCredentials
+            localStorage.setItem('webauthn_user_id_b64', user.id);
+          }
+          setToast(completeResp.message || '面容登录已开启');
+        } else {
+          setToast(completeResp.message || '绑定失败');
+        }
+      } catch (e: any) {
+        // User cancelled — don't show error
+        const name = (e as any)?.name || '';
+        const msg = (e as any)?.message || '';
+        if (name === 'NotAllowedError' || name === 'AbortError' ||
+            msg.includes('not allowed') || msg.includes('denied permission')) {
+          // silently ignore
+        } else {
+          setToast(e?.message || '绑定失败，请重试');
+        }
+      } finally {
+        setFaceIDLoading(false);
+      }
+    } else {
+      // Disable Face ID
+      setFaceIDLoading(true);
+      try {
+        // Signal the device to delete the credential from its secure storage.
+        // This prevents the Face ID picker from showing stale credentials
+        // (e.g. JiangKuan's key after unbind) when another user logs in.
+        let credIdB64 = (() => {
+          try { return localStorage.getItem('webauthn_credential_id'); } catch { return null; }
+        })();
+        // Fallback: if credential ID not in localStorage (e.g. password-login),
+        // fetch it from the server so we can still signal the device.
+        if (!credIdB64) {
+          try {
+            const statusResp = await api.webauthnStatus();
+            if (statusResp.credential_id) {
+              credIdB64 = statusResp.credential_id;
+            }
+          } catch {}
+        }
+        if (credIdB64 && typeof window !== 'undefined' && (window as any).PublicKeyCredential) {
+          const PKC = (window as any).PublicKeyCredential;
+          // Try both Signal APIs — Safari 26+ bug may affect one but not the other.
+          // 1. signalUnknownCredential: delete a specific credential by ID
+          if (typeof PKC.signalUnknownCredential === 'function') {
+            try {
+              await Promise.race([
+                PKC.signalUnknownCredential({
+                  rpId: 'test.rowanlan.xyz',
+                  credentialId: base64urlToArrayBuffer(credIdB64),
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+              ]);
+            } catch { /* Safari bug — ignore */ }
+          }
+          // 2. signalAllAcceptedCredentials: tell iOS this user has NO valid credentials
+          const userIdB64 = (() => {
+            try { return localStorage.getItem('webauthn_user_id_b64'); } catch { return null; }
+          })();
+          if (typeof PKC.signalAllAcceptedCredentials === 'function' && userIdB64) {
+            try {
+              await Promise.race([
+                PKC.signalAllAcceptedCredentials({
+                  rpId: 'test.rowanlan.xyz',
+                  userId: base64urlToArrayBuffer(userIdB64),
+                  allAcceptedCredentialIds: [],  // empty = no valid credentials for this user
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+              ]);
+            } catch { /* Safari bug — ignore */ }
+          }
+        }
+        const resp = await api.webauthnDelete();
+        setHasFaceID(false);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('webauthn_bound');
+          localStorage.removeItem('webauthn_user');
+          localStorage.removeItem('webauthn_credential_id');
+          localStorage.removeItem('webauthn_user_id_b64');
+        }
+        setToast(resp.message || '面容登录已关闭');
+      } catch (e: any) {
+        setToast(e?.message || '解绑失败');
+      } finally {
+        setFaceIDLoading(false);
+      }
+    }
+  };
+
+  // Load Face ID status
+  const loadFaceIDStatus = async () => {
+    try {
+      const resp = await api.webauthnStatus();
+      setHasFaceID(resp.has_credential);
+      if (resp.has_credential && resp.credential_id && typeof localStorage !== 'undefined') {
+        localStorage.setItem('webauthn_credential_id', resp.credential_id);
+      }
+    } catch {}
   };
   const pickTimeout = (h: number) => {
     setSessionTimeoutHours(h);
@@ -440,6 +598,31 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <View style={st.sectionTitleLine} />
           </View>
           <View style={st.authCard}>
+            {/* Face ID row — only on devices that support WebAuthn */}
+            {webauthnSupported && (
+            <View style={st.authRow}>
+              <View style={st.authHeaderRow}>
+                <View style={[st.iconWrap, st.iconFace]}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="4"/>
+                    <circle cx="9" cy="10" r="0.8" fill={colors.primary} stroke="none"/>
+                    <circle cx="15" cy="10" r="0.8" fill={colors.primary} stroke="none"/>
+                    <path d="M9 13.5 Q12 15.5 15 13.5"/>
+                  </svg>
+                </View>
+                <Text style={st.authLabel}>{t('faceIDLabel') || '面容登录'}</Text>
+                <Switch
+                  value={hasFaceID}
+                  onValueChange={toggleFaceID}
+                  trackColor={{ false: withAlpha(colors.textMain, 0.18), true: colors.primary }}
+                  thumbColor="#fff"
+                  disabled={faceIDLoading}
+                />
+              </View>
+              <Text style={st.authDesc}>{t('faceIDDesc') || '使用面容或指纹快速登录'}</Text>
+            </View>
+            )}
+            <View style={st.divider} />
             {/* SSO row */}
             <View style={st.authRow}>
               <View style={st.authHeaderRow}>
@@ -1013,6 +1196,7 @@ function getStyles(colors: ThemeColors) {
       fontSize: 12, color: colors.textSub, lineHeight: 16, marginLeft: 42,
     },
     iconShield: { backgroundColor: withAlpha(colors.primary, 0.12) },
+    iconFace: { backgroundColor: withAlpha(colors.primary, 0.12) },
     iconClock: { backgroundColor: 'rgba(255,180,80,0.12)' },
     iconUsers: { backgroundColor: 'rgba(91,155,213,0.12)' },
     capsuleRow: {

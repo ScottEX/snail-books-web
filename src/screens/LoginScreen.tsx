@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
@@ -7,13 +7,38 @@ import { FONTS } from '../theme';
 import { getCurrentUser } from '../utils/storage';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+// Base64url helpers for WebAuthn
+function arrayBufferToBase64url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = base64.length % 4 ? 4 - (base64.length % 4) : 0;
+  const binary = atob(base64 + '='.repeat(pad));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(() => {
+    try {
+      if (localStorage.getItem('webauthn_bound') === '1') {
+        const u = localStorage.getItem('webauthn_user');
+        if (u) return u;
+      }
+      return localStorage.getItem('saved_login') || '';
+    } catch { return ''; }
+  });
   const [avatarUrl, setAvatarUrl] = useState('');
   // Read cached custom background synchronously so it appears instantly
   const [bgUrl, setBgUrl] = useState(() => {
@@ -38,23 +63,105 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
-  const [showPw2, setShowPw2] = useState(false);  // separate toggle for confirm password on register
+  const [showPw2, setShowPw2] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [remember, setRemember] = useState(false);
-  const [devCode, setDevCode] = useState('');  // dev mode: verification code
+  const [remember, setRemember] = useState(() => {
+    try { return localStorage.getItem('remember_me') === 'true'; } catch { return false; }
+  });
+  const webauthnAvailable = typeof window !== 'undefined' && !!(window as any).PublicKeyCredential;
+  const [hasFaceID, setHasFaceID] = useState(() => {
+    if (!webauthnAvailable) return false;
+    try { return localStorage.getItem('webauthn_bound') === '1'; } catch { return false; }
+  });
+  const [faceMode, setFaceMode] = useState(() => {
+    if (!webauthnAvailable) return false;
+    try { return localStorage.getItem('webauthn_bound') === '1'; } catch { return false; }
+  });
+  const [faceUsername, setFaceUsername] = useState(() => {
+    try {
+      if (localStorage.getItem('webauthn_bound') === '1') {
+        return localStorage.getItem('webauthn_user') || '';
+      }
+    } catch {}
+    return '';
+  });
+  const [pwdHasFaceID, setPwdHasFaceID] = useState(false);
+  const [devCode, setDevCode] = useState('');
   const codeRef = useRef<any>(null);
   const scrollRef = useRef<ScrollView>(null);
+  const breatheAnim = useRef(new Animated.Value(1)).current;
   const { colors } = useTheme();
+
+  // Breathing glow animation for Face ID button
+  useEffect(() => {
+    if (!faceMode) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breatheAnim, { toValue: 1.06, duration: 2000, useNativeDriver: true }),
+        Animated.timing(breatheAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [faceMode]);
 
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem('saved_login');
-      if (saved) {
-        setUsername(saved);
-        // Restore remember preference for this saved user
-        setRemember(localStorage.getItem('remember_me') === 'true');
-      }
+      // Already logged in? redirect
       if (getCurrentUser()) onLogin();
+    }
+    if (typeof localStorage !== 'undefined') {
+      // If this device doesn't support WebAuthn, never enter face mode.
+      if (!webauthnAvailable) return;
+      const bound = localStorage.getItem('webauthn_bound');
+      if (bound === '1') {
+        // Verify the locally-stored user still has a credential on the server.
+        // Must pass localUser — webauthnCheck() without username returns the
+        // FIRST credential in the DB, which could be a different user (e.g.
+        // Rowan-Lan) and would incorrectly override a valid JiangKuan entry.
+        const localUser = localStorage.getItem('webauthn_user');
+        api.webauthnCheck(localUser || undefined).then((resp: any) => {
+          if (resp.has_credential && resp.username) {
+            // Same user still has a credential — update username if casing changed
+            if (resp.username !== localUser) {
+              setFaceUsername(resp.username);
+              setUsername(resp.username);
+              localStorage.setItem('webauthn_user', resp.username);
+            }
+          } else {
+            // Credential was deleted — clear local state
+            setHasFaceID(false);
+            setFaceMode(false);
+            setFaceUsername('');
+            localStorage.removeItem('webauthn_bound');
+            localStorage.removeItem('webauthn_user');
+            localStorage.removeItem('webauthn_credential_id');
+            localStorage.removeItem('webauthn_user_id_b64');
+          }
+        }).catch(() => {});
+      } else {
+        // No local flag — only check the saved-login user, not all server users.
+        // Scanning the whole server picks up ANY user with a credential (e.g.
+        // Rowan-Lan) and auto-enters Face ID mode even after a different user
+        // (JiangKuan) just logged out, which is wrong.
+        const savedUser = (() => {
+          try { return localStorage.getItem('saved_login'); } catch { return ''; }
+        })();
+        if (savedUser) {
+          import('../api/client').then(({ api }) => {
+            api.webauthnCheck(savedUser).then((r: any) => {
+              if (r.has_credential && r.username) {
+                setHasFaceID(true);
+                setFaceUsername(r.username);
+                setUsername(r.username);
+                localStorage.setItem('webauthn_bound', '1');
+                localStorage.setItem('webauthn_user', r.username);
+                setFaceMode(true);
+              }
+            }).catch(() => {});
+          });
+        }
+      }
     }
   }, []);
 
@@ -69,11 +176,25 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const goLogin = () => {
     setStep('login'); reset();
     setPassword(''); setPassword2(''); setEmail('');
-    // restore saved login username
-    if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem('saved_login');
-      if (saved) setUsername(saved);
+    // Stay in face mode if user has a credential
+    if (faceUsername && hasFaceID) {
+      setFaceMode(true);
+      setUsername(faceUsername);
+    } else {
+      setFaceMode(false);
+      // restore saved login username
+      if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem('saved_login');
+        if (saved) setUsername(saved);
+      }
     }
+  };
+
+  const switchToFaceMode = () => {
+    setFaceMode(true);
+    setFaceUsername(username);
+    setPassword('');
+    setMsg(''); setMsgKey('');
   };
 
   const goRegister = () => {
@@ -110,6 +231,27 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     }, 400);
     return () => clearTimeout(timer);
   }, [username]);
+
+  // When in password mode, check if typed username has Face ID
+  useEffect(() => {
+    if (!webauthnAvailable) { setPwdHasFaceID(false); return; }
+    if (faceMode) return;
+    if (!username) { setPwdHasFaceID(false); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const resp = await api.webauthnCheck(username);
+        setPwdHasFaceID(resp.has_credential);
+        // Keep hasFaceID in sync with current user
+        setHasFaceID(resp.has_credential);
+        if (resp.has_credential) {
+          setFaceUsername(resp.username);
+        } else {
+          setFaceUsername('');
+        }
+      } catch { setPwdHasFaceID(false); setHasFaceID(false); setFaceUsername(''); }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [username, faceMode]);
 
   // Signal splash screen to close once the actual background image is loaded
   useEffect(() => {
@@ -149,8 +291,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       const r = await api.login(username, password, remember);
       setLoading(false);
       if (r.status === 'ok') {
+        const loggedUser = r.username || username;
         if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('user', r.username || username);
+          localStorage.setItem('user', loggedUser);
           localStorage.setItem('user_id', String(r.user_id || ''));
           if (remember) {
             localStorage.setItem('saved_login', username);
@@ -160,14 +303,25 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
-        // NOTE: do NOT save getLang() here. At this point localStorage
-        // may still hold the PREVIOUS user's language (the one who
-        // was last signed in on this browser). Saving it now would
-        // overwrite the NEW user's server-side language preference.
-        // Instead, App.tsx dispatches 'app:user-change' from onLogin
-        // → ThemeProvider remounts → api.getLang() pulls the real
-        // per-user language → setLang() writes curLang + localStorage
-        // and the fire-and-forget PUT back is a no-op.
+        // Sync Face ID state for this user BEFORE navigating away.
+        // Must await — a fire-and-forget races with ProfileScreen's
+        // bind/unbind: if the user unbinds Face ID before this Promise
+        // resolves, the late .then() would re-set webauthn_bound='1',
+        // and the next logout→login cycle would show the wrong user.
+        try {
+          const resp = await api.webauthnCheck(loggedUser);
+          if (typeof localStorage !== 'undefined') {
+            if (resp.has_credential) {
+              localStorage.setItem('webauthn_bound', '1');
+              localStorage.setItem('webauthn_user', resp.username || loggedUser);
+            } else {
+              localStorage.removeItem('webauthn_bound');
+              localStorage.removeItem('webauthn_user');
+              localStorage.removeItem('webauthn_credential_id');
+              localStorage.removeItem('webauthn_user_id_b64');
+            }
+          }
+        } catch {}
         onLogin();
       } else if (r.need_verify) {
         setEmail(r.email); setStep('verify'); setMsg(''); setMsgKey('');
@@ -179,6 +333,77 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     } catch (e: any) {
       setLoading(false);
       if (e?.message) { setMsg(e.message); setMsgKey(''); } else { setMsgKey('errNetworkError'); setMsg(''); }
+    }
+  };
+
+  const handleFaceIDLogin = async () => {
+    if (loading) return;
+    // Check browser support
+    if (typeof window === 'undefined' || !window.PublicKeyCredential) {
+      setMsg('此设备不支持面容登录'); setMsgKey('');
+      return;
+    }
+    setLoading(true);
+    try {
+      // Step 1: get challenge + allowed credentials for this user.
+      // When username is known, scope to that user so iOS only shows their
+      // credential in the Face ID picker — not stale ones from other users.
+      const targetUser = faceUsername || username;
+      const beginResp = await api.webauthnLoginBegin(undefined, targetUser || undefined);
+      const challenge = base64urlToArrayBuffer(beginResp.challenge);
+
+      // Step 2: get assertion from authenticator (Face ID)
+      // Pass allowCredentials when targetUser is known to restrict the
+      // picker to that user only. Without it, iOS discovers ALL resident
+      // keys for this RP — including unbound ones (e.g. JiangKuan).
+      const allowCredentials = beginResp.allowCredentials?.map((c: any) => ({
+        id: base64urlToArrayBuffer(c.id),
+        type: c.type,
+        transports: c.transports,
+      }));
+      const credential = await navigator.credentials.get({
+        publicKey: {
+          challenge,
+          rpId: beginResp.rpId,
+          userVerification: 'required',
+          timeout: beginResp.timeout || 60000,
+          ...(targetUser && allowCredentials?.length ? { allowCredentials } : {}),
+        },
+      }) as PublicKeyCredential;
+
+      const response = credential.response as AuthenticatorAssertionResponse;
+
+      // Step 3: send to server for verification
+      const loginResp = await api.webauthnLoginComplete({
+        id: credential.id,
+        clientDataJSON: arrayBufferToBase64url(response.clientDataJSON),
+        authenticatorData: arrayBufferToBase64url(response.authenticatorData),
+        signature: arrayBufferToBase64url(response.signature),
+        userHandle: response.userHandle ? arrayBufferToBase64url(response.userHandle) : '',
+      });
+
+      setLoading(false);
+      if (loginResp.status === 'ok') {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('user', loginResp.username);
+          localStorage.setItem('user_id', String(loginResp.user_id || ''));
+          localStorage.setItem('webauthn_bound', '1');
+          localStorage.setItem('webauthn_user', loginResp.username);
+          localStorage.setItem('webauthn_credential_id', credential.id);
+          localStorage.removeItem('active_tab');
+          localStorage.removeItem('expense_active_tab');
+        }
+        onLogin();
+      }
+    } catch (e: any) {
+      setLoading(false);
+      // User cancelled or denied — don't show error
+      const name = e?.name || '';
+      const msg = e?.message || '';
+      if (name === 'NotAllowedError' || name === 'AbortError' ||
+          msg.includes('not allowed') || msg.includes('denied permission')) return;
+      if (e?.message) { setMsg(e.message); setMsgKey(''); }
+      else { setMsg('面容登录失败，请重试'); setMsgKey(''); }
     }
   };
 
@@ -331,62 +556,87 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
           {/* LOGIN */}
           {step === 'login' && (
-            <View style={styles.formSection}>
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>{t('username')}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TextInput style={[styles.textInput, { flex: 1 }]} value={username} onChangeText={setUsername}
-                    placeholder={t('loginPlaceholder') || '用户名 / 邮箱'} placeholderTextColor="rgba(255,255,255,0.55)"
-                    onSubmitEditing={handleLogin} />
-                  {username ? (
-                    <TouchableOpacity onPress={() => setUsername('')} style={{ padding: 8, marginLeft: -36 }}>
-                      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2} strokeLinecap="round">
-                        <Path d="M18 6L6 18M6 6l12 12" />
+            faceMode ? (
+              /* ── Face ID mode ── */
+              <View style={styles.formSection}>
+                <View style={styles.faceUserRow}>
+                  <Text style={styles.faceUsername}>{faceUsername}</Text>
+                </View>
+                <Animated.View style={{ transform: [{ scale: breatheAnim }], alignItems: 'center' }}>
+                  <TouchableOpacity onPress={handleFaceIDLogin} style={styles.faceBtn} disabled={loading}>
+                    <svg width="36" height="36" viewBox="0 0 1024 1024" fill="none">
+                      <path d="M997.052632 839.787789v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821a108.112842 108.112842 0 0 1-108.005053 108.005053h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821A157.453474 157.453474 0 0 0 997.052632 839.787789m-679.262316 132.634948a24.629895 24.629895 0 0 0-24.629895-24.629895H184.212211a108.112842 108.112842 0 0 1-108.005053-108.005053v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821A157.453474 157.453474 0 0 0 184.212211 997.052632h108.94821c13.608421 0 24.629895-11.048421 24.629895-24.629895M76.207158 293.160421V184.212211a108.112842 108.112842 0 0 1 108.005053-108.005053h108.94821a24.629895 24.629895 0 0 0 0-49.25979H184.212211A157.453474 157.453474 0 0 0 26.947368 184.212211v108.94821a24.629895 24.629895 0 0 0 49.25979 0m920.845474 0V184.212211A157.453474 157.453474 0 0 0 839.787789 26.947368h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821a108.112842 108.112842 0 0 1 108.005053 108.005053v108.94821a24.629895 24.629895 0 0 0 49.25979 0M681.984 743.962947a25.6 25.6 0 0 0-34.708211-37.591579A198.790737 198.790737 0 0 1 512 759.269053a198.790737 198.790737 0 0 1-135.275789-52.897685 25.6 25.6 0 0 0-34.708211 37.591579A249.802105 249.802105 0 0 0 512 810.415158a249.802105 249.802105 0 0 0 169.984-66.452211m-118.837895-169.445052v-181.894737a25.6 25.6 0 1 0-51.146105 0v181.894737c0 7.841684-6.386526 14.228211-14.201263 14.22821h-20.857263a25.6 25.6 0 1 0 0 51.146106h20.857263a65.455158 65.455158 0 0 0 65.347368-65.374316m176.23579-110.349474v-72.946526a24.144842 24.144842 0 0 0-48.316632 0v72.946526a24.144842 24.144842 0 0 0 48.316632 0m-424.906106 24.144842a24.144842 24.144842 0 0 1-24.171789-24.144842v-72.946526a24.144842 24.144842 0 0 1 48.316632 0v72.946526a24.144842 24.144842 0 0 1-24.144843 24.144842" fill={colors.surface} />
+                    </svg>
+                  </TouchableOpacity>
+                </Animated.View>
+                <TouchableOpacity onPress={() => { setFaceMode(false); }}>
+                  <Text style={styles.faceSwitch}>{t('usePasswordLogin') || '使用密码登录'}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              /* ── Password mode ── */
+              <View style={styles.formSection}>
+                <View style={styles.fieldWrap}>
+                  <Text style={styles.fieldLabel}>{t('username')}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TextInput style={[styles.textInput, { flex: 1 }]} value={username} onChangeText={setUsername}
+                      placeholder={t('loginPlaceholder') || '用户名 / 邮箱'} placeholderTextColor="rgba(255,255,255,0.55)"
+                      onSubmitEditing={handleLogin} />
+                    {username ? (
+                      <TouchableOpacity onPress={() => setUsername('')} style={{ padding: 8, marginLeft: -36 }}>
+                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2} strokeLinecap="round">
+                          <Path d="M18 6L6 18M6 6l12 12" />
+                        </Svg>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                </View>
+                <View style={styles.fieldWrap}>
+                  <Text style={styles.fieldLabel}>{t('password')}</Text>
+                  <View style={styles.pwWrap}>
+                    <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
+                      placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)"
+                      secureTextEntry={!showPw} onSubmitEditing={handleLogin} />
+                    <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
+                      <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                        {showPw ? (
+                          <>
+                            <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                            <Path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                            <Path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+                            <Line x1="1" y1="1" x2="23" y2="23" />
+                          </>
+                        ) : (
+                          <>
+                            <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <Circle cx="12" cy="12" r="3" />
+                          </>
+                        )}
                       </Svg>
                     </TouchableOpacity>
-                  ) : null}
+                  </View>
                 </View>
-              </View>
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>{t('password')}</Text>
-                <View style={styles.pwWrap}>
-                  <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
-                    placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)"
-                    secureTextEntry={!showPw} onSubmitEditing={handleLogin} />
-                  <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
-                    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      {showPw ? (
-                        <>
-                          <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                          <Path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                          <Path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                          <Line x1="1" y1="1" x2="23" y2="23" />
-                        </>
-                      ) : (
-                        <>
-                          <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                          <Circle cx="12" cy="12" r="3" />
-                        </>
-                      )}
-                    </Svg>
+                <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
+                  <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
+                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
+                      {remember && <Text style={{ fontSize: FONTS.micro.size, color: colors.surface }}>✓</Text>}
+                    </View>
+                    <Text style={{ fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)' }}>{t('rememberMe') || '记住我'}</Text>
+                  </TouchableOpacity>
+                  {pwdHasFaceID && (
+                    <TouchableOpacity onPress={switchToFaceMode}>
+                      <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>{t('faceIDLogin') || '面容登录'}</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
+                    <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
-                <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
-              </TouchableOpacity>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
-                    {remember && <Text style={{ fontSize: FONTS.micro.size, color: colors.surface }}>✓</Text>}
-                  </View>
-                  <Text style={{ fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)' }}>{t('rememberMe') || '记住我'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
-                  <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            )
           )}
 
           {/* REGISTER */}
@@ -675,5 +925,22 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: FONTS.micro.weight, marginBottom: 8 },
   devCodeValue: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.surface, letterSpacing: 8 },
+  // Face ID mode
+  faceUserRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 24 },
+  faceAvatar: {
+    width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+  },
+  faceUsername: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: 'rgba(255,255,255,0.8)' },
+  faceBtn: {
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+    marginBottom: 24,
+    // @ts-ignore
+    boxShadow: '0 0 24px rgba(255,255,255,0.06)',
+  },
+  faceSwitch: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.35)', textAlign: 'center' },
   copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });
