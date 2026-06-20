@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import { useSlideModal } from '../hooks/useSlideModal';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
@@ -41,24 +42,10 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [toast, setToast] = useState('');
   const swipeBack = useSwipeBack(onBack);
 
-  // ── Detail modal animation (shared slide-from-top pattern) ──
-  const detailSlide = useRef(new Animated.Value(0)).current;
-  const detailOverlay = useRef(new Animated.Value(0)).current;
-  const openDetail = (r: any) => {
-    setSelected(r);
-    detailSlide.setValue(-300);
-    detailOverlay.setValue(0);
-    Animated.parallel([
-      Animated.spring(detailSlide, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(detailOverlay, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start();
-  };
-  const closeDetail = () => {
-    Animated.parallel([
-      Animated.timing(detailSlide, { toValue: -300, duration: 180, useNativeDriver: true }),
-      Animated.timing(detailOverlay, { toValue: 0, duration: 180, useNativeDriver: true }),
-    ]).start(() => setSelected(null));
-  };
+  // ── Detail modal animation (shared slide-from-top hook) ──
+  const detail = useSlideModal();
+  const openDetail = (r: any) => detail.open(() => setSelected(r));
+  const closeDetail = () => detail.close(() => setSelected(null));
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
   const filDateFromRef = useRef<HTMLInputElement>(null);
   const filDateToRef = useRef<HTMLInputElement>(null);
@@ -243,10 +230,10 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     const r = selected;
     return (
       <View style={st.mask} onTouchStart={(e: any) => e.stopPropagation()} pointerEvents="box-none">
-        <Animated.View style={[st.maskBg, { opacity: detailOverlay }]}>
+        <Animated.View style={[st.maskBg, { opacity: detail.modalOverlay }]}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDetail} />
         </Animated.View>
-        <Animated.View style={[st.modal, { transform: [{ translateY: detailSlide }] }]}>
+        <Animated.View style={[st.modal, { transform: [{ translateY: detail.modalSlide }] }]}>
           {/* Header */}
           <View style={st.modalHeader}>
             <View>
