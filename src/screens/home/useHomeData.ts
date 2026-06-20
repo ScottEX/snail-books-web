@@ -121,6 +121,8 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   }, []);
 
   // ── Derived chart values (needs sd.today) ──
+  // Card numbers now come from businessSummary (backend SQL, no full-scan); retained
+  // chartExpenses for dailyChartData (chart tab).
   const todayExpenseChart = (todayStr: string) => chartExpenses
     .filter((e: any) => e.date === todayStr)
     .reduce((s: number, e: any) => s + (e.amount || 0), 0);
@@ -128,6 +130,10 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   const monthExpenseChart = (monthPrefix: string) => chartExpenses
     .filter((e: any) => String(e.date || '').startsWith(monthPrefix))
     .reduce((s: number, e: any) => s + (e.amount || 0), 0);
+
+  // Backend-computed expense amounts (fast, 1 query in business-summary)
+  const todayExpenseSummary = toNum(businessSummary.today_expense_amount);
+  const monthExpenseSummary = toNum(businessSummary.month_expense_amount);
 
   const todayIncome = (todayStr: string) => dailyRevenues
     .filter((r: any) => r.date === todayStr)
@@ -157,6 +163,8 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
     return { dates, income, expense };
   }, [dailyRevenues, chartExpenses]);
 
+  const toNum = (v: any) => parseFloat(String(v ?? 0)) || 0;
+
   const toDec2Comma = (v: any) => {
     const n = parseFloat(String(v ?? 0)) || 0;
     return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -178,7 +186,7 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
     businessSummary, dailyRevenues, chartExpenses,
     last7Records, setLast7Records, avatarUrl, setAvatarUrl,
     loadData, loadAvatar,
-    todayExpenseChart, monthExpenseChart, todayIncome, monthIncome,
+    todayExpenseChart, monthExpenseChart, todayExpenseSummary, monthExpenseSummary, todayIncome, monthIncome,
     dailyChartData,
     toDec2Comma,
     handlePage,

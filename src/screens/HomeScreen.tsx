@@ -146,7 +146,7 @@ export default function HomeScreen({
     businessSummary, dailyRevenues, chartExpenses,
     last7Records, setLast7Records, avatarUrl,
     loadData, loadAvatar,
-    todayExpenseChart, monthExpenseChart, todayIncome, monthIncome,
+    todayExpenseChart, monthExpenseChart, todayExpenseSummary, monthExpenseSummary, todayIncome, monthIncome,
     dailyChartData,
     toDec2Comma,
     handlePage,
@@ -733,8 +733,8 @@ export default function HomeScreen({
                   </View>
                   {/* 6 张收支卡片 */}
                   <ExpenseSummaryCards
-                    todayExpense={todayExpenseChart(sd.today)}
-                    monthExpense={monthExpenseChart(sd.today.slice(0, 7))}
+                    todayExpense={todayExpenseSummary}
+                    monthExpense={monthExpenseSummary}
                     todayIncome={todayIncome(sd.today)}
                     monthIncome={monthIncome()}
                   />
