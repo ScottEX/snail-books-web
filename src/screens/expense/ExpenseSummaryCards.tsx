@@ -51,7 +51,7 @@ export default function ExpenseSummaryCards({
             <View style={st.valueRow}>
               {c.isProfit ? (
                 <Text style={[st.value, { color: c.color }]}>
-                  {c.value >= 0 ? '+' : ''}{fmtAmtFull(Math.abs(c.value))}
+                  {c.value >= 0 ? '+' : '-'}{fmtAmtFull(Math.abs(c.value))}
                 </Text>
               ) : (
                 <NumberTicker value={c.value} style={st.value} formatFn={fmtAmtFull} />
