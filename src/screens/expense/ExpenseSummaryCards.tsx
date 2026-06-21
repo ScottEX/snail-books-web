@@ -7,32 +7,32 @@ import { fmtAmtFull } from '../../utils/format';
 import { useMemo } from 'react';
 
 interface ExpenseSummaryCardsProps {
-  todayExpense: number;
+  yesterdayExpense: number;
   monthExpense: number;
-  todayIncome: number;
+  yesterdayIncome: number;
   monthIncome: number;
 }
 
-/** Top summary cards — today/month income/expense/profit with NumberTicker animation. */
+/** Top summary cards — yesterday/month income/expense/profit with NumberTicker animation. */
 export default function ExpenseSummaryCards({
-  todayExpense,
+  yesterdayExpense,
   monthExpense,
-  todayIncome,
+  yesterdayIncome,
   monthIncome,
 }: ExpenseSummaryCardsProps) {
   const { colors } = useTheme();
 
-  const todayProfit = todayIncome - todayExpense;
+  const yesterdayProfit = yesterdayIncome - yesterdayExpense;
   const monthProfit = monthIncome - monthExpense;
 
   const st = useMemo(() => getSt(colors), [colors]);
 
   const cards = [
-    { label: t('todayIncome'), value: todayIncome, color: colors.success, isProfit: false },
-    { label: t('todayExpense'), value: todayExpense, color: colors.danger, isProfit: false },
+    { label: t('yesterdayIncome'), value: yesterdayIncome, color: colors.success, isProfit: false },
+    { label: t('yesterdayExpense'), value: yesterdayExpense, color: colors.danger, isProfit: false },
     { label: t('monthIncome'), value: monthIncome, color: colors.success, isProfit: false },
     { label: t('monthExpense'), value: monthExpense, color: colors.danger, isProfit: false },
-    { label: t('todayProfit'), value: todayProfit, color: todayProfit >= 0 ? colors.success : colors.danger, isProfit: true },
+    { label: t('yesterdayProfit'), value: yesterdayProfit, color: yesterdayProfit >= 0 ? colors.success : colors.danger, isProfit: true },
     { label: t('monthProfit'), value: monthProfit, color: monthProfit >= 0 ? colors.success : colors.danger, isProfit: true },
   ];
 

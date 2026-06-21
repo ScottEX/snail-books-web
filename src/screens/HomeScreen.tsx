@@ -146,7 +146,7 @@ export default function HomeScreen({
     businessSummary, dailyRevenues, chartExpenses,
     last7Records, setLast7Records, avatarUrl,
     loadData, loadAvatar,
-    todayExpenseChart, monthExpenseChart, todayExpenseSummary, monthExpenseSummary, todayIncome, monthIncome,
+    todayExpenseChart, monthExpenseChart, todayExpenseSummary, monthExpenseSummary, yesterdayIncome, yesterdayExpense, yesterdayProfit, monthIncome,
     dailyChartData,
     toDec2Comma,
     handlePage,
@@ -733,9 +733,9 @@ export default function HomeScreen({
                   </View>
                   {/* 6 张收支卡片 */}
                   <ExpenseSummaryCards
-                    todayExpense={todayExpenseSummary}
+                    yesterdayExpense={yesterdayExpense}
                     monthExpense={monthExpenseSummary}
-                    todayIncome={todayIncome(sd.today)}
+                    yesterdayIncome={yesterdayIncome}
                     monthIncome={monthIncome()}
                   />
                   {/* 图表：月度趋势 + 分类占比 */}
