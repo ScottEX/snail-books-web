@@ -134,7 +134,7 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   const toNum = (v: any) => parseFloat(String(v ?? 0)) || 0;
 
   // Card values — yesterday/this-month income/expense/profit from backend
-  const todayExpenseSummary = toNum(businessSummary.today_expense_amount);
+  const todayExpenseSummary = toNum(businessSummary.today_expense);
   const monthExpenseSummary = toNum(businessSummary.month_expense_amount);
   const yesterdayIncome = toNum(businessSummary.yesterday_income);
   const yesterdayExpense = toNum(businessSummary.yesterday_expense);
