@@ -266,7 +266,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <BackArrow color={colors.primary} />
+            <BackArrow color="#000" />
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('expenseHistory')} ({total}/{totalAll})</Text>

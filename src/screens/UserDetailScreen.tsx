@@ -287,7 +287,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       {/* Header — no delete button, moved to avatar row */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-          <View style={st.backBtn}><BackArrowSvg color={c.primary} /></View>
+          <View style={st.backBtn}><BackArrowSvg color="#000" /></View>
         </TouchableOpacity>
         <Text style={st.title}>{t('userDetail')}</Text>
         <View style={{ width: 36 }} />

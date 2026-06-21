@@ -238,7 +238,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       <View style={[st.header, { pointerEvents: 'box-none' as const }] as any}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <BackArrowSvg color={c.primary} />
+            <BackArrowSvg color="#000" />
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('userManagement')}</Text>

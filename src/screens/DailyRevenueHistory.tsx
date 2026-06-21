@@ -124,7 +124,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <BackArrow color={colors.primary} />
+            <BackArrow color="#000" />
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('revHistoryBtn')} ({total}/{totalAll})</Text>
