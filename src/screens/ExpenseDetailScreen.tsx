@@ -225,7 +225,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={styles.backBtn}>
-            <BackArrow color={c.textMain} />
+            <BackArrow color="#000" />
           </View>
         </TouchableOpacity>
         <Text style={styles.title}>{t('expDetail')}</Text>

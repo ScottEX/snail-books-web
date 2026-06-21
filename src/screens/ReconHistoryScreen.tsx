@@ -328,7 +328,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={st.backBtn}>
-            <BackArrow color={colors.primary} />
+            <BackArrow color="#000" />
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')} ({total}/{totalAll})</Text>

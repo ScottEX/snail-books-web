@@ -87,7 +87,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
             <View style={styles.backBtn}>
-              <BackArrow color={c.textMain} />
+              <BackArrow color="#000" />
             </View>
           </TouchableOpacity>
           <Text style={styles.title}>{t('procOrderItems')}</Text>
@@ -166,7 +166,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
           <View style={styles.backBtn}>
-            <BackArrow color={c.textMain} />
+            <BackArrow color="#000" />
           </View>
         </TouchableOpacity>
         <Text style={styles.title}>{t('procDetail')}</Text>
