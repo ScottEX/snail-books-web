@@ -410,11 +410,14 @@ const getStyles = (c: ThemeColors) => {
     infoLabel: {
       fontSize: FONTS.sub.size,
       color: c.textSub,
+      flexShrink: 0,
     },
     infoValue: {
       fontSize: FONTS.sub.size,
       fontWeight: '500' as const,
       color: c.textMain,
+      flex: 1,
+      textAlign: 'right' as const,
     },
     // Section
     section: {
