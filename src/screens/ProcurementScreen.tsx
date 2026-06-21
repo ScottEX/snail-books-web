@@ -1194,7 +1194,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   {batch.note ? (
                     <View style={styles.histRow}>
                       <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
-                      <Text style={[styles.histRowVal, { textAlign: 'left' as const, marginLeft: 12 }]}>{batch.note}</Text>
+                      <Text style={styles.histRowVal}>{batch.note}</Text>
                     </View>
                   ) : null}
                   <View style={styles.histAmountRow}>
