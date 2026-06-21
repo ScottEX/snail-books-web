@@ -133,13 +133,12 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
 
   const toNum = (v: any) => parseFloat(String(v ?? 0)) || 0;
 
-  // Backend-computed expense amounts (fast, 1 query in business-summary)
-  const todayExpenseSummary = toNum(businessSummary.today_expense_amount);
+  // Card values — yesterday/this-month income/expense/profit from backend
+  const todayExpenseSummary = toNum(businessSummary.today_expense);
   const monthExpenseSummary = toNum(businessSummary.month_expense_amount);
-
-  const todayIncome = (todayStr: string) => dailyRevenues
-    .filter((r: any) => r.date === todayStr)
-    .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
+  const yesterdayIncome = toNum(businessSummary.yesterday_income);
+  const yesterdayExpense = toNum(businessSummary.yesterday_expense);
+  const yesterdayProfit = toNum(businessSummary.yesterday_profit);
 
   const monthIncome = () => dailyRevenues
     .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
@@ -186,7 +185,7 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
     businessSummary, dailyRevenues, chartExpenses,
     last7Records, setLast7Records, avatarUrl, setAvatarUrl,
     loadData, loadAvatar,
-    todayExpenseChart, monthExpenseChart, todayExpenseSummary, monthExpenseSummary, todayIncome, monthIncome,
+    todayExpenseChart, monthExpenseChart, todayExpenseSummary, monthExpenseSummary, yesterdayIncome, yesterdayExpense, yesterdayProfit, monthIncome,
     dailyChartData,
     toDec2Comma,
     handlePage,

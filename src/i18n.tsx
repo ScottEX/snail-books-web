@@ -535,6 +535,9 @@ const I18N: Record<string, Record<string, string>> = {
     todayExpense: '今日支出',
     todayIncome: '今日收入',
     todayProfit: '今日利润',
+    yesterdayIncome: '昨日收入',
+    yesterdayExpense: '昨日支出',
+    yesterdayProfit: '昨日利润',
     totalCapital: '合伙初始基金总额',
     totalDividends: '累计分红',
     totalDividendsPaid: '累计分红',
@@ -1110,6 +1113,9 @@ const I18N: Record<string, Record<string, string>> = {
     todayExpense: '今日支出',
     todayIncome: '今日收入',
     todayProfit: '今日利潤',
+    yesterdayIncome: '昨日收入',
+    yesterdayExpense: '昨日支出',
+    yesterdayProfit: '昨日利潤',
     totalCapital: '合夥初始基金總額',
     totalDividends: '累計分紅',
     totalDividendsPaid: '累計分紅',
@@ -1685,6 +1691,9 @@ const I18N: Record<string, Record<string, string>> = {
     todayExpense: 'Today Expense',
     todayIncome: 'Today Income',
     todayProfit: 'Today Profit',
+    yesterdayIncome: 'Yesterday Income',
+    yesterdayExpense: 'Yesterday Expense',
+    yesterdayProfit: 'Yesterday Profit',
     totalCapital: 'Total Initial Capital',
     totalDividends: 'Total Dividends',
     totalDividendsPaid: 'Total Dividends',
@@ -2262,6 +2271,9 @@ export type I18nKey =
   | 'todayExpense'
   | 'todayIncome'
   | 'todayProfit'
+  | 'yesterdayIncome'
+  | 'yesterdayExpense'
+  | 'yesterdayProfit'
   | 'totalCapital'
   | 'totalDividends'
   | 'totalDividendsPaid'
