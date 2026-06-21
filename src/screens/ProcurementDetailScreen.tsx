@@ -417,7 +417,6 @@ const getStyles = (c: ThemeColors) => {
       fontWeight: '500' as const,
       color: c.textMain,
       flex: 1,
-      textAlign: 'right' as const,
     },
     // Section
     section: {
