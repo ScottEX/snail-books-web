@@ -296,7 +296,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histBody: { padding: 10 },
   histRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, marginBottom: 4 },
   histRowLabel: { fontSize: FONTS.micro.size, color: c.textSub, flexShrink: 0 },
-  histRowVal: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textMain, flex: 1 },
+  histRowVal: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textMain, flex: 1, textAlign: 'right' as const },
   histPayBadge: { alignSelf: 'flex-start' as const, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: withAlpha(c.primary, 0.08), borderRadius: 12, marginTop: 4 },
   histPayText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.primary },
   histAmount: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary, marginTop: 8 },
@@ -1194,7 +1194,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   {batch.note ? (
                     <View style={styles.histRow}>
                       <Text style={styles.histRowLabel}>{t('procNoteOptional')}</Text>
-                      <Text style={styles.histRowVal}>{batch.note}</Text>
+                      <Text style={[styles.histRowVal, { textAlign: 'left' as const }]}>{batch.note}</Text>
                     </View>
                   ) : null}
                   <View style={styles.histAmountRow}>

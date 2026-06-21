@@ -237,7 +237,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
           {cur.note ? (
             <View style={[styles.infoRow, { borderBottomWidth: 0, paddingTop: 0 }]}>
               <Text style={styles.infoLabel}>{t('procNoteLabel')}</Text>
-              <Text style={styles.infoValue}>{cur.note}</Text>
+              <Text style={[styles.infoValue, { textAlign: 'left' as const }]}>{cur.note}</Text>
             </View>
           ) : null}
         </View>
@@ -417,6 +417,7 @@ const getStyles = (c: ThemeColors) => {
       fontWeight: '500' as const,
       color: c.textMain,
       flex: 1,
+      textAlign: 'right' as const,
     },
     // Section
     section: {
