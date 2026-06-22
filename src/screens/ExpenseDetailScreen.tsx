@@ -326,7 +326,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               </View>
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.infoLabel}>{t('expenseNote')}</Text>
-                <Text style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
+                <Text style={[styles.infoValue, { flex: 1, textAlign: 'right', marginLeft: 12 }]}>
                   {record.note || '—'}
                 </Text>
               </View>
