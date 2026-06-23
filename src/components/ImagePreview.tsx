@@ -106,11 +106,7 @@ export default function ImagePreview({
   if (!visible || images.length === 0) return null;
 
   return (
-    <Animated.View
-      style={[styles.overlay, { opacity: overlayOpacity }]}
-      {...panResponder.panHandlers}
-      pointerEvents={dismissing ? 'none' : 'auto'}
-    >
+    <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]} {...panResponder.panHandlers}>
       {/* Close button */}
       <TouchableOpacity style={styles.close} onPress={animateClose} activeOpacity={0.7}>
         <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round">
