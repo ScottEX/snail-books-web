@@ -5,13 +5,14 @@ import { FONTS } from '../theme';
 
 const { width: WINDOW_W, height: WINDOW_H } = Dimensions.get('window');
 
-const DISMISS_THRESHOLD = 80;    // px
-const DISMISS_VELOCITY = 0.4;    // fling velocity threshold
-const SWIPE_THRESHOLD = 60;      // px
-const SWIPE_VELOCITY = 0.3;      // fling velocity threshold
+// ── Unified spring constants (matches ① open/close) ──
+const SPRING = { friction: 8, tension: 60 };
+const DISMISS_THRESHOLD = 80;
+const DISMISS_VELOCITY = 0.4;
+const SWIPE_THRESHOLD = 60;
+const SWIPE_VELOCITY = 0.3;
 const OPEN_DURATION = 220;
 const CLOSE_DURATION = 200;
-const SWITCH_DURATION = 280;
 
 interface ImagePreviewProps {
   images: string[];
@@ -36,14 +37,13 @@ export default function ImagePreview({
   const panY = useRef(new Animated.Value(0)).current;
   const imageOpacity = useRef(new Animated.Value(1)).current;
 
-  // ── Transition state (for smooth horizontal switch) ──
-  // When set, both current (idx) and new image render simultaneously
+  // ── Transition state ──
   const [transition, setTransition] = useState<{ newIdx: number; dir: 'left' | 'right' } | null>(null);
 
   // ── Gesture refs ──
   const gestureType = useRef<'none' | 'horizontal' | 'vertical'>('none');
 
-  // ── ① Mount: fade + scale ──
+  // ── ① Mount: fade timing + scale spring ──
   useEffect(() => {
     overlayOpacity.setValue(0);
     imageScale.setValue(0.92);
@@ -52,30 +52,30 @@ export default function ImagePreview({
     panY.setValue(0);
     Animated.parallel([
       Animated.timing(overlayOpacity, { toValue: 1, duration: OPEN_DURATION, useNativeDriver: true }),
-      Animated.spring(imageScale, { toValue: 1, friction: 8, tension: 60, useNativeDriver: true }),
+      Animated.spring(imageScale, { ...SPRING, toValue: 1, useNativeDriver: true }),
     ]).start();
   }, []);
 
-  // ── Close with reverse animation ──
+  // ── Close: mirror of open (fade timing + scale spring reverse) ──
   const animateClose = useCallback(() => {
     if (dismissing) return;
     setDismissing(true);
     Animated.parallel([
       Animated.timing(overlayOpacity, { toValue: 0, duration: CLOSE_DURATION, useNativeDriver: true }),
-      Animated.spring(imageScale, { toValue: 0.92, friction: 8, tension: 60, useNativeDriver: true }),
+      Animated.spring(imageScale, { ...SPRING, toValue: 0.92, useNativeDriver: true }),
     ]).start(() => onClose());
   }, [dismissing, overlayOpacity, imageScale, onClose]);
 
-  // ── ④ Horizontal slide-switch (smooth — both images visible during transition) ──
+  // ── ④ Horizontal slide-switch — spring-driven, two-image continuous ──
   const switchTo = useCallback((newIdx: number, dir: 'left' | 'right') => {
     const exitTarget = dir === 'left' ? -WINDOW_W : WINDOW_W;
 
-    // Phase 1: current slides out + new slides in simultaneously
     setTransition({ newIdx, dir });
-    Animated.parallel([
-      Animated.timing(panX, { toValue: exitTarget, duration: SWITCH_DURATION, useNativeDriver: false }),
-    ]).start(() => {
-      // Phase 2: commit — set new index, reset position
+    Animated.spring(panX, {
+      ...SPRING,
+      toValue: exitTarget,
+      useNativeDriver: false,
+    }).start(() => {
       setIdx(newIdx);
       setTransition(null);
       panX.setValue(0);
@@ -106,21 +106,24 @@ export default function ImagePreview({
         const blockedLeft = gs.dx > 0 && idx === 0;
         const blockedRight = gs.dx < 0 && idx === images.length - 1;
         if (blockedLeft || blockedRight) {
-          panX.setValue(gs.dx * 0.25);  // strong rubber-band at edges
+          panX.setValue(gs.dx * 0.25);
         } else {
           panX.setValue(gs.dx);
         }
-        // Subtle fade as drag increases
         imageOpacity.setValue(Math.max(0.5, 1 - Math.abs(gs.dx) / 400));
       } else if (gestureType.current === 'vertical') {
+        // Spring-like resistance: light at start, heavier as you pull
         const dy = gs.dy;
-        panY.setValue(dy);
-        // Image shrinks slightly as you pull down (0→1% per px, max 5% shrink)
-        const shrink = Math.min(Math.abs(dy) / 2000, 0.05);
-        imageScale.setValue(1 - shrink);
-        // Overlay fades proportional to drag
-        const progress = Math.min(Math.abs(dy) / (DISMISS_THRESHOLD * 1.5), 1);
-        overlayOpacity.setValue(1 - progress * 0.55);
+        const resistance = dy / (1 + Math.abs(dy) / 250);
+        panY.setValue(resistance);
+
+        // Scale converges toward 0.92 (same as close animation endpoint)
+        const scaleProgress = Math.min(Math.abs(dy) / 350, 1);
+        imageScale.setValue(1 - scaleProgress * 0.08);  // 1 → 0.92
+
+        // Overlay fade with slight delay, then accelerates
+        const fadeProgress = Math.pow(Math.min(Math.abs(dy) / (DISMISS_THRESHOLD * 1.3), 1), 1.6);
+        overlayOpacity.setValue(1 - fadeProgress * 0.55);
       }
     },
 
@@ -136,9 +139,8 @@ export default function ImagePreview({
           const dir = (gs.dx > 0 || gs.vx > 0) ? 'right' : 'left';
           switchTo(newIdx, dir);
         } else {
-          // Spring back — softer, bouncier
           Animated.parallel([
-            Animated.spring(panX, { toValue: 0, friction: 8, tension: 50, useNativeDriver: false }),
+            Animated.spring(panX, { ...SPRING, toValue: 0, useNativeDriver: false }),
             Animated.timing(imageOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
           ]).start();
         }
@@ -147,18 +149,18 @@ export default function ImagePreview({
         const overThreshold = gs.dy > DISMISS_THRESHOLD;
 
         if (overThreshold || (fastFling && gs.dy > 30)) {
-          // Dismiss — fly off screen + scale down
+          // Dismiss — continuous spring to 0.92 scale + fly off + fade
           setDismissing(true);
           Animated.parallel([
             Animated.timing(overlayOpacity, { toValue: 0, duration: CLOSE_DURATION, useNativeDriver: true }),
-            Animated.timing(panY, { toValue: WINDOW_H * 0.6, duration: CLOSE_DURATION, useNativeDriver: false }),
-            Animated.timing(imageScale, { toValue: 0.85, duration: CLOSE_DURATION, useNativeDriver: true }),
+            Animated.spring(panY, { ...SPRING, toValue: WINDOW_H * 0.5, useNativeDriver: false }),
+            Animated.spring(imageScale, { ...SPRING, toValue: 0.92, useNativeDriver: true }),
           ]).start(() => onClose());
         } else {
-          // Spring back — scale recovers, overlay recovers
+          // Spring back — scale recovers to 1, overlay back to 1, position to 0
           Animated.parallel([
-            Animated.spring(panY, { toValue: 0, friction: 8, tension: 50, useNativeDriver: false }),
-            Animated.spring(imageScale, { toValue: 1, friction: 8, tension: 60, useNativeDriver: true }),
+            Animated.spring(panY, { ...SPRING, toValue: 0, useNativeDriver: false }),
+            Animated.spring(imageScale, { ...SPRING, toValue: 1, useNativeDriver: true }),
             Animated.timing(overlayOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
           ]).start();
         }
@@ -174,12 +176,11 @@ export default function ImagePreview({
   const prevEnabled = images.length > 1 && idx > 0;
   const nextEnabled = images.length > 1 && idx < images.length - 1;
 
-  // ── During horizontal transition, render both current + new image ──
+  // ── Two-image continuous slide transition ──
   const showBoth = transition !== null;
   const exitDir = transition?.dir;
   const exitIdx = showBoth ? idx : -1;
   const enterIdx = showBoth ? transition!.newIdx : -1;
-  // New image slides in from the opposite side
   const enterStart = exitDir === 'left' ? WINDOW_W : -WINDOW_W;
 
   return (
@@ -208,7 +209,7 @@ export default function ImagePreview({
       {/* ── Image area ── */}
       {showBoth ? (
         <>
-          {/* Exiting image — follows panX (0 → exitTarget) */}
+          {/* Exiting image — follows panX */}
           <Animated.View style={{
             position: 'absolute',
             transform: [
@@ -216,14 +217,11 @@ export default function ImagePreview({
               { translateX: panX },
               { translateY: panY },
             ],
-            opacity: Animated.subtract(new Animated.Value(1), Animated.multiply(
-              Animated.divide(panX, exitDir === 'left' ? -WINDOW_W : WINDOW_W), new Animated.Value(1)
-            )),
           } as any}>
             <ImageElement src={images[exitIdx]} />
           </Animated.View>
 
-          {/* Entering image — slides in from opposite side: enterStart + panX → 0 */}
+          {/* Entering image — slides in from opposite side */}
           <Animated.View style={{
             position: 'absolute',
             transform: [
@@ -231,7 +229,6 @@ export default function ImagePreview({
               { translateX: Animated.add(new Animated.Value(enterStart), panX) },
               { translateY: panY },
             ],
-            opacity: Animated.divide(panX, exitDir === 'left' ? -WINDOW_W : WINDOW_W),
           } as any}>
             <ImageElement src={images[enterIdx]} />
           </Animated.View>
