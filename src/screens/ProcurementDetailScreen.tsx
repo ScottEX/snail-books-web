@@ -13,6 +13,7 @@ import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
 import ImagePreview from '../components/ImagePreview';
+import { useImagePreview } from '../hooks/useImagePreview';
 import { formatDate } from '../utils/format';
 import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
@@ -72,7 +73,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
+  const { preview: previewData, openPreview, closePreview } = useImagePreview();
   // Local copy of the batch — lets us update settled_at / settled_by_username in place
   // after the user flips the Switch, without waiting for the parent to re-pass the prop.
   const [cur, setCur] = useState<BatchRecord | null>(batch);
@@ -144,10 +145,6 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
     } finally {
       setSettling(false);
     }
-  };
-
-  const openPreview = (idx: number) => {
-    setPreviewData({ images: images.length ? images : thumbImgs, idx });
   };
 
 
@@ -265,7 +262,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
             <Text style={styles.sectionTitle}>{t('procImages')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {thumbImgs.map((img: string, i: number) => (
-                <TouchableOpacity key={i} onPress={() => openPreview(i)} activeOpacity={0.8}>
+                <TouchableOpacity key={i} onPress={() => openPreview(images.length ? images : thumbImgs, i)} activeOpacity={0.8}>
                   <Image
                     source={{ uri: img }}
                     style={styles.thumb}
@@ -338,7 +335,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
           images={previewData.images}
           initialIdx={previewData.idx}
           visible={true}
-          onClose={() => setPreviewData(null)}
+          onClose={closePreview}
         />
       )}
     </View>
