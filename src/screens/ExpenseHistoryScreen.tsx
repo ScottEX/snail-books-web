@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated
+  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated, Image, Platform
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -220,16 +220,20 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
               <TouchableOpacity key={j}
                 onPress={() => openPreview(previewImgs, j)}
                 activeOpacity={0.8}>
-                {React.createElement('img', {
-                  src: url,
-                  loading: 'lazy' as any,
-                  decoding: 'async' as any,
-                  style: {
-                    width: 48, height: 48, borderRadius: 6, objectFit: 'cover',
-                    backgroundColor: colors.bg,
-                  } as any,
-                  alt: 'receipt',
-                })}
+                {Platform.OS === 'web' ? (
+                  React.createElement('img', {
+                    src: url,
+                    loading: 'lazy' as any,
+                    decoding: 'async' as any,
+                    style: {
+                      width: 48, height: 48, borderRadius: 6, objectFit: 'cover',
+                      backgroundColor: colors.bg,
+                    } as any,
+                    alt: 'receipt',
+                  })
+                ) : (
+                  <Image source={{ uri: url }} style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: colors.bg }} />
+                )}
               </TouchableOpacity>
             ))}
           </View>

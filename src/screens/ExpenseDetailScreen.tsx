@@ -1,6 +1,6 @@
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  TextInput, Image, Dimensions,
+  TextInput, Image, useWindowDimensions,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -88,7 +88,8 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   const amtColor = AMOUNT_COLORS[theme.id] || '#FF6B3D';
   const amtBg = withAlpha(amtColor, 0.10);
   const lang = getLang();
-  const screenW = Dimensions.get('window').width;
+  const { width: w } = useWindowDimensions();
+  const screenW = w;
   const thumbSize = (screenW - 16 * 2 - 8 * 3) / 4;
 
   const [editMode, setEditMode] = useState(false);

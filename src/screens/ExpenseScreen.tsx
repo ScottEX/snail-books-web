@@ -2,7 +2,7 @@ import { useDisclosure } from '../hooks/useDisclosure';
 import { useDateField } from '../hooks/useDateField';
 import { createPortal } from 'react-dom';
 import {
-  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Dimensions,
+  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, useWindowDimensions,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -81,6 +81,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
    ═══════════════════════════════════════════════════════════ */
 export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { onReconHistory?: () => void; onExpenseHistory?: () => void }) {
   const { colors } = useTheme();
+  const { height: winH } = useWindowDimensions();
   const sd = useServerDate();
   const urlCache = useRef<Map<File, string>>(new Map());
   const getPreviewUrl = (file: File) => {
@@ -969,7 +970,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
       {/* Fee history bottom sheet — "全部" detail view */}
         <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }}>
-          <View style={[st.feeSheet, { height: Dimensions.get('window').height * 0.75, width: '96%' }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { height: winH * 0.75, width: '96%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
               <CloseButton onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} />

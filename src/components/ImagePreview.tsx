@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder, Dimensions, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder, ScrollView, Image, Platform, useWindowDimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { FONTS } from '../theme';
-
-const { width: WINDOW_W, height: WINDOW_H } = Dimensions.get('window');
 
 const SPRING = { friction: 8, tension: 60 };
 const DISMISS_THRESHOLD = 80;
@@ -25,6 +23,7 @@ export default function ImagePreview({
   visible,
   onClose,
 }: ImagePreviewProps) {
+  const { width: WINDOW_W, height: WINDOW_H } = useWindowDimensions();
   const [idx, setIdx] = useState(initialIdx);
   const [dismissing, setDismissing] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
@@ -33,6 +32,9 @@ export default function ImagePreview({
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const imageScale = useRef(new Animated.Value(0.92)).current;
   const panY = useRef(new Animated.Value(0)).current;
+
+  // ── Gesture refs ──
+  const gestureType = useRef<'none' | 'horizontal' | 'vertical'>('none');
 
   // ── ① Mount: fade + scale ──
   useEffect(() => {
@@ -46,8 +48,10 @@ export default function ImagePreview({
 
   // ── Scroll to initial index ──
   useEffect(() => {
-    scrollRef.current?.scrollTo({ x: initialIdx * WINDOW_W, animated: false });
-  }, [initialIdx]);
+    if (WINDOW_W > 0) {
+      scrollRef.current?.scrollTo({ x: initialIdx * WINDOW_W, animated: false });
+    }
+  }, [initialIdx, WINDOW_W]);
 
   // ── Close ──
   const animateClose = useCallback(() => {
@@ -101,9 +105,9 @@ export default function ImagePreview({
         ]).start();
       }
     },
-  }), [dismissing, panY, overlayOpacity, imageScale, onClose]);
+  }), [dismissing, panY, overlayOpacity, imageScale, WINDOW_H, onClose]);
 
-  if (!visible || images.length === 0) return null;
+  if (!visible || images.length === 0 || WINDOW_W === 0) return null;
 
   return (
     <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]} {...panResponder.panHandlers}>
@@ -136,7 +140,7 @@ export default function ImagePreview({
         {images.map((src, i) => (
           <Animated.View
             key={i}
-            style={[styles.page, { transform: [{ scale: imageScale }] }]}
+            style={[styles.page, { width: WINDOW_W, transform: [{ scale: imageScale }] }]}
           >
             <ImageElement src={src} />
           </Animated.View>
@@ -151,17 +155,26 @@ export default function ImagePreview({
   );
 }
 
+/** Platform-aware image element */
 function ImageElement({ src }: { src: string }) {
-  return React.createElement('img', {
-    src,
-    draggable: false as any,
-    style: {
-      width: '100vw', maxHeight: '90vh', objectFit: 'contain',
-      pointerEvents: 'none' as any,
-      userSelect: 'none' as any,
-    },
-    alt: 'preview',
-  });
+  if (Platform.OS === 'web') {
+    return React.createElement('img', {
+      src,
+      draggable: false as any,
+      style: {
+        width: '100vw', maxHeight: '90vh', objectFit: 'contain',
+        pointerEvents: 'none' as any,
+        userSelect: 'none' as any,
+      },
+      alt: 'preview',
+    });
+  }
+  return (
+    <Image
+      source={{ uri: src }}
+      style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -176,7 +189,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   page: {
-    width: WINDOW_W,
     alignItems: 'center',
     justifyContent: 'center',
   },
