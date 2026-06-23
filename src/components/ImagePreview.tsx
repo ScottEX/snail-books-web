@@ -63,7 +63,7 @@ export default function ImagePreview({
   const panResponder = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => !dismissing,
     onMoveShouldSetPanResponder: (_, gs) =>
-      !dismissing && Math.abs(gs.dy) > Math.abs(gs.dx) && Math.abs(gs.dy) > 12,
+      !dismissing && Math.abs(gs.dy) > Math.abs(gs.dx) * 1.5 && Math.abs(gs.dy) > 20,
 
     onPanResponderGrant: () => {
       panY.stopAnimation();
@@ -121,8 +121,10 @@ export default function ImagePreview({
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
-        onMomentumScrollEnd={(e) => {
-          const page = Math.round(e.nativeEvent.contentOffset.x / WINDOW_W);
+        onScroll={(e) => {
+          const offsetX = e.nativeEvent.contentOffset.x;
+          const raw = offsetX / WINDOW_W;
+          const page = Math.round(raw);
           if (page >= 0 && page < images.length && page !== idx) {
             setIdx(page);
           }
