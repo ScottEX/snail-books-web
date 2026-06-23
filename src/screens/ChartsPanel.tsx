@@ -18,6 +18,8 @@ interface Props {
   dailyDates?: string[];
   dailyIncome?: number[];
   dailyExpense?: number[];
+  dailyProfitDates?: string[];
+  dailyProfitValues?: number[];
 }
 
 // ── Category → fixed color mapping (by i18n zh-CN key) ──
@@ -131,11 +133,13 @@ const DayIcon = ({ size, color }: { size: number; color: string }) => (
   </Svg>
 );
 
-export default function ChartsPanel({ months, income, expense, profit, categories, dailyDates, dailyIncome, dailyExpense }: Props) {
+export default function ChartsPanel({ months, income, expense, profit, categories, dailyDates, dailyIncome, dailyExpense, dailyProfitDates, dailyProfitValues }: Props) {
   const { colors } = useTheme();
   const [showBar, setShowBar] = useState(false);
   const [showDaily, setShowDaily] = useState(false);
+  const [showDailyProfit, setShowDailyProfit] = useState(false);
   const hasDaily = !!(dailyDates?.length);
+  const hasDailyProfit = !!(dailyProfitDates?.length);
 
   // Current month number from the data
   const currentMonth = months.length > 0 ? parseInt(months[months.length - 1].slice(5), 10) : new Date().getMonth() + 1;
@@ -177,6 +181,14 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
     month: monthName(parseInt(m.slice(5), 10)),
     [profitLabel]: profit[i],
   }));
+
+  // Daily profit data
+  const dailyProfitData = hasDailyProfit
+    ? (dailyProfitDates || []).map((d, i) => ({
+        day: String(parseInt(d.slice(8), 10)),
+        [profitLabel]: (dailyProfitValues || [])[i] || 0,
+      }))
+    : [];
 
   // Donut / bar data — translate category keys
   const donutData = Object.entries(categories)
@@ -223,7 +235,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={(showDaily && hasDaily ? dailyLineData as any : lineData) as any} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey={showDaily && hasDaily ? 'day' : 'month'} tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey={showDaily && hasDaily ? 'day' : 'month'} tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} interval={0} />
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
               <Tooltip content={<ChartTooltip />} />
               <Legend
@@ -240,12 +252,27 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
       {/* ── 月度利润趋势 ── */}
       <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
         <View style={chartStyles.titleRow}>
-          <Text style={[chartStyles.title, { color: subTextColor }]}>{t('monthlyProfit')}</Text>
-          <Text style={[chartStyles.axisHint, { color: tickColor }]}>{xLabel} · {yLabel}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={[chartStyles.title, { color: subTextColor }]}>{showDailyProfit ? t('dailyProfit') || t('dailyTrend') : t('monthlyProfit')}</Text>
+            {hasDailyProfit && (
+              <TouchableOpacity
+                onPress={() => setShowDailyProfit(!showDailyProfit)}
+                activeOpacity={0.7}
+                style={{
+                  paddingHorizontal: 8, paddingVertical: 3,
+                  borderRadius: 6,
+                  backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                }}
+              >
+                {showDailyProfit ? <MonthIcon size={15} color={colors.primary} /> : <DayIcon size={15} color={colors.primary} />}
+              </TouchableOpacity>
+            )}
+          </View>
+          <Text style={[chartStyles.axisHint, { color: tickColor }]}>{(showDailyProfit ? t('chartXAxisDay') : xLabel) + ' · ' + yLabel}</Text>
         </View>
         <View style={chartStyles.chartWrap}>
           <ResponsiveContainer width="100%" height={200}>
-            <ComposedChart data={profitData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <ComposedChart data={(showDailyProfit && hasDailyProfit ? dailyProfitData : profitData) as any} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={colors.accent} stopOpacity={0.15} />
@@ -253,7 +280,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey={showDailyProfit && hasDailyProfit ? 'day' : 'month'} tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} interval={0} />
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
               <Tooltip content={<ChartTooltip accentFallback={colors.primary} />} />
               <Area type="monotone" dataKey={profitLabel} stroke="none" fill="url(#profitGrad)" />
