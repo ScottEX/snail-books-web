@@ -523,7 +523,7 @@ export default function HomeScreen({
       </View>
 
       {/* Page content — hidden whenever any sub-page is on the stack */}
-      <View style={[styles.page, pageStack.length > 0 && { display: 'none' as any }]}>
+      <View style={[styles.page, pageStack.length > 0 && { opacity: 0, pointerEvents: 'none' as any }]}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} refreshKey={partnerRefreshKey} />
         ) : tab === 'supply' ? (
