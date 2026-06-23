@@ -143,11 +143,10 @@ export default function HomeScreen({
   const {
     summary, transactions, page, pages,
     chart, chartMonthly, products,
-    businessSummary, dailyRevenues, chartExpenses,
+    businessSummary, dailyRevenues,
     last7Records, setLast7Records, avatarUrl,
     loadData, loadAvatar,
-    todayExpenseChart, monthExpenseChart, todayExpenseSummary, monthExpenseSummary, yesterdayIncome, yesterdayExpense, yesterdayProfit, monthIncome,
-    dailyChartData,
+    todayExpenseSummary, monthExpenseSummary, yesterdayIncome, yesterdayExpense, yesterdayProfit, monthIncome,
     toDec2Comma,
     handlePage,
   } = useHomeData(tab, setToast);
@@ -747,9 +746,9 @@ export default function HomeScreen({
                       expense={chartMonthly.expense || []}
                       profit={chartMonthly.profit || []}
                       categories={chartMonthly.categories || {}}
-                      dailyDates={dailyRevenues.length > 0 ? dailyChartData.dates : []}
-                      dailyIncome={dailyRevenues.length > 0 ? dailyChartData.income : []}
-                      dailyExpense={dailyRevenues.length > 0 ? dailyChartData.expense : []}
+                      dailyDates={chartMonthly.daily_dates || []}
+                      dailyIncome={chartMonthly.daily_income || []}
+                      dailyExpense={chartMonthly.daily_expense || []}
                       dailyProfitDates={chartMonthly.daily_dates || []}
                       dailyProfitValues={chartMonthly.daily_profit || []}
                     />

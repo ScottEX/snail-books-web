@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../../api/client';
 import { t } from '../../i18n';
 import { getCurrentUserId } from '../../utils/storage';
@@ -16,7 +16,6 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   const [products, setProducts] = useState<any[]>([]);
   const [businessSummary, setBusinessSummary] = useState<any>({});
   const [dailyRevenues, setDailyRevenues] = useState<any[]>([]);
-  const [chartExpenses, setChartExpenses] = useState<any[]>([]);
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [avatarUrl, setAvatarUrl] = useState('');
 
@@ -76,20 +75,6 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   const loadChartMonthly = async () => {
     try { const d = await api.getChartMonthly(); setChartMonthly(d); } catch { /* silent */ }
   };
-  const loadChartExpenses = async () => {
-    try {
-      const all: any[] = [];
-      let p = 1;
-      while (true) {
-        const tx: any = await api.getTransactions(p, 100);
-        const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
-        all.push(...exps);
-        if (p >= (tx.pages || 1)) break;
-        p++;
-      }
-      setChartExpenses(all);
-    } catch { /* silent */ }
-  };
   const loadBusinessSummary = async () => {
     try {
       const data: any = await api.getBusinessSummary();
@@ -109,28 +94,17 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   };
 
   useEffect(() => {
-    if (tab === 'chart') { loadChart(); loadChartMonthly(); loadChartExpenses(); loadDailyRevenues(); loadBusinessSummary(); }
+    if (tab === 'chart') { loadChart(); loadChartMonthly(); loadDailyRevenues(); loadBusinessSummary(); }
     if (tab === 'supply') { loadProducts(); }
   }, [tab]);
 
   // ── Business summary + derived expense/revenue data ──
   useEffect(() => {
     loadBusinessSummary();
-    loadChartExpenses();
     loadDailyRevenues();
   }, []);
 
   // ── Derived chart values (needs sd.today) ──
-  // Card numbers now come from businessSummary (backend SQL, no full-scan); retained
-  // chartExpenses for dailyChartData (chart tab).
-  const todayExpenseChart = (todayStr: string) => chartExpenses
-    .filter((e: any) => e.date === todayStr)
-    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
-
-  const monthExpenseChart = (monthPrefix: string) => chartExpenses
-    .filter((e: any) => String(e.date || '').startsWith(monthPrefix))
-    .reduce((s: number, e: any) => s + (e.amount || 0), 0);
-
   const toNum = (v: any) => parseFloat(String(v ?? 0)) || 0;
 
   // Card values — yesterday/this-month income/expense/profit from backend
@@ -142,27 +116,6 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
 
   const monthIncome = () => dailyRevenues
     .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0);
-
-  // ── Daily chart data (last 12 days) ──
-  const dailyChartData = useMemo(() => {
-    const dates: string[] = [];
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      dates.push(d.toISOString().slice(0, 10));
-    }
-    const income = dates.map(date =>
-      dailyRevenues
-        .filter((r: any) => r.date === date)
-        .reduce((s: number, r: any) => s + (r.revenue || 0) + (r.jd_revenue || 0), 0)
-    );
-    const expense = dates.map(date =>
-      chartExpenses
-        .filter((e: any) => e.date === date)
-        .reduce((s: number, e: any) => s + (e.amount || 0), 0)
-    );
-    return { dates, income, expense };
-  }, [dailyRevenues, chartExpenses]);
 
   const toDec2Comma = (v: any) => {
     const n = parseFloat(String(v ?? 0)) || 0;
@@ -182,11 +135,10 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   return {
     summary, transactions, page, pages,
     chart, chartMonthly, products,
-    businessSummary, dailyRevenues, chartExpenses,
+    businessSummary, dailyRevenues,
     last7Records, setLast7Records, avatarUrl, setAvatarUrl,
     loadData, loadAvatar,
-    todayExpenseChart, monthExpenseChart, todayExpenseSummary, monthExpenseSummary, yesterdayIncome, yesterdayExpense, yesterdayProfit, monthIncome,
-    dailyChartData,
+    todayExpenseSummary, monthExpenseSummary, yesterdayIncome, yesterdayExpense, yesterdayProfit, monthIncome,
     toDec2Comma,
     handlePage,
   };

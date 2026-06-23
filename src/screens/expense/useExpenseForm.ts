@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { t } from '../../i18n';
-import { catKey } from '../../i18nHelpers';
 import { api } from "../../api/client";
 import { fmtDecInput, toDec2Comma } from "../../utils/numbers";
 import { useServerDate } from '../../hooks/useServerDate';
@@ -16,10 +15,11 @@ interface UseExpenseFormOptions {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   expDateInputRef: React.RefObject<HTMLInputElement | null>;
   onToast: (msg: string) => void;
+  onExpenseAdded?: () => void;
 }
 
 export function useExpenseForm(options: UseExpenseFormOptions) {
-  const { onExpenseHistory, getPreviewUrl, revokePreviewUrl, clearUrlCache, fileInputRef, expDateInputRef, onToast } = options;
+  const { onExpenseHistory, getPreviewUrl, revokePreviewUrl, clearUrlCache, fileInputRef, expDateInputRef, onToast, onExpenseAdded } = options;
   const sd = useServerDate();
 
   /* ── expense form state ── */
@@ -32,8 +32,6 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
   const [expNote, setExpNote] = useState('');
   const [expImages, setExpImages] = useState<File[]>([]);
   const [uploadingImg, setUploadingImg] = useState(false);
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [expCatTotals, setExpCatTotals] = useState({ daily: 0, rent: 0, salary: 0, goods: 0 });
   const [loadingExp, setLoadingExp] = useState(false);
   const [showExpConfirm, setShowExpConfirm] = useState(false);
   const [isRefund, setIsRefund] = useState(false);
@@ -105,45 +103,6 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     });
   };
 
-  /* ── load expenses ── */
-  const reqIdRef = useRef(0);
-  const loadExpenses = useCallback(async () => {
-    const reqId = ++reqIdRef.current;
-    try {
-      const allExpenses: any[] = [];
-      let page = 1;
-      while (true) {
-        const tx: any = await api.getTransactions(page, 100);
-        const exps = (tx.transactions || []).filter((t: any) => t.type === 'expense');
-        allExpenses.push(...exps);
-        if (page >= (tx.pages || 1)) break;
-        page++;
-      }
-      if (reqId !== reqIdRef.current) return;
-      setExpenses(allExpenses);
-      let daily = 0,
-        rent = 0,
-        salary = 0,
-        goods = 0;
-      allExpenses.forEach((e: any) => {
-        const k = catKey(e.category || '');
-        const amt = e.amount || 0;
-        if (k === 'daily') daily += amt;
-        else if (k === 'rent') rent += amt;
-        else if (k === 'salary') salary += amt;
-        else if (k === 'goods') goods += amt;
-      });
-      setExpCatTotals({ daily, rent, salary, goods });
-    } catch {
-      if (reqId !== reqIdRef.current) return;
-      onToast(t('toastLoadFailed'));
-    }
-  }, []);
-
-  useEffect(() => {
-    loadExpenses();
-  }, [loadExpenses]);
-
   /* ── handle date change (for native input onChange) ── */
   const handleExpDateChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,8 +169,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
       setExpImages([]);
       setIsRefund(false);
       onExpenseHistory?.();
-      // background reload — don't block navigation
-      loadExpenses();
+      onExpenseAdded?.();
     } catch {
       onToast(t('toastSubmitFailed'));
     }
@@ -225,8 +183,8 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     expNote,
     isRefund,
     clearUrlCache,
-    loadExpenses,
     onExpenseHistory,
+    onExpenseAdded,
   ]);
 
   /* ── reset form ── */
@@ -265,15 +223,12 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     expImages,
     setExpImages,
     uploadingImg,
-    expenses,
-    expCatTotals,
     loadingExp,
     showExpConfirm,
     setShowExpConfirm,
     isRefund,
     setIsRefund,
     // actions
-    loadExpenses,
     handleAddExpense,
     handleImageSelect,
     removeImage,
