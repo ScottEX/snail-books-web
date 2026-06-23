@@ -12,6 +12,7 @@ import Toast from "../components/Toast";
 import EmptyState from "../components/EmptyState";
 import LoadingSpinner from '../components/LoadingSpinner';
 import ImagePreview from '../components/ImagePreview';
+import { useImagePreview } from '../hooks/useImagePreview';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
@@ -57,7 +58,7 @@ function IcnSealExp({ color, label }: { color: string; label: string }) {
 export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, onInvoice }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void; onInvoice?: (batchId: number) => void }) {
   const swipeBack = useSwipeBack(onBack);
   const [toast, setToast] = useState('');
-  const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
+  const { preview: previewData, openPreview, closePreview } = useImagePreview();
 
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
   const filDateFromRef = useRef<HTMLInputElement>(null);
@@ -217,7 +218,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
           <View style={st.imgThumbs}>
             {displayImgs.map((url: string, j: number) => (
               <TouchableOpacity key={j}
-                onPress={() => setPreviewData({ images: previewImgs, idx: j })}
+                onPress={() => openPreview(previewImgs, j)}
                 activeOpacity={0.8}>
                 {React.createElement('img', {
                   src: url,
@@ -415,7 +416,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
           images={previewData.images}
           initialIdx={previewData.idx}
           visible={true}
-          onClose={() => setPreviewData(null)}
+          onClose={closePreview}
         />
       )}
 

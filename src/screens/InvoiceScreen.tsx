@@ -6,6 +6,7 @@ import { api } from '../api/client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import { useImagePreview } from '../hooks/useImagePreview';
 import ReceiptUpload from '../components/ReceiptUpload';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import DatePicker from '../components/DatePicker';
@@ -226,9 +227,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   // Existing file path (for edit mode — already uploaded)
   const [dExistingFilePath, setDExistingFilePath] = useState<string[]>([]);
   // Preview state
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewImages, setPreviewImages] = useState<string[]>([]);
-  const [previewIdx, setPreviewIdx] = useState(0);
+  const { preview, openPreview, closePreview } = useImagePreview();
 
   // Parse file_path from backend (JSON array or legacy single string)
   const parseFilePaths = (fp: string | null | undefined): string[] => {
@@ -405,15 +404,11 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   // ── Preview handlers ──
   const handlePreviewExisting = (index: number) => {
-    setPreviewImages(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)));
-    setPreviewIdx(index);
-    setPreviewVisible(true);
+    openPreview(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)), index);
   };
 
   const handlePreviewNew = (index: number) => {
-    setPreviewImages(dFiles.map(f => URL.createObjectURL(f)));
-    setPreviewIdx(index);
-    setPreviewVisible(true);
+    openPreview(dFiles.map(f => URL.createObjectURL(f)), index);
   };
 
   // ── Drawer animation ──
@@ -890,10 +885,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
           {/* Image preview overlay */}
           <ImagePreview
-            images={previewImages}
-            initialIdx={previewIdx}
-            visible={previewVisible}
-            onClose={() => setPreviewVisible(false)}
+            images={preview ? preview.images : []}
+            initialIdx={preview ? preview.idx : 0}
+            visible={preview !== null}
+            onClose={closePreview}
           />
         </>
       )}

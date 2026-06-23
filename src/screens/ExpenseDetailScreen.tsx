@@ -18,6 +18,7 @@ import TrashIcon from '../components/icons/TrashIcon';
 import BackArrow from '../components/icons/BackArrow';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import { useImagePreview } from '../hooks/useImagePreview';
 import CategoryChips from '../components/CategoryChips';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
@@ -97,7 +98,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [toast, setToast] = useState('');
-  const [previewData, setPreviewData] = useState<{ images: string[]; idx: number } | null>(null);
+  const { preview: previewData, openPreview, closePreview } = useImagePreview();
 
   const [category, setCategory] = useState(record.category || 'daily');
   const [account, setAccount] = useState(record.account || 'payWechat');
@@ -188,10 +189,6 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
     const file = newFiles[idx];
     if (file) { const u = urlCache.current.get(file); if (u) URL.revokeObjectURL(u); urlCache.current.delete(file); }
     setNewFiles(prev => prev.filter((_, i) => i !== idx));
-  };
-
-  const openPreview = (idx: number) => {
-    setPreviewData({ images: previewImgs, idx });
   };
 
 
@@ -354,7 +351,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                 <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>{t('receiptExpenseLabel')}</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {displayImgs.map((url: string, i: number) => (
-                    <TouchableOpacity key={i} onPress={() => openPreview(i)} activeOpacity={0.8}>
+                    <TouchableOpacity key={i} onPress={() => openPreview(previewImgs, i)} activeOpacity={0.8}>
                       <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
                     </TouchableOpacity>
                   ))}
@@ -506,7 +503,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
           images={previewData.images}
           initialIdx={previewData.idx}
           visible={true}
-          onClose={() => setPreviewData(null)}
+          onClose={closePreview}
         />
       )}
     </View>
