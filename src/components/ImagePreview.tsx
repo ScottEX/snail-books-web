@@ -1,18 +1,22 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder, Dimensions, Easing } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { FONTS } from '../theme';
 
 const { width: WINDOW_W, height: WINDOW_H } = Dimensions.get('window');
 
-// ── Unified spring constants ──
+// ── Animation presets ──
 const SPRING = { friction: 8, tension: 60 };
+const SWITCH_EASING = Easing.bezier(0.25, 0.1, 0.25, 1);  // smooth ease-in-out
+const SNAP_EASING = Easing.bezier(0.34, 1.56, 0.64, 1);     // slight overshoot settle
 const DISMISS_THRESHOLD = 80;
 const DISMISS_VELOCITY = 0.4;
 const SWIPE_THRESHOLD = 60;
 const SWIPE_VELOCITY = 0.3;
 const OPEN_DURATION = 220;
 const CLOSE_DURATION = 200;
+const SWITCH_DURATION = 250;
+const SNAP_DURATION = 220;
 
 // Static Animated.Values for layout arithmetic
 const NEG_W = new Animated.Value(-WINDOW_W);
@@ -23,6 +27,12 @@ interface ImagePreviewProps {
   initialIdx?: number;
   visible: boolean;
   onClose: () => void;
+}
+
+/** Preload an image into browser cache */
+function preloadImage(src: string) {
+  const img = new Image();
+  img.src = src;
 }
 
 export default function ImagePreview({
@@ -42,6 +52,12 @@ export default function ImagePreview({
 
   // ── Gesture refs ──
   const gestureType = useRef<'none' | 'horizontal' | 'vertical'>('none');
+
+  // ── Preload adjacent images ──
+  useEffect(() => {
+    if (idx > 0) preloadImage(images[idx - 1]);
+    if (idx < images.length - 1) preloadImage(images[idx + 1]);
+  }, [idx, images]);
 
   // ── ① Mount: fade timing + scale spring ──
   useEffect(() => {
@@ -65,11 +81,16 @@ export default function ImagePreview({
     ]).start(() => onClose());
   }, [dismissing, overlayOpacity, imageScale, onClose]);
 
-  // ── ④ Horizontal switch — stop current, animate panX → ±WINDOW_W, commit index ──
+  // ── ④ Horizontal switch — timing + bezier, native driver ──
   const switchTo = useCallback((newIdx: number, dir: 'left' | 'right') => {
     panX.stopAnimation();
     const target = dir === 'left' ? -WINDOW_W : WINDOW_W;
-    Animated.spring(panX, { ...SPRING, toValue: target, useNativeDriver: false }).start(() => {
+    Animated.timing(panX, {
+      toValue: target,
+      duration: SWITCH_DURATION,
+      easing: SWITCH_EASING,
+      useNativeDriver: true,
+    }).start(() => {
       setIdx(newIdx);
       panX.setValue(0);
     });
@@ -129,7 +150,13 @@ export default function ImagePreview({
           const dir = (gs.dx > 0 || gs.vx > 0) ? 'right' : 'left';
           switchTo(newIdx, dir);
         } else {
-          Animated.spring(panX, { ...SPRING, toValue: 0, useNativeDriver: false }).start();
+          // Snap back — timing with slight overshoot easing
+          Animated.timing(panX, {
+            toValue: 0,
+            duration: SNAP_DURATION,
+            easing: SNAP_EASING,
+            useNativeDriver: true,
+          }).start();
         }
       } else if (gestureType.current === 'vertical') {
         const fastFling = gs.vy > DISMISS_VELOCITY;
@@ -139,12 +166,22 @@ export default function ImagePreview({
           setDismissing(true);
           Animated.parallel([
             Animated.timing(overlayOpacity, { toValue: 0, duration: CLOSE_DURATION, useNativeDriver: true }),
-            Animated.spring(panY, { ...SPRING, toValue: WINDOW_H * 0.5, useNativeDriver: false }),
+            Animated.timing(panY, {
+              toValue: WINDOW_H * 0.5,
+              duration: CLOSE_DURATION,
+              easing: Easing.inOut(Easing.ease),
+              useNativeDriver: true,
+            }),
             Animated.spring(imageScale, { ...SPRING, toValue: 0.92, useNativeDriver: true }),
           ]).start(() => onClose());
         } else {
           Animated.parallel([
-            Animated.spring(panY, { ...SPRING, toValue: 0, useNativeDriver: false }),
+            Animated.timing(panY, {
+              toValue: 0,
+              duration: SNAP_DURATION,
+              easing: SNAP_EASING,
+              useNativeDriver: true,
+            }),
             Animated.spring(imageScale, { ...SPRING, toValue: 1, useNativeDriver: true }),
             Animated.timing(overlayOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
           ]).start();
