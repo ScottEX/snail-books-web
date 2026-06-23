@@ -750,6 +750,8 @@ export default function HomeScreen({
                       dailyDates={dailyRevenues.length > 0 ? dailyChartData.dates : []}
                       dailyIncome={dailyRevenues.length > 0 ? dailyChartData.income : []}
                       dailyExpense={dailyRevenues.length > 0 ? dailyChartData.expense : []}
+                      dailyProfitDates={chartMonthly.daily_dates || []}
+                      dailyProfitValues={chartMonthly.daily_profit || []}
                     />
                     </View>
                   )}
