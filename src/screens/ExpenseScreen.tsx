@@ -95,11 +95,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   useEffect(() => { return () => clearUrlCache(); }, []);
 
   // Load business summary from backend
-  useEffect(() => {
+  const loadBusinessSummary = useCallback(() => {
     api.getBusinessSummary().then((data: any) => {
       setBusinessSummary(data || {});
     }).catch(() => {});
   }, []);
+  useEffect(() => { loadBusinessSummary(); }, [loadBusinessSummary]);
 
   const [activeTab, setActiveTabState] = useState<number>(() => {
     try {
@@ -346,7 +347,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     payMethod, setPayMethod,
     expNote, setExpNote,
     expImages, setExpImages,
-    expCatTotals,
     loadingExp,
     showExpConfirm, setShowExpConfirm,
     handleAddExpense,
@@ -362,6 +362,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     fileInputRef,
     expDateInputRef,
     onToast: setToast,
+    onExpenseAdded: loadBusinessSummary,
   });
 
   // Sync uncontrolled date inputs when state changes externally
@@ -385,13 +386,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   const st = useMemo(() => getSt(colors), [colors]);
 
-  // Fast glass-card totals: prefer business-summary API (instant), fallback to full aggregation
+  // Fast glass-card totals from business-summary API
   const glassCatTotals = useMemo(() => ({
-    daily: businessSummary.expense_by_category?.daily ?? expCatTotals.daily,
-    rent: businessSummary.expense_by_category?.rent ?? expCatTotals.rent,
-    salary: businessSummary.expense_by_category?.salary ?? expCatTotals.salary,
-    goods: businessSummary.expense_by_category?.goods ?? expCatTotals.goods,
-  }), [businessSummary.expense_by_category, expCatTotals]);
+    daily: businessSummary.expense_by_category?.daily ?? 0,
+    rent: businessSummary.expense_by_category?.rent ?? 0,
+    salary: businessSummary.expense_by_category?.salary ?? 0,
+    goods: businessSummary.expense_by_category?.goods ?? 0,
+  }), [businessSummary.expense_by_category]);
 
   /* ── Render ── */
   return (
