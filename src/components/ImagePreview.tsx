@@ -244,7 +244,7 @@ function ImageElement({ src }: { src: string }) {
     src,
     draggable: false as any,
     style: {
-      maxWidth: '90vw', maxHeight: '80vh', borderRadius: 12, objectFit: 'contain',
+      width: '100vw', maxHeight: '90vh', objectFit: 'contain',
       pointerEvents: 'none' as any,
       userSelect: 'none' as any,
     },
