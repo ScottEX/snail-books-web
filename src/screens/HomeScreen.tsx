@@ -523,12 +523,11 @@ export default function HomeScreen({
       </View>
 
       {/* Page content — hidden whenever any sub-page is on the stack */}
-      {pageStack.length === 0 && (
-      <View style={styles.page}>
+      <View style={[styles.page, pageStack.length > 0 && { display: 'none' as any }]}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} refreshKey={partnerRefreshKey} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} />
+          <ProcurementScreen visible={pageStack.length === 0} onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} />
         ) : (
           <>
             {/* Underlying tab content */}
@@ -763,7 +762,6 @@ export default function HomeScreen({
         </>
       )}
     </View>
-      )}  {/* end page-content conditional */}
 
       <ThemePickerModal
         visible={showBgModal}
