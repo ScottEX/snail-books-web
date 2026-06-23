@@ -121,8 +121,10 @@ export default function ImagePreview({
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
-        onMomentumScrollEnd={(e) => {
-          const page = Math.round(e.nativeEvent.contentOffset.x / WINDOW_W);
+        onScroll={(e) => {
+          const offsetX = e.nativeEvent.contentOffset.x;
+          const raw = offsetX / WINDOW_W;
+          const page = Math.round(raw);
           if (page >= 0 && page < images.length && page !== idx) {
             setIdx(page);
           }
