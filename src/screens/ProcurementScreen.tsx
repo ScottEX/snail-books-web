@@ -323,7 +323,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════
-export default function ProcurementScreen({ visible, onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed, onInvoice }: { visible?: boolean; onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void; onInvoice?: (batchId: number) => void }) {
+export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed, onInvoice }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void; onInvoice?: (batchId: number) => void }) {
   const { colors: c } = useTheme();
   const sd = useServerDate();
   const styles = useMemo(() => getStyles(c), [c]);
@@ -555,16 +555,6 @@ export default function ProcurementScreen({ visible, onDrawerOpen, onDrawerClose
   }, []);
 
   useEffect(() => { loadProducts(); loadStats(); }, [loadProducts, loadStats]);
-
-  // Refresh stats + history when returning from sub-page (visible goes false→true)
-  const prevVisibleRef = useRef(visible);
-  useEffect(() => {
-    if (visible && !prevVisibleRef.current) {
-      loadStats();
-      loadPage(1, true);
-    }
-    prevVisibleRef.current = visible;
-  }, [visible, loadStats, loadPage]);
 
   // Sync uncontrolled date input when orderDate changes externally
   // Load shared cart from server on mount (skip if pending edit — openEditBatch will set it)
