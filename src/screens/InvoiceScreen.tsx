@@ -884,12 +884,14 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
           </Animated.View>
 
           {/* Image preview overlay */}
-          <ImagePreview
-            images={preview ? preview.images : []}
-            initialIdx={preview ? preview.idx : 0}
-            visible={preview !== null}
-            onClose={closePreview}
-          />
+          {preview && (
+            <ImagePreview
+              images={preview.images}
+              initialIdx={preview.idx}
+              visible={true}
+              onClose={closePreview}
+            />
+          )}
         </>
       )}
     </View>
