@@ -223,7 +223,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={(showDaily && hasDaily ? dailyLineData as any : lineData) as any} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey={showDaily && hasDaily ? 'day' : 'month'} tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey={showDaily && hasDaily ? 'day' : 'month'} tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} interval={0} />
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
               <Tooltip content={<ChartTooltip />} />
               <Legend
@@ -253,7 +253,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={axisColor} />
-              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} interval={0} />
               <YAxis tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmtY} width={40} />
               <Tooltip content={<ChartTooltip accentFallback={colors.primary} />} />
               <Area type="monotone" dataKey={profitLabel} stroke="none" fill="url(#profitGrad)" />
