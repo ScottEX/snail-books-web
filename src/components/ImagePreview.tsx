@@ -40,9 +40,6 @@ export default function ImagePreview({
   const panX = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
 
-  // ── Switching guard (blocks gesture during spring animation) ──
-  const switching = useRef(false);
-
   // ── Gesture refs ──
   const gestureType = useRef<'none' | 'horizontal' | 'vertical'>('none');
 
@@ -52,7 +49,6 @@ export default function ImagePreview({
     imageScale.setValue(0.92);
     panX.setValue(0);
     panY.setValue(0);
-    switching.current = false;
     Animated.parallel([
       Animated.timing(overlayOpacity, { toValue: 1, duration: OPEN_DURATION, useNativeDriver: true }),
       Animated.spring(imageScale, { ...SPRING, toValue: 1, useNativeDriver: true }),
@@ -69,24 +65,25 @@ export default function ImagePreview({
     ]).start(() => onClose());
   }, [dismissing, overlayOpacity, imageScale, onClose]);
 
-  // ── ④ Horizontal switch — animate panX → ±WINDOW_W, then commit index ──
+  // ── ④ Horizontal switch — stop current, animate panX → ±WINDOW_W, commit index ──
   const switchTo = useCallback((newIdx: number, dir: 'left' | 'right') => {
-    switching.current = true;
+    panX.stopAnimation();
     const target = dir === 'left' ? -WINDOW_W : WINDOW_W;
     Animated.spring(panX, { ...SPRING, toValue: target, useNativeDriver: false }).start(() => {
       setIdx(newIdx);
       panX.setValue(0);
-      switching.current = false;
     });
   }, [panX]);
 
   // ── PanResponder ──
   const panResponder = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => !dismissing && !switching.current,
+    onStartShouldSetPanResponder: () => !dismissing,
     onMoveShouldSetPanResponder: (_, gs) =>
-      !dismissing && !switching.current && (Math.abs(gs.dx) > 6 || Math.abs(gs.dy) > 6),
+      !dismissing && (Math.abs(gs.dx) > 6 || Math.abs(gs.dy) > 6),
 
     onPanResponderGrant: () => {
+      panX.stopAnimation();
+      panY.stopAnimation();
       gestureType.current = 'none';
     },
 
@@ -132,10 +129,7 @@ export default function ImagePreview({
           const dir = (gs.dx > 0 || gs.vx > 0) ? 'right' : 'left';
           switchTo(newIdx, dir);
         } else {
-          switching.current = true;
-          Animated.spring(panX, { ...SPRING, toValue: 0, useNativeDriver: false }).start(() => {
-            switching.current = false;
-          });
+          Animated.spring(panX, { ...SPRING, toValue: 0, useNativeDriver: false }).start();
         }
       } else if (gestureType.current === 'vertical') {
         const fastFling = gs.vy > DISMISS_VELOCITY;
