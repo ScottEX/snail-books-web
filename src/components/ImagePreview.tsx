@@ -5,10 +5,13 @@ import { FONTS } from '../theme';
 
 const { width: WINDOW_W, height: WINDOW_H } = Dimensions.get('window');
 
-const DISMISS_THRESHOLD = 100;   // px — pull down this far triggers dismiss
-const SWIPE_THRESHOLD = 80;       // px — horizontal swipe to switch
-const OPEN_DURATION = 200;
+const DISMISS_THRESHOLD = 80;    // px
+const DISMISS_VELOCITY = 0.4;    // fling velocity threshold
+const SWIPE_THRESHOLD = 60;      // px
+const SWIPE_VELOCITY = 0.3;      // fling velocity threshold
+const OPEN_DURATION = 220;
 const CLOSE_DURATION = 200;
+const SWITCH_DURATION = 280;
 
 interface ImagePreviewProps {
   images: string[];
@@ -27,24 +30,29 @@ export default function ImagePreview({
   const [dismissing, setDismissing] = useState(false);
 
   // ── Animated values ──
-  const overlayOpacity = useRef(new Animated.Value(0)).current;   // 0→1 open, 1→0 close
-  const imageScale = useRef(new Animated.Value(0.92)).current;     // 0.92→1 open, 1→0.92 close
-  const panX = useRef(new Animated.Value(0)).current;              // horizontal drag offset
-  const panY = useRef(new Animated.Value(0)).current;              // vertical drag offset
-  const imageOpacity = useRef(new Animated.Value(1)).current;      // switch crossfade
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const imageScale = useRef(new Animated.Value(0.92)).current;
+  const panX = useRef(new Animated.Value(0)).current;
+  const panY = useRef(new Animated.Value(0)).current;
+  const imageOpacity = useRef(new Animated.Value(1)).current;
 
-  // ── Gesture tracking refs ──
+  // ── Transition state (for smooth horizontal switch) ──
+  // When set, both current (idx) and new image render simultaneously
+  const [transition, setTransition] = useState<{ newIdx: number; dir: 'left' | 'right' } | null>(null);
+
+  // ── Gesture refs ──
   const gestureType = useRef<'none' | 'horizontal' | 'vertical'>('none');
-  const gestureDX = useRef(0);
-  const gestureDY = useRef(0);
 
-  // ── ① Mount: fade in + scale up ──
+  // ── ① Mount: fade + scale ──
   useEffect(() => {
     overlayOpacity.setValue(0);
     imageScale.setValue(0.92);
+    imageOpacity.setValue(1);
+    panX.setValue(0);
+    panY.setValue(0);
     Animated.parallel([
       Animated.timing(overlayOpacity, { toValue: 1, duration: OPEN_DURATION, useNativeDriver: true }),
-      Animated.spring(imageScale, { toValue: 1, friction: 7, tension: 80, useNativeDriver: true }),
+      Animated.spring(imageScale, { toValue: 1, friction: 8, tension: 60, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -54,72 +62,65 @@ export default function ImagePreview({
     setDismissing(true);
     Animated.parallel([
       Animated.timing(overlayOpacity, { toValue: 0, duration: CLOSE_DURATION, useNativeDriver: true }),
-      Animated.spring(imageScale, { toValue: 0.92, friction: 7, tension: 80, useNativeDriver: true }),
+      Animated.spring(imageScale, { toValue: 0.92, friction: 8, tension: 60, useNativeDriver: true }),
     ]).start(() => onClose());
   }, [dismissing, overlayOpacity, imageScale, onClose]);
 
-  // ── ④ Horizontal slide-switch ──
-  const switchTo = useCallback((newIdx: number, slideDir: 'left' | 'right') => {
-    // Animate current image fully off-screen
-    const exitTarget = slideDir === 'left' ? -WINDOW_W : WINDOW_W;
-    Animated.parallel([
-      Animated.timing(imageOpacity, { toValue: 0, duration: 100, useNativeDriver: true }),
-      Animated.timing(panX, { toValue: exitTarget, duration: 150, useNativeDriver: false }),
-    ]).start(() => {
-      // Jump to new image, positioned off-screen from opposite side
-      setIdx(newIdx);
-      panX.setValue(-exitTarget);   // enter from opposite side
-      // Slide in + fade in
-      Animated.parallel([
-        Animated.timing(imageOpacity, { toValue: 1, duration: 150, useNativeDriver: true }),
-        Animated.spring(panX, { toValue: 0, friction: 7, tension: 80, useNativeDriver: false }),
-      ]).start();
-    });
-  }, [imageOpacity, panX]);
+  // ── ④ Horizontal slide-switch (smooth — both images visible during transition) ──
+  const switchTo = useCallback((newIdx: number, dir: 'left' | 'right') => {
+    const exitTarget = dir === 'left' ? -WINDOW_W : WINDOW_W;
 
-  // ── ② / ④ PanResponder (pull-down dismiss + horizontal switch) ──
+    // Phase 1: current slides out + new slides in simultaneously
+    setTransition({ newIdx, dir });
+    Animated.parallel([
+      Animated.timing(panX, { toValue: exitTarget, duration: SWITCH_DURATION, useNativeDriver: false }),
+    ]).start(() => {
+      // Phase 2: commit — set new index, reset position
+      setIdx(newIdx);
+      setTransition(null);
+      panX.setValue(0);
+      imageOpacity.setValue(1);
+    });
+  }, [panX, imageOpacity]);
+
+  // ── PanResponder ──
   const panResponder = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => !dismissing,
+    onStartShouldSetPanResponder: () => !dismissing && !transition,
     onMoveShouldSetPanResponder: (_, gs) =>
-      !dismissing && (Math.abs(gs.dx) > 8 || Math.abs(gs.dy) > 8),
+      !dismissing && !transition && (Math.abs(gs.dx) > 6 || Math.abs(gs.dy) > 6),
 
     onPanResponderGrant: () => {
       gestureType.current = 'none';
-      gestureDX.current = 0;
-      gestureDY.current = 0;
     },
 
     onPanResponderMove: (_, gs) => {
-      gestureDX.current = gs.dx;
-      gestureDY.current = gs.dy;
-
-      // Determine gesture direction on first significant move
       if (gestureType.current === 'none') {
-        if (Math.abs(gs.dx) > Math.abs(gs.dy) && Math.abs(gs.dx) > 10) {
+        if (Math.abs(gs.dx) > Math.abs(gs.dy) && Math.abs(gs.dx) > 8) {
           gestureType.current = 'horizontal';
-        } else if (Math.abs(gs.dy) > 10) {
+        } else if (Math.abs(gs.dy) > 8) {
           gestureType.current = 'vertical';
         }
       }
 
       if (gestureType.current === 'horizontal') {
-        // Only allow horizontal swipe when there are adjacent images
         const blockedLeft = gs.dx > 0 && idx === 0;
         const blockedRight = gs.dx < 0 && idx === images.length - 1;
         if (blockedLeft || blockedRight) {
-          // Rubber-band effect: reduce movement at edges
-          panX.setValue(gs.dx * 0.3);
+          panX.setValue(gs.dx * 0.25);  // strong rubber-band at edges
         } else {
           panX.setValue(gs.dx);
         }
-        // Slight fade as we drag
-        const fade = Math.max(0.6, 1 - Math.abs(gs.dx) / 300);
-        imageOpacity.setValue(fade);
+        // Subtle fade as drag increases
+        imageOpacity.setValue(Math.max(0.5, 1 - Math.abs(gs.dx) / 400));
       } else if (gestureType.current === 'vertical') {
-        panY.setValue(gs.dy);
-        // Reduce overlay opacity proportional to drag distance
-        const progress = Math.min(Math.abs(gs.dy) / DISMISS_THRESHOLD, 1);
-        overlayOpacity.setValue(1 - progress * 0.6);
+        const dy = gs.dy;
+        panY.setValue(dy);
+        // Image shrinks slightly as you pull down (0→1% per px, max 5% shrink)
+        const shrink = Math.min(Math.abs(dy) / 2000, 0.05);
+        imageScale.setValue(1 - shrink);
+        // Overlay fades proportional to drag
+        const progress = Math.min(Math.abs(dy) / (DISMISS_THRESHOLD * 1.5), 1);
+        overlayOpacity.setValue(1 - progress * 0.55);
       }
     },
 
@@ -127,45 +128,59 @@ export default function ImagePreview({
       if (gestureType.current === 'horizontal') {
         const blockedLeft = gs.dx > 0 && idx === 0;
         const blockedRight = gs.dx < 0 && idx === images.length - 1;
+        const fastFling = Math.abs(gs.vx) > SWIPE_VELOCITY;
+        const overThreshold = Math.abs(gs.dx) > SWIPE_THRESHOLD;
 
-        if (!blockedLeft && !blockedRight && Math.abs(gs.dx) > SWIPE_THRESHOLD) {
-          // Switch image
-          const newIdx = gs.dx > 0 ? idx - 1 : idx + 1;
-          const dir = gs.dx > 0 ? 'right' : 'left';
+        if (!blockedLeft && !blockedRight && (overThreshold || fastFling)) {
+          const newIdx = (gs.dx > 0 || gs.vx > 0) ? idx - 1 : idx + 1;
+          const dir = (gs.dx > 0 || gs.vx > 0) ? 'right' : 'left';
           switchTo(newIdx, dir);
         } else {
-          // Spring back
+          // Spring back — softer, bouncier
           Animated.parallel([
-            Animated.spring(panX, { toValue: 0, friction: 7, tension: 80, useNativeDriver: false }),
-            Animated.timing(imageOpacity, { toValue: 1, duration: 150, useNativeDriver: true }),
+            Animated.spring(panX, { toValue: 0, friction: 8, tension: 50, useNativeDriver: false }),
+            Animated.timing(imageOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
           ]).start();
         }
       } else if (gestureType.current === 'vertical') {
-        if (gs.dy > DISMISS_THRESHOLD || (gs.vy > 0.5 && gs.dy > 40)) {
-          // Dismiss — animate off screen
+        const fastFling = gs.vy > DISMISS_VELOCITY;
+        const overThreshold = gs.dy > DISMISS_THRESHOLD;
+
+        if (overThreshold || (fastFling && gs.dy > 30)) {
+          // Dismiss — fly off screen + scale down
           setDismissing(true);
           Animated.parallel([
             Animated.timing(overlayOpacity, { toValue: 0, duration: CLOSE_DURATION, useNativeDriver: true }),
-            Animated.timing(panY, { toValue: WINDOW_H, duration: CLOSE_DURATION, useNativeDriver: false }),
+            Animated.timing(panY, { toValue: WINDOW_H * 0.6, duration: CLOSE_DURATION, useNativeDriver: false }),
+            Animated.timing(imageScale, { toValue: 0.85, duration: CLOSE_DURATION, useNativeDriver: true }),
           ]).start(() => onClose());
         } else {
-          // Spring back to center
+          // Spring back — scale recovers, overlay recovers
           Animated.parallel([
-            Animated.spring(panY, { toValue: 0, friction: 7, tension: 80, useNativeDriver: false }),
-            Animated.timing(overlayOpacity, { toValue: 1, duration: 150, useNativeDriver: true }),
+            Animated.spring(panY, { toValue: 0, friction: 8, tension: 50, useNativeDriver: false }),
+            Animated.spring(imageScale, { toValue: 1, friction: 8, tension: 60, useNativeDriver: true }),
+            Animated.timing(overlayOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
           ]).start();
         }
       }
 
-      // Reset gesture tracking
       gestureType.current = 'none';
     },
-  }), [idx, images.length, dismissing, switchTo, panX, panY, overlayOpacity, imageOpacity, onClose]);
+  }), [idx, images.length, dismissing, transition, switchTo,
+       panX, panY, overlayOpacity, imageScale, imageOpacity, onClose]);
 
   if (!visible || images.length === 0) return null;
 
   const prevEnabled = images.length > 1 && idx > 0;
   const nextEnabled = images.length > 1 && idx < images.length - 1;
+
+  // ── During horizontal transition, render both current + new image ──
+  const showBoth = transition !== null;
+  const exitDir = transition?.dir;
+  const exitIdx = showBoth ? idx : -1;
+  const enterIdx = showBoth ? transition!.newIdx : -1;
+  // New image slides in from the opposite side
+  const enterStart = exitDir === 'left' ? WINDOW_W : -WINDOW_W;
 
   return (
     <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]} {...panResponder.panHandlers}>
@@ -177,40 +192,62 @@ export default function ImagePreview({
       </TouchableOpacity>
 
       {/* Left arrow */}
-      {prevEnabled && (
+      {prevEnabled && !showBoth && (
         <TouchableOpacity style={styles.arrowLeft} onPress={() => switchTo(idx - 1, 'right')} activeOpacity={0.7}>
           <Text style={styles.arrowText}>{'\u2039'}</Text>
         </TouchableOpacity>
       )}
 
       {/* Right arrow */}
-      {nextEnabled && (
+      {nextEnabled && !showBoth && (
         <TouchableOpacity style={styles.arrowRight} onPress={() => switchTo(idx + 1, 'left')} activeOpacity={0.7}>
           <Text style={styles.arrowText}>{'\u203A'}</Text>
         </TouchableOpacity>
       )}
 
-      {/* Image — scale + pan + fade */}
-      <Animated.View style={{
-        transform: [
-          { scale: imageScale },
-          { translateX: panX },
-          { translateY: panY },
-        ],
-      }}>
-        <Animated.View style={{ opacity: imageOpacity }}>
-          {React.createElement('img', {
-            src: images[idx],
-            key: idx,
-            draggable: false as any,
-            style: {
-              maxWidth: '90vw', maxHeight: '80vh', borderRadius: 12, objectFit: 'contain',
-              pointerEvents: 'none' as any,
-            },
-            alt: 'preview',
-          })}
+      {/* ── Image area ── */}
+      {showBoth ? (
+        <>
+          {/* Exiting image — follows panX (0 → exitTarget) */}
+          <Animated.View style={{
+            position: 'absolute',
+            transform: [
+              { scale: imageScale },
+              { translateX: panX },
+              { translateY: panY },
+            ],
+            opacity: Animated.subtract(new Animated.Value(1), Animated.multiply(
+              Animated.divide(panX, exitDir === 'left' ? -WINDOW_W : WINDOW_W), new Animated.Value(1)
+            )),
+          } as any}>
+            <ImageElement src={images[exitIdx]} />
+          </Animated.View>
+
+          {/* Entering image — slides in from opposite side: enterStart + panX → 0 */}
+          <Animated.View style={{
+            position: 'absolute',
+            transform: [
+              { scale: imageScale },
+              { translateX: Animated.add(new Animated.Value(enterStart), panX) },
+              { translateY: panY },
+            ],
+            opacity: Animated.divide(panX, exitDir === 'left' ? -WINDOW_W : WINDOW_W),
+          } as any}>
+            <ImageElement src={images[enterIdx]} />
+          </Animated.View>
+        </>
+      ) : (
+        <Animated.View style={{
+          transform: [
+            { scale: imageScale },
+            { translateX: panX },
+            { translateY: panY },
+          ],
+          opacity: imageOpacity,
+        }}>
+          <ImageElement src={images[idx]} />
         </Animated.View>
-      </Animated.View>
+      )}
 
       {/* Counter */}
       {images.length > 1 && (
@@ -218,6 +255,20 @@ export default function ImagePreview({
       )}
     </Animated.View>
   );
+}
+
+/** Thin wrapper for the native <img> element */
+function ImageElement({ src }: { src: string }) {
+  return React.createElement('img', {
+    src,
+    draggable: false as any,
+    style: {
+      maxWidth: '90vw', maxHeight: '80vh', borderRadius: 12, objectFit: 'contain',
+      pointerEvents: 'none' as any,
+      userSelect: 'none' as any,
+    },
+    alt: 'preview',
+  });
 }
 
 const styles = StyleSheet.create({
