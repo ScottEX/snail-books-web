@@ -95,7 +95,7 @@ const theme1: Theme = {
     expenseGradientStart: '#8B1A2B',
     expenseGradientEnd: '#4A0E16',
     expenseAmountColor: '#FFF5EC',
-    navActiveColor: '#D4A574',
+    navActiveColor: '#D4918A',
   },
 };
 const theme2: Theme = {
