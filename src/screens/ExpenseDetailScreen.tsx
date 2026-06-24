@@ -520,7 +520,7 @@ const getStyles = (c: ThemeColors) => {
       width: 36, height: 36, borderRadius: 18,
       backgroundColor: withAlpha(c.bg, 0.30),
       justifyContent: 'center' as const, alignItems: 'center' as const,
-      backdropFilter: 'saturate(200%) blur(30px)' as any,
+
       borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
     },
     body: {

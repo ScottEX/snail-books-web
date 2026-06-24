@@ -253,7 +253,7 @@ export default function BgCropModal({
 
   return createPortal(
     <div
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any}
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any}
       onClick={(e: any) => { if (e.target === e.currentTarget) close(); }}
     >
       {/* Header */}
@@ -268,14 +268,14 @@ export default function BgCropModal({
 
       {/* Stage — cropping phase: live canvas crop. preview phase: thumbnail. */}
       {src !== '' && phase === 'cropping' && (
-        <View style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' } as any} ref={stageRef as any}>
+        <View style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', } as any} ref={stageRef as any}>
           <canvas
             ref={canvasRef as any}
-            style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' } as any}
+            style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', } as any}
           />
           <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any} pointerEvents="none">
             <View
-              style={{ borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative', transition: 'border-color 0.2s', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any}
+              style={{ borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative',  } as any}
               ref={guideRef as any}
             >
               <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '33.3%' } as any} />
@@ -354,7 +354,7 @@ export default function BgCropModal({
                 s.scale = Math.max(s.minScale, s.scale);
                 clampCrop(); drawCrop();
               }}
-              style={{ flex: 1, height: 3, appearance: 'none', cursor: 'pointer', accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+              style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
             />
             <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
           </View>

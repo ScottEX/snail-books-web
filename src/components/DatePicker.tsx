@@ -124,7 +124,7 @@ export default function DatePicker({
           bottom: -6,
           left: 0,
           opacity: 0.01,
-          cursor: 'pointer',
+
           fontSize: fs,
         },
       })}

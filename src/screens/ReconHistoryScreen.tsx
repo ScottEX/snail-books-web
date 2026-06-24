@@ -346,13 +346,13 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </View>
       {/* Filter bar */}
       {showFilter && (<>
-        <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
+        <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => {
             Animated.timing(filterAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setShowFilter(false));
           }} />
         </Animated.View>
         <Animated.View style={{
-          position: 'fixed' as any, top: 100, left: 12, right: 12, zIndex: 9999,
+          position: 'absolute' as any, top: 100, left: 12, right: 12, zIndex: 9999,
           opacity: filterAnim,
           transform: [
             { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
@@ -463,7 +463,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 14, padding: 14,
     marginBottom: 12, borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
-    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+
     gap: 10,
   },
   dateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 8 },
@@ -481,7 +481,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   tapHint: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center', marginTop: 2 },
   /* Modal */
   mask: {
-    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+    position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 200, justifyContent: 'center', alignItems: 'center',
   },
   maskBg: {
@@ -493,7 +493,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 20,
     overflow: 'hidden',
     // @ts-ignore
-    boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
+
     // @ts-ignore
 
   },
@@ -572,7 +572,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
+    opacity: 0.01,  width: '100%', height: '100%',
   },
   filterInput: {
     height: 34,
@@ -599,7 +599,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     WebkitAppearance: 'none',
     MozAppearance: 'none',
     appearance: 'none',
-    cursor: 'pointer',
+
   },
   filterSelectArrow: {
     position: 'absolute',

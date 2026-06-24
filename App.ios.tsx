@@ -1,3 +1,4 @@
+import './src/polyfills/localStorage';
 import { useState, useEffect, useCallback } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import LoginScreen from './src/screens/LoginScreen';

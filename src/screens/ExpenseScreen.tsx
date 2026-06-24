@@ -2,8 +2,9 @@ import { useDisclosure } from '../hooks/useDisclosure';
 import { useDateField } from '../hooks/useDateField';
 import { createPortal } from 'react-dom';
 import {
-  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, useWindowDimensions, ActivityIndicator,
+  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, useWindowDimensions,
 } from 'react-native';
+import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
@@ -959,12 +960,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               })}
 
               {/* Confirm */}
-              <TouchableOpacity
-                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: (savingFee || (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0)) ? 0.35 : 1 }}
-                onPress={handleAddFee} disabled={savingFee || (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0)} activeOpacity={0.8}
-              >
-                {savingFee ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}>{t('confirm')}</Text>}
-              </TouchableOpacity>
+              <SubmitButton
+                onPress={handleAddFee}
+                loading={savingFee}
+                disabled={toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0}
+                label={t('confirm')}
+                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0) ? 0.35 : 1 }}
+                textStyle={{ color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}
+              />
             </View>
           </View>
         </ModalOverlay>

@@ -164,7 +164,7 @@ function ImageElement({ src }: { src: string }) {
       style: {
         width: '100vw', maxHeight: '90vh', objectFit: 'contain',
         pointerEvents: 'none' as any,
-        userSelect: 'none' as any,
+
       },
       alt: 'preview',
     });

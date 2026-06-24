@@ -148,13 +148,13 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
 
       {/* Filter panel */}
       {showFilter && (<>
-        <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
+        <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => {
             Animated.timing(filterAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setShowFilter(false));
           }} />
         </Animated.View>
         <Animated.View style={{
-          position: 'fixed' as any, top: 100, left: 12, right: 12, zIndex: 9999,
+          position: 'absolute' as any, top: 100, left: 12, right: 12, zIndex: 9999,
           opacity: filterAnim,
           transform: [
             { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
@@ -326,7 +326,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
+    opacity: 0.01,  width: '100%', height: '100%',
   },
   filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   filterResetBtn: {
@@ -349,7 +349,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingVertical: 16, paddingHorizontal: 16,
     marginBottom: 10,
     borderWidth: 1, borderColor: colors.secondary,
-    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+
     gap: 12,
   } as any,
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

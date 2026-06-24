@@ -1,4 +1,5 @@
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated, Platform, ImageBackground, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated, Platform, ImageBackground } from 'react-native';
+import SubmitButton from '../components/SubmitButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, langs, useLang, I18nKey } from '../i18n';
@@ -629,9 +630,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     </TouchableOpacity>
                   </View>
                 </View>
-                <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
-                  {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnDarkText}>{t('loginBtn')}</Text>}
-                </TouchableOpacity>
+                <SubmitButton onPress={handleLogin} loading={loading} label={t('loginBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
@@ -727,9 +726,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleRegister} style={styles.btnDark} disabled={loading}>
-                {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnDarkText}>{t('registerBtn')}</Text>}
-              </TouchableOpacity>
+              <SubmitButton onPress={handleRegister} loading={loading} label={t('registerBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>
@@ -757,9 +754,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="number-pad" onSubmitEditing={handleVerify} autoFocus />
               </View>
-              <TouchableOpacity onPress={handleVerify} style={styles.btnRed} disabled={loading}>
-                {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnRedText}>{t('verifyBtn')}</Text>}
-              </TouchableOpacity>
+              <SubmitButton onPress={handleVerify} loading={loading} label={t('verifyBtn')} style={styles.btnRed} textStyle={styles.btnRedText} />
               <Text style={styles.verifyHint}>
                 {t('verifyNewNoEmail') || '一直没收到？别着急，您可以 '}
                 <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s` : t('verifyNewResend')}</Text>
@@ -782,9 +777,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder="Email" placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="email-address" onSubmitEditing={handleForgot} />
               </View>
-              <TouchableOpacity onPress={handleForgot} style={styles.btnDark} disabled={loading}>
-                {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnDarkText}>{t('forgotSendBtn') || 'Send Code'}</Text>}
-              </TouchableOpacity>
+              <SubmitButton onPress={handleForgot} loading={loading} label={t('forgotSendBtn') || 'Send Code'} style={styles.btnDark} textStyle={styles.btnDarkText} />
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>
@@ -832,9 +825,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleReset} style={styles.btnRed} disabled={loading}>
-                {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnRedText}>{t('resetBtn')}</Text>}
-              </TouchableOpacity>
+              <SubmitButton onPress={handleReset} loading={loading} label={t('resetBtn')} style={styles.btnRed} textStyle={styles.btnRedText} />
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>
@@ -925,9 +916,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                       </TouchableOpacity>
                     </View>
                   </View>
-                  <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
-                    {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnDarkText}>{t('loginBtn')}</Text>}
-                  </TouchableOpacity>
+                  <SubmitButton onPress={handleLogin} loading={loading} label={t('loginBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
@@ -1023,9 +1012,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     </TouchableOpacity>
                   </View>
                 </View>
-                <TouchableOpacity onPress={handleRegister} style={styles.btnDark} disabled={loading}>
-                  {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnDarkText}>{t('registerBtn')}</Text>}
-                </TouchableOpacity>
+                <SubmitButton onPress={handleRegister} loading={loading} label={t('registerBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
                 <TouchableOpacity onPress={goLogin}>
                   <Text style={styles.forgotText}>{t('backToLogin')}</Text>
                 </TouchableOpacity>
@@ -1053,9 +1040,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)"
                     keyboardType="number-pad" onSubmitEditing={handleVerify} autoFocus />
                 </View>
-                <TouchableOpacity onPress={handleVerify} style={styles.btnRed} disabled={loading}>
-                  {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnRedText}>{t('verifyBtn')}</Text>}
-                </TouchableOpacity>
+                <SubmitButton onPress={handleVerify} loading={loading} label={t('verifyBtn')} style={styles.btnRed} textStyle={styles.btnRedText} />
                 <Text style={styles.verifyHint}>
                   {t('verifyNewNoEmail') || '一直没收到？别着急，您可以 '}
                   <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s` : t('verifyNewResend')}</Text>
@@ -1078,9 +1063,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     placeholder="Email" placeholderTextColor="rgba(255,255,255,0.55)"
                     keyboardType="email-address" onSubmitEditing={handleForgot} />
                 </View>
-                <TouchableOpacity onPress={handleForgot} style={styles.btnDark} disabled={loading}>
-                  {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnDarkText}>{t('forgotSendBtn') || 'Send Code'}</Text>}
-                </TouchableOpacity>
+                <SubmitButton onPress={handleForgot} loading={loading} label={t('forgotSendBtn') || 'Send Code'} style={styles.btnDark} textStyle={styles.btnDarkText} />
                 <TouchableOpacity onPress={goLogin}>
                   <Text style={styles.forgotText}>{t('backToLogin')}</Text>
                 </TouchableOpacity>
@@ -1128,9 +1111,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     </TouchableOpacity>
                   </View>
                 </View>
-                <TouchableOpacity onPress={handleReset} style={styles.btnRed} disabled={loading}>
-                  {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.btnRedText}>{t('resetBtn')}</Text>}
-                </TouchableOpacity>
+                <SubmitButton onPress={handleReset} loading={loading} label={t('resetBtn')} style={styles.btnRed} textStyle={styles.btnRedText} />
                 <TouchableOpacity onPress={goLogin}>
                   <Text style={styles.forgotText}>{t('backToLogin')}</Text>
                 </TouchableOpacity>

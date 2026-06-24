@@ -165,7 +165,7 @@ const I18N: Record<string, Record<string, string>> = {
     feePreview: '累计手续费',
     feeViewDetail: '查看明细',
     filledBy: '填写人',
-    filter: '筛选',
+    
     filterCategory: '支出分类',
     filterDate: '日期',
     flashSale: '闪购',
@@ -745,7 +745,7 @@ const I18N: Record<string, Record<string, string>> = {
     feePreview: '累計手續費',
     feeViewDetail: '檢視明細',
     filledBy: '填寫人',
-    filter: '篩選',
+    
     filterCategory: '支出分類',
     filterDate: '日期',
     flashSale: '閃購',
@@ -1324,7 +1324,7 @@ const I18N: Record<string, Record<string, string>> = {
     feePreview: 'Cumulative',
     feeViewDetail: 'View Details',
     filledBy: 'Filled by',
-    filter: 'Filter',
+    
     filterCategory: 'Category',
     filterDate: 'Date',
     flashSale: 'Flash Sale',

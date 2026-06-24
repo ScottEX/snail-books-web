@@ -17,6 +17,7 @@ import EmptyState from "../components/EmptyState";
 
 import TextField from '../components/TextField';
 import ButtonPair from '../components/ButtonPair';
+import SubmitButton from '../components/SubmitButton';
 import CloseButton from '../components/CloseButton';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
@@ -1421,9 +1422,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <View style={styles.drawerFooter}>
               <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
                 <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
-                <TouchableOpacity style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]} onPress={submitOrder} disabled={cartCount === 0 || submitting || editUnchanged}>
-                  {submitting ? <ActivityIndicator color={c.surface} /> : <Text style={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}>{t('procSubmit')}</Text>}
-                </TouchableOpacity>
+                <SubmitButton
+                  onPress={submitOrder}
+                  loading={submitting}
+                  disabled={cartCount === 0 || editUnchanged}
+                  label={t('procSubmit')}
+                  style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]}
+                  textStyle={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}
+                />
               </View>
             </View>
           </Animated.View>

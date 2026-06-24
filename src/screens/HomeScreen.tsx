@@ -287,7 +287,7 @@ export default function HomeScreen({
         backdrop-filter: blur(12px) saturate(180%);
         border: 1px solid rgba(255,255,255,0.55);
         box-shadow: 0 2px 10px rgba(0,0,0,0.10);
-        cursor: pointer;
+
       }
     `;
     document.head.appendChild(style);
@@ -685,7 +685,7 @@ export default function HomeScreen({
                   <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartGlassCard}>
                       {/* @ts-ignore — 收支总览大标题 */}
-                      <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', textShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>{t('summary')}</Text>
+                      <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', }}>{t('summary')}</Text>
                       <View style={{ alignItems: 'flex-start', gap: 2 }}>
                         <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
@@ -877,9 +877,9 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   bgLayer: {
-    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
+    position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
-  bgCustom: { transition: 'opacity 0.5s ease, filter 0.5s ease' },
+  bgCustom: { },
   // Header — frosted glass, same as sub-screen headers
   header: {
     position: 'relative' as const, zIndex: 200,
@@ -887,7 +887,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: 'transparent',
     // @ts-ignore - web-only
-    backdropFilter: 'saturate(200%) blur(30px)',
+
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   headerInner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -963,7 +963,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 14, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12, gap: 14,
     backgroundColor: colors.bg,
     borderWidth: 0.5, borderColor: colors.secondary,
-    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+
   },
   chartKpiRow: { flexDirection: 'column' as any },
   chartKpiItem: {
@@ -979,28 +979,28 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.warning, 0.22)} 100%)`,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
     // @ts-ignore
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
+
   },
   chartGlassLabel: {
     fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
     color: 'rgba(255,255,255,0.70)',
-    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+
   },
   chartGlassSymbol: {
     fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
     color: colors.primary,
-    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+
   },
   chartGlassValue: {
     fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
     color: colors.primary,
-    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+
   },
   chartGlassSubCard: {
     flex: 1, backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 10, padding: 14, gap: 6,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.20)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+
   },
   chartGlassSubLabel: {
     fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
@@ -1012,7 +1012,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   // Bottom Nav — glass pill, icons only, 80% transparent
   bottomNav: {
-    position: 'fixed' as any,
+    position: 'absolute' as any,
     bottom: 16,
     left: '50%',
     // @ts-ignore - web-only translateX
@@ -1021,13 +1021,13 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     maxWidth: 420,
     backgroundColor: withAlpha(colors.surface, 0.30),
     // @ts-ignore - web-only
-    backdropFilter: 'saturate(180%) blur(24px)',
+
     borderRadius: 28,
     flexDirection: 'row',
     paddingVertical: 10,
     paddingHorizontal: 12,
     // @ts-ignore - web-only boxShadow
-    boxShadow: '0 2px 16px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(255,255,255,0.3) inset',
+
     borderWidth: 0.5,
     borderColor: withAlpha(colors.surface, 0.25),
     zIndex: 100,
@@ -1048,7 +1048,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
-    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+
     gap: 12,
   },
   rev7CardTop: {

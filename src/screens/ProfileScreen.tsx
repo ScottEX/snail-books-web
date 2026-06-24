@@ -900,7 +900,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
       {/* ====== AVATAR CROP MODAL (portal) ====== */}
       {cropSrc !== '' && !showResult && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) setCropSrc(''); }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) setCropSrc(''); }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('avatarCropTitle')}</Text>
             <TouchableOpacity onPress={() => setCropSrc('')} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
@@ -911,7 +911,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
           <View style={cropS.stage as any} ref={stageRef as any}>
             <canvas ref={canvasRef as any}
-              style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
+              style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', }}
             />
             <View style={cropS.guideWrap as any} pointerEvents="none">
               <View style={cropS.guideCircle as any} ref={guideRef as any}>
@@ -940,7 +940,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                   s.scale = Math.max(s.minScale, s.scale);
                   clampCrop(); drawCrop();
                 }}
-                style={{ flex: 1, height: 3, appearance: 'none', cursor: 'pointer', accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
               />
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
@@ -978,7 +978,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
       {/* ====== AVATAR RESULT PREVIEW ====== */}
       {showResult && cropResult !== '' && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setShowResult(false); setCropSrc(''); } }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setShowResult(false); setCropSrc(''); } }}>
           <View style={cropS.resultCard as any}>
             <View style={cropS.resultBadge as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
@@ -1008,7 +1008,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
       {/* ====== COVER CROP MODAL (portal) ====== */}
       {coverCropSrc !== '' && !coverShowResult && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverCropSrc(''); setCoverCropResult(''); } }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverCropSrc(''); setCoverCropResult(''); } }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('coverCropTitle')}</Text>
             <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
@@ -1019,10 +1019,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
           <View style={cropS.stage as any} ref={coverStageRef as any}>
             <canvas ref={coverCanvasRef as any}
-              style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
+              style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', }}
             />
             <View style={cropS.guideWrap as any} pointerEvents="none">
-              <View style={{ width: 320, height: Math.round(320 * 260 / 375), borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative', transition: 'border-color 0.2s', boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' } as any} ref={coverGuideRef as any}>
+              <View style={{ width: 320, height: Math.round(320 * 260 / 375), borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative',  } as any} ref={coverGuideRef as any}>
                 <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '33.3%' } as any} />
                 <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '66.6%' } as any} />
                 <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '33.3%' } as any} />
@@ -1046,7 +1046,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                   s.scale = Math.max(s.minScale, s.scale);
                   coverClampCrop(); coverDrawCrop();
                 }}
-                style={{ flex: 1, height: 3, appearance: 'none', cursor: 'pointer', accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
               />
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
@@ -1084,7 +1084,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
       {/* ====== COVER RESULT PREVIEW ====== */}
       {coverShowResult && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverShowResult(false); setCoverCropSrc(''); } }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverShowResult(false); setCoverCropSrc(''); } }}>
           <View style={cropS.resultCard as any}>
             <View style={cropS.resultBadge as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
@@ -1129,7 +1129,7 @@ function getStyles(colors: ThemeColors) {
     },
     coverTitle: {
       fontSize: 15, fontWeight: '600', color: '#fff',
-      textShadow: '0 1px 3px rgba(0,0,0,0.4)',
+
     } as any,
     coverOverlay: {
       position: 'absolute', bottom: 12, left: 12,
@@ -1146,7 +1146,7 @@ function getStyles(colors: ThemeColors) {
     avatar: {
       width: 80, height: 80, borderRadius: 40,
       borderWidth: 3, borderColor: colors.surface,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+
     } as any,
     camBadge: {
       position: 'absolute', bottom: 0, right: -2,
@@ -1290,15 +1290,15 @@ function getMo(colors: ThemeColors) {
 
 function getCropStyles() {
   return {
-    overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
+    overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
     header: { paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any,
     title: { fontSize: 14, fontWeight: '600' as const, color: '#fff', letterSpacing: -0.2 },
-    stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' } as any,
+    stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', } as any,
     guideWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any,
     guideCircle: {
       width: 160, height: 160, borderRadius: 80, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)',
-      position: 'relative', transition: 'border-color 0.2s',
-      boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)',
+      position: 'relative', 
+
     } as any,
     thirds: { position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' } as any,
     handle: { position: 'absolute', width: 18, height: 18, borderColor: '#fff', borderStyle: 'solid', opacity: 0.9 } as any,

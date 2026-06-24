@@ -27,7 +27,7 @@ interface ThemePickerModalProps {
 function getStyles(colors: ThemeColors) {
   return StyleSheet.create({
     overlay: {
-      position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+      position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
       zIndex: 500, backgroundColor: 'rgba(0,0,0,0.3)',
       justifyContent: 'center', alignItems: 'center',
     },
@@ -173,7 +173,7 @@ export default function ThemePickerModal({
                   value={opacityValue}
                   onChange={(e: any) => onCoverOpacityChange?.(parseFloat(e.target.value))}
                   style={{
-                    width: '100%', height: 32, opacity: 0, cursor: 'pointer',
+                    width: '100%', height: 32, opacity: 0, 
                     margin: 0, position: 'relative', zIndex: 1,
                   }}
                 />

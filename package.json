@@ -4,7 +4,9 @@
   "main": "index.ts",
   "dependencies": {
     "@expo/metro-runtime": "~56.0.12",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~56.0.4",
+    "expo-blur": "~56.0.3",
     "pdfjs-dist": "^6.0.227",
     "react": "19.2.3",
     "react-dom": "19.2.3",

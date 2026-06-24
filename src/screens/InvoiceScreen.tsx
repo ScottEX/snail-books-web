@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image } from 'react-native';
+import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors, REQUIRED_COLOR } from '../theme';
@@ -865,20 +866,18 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
             </ScrollView>
             {/* Submit — fixed below scroll area, not inside */}
             {(() => {
-              const submitDisabled = submitting || !dAmount || !data.company_name || !data.tax_id
+              const nonLoadDisabled = !dAmount || !data.company_name || !data.tax_id
                 || (dStatus === 'done' && !dInvoiceNo.trim())
                 || (dStatus === 'done' && dFiles.length === 0 && dExistingFilePath.length === 0);
               return (
-            <TouchableOpacity
-              style={[s.dSubmit, { backgroundColor: c.primary }, submitDisabled && { opacity: 0.4 }]}
-              disabled={submitDisabled}
+            <SubmitButton
               onPress={handleDrawerSubmit}
-            >
-              {submitting
-                ? <ActivityIndicator size="small" color="#fff" />
-                : <Text style={s.dSubmitText}>{editingId ? t('invSave') : t('invSubmit')}</Text>
-              }
-            </TouchableOpacity>
+              loading={submitting}
+              disabled={nonLoadDisabled}
+              label={editingId ? t('invSave') : t('invSubmit')}
+              style={[s.dSubmit, { backgroundColor: c.primary }, nonLoadDisabled && { opacity: 0.4 }]}
+              textStyle={s.dSubmitText}
+            />
               );
             })()}
           </Animated.View>
@@ -1047,7 +1046,7 @@ const s = StyleSheet.create({
   emptyText: { fontSize: 14, lineHeight: 22 } as any,
 
   /* TOAST */
-  toastWrap: { position: 'fixed', bottom: 90, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 200 } as any,
+  toastWrap: { position: 'absolute', bottom: 90, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 200 } as any,
   toast: { backgroundColor: 'rgba(28,28,26,0.88)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10 } as any,
   toastText: { color: '#fff', fontSize: 13, whiteSpace: 'nowrap' } as any,
 
