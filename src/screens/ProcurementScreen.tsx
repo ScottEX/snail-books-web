@@ -607,12 +607,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     if (!search) return batches;
     if (searchBatches === null) return []; // still loading
     const s = search.toLowerCase();
-    return searchBatches.filter(b =>
-      String(b.batch_number).includes(s) ||
-      (b.date || '').includes(s) ||
-      (b.note || '').toLowerCase().includes(s) ||
-      (b.payment_method || '').toLowerCase().includes(s)
-    );
+    return searchBatches.filter(b => String(b.batch_number).includes(s));
   }, [batches, search, searchBatches]);
 
   const filteredMgmtProducts = useMemo(() => {
