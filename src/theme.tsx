@@ -32,6 +32,8 @@ export interface ThemeColors {
   expenseGradientStart: string;
   /** 支出卡片渐变结束色 */
   expenseGradientEnd: string;
+  /** 支出卡片累计金额颜色 */
+  expenseAmountColor: string;
   /** 信息 */
   info: string;
 }
@@ -90,6 +92,7 @@ const theme1: Theme = {
     info: '#4A7299',
     expenseGradientStart: '#8B1A2B',
     expenseGradientEnd: '#4A0E16',
+    expenseAmountColor: '#FFF5EC',
   },
 };
 
@@ -118,6 +121,7 @@ const theme2: Theme = {
     info: '#4A7299',
     expenseGradientStart: '#2C2C2C',
     expenseGradientEnd: '#0F0F0F',
+    expenseAmountColor: '#E8C87A',
   },
 };
 
@@ -146,6 +150,7 @@ const theme3: Theme = {
     info: '#4A7299',
     expenseGradientStart: '#1A3A4A',
     expenseGradientEnd: '#0B1F2A',
+    expenseAmountColor: '#5EDBF5',
   },
 };
 

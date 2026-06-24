@@ -425,7 +425,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={[st.tabTitle, active && st.tabTitleActive]}>
                     {tab.title}{i === 1 ? ' ' : ''}
                     {i === 1 && (
-                      <Text style={{ color: colors.primary }}>{'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}</Text>
+                      <Text style={{ color: colors.expenseAmountColor }}>{'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}</Text>
                     )}
                   </Text>
                   {i === 0 && (
