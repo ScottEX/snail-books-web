@@ -14,6 +14,7 @@ import { modalClose, historyHeader } from '../sharedStyles';
 import DateErrorHint from '../components/DateErrorHint';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import BackArrow from '../components/icons/BackArrow';
+import FilterPanel from '../components/FilterPanel';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Date helpers replaced by useServerDate() hook
@@ -48,7 +49,6 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
 
   // Filter state
   const [showFilter, setShowFilter] = useState(false);
-  const filterAnim = useRef(new Animated.Value(0)).current;
   const [dateFrom, setDateFrom] = useState(sd.offset(-30));
   const [dateTo, setDateTo] = useState(sd.today);
   useEffect(() => { if (dateFromRef.current) dateFromRef.current.value = dateFrom; }, [dateFrom]);
@@ -130,13 +130,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         <Text style={st.title}>{t('revHistoryBtn')} ({total}/{totalAll})</Text>
         <TouchableOpacity
           style={[st.filterBtn, showFilter && st.filterBtnActive]}
-          onPress={() => {
-            if (!showFilter) {
-              filterAnim.setValue(0);
-              Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 170, friction: 26 }).start();
-            }
-            setShowFilter(!showFilter);
-          }}
+          onPress={() => setShowFilter(!showFilter)}
           activeOpacity={0.7}
         >
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none"
@@ -147,22 +141,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       </View>
 
       {/* Filter panel */}
-      {showFilter && (<>
-        <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => {
-            Animated.timing(filterAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setShowFilter(false));
-          }} />
-        </Animated.View>
-        <Animated.View style={{
-          position: 'absolute' as any, top: 100, left: 12, right: 12, zIndex: 9999,
-          opacity: filterAnim,
-          transform: [
-            { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-            { scale: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
-          ],
-        }}>
-        <View style={st.filterPanel}>
-          <View style={st.filterContent}>
+      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
@@ -214,10 +193,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                 <Text style={[st.filterApplyBtnText, (rangeInvalid || rangeTooLong) && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-              </Animated.View>
-      </>)}
+      </FilterPanel>
 
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
@@ -308,11 +284,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1 },
   ...historyHeader(colors),
 
-  filterPanel: {
-    backgroundColor: colors.surface, borderRadius: 10,
-    borderWidth: 1, borderColor: colors.secondary, overflow: 'hidden',
-  },
-  filterContent: { padding: 12, gap: 8 },
   filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   filterLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub, width: 64, flexShrink: 0 },
   filterDateRange: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
