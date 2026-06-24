@@ -1270,10 +1270,11 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 14,
     paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12,
     gap: 14,
-    backgroundColor: colors.bg,
-    borderWidth: 0.5, borderColor: colors.secondary,
     // @ts-ignore
-
+    backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.warning, 0.22)} 100%)`,
+    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
+    // @ts-ignore
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
   },
 
   /* ── Date ── */
