@@ -988,12 +988,12 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   chartGlassSymbol: {
     fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-    color: colors.primary,
+    color: colors.expenseAmountColor,
 
   },
   chartGlassValue: {
     fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
-    color: colors.primary,
+    color: colors.expenseAmountColor,
 
   },
   chartGlassSubCard: {
