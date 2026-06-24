@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../../i18n';
 import { useTheme, withAlpha, ThemeColors } from '../../theme';
@@ -280,7 +280,7 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
             }}
           >
             {revSaving ? (
-              <Text style={styles.revSubmitText}>...</Text>
+              <ActivityIndicator size="small" color="#fff" />
             ) : (
               <>
                 <Svg
@@ -377,9 +377,9 @@ function useMemoizedStyles(colors: ThemeColors) {
       borderColor: withAlpha(colors.textMain, 0.08),
       padding: 18,
       // @ts-ignore
-      backdropFilter: 'saturate(180%) blur(24px)',
+
       // @ts-ignore
-      boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+
     },
     revTitle: {
       fontSize: FONTS.h2.size,
