@@ -32,7 +32,7 @@ export const historyHeader = (colors: ThemeColors) => ({
     paddingTop: 20, paddingBottom: 8, paddingHorizontal: 16,
     backgroundColor: 'transparent',
     // @ts-ignore
-
+    backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   backBtn: {
@@ -40,7 +40,7 @@ export const historyHeader = (colors: ThemeColors) => ({
     backgroundColor: withAlpha(colors.bg, 0.30),
     justifyContent: 'center' as const, alignItems: 'center' as const,
     // @ts-ignore
-
+    backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
   },
   backArrow: {
@@ -55,7 +55,7 @@ export const historyHeader = (colors: ThemeColors) => ({
     justifyContent: 'center' as const, alignItems: 'center' as const,
     backgroundColor: withAlpha(colors.bg, 0.30),
     // @ts-ignore
-
+    backdropFilter: 'saturate(200%) blur(30px)',
     borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.08)',
   },
   filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
