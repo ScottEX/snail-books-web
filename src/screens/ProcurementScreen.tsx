@@ -156,7 +156,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   searchSection: { paddingHorizontal: 18, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
   searchRow: { position: 'relative' as const },
-  searchInput: { paddingHorizontal: 12, paddingVertical: 9, paddingRight: 36, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) },
+  searchInput: { paddingHorizontal: 12, paddingVertical: 9, paddingRight: 36, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' as any },
   searchClear: { position: 'absolute' as const, right: 8, top: 0, bottom: 0, justifyContent: 'center' as const, alignItems: 'center' as const },
   filterRow: { flexDirection: 'row' as const, gap: 6, marginTop: 8 },
   filterChip: { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12) },
@@ -404,6 +404,22 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     }, []),
   });
 
+  // Load all batches for search (paginated list only has page 1)
+  const [searchBatches, setSearchBatches] = useState<BatchRecord[] | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  useEffect(() => {
+    if (!search || subTab !== 'history') { setSearchBatches(null); return; }
+    let cancelled = false;
+    setSearchLoading(true);
+    api.getProcurementBatches(1, 9999).then((data: any) => {
+      if (cancelled) return;
+      setSearchBatches(data?.records || []);
+    }).catch(() => {}).finally(() => {
+      if (!cancelled) setSearchLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [search, subTab]);
+
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '', note: '' });
@@ -589,14 +605,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   const filteredBatches = useMemo(() => {
     if (!search) return batches;
+    if (searchBatches === null) return []; // still loading
     const s = search.toLowerCase();
-    return batches.filter(b =>
+    return searchBatches.filter(b =>
       String(b.batch_number).includes(s) ||
       (b.date || '').includes(s) ||
       (b.note || '').toLowerCase().includes(s) ||
       (b.payment_method || '').toLowerCase().includes(s)
     );
-  }, [batches, search]);
+  }, [batches, search, searchBatches]);
 
   const filteredMgmtProducts = useMemo(() => {
     if (!search) return products;
@@ -1087,7 +1104,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
       {/* ── History ── */}
       {subTab === 'history' && (
-        loadingHist ? (
+        loadingHist || (search !== '' && searchLoading) ? (
           <View style={styles.historyList}>
             {[...Array(10)].map((_, i) => (
               <View key={i} style={[styles.historyCard, { pointerEvents: 'none' as any }]}>
