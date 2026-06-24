@@ -36,6 +36,8 @@ export interface ThemeColors {
   expenseAmountColor: string;
   /** 信息 */
   info: string;
+  /** 底部导航栏选中底色 */
+  navActiveColor: string;
 }
 
 export interface Theme {
@@ -93,10 +95,9 @@ const theme1: Theme = {
     expenseGradientStart: '#8B1A2B',
     expenseGradientEnd: '#4A0E16',
     expenseAmountColor: '#FFF5EC',
+    navActiveColor: '#D4A574',
   },
 };
-
-// ─── 方案二：曜石黑与流沙金 ───
 const theme2: Theme = {
   id: 'obsidian-gold',
   name: 'Obsidian & Gold',
@@ -122,6 +123,7 @@ const theme2: Theme = {
     expenseGradientStart: '#2C2C2C',
     expenseGradientEnd: '#0F0F0F',
     expenseAmountColor: '#E8C87A',
+    navActiveColor: '#C5A880',
   },
 };
 
@@ -151,6 +153,7 @@ const theme3: Theme = {
     expenseGradientStart: '#1A3A4A',
     expenseGradientEnd: '#0B1F2A',
     expenseAmountColor: '#5EDBF5',
+    navActiveColor: '#3AB8C8',
   },
 };
 

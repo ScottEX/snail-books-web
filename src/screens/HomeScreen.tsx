@@ -1039,9 +1039,10 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   navItem: {
     flex: 1, alignItems: 'center', justifyContent: 'center',
     height: 44, borderRadius: 22, marginHorizontal: 2,
+    backgroundColor: '#000000',
   },
   navItemActive: {
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: colors.navActiveColor,
   },
   navLabel: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.3 },
   navLabelActive: { color: colors.textMain },
