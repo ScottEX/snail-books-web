@@ -102,7 +102,7 @@ export default function DatePicker({
           height={18}
           viewBox="0 0 24 24"
           fill="none"
-          stroke={colors.primary}
+          stroke={c}
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -124,7 +124,7 @@ export default function DatePicker({
           bottom: -6,
           left: 0,
           opacity: 0.01,
-          cursor: 'pointer',
+
           fontSize: fs,
         },
       })}

@@ -28,8 +28,16 @@ export interface ThemeColors {
   warning: string;
   /** 危险 */
   danger: string;
+  /** 支出卡片渐变起始色 */
+  expenseGradientStart: string;
+  /** 支出卡片渐变结束色 */
+  expenseGradientEnd: string;
+  /** 支出卡片累计金额颜色 */
+  expenseAmountColor: string;
   /** 信息 */
   info: string;
+  /** 底部导航栏选中底色 */
+  navActiveColor: string;
 }
 
 export interface Theme {
@@ -84,10 +92,12 @@ const theme1: Theme = {
     warning: '#D59A53',
     danger: '#B34149',
     info: '#4A7299',
+    expenseGradientStart: '#8B1A2B',
+    expenseGradientEnd: '#4A0E16',
+    expenseAmountColor: '#FFF5EC',
+    navActiveColor: '#D4918A',
   },
 };
-
-// ─── 方案二：曜石黑与流沙金 ───
 const theme2: Theme = {
   id: 'obsidian-gold',
   name: 'Obsidian & Gold',
@@ -110,6 +120,10 @@ const theme2: Theme = {
     warning: '#D59A53',
     danger: '#B34149',
     info: '#4A7299',
+    expenseGradientStart: '#2C2C2C',
+    expenseGradientEnd: '#0F0F0F',
+    expenseAmountColor: '#E8C87A',
+    navActiveColor: '#C5A880',
   },
 };
 
@@ -136,6 +150,10 @@ const theme3: Theme = {
     warning: '#D59A53',
     danger: '#B34149',
     info: '#4A7299',
+    expenseGradientStart: '#1A3A4A',
+    expenseGradientEnd: '#0B1F2A',
+    expenseAmountColor: '#5EDBF5',
+    navActiveColor: '#3AB8C8',
   },
 };
 

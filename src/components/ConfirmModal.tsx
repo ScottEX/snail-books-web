@@ -70,7 +70,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     backgroundColor: c.surface, borderRadius: 16,
     width: 340, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
-    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+
   },
   header: {
     paddingHorizontal: 20, paddingVertical: 14,

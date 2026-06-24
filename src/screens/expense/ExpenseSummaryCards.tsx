@@ -90,7 +90,7 @@ const getSt = (colors: ThemeColors) =>
       borderWidth: 0.5,
       borderColor: colors.secondary,
       // @ts-ignore
-      boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+
     },
     label: {
       fontSize: FONTS.micro.size,

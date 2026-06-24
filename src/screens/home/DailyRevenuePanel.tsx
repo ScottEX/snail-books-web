@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import SubmitButton from '../../components/SubmitButton';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../../i18n';
 import { useTheme, withAlpha, ThemeColors } from '../../theme';
@@ -258,18 +259,16 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
             {revMarkedClosed ? t('revCancelArchive') : t('revMarkArchive')}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        <SubmitButton
+          onPress={submitDailyRev}
+          loading={revSaving}
+          disabled={!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0)}
           style={[
             styles.revSubmitBtn,
             { flex: 4 },
-            (!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0) || revSaving) &&
+            (!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0)) &&
               { opacity: 0.5 },
           ]}
-          onPress={submitDailyRev}
-          disabled={
-            (!revMarkedClosed && (!revTurnover || parseFloat(revTurnover) <= 0)) || revSaving
-          }
-          activeOpacity={0.8}
         >
           <View
             style={{
@@ -279,35 +278,29 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
               gap: 6,
             }}
           >
-            {revSaving ? (
-              <Text style={styles.revSubmitText}>...</Text>
-            ) : (
-              <>
-                <Svg
-                  width={18}
-                  height={18}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={colors.surface}
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <Path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8" />
-                </Svg>
-                <Text style={styles.revSubmitText}>
-                  {revDate === todayDateStr()
-                    ? t('revSaveToday')
-                    : revDate === yesterdayDateStr()
-                    ? t('revSaveYesterday')
-                    : revDate === dayBeforeDateStr()
-                    ? t('revSaveDayBefore')
-                    : t('revSaveDate').replace('{date}', revDate.slice(5).replace('-', ''))}
-                </Text>
-              </>
-            )}
+            <Svg
+              width={18}
+              height={18}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={colors.surface}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <Path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8" />
+            </Svg>
+            <Text style={styles.revSubmitText}>
+              {revDate === todayDateStr()
+                ? t('revSaveToday')
+                : revDate === yesterdayDateStr()
+                ? t('revSaveYesterday')
+                : revDate === dayBeforeDateStr()
+                ? t('revSaveDayBefore')
+                : t('revSaveDate').replace('{date}', revDate.slice(5).replace('-', ''))}
+            </Text>
           </View>
-        </TouchableOpacity>
+        </SubmitButton>
       </View>
 
       {/* Last 7 days summary */}
@@ -377,9 +370,9 @@ function useMemoizedStyles(colors: ThemeColors) {
       borderColor: withAlpha(colors.textMain, 0.08),
       padding: 18,
       // @ts-ignore
-      backdropFilter: 'saturate(180%) blur(24px)',
+      backdropFilter: 'saturate(180%) blur(20px)',
       // @ts-ignore
-      boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
     },
     revTitle: {
       fontSize: FONTS.h2.size,

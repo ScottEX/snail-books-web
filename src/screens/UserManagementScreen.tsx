@@ -283,7 +283,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
 
         {/* Status dropdown portal */}
         {showStatusDrop && statusRect && createPortal(
-          <div style={{ position: 'fixed', top: statusRect.top, left: statusRect.left, width: statusRect.width, zIndex: 9999 }}>
+          <div style={{ position: 'absolute', top: statusRect.top, left: statusRect.left, width: statusRect.width, zIndex: 9999 }}>
             <div className="dd-enter" style={portalDropdownStyle(c)}>
               <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus(''); closeDrops(); }}>
                 <Text style={[st.dropItemText, statusFilter === '' && { color: c.primary, fontWeight: '600' }]}>{t('all')}</Text>
@@ -304,11 +304,11 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
           </div>,
           document.body
         )}
-        {showStatusDrop && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
+        {showStatusDrop && createPortal(<div style={{ position: 'absolute', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
 
         {/* Date dropdown portal — year/month picker + quick presets */}
         {showDateDrop && dateRect && createPortal(
-          <div style={{ position: 'fixed', top: dateRect.top, left: dateRect.left, width: dateRect.width, zIndex: 9999 }}>
+          <div style={{ position: 'absolute', top: dateRect.top, left: dateRect.left, width: dateRect.width, zIndex: 9999 }}>
             <div className="dd-enter" style={portalDropdownStyle(c)}>
               {/* Year selector */}
               <View style={st.pickerRow}>
@@ -363,7 +363,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
           </div>,
           document.body
         )}
-        {showDateDrop && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
+        {showDateDrop && createPortal(<div style={{ position: 'absolute', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
 
         {/* User list */}
         <ScrollView style={st.list} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
@@ -421,7 +421,7 @@ function portalDropdownStyle(c: ThemeColors): React.CSSProperties {
     backgroundColor: c.surface,
     borderRadius: 10,
     border: `0.5px solid ${withAlpha(c.textMain, 0.08)}`,
-    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+
     overflow: 'hidden',
   };
 }

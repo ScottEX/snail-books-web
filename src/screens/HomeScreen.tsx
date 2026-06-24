@@ -4,7 +4,7 @@ import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 import PartnerScreen from './PartnerScreen';
 import ProcurementScreen from './ProcurementScreen';
 import ExpenseScreen from './ExpenseScreen';
@@ -117,8 +117,9 @@ export default function HomeScreen({
 
   // PDF push + popstate listener → useNavigationStack hook
   const [uploadingBg, setUploadingBg] = useState(false);
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
+  const navBgAnims = useRef([...Array(5)].map(() => new Animated.Value(0))).current;
   const [bgVersion, setBgVersion] = useState(0);
   const [bgReady, setBgReady] = useState(true); // default bg.jpg always ready
   const [bgImage, setBgImage] = useState(() => {
@@ -139,6 +140,9 @@ export default function HomeScreen({
     } catch { return 0.5; }
   });
 
+  // Header text color: white when fully opaque, black otherwise
+  const headerColor = bgOpacity === 1 ? '#FFFFFF' : '#000000';
+
   // ── 收支总览数据（图表 Tab）──
   const {
     summary, transactions, page, pages,
@@ -149,7 +153,7 @@ export default function HomeScreen({
     todayExpenseSummary, monthExpenseSummary, yesterdayIncome, yesterdayExpense, yesterdayProfit, monthIncome,
     toDec2Comma,
     handlePage,
-  } = useHomeData(tab, setToast);
+  } = useHomeData(tab, showToast);
 
   // Background image crop moved to shared BgCropModal component.
 
@@ -164,7 +168,7 @@ export default function HomeScreen({
     onPopUserDetail: () => { setSelectedUser(null); setPartnerRefreshKey(k => k + 1); },
   });
   const revForm = useDailyRevenueForm({
-    onToast: (msg: string) => setToast(msg),
+    onToast: (msg: string) => showToast(msg),
     onRefreshLast7: (records: any[]) => setLast7Records(records),
   });
 
@@ -287,11 +291,24 @@ export default function HomeScreen({
         backdrop-filter: blur(12px) saturate(180%);
         border: 1px solid rgba(255,255,255,0.55);
         box-shadow: 0 2px 10px rgba(0,0,0,0.10);
-        cursor: pointer;
+
       }
     `;
     document.head.appendChild(style);
   }, []);
+
+  // ── 导航栏选中椭圆跳动 ──
+  const tabIds = ['expense', 'list', 'supply', 'chart', 'partner'] as const;
+  useEffect(() => {
+    tabIds.forEach((id, i) => {
+      Animated.spring(navBgAnims[i], {
+        toValue: id === tab ? 1 : 0,
+        friction: 7,
+        tension: 100,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [tab]);
 
   const handleAddTx = async () => {
     if (!amount || !category || !account) return;
@@ -300,7 +317,7 @@ export default function HomeScreen({
       setAmount(''); setCategory(''); setAccount(''); setNote('');
       loadData();
     } catch {
-      setToast(t('toastSubmitFailed'));
+      showToast(t('toastSubmitFailed'));
     }
   };
 
@@ -312,7 +329,7 @@ export default function HomeScreen({
       await api.deleteTransaction(id);
       loadData();
     } catch {
-      setToast(t('toastSubmitFailed'));
+      showToast(t('toastSubmitFailed'));
     }
   };
 
@@ -502,11 +519,11 @@ export default function HomeScreen({
             ) : (
               <Image source={{ uri: '/img/logo.jpg' }} style={{ width: 32, height: 32, borderRadius: 16 }} />
             )}
-            <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{usr}</Text>
+            <Text style={{ fontSize: FONTS.micro.size, color: headerColor, fontWeight: FONTS.micro.weight }}>{usr}</Text>
           </TouchableOpacity>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
-              <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
+              <Text style={{ fontSize: FONTS.micro.size, color: headerColor, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowLogoutModal(true)}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
@@ -514,7 +531,7 @@ export default function HomeScreen({
             <View style={styles.langRow}>
               {langs.map(([l, label]) => (
                 <TouchableOpacity key={l} onPress={() => { setLangState(l); loadData(); }}>
-                  <Text style={[styles.langBtn, lang === l && styles.langActive]}>{label}</Text>
+                  <Text style={[styles.langBtn, { color: headerColor }, lang === l && styles.langActive]}>{label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -536,6 +553,41 @@ export default function HomeScreen({
               <ExpenseScreen onReconHistory={() => pushPage('recon')} onExpenseHistory={() => pushPage('expense')} />
             ) : (
               <>
+                {/* 收支总览玻璃卡片：固定顶部不滚动 */}
+                {tab === 'chart' && (
+                  <View style={{ paddingTop: 4, marginBottom: 8 }}>
+                    <View style={[styles.chartGlassCard, {
+                      // @ts-ignore
+                      backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.expenseGradientStart, bgOpacity === 1 ? 0.30 : 0.48)} 0%, ${withAlpha(colors.expenseGradientEnd, bgOpacity === 1 ? 0.30 : 0.48)} 100%)`,
+                    }]}>
+                      {/* @ts-ignore — 收支总览大标题 */}
+                      <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', }}>{t('summary')}</Text>
+                      <View style={{ alignItems: 'flex-start', gap: 2 }}>
+                        <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                          <Text style={styles.chartGlassSymbol}>¥</Text>
+                          <Text style={styles.chartGlassValue}>
+                            {toDec2Comma(businessSummary.cash_on_hand || 0)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <View style={styles.chartGlassSubCard}>
+                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeRevenue')}</Text>
+                          <Text style={styles.chartGlassSubValue}>
+                            {'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}
+                          </Text>
+                        </View>
+                        <View style={styles.chartGlassSubCard}>
+                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeExpense')}</Text>
+                          <Text style={styles.chartGlassSubValue}>
+                            {'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                )}
                 {/* Tab Content */}
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
@@ -680,37 +732,7 @@ export default function HomeScreen({
               )}
 
               {tab === 'chart' && (
-                <View style={{ paddingBottom: 100, paddingTop: 4 }}>
-                  {/* 在手资金玻璃卡片 */}
-                  <View style={{ marginBottom: 12 }}>
-                    <View style={styles.chartGlassCard}>
-                      {/* @ts-ignore — 收支总览大标题 */}
-                      <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', textShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>{t('summary')}</Text>
-                      <View style={{ alignItems: 'flex-start', gap: 2 }}>
-                        <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                          <Text style={styles.chartGlassSymbol}>¥</Text>
-                          <Text style={styles.chartGlassValue}>
-                            {toDec2Comma(businessSummary.cash_on_hand || 0)}
-                          </Text>
-                        </View>
-                      </View>
-                      <View style={{ flexDirection: 'row', gap: 10 }}>
-                        <View style={styles.chartGlassSubCard}>
-                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeRevenue')}</Text>
-                          <Text style={styles.chartGlassSubValue}>
-                            {'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}
-                          </Text>
-                        </View>
-                        <View style={styles.chartGlassSubCard}>
-                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeExpense')}</Text>
-                          <Text style={styles.chartGlassSubValue}>
-                            {'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
+                <View style={{ paddingBottom: 100 }}>
                   {/* KPI 三行 */}
                   <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartKpiCard}>
@@ -804,6 +826,14 @@ export default function HomeScreen({
               clearStack();
             }}
           >
+            <Animated.View style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              borderRadius: 22,
+              backgroundColor: 'rgba(0,0,0,0.06)',
+              transform: [{ scale: navBgAnims[i] }],
+              opacity: navBgAnims[i],
+            }} />
             <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>
               <Icon active={id === 'partner' ? tab === 'partner' : tab === id} colors={colors} />
             </Animated.View>
@@ -813,7 +843,7 @@ export default function HomeScreen({
       )}
       {/* Background image crop handled by shared BgCropModal (rendered below) */}
 
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
     </View>
   );
 }
@@ -821,7 +851,7 @@ export default function HomeScreen({
 /* ===== NAV SVG ICONS ===== */
 
 function NavIconList({ active, colors }: { active: boolean; colors: ThemeColors }) {
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
       <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
@@ -834,7 +864,7 @@ function NavIconList({ active, colors }: { active: boolean; colors: ThemeColors 
 function NavIconExpense({ active, colors }: { active: boolean; colors: ThemeColors }) {
   // Wallet icon — semantic match for "Expense" tab label (avoiding literal `+` ambiguity).
   // Other tabs use object/silhouette/chart icons; this one represents money-out.
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M20 12V8H6a2 2 0 010-4h12v4" />
@@ -845,7 +875,7 @@ function NavIconExpense({ active, colors }: { active: boolean; colors: ThemeColo
 }
 
 function NavIconSupply({ active, colors }: { active: boolean; colors: ThemeColors }) {
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
@@ -855,7 +885,7 @@ function NavIconSupply({ active, colors }: { active: boolean; colors: ThemeColor
 }
 
 function NavIconChart({ active, colors }: { active: boolean; colors: ThemeColors }) {
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M3 3v18h18" />
@@ -865,7 +895,7 @@ function NavIconChart({ active, colors }: { active: boolean; colors: ThemeColors
 }
 
 function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColors }) {
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
@@ -877,9 +907,9 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   bgLayer: {
-    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
+    position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
-  bgCustom: { transition: 'opacity 0.5s ease, filter 0.5s ease' },
+  bgCustom: { },
   // Header — frosted glass, same as sub-screen headers
   header: {
     position: 'relative' as const, zIndex: 200,
@@ -963,7 +993,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 14, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12, gap: 14,
     backgroundColor: colors.bg,
     borderWidth: 0.5, borderColor: colors.secondary,
-    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+
   },
   chartKpiRow: { flexDirection: 'column' as any },
   chartKpiItem: {
@@ -976,31 +1006,28 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   chartGlassCard: {
     borderRadius: 14, paddingVertical: 14, paddingHorizontal: 18, gap: 12,
     // @ts-ignore
-    backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.warning, 0.22)} 100%)`,
-    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
-    // @ts-ignore
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
+
   },
   chartGlassLabel: {
     fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
     color: 'rgba(255,255,255,0.70)',
-    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+
   },
   chartGlassSymbol: {
     fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
-    color: colors.primary,
-    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    color: colors.expenseAmountColor,
+
   },
   chartGlassValue: {
     fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
-    color: colors.primary,
-    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    color: colors.expenseAmountColor,
+
   },
   chartGlassSubCard: {
     flex: 1, backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 10, padding: 14, gap: 6,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.20)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+
   },
   chartGlassSubLabel: {
     fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
@@ -1010,24 +1037,26 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
     color: 'rgba(255,255,255,0.95)',
   },
-  // Bottom Nav — glass pill, icons only, 80% transparent
+  // Bottom Nav — iOS 26 液态玻璃胶囊
   bottomNav: {
-    position: 'fixed' as any,
+    position: 'absolute' as any,
     bottom: 16,
     left: '50%',
     // @ts-ignore - web-only translateX
     transform: 'translateX(-50%)',
     width: '80%',
     maxWidth: 420,
-    backgroundColor: withAlpha(colors.surface, 0.30),
+    backgroundColor: withAlpha(colors.surface, 0.20),
+    // @ts-ignore - web-only backdrop-filter
+    backdropFilter: 'saturate(220%) blur(30px)',
     // @ts-ignore - web-only
-    backdropFilter: 'saturate(180%) blur(24px)',
+    WebkitBackdropFilter: 'saturate(220%) blur(30px)',
     borderRadius: 28,
     flexDirection: 'row',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    // @ts-ignore - web-only boxShadow
-    boxShadow: '0 2px 16px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(255,255,255,0.3) inset',
+    // @ts-ignore - 玻璃折射边
+    boxShadow: 'inset 0 0.5px 0 rgba(255,255,255,0.12)',
     borderWidth: 0.5,
     borderColor: withAlpha(colors.surface, 0.25),
     zIndex: 100,
@@ -1037,7 +1066,6 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     height: 44, borderRadius: 22, marginHorizontal: 2,
   },
   navItemActive: {
-    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   navLabel: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.3 },
   navLabelActive: { color: colors.textMain },
@@ -1048,7 +1076,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
-    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+
     gap: 12,
   },
   rev7CardTop: {

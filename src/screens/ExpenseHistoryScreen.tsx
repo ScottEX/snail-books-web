@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated
+  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated, Image, Platform
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -8,7 +8,7 @@ import { trCategory, trPayment, catKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
-import Toast from "../components/Toast";
+import { useToast } from '../hooks/useToast';
 import EmptyState from "../components/EmptyState";
 import LoadingSpinner from '../components/LoadingSpinner';
 import ImagePreview from '../components/ImagePreview';
@@ -20,6 +20,7 @@ import { modalClose, historyHeader } from '../sharedStyles';
 import { getCurrentUser } from '../utils/storage';
 import DateErrorHint from '../components/DateErrorHint';
 import BackArrow from '../components/icons/BackArrow';
+import FilterPanel from '../components/FilterPanel';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Date helpers replaced by useServerDate() hook
@@ -57,7 +58,7 @@ function IcnSealExp({ color, label }: { color: string; label: string }) {
 
 export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, onInvoice }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void; onInvoice?: (batchId: number) => void }) {
   const swipeBack = useSwipeBack(onBack);
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const { preview: previewData, openPreview, closePreview } = useImagePreview();
 
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
@@ -66,7 +67,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
   const sd = useServerDate();
 
   const [showFilter, setShowFilter] = useState(false);
-  const filterAnim = useRef(new Animated.Value(0)).current;
   const [filDateFrom, setFilDateFrom] = useState(sd.offset(-30));
   const [filDateTo, setFilDateTo] = useState(sd.today);
   useEffect(() => { if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; }, [filDateFrom]);
@@ -111,7 +111,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
       const tx: any = await api.getTransactions(pg, perPage, getFilterParams());
       return { items: tx.transactions || [], total: tx.total || 0, totalAll: tx.total_all, pages: tx.pages || 1 };
     }, [getFilterParams]),
-    onError: () => setToast(t('toastLoadFailed')),
+    onError: () => showToast(t('toastLoadFailed')),
   });
 
   // i18n mapping for category & payment.
@@ -220,16 +220,20 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
               <TouchableOpacity key={j}
                 onPress={() => openPreview(previewImgs, j)}
                 activeOpacity={0.8}>
-                {React.createElement('img', {
-                  src: url,
-                  loading: 'lazy' as any,
-                  decoding: 'async' as any,
-                  style: {
-                    width: 48, height: 48, borderRadius: 6, objectFit: 'cover',
-                    backgroundColor: colors.bg,
-                  } as any,
-                  alt: 'receipt',
-                })}
+                {Platform.OS === 'web' ? (
+                  React.createElement('img', {
+                    src: url,
+                    loading: 'lazy' as any,
+                    decoding: 'async' as any,
+                    style: {
+                      width: 48, height: 48, borderRadius: 6, objectFit: 'cover',
+                      backgroundColor: colors.bg,
+                    } as any,
+                    alt: 'receipt',
+                  })
+                ) : (
+                  <Image source={{ uri: url }} style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: colors.bg }} />
+                )}
               </TouchableOpacity>
             ))}
           </View>
@@ -271,36 +275,15 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('expenseHistory')} ({total}/{totalAll})</Text>
-        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => {
-            if (!showFilter) {
-              filterAnim.setValue(0);
-              Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 170, friction: 26 }).start();
-            }
-            setShowFilter(!showFilter);
-          }} activeOpacity={0.7}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? colors.surface : colors.textSub} strokeWidth={2} strokeLinecap="round">
+        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? colors.surface : '#000'} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
           </Svg>
         </TouchableOpacity>
       </View>
 
       {/* Filter panel */}
-      {showFilter && (<>
-        <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => {
-            Animated.timing(filterAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setShowFilter(false));
-          }} />
-        </Animated.View>
-        <Animated.View style={{
-          position: 'fixed' as any, top: 100, left: 12, right: 12, zIndex: 9999,
-          opacity: filterAnim,
-          transform: [
-            { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-            { scale: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
-          ],
-        }}>
-        <View style={st.filterPanel}>
-          <View style={st.filterContent}>
+      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
@@ -373,10 +356,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
                 <Text style={[st.filterApplyBtnText, (rangeInvalid || rangeTooLong) && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-                </Animated.View>
-      </>)}
+      </FilterPanel>
 
       {/* List */}
       <FlatList
@@ -420,7 +400,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
         />
       )}
 
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
     </View>
   );
 }
@@ -438,7 +418,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
-    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+
     gap: 6,
   },
   rowTop: {
@@ -483,12 +463,6 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
 
   /* Filter panel — matches ReconHistoryScreen */
   filterBtnTextActive: { color: colors.surface },
-  filterPanel: {
-    backgroundColor: colors.surface, borderRadius: 10,
-    borderWidth: 1, borderColor: colors.secondary,
-    overflow: 'hidden',
-  },
-  filterContent: { padding: 12, gap: 8 },
   filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   filterLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub, width: 64, flexShrink: 0 },
   filterDateRange: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -510,7 +484,7 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
   filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
+    opacity: 0.01,  width: '100%', height: '100%',
   },
   filterChipRow: { flex: 1, flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   filterChip: {

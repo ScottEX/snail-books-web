@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import SubmitButton from './SubmitButton';
 import { useTheme, withAlpha } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
@@ -85,9 +86,6 @@ export default function InvoiceModal({ visible, onClose }: Props) {
     setSaving(false);
   };
 
-  const btnDisabled = saving || saved || !hasChanged;
-  const btnText = saved ? t('invoiceSaved') : saving ? t('invoiceSaving') : t('invoiceSave');
-
   return (
     <ModalOverlay visible={visible} onClose={onClose}>
       <View style={[s.card, { backgroundColor: c.surface }]}>
@@ -114,17 +112,14 @@ export default function InvoiceModal({ visible, onClose }: Props) {
             </View>
           ))}
           {isAdmin && (
-            <TouchableOpacity
-              style={[s.saveBtn, {
-                backgroundColor: c.primary,
-                opacity: btnDisabled ? 0.45 : 1,
-              }]}
+            <SubmitButton
               onPress={handleSave}
-              disabled={btnDisabled}
-              activeOpacity={0.7}
-            >
-              <Text style={[s.saveBtnText, { color: c.surface }]}>{btnText}</Text>
-            </TouchableOpacity>
+              loading={saving}
+              disabled={saved || !hasChanged}
+              label={saved ? t('invoiceSaved') : t('invoiceSave')}
+              style={[s.saveBtn, { backgroundColor: c.primary, opacity: (saved || !hasChanged) ? 0.45 : 1 }]}
+              textStyle={[s.saveBtnText, { color: c.surface }]}
+            />
           )}
         </View>
       </View>
@@ -136,7 +131,7 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: '#fff', borderRadius: 16,
     width: 340, maxWidth: '100%', overflow: 'hidden' as any,
-    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+
   } as any,
   header: {
     paddingHorizontal: 20, paddingVertical: 14,

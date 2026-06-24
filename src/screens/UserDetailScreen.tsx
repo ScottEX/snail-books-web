@@ -502,8 +502,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         onCancel={() => setShowUnlinkConfirm(false)} />
 
       {/* Partner Picker Modal */}
-      <ModalOverlay visible={showPartnerPicker} overlayStyle={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 }} contentStyle={{ alignItems: 'center', justifyContent: 'center' }} onClose={() => setShowPartnerPicker(false)}>
-        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '100%', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' } as any} onStartShouldSetResponder={() => true}>
+      <ModalOverlay visible={showPartnerPicker} overlayStyle={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 }} contentStyle={{ alignItems: 'center', justifyContent: 'center' }} onClose={() => setShowPartnerPicker(false)}>
+        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '100%', overflow: 'hidden', } as any} onStartShouldSetResponder={() => true}>
           <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 15, fontWeight: '700', color: c.surface }}>{t('selectPartner')}</Text>
             <TouchableOpacity onPress={() => setShowPartnerPicker(false)}>

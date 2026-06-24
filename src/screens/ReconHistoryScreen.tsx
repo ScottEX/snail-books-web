@@ -7,7 +7,7 @@ import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import DatePicker from '../components/DatePicker';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -16,6 +16,7 @@ import { modalClose, historyHeader } from '../sharedStyles';
 import { fmtAmtFull } from '../utils/format';
 import DateErrorHint from '../components/DateErrorHint';
 import BackArrow from '../components/icons/BackArrow';
+import FilterPanel from '../components/FilterPanel';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Date format
@@ -39,7 +40,7 @@ function ReconEmptyIcon({ color }: { color: string }) {
 
 export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState<any>(null);
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const swipeBack = useSwipeBack(onBack);
 
   // ── Detail modal animation (shared slide-from-top hook) ──
@@ -55,7 +56,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const st = useMemo(() => getSt(colors), [colors]);
 
   const [showFilter, setShowFilter] = useState(false);
-  const filterAnim = useRef(new Animated.Value(0)).current;
   const [filDateFrom, setFilDateFrom] = useState(sd.offset(-30));
   const [filDateTo, setFilDateTo] = useState(sd.today);
   useEffect(() => { if (filDateFromRef.current) filDateFromRef.current.value = filDateFrom; }, [filDateFrom]);
@@ -116,7 +116,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       const data: any = await api.getReconciliationsPage(pg, perPage, getFilterParams());
       return { items: data?.records || [], total: data?.total || 0, totalAll: data?.total_all, pages: data?.pages || 1 };
     }, [getFilterParams]),
-    onError: () => setToast(t('toastLoadFailed')),
+    onError: () => showToast(t('toastLoadFailed')),
   });
 
   const resetFilters = () => {
@@ -323,7 +323,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   return (
     <View style={st.root} {...swipeBack}>
       {/* Toast */}
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
       {/* Header */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
@@ -332,35 +332,14 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           </View>
         </TouchableOpacity>
         <Text style={st.title}>{t('reconHistory')} ({total}/{totalAll})</Text>
-        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => {
-            if (!showFilter) {
-              filterAnim.setValue(0);
-              Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 170, friction: 26 }).start();
-            }
-            setShowFilter(!showFilter);
-          }} activeOpacity={0.7}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? colors.surface : colors.textSub} strokeWidth={2} strokeLinecap="round">
+        <TouchableOpacity style={[st.filterBtn, showFilter && st.filterBtnActive]} onPress={() => setShowFilter(!showFilter)} activeOpacity={0.7}>
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={showFilter ? colors.surface : '#000'} strokeWidth={2} strokeLinecap="round">
             <Path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" />
           </Svg>
         </TouchableOpacity>
       </View>
       {/* Filter bar */}
-      {showFilter && (<>
-        <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9998, opacity: filterAnim }}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => {
-            Animated.timing(filterAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setShowFilter(false));
-          }} />
-        </Animated.View>
-        <Animated.View style={{
-          position: 'fixed' as any, top: 100, left: 12, right: 12, zIndex: 9999,
-          opacity: filterAnim,
-          transform: [
-            { translateY: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-            { scale: filterAnim.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
-          ],
-        }}>
-        <View style={st.filterPanel}>
-          <View style={st.filterContent}>
+      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
@@ -421,10 +400,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                 <Text style={[st.filterApplyBtnText, (rangeInvalid || rangeTooLong) && st.filterApplyBtnTextDisabled]}>{t('apply')}</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-        </Animated.View>
-      </>)}
+      </FilterPanel>
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
@@ -463,7 +439,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 14, padding: 14,
     marginBottom: 12, borderWidth: 1, borderColor: colors.secondary,
     // @ts-ignore
-    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+
     gap: 10,
   },
   dateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 8 },
@@ -481,7 +457,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   tapHint: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center', marginTop: 2 },
   /* Modal */
   mask: {
-    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+    position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 200, justifyContent: 'center', alignItems: 'center',
   },
   maskBg: {
@@ -493,7 +469,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: 20,
     overflow: 'hidden',
     // @ts-ignore
-    boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
+
     // @ts-ignore
 
   },
@@ -533,14 +509,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Filter — ultra-minimal */
   filterBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub },
   filterBtnTextActive: { color: colors.surface },
-  filterPanel: {
-    backgroundColor: colors.surface, borderRadius: 10,
-    borderWidth: 1, borderColor: colors.secondary,
-    overflow: 'hidden',
-  },
-  filterContent: {
-    padding: 12, gap: 8,
-  },
   filterField: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
   },
@@ -572,7 +540,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    opacity: 0.01, cursor: 'pointer', width: '100%', height: '100%',
+    opacity: 0.01,  width: '100%', height: '100%',
   },
   filterInput: {
     height: 34,
@@ -599,7 +567,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     WebkitAppearance: 'none',
     MozAppearance: 'none',
     appearance: 'none',
-    cursor: 'pointer',
+
   },
   filterSelectArrow: {
     position: 'absolute',

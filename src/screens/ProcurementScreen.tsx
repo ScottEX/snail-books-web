@@ -11,12 +11,13 @@ import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
 
-import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 
 import TextField from '../components/TextField';
 import ButtonPair from '../components/ButtonPair';
+import SubmitButton from '../components/SubmitButton';
+import { useToast } from '../hooks/useToast';
 import CloseButton from '../components/CloseButton';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
@@ -138,9 +139,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     backgroundColor: withAlpha(c.surface, 0.65),
     // @ts-ignore
-    backdropFilter: 'saturate(180%) blur(24px)',
+    backdropFilter: 'saturate(180%) blur(20px)',
     // @ts-ignore
-    boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+    WebkitBackdropFilter: 'saturate(180%) blur(20px)',
   },
   headerSection: { padding: 16, paddingBottom: 8 },
   headerTop: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginBottom: 12 },
@@ -155,7 +156,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   searchSection: { paddingHorizontal: 18, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
   searchRow: { position: 'relative' as const },
-  searchInput: { paddingHorizontal: 12, paddingVertical: 9, paddingRight: 36, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' },
+  searchInput: { paddingHorizontal: 12, paddingVertical: 9, paddingRight: 36, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' as any },
   searchClear: { position: 'absolute' as const, right: 8, top: 0, bottom: 0, justifyContent: 'center' as const, alignItems: 'center' as const },
   filterRow: { flexDirection: 'row' as const, gap: 6, marginTop: 8 },
   filterChip: { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.12) },
@@ -194,7 +195,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     marginHorizontal: 12, backgroundColor: withAlpha(c.surface, 0.95), borderRadius: 14,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     // @ts-ignore
-    backdropFilter: 'saturate(180%) blur(20px)',
+
   },
   cartPreview: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12, padding: 12 },
   cartIconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center' as const, justifyContent: 'center' as const, overflow: 'visible' as const },
@@ -208,14 +209,14 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
 
   // Drawer overlay
-  overlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200 },
+  overlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200 },
   // Animated drawer — slides up
   drawer: {
-    position: 'fixed' as any, bottom: 0, left: 0, right: 0,
+    position: 'absolute' as any, bottom: 0, left: 0, right: 0,
     backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
     maxHeight: '88%' as any, zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any,
     // @ts-ignore
-    boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+
   },
   drawerHandle: { width: 36, height: 4, backgroundColor: withAlpha(c.textMain, 0.15), borderRadius: 2, alignSelf: 'center' as const, marginTop: 10 },
   drawerHead: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 12, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.08) },
@@ -237,7 +238,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
 
   // Items modal
-  itemsModalOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
+  itemsModalOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
   itemsModalCard: { backgroundColor: c.surface, borderRadius: 16, width: 'calc(100% - 40px)' as any, maxWidth: 360, maxHeight: '75%' as any, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
@@ -267,18 +268,18 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtMeta: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 },
   mgmtActions: { flexDirection: 'row' as const, gap: 8 },
   mgmtActionBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.05) },
-  mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: withAlpha(c.primary, 0.06), borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
+  mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 8, flexDirection: 'row' as const, backgroundColor: 'rgba(255,255,255,0.20)', borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6, backdropFilter: 'saturate(220%) blur(20px)' as any, WebkitBackdropFilter: 'saturate(220%) blur(20px)' as any },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
   // Modal (product add/edit)
-  modalOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 400, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center' as const, alignItems: 'center' as const },
+  modalOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 400, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center' as const, alignItems: 'center' as const },
   modalCard: { backgroundColor: c.surface, borderRadius: 16, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
     // @ts-ignore
      },
   modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   modalBody: { padding: 24 },
-  modalInput: { paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 10, outline: 'none' },
+  modalInput: { paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 10 },
   modalDeleteBox: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' as const },
   modalDeleteText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' as const },
 
@@ -303,7 +304,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   histImages: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 4, marginTop: 6 },
 
   // Success
-  successOverlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
+  successOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
   successCard: { backgroundColor: c.surface, borderRadius: 20, padding: 28, width: 'calc(100% - 40px)' as any, maxWidth: 320, alignItems: 'center' as const },
   successTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.textMain, marginBottom: 6, marginTop: 8 },
   successSub: { fontSize: FONTS.sub.size, color: c.textSub, lineHeight: 20 } as any,
@@ -391,8 +392,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [successBatch, setSuccessBatch] = useState(0);
   const [successIsEdit, setSuccessIsEdit] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
+  const { showToast, ToastHost } = useToast();
 
   const [stats, setStats] = useState<ProcStats>({ total_spent: 0, total_income: 0, batch_count: 0, margin_pct: 0 });
 
@@ -404,9 +404,26 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     }, []),
   });
 
+  // Load all batches for search (paginated list only has page 1)
+  const [searchBatches, setSearchBatches] = useState<BatchRecord[] | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  useEffect(() => {
+    if (!search || subTab !== 'history') { setSearchBatches(null); return; }
+    let cancelled = false;
+    setSearchLoading(true);
+    api.getProcurementBatches(1, 9999).then((data: any) => {
+      if (cancelled) return;
+      setSearchBatches(data?.records || []);
+    }).catch(() => {}).finally(() => {
+      if (!cancelled) setSearchLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [search, subTab]);
+
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '', note: '' });
+  const [prodSaving, setProdSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   // ── Shared slide-from-top animation for product/delete/success modals ──
@@ -588,14 +605,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   const filteredBatches = useMemo(() => {
     if (!search) return batches;
+    if (searchBatches === null) return []; // still loading
     const s = search.toLowerCase();
-    return batches.filter(b =>
-      String(b.batch_number).includes(s) ||
-      (b.date || '').includes(s) ||
-      (b.note || '').toLowerCase().includes(s) ||
-      (b.payment_method || '').toLowerCase().includes(s)
-    );
-  }, [batches, search]);
+    return searchBatches.filter(b => String(b.batch_number).includes(s));
+  }, [batches, search, searchBatches]);
 
   const filteredMgmtProducts = useMemo(() => {
     if (!search) return products;
@@ -734,8 +747,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         const result = await api.uploadExpenseImages(receipts);
         if (result.status !== 'ok') {
           setSubmitting(false);
-          setToastMsg(t('toastSubmitFailed'));
-          setShowToast(true);
+          showToast(t('toastSubmitFailed'));
           return;
         }
         newImageUrls = result.images || [];
@@ -772,7 +784,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             loadStats();
           });
         } else {
-          setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+          showToast(t('toastSubmitFailed'));
         }
         setSubmitting(false);
         return;
@@ -795,13 +807,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         });
         loadStats();
       } else {
-        setToastMsg(t('toastSubmitFailed'));
-        setShowToast(true);
+        showToast(t('toastSubmitFailed'));
       }
     } catch (err) {
       console.error('[procurement] submit error:', err);
-      setToastMsg(t('toastSubmitFailed'));
-      setShowToast(true);
+      showToast(t('toastSubmitFailed'));
     }
     setSubmitting(false);
   };
@@ -877,11 +887,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         loadPage(1, true);
         loadStats();
       } else {
-        setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+        showToast(t('toastSubmitFailed'));
       }
     } catch (err) {
       console.error('[procurement] delete error:', err);
-      setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+      showToast(t('toastSubmitFailed'));
     }
   };
 
@@ -905,16 +915,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     openSlideModal(() => setShowProductModal(true));
   };
   const saveProduct = async () => {
-    if (!prodForm.name) return;
+    if (!prodForm.name || prodSaving) return;
+    setProdSaving(true);
     const data = { name: prodForm.name, spec: prodForm.spec, price: parseFloat(prodForm.price) || 0, supplier: prodForm.supplier, note: prodForm.note };
     try {
       editingProduct ? await api.updateProduct({ ...data, id: editingProduct.id }) : await api.createProduct(data);
       closeSlideModal(() => setShowProductModal(false));
       loadProducts();
     } catch {
-      setToastMsg(t('toastSubmitFailed'));
-      setShowToast(true);
+      showToast(t('toastSubmitFailed'));
     }
+    setProdSaving(false);
   };
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -924,8 +935,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       setCart(prev => { const cp = { ...prev }; delete cp[deleteTarget.id]; return cp; });
       loadProducts();
     } catch {
-      setToastMsg(t('toastSubmitFailed'));
-      setShowToast(true);
+      showToast(t('toastSubmitFailed'));
     }
     closeSlideModal(() => setDeleteTarget(null));
   };
@@ -1089,7 +1099,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
       {/* ── History ── */}
       {subTab === 'history' && (
-        loadingHist ? (
+        loadingHist || (search !== '' && searchLoading) ? (
           <View style={styles.historyList}>
             {[...Array(10)].map((_, i) => (
               <View key={i} style={[styles.historyCard, { pointerEvents: 'none' as any }]}>
@@ -1237,11 +1247,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
       {/* ── Product Mgmt ── */}
       {subTab === 'products' && (
-        <ScrollView style={styles.contentArea}>
+        <>
           <TouchableOpacity style={styles.mgmtAddBtn} onPress={openAddProduct}>
             <PlusIcon color={c.primary} />
             <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
+          <ScrollView style={styles.contentArea}>
           {filteredMgmtProducts.length === 0 ? (
             <EmptyState
               icon={<EmptyBoxIcon color={c.textSub} />}
@@ -1267,6 +1278,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             ))
           )}
         </ScrollView>
+        </>
       )}
 
       {/* ── Product Modal ── */}
@@ -1290,7 +1302,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 {React.createElement('select', {
                   value: prodForm.supplier,
                   onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
-                  style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.01, cursor: 'pointer' } as any,
+                  style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.01, } as any,
                 },
                   <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
                   suppliers.filter((s: string) => s !== '全部').map((s: string) => (
@@ -1305,6 +1317,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 leftOnPress={() => closeSlideModal(() => setShowProductModal(false))}
                 rightLabel={t('procSubmit')}
                 rightOnPress={saveProduct}
+                rightLoading={prodSaving}
               />
             </View>
           </Animated.View>
@@ -1363,7 +1376,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     max={sd.today}
                     displayDate={formatDate(orderDate)}
                     fontSize={FONTS.sub.size}
-                    color={c.textMain}
                     showChevron
                     showCalendarIcon
                   />
@@ -1417,9 +1429,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <View style={styles.drawerFooter}>
               <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
                 <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
-                <TouchableOpacity style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]} onPress={submitOrder} disabled={cartCount === 0 || submitting || editUnchanged}>
-                  {submitting ? <ActivityIndicator color={c.surface} /> : <Text style={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}>{t('procSubmit')}</Text>}
-                </TouchableOpacity>
+                <SubmitButton
+                  onPress={submitOrder}
+                  loading={submitting}
+                  disabled={cartCount === 0 || editUnchanged}
+                  label={t('procSubmit')}
+                  style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]}
+                  textStyle={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}
+                />
               </View>
             </View>
           </Animated.View>
@@ -1612,7 +1629,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           </Animated.View>
         </Animated.View>
       )}
-      <Toast message={toastMsg} visible={showToast} onDismiss={() => setShowToast(false)} />
+      {ToastHost}
     </View>
   );
 }

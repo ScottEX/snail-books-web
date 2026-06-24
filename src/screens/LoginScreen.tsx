@@ -1,4 +1,5 @@
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated, Platform, ImageBackground } from 'react-native';
+import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
@@ -616,9 +617,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     </TouchableOpacity>
                   </View>
                 </View>
-                <TouchableOpacity onPress={handleLogin} style={styles.btnDark} disabled={loading}>
-                  <Text style={styles.btnDarkText}>{loading ? '...' : t('loginBtn')}</Text>
-                </TouchableOpacity>
+                <SubmitButton onPress={handleLogin} loading={loading} label={t('loginBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
@@ -714,9 +713,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleRegister} style={styles.btnDark} disabled={loading}>
-                <Text style={styles.btnDarkText}>{loading ? '...' : t('registerBtn')}</Text>
-              </TouchableOpacity>
+              <SubmitButton onPress={handleRegister} loading={loading} label={t('registerBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>

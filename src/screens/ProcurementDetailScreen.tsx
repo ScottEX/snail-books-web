@@ -355,7 +355,7 @@ const getStyles = (c: ThemeColors) => {
       backgroundColor: withAlpha(c.bg, 0.30),
       justifyContent: 'center' as const, alignItems: 'center' as const,
       // @ts-ignore
-      backdropFilter: 'saturate(200%) blur(30px)',
+
       borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.10)',
     },
     batchInfoRow: {

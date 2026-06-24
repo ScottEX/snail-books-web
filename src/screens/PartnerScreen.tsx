@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { t, useLang } from '../i18n';
 import { useServerDate } from '../hooks/useServerDate';
 import { api } from '../api/client';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 import ModalOverlay from '../components/ModalOverlay';
 import ConfirmModal from '../components/ConfirmModal';
 import InvoiceScreen from './InvoiceScreen';
@@ -68,7 +68,7 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
 
 export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { onBack: () => void; onProfile?: () => void; refreshKey?: number }) {
   const sd = useServerDate();
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const [cropMsg, setCropMsg] = useState('');
   const {
     partners,
@@ -79,7 +79,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
     grouped,
     groupKeys,
     getPartnerHistory,
-  } = usePartnerData(setToast, refreshKey);
+  } = usePartnerData(showToast, refreshKey);
   const [showDividend, setShowDividend] = useState(false);
   const [showDelete, setShowDelete] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
@@ -125,17 +125,17 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   const org = useMemo(() => getOrg(colors), [colors]);
   const tg = useMemo(() => getTg(colors), [colors]);
   const cropS = useMemo(() => ({
-    overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
+    overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any,
     header: { paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any,
     title: { fontSize: 14, fontWeight: '600' as const, color: '#fff', letterSpacing: -0.2 },
     closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' } as any,
     closeBtnText: { color: 'rgba(255,255,255,0.7)', fontSize: 16, lineHeight: 20 },
-    stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'move' } as any,
+    stage: { flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', } as any,
     guideWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any,
     guideCircle: {
       width: 160, height: 160, borderRadius: 80, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)',
-      position: 'relative', transition: 'border-color 0.2s',
-      boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)',
+      position: 'relative', 
+
     } as any,
     thirds: { position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' } as any,
     handle: { position: 'absolute', width: 18, height: 18, borderColor: '#fff', borderStyle: 'solid', opacity: 0.9 } as any,
@@ -203,7 +203,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       setDivAmount(''); setDivRoundNum(0); setDivPreview([]);
       loadData();
     } catch {
-      setToast(t('toastSubmitFailed'));
+      showToast(t('toastSubmitFailed'));
     }
   };
 
@@ -858,7 +858,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
             style={cropS.stage} ref={stageRef as any}>
             {/* @ts-ignore */}
             <canvas ref={canvasRef as any}
-              style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
+              style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', }}
             />
             {/* Guide overlay */}
             <View style={cropS.guideWrap as any} pointerEvents="none">
@@ -894,7 +894,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
                   s.scale = Math.max(s.minScale, s.scale);
                   clampCrop(); drawCrop();
                 }}
-                style={{ flex: 1, height: 3, appearance: 'none', cursor: 'pointer', accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
               />
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
@@ -962,7 +962,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
         </View>,
         document.body
       )}
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
 
       {/* ====== INVOICE SCREEN (portaled to body — covers nav bar) ====== */}
       {showInvoice && createPortal(
@@ -1052,7 +1052,7 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
     flex: 1, minWidth: 200, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.bg,
     padding: 14, flexDirection: 'row', alignItems: 'center', gap: 14,
     // @ts-ignore
-    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+
   },
   statIconBg: { width: 36, height: 36, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   statLabel: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, letterSpacing: 0.3 },
@@ -1065,7 +1065,7 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   partnerCard: {
     flex: 1, minWidth: 200, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.bg,
     padding: 16, gap: 10, // @ts-ignore
-    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+
   },
   partnerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   partnerName: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub },
@@ -1083,7 +1083,7 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
   ledgerCard: {
     backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.bg, marginTop: 16,
     // @ts-ignore
-    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+
   },
   ledgerHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: colors.bg, gap: 12 },
   ledgerTitle: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.5 },
@@ -1096,14 +1096,14 @@ const getS = (colors: ThemeColors) => StyleSheet.create({
 });
 
 const getMo = (colors: ThemeColors) => StyleSheet.create({
-  overlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 },
+  overlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 },
   content: { alignItems: 'center', justifyContent: 'center' },
   modalCard: {
     backgroundColor: colors.surface, borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
 
     // @ts-ignore
-    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+
   },
   header: { backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
