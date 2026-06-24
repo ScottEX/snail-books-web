@@ -140,6 +140,9 @@ export default function HomeScreen({
     } catch { return 0.5; }
   });
 
+  // Header text color: white when fully opaque, black otherwise
+  const headerColor = bgOpacity === 1 ? '#FFFFFF' : '#000000';
+
   // ── 收支总览数据（图表 Tab）──
   const {
     summary, transactions, page, pages,
@@ -516,11 +519,11 @@ export default function HomeScreen({
             ) : (
               <Image source={{ uri: '/img/logo.jpg' }} style={{ width: 32, height: 32, borderRadius: 16 }} />
             )}
-            <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{usr}</Text>
+            <Text style={{ fontSize: FONTS.micro.size, color: headerColor, fontWeight: FONTS.micro.weight }}>{usr}</Text>
           </TouchableOpacity>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => setShowBgModal(true)} style={{ marginRight: 8 }}>
-              <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
+              <Text style={{ fontSize: FONTS.micro.size, color: headerColor, fontWeight: FONTS.micro.weight }}>{t('bgSettings')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowLogoutModal(true)}>
               <Text style={styles.logoutBtn}>{t('logout')}</Text>
@@ -528,7 +531,7 @@ export default function HomeScreen({
             <View style={styles.langRow}>
               {langs.map(([l, label]) => (
                 <TouchableOpacity key={l} onPress={() => { setLangState(l); loadData(); }}>
-                  <Text style={[styles.langBtn, lang === l && styles.langActive]}>{label}</Text>
+                  <Text style={[styles.langBtn, { color: headerColor }, lang === l && styles.langActive]}>{label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
