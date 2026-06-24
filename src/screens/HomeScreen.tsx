@@ -119,6 +119,7 @@ export default function HomeScreen({
   const [uploadingBg, setUploadingBg] = useState(false);
   const { showToast, ToastHost } = useToast();
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
+  const navBgAnims = useRef([...Array(5)].map(() => new Animated.Value(0))).current;
   const [bgVersion, setBgVersion] = useState(0);
   const [bgReady, setBgReady] = useState(true); // default bg.jpg always ready
   const [bgImage, setBgImage] = useState(() => {
@@ -292,6 +293,19 @@ export default function HomeScreen({
     `;
     document.head.appendChild(style);
   }, []);
+
+  // ── 导航栏选中椭圆跳动 ──
+  const tabIds = ['expense', 'list', 'supply', 'chart', 'partner'] as const;
+  useEffect(() => {
+    tabIds.forEach((id, i) => {
+      Animated.spring(navBgAnims[i], {
+        toValue: id === tab ? 1 : 0,
+        friction: 7,
+        tension: 100,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [tab]);
 
   const handleAddTx = async () => {
     if (!amount || !category || !account) return;
@@ -809,6 +823,14 @@ export default function HomeScreen({
               clearStack();
             }}
           >
+            <Animated.View style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              borderRadius: 22,
+              backgroundColor: 'rgba(0,0,0,0.06)',
+              transform: [{ scale: navBgAnims[i] }],
+              opacity: navBgAnims[i],
+            }} />
             <Animated.View style={{ transform: [{ scale: navScaleAnims[i] }] }}>
               <Icon active={id === 'partner' ? tab === 'partner' : tab === id} colors={colors} />
             </Animated.View>
