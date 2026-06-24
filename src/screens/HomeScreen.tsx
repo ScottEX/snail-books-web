@@ -538,7 +538,7 @@ export default function HomeScreen({
               <>
                 {/* 收支总览玻璃卡片：固定顶部不滚动 */}
                 {tab === 'chart' && (
-                  <View style={{ paddingTop: 4, paddingHorizontal: 16, marginBottom: 12 }}>
+                  <View style={{ paddingTop: 4, marginBottom: 12 }}>
                     <View style={styles.chartGlassCard}>
                       {/* @ts-ignore — 收支总览大标题 */}
                       <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', }}>{t('summary')}</Text>
