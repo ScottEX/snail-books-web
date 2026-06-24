@@ -777,7 +777,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                     <DatePicker
                       date={dDate}
                       onChange={setDDate}
-                      color={c.textMain}
                       fontSize={FONTS.sub.size}
                       showChevron
                       showCalendarIcon

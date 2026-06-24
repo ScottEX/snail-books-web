@@ -1362,7 +1362,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     max={sd.today}
                     displayDate={formatDate(orderDate)}
                     fontSize={FONTS.sub.size}
-                    color={c.textMain}
                     showChevron
                     showCalendarIcon
                   />
