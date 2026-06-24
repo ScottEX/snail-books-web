@@ -1199,7 +1199,8 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     scrollSnapStop: 'always',
     overflow: 'hidden' as const,
     position: 'relative' as const,
-    // @ts-ignore — 仅玻璃内边框高光，无外阴影
+    // @ts-ignore — 内边框高光
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
 
   },
   tabCardActive: {
