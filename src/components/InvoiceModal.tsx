@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme, withAlpha } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
@@ -86,7 +86,7 @@ export default function InvoiceModal({ visible, onClose }: Props) {
   };
 
   const btnDisabled = saving || saved || !hasChanged;
-  const btnText = saved ? t('invoiceSaved') : saving ? t('invoiceSaving') : t('invoiceSave');
+  const btnText = saved ? t('invoiceSaved') : t('invoiceSave');
 
   return (
     <ModalOverlay visible={visible} onClose={onClose}>
@@ -123,7 +123,7 @@ export default function InvoiceModal({ visible, onClose }: Props) {
               disabled={btnDisabled}
               activeOpacity={0.7}
             >
-              <Text style={[s.saveBtnText, { color: c.surface }]}>{btnText}</Text>
+              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={[s.saveBtnText, { color: c.surface }]}>{btnText}</Text>}
             </TouchableOpacity>
           )}
         </View>
@@ -136,7 +136,7 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: '#fff', borderRadius: 16,
     width: 340, maxWidth: '100%', overflow: 'hidden' as any,
-    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+
   } as any,
   header: {
     paddingHorizontal: 20, paddingVertical: 14,

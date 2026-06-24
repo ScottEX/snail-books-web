@@ -2,7 +2,7 @@ import { useDisclosure } from '../hooks/useDisclosure';
 import { useDateField } from '../hooks/useDateField';
 import { createPortal } from 'react-dom';
 import {
-  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, useWindowDimensions,
+  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, useWindowDimensions, ActivityIndicator,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -68,7 +68,7 @@ function InputWithFocus({ style, inputStyle, ...props }: any) {
         {
           borderColor: focused ? colors.primary : colors.secondary,
           // @ts-ignore — web-only transition
-          transition: 'border-color 200ms ease',
+
         },
       ]}
     />
@@ -435,20 +435,20 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         <Text style={{
                           fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
                           color: 'rgba(255,255,255,0.70)',
-                          textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+
                         } as any}>{t('bookDiff')}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                           {/* @ts-ignore */}
                           <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                             color: (Math.abs(diff) < 0.005 ? colors.textMain : colors.primary),
-                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+
                           } as any}>{diff >= 0 ? '+' : '-'}¥</Text>
                           {/* @ts-ignore */}
                           <Text style={{
                             fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
                             color: (Math.abs(diff) < 0.005 ? colors.textMain : colors.primary),
-                            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+
                           } as any}>{toDec2Comma(Math.abs(diff))}</Text>
                         </View>
                       </View>
@@ -458,7 +458,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           flex: 1, backgroundColor: withAlpha(colors.success, 0.15),
                           borderRadius: 10, padding: 14, gap: 6,
                           borderWidth: 0.5, borderColor: withAlpha(colors.success, 0.30),
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+
                         } as any}>
                           <Text style={{
                             fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
@@ -473,7 +473,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           flex: 1, backgroundColor: withAlpha(colors.info, 0.15),
                           borderRadius: 10, padding: 14, gap: 6,
                           borderWidth: 0.5, borderColor: withAlpha(colors.info, 0.30),
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+
                         } as any}>
                           <Text style={{
                             fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
@@ -496,7 +496,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         flex: 1, backgroundColor: withAlpha(colors.danger, 0.15),
                         borderRadius: 10, padding: 10, gap: 4,
                         borderWidth: 0.5, borderColor: withAlpha(colors.danger, 0.30),
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+
                       } as any}>
                         <Text style={{
                           fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
@@ -511,7 +511,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
                         borderRadius: 10, padding: 10, gap: 4,
                         borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+
                       } as any}>
                         <Text style={{
                           fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
@@ -529,7 +529,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         flex: 1, backgroundColor: withAlpha(colors.danger, 0.15),
                         borderRadius: 10, padding: 10, gap: 4,
                         borderWidth: 0.5, borderColor: withAlpha(colors.danger, 0.30),
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+
                       } as any}>
                         <Text style={{
                           fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
@@ -544,7 +544,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         flex: 1, backgroundColor: withAlpha(colors.primary, 0.15),
                         borderRadius: 10, padding: 10, gap: 4,
                         borderWidth: 0.5, borderColor: withAlpha(colors.primary, 0.30),
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+
                       } as any}>
                         <Text style={{
                           fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight,
@@ -846,9 +846,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <ButtonPair
                 leftLabel={t('expenseHistory')}
                 leftOnPress={() => onExpenseHistory?.()}
-                rightLabel={loadingExp ? '...' : t('confirmRecord')}
+                rightLabel={t('confirmRecord')}
                 rightOnPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) !== 0) setShowExpConfirm(true); }}
                 rightDisabled={isAmountInvalid}
+                rightLoading={loadingExp}
               />
             </View>
           </View>
@@ -962,7 +963,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: (savingFee || (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0)) ? 0.35 : 1 }}
                 onPress={handleAddFee} disabled={savingFee || (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0)} activeOpacity={0.8}
               >
-                <Text style={{ color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}>{savingFee ? '...' : t('confirm')}</Text>
+                {savingFee ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}>{t('confirm')}</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -1021,7 +1022,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   { label: t('meituanTuan'), value: f.meituan_tuan || 0, color: colors.success },
                 ];
                 return (
-                  <View key={f.id} style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: colors.secondary, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as any}>
+                  <View key={f.id} style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: colors.secondary, } as any}>
                     {/* Header: date + total */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
                       <Text style={{ fontSize: FONTS.subBold.size, color: colors.textSub, fontWeight: FONTS.subBold.weight }}>{fmtMonth(f.year, f.month)}</Text>
@@ -1048,7 +1049,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {feeMonthPicker.open && (
         <>
           {/* Animated backdrop */}
-          <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: pickerAnim }}>
+          <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: pickerAnim }}>
             <TouchableOpacity
               style={{ flex: 1 }}
               activeOpacity={1}
@@ -1058,13 +1059,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             />
           </Animated.View>
           <Animated.View style={{
-            position: 'fixed' as any,
+            position: 'absolute' as any,
             top: pickerPos.top || '38%',
             left: pickerPos.left || 10,
             zIndex: 9999,
             backgroundColor: colors.surface,
             borderRadius: 14,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+
             paddingVertical: 6,
             width: 140,
             maxHeight: 240,
@@ -1105,7 +1106,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Fee history filter dropdown — animated to match platform fee picker */}
       {feeHistoryFilterPicker.open && createPortal(
         <>
-          <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: feeHistoryPickerAnim }}>
+          <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: feeHistoryPickerAnim }}>
             <TouchableOpacity
               style={{ flex: 1 }}
               activeOpacity={1}
@@ -1115,13 +1116,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             />
           </Animated.View>
           <Animated.View style={{
-            position: 'fixed' as any,
+            position: 'absolute' as any,
             top: feeHistoryPickerPos.top || '38%',
             left: feeHistoryPickerPos.left || 10,
             zIndex: 9999,
             backgroundColor: colors.surface,
             borderRadius: 14,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+
             paddingVertical: 6,
             width: 140,
             maxHeight: 240,
@@ -1196,13 +1197,13 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     overflow: 'hidden' as const,
     position: 'relative' as const,
     // @ts-ignore — 仅玻璃内边框高光，无外阴影
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
+
   },
   tabCardActive: {
     // @ts-ignore — 激活：高光更亮（渐变色由 render 动态设置）
     borderColor: 'rgba(255,255,255,0.55)',
     // @ts-ignore — 仅玻璃内边框
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.55)',
+
   },
   tabInner: {
     flex: 1, alignItems: 'stretch',
@@ -1211,12 +1212,12 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)',
     alignSelf: 'flex-start',
     // @ts-ignore
-    textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+
   },
   tabTitleActive: {
     color: colors.surface, fontWeight: FONTS.amount.weight,
     // @ts-ignore
-    textShadow: '0 1px 4px rgba(0,0,0,0.15)',
+
   },
   /* ── 对账卡片内字段 ── */
   cardFields: {
@@ -1231,12 +1232,12 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   cardFieldLabel: {
     fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: 'rgba(255,255,255,0.70)',
     // @ts-ignore
-    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+
   },
   cardFieldVal: {
     fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: 'rgba(255,255,255,0.95)',
     // @ts-ignore
-    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+
   },
   totalExpLabel: {
     fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: 'rgba(255,255,255,0.70)',
@@ -1249,7 +1250,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, letterSpacing: -0.5,
     color: colors.surface,
     // @ts-ignore
-    textShadow: '0 1px 4px rgba(0,0,0,0.15)',
+
   },
 
   /* ── Content ── */
@@ -1269,7 +1270,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.bg,
     borderWidth: 0.5, borderColor: colors.secondary,
     // @ts-ignore
-    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+
   },
 
   /* ── Date ── */
@@ -1429,7 +1430,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
 
   /* ── Modal ── */
   modalOverlay: {
-    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+    position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16,
   },
   modalBackdrop: {
@@ -1442,7 +1443,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
 
     // @ts-ignore
-    boxShadow: '0 8px 28px rgba(0,0,0,0.08)',
+
   },
   modalHeader: {
     backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20,
@@ -1462,6 +1463,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
 
     // @ts-ignore
-    boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
+
   },
 });
