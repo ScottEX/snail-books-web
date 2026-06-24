@@ -552,7 +552,7 @@ export default function HomeScreen({
               <>
                 {/* 收支总览玻璃卡片：固定顶部不滚动 */}
                 {tab === 'chart' && (
-                  <View style={{ paddingTop: 4, marginBottom: 12 }}>
+                  <View style={{ paddingTop: 4, marginBottom: 8 }}>
                     <View style={[styles.chartGlassCard, {
                       // @ts-ignore
                       backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.expenseGradientStart, bgOpacity === 1 ? 0.30 : 0.48)} 0%, ${withAlpha(colors.expenseGradientEnd, bgOpacity === 1 ? 0.30 : 0.48)} 100%)`,
