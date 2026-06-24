@@ -572,7 +572,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         {activeTab === 0 && (
         <FadeInView style={st.moduleWrap}>
           {/* Platform fees card */}
-          <View style={[st.card, { marginTop: 12, backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.warning, 0.22)} 100%)` as any, borderColor: 'rgba(255,255,255,0.35)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)' } as any]}>
+          <View style={[st.card, { marginTop: 12 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
                 <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain }}>{t('platformFee')}</Text>
