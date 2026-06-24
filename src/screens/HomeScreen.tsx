@@ -887,7 +887,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: 'transparent',
     // @ts-ignore - web-only
-
+    backdropFilter: 'saturate(200%) blur(30px)',
     borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   headerInner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
