@@ -826,7 +826,7 @@ export default function HomeScreen({
 /* ===== NAV SVG ICONS ===== */
 
 function NavIconList({ active, colors }: { active: boolean; colors: ThemeColors }) {
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
       <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
@@ -839,7 +839,7 @@ function NavIconList({ active, colors }: { active: boolean; colors: ThemeColors 
 function NavIconExpense({ active, colors }: { active: boolean; colors: ThemeColors }) {
   // Wallet icon — semantic match for "Expense" tab label (avoiding literal `+` ambiguity).
   // Other tabs use object/silhouette/chart icons; this one represents money-out.
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M20 12V8H6a2 2 0 010-4h12v4" />
@@ -850,7 +850,7 @@ function NavIconExpense({ active, colors }: { active: boolean; colors: ThemeColo
 }
 
 function NavIconSupply({ active, colors }: { active: boolean; colors: ThemeColors }) {
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
@@ -860,7 +860,7 @@ function NavIconSupply({ active, colors }: { active: boolean; colors: ThemeColor
 }
 
 function NavIconChart({ active, colors }: { active: boolean; colors: ThemeColors }) {
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M3 3v18h18" />
@@ -870,7 +870,7 @@ function NavIconChart({ active, colors }: { active: boolean; colors: ThemeColors
 }
 
 function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColors }) {
-  const c = active ? colors.textMain : colors.textSub;
+  const c = active ? colors.navActiveColor : '#000000';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
@@ -1039,10 +1039,8 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   navItem: {
     flex: 1, alignItems: 'center', justifyContent: 'center',
     height: 44, borderRadius: 22, marginHorizontal: 2,
-    backgroundColor: '#000000',
   },
   navItemActive: {
-    backgroundColor: colors.navActiveColor,
   },
   navLabel: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub, letterSpacing: 0.3 },
   navLabelActive: { color: colors.textMain },
