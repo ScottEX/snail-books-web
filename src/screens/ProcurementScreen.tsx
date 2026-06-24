@@ -268,7 +268,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtMeta: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 },
   mgmtActions: { flexDirection: 'row' as const, gap: 8 },
   mgmtActionBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.05) },
-  mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: withAlpha(c.primary, 0.06), borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
+  mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 16, flexDirection: 'row' as const, backgroundColor: 'rgba(255,255,255,0.20)', borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6, backdropFilter: 'saturate(220%) blur(20px)' as any, WebkitBackdropFilter: 'saturate(220%) blur(20px)' as any },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
   // Modal (product add/edit)
@@ -1247,11 +1247,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
       {/* ── Product Mgmt ── */}
       {subTab === 'products' && (
-        <ScrollView style={styles.contentArea}>
+        <>
           <TouchableOpacity style={styles.mgmtAddBtn} onPress={openAddProduct}>
             <PlusIcon color={c.primary} />
             <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
+          <ScrollView style={styles.contentArea}>
           {filteredMgmtProducts.length === 0 ? (
             <EmptyState
               icon={<EmptyBoxIcon color={c.textSub} />}
@@ -1277,6 +1278,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             ))
           )}
         </ScrollView>
+        </>
       )}
 
       {/* ── Product Modal ── */}
