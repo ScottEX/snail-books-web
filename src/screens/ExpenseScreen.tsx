@@ -18,7 +18,7 @@ import { FONTS } from '../theme';
 import { uploadReceiptStyles } from '../sharedStyles';
 import { fmtAmt as fmt, fmtAmtFull } from '../utils/format';
 import { blockNeg, toDec2, toDec2Comma } from '../utils/numbers';
-import { getCurrentUser } from '../utils/storage';
+import { getCurrentUser, getCurrentUserId } from '../utils/storage';
 import { useExpenseForm } from './expense/useExpenseForm';
 import DatePicker from '../components/DatePicker';
 import { useServerDate } from '../hooks/useServerDate';
@@ -381,10 +381,20 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     ? ((feeData.meituan_cashier || 0) + (feeData.meituan_waimai || 0) + (feeData.shangou_waimai || 0) + (feeData.meituan_tuan || 0))
     : 0;
   const lang = getLang();
+  const uid = getCurrentUserId();
+  const storedOpacity = (() => {
+    try {
+      const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
+      const v = localStorage.getItem(key);
+      if (v !== null) return parseFloat(v);
+    } catch {}
+    return 0.5;
+  })();
+  const activeAlpha = storedOpacity === 1 ? 0.30 : 0.48;
   const tabCards = useMemo(() => [
-    { gradient: [withAlpha(colors.expenseGradientStart, 0.22), withAlpha(colors.expenseGradientEnd, 0.22)], gradientActive: [withAlpha(colors.expenseGradientStart, 0.48), withAlpha(colors.expenseGradientEnd, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
-    { gradient: [withAlpha(colors.expenseGradientStart, 0.22), withAlpha(colors.expenseGradientEnd, 0.22)], gradientActive: [withAlpha(colors.expenseGradientStart, 0.48), withAlpha(colors.expenseGradientEnd, 0.48)], title: t('tabExpense'), stat: businessSummary.cumulative_expense || 0, statFmt: fmt(businessSummary.cumulative_expense || 0), statColor: colors.textMain, prefix: '' },
-  ], [diff, businessSummary.cumulative_expense, colors, lang]);
+    { gradient: [withAlpha(colors.expenseGradientStart, 0.22), withAlpha(colors.expenseGradientEnd, 0.22)], gradientActive: [withAlpha(colors.expenseGradientStart, activeAlpha), withAlpha(colors.expenseGradientEnd, activeAlpha)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
+    { gradient: [withAlpha(colors.expenseGradientStart, 0.22), withAlpha(colors.expenseGradientEnd, 0.22)], gradientActive: [withAlpha(colors.expenseGradientStart, activeAlpha), withAlpha(colors.expenseGradientEnd, activeAlpha)], title: t('tabExpense'), stat: businessSummary.cumulative_expense || 0, statFmt: fmt(businessSummary.cumulative_expense || 0), statColor: colors.textMain, prefix: '' },
+  ], [diff, businessSummary.cumulative_expense, colors, lang, activeAlpha]);
 
   const st = useMemo(() => getSt(colors), [colors]);
 

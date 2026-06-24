@@ -539,7 +539,10 @@ export default function HomeScreen({
                 {/* 收支总览玻璃卡片：固定顶部不滚动 */}
                 {tab === 'chart' && (
                   <View style={{ paddingTop: 4, marginBottom: 12 }}>
-                    <View style={styles.chartGlassCard}>
+                    <View style={[styles.chartGlassCard, {
+                      // @ts-ignore
+                      backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.expenseGradientStart, bgOpacity === 1 ? 0.30 : 0.48)} 0%, ${withAlpha(colors.expenseGradientEnd, bgOpacity === 1 ? 0.30 : 0.48)} 100%)`,
+                    }]}>
                       {/* @ts-ignore — 收支总览大标题 */}
                       <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', }}>{t('summary')}</Text>
                       <View style={{ alignItems: 'flex-start', gap: 2 }}>
@@ -977,8 +980,6 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   // ── Chart glass card (在手资金) ──
   chartGlassCard: {
     borderRadius: 14, paddingVertical: 14, paddingHorizontal: 18, gap: 12,
-    // @ts-ignore
-    backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.expenseGradientStart, 0.40)} 0%, ${withAlpha(colors.expenseGradientEnd, 0.40)} 100%)`,
     // @ts-ignore
 
   },
