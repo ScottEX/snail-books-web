@@ -1190,7 +1190,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
-    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
     paddingHorizontal: 16, paddingVertical: 14,
     justifyContent: 'flex-start',
     // @ts-ignore — CSS scroll-snap
