@@ -1,5 +1,5 @@
 import { View, TouchableOpacity, Animated, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 
 interface FilterPanelProps {
@@ -13,9 +13,11 @@ export default function FilterPanel({ visible, onClose, children, style }: Filte
   const anim = useRef(new Animated.Value(0)).current;
   const { colors: c } = useTheme();
   const st = getStyles(c);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (visible) {
+      setMounted(true);
       anim.setValue(0);
       Animated.spring(anim, {
         toValue: 1,
@@ -23,16 +25,27 @@ export default function FilterPanel({ visible, onClose, children, style }: Filte
         tension: 170,
         friction: 26,
       }).start();
+    } else if (mounted) {
+      Animated.timing(anim, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }).start(() => setMounted(false));
     }
-  }, [visible, anim]);
+  }, [visible, anim, mounted]);
 
   const close = () => {
     Animated.timing(anim, {
       toValue: 0,
       duration: 180,
       useNativeDriver: true,
-    }).start(() => onClose());
+    }).start(() => {
+      setMounted(false);
+      onClose();
+    });
   };
+
+  if (!mounted) return null;
 
   return (
     <>
