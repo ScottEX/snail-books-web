@@ -1012,7 +1012,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
     color: 'rgba(255,255,255,0.95)',
   },
-  // Bottom Nav — iOS 液态玻璃胶囊
+  // Bottom Nav — iOS 26 液态玻璃胶囊
   bottomNav: {
     position: 'absolute' as any,
     bottom: 16,
@@ -1021,15 +1021,17 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     transform: 'translateX(-50%)',
     width: '80%',
     maxWidth: 420,
-    backgroundColor: withAlpha(colors.surface, 0.50),
+    backgroundColor: withAlpha(colors.surface, 0.20),
     // @ts-ignore - web-only backdrop-filter
-    backdropFilter: 'saturate(180%) blur(20px)',
+    backdropFilter: 'saturate(220%) blur(30px)',
     // @ts-ignore - web-only
-    WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+    WebkitBackdropFilter: 'saturate(220%) blur(30px)',
     borderRadius: 28,
     flexDirection: 'row',
     paddingVertical: 10,
     paddingHorizontal: 12,
+    // @ts-ignore - 玻璃折射边
+    boxShadow: 'inset 0 0.5px 0 rgba(255,255,255,0.12)',
     borderWidth: 0.5,
     borderColor: withAlpha(colors.surface, 0.25),
     zIndex: 100,
