@@ -536,6 +536,38 @@ export default function HomeScreen({
               <ExpenseScreen onReconHistory={() => pushPage('recon')} onExpenseHistory={() => pushPage('expense')} />
             ) : (
               <>
+                {/* 收支总览玻璃卡片：固定顶部不滚动 */}
+                {tab === 'chart' && (
+                  <View style={{ paddingTop: 4, paddingHorizontal: 16, marginBottom: 12 }}>
+                    <View style={styles.chartGlassCard}>
+                      {/* @ts-ignore — 收支总览大标题 */}
+                      <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', }}>{t('summary')}</Text>
+                      <View style={{ alignItems: 'flex-start', gap: 2 }}>
+                        <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                          <Text style={styles.chartGlassSymbol}>¥</Text>
+                          <Text style={styles.chartGlassValue}>
+                            {toDec2Comma(businessSummary.cash_on_hand || 0)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <View style={styles.chartGlassSubCard}>
+                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeRevenue')}</Text>
+                          <Text style={styles.chartGlassSubValue}>
+                            {'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}
+                          </Text>
+                        </View>
+                        <View style={styles.chartGlassSubCard}>
+                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeExpense')}</Text>
+                          <Text style={styles.chartGlassSubValue}>
+                            {'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                )}
                 {/* Tab Content */}
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {tab === 'list' && (
@@ -680,37 +712,7 @@ export default function HomeScreen({
               )}
 
               {tab === 'chart' && (
-                <View style={{ paddingBottom: 100, paddingTop: 4 }}>
-                  {/* 在手资金玻璃卡片 */}
-                  <View style={{ marginBottom: 12 }}>
-                    <View style={styles.chartGlassCard}>
-                      {/* @ts-ignore — 收支总览大标题 */}
-                      <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', }}>{t('summary')}</Text>
-                      <View style={{ alignItems: 'flex-start', gap: 2 }}>
-                        <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                          <Text style={styles.chartGlassSymbol}>¥</Text>
-                          <Text style={styles.chartGlassValue}>
-                            {toDec2Comma(businessSummary.cash_on_hand || 0)}
-                          </Text>
-                        </View>
-                      </View>
-                      <View style={{ flexDirection: 'row', gap: 10 }}>
-                        <View style={styles.chartGlassSubCard}>
-                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeRevenue')}</Text>
-                          <Text style={styles.chartGlassSubValue}>
-                            {'¥' + toDec2Comma(businessSummary.cumulative_revenue || 0)}
-                          </Text>
-                        </View>
-                        <View style={styles.chartGlassSubCard}>
-                          <Text style={styles.chartGlassSubLabel}>{t('cumulativeExpense')}</Text>
-                          <Text style={styles.chartGlassSubValue}>
-                            {'¥' + toDec2Comma(businessSummary.cumulative_expense || 0)}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
+                <View style={{ paddingBottom: 100 }}>
                   {/* KPI 三行 */}
                   <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartKpiCard}>
