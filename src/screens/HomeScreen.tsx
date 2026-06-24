@@ -1012,7 +1012,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
     color: 'rgba(255,255,255,0.95)',
   },
-  // Bottom Nav — glass pill, icons only, 80% transparent
+  // Bottom Nav — iOS 液态玻璃胶囊
   bottomNav: {
     position: 'absolute' as any,
     bottom: 16,
@@ -1021,15 +1021,15 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     transform: 'translateX(-50%)',
     width: '80%',
     maxWidth: 420,
-    backgroundColor: withAlpha(colors.surface, 0.30),
+    backgroundColor: withAlpha(colors.surface, 0.50),
+    // @ts-ignore - web-only backdrop-filter
+    backdropFilter: 'saturate(180%) blur(20px)',
     // @ts-ignore - web-only
-
+    WebkitBackdropFilter: 'saturate(180%) blur(20px)',
     borderRadius: 28,
     flexDirection: 'row',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    // @ts-ignore - web-only boxShadow
-
     borderWidth: 0.5,
     borderColor: withAlpha(colors.surface, 0.25),
     zIndex: 100,
