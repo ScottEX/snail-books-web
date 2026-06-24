@@ -370,9 +370,9 @@ function useMemoizedStyles(colors: ThemeColors) {
       borderColor: withAlpha(colors.textMain, 0.08),
       padding: 18,
       // @ts-ignore
-
+      backdropFilter: 'saturate(180%) blur(20px)',
       // @ts-ignore
-
+      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
     },
     revTitle: {
       fontSize: FONTS.h2.size,

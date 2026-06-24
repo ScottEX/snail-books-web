@@ -139,9 +139,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     backgroundColor: withAlpha(c.surface, 0.65),
     // @ts-ignore
-
+    backdropFilter: 'saturate(180%) blur(20px)',
     // @ts-ignore
-
+    WebkitBackdropFilter: 'saturate(180%) blur(20px)',
   },
   headerSection: { padding: 16, paddingBottom: 8 },
   headerTop: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginBottom: 12 },
