@@ -513,26 +513,16 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   return (
     <View style={styles.container}>
-      {/* Background layers */}
-      {Platform.OS === 'ios' ? (
-        <ImageBackground source={bgUrl ? { uri: bgUrl } : require('../../assets/bg.jpg')} style={styles.bgWrapper} imageStyle={styles.bgImage} resizeMode="cover" />
-      ) : (
-        <>
-          {!bgUrl && <View style={[styles.bgWrapper, { backgroundImage: 'url(/img/bg.jpg?v=2)', backgroundSize: 'cover', backgroundPosition: 'center' } as any]} />}
-          <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
-          <View style={styles.bgOverlay} />
-        </>
-      )}
-      {/* Darken overlay for iOS to match web dark theme (sits above bg image, below content) */}
-      {Platform.OS === 'ios' && (
-        <View style={[styles.bgOverlay, { backgroundColor: 'rgba(0,0,0,0.55)' }]} />
-      )}
-      <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={[styles.contentScroll, Platform.OS === 'ios' && { paddingTop: 47 }]} showsVerticalScrollIndicator={false}>
+      {/* Background layers — default only when no custom bg, custom fades in on top */}
+      {!bgUrl && <View style={styles.bgWrapper} />}
+      <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none', filter: bgReady && bgUrl ? 'blur(0)' : 'blur(16px)' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
+      <View style={styles.bgOverlay} />
+      <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
         <View style={styles.brand}>
           <View style={styles.logoWrap}>
-            <Image source={Platform.OS === 'ios' ? require('../../assets/logo.jpg') : { uri: '/img/logo.jpg' }} style={styles.logo} />
-            <Image source={Platform.OS === 'ios' ? (avatarUrl ? { uri: avatarUrl } : require('../../assets/logo.jpg')) : { uri: avatarUrl || '/img/logo.jpg' }} style={[styles.logo, styles.logoOver, { opacity: avatarReady && avatarUrl ? 1 : 0 }]} />
+            <Image source={{ uri: '/img/logo.jpg' }} style={styles.logo} />
+            <Image source={{ uri: avatarUrl || '/img/logo.jpg' }} style={[styles.logo, styles.logoOver, { filter: avatarReady && avatarUrl ? 'blur(0)' : 'blur(12px)', opacity: avatarReady && avatarUrl ? 1 : 0 }]} />
           </View>
           <Text style={styles.subtitle}>{t('subtitle')}</Text>
           <View style={styles.langRow}>
@@ -545,8 +535,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         </View>
 
         {/* Glass Card */}
-        {Platform.OS === 'ios' ? (
-          <View style={[styles.glassCard, shake && styles.shake]}>
+        <View style={[styles.glassCard, shake && styles.shake]}>
           {/* Message */}
           {(msg || msgKey) ? (
             <View key={lang} style={styles.msgBox}>
@@ -576,9 +565,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                 </View>
                 <Animated.View style={{ transform: [{ scale: breatheAnim }], alignItems: 'center' }}>
                   <TouchableOpacity onPress={handleFaceIDLogin} style={styles.faceBtn} disabled={loading}>
-                    <Svg width="36" height="36" viewBox="0 0 1024 1024" fill="none">
-                      <Path d="M997.052632 839.787789v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821a108.112842 108.112842 0 0 1-108.005053 108.005053h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821A157.453474 157.453474 0 0 0 997.052632 839.787789m-679.262316 132.634948a24.629895 24.629895 0 0 0-24.629895-24.629895H184.212211a108.112842 108.112842 0 0 1-108.005053-108.005053v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821A157.453474 157.453474 0 0 0 184.212211 997.052632h108.94821c13.608421 0 24.629895-11.048421 24.629895-24.629895M76.207158 293.160421V184.212211a108.112842 108.112842 0 0 1 108.005053-108.005053h108.94821a24.629895 24.629895 0 0 0 0-49.25979H184.212211A157.453474 157.453474 0 0 0 26.947368 184.212211v108.94821a24.629895 24.629895 0 0 0 49.25979 0m920.845474 0V184.212211A157.453474 157.453474 0 0 0 839.787789 26.947368h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821a108.112842 108.112842 0 0 1 108.005053 108.005053v108.94821a24.629895 24.629895 0 0 0 49.25979 0M681.984 743.962947a25.6 25.6 0 0 0-34.708211-37.591579A198.790737 198.790737 0 0 1 512 759.269053a198.790737 198.790737 0 0 1-135.275789-52.897685 25.6 25.6 0 0 0-34.708211 37.591579A249.802105 249.802105 0 0 0 512 810.415158a249.802105 249.802105 0 0 0 169.984-66.452211m-118.837895-169.445052v-181.894737a25.6 25.6 0 1 0-51.146105 0v181.894737c0 7.841684-6.386526 14.228211-14.201263 14.22821h-20.857263a25.6 25.6 0 1 0 0 51.146106h20.857263a65.455158 65.455158 0 0 0 65.347368-65.374316m176.23579-110.349474v-72.946526a24.144842 24.144842 0 0 0-48.316632 0v72.946526a24.144842 24.144842 0 0 0 48.316632 0m-424.906106 24.144842a24.144842 24.144842 0 0 1-24.171789-24.144842v-72.946526a24.144842 24.144842 0 0 1 48.316632 0v72.946526a24.144842 24.144842 0 0 1-24.144843 24.144842" fill={colors.surface} />
-                    </Svg>
+                    <svg width="36" height="36" viewBox="0 0 1024 1024" fill="none">
+                      <path d="M997.052632 839.787789v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821a108.112842 108.112842 0 0 1-108.005053 108.005053h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821A157.453474 157.453474 0 0 0 997.052632 839.787789m-679.262316 132.634948a24.629895 24.629895 0 0 0-24.629895-24.629895H184.212211a108.112842 108.112842 0 0 1-108.005053-108.005053v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821A157.453474 157.453474 0 0 0 184.212211 997.052632h108.94821c13.608421 0 24.629895-11.048421 24.629895-24.629895M76.207158 293.160421V184.212211a108.112842 108.112842 0 0 1 108.005053-108.005053h108.94821a24.629895 24.629895 0 0 0 0-49.25979H184.212211A157.453474 157.453474 0 0 0 26.947368 184.212211v108.94821a24.629895 24.629895 0 0 0 49.25979 0m920.845474 0V184.212211A157.453474 157.453474 0 0 0 839.787789 26.947368h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821a108.112842 108.112842 0 0 1 108.005053 108.005053v108.94821a24.629895 24.629895 0 0 0 49.25979 0M681.984 743.962947a25.6 25.6 0 0 0-34.708211-37.591579A198.790737 198.790737 0 0 1 512 759.269053a198.790737 198.790737 0 0 1-135.275789-52.897685 25.6 25.6 0 0 0-34.708211 37.591579A249.802105 249.802105 0 0 0 512 810.415158a249.802105 249.802105 0 0 0 169.984-66.452211m-118.837895-169.445052v-181.894737a25.6 25.6 0 1 0-51.146105 0v181.894737c0 7.841684-6.386526 14.228211-14.201263 14.22821h-20.857263a25.6 25.6 0 1 0 0 51.146106h20.857263a65.455158 65.455158 0 0 0 65.347368-65.374316m176.23579-110.349474v-72.946526a24.144842 24.144842 0 0 0-48.316632 0v72.946526a24.144842 24.144842 0 0 0 48.316632 0m-424.906106 24.144842a24.144842 24.144842 0 0 1-24.171789-24.144842v-72.946526a24.144842 24.144842 0 0 1 48.316632 0v72.946526a24.144842 24.144842 0 0 1-24.144843 24.144842" fill={colors.surface} />
+                    </svg>
                   </TouchableOpacity>
                 </Animated.View>
                 <TouchableOpacity onPress={() => { setFaceMode(false); }}>
@@ -752,7 +741,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="number-pad" onSubmitEditing={handleVerify} autoFocus />
               </View>
-              <SubmitButton onPress={handleVerify} loading={loading} label={t('verifyBtn')} style={styles.btnRed} textStyle={styles.btnRedText} />
+              <TouchableOpacity onPress={handleVerify} style={styles.btnRed} disabled={loading}>
+                <Text style={styles.btnRedText}>{loading ? '...' : t('verifyBtn')}</Text>
+              </TouchableOpacity>
               <Text style={styles.verifyHint}>
                 {t('verifyNewNoEmail') || '一直没收到？别着急，您可以 '}
                 <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s` : t('verifyNewResend')}</Text>
@@ -775,7 +766,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder="Email" placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="email-address" onSubmitEditing={handleForgot} />
               </View>
-              <SubmitButton onPress={handleForgot} loading={loading} label={t('forgotSendBtn') || 'Send Code'} style={styles.btnDark} textStyle={styles.btnDarkText} />
+              <TouchableOpacity onPress={handleForgot} style={styles.btnDark} disabled={loading}>
+                <Text style={styles.btnDarkText}>{loading ? '...' : t('forgotSendBtn') || 'Send Code'}</Text>
+              </TouchableOpacity>
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>
@@ -823,7 +816,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <SubmitButton onPress={handleReset} loading={loading} label={t('resetBtn')} style={styles.btnRed} textStyle={styles.btnRedText} />
+              <TouchableOpacity onPress={handleReset} style={styles.btnRed} disabled={loading}>
+                <Text style={styles.btnRedText}>{loading ? '...' : t('resetBtn')}</Text>
+              </TouchableOpacity>
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>
@@ -833,411 +828,116 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           {/* Copyright */}
           <Text style={styles.copyright}>{t('copyright') || '© 2026 柳味探秘 · 经营查询 · 版权所有'}</Text>
         </View>
-        ) : (
-          <View style={[styles.glassCard, shake && styles.shake]}>
-            {/* Message */}
-            {(msg || msgKey) ? (
-              <View key={lang} style={styles.msgBox}>
-                <Text style={styles.msgText}>{displayMsg}</Text>
-              </View>
-            ) : null}
-
-            {/* Login/Register tabs */}
-            {(step === 'login' || step === 'register') ? (
-              <View style={styles.tabRow}>
-                <TouchableOpacity onPress={goLogin} style={[styles.tabBtn, step === 'login' && styles.tabActive]}>
-                  <Text style={[styles.tabText, step === 'login' && styles.tabActiveText]}>{t('login')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={goRegister} style={[styles.tabBtn, step === 'register' && styles.tabActive]}>
-                  <Text style={[styles.tabText, step === 'register' && styles.tabActiveText]}>{t('register')}</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-
-            {/* LOGIN */}
-            {step === 'login' && (
-              faceMode ? (
-                <View style={styles.formSection}>
-                  <View style={styles.faceUserRow}>
-                    <Text style={styles.faceUsername}>{faceUsername}</Text>
-                  </View>
-                  <Animated.View style={{ transform: [{ scale: breatheAnim }], alignItems: 'center' }}>
-                    <TouchableOpacity onPress={handleFaceIDLogin} style={styles.faceBtn} disabled={loading}>
-                      <Svg width="36" height="36" viewBox="0 0 1024 1024" fill="none">
-                        <Path d="M997.052632 839.787789v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821a108.112842 108.112842 0 0 1-108.005053 108.005053h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821A157.453474 157.453474 0 0 0 997.052632 839.787789m-679.262316 132.634948a24.629895 24.629895 0 0 0-24.629895-24.629895H184.212211a108.112842 108.112842 0 0 1-108.005053-108.005053v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821A157.453474 157.453474 0 0 0 184.212211 997.052632h108.94821c13.608421 0 24.629895-11.048421 24.629895-24.629895M76.207158 293.160421V184.212211a108.112842 108.112842 0 0 1 108.005053-108.005053h108.94821a24.629895 24.629895 0 0 0 0-49.25979H184.212211A157.453474 157.453474 0 0 0 26.947368 184.212211v108.94821a24.629895 24.629895 0 0 0 49.25979 0m920.845474 0V184.212211A157.453474 157.453474 0 0 0 839.787789 26.947368h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821a108.112842 108.112842 0 0 1 108.005053 108.005053v108.94821a24.629895 24.629895 0 0 0 49.25979 0M681.984 743.962947a25.6 25.6 0 0 0-34.708211-37.591579A198.790737 198.790737 0 0 1 512 759.269053a198.790737 198.790737 0 0 1-135.275789-52.897685 25.6 25.6 0 0 0-34.708211 37.591579A249.802105 249.802105 0 0 0 512 810.415158a249.802105 249.802105 0 0 0 169.984-66.452211m-118.837895-169.445052v-181.894737a25.6 25.6 0 1 0-51.146105 0v181.894737c0 7.841684-6.386526 14.228211-14.201263 14.22821h-20.857263a25.6 25.6 0 1 0 0 51.146106h20.857263a65.455158 65.455158 0 0 0 65.347368-65.374316m176.23579-110.349474v-72.946526a24.144842 24.144842 0 0 0-48.316632 0v72.946526a24.144842 24.144842 0 0 0 48.316632 0m-424.906106 24.144842a24.144842 24.144842 0 0 1-24.171789-24.144842v-72.946526a24.144842 24.144842 0 0 1 48.316632 0v72.946526a24.144842 24.144842 0 0 1-24.144843 24.144842" fill={colors.surface} />
-                      </Svg>
-                    </TouchableOpacity>
-                  </Animated.View>
-                  <TouchableOpacity onPress={() => { setFaceMode(false); }}>
-                    <Text style={styles.faceSwitch}>{t('usePasswordLogin') || '使用密码登录'}</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={styles.formSection}>
-                  <View style={styles.fieldWrap}>
-                    <Text style={styles.fieldLabel}>{t('username')}</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <TextInput style={[styles.textInput, { flex: 1 }]} value={username} onChangeText={setUsername}
-                        placeholder={t('loginPlaceholder') || '用户名 / 邮箱'} placeholderTextColor="rgba(255,255,255,0.55)"
-                        onSubmitEditing={handleLogin} />
-                      {username ? (
-                        <TouchableOpacity onPress={() => setUsername('')} style={{ padding: 8, marginLeft: -36 }}>
-                          <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2} strokeLinecap="round">
-                            <Path d="M18 6L6 18M6 6l12 12" />
-                          </Svg>
-                        </TouchableOpacity>
-                      ) : null}
-                    </View>
-                  </View>
-                  <View style={styles.fieldWrap}>
-                    <Text style={styles.fieldLabel}>{t('password')}</Text>
-                    <View style={styles.pwWrap}>
-                      <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
-                        placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)"
-                        secureTextEntry={!showPw} onSubmitEditing={handleLogin} />
-                      <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
-                        <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                          {showPw ? (
-                            <>
-                              <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                              <Path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                              <Path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                              <Line x1="1" y1="1" x2="23" y2="23" />
-                            </>
-                          ) : (
-                            <>
-                              <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                              <Circle cx="12" cy="12" r="3" />
-                            </>
-                          )}
-                        </Svg>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  <SubmitButton onPress={handleLogin} loading={loading} label={t('loginBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
-                        {remember && <Text style={{ fontSize: FONTS.micro.size, color: colors.surface }}>✓</Text>}
-                      </View>
-                      <Text style={{ fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)' }}>{t('rememberMe') || '记住我'}</Text>
-                    </TouchableOpacity>
-                    {pwdHasFaceID && (
-                      <TouchableOpacity onPress={switchToFaceMode}>
-                        <Text style={{ fontSize: FONTS.micro.size, color: colors.primary }}>{t('faceIDLogin') || '面容登录'}</Text>
-                      </TouchableOpacity>
-                    )}
-                    <TouchableOpacity onPress={() => { setStep('forgot'); reset(); }}>
-                      <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              )
-            )}
-
-            {/* REGISTER */}
-            {step === 'register' && (
-              <View style={styles.formSection}>
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>{t('username')}</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TextInput style={[styles.textInput, { flex: 1 }]} value={username} onChangeText={setUsername}
-                      placeholder={t('username')} placeholderTextColor="rgba(255,255,255,0.55)" />
-                    {username ? (
-                      <TouchableOpacity onPress={() => setUsername('')} style={{ padding: 8, marginLeft: -36 }}>
-                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2} strokeLinecap="round">
-                          <Path d="M18 6L6 18M6 6l12 12" />
-                        </Svg>
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                </View>
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>{t('email') || 'Email'}</Text>
-                  <TextInput style={styles.textInput} value={email} onChangeText={setEmail}
-                    keyboardType="email-address"
-                    placeholder={t('email') || 'Email'} placeholderTextColor="rgba(255,255,255,0.55)" />
-                </View>
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>
-                    {t('password')}{' '}
-                    <Text style={styles.hintText}>{t('pwHint') || '6+ chars, letter + number'}</Text>
-                  </Text>
-                  <View style={styles.pwWrap}>
-                    <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
-                      placeholder={t('password')} placeholderTextColor="rgba(255,255,255,0.55)" secureTextEntry={!showPw} />
-                    <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
-                      <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                        {showPw ? (
-                          <>
-                            <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                            <Path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                            <Path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                            <Line x1="1" y1="1" x2="23" y2="23" />
-                          </>
-                        ) : (
-                          <>
-                            <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <Circle cx="12" cy="12" r="3" />
-                          </>
-                        )}
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>{t('confirmPassword')}</Text>
-                  <View style={styles.pwWrap}>
-                    <TextInput style={styles.pwInput} value={password2} onChangeText={setPassword2}
-                      placeholder={t('confirmPassword')} placeholderTextColor="rgba(255,255,255,0.55)"
-                      secureTextEntry={!showPw2} onSubmitEditing={handleRegister} />
-                    <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw2(!showPw2)}>
-                      <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                        {showPw2 ? (
-                          <>
-                            <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                            <Path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                            <Path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                            <Line x1="1" y1="1" x2="23" y2="23" />
-                          </>
-                        ) : (
-                          <>
-                            <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <Circle cx="12" cy="12" r="3" />
-                          </>
-                        )}
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                <SubmitButton onPress={handleRegister} loading={loading} label={t('registerBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
-                <TouchableOpacity onPress={goLogin}>
-                  <Text style={styles.forgotText}>{t('backToLogin')}</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* VERIFY */}
-            {step === 'verify' && (
-              <View style={styles.formSection}>
-                <Text style={styles.verifyTitle}>{t('verifyNewTitle') || '只差最后一步啦！✨'}</Text>
-                <Text style={styles.verifyBody}>
-                  {t('verifyNewBodyPre') || '欢迎加入柳味探秘科技！一封装有激活密码的邮件已经飞往您的邮箱：'}
-                  <Text style={styles.verifyEmail}>{email}</Text>
-                  {t('verifyNewBodyPost') || '。请前往查收并点击链接完成验证。'}
-                </Text>
-                {devCode !== '' && (
-                  <View style={styles.devCodeCard}>
-                    <Text style={styles.devCodeLabel}>{t('devCodeLabel') || '🔧 Dev Mode — Verification Code'}</Text>
-                    <Text style={styles.devCodeValue}>{devCode}</Text>
-                  </View>
-                )}
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>{t('verifyCode')}</Text>
-                  <TextInput ref={codeRef} style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
-                    placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)"
-                    keyboardType="number-pad" onSubmitEditing={handleVerify} autoFocus />
-                </View>
-                <SubmitButton onPress={handleVerify} loading={loading} label={t('verifyBtn')} style={styles.btnRed} textStyle={styles.btnRedText} />
-                <Text style={styles.verifyHint}>
-                  {t('verifyNewNoEmail') || '一直没收到？别着急，您可以 '}
-                  <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s` : t('verifyNewResend')}</Text>
-                  {t('verifyNewOrSpam') || ' 或检查一下垃圾箱。'}
-                </Text>
-                <Text style={styles.verifyHint}>
-                  {t('verifyNewWrongEmail') || '填错邮箱了？'}
-                  <Text style={styles.verifyLink} onPress={() => { setStep('register'); reset(); }}>{t('verifyNewEditEmail') || '修改邮箱地址'}</Text>
-                </Text>
-              </View>
-            )}
-
-            {/* FORGOT */}
-            {step === 'forgot' && (
-              <View style={styles.formSection}>
-                <Text style={styles.infoText}>{t('forgotStep1') || 'Enter email'}</Text>
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>{t('email') || 'Email'}</Text>
-                  <TextInput style={styles.textInput} value={email} onChangeText={setEmail}
-                    placeholder="Email" placeholderTextColor="rgba(255,255,255,0.55)"
-                    keyboardType="email-address" onSubmitEditing={handleForgot} />
-                </View>
-                <SubmitButton onPress={handleForgot} loading={loading} label={t('forgotSendBtn') || 'Send Code'} style={styles.btnDark} textStyle={styles.btnDarkText} />
-                <TouchableOpacity onPress={goLogin}>
-                  <Text style={styles.forgotText}>{t('backToLogin')}</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* RESET */}
-            {step === 'reset' && (
-              <View style={styles.formSection}>
-                <Text style={styles.infoText}>
-                  {t('resetHint') || 'Code sent to'} <Text style={styles.infoStrong}>{email}</Text>
-                </Text>
-                {devCode !== '' && (
-                  <View style={styles.devCodeCard}>
-                    <Text style={styles.devCodeLabel}>{t('devCodeLabel') || '🔧 Dev Mode — Verification Code'}</Text>
-                    <Text style={styles.devCodeValue}>{devCode}</Text>
-                  </View>
-                )}
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>{t('verifyCode')}</Text>
-                  <TextInput ref={codeRef} style={[styles.textInput, styles.codeInput]} maxLength={6} value={code} onChangeText={setCode}
-                    placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)" keyboardType="number-pad" autoFocus />
-                </View>
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>{t('newPassword')}</Text>
-                  <View style={styles.pwWrap}>
-                    <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
-                      placeholder={t('newPassword')} placeholderTextColor="rgba(255,255,255,0.55)" secureTextEntry={!showPw} />
-                    <TouchableOpacity style={styles.pwEye} onPress={() => setShowPw(!showPw)}>
-                      <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                        {showPw ? (
-                          <>
-                            <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                            <Path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                            <Path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                            <Line x1="1" y1="1" x2="23" y2="23" />
-                          </>
-                        ) : (
-                          <>
-                            <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <Circle cx="12" cy="12" r="3" />
-                          </>
-                        )}
-                      </Svg>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                <SubmitButton onPress={handleReset} loading={loading} label={t('resetBtn')} style={styles.btnRed} textStyle={styles.btnRedText} />
-                <TouchableOpacity onPress={goLogin}>
-                  <Text style={styles.forgotText}>{t('backToLogin')}</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* Copyright */}
-            <Text style={styles.copyright}>{t('copyright') || '© 2026 柳味探秘 · 经营查询 · 版权所有'}</Text>
-          </View>
-        )}
       </ScrollView>
     </View>
   );
 }
 
-const getStyles = (colors: ThemeColors) => {
-  // iOS doesn't support backdropFilter, so use a more opaque background
-  // to simulate the glass effect against the dark background
-  const isIOS = Platform.OS === 'ios';
-  // iOS bg.jpg is saturated burgundy — must use nearly-opaque white to mask
-  // the red blur showing through (web's 10% works because bg is heavily darkened
-  // by `filter: brightness(0.4)`, which RN Image doesn't support).
-  const glassBg = isIOS ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.10)';
-  const glassBgStrong = isIOS ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.15)';
-  const glassBorder = isIOS ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.10)';
-  return StyleSheet.create({
-    container: {
-      flex: 1, padding: 20, paddingTop: 24,
-      backgroundColor: isIOS ? 'transparent' : undefined,
-    },
-    iOSBg: {
-      position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
-      // Layered dark gradient feel: solid dark base + subtle radial highlight
-      backgroundColor: '#0a0405',
-    },
-    bgWrapper: {
-      position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
-    },
-    bgImage: { flex: 1, resizeMode: 'cover' },
-    bgCustom: { zIndex: 0 },
-    bgOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
-    content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
-    contentScroll: { paddingBottom: 40 },
-    brand: { alignItems: 'center', marginBottom: 32 },
-    logoWrap: {
-      width: 80, height: 80, borderRadius: 40, overflow: 'hidden' as const, marginBottom: 20,
-    },
-    logo: { width: 80, height: 80, borderRadius: 40, marginBottom: 20, } as any,
-    logoOver: { position: 'absolute' as any, top: 0, left: 0, marginBottom: 0, },
-    subtitle: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
-    langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
-    langBtn: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-    langActive: { color: colors.surface, backgroundColor: glassBgStrong },
-    glassCard: {
-      backgroundColor: glassBg, borderRadius: 16, padding: 28,
-      borderWidth: 1, borderColor: glassBorder,
-    },
-    shake: {},
-    msgBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
-    msgText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.danger },
-    tabRow: {
-      flexDirection: 'row', backgroundColor: glassBg, borderRadius: 12, padding: 4, marginBottom: 16,
-      borderWidth: 1, borderColor: glassBorder,
-    },
-    tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
-    tabActive: { backgroundColor: glassBgStrong },
-    tabText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: 'rgba(255,255,255,0.65)' },
-    tabActiveText: { color: colors.surface },
-    formSection: { gap: 16 },
-    fieldWrap: { gap: 6 },
-    fieldLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: 'rgba(255,255,255,0.6)' },
-    hintText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: 'rgba(255,255,255,0.3)' },
-    pwWrap: { position: 'relative' as any },
-    pwInput: {
-      backgroundColor: glassBg, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
-      paddingRight: 44, fontSize: FONTS.body.size, color: colors.surface, borderWidth: 1, borderColor: glassBorder,
-    },
-    pwEye: {
-      position: 'absolute' as any, right: 0, top: 0, bottom: 0,
-      paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center',
-    },
-    pwEyeText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.45)' },
-    textInput: {
-      backgroundColor: glassBg, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
-      fontSize: FONTS.body.size, color: colors.surface, borderWidth: 1, borderColor: glassBorder,
-    },
-    codeInput: { textAlign: 'center', letterSpacing: 6 },
-    btnDark: {
-      backgroundColor: isIOS ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.55)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
-      borderWidth: 1, borderColor: glassBorder,
-    },
-    btnDarkText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
-    btnRed: {
-      backgroundColor: withAlpha(colors.primary, 0.7), borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
-      borderWidth: 1, borderColor: glassBorder,
-    },
-    btnRedText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
-    forgotText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
-    disabledText: { opacity: 0.3 },
-    infoText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
-    infoStrong: { fontWeight: FONTS.subBold.weight, color: colors.surface },
-    verifyTitle: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: colors.surface, textAlign: 'center', marginBottom: 12 },
-    verifyBody: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
-    verifyEmail: { fontWeight: FONTS.subBold.weight, color: colors.surface },
-    verifyHint: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.45)', textAlign: 'center', lineHeight: 18 },
-    verifyLink: { color: colors.primary, fontWeight: FONTS.micro.weight },
-    devCodeCard: {
-      backgroundColor: withAlpha(colors.warning, 0.15), borderRadius: 12, padding: 16,
-      alignItems: 'center', borderWidth: 1, borderColor: withAlpha(colors.warning, 0.3),
-    },
-    devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: FONTS.micro.weight, marginBottom: 8 },
-    devCodeValue: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.surface, letterSpacing: 8 },
-    // Face ID mode
-    faceUserRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 24 },
-    faceAvatar: {
-      width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)',
-      justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
-    },
-    faceUsername: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: 'rgba(255,255,255,0.8)' },
-    faceBtn: {
-      width: 80, height: 80, borderRadius: 40,
-      backgroundColor: 'rgba(255,255,255,0.08)',
-      justifyContent: 'center', alignItems: 'center',
-      borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
-      marginBottom: 24,
-    },
-    faceSwitch: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.35)', textAlign: 'center' },
-    copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
-  });
-};
+const getStyles = (colors: ThemeColors) => StyleSheet.create({
+  container: { flex: 1, padding: 20, paddingTop: 24 },
+  bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+    // @ts-ignore - web-only
+    backgroundImage: 'url(/img/bg.jpg?v=2)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
+  bgCustom: { zIndex: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },
+  bgOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
+  content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
+  contentScroll: { paddingBottom: 40 },
+  brand: { alignItems: 'center', marginBottom: 32 },
+  logoWrap: {
+    width: 80, height: 80, borderRadius: 40, overflow: 'hidden' as const, marginBottom: 20,
+  },
+  logo: { width: 80, height: 80, borderRadius: 40, marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,.2), 0 8px 40px rgba(0,0,0,.15)' } as any,
+  logoOver: { position: 'absolute' as any, top: 0, left: 0, marginBottom: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },
+  subtitle: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.6)', marginTop: 6, letterSpacing: 1 },
+  langRow: { flexDirection: 'row', gap: 4, marginTop: 12 },
+  langBtn: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  langActive: { color: colors.surface, backgroundColor: 'rgba(255,255,255,0.15)' },
+  glassCard: {
+    backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 16, padding: 28,
+    // @ts-ignore - web-only
+    backdropFilter: 'blur(24px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  shake: {}, // animation handled by CSS class
+  msgBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+  msgText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.danger },
+  tabRow: {
+    flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, padding: 4, marginBottom: 16,
+    // @ts-ignore
+    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
+  tabActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  tabText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: 'rgba(255,255,255,0.65)' },
+  tabActiveText: { color: colors.surface },
+  formSection: { gap: 16 },
+  fieldWrap: { gap: 6 },
+  fieldLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: 'rgba(255,255,255,0.6)' },
+  hintText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: 'rgba(255,255,255,0.3)' },
+  pwWrap: { position: 'relative' as any },
+  pwInput: {
+    backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
+    paddingRight: 44, fontSize: FONTS.body.size, color: colors.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    // @ts-ignore - web-only style
+    backdropFilter: 'blur(8px)', outlineStyle: 'none' as any,
+  },
+  pwEye: {
+    position: 'absolute' as any, right: 0, top: 0, bottom: 0,
+    paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center',
+  },
+  pwEyeText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.45)' },
+  textInput: {
+    backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
+    fontSize: FONTS.body.size, color: colors.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    // @ts-ignore - web-only style
+    backdropFilter: 'blur(8px)', outlineStyle: 'none' as any,
+  },
+  codeInput: { textAlign: 'center', letterSpacing: 6 },
+  btnDark: {
+    backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
+    // @ts-ignore
+    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  btnDarkText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
+  btnRed: {
+    backgroundColor: withAlpha(colors.primary, 0.7), borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
+    // @ts-ignore
+    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  btnRedText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
+  forgotText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
+  disabledText: { opacity: 0.3 },
+  infoText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
+  infoStrong: { fontWeight: FONTS.subBold.weight, color: colors.surface },
+  verifyTitle: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: colors.surface, textAlign: 'center', marginBottom: 12 },
+  verifyBody: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
+  verifyEmail: { fontWeight: FONTS.subBold.weight, color: colors.surface },
+  verifyHint: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.45)', textAlign: 'center', lineHeight: 18 },
+  verifyLink: { color: colors.primary, fontWeight: FONTS.micro.weight },
+  devCodeCard: {
+    backgroundColor: withAlpha(colors.warning, 0.15), borderRadius: 12, padding: 16,
+    alignItems: 'center', borderWidth: 1, borderColor: withAlpha(colors.warning, 0.3),
+    // @ts-ignore
+    backdropFilter: 'blur(8px)',
+  },
+  devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: FONTS.micro.weight, marginBottom: 8 },
+  devCodeValue: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.surface, letterSpacing: 8 },
+  // Face ID mode
+  faceUserRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 24 },
+  faceAvatar: {
+    width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+  },
+  faceUsername: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: 'rgba(255,255,255,0.8)' },
+  faceBtn: {
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+    marginBottom: 24,
+    // @ts-ignore
+    boxShadow: '0 0 24px rgba(255,255,255,0.06)',
+  },
+  faceSwitch: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.35)', textAlign: 'center' },
+  copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
+});
