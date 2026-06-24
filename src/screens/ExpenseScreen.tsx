@@ -383,7 +383,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const lang = getLang();
   const tabCards = useMemo(() => [
     { gradient: [withAlpha(colors.success, 0.22), withAlpha(colors.info, 0.22)], gradientActive: [withAlpha(colors.success, 0.48), withAlpha(colors.info, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
-    { gradient: [withAlpha('#D0E6A5', 0.22), withAlpha('#CCABD8', 0.22)], gradientActive: [withAlpha('#D0E6A5', 0.48), withAlpha('#CCABD8', 0.48)], title: t('tabExpense'), stat: businessSummary.cumulative_expense || 0, statFmt: fmt(businessSummary.cumulative_expense || 0), statColor: colors.textMain, prefix: '' },
+    { gradient: [withAlpha('#2C2C2C', 0.22), withAlpha('#0F0F0F', 0.22)], gradientActive: [withAlpha('#2C2C2C', 0.48), withAlpha('#0F0F0F', 0.48)], title: t('tabExpense'), stat: businessSummary.cumulative_expense || 0, statFmt: fmt(businessSummary.cumulative_expense || 0), statColor: colors.textMain, prefix: '' },
   ], [diff, businessSummary.cumulative_expense, colors, lang]);
 
   const st = useMemo(() => getSt(colors), [colors]);
@@ -494,9 +494,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     {/* Row 1: 日常 | 采购 */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{
-                        flex: 1, backgroundColor: withAlpha('#D0E6A5', 0.22),
+                        flex: 1, backgroundColor: withAlpha('#2C2C2C', 0.22),
                         borderRadius: 10, padding: 10, gap: 4,
-                        borderWidth: 0.5, borderColor: withAlpha('#D0E6A5', 0.35),
+                        borderWidth: 0.5, borderColor: withAlpha('#2C2C2C', 0.35),
 
                       } as any}>
                         <Text style={{
@@ -509,9 +509,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         }}>{'¥' + toDec2Comma(glassCatTotals.daily)}</Text>
                       </View>
                       <View style={{
-                        flex: 1, backgroundColor: withAlpha('#CCABD8', 0.22),
+                        flex: 1, backgroundColor: withAlpha('#0F0F0F', 0.22),
                         borderRadius: 10, padding: 10, gap: 4,
-                        borderWidth: 0.5, borderColor: withAlpha('#CCABD8', 0.35),
+                        borderWidth: 0.5, borderColor: withAlpha('#0F0F0F', 0.35),
 
                       } as any}>
                         <Text style={{
@@ -527,9 +527,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     {/* Row 2: 房租 | 薪资 */}
                     <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
                       <View style={{
-                        flex: 1, backgroundColor: withAlpha('#D0E6A5', 0.22),
+                        flex: 1, backgroundColor: withAlpha('#2C2C2C', 0.22),
                         borderRadius: 10, padding: 10, gap: 4,
-                        borderWidth: 0.5, borderColor: withAlpha('#D0E6A5', 0.35),
+                        borderWidth: 0.5, borderColor: withAlpha('#2C2C2C', 0.35),
 
                       } as any}>
                         <Text style={{
@@ -542,9 +542,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         }}>{'¥' + toDec2Comma(glassCatTotals.rent)}</Text>
                       </View>
                       <View style={{
-                        flex: 1, backgroundColor: withAlpha('#CCABD8', 0.22),
+                        flex: 1, backgroundColor: withAlpha('#0F0F0F', 0.22),
                         borderRadius: 10, padding: 10, gap: 4,
-                        borderWidth: 0.5, borderColor: withAlpha('#CCABD8', 0.35),
+                        borderWidth: 0.5, borderColor: withAlpha('#0F0F0F', 0.35),
 
                       } as any}>
                         <Text style={{
