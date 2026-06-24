@@ -12,7 +12,7 @@ import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
 import ButtonPair from '../components/ButtonPair';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 import ImagePreview from '../components/ImagePreview';
 import TrashIcon from '../components/icons/TrashIcon';
 import BackArrow from '../components/icons/BackArrow';
@@ -98,7 +98,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   const [showSavedConfirm, setShowSavedConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const { preview: previewData, openPreview, closePreview } = useImagePreview();
 
   const [category, setCategory] = useState(record.category || 'daily');
@@ -137,7 +137,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
 
   const handleSave = async () => {
     const absAmt = parseFloat(amount) || Math.abs(Number(record.amount));
-    if (!absAmt || absAmt <= 0) { setToast(t('enterAmount')); return; }
+    if (!absAmt || absAmt <= 0) { showToast(t('enterAmount')); return; }
     const amt = absAmt * (Number(record.amount) < 0 ? -1 : 1);
     setSaving(true);
     try {
@@ -146,7 +146,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
       if (newFiles.length > 0) {
         const uploadRes = await api.uploadExpenseImages(newFiles);
         if (uploadRes.status !== 'ok') {
-          setToast(t('uploadFailed'));
+          showToast(t('uploadFailed'));
           setSaving(false);
           return;
         }
@@ -161,7 +161,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
       setShowSavedConfirm(true);
       onEdited?.();
     } catch (e: any) {
-      setToast(e?.message || t('errNetworkError'));
+      showToast(e?.message || t('errNetworkError'));
     } finally {
       setSaving(false);
     }
@@ -497,7 +497,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
         onConfirm={() => { setShowSavedConfirm(false); onBack(); }}
         onCancel={() => setShowSavedConfirm(false)} />
 
-      {toast ? <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} /> : null}
+      {ToastHost}
 
       {previewData && (
         <ImagePreview

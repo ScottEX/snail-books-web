@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { t, useLang } from '../i18n';
 import { useServerDate } from '../hooks/useServerDate';
 import { api } from '../api/client';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 import ModalOverlay from '../components/ModalOverlay';
 import ConfirmModal from '../components/ConfirmModal';
 import InvoiceScreen from './InvoiceScreen';
@@ -68,7 +68,7 @@ function IconPeople({ color = '#8C8583' }: { color?: string }) {
 
 export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { onBack: () => void; onProfile?: () => void; refreshKey?: number }) {
   const sd = useServerDate();
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const [cropMsg, setCropMsg] = useState('');
   const {
     partners,
@@ -79,7 +79,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
     grouped,
     groupKeys,
     getPartnerHistory,
-  } = usePartnerData(setToast, refreshKey);
+  } = usePartnerData(showToast, refreshKey);
   const [showDividend, setShowDividend] = useState(false);
   const [showDelete, setShowDelete] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
@@ -203,7 +203,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       setDivAmount(''); setDivRoundNum(0); setDivPreview([]);
       loadData();
     } catch {
-      setToast(t('toastSubmitFailed'));
+      showToast(t('toastSubmitFailed'));
     }
   };
 
@@ -962,7 +962,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
         </View>,
         document.body
       )}
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
 
       {/* ====== INVOICE SCREEN (portaled to body — covers nav bar) ====== */}
       {showInvoice && createPortal(

@@ -5,7 +5,7 @@ import { t, getLang, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 
 // Base64url helpers for WebAuthn
 function arrayBufferToBase64url(buffer: ArrayBuffer): string {
@@ -75,7 +75,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     loadCover,
     coverCropState, coverClampCrop, coverDrawCrop,
   } = useCoverCrop();
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
 
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount.
@@ -130,7 +130,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     newEmail, setNewEmail, emailCode, setEmailCode,
     modalMsg, setModalMsg, modalLoading,
     handleChangePw, handleSendCode, handleVerifyEmail, openEmailModal,
-  } = useProfileForms(setToast);
+  } = useProfileForms(showToast);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAdminBlockModal, setShowAdminBlockModal] = useState(false);
@@ -239,9 +239,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             // Store WebAuthn user.id bytes for signalAllAcceptedCredentials
             localStorage.setItem('webauthn_user_id_b64', user.id);
           }
-          setToast(completeResp.message || '面容登录已开启');
+          showToast(completeResp.message || '面容登录已开启');
         } else {
-          setToast(completeResp.message || '绑定失败');
+          showToast(completeResp.message || '绑定失败');
         }
       } catch (e: any) {
         // User cancelled — don't show error
@@ -251,7 +251,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             msg.includes('not allowed') || msg.includes('denied permission')) {
           // silently ignore
         } else {
-          setToast(e?.message || '绑定失败，请重试');
+          showToast(e?.message || '绑定失败，请重试');
         }
       } finally {
         setFaceIDLoading(false);
@@ -316,9 +316,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           localStorage.removeItem('webauthn_credential_id');
           localStorage.removeItem('webauthn_user_id_b64');
         }
-        setToast(resp.message || '面容登录已关闭');
+        showToast(resp.message || '面容登录已关闭');
       } catch (e: any) {
-        setToast(e?.message || '解绑失败');
+        showToast(e?.message || '解绑失败');
       } finally {
         setFaceIDLoading(false);
       }
@@ -365,7 +365,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: r.url } }));
       } else { throw new Error('upload-failed'); }
     } catch (err) {
-      setToast(t('uploadFailedShort'));
+      showToast(t('uploadFailedShort'));
     } finally {
       setCoverUploading(false);
     }
@@ -390,13 +390,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     setDeleteLoading(true);
     try {
       const rawUid = getCurrentUserId();
-      if (!rawUid) { setToast('无法获取用户信息'); setDeleteLoading(false); setShowDeleteModal(false); return; }
+      if (!rawUid) { showToast('无法获取用户信息'); setDeleteLoading(false); setShowDeleteModal(false); return; }
       const data = await api.deleteAccount(Number(rawUid));
       setShowDeleteModal(false);
       setDeleteConfirmUsername('');
-      setToast(data.message || '账户已进入冷静期');
+      showToast(data.message || '账户已进入冷静期');
     } catch (err: any) {
-      setToast(err.message || '操作失败，请稍后重试');
+      showToast(err.message || '操作失败，请稍后重试');
     } finally {
       setDeleteLoading(false);
     }
@@ -739,7 +739,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       <input type="file" accept="image/*" ref={avatarInputRef as any} style={{ display: 'none' }} onChange={handleAvatarSelect} />
 
       {/* Toast */}
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
 
       {/* Shared modals */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />

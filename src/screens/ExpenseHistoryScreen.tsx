@@ -8,7 +8,7 @@ import { trCategory, trPayment, catKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
-import Toast from "../components/Toast";
+import { useToast } from '../hooks/useToast';
 import EmptyState from "../components/EmptyState";
 import LoadingSpinner from '../components/LoadingSpinner';
 import ImagePreview from '../components/ImagePreview';
@@ -57,7 +57,7 @@ function IcnSealExp({ color, label }: { color: string; label: string }) {
 
 export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, onInvoice }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void; onInvoice?: (batchId: number) => void }) {
   const swipeBack = useSwipeBack(onBack);
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const { preview: previewData, openPreview, closePreview } = useImagePreview();
 
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
@@ -111,7 +111,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
       const tx: any = await api.getTransactions(pg, perPage, getFilterParams());
       return { items: tx.transactions || [], total: tx.total || 0, totalAll: tx.total_all, pages: tx.pages || 1 };
     }, [getFilterParams]),
-    onError: () => setToast(t('toastLoadFailed')),
+    onError: () => showToast(t('toastLoadFailed')),
   });
 
   // i18n mapping for category & payment.
@@ -424,7 +424,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
         />
       )}
 
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
     </View>
   );
 }

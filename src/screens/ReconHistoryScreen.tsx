@@ -7,7 +7,7 @@ import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import DatePicker from '../components/DatePicker';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -39,7 +39,7 @@ function ReconEmptyIcon({ color }: { color: string }) {
 
 export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState<any>(null);
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const swipeBack = useSwipeBack(onBack);
 
   // ── Detail modal animation (shared slide-from-top hook) ──
@@ -116,7 +116,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       const data: any = await api.getReconciliationsPage(pg, perPage, getFilterParams());
       return { items: data?.records || [], total: data?.total || 0, totalAll: data?.total_all, pages: data?.pages || 1 };
     }, [getFilterParams]),
-    onError: () => setToast(t('toastLoadFailed')),
+    onError: () => showToast(t('toastLoadFailed')),
   });
 
   const resetFilters = () => {
@@ -323,7 +323,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   return (
     <View style={st.root} {...swipeBack}>
       {/* Toast */}
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
       {/* Header */}
       <View style={st.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>

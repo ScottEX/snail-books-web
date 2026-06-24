@@ -4,7 +4,7 @@ import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 import PartnerScreen from './PartnerScreen';
 import ProcurementScreen from './ProcurementScreen';
 import ExpenseScreen from './ExpenseScreen';
@@ -117,7 +117,7 @@ export default function HomeScreen({
 
   // PDF push + popstate listener → useNavigationStack hook
   const [uploadingBg, setUploadingBg] = useState(false);
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const navScaleAnims = useRef([...Array(5)].map(() => new Animated.Value(1))).current;
   const [bgVersion, setBgVersion] = useState(0);
   const [bgReady, setBgReady] = useState(true); // default bg.jpg always ready
@@ -149,7 +149,7 @@ export default function HomeScreen({
     todayExpenseSummary, monthExpenseSummary, yesterdayIncome, yesterdayExpense, yesterdayProfit, monthIncome,
     toDec2Comma,
     handlePage,
-  } = useHomeData(tab, setToast);
+  } = useHomeData(tab, showToast);
 
   // Background image crop moved to shared BgCropModal component.
 
@@ -164,7 +164,7 @@ export default function HomeScreen({
     onPopUserDetail: () => { setSelectedUser(null); setPartnerRefreshKey(k => k + 1); },
   });
   const revForm = useDailyRevenueForm({
-    onToast: (msg: string) => setToast(msg),
+    onToast: (msg: string) => showToast(msg),
     onRefreshLast7: (records: any[]) => setLast7Records(records),
   });
 
@@ -300,7 +300,7 @@ export default function HomeScreen({
       setAmount(''); setCategory(''); setAccount(''); setNote('');
       loadData();
     } catch {
-      setToast(t('toastSubmitFailed'));
+      showToast(t('toastSubmitFailed'));
     }
   };
 
@@ -312,7 +312,7 @@ export default function HomeScreen({
       await api.deleteTransaction(id);
       loadData();
     } catch {
-      setToast(t('toastSubmitFailed'));
+      showToast(t('toastSubmitFailed'));
     }
   };
 
@@ -813,7 +813,7 @@ export default function HomeScreen({
       )}
       {/* Background image crop handled by shared BgCropModal (rendered below) */}
 
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
     </View>
   );
 }

@@ -8,7 +8,7 @@ import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 import ModalOverlay from '../components/ModalOverlay';
 import NumberTicker from '../components/NumberTicker';
 import FadeInView from '../components/FadeInView';
@@ -115,8 +115,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     if (i === 1) setExpDateErr(0);
     try { localStorage.setItem('expense_active_tab', String(i)); } catch {}
   };
-  const [showToast, setShowToast] = useState(false);
-  const hideToast = () => setShowToast(false);
+  const [showCardToast, setShowCardToast] = useState(false);
+  const hideCardToast = () => setShowCardToast(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollElRef = useRef<HTMLElement | null>(null);
 
@@ -160,7 +160,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   /* ── 模块一：对账 ── */
   const recDate = useDateField({ sd, initial: '' });
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   const [businessSummary, setBusinessSummary] = useState<any>({});
   const [reconForm, setReconForm] = useState({
     cardBalance: '', cashBalance: '', dineIn: '', meituan: '',
@@ -217,7 +217,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           updateRecon('flashSale', ''); updateRecon('tuan', ''); updateRecon('jd', '');
         }
         reconJustLoaded.current = true;
-      } catch { setToast(t('toastLoadFailed')); }
+      } catch { showToast(t('toastLoadFailed')); }
     })();
   }, [recDate.value]);
 
@@ -232,7 +232,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
-    if (sd.ready && sd.isFuture(recDate.value)) { setToast(t('errDateFuture')); return; }
+    if (sd.ready && sd.isFuture(recDate.value)) { showToast(t('errDateFuture')); return; }
     try {
       const username = getCurrentUser();
       await api.createReconciliation({
@@ -246,9 +246,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         tuan: toNum(tuan),
         reconciled_by: username,
       });
-      setToast(t('reconComplete'));
+      showToast(t('reconComplete'));
       onReconHistory?.();
-    } catch { setToast(t('toastSubmitFailed')); }
+    } catch { showToast(t('toastSubmitFailed')); }
   }, [recDate.value, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
 
   const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
@@ -308,15 +308,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       } else {
         setFeeData(null);
       }
-    } catch { setToast(t('toastLoadFailed')); }
+    } catch { showToast(t('toastLoadFailed')); }
   };
   useEffect(() => { loadFeeData(); }, [feeMonth]);
 
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
-    if (sd.isFuture(feeDate.value)) { setToast(t('errDateFuture')); return; }
+    if (sd.isFuture(feeDate.value)) { showToast(t('errDateFuture')); return; }
     const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
-    if (mc + mw + ew + mt === 0) { setToast(t('atLeastOneFee')); return; }
+    if (mc + mw + ew + mt === 0) { showToast(t('atLeastOneFee')); return; }
     setSavingFee(true);
     try {
       const r = await api.addPlatformFeeEntry({
@@ -332,9 +332,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         // Reload all months to keep totals accurate
         api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : [])).catch(() => {});
       } else {
-        setToast(r?.message || t('toastSubmitFailed'));
+        showToast(r?.message || t('toastSubmitFailed'));
       }
-    } catch { setToast(t('toastSubmitFailed')); }
+    } catch { showToast(t('toastSubmitFailed')); }
     setSavingFee(false);
   };
 
@@ -363,7 +363,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     clearUrlCache,
     fileInputRef,
     expDateInputRef,
-    onToast: setToast,
+    onToast: showToast,
     onExpenseAdded: loadBusinessSummary,
   });
 
@@ -761,7 +761,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               leftLabel={t('reconHistory')}
               leftOnPress={onReconHistory}
               rightLabel={t('reconComplete')}
-              rightOnPress={() => hasReconChanges && setShowToast(true)}
+              rightOnPress={() => hasReconChanges && setShowCardToast(true)}
               rightDisabled={!hasReconChanges}
             />
           </View>
@@ -880,11 +880,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
 
       {/* 添加提示弹窗 */}
-        <ModalOverlay visible={showToast} onClose={hideToast}>
+        <ModalOverlay visible={showCardToast} onClose={hideCardToast}>
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
-              <CloseButton onPress={hideToast} />
+              <CloseButton onPress={hideCardToast} />
             </View>
             <View style={{ padding: 20, gap: 16 }}>
               <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
@@ -892,9 +892,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </Text>
               <ButtonPair
                 leftLabel={t('cancel')}
-                leftOnPress={hideToast}
+                leftOnPress={hideCardToast}
                 rightLabel={t('confirm')}
-                rightOnPress={() => { hideToast(); submitRecon(); }}
+                rightOnPress={() => { hideCardToast(); submitRecon(); }}
               />
             </View>
           </View>
@@ -1047,7 +1047,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             </ScrollView>
           </View>
         </ModalOverlay>
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
       {/* Month picker dropdown — animated spring popover */}
       {feeMonthPicker.open && (
         <>

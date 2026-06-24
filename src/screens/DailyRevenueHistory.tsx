@@ -7,7 +7,7 @@ import { usePaginatedList } from '../hooks/usePaginatedList';
 import { toDec2 } from "../utils/numbers";
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
-import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { modalClose, historyHeader } from '../sharedStyles';
@@ -39,7 +39,7 @@ function RevenueEmptyIcon({ color }: { color: string }) {
 
 export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) {
   const swipeBack = useSwipeBack(onBack);
-  const [toast, setToast] = useState('');
+  const { showToast, ToastHost } = useToast();
   // Uncontrolled date refs
   const dateFromRef = useRef<HTMLInputElement>(null);
   const dateToRef = useRef<HTMLInputElement>(null);
@@ -67,7 +67,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       );
       return { items: r?.records || [], total: r?.total || 0, totalAll: r?.total_all, pages: r?.pages || 1 };
     }, [appliedFrom, appliedTo]),
-    onError: () => setToast(t('toastLoadFailed')),
+    onError: () => showToast(t('toastLoadFailed')),
   });
 
   const [filterDateError, setFilterDateError] = useState(0);
@@ -295,7 +295,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         )}
       </ScrollView>
 
-      <Toast message={toast} visible={!!toast} onDismiss={() => setToast('')} />
+      {ToastHost}
     </View>
   );
 }

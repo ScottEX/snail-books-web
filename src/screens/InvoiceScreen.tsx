@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useImagePreview } from '../hooks/useImagePreview';
+import { useToast } from '../hooks/useToast';
 import ReceiptUpload from '../components/ReceiptUpload';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import DatePicker from '../components/DatePicker';
@@ -248,14 +249,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
   // Toast
-  const [toast, setToast] = useState('');
-  const toastT = useRef<any>(null);
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    clearTimeout(toastT.current);
-    toastT.current = setTimeout(() => setToast(''), 2400);
-  };
+  const { showToast, ToastHost } = useToast();
 
   // Load records from API
   const loadRecords = useCallback(async () => {
@@ -671,13 +665,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
 
       {/* ═══ TOAST ═══ */}
-      {toast !== '' && (
-        <View style={s.toastWrap}>
-          <View style={s.toast}>
-            <Text style={s.toastText}>{toast}</Text>
-          </View>
-        </View>
-      )}
+      {ToastHost}
 
       {/* ═══ CONFIRM DELETE MODAL ═══ */}
       <ConfirmModal
@@ -1044,11 +1032,6 @@ const s = StyleSheet.create({
   empty: { alignItems: 'center', paddingVertical: 48 } as any,
   emptyIcon: { fontSize: 48, marginBottom: 12, opacity: 0.4 } as any,
   emptyText: { fontSize: 14, lineHeight: 22 } as any,
-
-  /* TOAST */
-  toastWrap: { position: 'absolute', bottom: 90, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 200 } as any,
-  toast: { backgroundColor: 'rgba(28,28,26,0.88)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10 } as any,
-  toastText: { color: '#fff', fontSize: 13, whiteSpace: 'nowrap' } as any,
 
   /* DRAWER */
   drawerOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },

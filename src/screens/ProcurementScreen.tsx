@@ -11,13 +11,13 @@ import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
 
-import Toast from '../components/Toast';
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 
 import TextField from '../components/TextField';
 import ButtonPair from '../components/ButtonPair';
 import SubmitButton from '../components/SubmitButton';
+import { useToast } from '../hooks/useToast';
 import CloseButton from '../components/CloseButton';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
@@ -392,8 +392,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [successBatch, setSuccessBatch] = useState(0);
   const [successIsEdit, setSuccessIsEdit] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
+  const { showToast, ToastHost } = useToast();
 
   const [stats, setStats] = useState<ProcStats>({ total_spent: 0, total_income: 0, batch_count: 0, margin_pct: 0 });
 
@@ -736,8 +735,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         const result = await api.uploadExpenseImages(receipts);
         if (result.status !== 'ok') {
           setSubmitting(false);
-          setToastMsg(t('toastSubmitFailed'));
-          setShowToast(true);
+          showToast(t('toastSubmitFailed'));
           return;
         }
         newImageUrls = result.images || [];
@@ -774,7 +772,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             loadStats();
           });
         } else {
-          setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+          showToast(t('toastSubmitFailed'));
         }
         setSubmitting(false);
         return;
@@ -797,13 +795,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         });
         loadStats();
       } else {
-        setToastMsg(t('toastSubmitFailed'));
-        setShowToast(true);
+        showToast(t('toastSubmitFailed'));
       }
     } catch (err) {
       console.error('[procurement] submit error:', err);
-      setToastMsg(t('toastSubmitFailed'));
-      setShowToast(true);
+      showToast(t('toastSubmitFailed'));
     }
     setSubmitting(false);
   };
@@ -879,11 +875,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         loadPage(1, true);
         loadStats();
       } else {
-        setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+        showToast(t('toastSubmitFailed'));
       }
     } catch (err) {
       console.error('[procurement] delete error:', err);
-      setToastMsg(t('toastSubmitFailed')); setShowToast(true);
+      showToast(t('toastSubmitFailed'));
     }
   };
 
@@ -915,8 +911,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       closeSlideModal(() => setShowProductModal(false));
       loadProducts();
     } catch {
-      setToastMsg(t('toastSubmitFailed'));
-      setShowToast(true);
+      showToast(t('toastSubmitFailed'));
     }
     setProdSaving(false);
   };
@@ -928,8 +923,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       setCart(prev => { const cp = { ...prev }; delete cp[deleteTarget.id]; return cp; });
       loadProducts();
     } catch {
-      setToastMsg(t('toastSubmitFailed'));
-      setShowToast(true);
+      showToast(t('toastSubmitFailed'));
     }
     closeSlideModal(() => setDeleteTarget(null));
   };
@@ -1622,7 +1616,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           </Animated.View>
         </Animated.View>
       )}
-      <Toast message={toastMsg} visible={showToast} onDismiss={() => setShowToast(false)} />
+      {ToastHost}
     </View>
   );
 }
