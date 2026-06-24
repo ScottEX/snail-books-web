@@ -1,6 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated, Platform, ImageBackground } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
@@ -528,8 +527,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       {Platform.OS === 'ios' && (
         <View style={[styles.bgOverlay, { backgroundColor: 'rgba(0,0,0,0.55)' }]} />
       )}
-      <SafeAreaView style={{ flex: 1 }} edges={Platform.OS === 'ios' ? ['top'] : []}>
-      <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={[styles.contentScroll, Platform.OS === 'ios' && { paddingTop: 47 }]} showsVerticalScrollIndicator={false}>
         {/* Brand */}
         <View style={styles.brand}>
           <View style={styles.logoWrap}>
@@ -1123,7 +1121,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           </View>
         )}
       </ScrollView>
-      </SafeAreaView>
     </View>
   );
 }

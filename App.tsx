@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SessionKickedModal from './src/components/SessionKickedModal';
@@ -116,7 +115,6 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaProvider>
     <LangProvider>
       {/* SessionKickedModal is rendered outside the keyed ThemeProvider
           subtree so its visible state survives the user-change remount. */}
@@ -170,6 +168,5 @@ export default function App() {
         )}
       </ThemeProvider>
     </LangProvider>
-    </SafeAreaProvider>
   );
 }
