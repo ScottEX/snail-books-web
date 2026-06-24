@@ -655,7 +655,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           </View>
 
           {/* 日记账 */}
-          <View style={[st.card, { marginTop: 16, backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.warning, 0.22)} 100%)` as any, borderColor: 'rgba(255,255,255,0.35)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)' } as any]}>
+          <View style={[st.card, { marginTop: 16 }]}>
             {/* 日期行 */}
             <View style={st.dateRow}>
               <Text style={{ fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.textSub }}>{t('billDate')}</Text>
