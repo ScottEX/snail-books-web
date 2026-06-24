@@ -382,7 +382,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     : 0;
   const lang = getLang();
   const tabCards = useMemo(() => [
-    { gradient: [withAlpha(colors.success, 0.22), withAlpha(colors.info, 0.22)], gradientActive: [withAlpha(colors.success, 0.48), withAlpha(colors.info, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
+    { gradient: [withAlpha(colors.expenseGradientStart, 0.22), withAlpha(colors.expenseGradientEnd, 0.22)], gradientActive: [withAlpha(colors.expenseGradientStart, 0.48), withAlpha(colors.expenseGradientEnd, 0.48)], title: t('tabRecon'), stat: diff, statFmt: fmt(diff), statColor: diff >= 0 ? colors.success : colors.danger, prefix: diff >= 0 ? '+' : '' },
     { gradient: [withAlpha(colors.expenseGradientStart, 0.22), withAlpha(colors.expenseGradientEnd, 0.22)], gradientActive: [withAlpha(colors.expenseGradientStart, 0.48), withAlpha(colors.expenseGradientEnd, 0.48)], title: t('tabExpense'), stat: businessSummary.cumulative_expense || 0, statFmt: fmt(businessSummary.cumulative_expense || 0), statColor: colors.textMain, prefix: '' },
   ], [diff, businessSummary.cumulative_expense, colors, lang]);
 

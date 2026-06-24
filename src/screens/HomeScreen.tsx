@@ -976,7 +976,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   chartGlassCard: {
     borderRadius: 14, paddingVertical: 14, paddingHorizontal: 18, gap: 12,
     // @ts-ignore
-    backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.warning, 0.22)} 100%)`,
+    backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.expenseGradientStart, 0.22)} 0%, ${withAlpha(colors.expenseGradientEnd, 0.22)} 100%)`,
     borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.35)',
     // @ts-ignore
 
