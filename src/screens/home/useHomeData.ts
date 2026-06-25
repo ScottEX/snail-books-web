@@ -98,6 +98,7 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   useEffect(() => {
     if (tab === 'chart') { loadChart(); loadChartMonthly(); loadDailyRevenues(); loadBusinessSummary(); }
     if (tab === 'supply') { loadProducts(); }
+    if (tab === 'list') { loadLast7Days(); loadBusinessSummary(); loadDailyRevenues(); }
   }, [tab]);
 
   // ── Business summary + derived expense/revenue data ──

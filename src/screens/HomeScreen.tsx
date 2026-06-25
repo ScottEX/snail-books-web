@@ -168,6 +168,7 @@ export default function HomeScreen({
     onPopUserDetail: () => { setSelectedUser(null); setPartnerRefreshKey(k => k + 1); },
   });
   const revForm = useDailyRevenueForm({
+    tab,
     onToast: (msg: string) => showToast(msg),
     onRefreshLast7: (records: any[]) => setLast7Records(records),
   });

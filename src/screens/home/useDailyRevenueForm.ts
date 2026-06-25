@@ -17,10 +17,12 @@ interface DailyRevenueFormOptions {
   onToast: (msg: string) => void;
   /** Refresh last 7 days records after save */
   onRefreshLast7: (records: any[]) => void;
+  /** Current tab — refresh when switching to 营收 */
+  tab?: string;
 }
 
 export function useDailyRevenueForm(opts: DailyRevenueFormOptions) {
-  const { onToast, onRefreshLast7 } = opts;
+  const { onToast, onRefreshLast7, tab } = opts;
   const sd = useServerDate();
 
   /* ── state ── */
@@ -130,6 +132,14 @@ export function useDailyRevenueForm(opts: DailyRevenueFormOptions) {
   }, []);
 
   useEffect(() => { loadWeekRev(); }, [loadWeekRev]);
+
+  // Refresh summaries when switching to 营收 tab
+  useEffect(() => {
+    if (tab === 'list') {
+      loadYesterdayRev();
+      loadWeekRev();
+    }
+  }, [tab, loadYesterdayRev, loadWeekRev]);
 
   const submitDailyRev = async () => {
     const isClosed = revMarkedClosed;
