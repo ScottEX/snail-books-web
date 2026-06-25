@@ -500,7 +500,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   )}
                   </View>
                 {i === 1 && (
-                  <View style={{ transform: [{ translateY: -4 }] }}>
+                  <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+                    <View style={{ transform: [{ translateY: -4 }] }}>
                     {/* Row 1: 日常 | 采购 */}
                     <View style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={{
@@ -566,6 +567,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           color: 'rgba(255,255,255,0.95)',
                         }}>{'¥' + toDec2Comma(glassCatTotals.salary)}</Text>
                       </View>
+                    </View>
                     </View>
                   </View>
                 )}
