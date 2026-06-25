@@ -562,6 +562,7 @@ export default function HomeScreen({
                     }]}>
                       {/* @ts-ignore — 收支总览大标题 */}
                       <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: 'rgba(255,255,255,0.95)', }}>{t('summary')}</Text>
+                      <View style={{ flex: 1, justifyContent: 'space-between' }}>
                       <View style={{ alignItems: 'flex-start', gap: 2 }}>
                         <Text style={styles.chartGlassLabel}>{t('cashOnHand')}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
@@ -585,6 +586,7 @@ export default function HomeScreen({
                           </Text>
                         </View>
                       </View>
+                    </View>
                     </View>
                   </View>
                 )}
