@@ -252,9 +252,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     } catch { showToast(t('toastSubmitFailed')); }
   }, [recDate.value, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
 
-  const channelTotal = toNum(dineIn) + toNum(meituan) + toNum(flashSale) + toNum(tuan) + toNum(jd);
-  const realTotal = toNum(cardBalance) + toNum(cashBalance) + channelTotal;
-  const diff = (businessSummary.cash_on_hand || 0) - realTotal;
+  // Precise arithmetic: convert to cents (integer), compute, convert back
+  // Avoids IEEE 754 float issues (e.g., 0.1 + 0.2 !== 0.3)
+  const toCents = (v: any) => Math.round((parseFloat(String(v ?? '0')) || 0) * 100);
+  const channelTotalCents = toCents(dineIn) + toCents(meituan) + toCents(flashSale) + toCents(tuan) + toCents(jd);
+  const realTotalCents = toCents(cardBalance) + toCents(cashBalance) + channelTotalCents;
+  const cashOnHandCents = toCents(businessSummary.cash_on_hand);
+  const channelTotal = channelTotalCents / 100;
+  const realTotal = realTotalCents / 100;
+  const diff = (cashOnHandCents - realTotalCents) / 100;
 
   const hasReconChanges =
     toNum(cardBalance) !== toNum(initReconValues.current.card) ||
