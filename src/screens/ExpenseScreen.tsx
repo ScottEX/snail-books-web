@@ -1059,10 +1059,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
       {ToastHost}
       {/* Month picker dropdown — animated spring popover */}
-      {feeMonthPicker.open && (
+      {feeMonthPicker.open && createPortal(
         <>
           {/* Animated backdrop */}
-          <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: pickerAnim }}>
+          <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: pickerAnim }}>
             <TouchableOpacity
               style={{ flex: 1 }}
               activeOpacity={1}
@@ -1072,7 +1072,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             />
           </Animated.View>
           <Animated.View style={{
-            position: 'absolute' as any,
+            position: 'fixed' as any,
             top: pickerPos.top || '38%',
             left: pickerPos.left || 10,
             zIndex: 9999,
@@ -1114,7 +1114,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               );
             })}
           </Animated.View>
-        </>
+        </>,
+        document.body
       )}
       {/* Fee history filter dropdown — animated to match platform fee picker */}
       {feeHistoryFilterPicker.open && createPortal(
