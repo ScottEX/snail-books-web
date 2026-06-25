@@ -1293,7 +1293,7 @@ function getStyles(colors: ThemeColors) {
     stickyHeader: {
       position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 100,
       flexDirection: 'row' as any, alignItems: 'center' as any,
-      paddingVertical: 12, paddingHorizontal: 16, paddingTop: 56,
+      paddingVertical: 8, paddingHorizontal: 16, paddingTop: 12,
       backgroundColor: withAlpha(colors.surface, 0.85),
       // @ts-ignore
       backdropFilter: 'saturate(180%) blur(20px)',
