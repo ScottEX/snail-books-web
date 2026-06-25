@@ -245,6 +245,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         jd: toNum(jd),
         tuan: toNum(tuan),
         cash_on_hand: businessSummary.cash_on_hand || 0,
+        diff: diff,
         reconciled_by: username,
       });
       showToast(t('reconComplete'));
