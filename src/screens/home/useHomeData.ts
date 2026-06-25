@@ -19,6 +19,16 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [avatarUrl, setAvatarUrl] = useState('');
 
+  // ── Last 7 days ──
+  const loadLast7Days = useCallback(async () => {
+    try {
+      const r: any = await api.getLast7Days();
+      setLast7Records(r?.records || []);
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { loadLast7Days(); }, [loadLast7Days]);
+
   // ── loadData with request-id cancellation ──
   const loadDataReqRef = useRef(0);
   const loadData = useCallback(async () => {
@@ -32,11 +42,12 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
       setTransactions(tx.transactions || []);
       setPages(tx.pages || 1);
       setPage(1);
+      loadLast7Days();
     } catch {
       if (reqId !== loadDataReqRef.current) return;
       setToast(t('toastLoadFailed'));
     }
-  }, [setToast]);
+  }, [setToast, loadLast7Days]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -58,15 +69,6 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
     } catch {}
   };
   useEffect(() => { loadAvatar(); }, []);
-
-  // ── Last 7 days ──
-  useEffect(() => {
-    let cancelled = false;
-    api.getLast7Days().then((r: any) => {
-      if (!cancelled) setLast7Records(r?.records || []);
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
 
   // ── Tab-driven loads ──
   const loadChart = async () => {
