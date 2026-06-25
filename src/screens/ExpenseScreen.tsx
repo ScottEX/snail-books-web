@@ -439,7 +439,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     )}
                   </Text>
                   {i === 0 && (
-                    <View style={{ flex: 1, gap: 12 }}>
+                    <View style={{ flex: 1, justifyContent: 'space-between' }}>
                       {/* Hero: 账面差额 */}
                       <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
                         {/* @ts-ignore */}
@@ -502,7 +502,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 {i === 1 && (
                   <View style={{ transform: [{ translateY: -4 }] }}>
                     {/* Row 1: 日常 | 采购 */}
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.expenseGradientStart, 0.22),
                         borderRadius: 10, padding: 10, gap: 4,
@@ -535,7 +535,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       </View>
                     </View>
                     {/* Row 2: 房租 | 薪资 */}
-                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.expenseGradientStart, 0.22),
                         borderRadius: 10, padding: 10, gap: 4,
