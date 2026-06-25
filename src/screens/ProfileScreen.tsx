@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput, Switch } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput, Switch, Animated } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Defs, LinearGradient as SVGGradient, Stop, Rect } from 'react-native-svg';
 import { t, getLang, useLang } from '../i18n';
@@ -76,6 +76,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     coverCropState, coverClampCrop, coverDrawCrop,
   } = useCoverCrop();
   const { showToast, ToastHost } = useToast();
+
+  // Sticky header — shown when cover scrolls out of view
+  const [stickyHeaderVisible, setStickyHeaderVisible] = useState(false);
+  const stickyOpacity = useRef(new Animated.Value(0)).current;
 
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount.
@@ -407,10 +411,24 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   // Avatar canvas functions → useAvatarCrop hook
   // Cover crop canvas → useCoverCrop hook
 
+  const handleScroll = (e: any) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const threshold = 260; // cover height
+    const shouldShow = y >= threshold;
+    if (shouldShow !== stickyHeaderVisible) {
+      setStickyHeaderVisible(shouldShow);
+      Animated.timing(stickyOpacity, {
+        toValue: shouldShow ? 1 : 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
 
   return (
     <View style={st.root} {...swipeBack}>
-      <ScrollView style={st.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={st.scroll} showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}>
         {/* Cover Image — nav & controls overlaid on top */}
         <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
@@ -733,6 +751,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
         )}
       </ScrollView>
+
+      {/* Sticky header — appears when cover scrolls out of view */}
+      {stickyHeaderVisible && (
+        <Animated.View style={[st.stickyHeader, { opacity: stickyOpacity }]}>
+          <TouchableOpacity onPress={onBack} style={st.stickyBackBtn}>
+            <BackArrow color={colors.textMain} />
+          </TouchableOpacity>
+          <Text style={st.stickyTitle}>{t('editProfile')}</Text>
+        </Animated.View>
+      )}
 
       {/* Hidden file inputs */}
       <input type="file" accept="image/*" ref={coverInputRef as any} style={{ display: 'none' }} onChange={handleCoverSelect} />
@@ -1261,6 +1289,18 @@ function getStyles(colors: ThemeColors) {
     stampPre: { fontSize: 13, color: colors.textSub, letterSpacing: 0.5, lineHeight: 48, textAlign: 'center' } as any,
     stampNum: { fontSize: 42, fontWeight: '700', fontFamily: 'Inter, serif', fontStyle: 'italic' } as any,
     stampPost: { fontSize: 12, color: colors.textSub, marginTop: 4 } as any,
+    // Sticky header
+    stickyHeader: {
+      position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 100,
+      flexDirection: 'row' as any, alignItems: 'center' as any,
+      paddingVertical: 12, paddingHorizontal: 16, paddingTop: 56,
+      backgroundColor: withAlpha(colors.surface, 0.85),
+      // @ts-ignore
+      backdropFilter: 'saturate(180%) blur(20px)',
+      borderBottomWidth: 0.5, borderBottomColor: withAlpha(colors.textMain, 0.08),
+    },
+    stickyBackBtn: { padding: 4, marginRight: 12 },
+    stickyTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain },
   });
 }
 
