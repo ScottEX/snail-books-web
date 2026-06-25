@@ -1311,7 +1311,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   inputGroup: { flex: 1 },
   inputLabel: { fontSize: FONTS.micro.size, lineHeight: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, marginBottom: 4 },
   input: {
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.secondary,
+    backgroundColor: colors.bg,
     borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12,
     fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, fontFamily: undefined,
     // @ts-ignore
@@ -1325,7 +1325,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   channelChip: {
     flex: 1, minWidth: 60,
     backgroundColor: colors.bg,
-    borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
+    borderRadius: 10,
     paddingVertical: 4, paddingHorizontal: 4,
     alignItems: 'center',
     gap: 2,
