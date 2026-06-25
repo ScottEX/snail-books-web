@@ -184,7 +184,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookBalance')}</Text>
-            <Text style={st.cardPairVal}>{fmtAmtFull(r.channel_total)}</Text>
+            <Text style={st.cardPairVal}>{fmtAmtFull(r.cash_on_hand)}</Text>
           </View>
           <View style={st.cardPairDiv} />
           <View style={st.cardPairItem}>
