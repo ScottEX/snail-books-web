@@ -1278,7 +1278,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 14,
     paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12,
     gap: 14,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.surface,
     borderWidth: 0.5, borderColor: colors.secondary,
     // @ts-ignore
 
