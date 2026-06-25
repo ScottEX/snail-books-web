@@ -592,9 +592,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   onPress={() => {
                     if (!feeMonthPicker.open) {
                       // Measure trigger position for dropdown placement
-                      if (pickerTriggerRef.current && typeof (pickerTriggerRef.current as any).measure === 'function') {
-                        (pickerTriggerRef.current as any).measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
-                          setPickerPos({ top: py + 30, left: px });
+                      if (pickerTriggerRef.current && typeof (pickerTriggerRef.current as any).measureInWindow === 'function') {
+                        (pickerTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
+                          setPickerPos({ top: y + h + 4, left: x });
                         });
                       }
                       pickerAnim.setValue(0);
