@@ -439,7 +439,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     )}
                   </Text>
                   {i === 0 && (
-                    <View style={{ flex: 1, gap: 12 }}>
+                    <View style={{ flex: 1, justifyContent: 'space-between' }}>
                       {/* Hero: 账面差额 */}
                       <View style={{ alignItems: 'flex-start', gap: 2, marginTop: 16 }}>
                         {/* @ts-ignore */}
@@ -500,9 +500,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   )}
                   </View>
                 {i === 1 && (
-                  <View style={{ transform: [{ translateY: -4 }] }}>
+                  <View style={{ flex: 1, justifyContent: 'flex-end' }}>
                     {/* Row 1: 日常 | 采购 */}
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.expenseGradientStart, 0.22),
                         borderRadius: 10, padding: 10, gap: 4,
@@ -535,7 +535,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       </View>
                     </View>
                     {/* Row 2: 房租 | 薪资 */}
-                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
                       <View style={{
                         flex: 1, backgroundColor: withAlpha(colors.expenseGradientStart, 0.22),
                         borderRadius: 10, padding: 10, gap: 4,
@@ -582,7 +582,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         {activeTab === 0 && (
         <FadeInView style={st.moduleWrap}>
           {/* Platform fees card */}
-          <View style={[st.card, { marginTop: 12 }]}>
+          <View style={[st.card]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
                 <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: colors.textMain }}>{t('platformFee')}</Text>
