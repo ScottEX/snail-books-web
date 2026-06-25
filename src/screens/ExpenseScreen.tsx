@@ -239,7 +239,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       const latestSummary = await api.getBusinessSummary();
       const latestCashOnHand = latestSummary?.cash_on_hand || 0;
       const latestCashOnHandCents = toCents(latestCashOnHand);
-      const latestDiff = (latestCashOnHandCents - realTotalCents) / 100;
+      const latestDiff = (realTotalCents - latestCashOnHandCents) / 100;
       setBusinessSummary(latestSummary || {});
       await api.createReconciliation({
         bill_date: recDate.value,
@@ -267,7 +267,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const cashOnHandCents = toCents(businessSummary.cash_on_hand);
   const channelTotal = channelTotalCents / 100;
   const realTotal = realTotalCents / 100;
-  const diff = (cashOnHandCents - realTotalCents) / 100;
+  const diff = (realTotalCents - cashOnHandCents) / 100;
 
   const hasReconChanges =
     toNum(cardBalance) !== toNum(initReconValues.current.card) ||

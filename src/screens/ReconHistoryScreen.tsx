@@ -208,8 +208,8 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         <View style={st.cardPairCol}>
           <View style={st.cardPairItem}>
             <Text style={st.cardPairLabel}>{t('bookDiff')}</Text>
-            <Text style={[st.cardPairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
-              {r.diff >= 0 ? '+' : ''}{fmtAmtFull(Math.abs(r.diff))}
+            <Text style={[st.cardPairVal, { color: r.diff > 0.005 ? colors.success : r.diff < -0.005 ? colors.danger : colors.textMain }]}>
+              {r.diff >= 0 ? '+' : '-'}{fmtAmtFull(Math.abs(r.diff))}
             </Text>
           </View>
           <View style={st.cardPairDiv} />
@@ -278,8 +278,8 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View style={st.pairCol}>
               <View style={st.pairItem}>
                 <Text style={st.pairLabel}>{t('bookDiff')}</Text>
-                <Text style={[st.pairVal, { color: Math.abs(r.diff) < 0.005 ? colors.textMain : colors.primary }]}>
-                  {r.diff >= 0 ? '+' : ''}{fmtAmtFull(Math.abs(r.diff))}
+                <Text style={[st.pairVal, { color: r.diff > 0.005 ? colors.success : r.diff < -0.005 ? colors.danger : colors.textMain }]}>
+                  {r.diff >= 0 ? '+' : '-'}{fmtAmtFull(Math.abs(r.diff))}
                 </Text>
               </View>
               <View style={st.pairDivider} />
