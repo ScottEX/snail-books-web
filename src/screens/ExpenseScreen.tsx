@@ -235,6 +235,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     if (sd.ready && sd.isFuture(recDate.value)) { showToast(t('errDateFuture')); return; }
     try {
       const username = getCurrentUser();
+      // 提交那一刻拉最新 businessSummary，确保 cash_on_hand 含本会话刚录的支出
+      const latestSummary = await api.getBusinessSummary();
+      const latestCashOnHand = latestSummary?.cash_on_hand || 0;
+      const latestCashOnHandCents = toCents(latestCashOnHand);
+      const latestDiff = (latestCashOnHandCents - realTotalCents) / 100;
+      setBusinessSummary(latestSummary || {});
       await api.createReconciliation({
         bill_date: recDate.value,
         card_balance: toNum(cardBalance),
@@ -244,8 +250,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         flash_sale: toNum(flashSale),
         jd: toNum(jd),
         tuan: toNum(tuan),
-        cash_on_hand: businessSummary.cash_on_hand || 0,
-        diff: diff,
+        cash_on_hand: latestCashOnHand,
+        diff: latestDiff,
         reconciled_by: username,
       });
       showToast(t('reconComplete'));
