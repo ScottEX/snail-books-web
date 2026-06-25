@@ -83,7 +83,7 @@ const getSt = (colors: ThemeColors) =>
       width: '48%' as any,
       flexGrow: 1,
       flexBasis: '46%' as any,
-      backgroundColor: colors.bg,
+      backgroundColor: colors.surface,
       borderRadius: 12,
       paddingVertical: 10,
       paddingHorizontal: 18,
