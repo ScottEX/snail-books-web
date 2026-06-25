@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   FlatList, Image, ActivityIndicator, StyleSheet, Animated
@@ -209,10 +210,10 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
 
   // Drawer overlay
-  overlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200 },
+  overlay: { position: 'fixed' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200 },
   // Animated drawer — slides up
   drawer: {
-    position: 'absolute' as any, bottom: 0, left: 0, right: 0,
+    position: 'fixed' as any, bottom: 0, left: 0, right: 0,
     backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
     maxHeight: '88%' as any, zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any,
     // @ts-ignore
@@ -1345,7 +1346,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       />
 
       {/* ── Order Drawer (slides up) ── */}
-      {showDrawer && (
+      {showDrawer && createPortal(
         <>
           <Animated.View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: overlayOpacity }]}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
@@ -1440,7 +1441,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </View>
             </View>
           </Animated.View>
-        </>
+        </>,
+        document.body
       )}
 
       {/* ── Items Modal (slides from top) ── */}

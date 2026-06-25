@@ -991,7 +991,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   // ── Chart KPI cards ──
   chartKpiCard: {
     borderRadius: 14, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12, gap: 14,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.surface,
     borderWidth: 0.5, borderColor: colors.secondary,
 
   },
