@@ -111,33 +111,25 @@ export function useDailyRevenueForm(opts: DailyRevenueFormOptions) {
   }, [revYear, revMonth]);
 
   // Load yesterday's revenue for card footers
-  useEffect(() => {
-    let cancelled = false;
-    const yd = sd.yesterday;
-    api
-      .getDailyRevenue(1, 1, undefined, undefined, yd)
-      .then((r: any) => {
-        if (!cancelled) setYesterdayRev(r.records?.[0] || null);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const loadYesterdayRev = useCallback(async () => {
+    try {
+      const yd = sd.yesterday;
+      const r: any = await api.getDailyRevenue(1, 1, undefined, undefined, yd);
+      setYesterdayRev(r.records?.[0] || null);
+    } catch { /* silent */ }
+  }, [sd.yesterday]);
+
+  useEffect(() => { loadYesterdayRev(); }, [loadYesterdayRev]);
 
   // Load last 30 days aggregated
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .getDailyRevenue(1, 1, undefined, undefined, undefined, 30)
-      .then((r: any) => {
-        if (!cancelled) setWeekRev(r?.totals || null);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
+  const loadWeekRev = useCallback(async () => {
+    try {
+      const r: any = await api.getDailyRevenue(1, 1, undefined, undefined, undefined, 30);
+      setWeekRev(r?.totals || null);
+    } catch { /* silent */ }
   }, []);
+
+  useEffect(() => { loadWeekRev(); }, [loadWeekRev]);
 
   const submitDailyRev = async () => {
     const isClosed = revMarkedClosed;
@@ -180,6 +172,8 @@ export function useDailyRevenueForm(opts: DailyRevenueFormOptions) {
       await loadDailyRevs(1, revYear, revMonth);
       const r = await api.getLast7Days();
       onRefreshLast7(r?.records || []);
+      loadYesterdayRev();
+      loadWeekRev();
     } catch {
       onToast(t('toastSubmitFailed'));
     }
