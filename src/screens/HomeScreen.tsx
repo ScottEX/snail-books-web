@@ -922,7 +922,7 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  inner: { flex: 1, maxWidth: 520, alignSelf: 'center', width: '100%' },
+  inner: { flex: 1, maxWidth: 520, alignSelf: 'center', width: '100%', position: 'relative' as const },
   bgLayer: {
     position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
