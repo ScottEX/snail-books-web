@@ -136,8 +136,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       if (!scrollElRef.current) return;
       if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
       scrollTimerRef.current = setTimeout(() => {
-        const idx = Math.round(scrollElRef.current!.scrollLeft / 310);
-        setActiveTab(Math.min(1, Math.max(0, idx)));
+        const cards = scrollElRef.current!.querySelectorAll('[data-testid="snap-card"]');
+        if (cards.length < 2) return;
+        const card1Left = (cards[1] as HTMLElement).offsetLeft;
+        // active=0 if scrolled less than halfway to card2, else active=1
+        const idx = scrollElRef.current!.scrollLeft < card1Left * 0.5 ? 0 : 1;
+        setActiveTab(idx);
       }, 150);
     };
     el?.addEventListener('scroll', onNativeScroll, { passive: true });
@@ -145,16 +149,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     return () => {
       document.head.removeChild(style);
       el?.removeEventListener('scroll', onNativeScroll);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
     };
   }, []);
 
   // Auto-scroll to active card when activeTab changes (click or swipe)
   useEffect(() => {
-    const el = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement;
-    if (el) {
-      requestAnimationFrame(() => {
-        el.scrollLeft = activeTab * 310;
-      });
+    const elTarget = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement;
+    if (elTarget) {
+      const cards = elTarget.querySelectorAll('[data-testid="snap-card"]');
+      if (cards.length >= 2) {
+        const target = activeTab === 1 ? (cards[1] as HTMLElement).offsetLeft : 0;
+        requestAnimationFrame(() => {
+          elTarget.scrollLeft = target;
+        });
+      }
     }
   }, [activeTab]);
 
