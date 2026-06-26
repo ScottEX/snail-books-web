@@ -210,10 +210,11 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
 
   // Drawer overlay
-  overlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200 },
+  overlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' },
   // Animated drawer — slides up
   drawer: {
     position: 'absolute' as any, bottom: 0, left: 0, right: 0,
+    maxWidth: 520, marginLeft: 'auto', marginRight: 'auto',
     backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
     maxHeight: '88%' as any, zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any,
     // @ts-ignore
@@ -1347,7 +1348,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
       {/* ── Order Drawer (slides up) ── */}
       {showDrawer && createPortal(
-        <View style={{ maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', width: '100%', height: '100%', position: 'relative' }}>
         <>
           <Animated.View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: overlayOpacity }]}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
@@ -1443,7 +1443,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             </View>
           </Animated.View>
         </>,
-        </View>,
         document.body
       )}
 

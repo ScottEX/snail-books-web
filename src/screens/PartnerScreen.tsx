@@ -964,16 +964,14 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       )}
       {ToastHost}
 
-      {/* ====== INVOICE SCREEN (portaled to body — constrained to 520px) ====== */}
+      {/* ====== INVOICE SCREEN (portaled to body — covers nav bar) ====== */}
       {showInvoice && createPortal(
-        <View style={{ maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', width: '100%', height: '100%', position: 'relative' }}>
         <SlideScreen
           visible={showInvoice}
           onClose={() => setShowInvoice(false)}
         >
           {(close) => <InvoiceScreen onBack={close} />}
-        </SlideScreen>
-        </View>,
+        </SlideScreen>,
         document.body
       )}
     </View>
