@@ -440,7 +440,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   backgroundImage: `linear-gradient(90deg, ${bgGrad[0]} 0%, ${bgGrad[1]} 100%)`,
                 },
                 // @ts-ignore — 支出卡片无需右侧peek
-                i === 1 && { width: 'calc(100vw - 36px)', maxWidth: 644 },
+                i === 1 && { width: 'calc(100vw - 36px)', maxWidth: 732 },
                 ]}
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
@@ -1212,7 +1212,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   tabCard: {
     // 屏宽 - 左边距18 - 右侧peek 43 = 61，maxWidth 防桌面溢出
     // @ts-ignore
-    width: 'calc(100vw - 61px)', maxWidth: 619, height: 210,
+    width: 'calc(100vw - 61px)', maxWidth: 707, height: 210,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
