@@ -136,8 +136,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       if (!scrollElRef.current) return;
       if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
       scrollTimerRef.current = setTimeout(() => {
-        const idx = Math.round(scrollElRef.current!.scrollLeft / 310);
-        setActiveTab(Math.min(1, Math.max(0, idx)));
+        const cards = scrollElRef.current!.querySelectorAll('[data-testid="snap-card"]');
+        if (cards.length < 2) return;
+        const card1Left = (cards[1] as HTMLElement).offsetLeft;
+        // active=0 if scrolled less than halfway to card2, else active=1
+        const idx = scrollElRef.current!.scrollLeft < card1Left * 0.5 ? 0 : 1;
+        setActiveTab(idx);
       }, 150);
     };
     el?.addEventListener('scroll', onNativeScroll, { passive: true });
@@ -145,16 +149,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     return () => {
       document.head.removeChild(style);
       el?.removeEventListener('scroll', onNativeScroll);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
     };
   }, []);
 
   // Auto-scroll to active card when activeTab changes (click or swipe)
   useEffect(() => {
-    const el = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement;
-    if (el) {
-      requestAnimationFrame(() => {
-        el.scrollLeft = activeTab * 310;
-      });
+    const elTarget = document.querySelector('[data-testid="snap-scroll"]') as HTMLElement;
+    if (elTarget) {
+      const cards = elTarget.querySelectorAll('[data-testid="snap-card"]');
+      if (cards.length >= 2) {
+        const target = activeTab === 1 ? (cards[1] as HTMLElement).offsetLeft : 0;
+        requestAnimationFrame(() => {
+          elTarget.scrollLeft = target;
+        });
+      }
     }
   }, [activeTab]);
 
@@ -439,8 +448,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   // @ts-ignore — 每张卡片独立渐变色
                   backgroundImage: `linear-gradient(90deg, ${bgGrad[0]} 0%, ${bgGrad[1]} 100%)`,
                 },
-                // @ts-ignore — 支出卡片去掉右侧peek
-                i === 1 && { width: 'calc(100vw - 32px)' },
+                // @ts-ignore — 支出卡片无需右侧peek
+                i === 1 && { width: 'calc(100vw - 36px)', maxWidth: 732 },
                 ]}
                 onPress={() => setActiveTab(i)}
                 activeOpacity={0.7}
@@ -1210,8 +1219,9 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabCard: {
-    // @ts-ignore — 响应式：屏宽 - 左边距18 - 右侧peek 43
-    width: 'calc(100vw - 61px)', height: 210,
+    // 屏宽 - 左边距18 - 右侧peek 43 = 61，maxWidth 防桌面溢出
+    // @ts-ignore
+    width: 'calc(100vw - 61px)', maxWidth: 707, height: 210,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,

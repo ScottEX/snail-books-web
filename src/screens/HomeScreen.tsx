@@ -298,6 +298,13 @@ export default function HomeScreen({
     document.head.appendChild(style);
   }, []);
 
+  // ── Body background: match container bg so area outside 520px isn't white ──
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.style.backgroundColor = colors.bg;
+    }
+  }, [colors.bg]);
+
   // ── 导航栏选中椭圆跳动 ──
   const tabIds = ['expense', 'list', 'supply', 'chart', 'partner'] as const;
   useEffect(() => {
@@ -486,9 +493,14 @@ export default function HomeScreen({
 
   return (
     <View style={styles.container}>
-      {/* Background — default always visible, custom fades in on top */}
-      <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
-      <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=2' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
+      <View style={styles.inner}>
+        {/* Background — constrained to 520px container so bg image doesn't stretch on desktop */}
+      <View style={styles.bgWrapper}>
+        <View style={{ width: '100%', maxWidth: 768, height: '100%', position: 'relative' }}>
+          <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+          <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=2' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
+        </View>
+      </View>
 
       {/* Sub-page stack — iOS push/pop with z-index keyed to stack
           position so the top of the stack always covers what's below.
@@ -847,6 +859,7 @@ export default function HomeScreen({
       {/* Background image crop handled by shared BgCropModal (rendered below) */}
 
       {ToastHost}
+      </View>
     </View>
   );
 }
@@ -909,10 +922,15 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  inner: { flex: 1, maxWidth: 768, alignSelf: 'center', width: '100%', position: 'relative' as const },
   bgLayer: {
     position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
   bgCustom: { },
+  bgWrapper: {
+    position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
+    alignItems: 'center',
+  },
   // Header — frosted glass, same as sub-screen headers
   header: {
     position: 'relative' as const, zIndex: 200,
@@ -933,7 +951,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   langBtn: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
   langActive: { color: colors.primary, backgroundColor: withAlpha(colors.danger, 0.1), fontWeight: FONTS.microBold.weight },
   // Page — 8600: padding:0 16px 110px, max-width:520px, margin:0 auto
-  page: { flex: 1, paddingHorizontal: 16, paddingBottom: 12, maxWidth: 520, alignSelf: 'center', width: '100%' },
+  page: { flex: 1, paddingHorizontal: 16, paddingBottom: 12 },
   // Stats — 8600: grid-cols-4
   statsRow: { flexDirection: 'row', marginBottom: 20 },
   statItem: { flex: 1 },
@@ -1048,7 +1066,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore - web-only translateX
     transform: 'translateX(-50%)',
     width: '80%',
-    maxWidth: 420,
+    maxWidth: 630,
     backgroundColor: withAlpha(colors.surface, 0.20),
     // @ts-ignore - web-only backdrop-filter
     backdropFilter: 'saturate(220%) blur(30px)',
