@@ -520,9 +520,10 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   return (
     <View style={styles.container}>
-      {/* Background layers — default only when no custom bg, custom fades in on top */}
-      {!bgUrl && <View style={styles.bgWrapper} />}
-      <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none', filter: bgReady && bgUrl ? 'blur(0)' : 'blur(16px)' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
+      <View style={styles.inner}>
+        {/* Background layers — default only when no custom bg, custom fades in on top */}
+        {!bgUrl && <View style={styles.bgWrapper} />}
+        <View style={[styles.bgWrapper, styles.bgCustom, { backgroundImage: bgUrl ? `url(${bgUrl})` : 'none', filter: bgReady && bgUrl ? 'blur(0)' : 'blur(16px)' } as any, { opacity: bgReady && bgUrl ? 1 : 0 }]} />
       <View style={styles.bgOverlay} />
       <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentScroll} showsVerticalScrollIndicator={false}>
         {/* Brand */}
@@ -836,12 +837,14 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           <Text style={styles.copyright}>{t('copyright') || '© 2026 柳味探秘 · 经营查询 · 版权所有'}</Text>
         </View>
       </ScrollView>
+      </View>
     </View>
   );
 }
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
-  container: { flex: 1, padding: 20, paddingTop: 24, position: 'relative' as const, maxWidth: 768, alignSelf: 'center', width: '100%' },
+  container: { flex: 1, maxWidth: 768, marginLeft: 'auto', marginRight: 'auto', width: '100%' },
+  inner: { flex: 1, position: 'relative' as const },
   bgWrapper: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only
     backgroundImage: 'url(/img/bg.jpg?v=2)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
