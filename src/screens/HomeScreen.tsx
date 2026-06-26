@@ -486,9 +486,13 @@ export default function HomeScreen({
 
   return (
     <View style={styles.container}>
-      {/* Background — default always visible, custom fades in on top */}
-      <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
-      <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=2' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
+      {/* Background — constrained to 520px container so bg image doesn't stretch on desktop */}
+      <View style={styles.bgWrapper}>
+        <View style={{ width: '100%', maxWidth: 520, height: '100%', position: 'relative' }}>
+          <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+          <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=2' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
+        </View>
+      </View>
 
       {/* Sub-page stack — iOS push/pop with z-index keyed to stack
           position so the top of the stack always covers what's below.
@@ -913,6 +917,10 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
   bgCustom: { },
+  bgWrapper: {
+    position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
+    alignItems: 'center',
+  },
   // Header — frosted glass, same as sub-screen headers
   header: {
     position: 'relative' as const, zIndex: 200,
