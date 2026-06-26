@@ -493,7 +493,8 @@ export default function HomeScreen({
 
   return (
     <View style={styles.container}>
-      {/* Background — constrained to 520px container so bg image doesn't stretch on desktop */}
+      <View style={styles.inner}>
+        {/* Background — constrained to 520px container so bg image doesn't stretch on desktop */}
       <View style={styles.bgWrapper}>
         <View style={{ width: '100%', maxWidth: 520, height: '100%', position: 'relative' }}>
           <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
@@ -858,6 +859,7 @@ export default function HomeScreen({
       {/* Background image crop handled by shared BgCropModal (rendered below) */}
 
       {ToastHost}
+      </View>
     </View>
   );
 }
@@ -919,7 +921,8 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 }
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, maxWidth: 520, alignSelf: 'center', width: '100%' },
+  container: { flex: 1, backgroundColor: colors.bg },
+  inner: { flex: 1, maxWidth: 520, alignSelf: 'center', width: '100%' },
   bgLayer: {
     position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
