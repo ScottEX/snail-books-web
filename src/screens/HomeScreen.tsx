@@ -496,7 +496,7 @@ export default function HomeScreen({
       <View style={styles.inner}>
         {/* Background — constrained to 520px container so bg image doesn't stretch on desktop */}
       <View style={styles.bgWrapper}>
-        <View style={{ width: '100%', maxWidth: 520, height: '100%', position: 'relative' }}>
+        <View style={{ width: '100%', maxWidth: 680, height: '100%', position: 'relative' }}>
           <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
           <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=2' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
         </View>
@@ -922,7 +922,7 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  inner: { flex: 1, maxWidth: 520, alignSelf: 'center', width: '100%', position: 'relative' as const },
+  inner: { flex: 1, maxWidth: 680, alignSelf: 'center', width: '100%', position: 'relative' as const },
   bgLayer: {
     position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
@@ -1066,7 +1066,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore - web-only translateX
     transform: 'translateX(-50%)',
     width: '80%',
-    maxWidth: 420,
+    maxWidth: 560,
     backgroundColor: withAlpha(colors.surface, 0.20),
     // @ts-ignore - web-only backdrop-filter
     backdropFilter: 'saturate(220%) blur(30px)',

@@ -210,11 +210,11 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
 
   // Drawer overlay
-  overlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' },
+  overlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200, maxWidth: 680, marginLeft: 'auto', marginRight: 'auto' },
   // Animated drawer — slides up
   drawer: {
     position: 'absolute' as any, bottom: 0, left: 0, right: 0,
-    maxWidth: 520, marginLeft: 'auto', marginRight: 'auto',
+    maxWidth: 680, marginLeft: 'auto', marginRight: 'auto',
     backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
     maxHeight: '88%' as any, zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any,
     // @ts-ignore
