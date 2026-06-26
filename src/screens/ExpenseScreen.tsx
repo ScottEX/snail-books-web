@@ -1210,9 +1210,9 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabCard: {
-    // 屏宽 - 55px peek, 桌面 maxWidth 防溢出
+    // 屏宽 - 左边距18 - 右侧peek 43 = 61，maxWidth 防桌面溢出
     // @ts-ignore
-    width: 'calc(100vw - 55px)', maxWidth: 465, height: 210,
+    width: 'calc(100vw - 61px)', maxWidth: 459, height: 210,
     // @ts-ignore — 极透磨砂玻璃：渐变色在 render 中动态设置
     backgroundImage: `linear-gradient(90deg, ${withAlpha(colors.primary, 0.22)} 0%, ${withAlpha(colors.info, 0.22)} 100%)`,
     borderRadius: 14,
