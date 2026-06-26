@@ -1347,6 +1347,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
       {/* ── Order Drawer (slides up) ── */}
       {showDrawer && createPortal(
+        <View style={{ maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', width: '100%', height: '100%', position: 'relative' }}>
         <>
           <Animated.View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: overlayOpacity }]}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
@@ -1442,6 +1443,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             </View>
           </Animated.View>
         </>,
+        </View>,
         document.body
       )}
 
