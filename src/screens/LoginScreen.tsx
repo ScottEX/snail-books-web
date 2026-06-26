@@ -93,6 +93,13 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const breatheAnim = useRef(new Animated.Value(1)).current;
   const { colors } = useTheme();
 
+  // Body background — match container bg on desktop/iPad
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.style.backgroundColor = colors.bg;
+    }
+  }, [colors.bg]);
+
   // Breathing glow animation for Face ID button
   useEffect(() => {
     if (!faceMode) return;
@@ -834,12 +841,12 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 }
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
-  container: { flex: 1, padding: 20, paddingTop: 24 },
-  bgWrapper: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+  container: { flex: 1, padding: 20, paddingTop: 24, position: 'relative' as const, maxWidth: 768, alignSelf: 'center', width: '100%' },
+  bgWrapper: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only
     backgroundImage: 'url(/img/bg.jpg?v=2)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
   bgCustom: { zIndex: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },
-  bgOverlay: { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+  bgOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
   content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
   contentScroll: { paddingBottom: 40 },
