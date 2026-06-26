@@ -918,6 +918,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     position: 'relative' as const, zIndex: 200,
     paddingVertical: 8,
     paddingHorizontal: 20,
+    maxWidth: 520, alignSelf: 'center', width: '100%',
     backgroundColor: 'transparent',
     // @ts-ignore - web-only
     backdropFilter: 'saturate(200%) blur(30px)',
