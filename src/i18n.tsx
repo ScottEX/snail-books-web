@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
-const I18N: Record<string, Record<string, string>> = {
+const I18N: Record<string, Record<string, string>> = const I18N: Record<string, Record<string, string>> = {
   'zh-CN': {
+    accountCooldown: '账户已进入冷静期',
     accountInfo: '账号信息',
     actualReceived: '实收金额',
     addFeeEntry: '录入手续费',
@@ -121,6 +122,7 @@ const I18N: Record<string, Record<string, string>> = {
     email: '邮箱',
     emailAction: '邮件',
     emailBodyExtra: '（链接 24 小时内有效）',
+    emailUpdated: '邮箱已更新',
     emptyExpenseHint: '每完成一次记账，这里就多一条记录',
     emptyInvoiceHint: '每开一张发票，这里就多一张小卡片',
     emptyReconHint: '每完成一次对账，这里就多一张小卡片',
@@ -133,6 +135,7 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRangeTooLong: '日期范围不能超过 24 个月',
     errEmailInvalid: '邮箱格式不正确',
     errEmptyFields: '请填写所有字段',
+    errEnterCode: '请输入验证码',
     errFileSize: '图片不能超过10MB',
     errNetworkError: '网络错误，请检查网络后重试',
     errOldPwRequired: '请输入当前密码',
@@ -142,6 +145,7 @@ const I18N: Record<string, Record<string, string>> = {
     errPwNeedSpecial: '密码必须包含特殊字符',
     errPwRequirements: '密码须8位以上，包含字母、数字、特殊字符',
     errPwTooShort: '密码至少 8 位',
+    errUserInfoUnavailable: '无法获取用户信息',
     errWrongCredentials: '账号或密码错误',
     expConfirmMsg: '提交后将无法修改，确定要记录吗？',
     expConfirmTitle: '确认记录',
@@ -339,6 +343,7 @@ const I18N: Record<string, Record<string, string>> = {
     partnerStructure: '合伙架构',
     partnerTitle: '柳味探秘科技合伙人',
     password: '密码',
+    passwordChanged: '密码已修改',
     payAlipay: '支付宝',
     payCash: '现金',
     payWechat: '微信',
@@ -510,6 +515,7 @@ const I18N: Record<string, Record<string, string>> = {
     shareTo: '已分享至 {label}',
     shareholders: '位股东',
     signaturePlaceholder: '这个人很懒，什么都没留下...',
+    signatureSaved: '签名已保存',
     ssoDesc: '最多一台设备同时登录',
     ssoLabel: '单设备登录',
     staff: '员工',
@@ -581,6 +587,7 @@ const I18N: Record<string, Record<string, string>> = {
     yesterdayProfit: '昨日利润',
   },
   'zh-TW': {
+    accountCooldown: '帳戶已進入冷靜期',
     accountInfo: '帳號資訊',
     actualReceived: '實收金額',
     addFeeEntry: '錄入手續費',
@@ -700,6 +707,7 @@ const I18N: Record<string, Record<string, string>> = {
     email: '郵箱',
     emailAction: '郵件',
     emailBodyExtra: '（連結 24 小時內有效）',
+    emailUpdated: '郵箱已更新',
     emptyExpenseHint: '每完成一次記賬，這裡就多一條記錄',
     emptyInvoiceHint: '每開一張發票，這裡就多一張小卡片',
     emptyReconHint: '每完成一次對賬，這裡就多一張小卡片',
@@ -712,6 +720,7 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRangeTooLong: '日期範圍不能超過 24 個月',
     errEmailInvalid: '郵箱格式不正確',
     errEmptyFields: '請填寫所有字段',
+    errEnterCode: '請輸入驗證碼',
     errFileSize: '圖片不能超過10MB',
     errNetworkError: '網絡錯誤，請檢查網絡後重試',
     errOldPwRequired: '請輸入當前密碼',
@@ -721,6 +730,7 @@ const I18N: Record<string, Record<string, string>> = {
     errPwNeedSpecial: '密碼必須包含特殊字符',
     errPwRequirements: '密碼須8位以上，包含字母、數字、特殊字符',
     errPwTooShort: '密碼至少 8 位',
+    errUserInfoUnavailable: '無法獲取用戶信息',
     errWrongCredentials: '帳號或密碼錯誤',
     expConfirmMsg: '提交後將無法修改，確定要記錄嗎？',
     expConfirmTitle: '確認記錄',
@@ -918,6 +928,7 @@ const I18N: Record<string, Record<string, string>> = {
     partnerStructure: '合夥架構',
     partnerTitle: '柳味探秘科技合夥人',
     password: '密碼',
+    passwordChanged: '密碼已修改',
     payAlipay: '支付寶',
     payCash: '現金',
     payWechat: '微信',
@@ -1088,6 +1099,7 @@ const I18N: Record<string, Record<string, string>> = {
     shareTo: '已分享至 {label}',
     shareholders: '位股東',
     signaturePlaceholder: '這個人很懶，什麼都沒留下...',
+    signatureSaved: '簽名已保存',
     ssoDesc: '最多一台裝置同時登入',
     ssoLabel: '單一裝置登入',
     staff: '員工',
@@ -1159,6 +1171,7 @@ const I18N: Record<string, Record<string, string>> = {
     yesterdayProfit: '昨日利潤',
   },
   'en': {
+    accountCooldown: 'Account in cooldown',
     accountInfo: 'Account Info',
     actualReceived: 'Actual Received',
     addFeeEntry: 'Add Fee',
@@ -1278,6 +1291,7 @@ const I18N: Record<string, Record<string, string>> = {
     email: 'Email',
     emailAction: 'Email',
     emailBodyExtra: '(link valid for 24h)',
+    emailUpdated: 'Email updated',
     emptyExpenseHint: 'Each expense record will appear here',
     emptyInvoiceHint: 'Each invoice record will appear here',
     emptyReconHint: 'Each reconciliation adds a card here',
@@ -1290,6 +1304,7 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRangeTooLong: 'Date range cannot exceed 24 months',
     errEmailInvalid: 'Invalid email format',
     errEmptyFields: 'Please fill all fields',
+    errEnterCode: 'Please enter verification code',
     errFileSize: 'Image must be under 10MB',
     errNetworkError: 'Network error, please check your connection',
     errOldPwRequired: 'Please enter current password',
@@ -1299,6 +1314,7 @@ const I18N: Record<string, Record<string, string>> = {
     errPwNeedSpecial: 'Password must contain a special char',
     errPwRequirements: 'Password: 8+ chars, letters, digits, and a special character',
     errPwTooShort: 'Password must be at least 8 chars',
+    errUserInfoUnavailable: 'Cannot retrieve user info',
     errWrongCredentials: 'Wrong username or password',
     expConfirmMsg: 'This cannot be edited after submission. Proceed?',
     expConfirmTitle: 'Confirm Record',
@@ -1496,6 +1512,7 @@ const I18N: Record<string, Record<string, string>> = {
     partnerStructure: 'Partner Structure',
     partnerTitle: 'LiuWei TanMi Technology Partners',
     password: 'Password',
+    passwordChanged: 'Password changed',
     payAlipay: 'Alipay',
     payCash: 'Cash',
     payWechat: 'WeChat',
@@ -1666,6 +1683,7 @@ const I18N: Record<string, Record<string, string>> = {
     shareTo: 'Shared to {label}',
     shareholders: 'shareholders',
     signaturePlaceholder: 'This person is lazy and left nothing...',
+    signatureSaved: 'Signature saved',
     ssoDesc: 'Only one device can stay signed in at a time',
     ssoLabel: 'Single-device sign-in',
     staff: 'Staff',
@@ -1737,8 +1755,10 @@ const I18N: Record<string, Record<string, string>> = {
     yesterdayProfit: 'Yesterday Profit',
   },
 };
+;
 
 export type I18nKey =
+  | 'accountCooldown'
   | 'accountInfo'
   | 'actualReceived'
   | 'addFeeEntry'
@@ -1858,6 +1878,7 @@ export type I18nKey =
   | 'email'
   | 'emailAction'
   | 'emailBodyExtra'
+  | 'emailUpdated'
   | 'emptyExpenseHint'
   | 'emptyInvoiceHint'
   | 'emptyReconHint'
@@ -1870,6 +1891,7 @@ export type I18nKey =
   | 'errDateRangeTooLong'
   | 'errEmailInvalid'
   | 'errEmptyFields'
+  | 'errEnterCode'
   | 'errFileSize'
   | 'errNetworkError'
   | 'errOldPwRequired'
@@ -1879,6 +1901,7 @@ export type I18nKey =
   | 'errPwNeedSpecial'
   | 'errPwRequirements'
   | 'errPwTooShort'
+  | 'errUserInfoUnavailable'
   | 'errWrongCredentials'
   | 'expConfirmMsg'
   | 'expConfirmTitle'
@@ -2076,6 +2099,7 @@ export type I18nKey =
   | 'partnerStructure'
   | 'partnerTitle'
   | 'password'
+  | 'passwordChanged'
   | 'payAlipay'
   | 'payCash'
   | 'payWechat'
@@ -2247,6 +2271,7 @@ export type I18nKey =
   | 'shareTo'
   | 'shareholders'
   | 'signaturePlaceholder'
+  | 'signatureSaved'
   | 'ssoDesc'
   | 'ssoLabel'
   | 'staff'
@@ -2317,7 +2342,6 @@ export type I18nKey =
   | 'yesterdayIncome'
   | 'yesterdayProfit'
 
-type Lang = 'zh-CN' | 'zh-TW' | 'en';
 
 export const langs: [Lang, string][] = [
   ['zh-CN', '简'],
