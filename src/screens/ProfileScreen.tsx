@@ -53,7 +53,7 @@ function ChevronRight({ color }: { color: string }) {
 /* ========== MAIN SCREEN ========== */
 
 export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange, onManageUsers, refreshKey }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void; onManageUsers?: () => void; refreshKey?: number }) {
-  const { colors, theme } = useTheme();
+  const { colors, theme, setTheme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const {
     avatarUrl, setAvatarUrl, avatarKey, setAvatarKey,
@@ -142,6 +142,27 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [deleteConfirmUsername, setDeleteConfirmUsername] = useState('');
   const [showThemeModal, setShowThemeModal] = useState(false);
 
+  // ── bgOpacity (from HomeScreen header theme settings) ──
+  const [bgOpacity, setBgOpacity] = useState(() => {
+    try {
+      const uid = getCurrentUserId();
+      const saved = localStorage.getItem(uid ? `bg-opacity-${uid}` : 'bg-opacity');
+      return saved !== null ? parseFloat(saved) : 1;
+    } catch { return 1; }
+  });
+
+  const handleBgOpacityChange = (v: number) => {
+    setBgOpacity(v);
+    try {
+      const uid = getCurrentUserId();
+      localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(v));
+    } catch {}
+    clearTimeout((window as any).__bgOpacityTimer);
+    (window as any).__bgOpacityTimer = setTimeout(() => {
+      api.saveBackgroundSettings({ opacity: v }).catch(() => {});
+    }, 500);
+  };
+
   // Auth prefs (single-device login + session timeout)
   const [enforceSingleSession, setEnforceSingleSession] = useState(1);
   const [sessionTimeoutHours, setSessionTimeoutHours] = useState(1);
@@ -168,9 +189,18 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   // loadAvatar → useAvatarCrop.loadAvatar()
 
 
+  const loadBgOpacity = async () => {
+    try {
+      const r: any = await api.getBackground();
+      if (r?.opacity !== null && r?.opacity !== undefined) {
+        setBgOpacity(r.opacity);
+      }
+    } catch {}
+  };
+
   // loadCover → useCoverCrop.loadCover()
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); loadFaceIDStatus(); checkAdmin().then(ok => { if (ok) fetchUnreviewedCount(); }); }, []);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); loadFaceIDStatus(); loadBgOpacity(); checkAdmin().then(ok => { if (ok) fetchUnreviewedCount(); }); }, []);
   useEffect(() => { if (isAdmin) fetchUnreviewedCount(); }, [refreshKey]);
 
   const loadUserInfo = async () => {
@@ -380,9 +410,19 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const handleThemeReset = async () => {
     setCoverUploading(true);
     try {
+      // Reset theme scheme to default
+      setTheme('burgundy-warm');
       await api.resetBackground();
       try { localStorage.removeItem('bg-image'); } catch {}
-      window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg?v=2' } }));
+      window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg?v=3' } }));
+      // Reset opacity to 100%
+      setBgOpacity(1);
+      try {
+        const uid = getCurrentUserId();
+        const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
+        localStorage.removeItem(key);
+      } catch {}
+      api.saveBackgroundSettings({ opacity: 1 }).catch(() => {});
     } catch (err) { /* ignore */ }
     finally { setCoverUploading(false); }
   };
@@ -819,8 +859,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         visible={showThemeModal}
         onClose={() => setShowThemeModal(false)}
         showCoverTools
-        coverOpacity={coverOpacity}
-        onCoverOpacityChange={handleCoverOpacityChange}
+        coverOpacity={bgOpacity}
+        onCoverOpacityChange={handleBgOpacityChange}
         onCoverImagePicked={handleCoverImagePicked}
         onResetCover={handleThemeReset}
         coverUploading={coverUploading}

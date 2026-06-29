@@ -265,7 +265,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!bgReady) return;
-    const bgSrc = bgUrl || '/img/bg.jpg?v=2';
+    const bgSrc = bgUrl || '/img/bg.jpg?v=3';
     const img = document.createElement('img');
     const done = () => { (window as any).__appReady = true; };
     img.onload = done;
@@ -847,7 +847,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   inner: { flex: 1, position: 'relative' as const },
   bgWrapper: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only
-    backgroundImage: 'url(/img/bg.jpg?v=2)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
+    backgroundImage: 'url(/img/bg.jpg?v=3)', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 },
   bgCustom: { zIndex: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },
   bgOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },

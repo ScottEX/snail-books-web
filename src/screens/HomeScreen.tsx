@@ -44,7 +44,7 @@ export default function HomeScreen({
   /** Cleared when the user dismisses the preview — App.tsx drops the hash. */
   onClosePreview?: () => void;
 }) {
-  const { colors } = useTheme();
+  const { colors, setTheme } = useTheme();
   const [tab, setTabState] = useState<Tab>(() => {
     try {
       const saved = localStorage.getItem('active_tab');
@@ -129,15 +129,15 @@ export default function HomeScreen({
       const cached = localStorage.getItem('bg-image');
       if (cached) return cached;
     } catch {}
-    return '/img/bg.jpg?v=2';
+    return '/img/bg.jpg?v=3';
   });
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
       const uid = getCurrentUserId();
       const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
       const saved = localStorage.getItem(key);
-      return saved !== null ? parseFloat(saved) : 0.5;
-    } catch { return 0.5; }
+      return saved !== null ? parseFloat(saved) : 1;
+    } catch { return 1; }
   });
 
   // Header text color: white when fully opaque, black otherwise
@@ -209,7 +209,7 @@ export default function HomeScreen({
         try { localStorage.setItem('bg-image', r.url); } catch {}
       } else {
         // No custom background — use default
-        setBgImage('/img/bg.jpg?v=2');
+        setBgImage('/img/bg.jpg?v=3');
         setBgReady(true);
         try { localStorage.removeItem('bg-image'); } catch {}
       }
@@ -367,11 +367,21 @@ export default function HomeScreen({
   const handleBgReset = async () => {
     setUploadingBg(true);
     try {
+      // Reset theme scheme to default
+      setTheme('burgundy-warm');
       await api.resetBackground();
-      setBgImage('/img/bg.jpg?v=2');
+      setBgImage('/img/bg.jpg?v=3');
       setBgReady(true);
       try { localStorage.removeItem('bg-image'); } catch {}
       setBgVersion(v => v + 1);
+      // Reset opacity to 100%
+      setBgOpacity(1);
+      try {
+        const uid = getCurrentUserId();
+        const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
+        localStorage.removeItem(key);
+      } catch {}
+      api.saveBackgroundSettings({ opacity: 1 }).catch(() => {});
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
     setShowBgModal(false);
@@ -497,8 +507,8 @@ export default function HomeScreen({
         {/* Background — constrained to 520px container so bg image doesn't stretch on desktop */}
       <View style={styles.bgWrapper}>
         <View style={{ width: '100%', maxWidth: 768, height: '100%', position: 'relative' }}>
-          <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
-          <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=2' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
+          <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=3)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+          <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=3' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=3' ? bgOpacity : 0 } as any]} />
         </View>
       </View>
 

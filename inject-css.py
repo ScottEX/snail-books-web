@@ -28,7 +28,7 @@ INJECT_CSS = '''
     body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
     input, textarea { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
     /* Keep #root flex for React Native Web layout — don't override */
-    .bg-wrapper { position: fixed; inset: 0; z-index: 0; background: url(/img/bg.jpg?v=2) center/cover no-repeat; }
+    .bg-wrapper { position: fixed; inset: 0; z-index: 0; background: url(/img/bg.jpg?v=3) center/cover no-repeat; }
     .bg-overlay { position: fixed; inset: 0; z-index: 1; background: rgba(0,0,0,0.15); }
     .bg-content { position: relative; z-index: 2; }
     .glass-card { background: rgba(255,255,255,0.10); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.10); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }

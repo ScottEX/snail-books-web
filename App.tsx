@@ -101,10 +101,10 @@ export default function App() {
 
     try {
       const cached = localStorage.getItem('bg-image');
-      if (cached && cached !== '/img/bg.jpg?v=2') {
+      if (cached && cached !== '/img/bg.jpg?v=3') {
         const img = new Image(); img.src = cached;
       } else {
-        const img = new Image(); img.src = '/img/bg.jpg?v=2';
+        const img = new Image(); img.src = '/img/bg.jpg?v=3';
       }
     } catch {}
 
