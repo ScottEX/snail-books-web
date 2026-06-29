@@ -142,6 +142,23 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [deleteConfirmUsername, setDeleteConfirmUsername] = useState('');
   const [showThemeModal, setShowThemeModal] = useState(false);
 
+  // ── bgOpacity (from HomeScreen header theme settings) ──
+  const [bgOpacity, setBgOpacity] = useState(() => {
+    try {
+      const uid = getCurrentUserId();
+      const saved = localStorage.getItem(uid ? `bg-opacity-${uid}` : 'bg-opacity');
+      return saved !== null ? parseFloat(saved) : 0.5;
+    } catch { return 0.5; }
+  });
+
+  const handleBgOpacityChange = (v: number) => {
+    setBgOpacity(v);
+    try {
+      const uid = getCurrentUserId();
+      localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(v));
+    } catch {}
+  };
+
   // Auth prefs (single-device login + session timeout)
   const [enforceSingleSession, setEnforceSingleSession] = useState(1);
   const [sessionTimeoutHours, setSessionTimeoutHours] = useState(1);
@@ -819,8 +836,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         visible={showThemeModal}
         onClose={() => setShowThemeModal(false)}
         showCoverTools
-        coverOpacity={coverOpacity}
-        onCoverOpacityChange={handleCoverOpacityChange}
+        coverOpacity={bgOpacity}
+        onCoverOpacityChange={handleBgOpacityChange}
         onCoverImagePicked={handleCoverImagePicked}
         onResetCover={handleThemeReset}
         coverUploading={coverUploading}
