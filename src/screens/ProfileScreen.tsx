@@ -157,6 +157,10 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       const uid = getCurrentUserId();
       localStorage.setItem(uid ? `bg-opacity-${uid}` : 'bg-opacity', String(v));
     } catch {}
+    clearTimeout((window as any).__bgOpacityTimer);
+    (window as any).__bgOpacityTimer = setTimeout(() => {
+      api.saveBackgroundSettings({ opacity: v }).catch(() => {});
+    }, 500);
   };
 
   // Auth prefs (single-device login + session timeout)
@@ -185,9 +189,18 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   // loadAvatar → useAvatarCrop.loadAvatar()
 
 
+  const loadBgOpacity = async () => {
+    try {
+      const r: any = await api.getBackground();
+      if (r?.opacity !== null && r?.opacity !== undefined) {
+        setBgOpacity(r.opacity);
+      }
+    } catch {}
+  };
+
   // loadCover → useCoverCrop.loadCover()
 
-  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); loadFaceIDStatus(); checkAdmin().then(ok => { if (ok) fetchUnreviewedCount(); }); }, []);
+  useEffect(() => { loadAvatar(); loadCover(); loadUserInfo(); loadFaceIDStatus(); loadBgOpacity(); checkAdmin().then(ok => { if (ok) fetchUnreviewedCount(); }); }, []);
   useEffect(() => { if (isAdmin) fetchUnreviewedCount(); }, [refreshKey]);
 
   const loadUserInfo = async () => {
