@@ -129,7 +129,7 @@ export default function HomeScreen({
       const cached = localStorage.getItem('bg-image');
       if (cached) return cached;
     } catch {}
-    return '/img/bg.jpg?v=2';
+    return '/img/bg.jpg?v=3';
   });
   const [bgOpacity, setBgOpacity] = useState(() => {
     try {
@@ -209,7 +209,7 @@ export default function HomeScreen({
         try { localStorage.setItem('bg-image', r.url); } catch {}
       } else {
         // No custom background — use default
-        setBgImage('/img/bg.jpg?v=2');
+        setBgImage('/img/bg.jpg?v=3');
         setBgReady(true);
         try { localStorage.removeItem('bg-image'); } catch {}
       }
@@ -368,7 +368,7 @@ export default function HomeScreen({
     setUploadingBg(true);
     try {
       await api.resetBackground();
-      setBgImage('/img/bg.jpg?v=2');
+      setBgImage('/img/bg.jpg?v=3');
       setBgReady(true);
       try { localStorage.removeItem('bg-image'); } catch {}
       setBgVersion(v => v + 1);
@@ -505,8 +505,8 @@ export default function HomeScreen({
         {/* Background — constrained to 520px container so bg image doesn't stretch on desktop */}
       <View style={styles.bgWrapper}>
         <View style={{ width: '100%', maxWidth: 768, height: '100%', position: 'relative' }}>
-          <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=2)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
-          <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=2' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=2' ? bgOpacity : 0 } as any]} />
+          <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=3)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
+          <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=3' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=3' ? bgOpacity : 0 } as any]} />
         </View>
       </View>
 

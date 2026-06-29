@@ -412,7 +412,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try {
       await api.resetBackground();
       try { localStorage.removeItem('bg-image'); } catch {}
-      window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg?v=2' } }));
+      window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg?v=3' } }));
       // Reset opacity to 100%
       setBgOpacity(1);
       try {
