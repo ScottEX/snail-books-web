@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, TextInput } from 'react-native';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import { modalClose } from '../sharedStyles';
@@ -7,7 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
-import { useToast } from '../hooks/useToast';
+import CloseButton from '../components/CloseButton';
 import { getCurrentUserId } from '../utils/storage';
 import { api } from '../api/client';
 import { translateName } from './partner/usePartnerData';
@@ -122,7 +123,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const isSelf = String(user.id) === (getCurrentUserId() || '');
   const lang = getLang();
   const st = useMemo(() => getStyles(c), [c]);
-  const { showToast, ToastHost } = useToast();
+  const [showLinkedPartnerHint, setShowLinkedPartnerHint] = useState(false);
 
   const [detail, setDetail] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -319,7 +320,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                 {!isGrace && !isSelf ? (
                   <TouchableOpacity onPress={() => {
                     if (linkedPartnerId) {
-                      showToast(t('err_user_linked_partner'));
+                      setShowLinkedPartnerHint(true);
                       return;
                     }
                     setShowDeleteConfirm(true);
@@ -535,7 +536,22 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
         </View>
       </ModalOverlay>
-      {ToastHost}
+
+      {/* Linked-partner delete hint modal */}
+      <ModalOverlay visible={showLinkedPartnerHint} onClose={() => setShowLinkedPartnerHint(false)}>
+        <View style={st.hintCard} onStartShouldSetResponder={() => true}>
+          <View style={st.hintHeader}>
+            <Text style={st.hintTitle}>{t('friendlyReminder')}</Text>
+            <CloseButton onPress={() => setShowLinkedPartnerHint(false)} />
+          </View>
+          <View style={st.hintBody}>
+            <Text style={st.hintMsg}>{t('err_user_linked_partner')}</Text>
+            <TouchableOpacity style={st.hintBtn} onPress={() => setShowLinkedPartnerHint(false)} activeOpacity={0.7}>
+              <Text style={st.hintBtnText}>{t('confirm')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ModalOverlay>
     </View>
   );
 }
@@ -596,5 +612,22 @@ const getStyles = (c: ThemeColors) => {
       paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8,
     },
     roleItemText: { fontSize: 13 } as any,
+    /* Linked-partner delete hint modal */
+    hintCard: {
+      backgroundColor: c.surface, borderRadius: 16,
+      width: 340, maxWidth: '100%', overflow: 'hidden',
+    },
+    hintHeader: {
+      backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20,
+      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    },
+    hintTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
+    hintBody: { padding: 24, gap: 18, alignItems: 'center' },
+    hintMsg: { fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center', lineHeight: 22 },
+    hintBtn: {
+      paddingVertical: 12, paddingHorizontal: 40, borderRadius: 12,
+      backgroundColor: c.primary,
+    },
+    hintBtnText: { fontSize: FONTS.sub.size, fontWeight: '600', color: c.surface },
   });
 };
