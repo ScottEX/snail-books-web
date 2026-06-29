@@ -1447,8 +1447,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       )}
 
       {/* ── Items Modal (slides from top) ── */}
-      {showItemsModal && (
-        <Animated.View style={[styles.itemsModalOverlay, { opacity: itemsModalOverlayAnim }]}>
+      {showItemsModal && createPortal(
+        <Animated.View style={[styles.itemsModalOverlay, { opacity: itemsModalOverlayAnim, zIndex: 600 }]}>
           <Animated.View
             style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}
           >
@@ -1605,7 +1605,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </>
             )}
           </Animated.View>
-        </Animated.View>
+        </Animated.View>,
+        document.body
       )}
 
       {/* ── Success ── */}
