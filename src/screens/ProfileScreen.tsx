@@ -413,6 +413,14 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       await api.resetBackground();
       try { localStorage.removeItem('bg-image'); } catch {}
       window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg?v=2' } }));
+      // Reset opacity to 100%
+      setBgOpacity(1);
+      try {
+        const uid = getCurrentUserId();
+        const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
+        localStorage.removeItem(key);
+      } catch {}
+      api.saveBackgroundSettings({ opacity: 1 }).catch(() => {});
     } catch (err) { /* ignore */ }
     finally { setCoverUploading(false); }
   };

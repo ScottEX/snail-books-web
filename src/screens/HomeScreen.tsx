@@ -372,6 +372,14 @@ export default function HomeScreen({
       setBgReady(true);
       try { localStorage.removeItem('bg-image'); } catch {}
       setBgVersion(v => v + 1);
+      // Reset opacity to 100%
+      setBgOpacity(1);
+      try {
+        const uid = getCurrentUserId();
+        const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
+        localStorage.removeItem(key);
+      } catch {}
+      api.saveBackgroundSettings({ opacity: 1 }).catch(() => {});
     } catch (err) { /* ignore */ }
     setUploadingBg(false);
     setShowBgModal(false);
