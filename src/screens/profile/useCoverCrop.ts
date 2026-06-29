@@ -205,8 +205,16 @@ export function useCoverCrop() {
     } catch {}
     try {
       const uid = getCurrentUserId();
-      const saved = localStorage.getItem(uid ? `cover-opacity-${uid}` : 'cover-opacity');
-      if (saved !== null) setCoverOpacity(parseFloat(saved));
+      const coverKey = uid ? `cover-opacity-${uid}` : 'cover-opacity';
+      const saved = localStorage.getItem(coverKey);
+      if (saved !== null) {
+        setCoverOpacity(parseFloat(saved));
+      } else {
+        // Fall back to bg opacity (shared transparency from HomeScreen header theme settings)
+        const bgKey = uid ? `bg-opacity-${uid}` : 'bg-opacity';
+        const bgSaved = localStorage.getItem(bgKey);
+        if (bgSaved !== null) setCoverOpacity(parseFloat(bgSaved));
+      }
     } catch {}
   };
 
