@@ -375,7 +375,7 @@ export const api = {
     getUser: (id: number | string) => authFetch(`/api/admin/users/${id}`),
     updateUser: (id: number | string, body: Record<string, any>) =>
       authFetch(`/api/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-    deleteUser: (id: number | string) => authFetch(`/api/admin/users/${id}`, { method: 'DELETE' }),
+    deleteUser: (id: number | string) => authFetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: { 'X-Lang': getLang() } }),
     restoreUser: (id: number | string) => authFetch(`/api/admin/users/${id}/restore`, { method: 'POST' }),
   },
 

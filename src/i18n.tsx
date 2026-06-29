@@ -1755,7 +1755,6 @@ const I18N: Record<string, Record<string, string>> = {
     yesterdayProfit: 'Yesterday Profit',
   },
 };
-;
 
 export type I18nKey =
   | 'accountCooldown'
@@ -2342,7 +2341,6 @@ export type I18nKey =
   | 'yesterdayIncome'
   | 'yesterdayProfit'
 
-
 type Lang = 'zh-CN' | 'zh-TW' | 'en';
 
 export const langs: [Lang, string][] = [
@@ -2376,9 +2374,7 @@ const LangContext = createContext<LangContextValue>({
 export function LangProvider({ children }: { children: React.ReactNode }): React.ReactNode {
   const [lang, setLangState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      const curOrSaved = (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
-      (window as any).curLang = curOrSaved;
-      return curOrSaved;
+      return (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
     }
     return 'zh-CN';
   });
