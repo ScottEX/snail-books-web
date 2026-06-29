@@ -313,8 +313,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             <View style={{ flex: 1, gap: 4 }}>
               <View style={{ flexDirection: 'row' as const, justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Text style={st.avatarName}>{detail.username}</Text>
-                {/* Delete / Restore button (mutually exclusive, hidden for self) */}
-                {!isGrace && !isSelf ? (
+                {/* Delete / Restore button (mutually exclusive, hidden for self and linked-partner users) */}
+                {!isGrace && !isSelf && linkedPartnerId === null ? (
                   <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7} disabled={deleting}>
                     <View style={[st.actionBtn, { backgroundColor: withAlpha(c.danger, 0.08) }]}>
                       {deleting ? (
