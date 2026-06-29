@@ -625,7 +625,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     </TouchableOpacity>
                   </View>
                 </View>
-                <SubmitButton onPress={handleLogin} loading={loading} label={t('loginBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
+                <SubmitButton onPress={handleLogin} loading={loading} disabled={!username || !password} label={t('loginBtn')} style={[styles.btnDark, (!username || !password) && { opacity: 0.4 }]} textStyle={[styles.btnDarkText, (!username || !password) && styles.disabledText]} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
@@ -721,7 +721,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <SubmitButton onPress={handleRegister} loading={loading} label={t('registerBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
+              <SubmitButton onPress={handleRegister} loading={loading} disabled={!username || !email || !password || !password2} label={t('registerBtn')} style={[styles.btnDark, (!username || !email || !password || !password2) && { opacity: 0.4 }]} textStyle={[styles.btnDarkText, (!username || !email || !password || !password2) && styles.disabledText]} />
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>
@@ -749,7 +749,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="number-pad" onSubmitEditing={handleVerify} autoFocus />
               </View>
-              <TouchableOpacity onPress={handleVerify} style={styles.btnRed} disabled={loading}>
+              <TouchableOpacity onPress={handleVerify} style={[styles.btnRed, (!code || code.length < 6) && { opacity: 0.4 }]} disabled={loading || !code || code.length < 6}>
                 <Text style={styles.btnRedText}>{loading ? '...' : t('verifyBtn')}</Text>
               </TouchableOpacity>
               <Text style={styles.verifyHint}>
@@ -774,7 +774,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder="Email" placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="email-address" onSubmitEditing={handleForgot} />
               </View>
-              <TouchableOpacity onPress={handleForgot} style={styles.btnDark} disabled={loading}>
+              <TouchableOpacity onPress={handleForgot} style={[styles.btnDark, !email && { opacity: 0.4 }]} disabled={loading || !email}>
                 <Text style={styles.btnDarkText}>{loading ? '...' : t('forgotSendBtn') || 'Send Code'}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={goLogin}>
@@ -824,7 +824,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleReset} style={styles.btnRed} disabled={loading}>
+              <TouchableOpacity onPress={handleReset} style={[styles.btnRed, (!code || !password) && { opacity: 0.4 }]} disabled={loading || !code || !password}>
                 <Text style={styles.btnRedText}>{loading ? '...' : t('resetBtn')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={goLogin}>
