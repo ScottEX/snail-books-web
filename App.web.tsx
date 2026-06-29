@@ -146,7 +146,11 @@ export default function App() {
                 webauthnUserIdB64 = localStorage.getItem('webauthn_user_id_b64') || '';
                 // Preserve theme and background across logout so the login
                 // page renders with the user's chosen theme, not the default.
-                themeId = localStorage.getItem('snail-books-theme') || '';
+                // Theme is stored per-user: snail-books-theme-{uid} when logged
+                // in, snail-books-theme when logged out. Read from uid-suffixed
+                // key before clear, write back to the bare key for login page.
+                { const uid = localStorage.getItem('user_id');
+                  if (uid) themeId = localStorage.getItem('snail-books-theme-' + uid) || ''; }
                 bgImage = localStorage.getItem('bg-image') || '';
                 localStorage.clear();
                 sessionStorage.clear();

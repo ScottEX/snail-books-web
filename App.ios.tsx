@@ -33,7 +33,8 @@ export default function App() {
     let lang = '', themeId = '', bgImage = '';
     try {
       lang = localStorage.getItem('lang') || '';
-      themeId = localStorage.getItem('snail-books-theme') || '';
+      { const uid = localStorage.getItem('user_id');
+        if (uid) themeId = localStorage.getItem('snail-books-theme-' + uid) || ''; }
       bgImage = localStorage.getItem('bg-image') || '';
       localStorage.clear();
       if (lang) localStorage.setItem('lang', lang);

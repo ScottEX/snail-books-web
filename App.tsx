@@ -144,7 +144,10 @@ export default function App() {
                 webauthnUser = localStorage.getItem('webauthn_user') || '';
                 webauthnCredentialId = localStorage.getItem('webauthn_credential_id') || '';
                 webauthnUserIdB64 = localStorage.getItem('webauthn_user_id_b64') || '';
-                themeId = localStorage.getItem('snail-books-theme') || '';
+                // Theme is stored per-user: snail-books-theme-{uid} when logged
+                // in, snail-books-theme when logged out.
+                { const uid = localStorage.getItem('user_id');
+                  if (uid) themeId = localStorage.getItem('snail-books-theme-' + uid) || ''; }
                 bgImage = localStorage.getItem('bg-image') || '';
                 localStorage.clear();
                 sessionStorage.clear();
