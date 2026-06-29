@@ -622,11 +622,14 @@ const getStyles = (c: ThemeColors) => {
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     },
     hintTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
-    hintBody: { padding: 24, gap: 18, alignItems: 'center' },
-    hintMsg: { fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center', lineHeight: 22 },
+    hintBody: { padding: 24, gap: 18 },
+    hintMsg: {
+      fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center', lineHeight: 22,
+      backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12,
+    },
     hintBtn: {
-      paddingVertical: 12, paddingHorizontal: 40, borderRadius: 12,
-      backgroundColor: c.primary,
+      width: '100%', paddingVertical: 12, borderRadius: 10,
+      backgroundColor: c.primary, justifyContent: 'center', alignItems: 'center',
     },
     hintBtnText: { fontSize: FONTS.sub.size, fontWeight: '600', color: c.surface },
   });
