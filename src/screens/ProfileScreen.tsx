@@ -97,6 +97,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   } = useSignatureForm();
   const [daysSince, setDaysSince] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPartner, setIsPartner] = useState(false);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
 
   const checkAdmin = async (): Promise<boolean> => {
@@ -138,6 +139,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAdminBlockModal, setShowAdminBlockModal] = useState(false);
+  const [showPartnerBlockModal, setShowPartnerBlockModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteConfirmUsername, setDeleteConfirmUsername] = useState('');
   const [showThemeModal, setShowThemeModal] = useState(false);
@@ -217,6 +219,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       }
       if (typeof data.session_timeout_hours === 'number' && [1, 2, 6, 24].includes(data.session_timeout_hours)) {
         setSessionTimeoutHours(data.session_timeout_hours);
+      }
+      if (data.partner_name) {
+        setIsPartner(true);
       }
     } catch {}
   };
@@ -757,6 +762,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           <View style={st.card}>
             <TouchableOpacity style={st.iconRow} onPress={() => {
               if (isAdmin) { setShowAdminBlockModal(true); }
+              else if (isPartner) { setShowPartnerBlockModal(true); }
               else { setDeleteConfirmUsername(''); setShowDeleteModal(true); }
             }}>
               <View style={[st.iconWrap, st.iconDanger]}>
@@ -823,6 +829,23 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               {t('adminCannotDelete')}
             </Text>
             <TouchableOpacity style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center' }} onPress={() => setShowAdminBlockModal(false)}>
+              <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>{t('confirm')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ModalOverlay>
+      {/* Partner cannot self-delete modal */}
+      <ModalOverlay visible={showPartnerBlockModal} onClose={() => setShowPartnerBlockModal(false)}>
+        <View style={mo.card}>
+          <View style={mo.header}>
+            <Text style={mo.title}>{t('deleteAccount')}</Text>
+            <CloseButton onPress={() => setShowPartnerBlockModal(false)} />
+          </View>
+          <View style={mo.body}>
+            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 16 }}>
+              {t('err_partner_cannot_delete')}
+            </Text>
+            <TouchableOpacity style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center' }} onPress={() => setShowPartnerBlockModal(false)}>
               <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>{t('confirm')}</Text>
             </TouchableOpacity>
           </View>
