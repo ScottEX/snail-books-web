@@ -869,7 +869,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     backdropFilter: 'blur(24px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   shake: {}, // animation handled by CSS class
-  msgBox: { backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+  msgBox: { paddingHorizontal: 0, paddingVertical: 12, marginBottom: 16 },
   msgText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.danger },
   tabRow: {
     flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, padding: 4, marginBottom: 16,
