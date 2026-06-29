@@ -53,7 +53,7 @@ function ChevronRight({ color }: { color: string }) {
 /* ========== MAIN SCREEN ========== */
 
 export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange, onManageUsers, refreshKey }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void; onManageUsers?: () => void; refreshKey?: number }) {
-  const { colors, theme } = useTheme();
+  const { colors, theme, setTheme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const {
     avatarUrl, setAvatarUrl, avatarKey, setAvatarKey,
@@ -410,6 +410,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const handleThemeReset = async () => {
     setCoverUploading(true);
     try {
+      // Reset theme scheme to default
+      setTheme('burgundy-warm');
       await api.resetBackground();
       try { localStorage.removeItem('bg-image'); } catch {}
       window.dispatchEvent(new CustomEvent('bg-changed', { detail: { url: '/img/bg.jpg?v=3' } }));

@@ -44,7 +44,7 @@ export default function HomeScreen({
   /** Cleared when the user dismisses the preview — App.tsx drops the hash. */
   onClosePreview?: () => void;
 }) {
-  const { colors } = useTheme();
+  const { colors, setTheme } = useTheme();
   const [tab, setTabState] = useState<Tab>(() => {
     try {
       const saved = localStorage.getItem('active_tab');
@@ -367,6 +367,8 @@ export default function HomeScreen({
   const handleBgReset = async () => {
     setUploadingBg(true);
     try {
+      // Reset theme scheme to default
+      setTheme('burgundy-warm');
       await api.resetBackground();
       setBgImage('/img/bg.jpg?v=3');
       setBgReady(true);
