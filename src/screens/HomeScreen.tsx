@@ -136,8 +136,8 @@ export default function HomeScreen({
       const uid = getCurrentUserId();
       const key = uid ? `bg-opacity-${uid}` : 'bg-opacity';
       const saved = localStorage.getItem(key);
-      return saved !== null ? parseFloat(saved) : 0.5;
-    } catch { return 0.5; }
+      return saved !== null ? parseFloat(saved) : 1;
+    } catch { return 1; }
   });
 
   // Header text color: white when fully opaque, black otherwise

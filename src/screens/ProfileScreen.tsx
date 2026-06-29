@@ -147,8 +147,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try {
       const uid = getCurrentUserId();
       const saved = localStorage.getItem(uid ? `bg-opacity-${uid}` : 'bg-opacity');
-      return saved !== null ? parseFloat(saved) : 0.5;
-    } catch { return 0.5; }
+      return saved !== null ? parseFloat(saved) : 1;
+    } catch { return 1; }
   });
 
   const handleBgOpacityChange = (v: number) => {
