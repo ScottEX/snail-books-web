@@ -7,6 +7,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import { useToast } from '../hooks/useToast';
 import { getCurrentUserId } from '../utils/storage';
 import { api } from '../api/client';
 import { translateName } from './partner/usePartnerData';
@@ -121,6 +122,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const isSelf = String(user.id) === (getCurrentUserId() || '');
   const lang = getLang();
   const st = useMemo(() => getStyles(c), [c]);
+  const { showToast, ToastHost } = useToast();
 
   const [detail, setDetail] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -313,9 +315,15 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             <View style={{ flex: 1, gap: 4 }}>
               <View style={{ flexDirection: 'row' as const, justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Text style={st.avatarName}>{detail.username}</Text>
-                {/* Delete / Restore button (mutually exclusive, hidden for self and linked-partner users) */}
-                {!isGrace && !isSelf && linkedPartnerId === null ? (
-                  <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7} disabled={deleting}>
+                {/* Delete / Restore button (mutually exclusive, hidden for self) */}
+                {!isGrace && !isSelf ? (
+                  <TouchableOpacity onPress={() => {
+                    if (linkedPartnerId) {
+                      showToast(t('err_user_linked_partner'));
+                      return;
+                    }
+                    setShowDeleteConfirm(true);
+                  }} activeOpacity={0.7} disabled={deleting}>
                     <View style={[st.actionBtn, { backgroundColor: withAlpha(c.danger, 0.08) }]}>
                       {deleting ? (
                         <Text style={{ fontSize: 12, color: c.danger, fontWeight: '600' }}>...</Text>
@@ -527,6 +535,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
         </View>
       </ModalOverlay>
+      {ToastHost}
     </View>
   );
 }
