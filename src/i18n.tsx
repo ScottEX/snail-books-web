@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
-const I18N: Record<string, Record<string, string>> = const I18N: Record<string, Record<string, string>> = {
+const I18N: Record<string, Record<string, string>> = {
   'zh-CN': {
     accountCooldown: '账户已进入冷静期',
     accountInfo: '账号信息',
@@ -2342,6 +2342,8 @@ export type I18nKey =
   | 'yesterdayIncome'
   | 'yesterdayProfit'
 
+
+type Lang = 'zh-CN' | 'zh-TW' | 'en';
 
 export const langs: [Lang, string][] = [
   ['zh-CN', '简'],
