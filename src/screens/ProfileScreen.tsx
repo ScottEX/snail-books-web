@@ -825,7 +825,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <CloseButton onPress={() => setShowAdminBlockModal(false)} />
           </View>
           <View style={mo.body}>
-            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 16 }}>
+            <Text style={mo.warnMsg}>
               {t('adminCannotDelete')}
             </Text>
             <TouchableOpacity style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center' }} onPress={() => setShowAdminBlockModal(false)}>
@@ -842,7 +842,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <CloseButton onPress={() => setShowPartnerBlockModal(false)} />
           </View>
           <View style={mo.body}>
-            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 16 }}>
+            <Text style={mo.warnMsg}>
               {t('err_partner_cannot_delete')}
             </Text>
             <TouchableOpacity style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center' }} onPress={() => setShowPartnerBlockModal(false)}>
@@ -1388,6 +1388,11 @@ function getMo(colors: ThemeColors) {
     },
     pwHint: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 18 },
     err: { fontSize: FONTS.micro.size, color: colors.danger },
+    warnMsg: {
+      fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center', lineHeight: 22,
+      backgroundColor: withAlpha(colors.primary, 0.1), borderRadius: 12, padding: 12,
+      marginBottom: 16,
+    },
   });
 }
 
