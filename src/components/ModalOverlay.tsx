@@ -9,37 +9,63 @@ interface ModalOverlayProps {
   children: React.ReactNode;
   overlayStyle?: any;
   contentStyle?: any;
+  /** 动画类型：'slide' 默认顶部滑入，'springScale' 弹性缩放（中心弹窗） */
+  animation?: 'slide' | 'springScale';
 }
 
 /** Uniform spring-animated modal overlay used by all modals across the app. */
-export default function ModalOverlay({ visible = true, onClose, children, overlayStyle, contentStyle }: ModalOverlayProps) {
+export default function ModalOverlay({ visible = true, onClose, children, overlayStyle, contentStyle, animation = 'slide' }: ModalOverlayProps) {
   const [show, setShow] = useState(false);
-  const slide = useRef(new Animated.Value(-300)).current;
+  const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : -300)).current;
   const fade = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(animation === 'springScale' ? 0.85 : 1)).current;
 
   useEffect(() => {
     if (visible) {
       setShow(true);
-      slide.setValue(-300);
-      fade.setValue(0);
-      Animated.parallel([
-        Animated.spring(slide, { toValue: 0, useNativeDriver: false, bounciness: 4, speed: 14 }),
-        Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: false }),
-      ]).start();
+      if (animation === 'springScale') {
+        scale.setValue(0.85);
+        slide.setValue(12);
+        fade.setValue(0);
+        Animated.parallel([
+          Animated.spring(scale, { toValue: 1, useNativeDriver: false, bounciness: 8, speed: 14 }),
+          Animated.spring(slide, { toValue: 0, useNativeDriver: false, bounciness: 8, speed: 14 }),
+          Animated.timing(fade, { toValue: 1, duration: 250, useNativeDriver: false }),
+        ]).start();
+      } else {
+        slide.setValue(-300);
+        fade.setValue(0);
+        Animated.parallel([
+          Animated.spring(slide, { toValue: 0, useNativeDriver: false, bounciness: 4, speed: 14 }),
+          Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: false }),
+        ]).start();
+      }
     } else if (show) {
-      Animated.parallel([
-        Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: false }),
-        Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: false }),
-      ]).start(() => setShow(false));
+      if (animation === 'springScale') {
+        Animated.parallel([
+          Animated.timing(scale, { toValue: 0.92, duration: 220, useNativeDriver: false }),
+          Animated.timing(slide, { toValue: 8, duration: 220, useNativeDriver: false }),
+          Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: false }),
+        ]).start(() => setShow(false));
+      } else {
+        Animated.parallel([
+          Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: false }),
+          Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: false }),
+        ]).start(() => setShow(false));
+      }
     }
   }, [visible]);
 
   if (!show) return null;
 
+  const trans = animation === 'springScale'
+    ? [{ scale }, { translateY: slide }]
+    : [{ translateY: slide }];
+
   return createPortal(
     <Animated.View style={[{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, justifyContent: 'center', alignItems: 'center', padding: 16 }, { opacity: fade }, overlayStyle]}>
       <TouchableOpacity activeOpacity={1} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#000', opacity: MODAL_BACKDROP_OPACITY }} onPress={onClose} />
-      <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, contentStyle, { transform: [{ translateY: slide }] }]}>
+      <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, contentStyle, { transform: trans }]}>
         {children}
       </Animated.View>
     </Animated.View>,

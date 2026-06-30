@@ -891,7 +891,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       />
 
       {/* ── Change Password Modal ── */}
-      <ModalOverlay visible={showPwModal} onClose={() => setShowPwModal(false)}>
+      <ModalOverlay visible={showPwModal} onClose={() => setShowPwModal(false)} animation="springScale">
         <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changePassword')}</Text>
@@ -931,7 +931,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       </ModalOverlay>
 
       {/* ── Change Email Modal ── */}
-      <ModalOverlay visible={showEmailModal} onClose={() => setShowEmailModal(false)}>
+      <ModalOverlay visible={showEmailModal} onClose={() => setShowEmailModal(false)} animation="springScale">
         <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changeEmail')}</Text>
