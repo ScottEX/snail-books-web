@@ -62,7 +62,7 @@ export default function ThemePickerModal({
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const fade = useRef(new Animated.Value(0)).current;
-  const slide = useRef(new Animated.Value(-300)).current;
+  const slide = useRef(new Animated.Value(12)).current;
   const scale = useRef(new Animated.Value(0.85)).current;
   const [show, setShow] = React.useState(false);
   const [showCrop, setShowCrop] = useState(false);
@@ -79,16 +79,16 @@ export default function ThemePickerModal({
     if (visible) {
       setShow(true);
       fade.setValue(0);
-      slide.setValue(-300);
+      slide.setValue(12);
       scale.setValue(0.85);
       Animated.parallel([
-        Animated.spring(slide, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
+        Animated.spring(slide, { toValue: 0, useNativeDriver: true, bounciness: 8, speed: 14 }),
         Animated.spring(scale, { toValue: 1, useNativeDriver: true, bounciness: 8, speed: 14 }),
         Animated.timing(fade, { toValue: 1, duration: 250, useNativeDriver: true }),
       ]).start();
     } else if (show) {
       Animated.parallel([
-        Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: true }),
+        Animated.timing(slide, { toValue: 8, duration: 220, useNativeDriver: true }),
         Animated.timing(scale, { toValue: 0.92, duration: 220, useNativeDriver: true }),
         Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
       ]).start(() => setShow(false));
@@ -99,7 +99,7 @@ export default function ThemePickerModal({
     setShowCrop(false);
     setImageSrc('');
     Animated.parallel([
-      Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: true }),
+      Animated.timing(slide, { toValue: 8, duration: 220, useNativeDriver: true }),
       Animated.timing(scale, { toValue: 0.92, duration: 220, useNativeDriver: true }),
       Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
     ]).start(() => { setShow(false); onClose(); });
