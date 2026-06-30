@@ -63,6 +63,7 @@ export default function ThemePickerModal({
   const styles = getStyles(colors);
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(-300)).current;
+  const scale = useRef(new Animated.Value(0.85)).current;
   const [show, setShow] = React.useState(false);
   const [showCrop, setShowCrop] = useState(false);
   // imageSrc is the dataURL the user picked via the file input. It is
@@ -79,13 +80,16 @@ export default function ThemePickerModal({
       setShow(true);
       fade.setValue(0);
       slide.setValue(-300);
+      scale.setValue(0.85);
       Animated.parallel([
         Animated.spring(slide, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
-        Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(scale, { toValue: 1, useNativeDriver: true, bounciness: 8, speed: 14 }),
+        Animated.timing(fade, { toValue: 1, duration: 250, useNativeDriver: true }),
       ]).start();
     } else if (show) {
       Animated.parallel([
         Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 0.92, duration: 220, useNativeDriver: true }),
         Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
       ]).start(() => setShow(false));
     }
@@ -96,6 +100,7 @@ export default function ThemePickerModal({
     setImageSrc('');
     Animated.parallel([
       Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: true }),
+      Animated.timing(scale, { toValue: 0.92, duration: 220, useNativeDriver: true }),
       Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: true }),
     ]).start(() => { setShow(false); onClose(); });
   };
@@ -127,7 +132,7 @@ export default function ThemePickerModal({
 
   return createPortal(
     <Animated.View style={[styles.overlay as any, { opacity: fade }]}>
-      <Animated.View style={[styles.card as any, { transform: [{ translateY: slide }] }]}>
+      <Animated.View style={[styles.card as any, { transform: [{ scale }, { translateY: slide }] }]}>
         <View style={styles.header}>
           <Text style={styles.title}>{showCoverTools ? t('bgSettings') : (t('themeLabel') || '主题')}</Text>
           <CloseButton onPress={handleClose} />
