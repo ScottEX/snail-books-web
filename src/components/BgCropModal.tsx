@@ -377,7 +377,7 @@ export default function BgCropModal({
             <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '500' } as any}>{t('cropRotate')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={{ paddingVertical: 6, paddingHorizontal: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
+            style={{ paddingVertical: 6, paddingHorizontal: 8, marginLeft: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
             onPress={() => { stateRef.current.flipX = !stateRef.current.flipX; drawCrop(); }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

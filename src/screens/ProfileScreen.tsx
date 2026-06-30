@@ -1044,7 +1044,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </svg>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{t('cropRotate')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { cropState.current.flipX = !cropState.current.flipX; drawCrop(); }}>
+            <TouchableOpacity style={[cropS.toolBtn, { marginLeft: 8 }] as any} onPress={() => { cropState.current.flipX = !cropState.current.flipX; drawCrop(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -1151,7 +1151,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </svg>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{t('cropRotate')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { coverCropState.current.flipX = !coverCropState.current.flipX; coverDrawCrop(); }}>
+            <TouchableOpacity style={[cropS.toolBtn, { marginLeft: 8 }] as any} onPress={() => { coverCropState.current.flipX = !coverCropState.current.flipX; coverDrawCrop(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
