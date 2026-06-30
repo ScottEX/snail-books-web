@@ -17,7 +17,7 @@ export default function LogoutConfirmModal({ visible, onClose, onLogout }: Logou
   const styles = getStyles(colors);
 
   return (
-    <ModalOverlay visible={visible} onClose={onClose}>
+    <ModalOverlay visible={visible} onClose={onClose} animation="blurMorph">
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('logout')}</Text>

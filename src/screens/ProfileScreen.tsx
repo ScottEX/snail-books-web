@@ -853,7 +853,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         </View>
       </ModalOverlay>
       {/* Delete account modal */}
-      <ModalOverlay visible={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+      <ModalOverlay visible={showDeleteModal} onClose={() => setShowDeleteModal(false)} animation="blurMorph">
         <View style={mo.card}>
           <View style={mo.header}>
             <Text style={mo.title}>{t('deleteAccountConfirmTitle')}</Text>
