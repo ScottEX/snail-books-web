@@ -1444,34 +1444,28 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           }
         }}
         animation="stagger"
-        staggerCount={4}
+        staggerCount={3}
         overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
         contentStyle={{ alignItems: 'stretch' } as any}
       >
         {(anims) => (
           <View style={[styles.itemsModalCard, { width: '100%', maxHeight: '80%' } as any]}>
-            {/* Stagger item 0: handle bar */}
+            {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
               transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
             }}>
-              <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 16 }} />
-            </Animated.View>
-            {/* Stagger item 1: title */}
-            <Animated.View style={{
-              opacity: anims[1],
-              transform: [{ translateY: anims[1].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
-            }}>
-              <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
-                <Text style={styles.itemsModalTitle}>
+              <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 14, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'column', alignItems: 'flex-start' }}>
+                <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
+                <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>
                   {itemsModalIsCart && itemsModalView === 'products' ? t('procAddProduct') : t('procOrderItems')}
                 </Text>
               </View>
             </Animated.View>
-            {/* Stagger item 2: content */}
+            {/* Stagger item 1: content */}
             <Animated.View style={{
-              opacity: anims[2],
-              transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+              opacity: anims[1],
+              transform: [{ translateY: anims[1].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
               flex: 1, minHeight: 0,
             }}>
             {itemsModalIsCart && itemsModalView === 'products' ? (
@@ -1591,8 +1585,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             {/* Stagger item 3: buttons */}
             {!(itemsModalIsCart && itemsModalView === 'products') ? (
               <Animated.View style={{
-                opacity: anims[3],
-                transform: [{ translateY: anims[3].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+                opacity: anims[2],
+                transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
               }}>
                 {!editingBatchSettled && (
                 <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16, paddingTop: 4 }}>
@@ -1613,8 +1607,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               </Animated.View>
             ) : (
               <Animated.View style={{
-                opacity: anims[3],
-                transform: [{ translateY: anims[3].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+                opacity: anims[2],
+                transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
               }}>
                 <TouchableOpacity
                   style={{ marginHorizontal: 16, marginBottom: 16, marginTop: 4, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}

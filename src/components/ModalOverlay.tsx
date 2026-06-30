@@ -17,7 +17,7 @@ interface ModalOverlayProps {
 /** Uniform animated modal overlay. Backdrop uses reference-style rgba(20,18,16,0.45). */
 export default function ModalOverlay({ visible = true, onClose, children, overlayStyle, contentStyle, animation = 'slide', staggerCount = 4 }: ModalOverlayProps) {
   const [show, setShow] = useState(false);
-  const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : animation === 'slideUpScale' ? 1 : animation === 'stagger' ? 1 : -300)).current;
+  const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : animation === 'slideUpScale' ? 1 : animation === 'stagger' ? 40 : -300)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(animation === 'springScale' ? 0.85 : animation === 'blurMorph' ? 1.04 : animation === 'slideUpScale' ? 0.96 : animation === 'stagger' ? 0.94 : 1)).current;
   const back = useRef(new Animated.Value(0)).current;
@@ -61,7 +61,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
           Animated.timing(fade, { toValue: 1, duration: 300, useNativeDriver: false }),
         ]).start();
       } else if (animation === 'stagger') {
-        slide.setValue(1);
+        slide.setValue(40);
         scale.setValue(0.94);
         fade.setValue(0);
         staggerAnims.forEach(a => a.setValue(0));
@@ -70,12 +70,15 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
           Animated.timing(slide, { toValue: 0, duration: 400, easing: Easing.bezier(0.22, 0.88, 0.4, 1), useNativeDriver: false }),
           Animated.timing(scale, { toValue: 1, duration: 400, easing: Easing.bezier(0.22, 0.88, 0.4, 1), useNativeDriver: false }),
           Animated.timing(fade, { toValue: 1, duration: 300, useNativeDriver: false }),
-          Animated.stagger(
-            60,
-            staggerAnims.map(a =>
-              Animated.timing(a, { toValue: 1, duration: 350, easing: Easing.bezier(0.22, 0.88, 0.4, 1), useNativeDriver: false }),
+          Animated.sequence([
+            Animated.delay(80),
+            Animated.stagger(
+              60,
+              staggerAnims.map(a =>
+                Animated.timing(a, { toValue: 1, duration: 350, easing: Easing.bezier(0.22, 0.88, 0.4, 1), useNativeDriver: false }),
+              ),
             ),
-          ),
+          ]),
         ]).start();
       } else {
         slide.setValue(-300);
@@ -114,7 +117,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
       } else if (animation === 'stagger') {
         Animated.parallel([
           backOut,
-          Animated.timing(slide, { toValue: 1, duration: 220, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
+          Animated.timing(slide, { toValue: 40, duration: 220, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
           Animated.timing(scale, { toValue: 0.97, duration: 220, useNativeDriver: false }),
           Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: false }),
         ]).start(() => setShow(false));
@@ -134,7 +137,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
     if (animation === 'springScale') return [{ scale }, { translateY: slide }];
     if (animation === 'blurMorph') return [{ scale }];
     if (animation === 'slideUpScale') return [{ translateY: slide.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }, { scale }];
-    if (animation === 'stagger') return [{ translateY: slide.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }, { scale }];
+    if (animation === 'stagger') return [{ translateY: slide }, { scale }];
     return [{ translateY: slide }];
   };
 
