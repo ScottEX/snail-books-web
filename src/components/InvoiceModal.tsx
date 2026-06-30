@@ -1,10 +1,9 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Animated } from 'react-native';
 import SubmitButton from './SubmitButton';
 import { useTheme, withAlpha } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
 import ModalOverlay from './ModalOverlay';
-import CloseButton from './CloseButton';
 import { FONTS } from '../theme';
 import { useEffect, useRef, useState } from 'react';
 
@@ -87,42 +86,62 @@ export default function InvoiceModal({ visible, onClose }: Props) {
   };
 
   return (
-    <ModalOverlay visible={visible} onClose={onClose}>
-      <View style={[s.card, { backgroundColor: c.surface }]}>
-        <View style={[s.header, { backgroundColor: c.primary }]}>
-          <Text style={[s.title, { color: c.surface }]}>{t('invoiceTitle')}</Text>
-          <CloseButton onPress={onClose} />
-        </View>
-        <View style={s.body}>
-          {FIELDS.map((f) => (
-            <View key={f.key} style={s.fieldRow}>
-              <Text style={[s.label, { color: c.textSub }]}>{t(f.labelKey as any)}</Text>
-              <TextInput
-                style={[s.input, {
-                  color: c.textMain,
-                  borderColor: withAlpha(c.textMain, 0.1),
-                  backgroundColor: isAdmin ? 'transparent' : c.bg,
-                }] as any}
-                value={data[f.key]}
-                onChangeText={(v) => setData((d) => ({ ...d, [f.key]: v }))}
-                placeholder={t(f.labelKey as any)}
-                placeholderTextColor={c.textSub}
-                editable={isAdmin && !saved}
-              />
+    <ModalOverlay
+      visible={visible}
+      onClose={onClose}
+      animation="stagger"
+      staggerCount={3}
+      contentStyle={{ alignItems: 'stretch' } as any}
+    >
+      {(anims) => (
+        <View style={[s.card, { backgroundColor: c.surface }]}>
+          {/* Stagger item 0: header (handle bar + title, theme bg) */}
+          <Animated.View style={{
+            opacity: anims[0],
+            transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+          }}>
+            <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingTop: 14, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'column', alignItems: 'flex-start' }}>
+              <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
+              <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('invoiceTitle')}</Text>
             </View>
-          ))}
-          {isAdmin && (
-            <SubmitButton
-              onPress={handleSave}
-              loading={saving}
-              disabled={saved || !hasChanged}
-              label={saved ? t('invoiceSaved') : t('invoiceSave')}
-              style={[s.saveBtn, { backgroundColor: c.primary, opacity: (saved || !hasChanged) ? 0.45 : 1 }]}
-              textStyle={[s.saveBtnText, { color: c.surface }]}
-            />
-          )}
+          </Animated.View>
+          {/* Stagger item 1: content */}
+          <Animated.View style={{
+            opacity: anims[1],
+            transform: [{ translateY: anims[1].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+          }}>
+            <View style={s.body}>
+              {FIELDS.map((f) => (
+                <View key={f.key} style={s.fieldRow}>
+                  <Text style={[s.label, { color: c.textSub }]}>{t(f.labelKey as any)}</Text>
+                  <TextInput
+                    style={[s.input, {
+                      color: c.textMain,
+                      borderColor: withAlpha(c.textMain, 0.1),
+                      backgroundColor: isAdmin ? 'transparent' : c.bg,
+                    }] as any}
+                    value={data[f.key]}
+                    onChangeText={(v) => setData((d) => ({ ...d, [f.key]: v }))}
+                    placeholder={t(f.labelKey as any)}
+                    placeholderTextColor={c.textSub}
+                    editable={isAdmin && !saved}
+                  />
+                </View>
+              ))}
+              {isAdmin && (
+                <SubmitButton
+                  onPress={handleSave}
+                  loading={saving}
+                  disabled={saved || !hasChanged}
+                  label={saved ? t('invoiceSaved') : t('invoiceSave')}
+                  style={[s.saveBtn, { backgroundColor: c.primary, opacity: (saved || !hasChanged) ? 0.45 : 1 }]}
+                  textStyle={[s.saveBtnText, { color: c.surface }]}
+                />
+              )}
+            </View>
+          </Animated.View>
         </View>
-      </View>
+      )}
     </ModalOverlay>
   );
 }
@@ -133,12 +152,7 @@ const s = StyleSheet.create({
     width: 340, maxWidth: '100%', overflow: 'hidden' as any,
 
   } as any,
-  header: {
-    paddingHorizontal: 20, paddingVertical: 14,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  title: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
-  body: { padding: 24, gap: 14 },
+  body: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, gap: 12 },
   fieldRow: { gap: 4 },
   label: { fontSize: 12, fontWeight: '500' },
   input: {
