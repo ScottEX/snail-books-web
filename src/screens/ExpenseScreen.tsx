@@ -933,7 +933,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
           overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
           contentStyle={{ alignItems: 'stretch' } as any}>
-          <View style={[st.feeSheet, { maxWidth: 430 }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { width: '100%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
@@ -1008,7 +1008,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
           overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
           contentStyle={{ alignItems: 'stretch' } as any}>
-          <View style={[st.feeSheet, { height: winH * 0.75, width: '100%', maxWidth: 430 }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { height: winH * 0.75, width: '100%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
@@ -1457,6 +1457,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   modalHeader: {
     backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20,
     flexDirection: 'column', alignItems: 'flex-start',
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
   },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
   /* Platform fee sheet — bottom half-screen */
@@ -1467,7 +1468,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingBottom: 32,
     // @ts-ignore
     display: 'flex', flexDirection: 'column',
-    width: '100%', maxWidth: 430,
     boxShadow: '0 -8px 40px rgba(0,0,0,.18)',
     // @ts-ignore
 
