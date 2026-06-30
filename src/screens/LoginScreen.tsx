@@ -948,6 +948,6 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     boxShadow: '0 0 24px rgba(255,255,255,0.06)',
   },
-  faceSwitch: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.35)', textAlign: 'center' },
+  faceSwitch: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center' },
   copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });
