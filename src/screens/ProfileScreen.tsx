@@ -534,7 +534,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         {/* ── Profile head ── */}
         <View style={st.profileHead}>
           <Text style={st.profileName}>{username}</Text>
-          <Text style={st.profileEmail}>{email || '—'}</Text>
           {/* Signature */}
           {signatureEditing ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 }}>
