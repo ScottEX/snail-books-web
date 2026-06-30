@@ -568,9 +568,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             faceMode ? (
               /* ── Face ID mode ── */
               <View style={styles.formSection}>
-                <View style={styles.faceUserRow}>
-                  <Text style={styles.faceUsername}>{faceUsername}</Text>
-                </View>
                 <Animated.View style={{ transform: [{ scale: breatheAnim }], alignItems: 'center' }}>
                   <TouchableOpacity onPress={handleFaceIDLogin} style={styles.faceBtn} disabled={loading}>
                     <svg width="36" height="36" viewBox="0 0 1024 1024" fill="none">
@@ -578,6 +575,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     </svg>
                   </TouchableOpacity>
                 </Animated.View>
+                <View style={styles.faceUserRow}>
+                  <Text style={styles.faceUsername}>{faceUsername}</Text>
+                </View>
                 <TouchableOpacity onPress={() => { setFaceMode(false); }}>
                   <Text style={styles.faceSwitch}>{t('usePasswordLogin') || '使用密码登录'}</Text>
                 </TouchableOpacity>
@@ -933,7 +933,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: FONTS.micro.weight, marginBottom: 8 },
   devCodeValue: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.surface, letterSpacing: 8 },
   // Face ID mode
-  faceUserRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 24 },
+  faceUserRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 24 },
   faceAvatar: {
     width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
