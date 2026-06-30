@@ -19,7 +19,6 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
   const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : -300)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(animation === 'springScale' ? 0.85 : animation === 'blurMorph' ? 1.04 : 1)).current;
-  const blur = useRef(new Animated.Value(8)).current;
 
   useEffect(() => {
     if (visible) {
@@ -35,11 +34,9 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
         ]).start();
       } else if (animation === 'blurMorph') {
         scale.setValue(1.04);
-        blur.setValue(8);
         fade.setValue(0);
         Animated.parallel([
           Animated.timing(scale, { toValue: 1, duration: 400, useNativeDriver: false }),
-          Animated.timing(blur, { toValue: 0, duration: 400, useNativeDriver: false }),
           Animated.timing(fade, { toValue: 1, duration: 350, useNativeDriver: false }),
         ]).start();
       } else {
@@ -60,7 +57,6 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
       } else if (animation === 'blurMorph') {
         Animated.parallel([
           Animated.timing(scale, { toValue: 0.97, duration: 250, useNativeDriver: false }),
-          Animated.timing(blur, { toValue: 4, duration: 200, useNativeDriver: false }),
           Animated.timing(fade, { toValue: 0, duration: 200, useNativeDriver: false }),
         ]).start(() => setShow(false));
       } else {
@@ -80,14 +76,10 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
     return [{ translateY: slide }];
   };
 
-  const contentEx = animation === 'blurMorph'
-    ? { filter: blur.interpolate({ inputRange: [0, 8], outputRange: ['blur(0px)', 'blur(8px)'] }) } as any
-    : {};
-
   return createPortal(
     <Animated.View style={[{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, justifyContent: 'center', alignItems: 'center', padding: 16 }, { opacity: fade }, overlayStyle]}>
       <TouchableOpacity activeOpacity={1} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#000', opacity: MODAL_BACKDROP_OPACITY }} onPress={onClose} />
-      <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, contentStyle, { transform: getTrans() }, contentEx]}>
+      <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, contentStyle, { transform: getTrans() }]}>
         {children}
       </Animated.View>
     </Animated.View>,
