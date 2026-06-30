@@ -1008,13 +1008,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
           overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
           contentStyle={{ alignItems: 'stretch' } as any}>
-          <View style={[st.feeSheet, { height: winH * 0.75, width: '100%' }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { height: 800, width: '100%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
             </View>
             {/* Month filter */}
-            <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ paddingHorizontal: 20, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity
                 ref={feeHistoryFilterTriggerRef}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, position: 'relative' }}
@@ -1049,7 +1049,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ flex: 1, paddingHorizontal: 12, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ flex: 1, paddingHorizontal: 12 }} showsVerticalScrollIndicator={false}>
               {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, _idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
@@ -1464,7 +1464,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
     overflow: 'hidden',
-    paddingBottom: 32,
     // @ts-ignore
     display: 'flex', flexDirection: 'column',
     boxShadow: '0 -8px 40px rgba(0,0,0,.18)',
