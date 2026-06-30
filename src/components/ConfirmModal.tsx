@@ -88,8 +88,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   btnRow: { flexDirection: 'row', gap: 10, width: '100%' },
   cancelBtn: {
     flex: 1, paddingVertical: 13, borderRadius: 12,
-    backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center',
-    borderWidth: 1, borderColor: withAlpha(c.textMain, 0.15),
+    backgroundColor: 'transparent', alignItems: 'center',
+    borderWidth: 1, borderColor: c.secondary,
   },
   cancelText: { fontSize: FONTS.sub.size, fontWeight: '600', color: c.textMain },
   confirmBtn: {
