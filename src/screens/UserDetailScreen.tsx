@@ -433,7 +433,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
           )}
 
-          {/* Linked Partner */}
+          {/* Linked Partner — hide entirely when no partner linked and none available */}
+          {(linkedPartnerId !== null || !partnersLoaded || availablePartners.length > 0) && (
           <View style={st.section}>
             <View style={st.sectionTitleRow}>
               <Text style={st.sectionTitleText}>{t('linkedPartner')}</Text>
@@ -448,14 +449,11 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   <TouchableOpacity onPress={() => setShowUnlinkConfirm(true)} disabled={saving} activeOpacity={0.7}>
                     <Text style={{ color: c.danger, fontSize: 13, fontWeight: '500' }}>{t('unlinkPartner')}</Text>
                   </TouchableOpacity>
-                ) : availablePartners.length > 0 ? (
-                  <TouchableOpacity onPress={() => { fetchPartnerList(); setShowPartnerPicker(true); }} disabled={saving} activeOpacity={0.7}>
-                    <Text style={{ color: c.primary, fontSize: 13, fontWeight: '500' }}>{t('linkPartner')}</Text>
-                  </TouchableOpacity>
                 ) : null}
               </View>
             </View>
           </View>
+          )}
 
           {/* Other Info */}
           <View style={st.section}>

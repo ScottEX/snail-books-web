@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { useCropCanvas } from '../hooks/useCropCanvas';
-import { useEffect, useRef, useState } from 'react';
+import { useTheme } from '../theme';
+import { useEffect, useRef, useMemo, useState } from 'react';
 
 interface BgCropModalProps {
   visible: boolean;
@@ -44,6 +45,16 @@ export default function BgCropModal({
   visible, onClose, imageSrc, onClearImage,
   onConfirm, onUploaded, aspectRatio, title, confirmLabel,
 }: BgCropModalProps) {
+  const { colors } = useTheme();
+  // Compute a visible fill color for the dark toolbar based on theme accent
+  const sliderFill = useMemo(() => {
+    const hex = colors.accent.replace('#', '');
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const bright = (r * 299 + g * 587 + b * 114) / 1000;
+    return bright > 128 ? colors.accent : colors.info;
+  }, [colors]);
   // ── Internal crop state machine ──
   //   cropping → user is adjusting the crop
   //   preview  → user clicked "使用此图片", shows preview with "再编辑 / 确认使用" buttons
@@ -352,18 +363,22 @@ export default function BgCropModal({
         <View style={{ paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', flexShrink: 0 } as any}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
             <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
-            <input
-              type="range" min="0" max="100" value={zoomSlider}
-              onChange={(e: any) => {
-                const s = stateRef.current;
-                const tt = Number(e.target.value) / 100;
-                s.scale = s.minScale + (s.maxScale - s.minScale) * tt * 0.5;
-                s.scale = Math.max(s.minScale, s.scale);
-                setZoomSlider(Number(e.target.value));
-                clampCrop(); drawCrop();
-              }}
-              style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${zoomSlider}%, rgba(255,255,255,0.2) ${zoomSlider}%)`, borderRadius: 2 } as any}
-            />
+            <View style={{ position: 'relative', flex: 1, height: 32, justifyContent: 'center' } as any}>
+              <View style={{ position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.2)' } as any} />
+              <View style={{ position: 'absolute', left: 0, height: 4, borderRadius: 2, width: `${zoomSlider}%`, backgroundColor: sliderFill } as any} />
+              <input type="range" min="0" max="100" value={zoomSlider}
+                onChange={(e: any) => {
+                  const s = stateRef.current;
+                  const tt = Number(e.target.value) / 100;
+                  s.scale = s.minScale + (s.maxScale - s.minScale) * tt * 0.5;
+                  s.scale = Math.max(s.minScale, s.scale);
+                  setZoomSlider(Number(e.target.value));
+                  clampCrop(); drawCrop();
+                }}
+                className="glass-slider"
+                style={{ width: '100%', height: 32, opacity: 0, margin: 0, position: 'relative', zIndex: 1 }}
+              />
+            </View>
             <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
           </View>
           <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.12)', marginHorizontal: 10 } as any} />

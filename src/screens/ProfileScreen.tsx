@@ -54,6 +54,14 @@ function ChevronRight({ color }: { color: string }) {
 
 export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatarChange, onManageUsers, refreshKey }: { onBack: () => void; onLogout: () => void; onLangChange?: () => void; onAvatarChange?: () => void; onManageUsers?: () => void; refreshKey?: number }) {
   const { colors, theme, setTheme } = useTheme();
+  const sliderFill = useMemo(() => {
+    const hex = colors.accent.replace('#', '');
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const bright = (r * 299 + g * 587 + b * 114) / 1000;
+    return bright > 128 ? colors.accent : colors.info;
+  }, [colors]);
   const swipeBack = useSwipeBack(onBack);
   const {
     avatarUrl, setAvatarUrl, avatarKey, setAvatarKey,
@@ -1024,17 +1032,22 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           <View style={cropS.toolbar as any}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>A</Text>
-              <input type="range" min="0" max="100" value={zoomSlider}
-                onChange={(e: any) => {
-                  const s = cropState.current;
-                  const t = Number(e.target.value) / 100;
-                  s.scale = s.minScale + (s.maxScale - s.minScale) * t * 0.5;
-                  s.scale = Math.max(s.minScale, s.scale);
-                  setZoomSlider(Number(e.target.value));
-                  clampCrop(); drawCrop();
-                }}
-                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${zoomSlider}%, rgba(255,255,255,0.2) ${zoomSlider}%)`, borderRadius: 2 } as any}
-              />
+              <View style={{ position: 'relative', flex: 1, height: 32, justifyContent: 'center' }}>
+                <View style={{ position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.2)' }} />
+                <View style={{ position: 'absolute', left: 0, height: 4, borderRadius: 2, width: `${zoomSlider}%`, backgroundColor: sliderFill }} />
+                <input type="range" min="0" max="100" value={zoomSlider}
+                  onChange={(e: any) => {
+                    const s = cropState.current;
+                    const t = Number(e.target.value) / 100;
+                    s.scale = s.minScale + (s.maxScale - s.minScale) * t * 0.5;
+                    s.scale = Math.max(s.minScale, s.scale);
+                    setZoomSlider(Number(e.target.value));
+                    clampCrop(); drawCrop();
+                  }}
+                  className="glass-slider"
+                  style={{ width: '100%', height: 32, opacity: 0, margin: 0, position: 'relative', zIndex: 1 }}
+                />
+              </View>
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
             <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.12)', marginHorizontal: 10 }} />
@@ -1131,17 +1144,22 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           <View style={cropS.toolbar as any}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>A</Text>
-              <input type="range" min="0" max="100" value={coverZoomSlider}
-                onChange={(e: any) => {
-                  const s = coverCropState.current;
-                  const t = Number(e.target.value) / 100;
-                  s.scale = s.minScale + (s.maxScale - s.minScale) * t * 0.5;
-                  s.scale = Math.max(s.minScale, s.scale);
-                  setCoverZoomSlider(Number(e.target.value));
-                  coverClampCrop(); coverDrawCrop();
-                }}
-                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${coverZoomSlider}%, rgba(255,255,255,0.2) ${coverZoomSlider}%)`, borderRadius: 2 } as any}
-              />
+              <View style={{ position: 'relative', flex: 1, height: 32, justifyContent: 'center' }}>
+                <View style={{ position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.2)' }} />
+                <View style={{ position: 'absolute', left: 0, height: 4, borderRadius: 2, width: `${coverZoomSlider}%`, backgroundColor: sliderFill }} />
+                <input type="range" min="0" max="100" value={coverZoomSlider}
+                  onChange={(e: any) => {
+                    const s = coverCropState.current;
+                    const t = Number(e.target.value) / 100;
+                    s.scale = s.minScale + (s.maxScale - s.minScale) * t * 0.5;
+                    s.scale = Math.max(s.minScale, s.scale);
+                    setCoverZoomSlider(Number(e.target.value));
+                    coverClampCrop(); coverDrawCrop();
+                  }}
+                  className="glass-slider"
+                  style={{ width: '100%', height: 32, opacity: 0, margin: 0, position: 'relative', zIndex: 1 }}
+                />
+              </View>
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
             <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.12)', marginHorizontal: 10 }} />

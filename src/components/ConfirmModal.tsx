@@ -46,7 +46,7 @@ export default function ConfirmModal({
           <CloseButton onPress={onCancel} />
         </View>
         <View style={styles.body}>
-          <View style={[styles.warningBox, { backgroundColor: withAlpha(btn, 0.1) }]}>
+          <View style={styles.warningBox}>
             <Text style={styles.warningText}>{message}</Text>
           </View>
           <View style={styles.btnRow}>
@@ -89,7 +89,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cancelBtn: {
     flex: 1, paddingVertical: 13, borderRadius: 12,
     backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center',
-    borderWidth: 1, borderColor: c.secondary,
+    borderWidth: 1, borderColor: withAlpha(c.textMain, 0.15),
   },
   cancelText: { fontSize: FONTS.sub.size, fontWeight: '600', color: c.textMain },
   confirmBtn: {
