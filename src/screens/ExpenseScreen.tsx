@@ -997,7 +997,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 loading={savingFee}
                 disabled={toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0}
                 label={t('confirm')}
-                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0) ? 0.35 : 1 }}
+                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 16, opacity: (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0) ? 0.35 : 1 }}
                 textStyle={{ color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}
               />
             </View>
