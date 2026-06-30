@@ -97,7 +97,6 @@ export default function ThemePickerModal({
 
   const opacityValue = coverOpacity ?? 1;
   const opacityPct = Math.round(opacityValue * 100);
-  const rafRef = useRef<number>(0);
 
   return (
     <>
@@ -129,27 +128,20 @@ export default function ThemePickerModal({
                   <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('opacity')}</Text>
                   <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.primary }}>{opacityPct}%</Text>
                 </View>
-                <View style={{ position: 'relative', height: 20, overflow: 'hidden', justifyContent: 'center' }}>
-                  <input
+                <input
                     type="range"
                     min="0"
                     max="1"
                     step="0.05"
                     value={opacityValue}
-                    onInput={(e: any) => {
-                      cancelAnimationFrame(rafRef.current);
-                      rafRef.current = requestAnimationFrame(() => {
-                        onCoverOpacityChange?.(parseFloat((e.target as HTMLInputElement).value));
-                      });
-                    }}
+                    onChange={(e: any) => onCoverOpacityChange?.(parseFloat(e.target.value))}
                     style={{
-                      width: '100%', height: 20, appearance: 'none' as any,
+                      width: '100%', height: 4, appearance: 'none' as any,
                       accentColor: colors.primary,
                       background: `linear-gradient(to right, ${colors.primary} ${opacityPct}%, ${colors.secondary} ${opacityPct}%)`,
-                      borderRadius: 2, margin: 0,
+                      borderRadius: 2, margin: 0, marginBottom: 8,
                     }}
                   />
-                </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
                   <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>0</Text>
                   <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>50</Text>
