@@ -1295,7 +1295,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         animation="stagger"
         staggerCount={3}
         overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
-        contentStyle={{ alignItems: 'stretch' } as any}
+        contentStyle={{ alignItems: 'stretch', width: '100%' } as any}
       >
         {(anims) => (
           <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', display: 'flex' as any, flexDirection: 'column' as any }]}>
