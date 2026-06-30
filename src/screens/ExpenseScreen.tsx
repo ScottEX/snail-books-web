@@ -931,12 +931,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
       {/* Platform fee entry bottom sheet */}
         <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
-          overlayStyle={{ justifyContent: 'flex-end', padding: 0 } as any}>
+          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}>
           <View style={[st.feeSheet, { maxWidth: 430 }]} onStartShouldSetResponder={() => true}>
-            <View style={{ width: 36, height: 4, backgroundColor: colors.secondary, borderRadius: 2, alignSelf: 'center', marginTop: 8, marginBottom: 12 }} />
             <View style={st.modalHeader}>
+              <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
-              <CloseButton onPress={() => feeSheet.hide()} />
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
               {/* Date */}
@@ -1006,12 +1005,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
       {/* Fee history bottom sheet — "全部" detail view */}
         <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
-          overlayStyle={{ justifyContent: 'flex-end', padding: 0 } as any}>
+          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}>
           <View style={[st.feeSheet, { height: winH * 0.75, width: '100%', maxWidth: 430 }]} onStartShouldSetResponder={() => true}>
-            <View style={{ width: 36, height: 4, backgroundColor: colors.secondary, borderRadius: 2, alignSelf: 'center', marginTop: 8, marginBottom: 12 }} />
             <View style={st.modalHeader}>
+              <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
-              <CloseButton onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} />
             </View>
             {/* Month filter */}
             <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center' }}>
