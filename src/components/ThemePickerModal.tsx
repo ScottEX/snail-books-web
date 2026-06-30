@@ -128,30 +128,20 @@ export default function ThemePickerModal({
                   <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight }}>{t('opacity')}</Text>
                   <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.primary }}>{opacityPct}%</Text>
                 </View>
-                <View style={{ position: 'relative', height: 32, justifyContent: 'center' }}>
-                  <View style={{
-                    position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2,
-                    backgroundColor: colors.secondary,
-                  }} />
-                  <View style={{
-                    position: 'absolute', left: 0, height: 4, borderRadius: 2,
-                    width: `${opacityPct}%`,
-                    backgroundColor: colors.primary,
-                  }} />
-                  <input
+                <input
                     type="range"
-                    className="glass-slider"
                     min="0"
                     max="1"
                     step="0.05"
                     value={opacityValue}
                     onChange={(e: any) => onCoverOpacityChange?.(parseFloat(e.target.value))}
                     style={{
-                      width: '100%', height: 32, opacity: 0,
-                      margin: 0, position: 'relative', zIndex: 1,
+                      width: '100%', height: 4, appearance: 'none' as any,
+                      accentColor: colors.primary,
+                      background: `linear-gradient(to right, ${colors.primary} ${opacityPct}%, ${colors.secondary} ${opacityPct}%)`,
+                      borderRadius: 2, margin: 0,
                     }}
                   />
-                </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
                   <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>0</Text>
                   <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>50</Text>

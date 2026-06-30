@@ -505,7 +505,6 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         )}
         confirmLabel={deleting ? (t('loading') || '...') : (t('delete') || '删除')}
         cancelLabel={t('cancel')}
-        confirmColor={c.danger}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }} />
