@@ -1,4 +1,4 @@
-import { TouchableOpacity, Animated } from 'react-native';
+import { TouchableOpacity, Animated, Easing } from 'react-native';
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 
@@ -8,16 +8,16 @@ interface ModalOverlayProps {
   children: React.ReactNode;
   overlayStyle?: any;
   contentStyle?: any;
-  /** 动画类型：'slide' 默认顶部滑入、'springScale' 弹性缩放、'blurMorph' 模糊渐显 */
-  animation?: 'slide' | 'springScale' | 'blurMorph';
+  /** 动画类型：'slide' 默认顶部滑入、'springScale' 弹性缩放、'blurMorph' 模糊渐显、'slideUpScale' 底部滑入缩放 */
+  animation?: 'slide' | 'springScale' | 'blurMorph' | 'slideUpScale';
 }
 
 /** Uniform animated modal overlay. Backdrop uses reference-style rgba(20,18,16,0.45). */
 export default function ModalOverlay({ visible = true, onClose, children, overlayStyle, contentStyle, animation = 'slide' }: ModalOverlayProps) {
   const [show, setShow] = useState(false);
-  const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : -300)).current;
+  const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : animation === 'slideUpScale' ? 500 : -300)).current;
   const fade = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(animation === 'springScale' ? 0.85 : animation === 'blurMorph' ? 1.04 : 1)).current;
+  const scale = useRef(new Animated.Value(animation === 'springScale' ? 0.85 : animation === 'blurMorph' ? 1.04 : animation === 'slideUpScale' ? 0.96 : 1)).current;
   const back = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -41,6 +41,16 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
           Animated.timing(back, { toValue: 1, duration: 300, useNativeDriver: false }),
           Animated.timing(scale, { toValue: 1, duration: 400, useNativeDriver: false }),
           Animated.timing(fade, { toValue: 1, duration: 350, useNativeDriver: false }),
+        ]).start();
+      } else if (animation === 'slideUpScale') {
+        slide.setValue(500);
+        scale.setValue(0.96);
+        fade.setValue(0);
+        Animated.parallel([
+          Animated.timing(back, { toValue: 1, duration: 300, useNativeDriver: false }),
+          Animated.timing(slide, { toValue: 0, duration: 420, easing: Easing.bezier(0.32, 0.94, 0.36, 1.02), useNativeDriver: false }),
+          Animated.timing(scale, { toValue: 1, duration: 420, easing: Easing.bezier(0.32, 0.94, 0.36, 1.02), useNativeDriver: false }),
+          Animated.timing(fade, { toValue: 1, duration: 300, useNativeDriver: false }),
         ]).start();
       } else {
         slide.setValue(-300);
@@ -69,6 +79,13 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
           Animated.timing(scale, { toValue: 0.97, duration: 250, useNativeDriver: false }),
           Animated.timing(fade, { toValue: 0, duration: 200, useNativeDriver: false }),
         ]).start(() => setShow(false));
+      } else if (animation === 'slideUpScale') {
+        Animated.parallel([
+          backOut,
+          Animated.timing(slide, { toValue: 500, duration: 280, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
+          Animated.timing(scale, { toValue: 0.96, duration: 280, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
+          Animated.timing(fade, { toValue: 0, duration: 220, useNativeDriver: false }),
+        ]).start(() => setShow(false));
       } else {
         Animated.parallel([
           backOut,
@@ -84,6 +101,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
   const getTrans = () => {
     if (animation === 'springScale') return [{ scale }, { translateY: slide }];
     if (animation === 'blurMorph') return [{ scale }];
+    if (animation === 'slideUpScale') return [{ translateY: slide }, { scale }];
     return [{ translateY: slide }];
   };
 
