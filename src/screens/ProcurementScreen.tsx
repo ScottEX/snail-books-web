@@ -216,14 +216,14 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   drawer: {
     position: 'absolute' as any, bottom: 0, left: 0, right: 0,
     maxWidth: 768, marginLeft: 'auto', marginRight: 'auto',
-    backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24,
     maxHeight: '88%' as any, zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any,
     // @ts-ignore
 
   },
-  drawerHandle: { width: 36, height: 4, backgroundColor: withAlpha(c.textMain, 0.15), borderRadius: 2, alignSelf: 'center' as const, marginTop: 10 },
-  drawerHead: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 12, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.08) },
-  drawerHeadTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.textMain },
+  drawerHandle: { width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center' as const, marginTop: 10, marginBottom: 12 },
+  drawerHead: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, paddingVertical: 14, paddingHorizontal: 20, backgroundColor: c.primary },
+  drawerHeadTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   drawerClose: { padding: 4 },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
@@ -1348,7 +1348,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   : t('procConfirmOrder')}
               </Text>
               <TouchableOpacity style={styles.drawerClose} onPress={closeDrawer}>
-                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.textSub} strokeWidth="2" fill="none">
+                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
                   <Line x1="18" y1="6" x2="6" y2="18" />
                   <Line x1="6" y1="6" x2="18" y2="18" />
                 </Svg>
