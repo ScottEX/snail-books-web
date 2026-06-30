@@ -46,7 +46,7 @@ export default function ConfirmModal({
           <CloseButton onPress={onCancel} />
         </View>
         <View style={styles.body}>
-          <View style={styles.warningBox}>
+          <View style={[styles.warningBox, { backgroundColor: withAlpha(btn, 0.1) }]}>
             <Text style={styles.warningText}>{message}</Text>
           </View>
           <View style={styles.btnRow}>

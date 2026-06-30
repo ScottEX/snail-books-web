@@ -149,6 +149,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [linkedPartnerNameTW, setLinkedPartnerNameTW] = useState('');
   const [showPartnerPicker, setShowPartnerPicker] = useState(false);
   const [partnerList, setPartnerList] = useState<any[]>([]);
+  const [partnersLoaded, setPartnersLoaded] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -175,6 +176,14 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   }, [user.id]);
 
   useEffect(() => { fetchDetail(); }, [fetchDetail]);
+
+  // 加载合伙人列表，用于判断是否有可关联的合伙人
+  useEffect(() => {
+    if (detail && !partnersLoaded && !linkedPartnerId) {
+      fetchPartnerList();
+      setPartnersLoaded(true);
+    }
+  }, [detail, partnersLoaded, linkedPartnerId]);
 
   const saveField = useCallback(async (field: string, value: string | boolean) => {
     setSaving(true);
@@ -245,6 +254,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setPartnerList(Array.isArray(data) ? data : []);
     } catch {}
   }, []);
+
+  const availablePartners = useMemo(() => partnerList.filter((p: any) => !p.linked_user_id), [partnerList]);
 
   const handleLinkPartner = useCallback(async (partnerId: number, partnerName: string) => {
     setShowPartnerPicker(false);
@@ -437,11 +448,11 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   <TouchableOpacity onPress={() => setShowUnlinkConfirm(true)} disabled={saving} activeOpacity={0.7}>
                     <Text style={{ color: c.danger, fontSize: 13, fontWeight: '500' }}>{t('unlinkPartner')}</Text>
                   </TouchableOpacity>
-                ) : (
+                ) : availablePartners.length > 0 ? (
                   <TouchableOpacity onPress={() => { fetchPartnerList(); setShowPartnerPicker(true); }} disabled={saving} activeOpacity={0.7}>
                     <Text style={{ color: c.primary, fontSize: 13, fontWeight: '500' }}>{t('linkPartner')}</Text>
                   </TouchableOpacity>
-                )}
+                ) : null}
               </View>
             </View>
           </View>
@@ -520,7 +531,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             </TouchableOpacity>
           </View>
           <View style={{ padding: 16 }}>
-            {partnerList.filter((p: any) => !p.linked_user_id).map((p: any) => (
+            {availablePartners.map((p: any) => (
               <TouchableOpacity key={p.id}
                 onPress={() => handleLinkPartner(p.id, p.name)}
                 style={{ paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.08) }}

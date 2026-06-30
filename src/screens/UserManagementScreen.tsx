@@ -265,11 +265,11 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
           </View>
         </View>
 
-        {/* Status dropdown */}
-        {showStatusDrop && statusRect && (
-          <ModalOverlay visible={showStatusDrop} onClose={closeDrops} animation="springScale"
-            contentStyle={{ position: 'absolute' as any, top: statusRect.top, left: statusRect.left, width: statusRect.width, alignItems: 'stretch' } as any}
-          >
+        {/* Status dropdown — always mounted for exit animation */}
+        <ModalOverlay visible={showStatusDrop && !!statusRect} onClose={closeDrops} animation="springScale"
+          contentStyle={statusRect ? { position: 'absolute' as any, top: statusRect.top, left: statusRect.left, width: statusRect.width, alignItems: 'stretch' } as any : {}}
+        >
+          {statusRect && (
             <div style={portalDropdownStyle(c)}>
               <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus(''); closeDrops(); }}>
                 <Text style={[st.dropItemText, statusFilter === '' && { color: c.primary, fontWeight: '600' }]}>{t('all')}</Text>
@@ -287,14 +287,14 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                 <Text style={[st.dropItemText, statusFilter === 'grace' && { color: c.primary, fontWeight: '600' }]}>{t('graceStatus')}</Text>
               </TouchableOpacity>
             </div>
-          </ModalOverlay>
-        )}
+          )}
+        </ModalOverlay>
 
-        {/* Date dropdown — year/month picker + quick presets */}
-        {showDateDrop && dateRect && (
-          <ModalOverlay visible={showDateDrop} onClose={closeDrops} animation="springScale"
-            contentStyle={{ position: 'absolute' as any, top: dateRect.top, left: dateRect.left, width: dateRect.width, alignItems: 'stretch' } as any}
-          >
+        {/* Date dropdown — year/month picker + quick presets — always mounted for exit animation */}
+        <ModalOverlay visible={showDateDrop && !!dateRect} onClose={closeDrops} animation="springScale"
+          contentStyle={dateRect ? { position: 'absolute' as any, top: dateRect.top, left: dateRect.left, width: dateRect.width, alignItems: 'stretch' } as any : {}}
+        >
+          {dateRect && (
             <div style={portalDropdownStyle(c)}>
               {/* Year selector */}
               <View style={st.pickerRow}>
@@ -346,8 +346,8 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                 </TouchableOpacity>
               </View>
             </div>
-          </ModalOverlay>
-        )}
+          )}
+        </ModalOverlay>
 
         {/* User list */}
         <ScrollView style={st.list} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
