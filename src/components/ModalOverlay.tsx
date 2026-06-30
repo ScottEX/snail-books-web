@@ -15,7 +15,7 @@ interface ModalOverlayProps {
 /** Uniform animated modal overlay. Backdrop uses reference-style rgba(20,18,16,0.45). */
 export default function ModalOverlay({ visible = true, onClose, children, overlayStyle, contentStyle, animation = 'slide' }: ModalOverlayProps) {
   const [show, setShow] = useState(false);
-  const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : animation === 'slideUpScale' ? 500 : -300)).current;
+  const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : animation === 'slideUpScale' ? 1 : -300)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(animation === 'springScale' ? 0.85 : animation === 'blurMorph' ? 1.04 : animation === 'slideUpScale' ? 0.96 : 1)).current;
   const back = useRef(new Animated.Value(0)).current;
@@ -43,7 +43,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
           Animated.timing(fade, { toValue: 1, duration: 350, useNativeDriver: false }),
         ]).start();
       } else if (animation === 'slideUpScale') {
-        slide.setValue(500);
+        slide.setValue(1);
         scale.setValue(0.96);
         fade.setValue(0);
         Animated.parallel([
@@ -82,7 +82,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
       } else if (animation === 'slideUpScale') {
         Animated.parallel([
           backOut,
-          Animated.timing(slide, { toValue: 500, duration: 280, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
+          Animated.timing(slide, { toValue: 1, duration: 280, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
           Animated.timing(scale, { toValue: 0.96, duration: 280, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
           Animated.timing(fade, { toValue: 0, duration: 220, useNativeDriver: false }),
         ]).start(() => setShow(false));
@@ -101,7 +101,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
   const getTrans = () => {
     if (animation === 'springScale') return [{ scale }, { translateY: slide }];
     if (animation === 'blurMorph') return [{ scale }];
-    if (animation === 'slideUpScale') return [{ translateY: slide }, { scale }];
+    if (animation === 'slideUpScale') return [{ translateY: slide.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }, { scale }];
     return [{ translateY: slide }];
   };
 

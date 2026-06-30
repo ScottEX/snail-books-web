@@ -930,8 +930,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           </View>
         </ModalOverlay>
       {/* Platform fee entry bottom sheet */}
-        <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale">
-          <View style={[st.feeSheet, { maxWidth: 720 }]} onStartShouldSetResponder={() => true}>
+        <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
+          overlayStyle={{ justifyContent: 'flex-end', padding: 0 } as any}>
+          <View style={[st.feeSheet, { maxWidth: 430 }]} onStartShouldSetResponder={() => true}>
+            <View style={{ width: 36, height: 4, backgroundColor: colors.secondary, borderRadius: 2, alignSelf: 'center', marginTop: 8, marginBottom: 12 }} />
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
               <CloseButton onPress={() => feeSheet.hide()} />
@@ -1003,8 +1005,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
 
       {/* Fee history bottom sheet — "全部" detail view */}
-        <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale">
-          <View style={[st.feeSheet, { height: winH * 0.75, width: '96%' }]} onStartShouldSetResponder={() => true}>
+        <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
+          overlayStyle={{ justifyContent: 'flex-end', padding: 0 } as any}>
+          <View style={[st.feeSheet, { height: winH * 0.75, width: '100%', maxWidth: 430 }]} onStartShouldSetResponder={() => true}>
+            <View style={{ width: 36, height: 4, backgroundColor: colors.secondary, borderRadius: 2, alignSelf: 'center', marginTop: 8, marginBottom: 12 }} />
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('feeHistory')}</Text>
               <CloseButton onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} />
@@ -1084,7 +1088,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         contentStyle={pickerPos.top ? { position: 'absolute' as any, top: pickerPos.top, left: pickerPos.left, width: 140, alignItems: 'stretch' } as any : {}}
       >
         {pickerPos.top ? (
-          <div style={{ backgroundColor: colors.surface, borderRadius: 14, padding: '6px 0', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: colors.surface, borderRadius: 14, padding: '6px 0', maxHeight: 240, overflowY: 'auto' as any }}>
             <TouchableOpacity
               style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
               onPress={() => { setFeeMonth('all'); feeMonthPicker.hide(); }}
@@ -1459,12 +1463,13 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: '24px 24px 0 0' as any,
     overflow: 'hidden',
-    paddingBottom: 0,
+    paddingBottom: 32,
     // @ts-ignore
     display: 'flex', flexDirection: 'column',
-    width: '96%', maxWidth: 500,
+    width: '100%', maxWidth: 430,
+    boxShadow: '0 -8px 40px rgba(0,0,0,.18)',
     // @ts-ignore
 
     // @ts-ignore
