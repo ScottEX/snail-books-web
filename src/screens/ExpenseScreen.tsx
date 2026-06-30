@@ -931,7 +931,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
       {/* Platform fee entry bottom sheet */}
         <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
-          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}>
+          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+          contentStyle={{ alignItems: 'stretch' } as any}>
           <View style={[st.feeSheet, { maxWidth: 430 }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
@@ -1005,7 +1006,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
       {/* Fee history bottom sheet — "全部" detail view */}
         <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
-          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}>
+          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+          contentStyle={{ alignItems: 'stretch' } as any}>
           <View style={[st.feeSheet, { height: winH * 0.75, width: '100%', maxWidth: 430 }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
@@ -1454,8 +1456,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   modalHeader: {
     backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    flexDirection: 'column', alignItems: 'flex-start',
   },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
   /* Platform fee sheet — bottom half-screen */
