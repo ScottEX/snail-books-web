@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image } from 'react-native';
-import { createPortal } from 'react-dom';
+import ModalOverlay from '../components/ModalOverlay';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { t, getLang } from '../i18n';
 import { useServerDate } from '../hooks/useServerDate';
@@ -65,12 +65,6 @@ function UserEmptyIcon({ color }: { color: string }) {
   );
 }
 
-// ── Dropdown animation CSS ──
-const DD_CSS = `
-@keyframes dd-in{from{opacity:0;transform:translateY(-4px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-.dd-enter{animation:dd-in 180ms cubic-bezier(0.215,0.61,0.355,1) both}
-`;
-let ddInjected = false;
 
 // Year constants — will be overridden by useServerDate in component
 const FALLBACK_YEAR = new Date().getFullYear();
@@ -110,17 +104,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   useEffect(() => { if (sd.ready && sd.year !== FALLBACK_YEAR) setDropYear(sd.year); }, [sd.ready, sd.year]);
   const [dropMonth, setDropMonth] = useState(new Date().getMonth() + 1);
 
-  // Inject dropdown animation CSS once
-  useEffect(() => {
-    if (ddInjected) return;
-    ddInjected = true;
-    const s = document.createElement('style');
-    s.textContent = DD_CSS;
-    document.head.appendChild(s);
-  }, []);
-
   const fetchUsers = useCallback(async (sts: string, df: string, dt: string) => {
-    setLoading(true);
     try {
       const params = new URLSearchParams();
       if (sts) params.set('status', sts);
@@ -281,10 +265,12 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
           </View>
         </View>
 
-        {/* Status dropdown portal */}
-        {showStatusDrop && statusRect && createPortal(
-          <div style={{ position: 'absolute', top: statusRect.top, left: statusRect.left, width: statusRect.width, zIndex: 9999 }}>
-            <div className="dd-enter" style={portalDropdownStyle(c)}>
+        {/* Status dropdown */}
+        {showStatusDrop && statusRect && (
+          <ModalOverlay visible={showStatusDrop} onClose={closeDrops} animation="springScale"
+            contentStyle={{ position: 'absolute' as any, top: statusRect.top, left: statusRect.left, width: statusRect.width, alignItems: 'stretch' } as any}
+          >
+            <div style={portalDropdownStyle(c)}>
               <TouchableOpacity style={st.dropItem} onPress={() => { applyStatus(''); closeDrops(); }}>
                 <Text style={[st.dropItemText, statusFilter === '' && { color: c.primary, fontWeight: '600' }]}>{t('all')}</Text>
               </TouchableOpacity>
@@ -301,15 +287,15 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                 <Text style={[st.dropItemText, statusFilter === 'grace' && { color: c.primary, fontWeight: '600' }]}>{t('graceStatus')}</Text>
               </TouchableOpacity>
             </div>
-          </div>,
-          document.body
+          </ModalOverlay>
         )}
-        {showStatusDrop && createPortal(<div style={{ position: 'absolute', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
 
-        {/* Date dropdown portal — year/month picker + quick presets */}
-        {showDateDrop && dateRect && createPortal(
-          <div style={{ position: 'absolute', top: dateRect.top, left: dateRect.left, width: dateRect.width, zIndex: 9999 }}>
-            <div className="dd-enter" style={portalDropdownStyle(c)}>
+        {/* Date dropdown — year/month picker + quick presets */}
+        {showDateDrop && dateRect && (
+          <ModalOverlay visible={showDateDrop} onClose={closeDrops} animation="springScale"
+            contentStyle={{ position: 'absolute' as any, top: dateRect.top, left: dateRect.left, width: dateRect.width, alignItems: 'stretch' } as any}
+          >
+            <div style={portalDropdownStyle(c)}>
               {/* Year selector */}
               <View style={st.pickerRow}>
                 {(sd.ready ? [sd.year - 2, sd.year - 1, sd.year, sd.year + 1] : FALLBACK_YEARS).map(y => (
@@ -360,10 +346,8 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                 </TouchableOpacity>
               </View>
             </div>
-          </div>,
-          document.body
+          </ModalOverlay>
         )}
-        {showDateDrop && createPortal(<div style={{ position: 'absolute', inset: 0, zIndex: 9998 }} onClick={closeDrops} />, document.body)}
 
         {/* User list */}
         <ScrollView style={st.list} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
