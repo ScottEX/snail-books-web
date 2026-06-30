@@ -905,14 +905,12 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   codeInput: { textAlign: 'center', letterSpacing: 6 },
   btnDark: {
     backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
-    // @ts-ignore
-    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   btnDarkText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
   btnRed: {
     backgroundColor: withAlpha(colors.primary, 0.7), borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
-    // @ts-ignore
-    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   btnRedText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
   forgotText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
@@ -945,8 +943,6 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
     marginBottom: 24,
-    // @ts-ignore
-    boxShadow: '0 0 24px rgba(255,255,255,0.06)',
   },
   faceSwitch: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center' },
   copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
