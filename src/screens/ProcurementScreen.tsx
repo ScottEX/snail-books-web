@@ -1,5 +1,4 @@
 import React from 'react';
-import { createPortal } from 'react-dom';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   FlatList, Image, ActivityIndicator, StyleSheet, Animated
@@ -210,17 +209,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartClearBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08) },
   cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
 
-  // Drawer overlay
-  overlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200, maxWidth: 768, marginLeft: 'auto', marginRight: 'auto' },
   // Animated drawer — slides up
-  drawer: {
-    position: 'absolute' as any, bottom: 0, left: 0, right: 0,
-    maxWidth: 768, marginLeft: 'auto', marginRight: 'auto',
-    backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    maxHeight: '88%' as any, zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any,
-    // @ts-ignore
-
-  },
   drawerHandle: { width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center' as const, marginBottom: 12 },
   drawerHead: { flexDirection: 'column' as const, alignItems: 'flex-start' as const, paddingVertical: 14, paddingHorizontal: 20, backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
   drawerHeadTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
@@ -353,8 +342,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [editPriceVal, setEditPriceVal] = useState('');
 
   const [showDrawer, setShowDrawer] = useState(false);
-  const drawerAnim = useRef(new Animated.Value(0)).current;
-  const overlayAnim = useRef(new Animated.Value(0)).current;
+  const handleDrawerClose = () => {
+    setShowDrawer(false);
+    onDrawerClose?.();
+    if (editingBatchId !== null) {
+      setEditingBatchId(null); setEditingBatchNumber(0);
+      setEditingBatchSettled(false); setCartUnitPrices({});
+      setExistingImageUrls([]); setExistingThumbUrls([]);
+      setEditSnapshot(null);
+      setCart({}); setReceipts([]); setOrderNote('');
+      setOrderDate(sd.today); setPayMethod('payWechat');
+    }
+  };
   const [orderDate, setOrderDate] = useState('');
   useEffect(() => { if (sd.ready && orderDate === '') setOrderDate(sd.today); }, [sd.ready, sd.today, orderDate]);
   const [payMethod, setPayMethod] = useState<PayMethod>('payWechat');
@@ -460,36 +459,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const openHistoryDetail = (batch: BatchRecord) => {
     onProcurementDetail?.(batch);
   };
-
-  // ── Drawer animation ──
-  const openDrawer = () => {
-    setShowDrawer(true);
-    onDrawerOpen?.();
-    Animated.parallel([
-      Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-    ]).start();
-  };
-  const closeDrawer = () => {
-    Animated.parallel([
-      Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => {
-      setShowDrawer(false); onDrawerClose?.();
-      // Reset edit state when drawer is closed (in any way)
-      if (editingBatchId !== null) {
-        setEditingBatchId(null); setEditingBatchNumber(0);
-        setEditingBatchSettled(false); setCartUnitPrices({});
-        setExistingImageUrls([]); setExistingThumbUrls([]);
-        setEditSnapshot(null);
-        setCart({}); setReceipts([]); setOrderNote('');
-        setOrderDate(sd.today); setPayMethod('payWechat');
-      }
-    });
-  };
-
-  const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
-  const overlayOpacity = overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.45] });
 
   // todayStr replaced by useServerDate hook
 
@@ -755,23 +724,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           images: allImages, thumb_images: allThumbs, note: orderNote,
         });
         if (r?.status === 'ok') {
-          Animated.parallel([
-            Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-            Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-          ]).start(() => {
-            setCart({}); setReceipts([]); setOrderNote('');
-            setExistingImageUrls([]); setExistingThumbUrls([]);
-            setEditingBatchId(null); setEditingBatchNumber(0);
-            setEditingBatchSettled(false); setCartUnitPrices({});
-            setOrderDate(sd.today); setPayMethod('payWechat');
-            setShowDrawer(false); onDrawerClose?.();
-            // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
-            setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
-            setSuccessIsEdit(true);
-            openSlideModal(() => setShowSuccess(true));
-            loadPage(1, true);
-            loadStats();
-          });
+          setShowDrawer(false);
+          setCart({}); setReceipts([]); setOrderNote('');
+          setExistingImageUrls([]); setExistingThumbUrls([]);
+          setEditingBatchId(null); setEditingBatchNumber(0);
+          setEditingBatchSettled(false); setCartUnitPrices({});
+          setOrderDate(sd.today); setPayMethod('payWechat');
+          // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
+          setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
+          setSuccessIsEdit(true);
+          setTimeout(() => openSlideModal(() => setShowSuccess(true)), 250);
+          loadPage(1, true);
+          loadStats();
         } else {
           showToast(t('toastSubmitFailed'));
         }
@@ -786,14 +750,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       });
       if (r?.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setSuccessIsEdit(false);
-        Animated.parallel([
-          Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-          Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-        ]).start(() => {
-          setCart({}); api.clearCart().catch(() => {}); setReceipts([]); setOrderNote('');
-          setShowDrawer(false); onDrawerClose?.();
-          openSlideModal(() => setShowSuccess(true));
-        });
+        setShowDrawer(false);
+        setCart({}); api.clearCart().catch(() => {}); setReceipts([]); setOrderNote('');
+        setTimeout(() => openSlideModal(() => setShowSuccess(true)), 250);
         loadStats();
       } else {
         showToast(t('toastSubmitFailed'));
@@ -838,10 +797,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     // Open the same drawer the new-batch flow uses
     setShowDrawer(true);
     onDrawerOpen?.();
-    Animated.parallel([
-      Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-    ]).start();
   };
 
   // Expose edit function to parent via ref (for ProcurementDetailScreen edit button)
@@ -1068,7 +1023,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
           {cartCount > 0 && (
             <View style={styles.cartBar}>
-              <TouchableOpacity style={styles.cartPreview} onPress={openDrawer} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.cartPreview} onPress={() => { setShowDrawer(true); onDrawerOpen?.(); }} activeOpacity={0.8}>
                 <View style={[styles.cartIconWrap, { backgroundColor: c.primary }]}>
                   <CartIcon color={c.surface} />
                   <View style={styles.cartBadge}><Text style={styles.cartBadgeText}>{cartCount}</Text></View>
@@ -1333,29 +1288,45 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         onCancel={() => closeSlideModal(() => setDeleteBatchTarget(null))}
       />
 
-      {/* ── Order Drawer (slides up) ── */}
-      {showDrawer && createPortal(
-        <>
-          <Animated.View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: overlayOpacity }]}>
-            <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
-          </Animated.View>
-          <Animated.View style={[styles.drawer, { transform: [{ translateY: drawerTranslateY }] }]}>
-            <View style={styles.drawerHead}>
-              <View style={styles.drawerHandle} />
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                <Text style={styles.drawerHeadTitle}>
-                  {editingBatchId !== null
-                    ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
-                    : t('procConfirmOrder')}
-                </Text>
-                <TouchableOpacity style={styles.drawerClose} onPress={closeDrawer}>
-                  <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
-                    <Line x1="18" y1="6" x2="6" y2="18" />
-                    <Line x1="6" y1="6" x2="18" y2="18" />
-                  </Svg>
-                </TouchableOpacity>
+      {/* ── Order Drawer (stagger reveal) ── */}
+      <ModalOverlay
+        visible={showDrawer}
+        onClose={handleDrawerClose}
+        animation="stagger"
+        staggerCount={3}
+        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        contentStyle={{ alignItems: 'stretch' } as any}
+      >
+        {(anims) => (
+          <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', display: 'flex' as any, flexDirection: 'column' as any }]}>
+            {/* Stagger item 0: header (handle bar + title + X, theme bg) */}
+            <Animated.View style={{
+              opacity: anims[0],
+              transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+            }}>
+              <View style={styles.drawerHead}>
+                <View style={styles.drawerHandle} />
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <Text style={styles.drawerHeadTitle}>
+                    {editingBatchId !== null
+                      ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
+                      : t('procConfirmOrder')}
+                  </Text>
+                  <TouchableOpacity style={styles.drawerClose} onPress={handleDrawerClose}>
+                    <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
+                      <Line x1="18" y1="6" x2="6" y2="18" />
+                      <Line x1="6" y1="6" x2="18" y2="18" />
+                    </Svg>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            </Animated.View>
+            {/* Stagger item 1: content */}
+            <Animated.View style={{
+              opacity: anims[1],
+              transform: [{ translateY: anims[1].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+              flex: 1, minHeight: 0,
+            }}>
             <ScrollView style={styles.drawerBody}>
               {/* Date + Category — single line */}
               <View style={styles.dateCatRow}>
@@ -1416,7 +1387,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
               {/* Total + Submit moved to drawer footer */}
             </ScrollView>
-            {/* Footer: Total + Submit — fixed at drawer bottom, above nav bar */}
+            </Animated.View>
+            {/* Stagger item 2: footer (total + submit) */}
+            <Animated.View style={{
+              opacity: anims[2],
+              transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+            }}>
             <View style={styles.drawerFooter}>
               <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
                 <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
@@ -1430,10 +1406,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                 />
               </View>
             </View>
-          </Animated.View>
-        </>,
-        document.body
-      )}
+            </Animated.View>
+          </View>
+        )}
+      </ModalOverlay>
 
       {/* ── Items Modal (stagger reveal) ── */}
       <ModalOverlay
