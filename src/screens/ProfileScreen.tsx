@@ -1033,7 +1033,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                   setZoomSlider(Number(e.target.value));
                   clampCrop(); drawCrop();
                 }}
-                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${zoomSlider}%, rgba(255,255,255,0.2) ${zoomSlider}%)`, borderRadius: 2 } as any}
               />
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
@@ -1140,7 +1140,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                   setCoverZoomSlider(Number(e.target.value));
                   coverClampCrop(); coverDrawCrop();
                 }}
-                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${coverZoomSlider}%, rgba(255,255,255,0.2) ${coverZoomSlider}%)`, borderRadius: 2 } as any}
               />
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
