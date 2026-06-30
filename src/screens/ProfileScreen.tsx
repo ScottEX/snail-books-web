@@ -819,7 +819,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       {/* Shared modals */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
       {/* Admin cannot self-delete modal */}
-      <ModalOverlay visible={showAdminBlockModal} onClose={() => setShowAdminBlockModal(false)}>
+      <ModalOverlay visible={showAdminBlockModal} onClose={() => setShowAdminBlockModal(false)} animation="blurMorph">
         <View style={mo.card}>
           <View style={mo.header}>
             <Text style={mo.title}>{t('deleteAccount')}</Text>
@@ -836,7 +836,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         </View>
       </ModalOverlay>
       {/* Partner cannot self-delete modal */}
-      <ModalOverlay visible={showPartnerBlockModal} onClose={() => setShowPartnerBlockModal(false)}>
+      <ModalOverlay visible={showPartnerBlockModal} onClose={() => setShowPartnerBlockModal(false)} animation="blurMorph">
         <View style={mo.card}>
           <View style={mo.header}>
             <Text style={mo.title}>{t('deleteAccount')}</Text>
