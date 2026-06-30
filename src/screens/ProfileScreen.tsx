@@ -1316,6 +1316,8 @@ function getStyles(colors: ThemeColors) {
     signatureInput: {
       fontSize: 13, color: colors.textMain,
       paddingVertical: 4, flex: 1,
+      // @ts-ignore - web-only
+      outlineStyle: 'none' as any, borderWidth: 0,
     } as any,
     // Icon rows
     iconRow: {
