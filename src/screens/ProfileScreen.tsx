@@ -69,6 +69,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     coverOpacity, setCoverUploading, coverUploading,
     coverCropSrc, coverCropResult, coverShowResult, coverCropMsg,
     setCoverCropSrc, setCoverCropResult, setCoverShowResult, setCoverCropMsg,
+    coverZoomSlider, setCoverZoomSlider,
     coverInputRef, coverCropImgRef, coverCanvasRef, coverStageRef, coverGuideRef,
     handleCoverSelect, coverConfirmCrop, coverDoUpload,
     handleCoverOpacityChange, handleCoverReset,
@@ -1128,12 +1129,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           <View style={cropS.toolbar as any}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>A</Text>
-              <input type="range" min="0" max="100" defaultValue={0}
+              <input type="range" min="0" max="100" value={coverZoomSlider}
                 onChange={(e: any) => {
                   const s = coverCropState.current;
                   const t = Number(e.target.value) / 100;
                   s.scale = s.minScale + (s.maxScale - s.minScale) * t * 0.5;
                   s.scale = Math.max(s.minScale, s.scale);
+                  setCoverZoomSlider(Number(e.target.value));
                   coverClampCrop(); coverDrawCrop();
                 }}
                 style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}

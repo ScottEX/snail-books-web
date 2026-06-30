@@ -24,6 +24,7 @@ export function useCoverCrop() {
   const [coverCropResult, setCoverCropResult] = useState('');
   const [coverShowResult, setCoverShowResult] = useState(false);
   const [coverCropMsg, setCoverCropMsg] = useState('');
+  const [coverZoomSlider, setCoverZoomSlider] = useState(0);
 
   // ── Cover crop refs ──
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -121,6 +122,12 @@ export function useCoverCrop() {
     clampCrop: coverClampCrop,
     zoomCrop: coverZoomCrop,
     onSetup: onCoverCropSetup,
+    onZoomChange: () => {
+      const s = coverCropState.current;
+      const range = (s.maxScale - s.minScale) * 0.5;
+      const v = range > 0 ? Math.round(100 * (s.scale - s.minScale) / range) : 0;
+      setCoverZoomSlider(Math.max(0, Math.min(100, v)));
+    },
   });
 
   // ── User actions ──
@@ -133,7 +140,7 @@ export function useCoverCrop() {
       const src = reader.result as string;
       setCoverCropSrc(src); setCoverCropMsg(''); setCoverShowResult(false);
       const img = document.createElement('img') as HTMLImageElement;
-      img.onload = () => { coverCropImgRef.current = img; coverSetupCanvas(); coverFitImage(); coverDrawCrop(); };
+      img.onload = () => { coverCropImgRef.current = img; coverSetupCanvas(); coverFitImage(); coverDrawCrop(); setCoverZoomSlider(0); };
       img.src = src;
     };
     reader.readAsDataURL(file);
@@ -216,6 +223,8 @@ export function useCoverCrop() {
     coverOpacity, setCoverUploading, coverUploading,
     coverCropSrc, coverCropResult, coverShowResult, coverCropMsg,
     setCoverCropSrc, setCoverCropResult, setCoverShowResult, setCoverCropMsg,
+    // Zoom slider
+    coverZoomSlider, setCoverZoomSlider,
     // Refs
     coverInputRef, coverCropImgRef, coverCanvasRef, coverStageRef, coverGuideRef,
     // Actions
