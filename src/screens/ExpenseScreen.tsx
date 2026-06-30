@@ -1462,7 +1462,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
     backgroundColor: colors.surface,
-    borderRadius: '24px 24px 0 0' as any,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
     overflow: 'hidden',
     paddingBottom: 32,
     // @ts-ignore
