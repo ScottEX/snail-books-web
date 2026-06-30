@@ -16,6 +16,7 @@ import EmptyState from '../components/EmptyState';
 import ConfirmModal from '../components/ConfirmModal';
 import TrashIcon from '../components/icons/TrashIcon';
 import ImagePreview from '../components/ImagePreview';
+import ModalOverlay from '../components/ModalOverlay';
 
 /* ═══════════════ SVG ICONS ═══════════════ */
 
@@ -207,10 +208,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   // CSS injection for drawer animation
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerKey, setDrawerKey] = useState(0);
-  const closeGuardRef = useRef(0);  // prevent stale closeDrawer callback from overwriting openDrawer state
-  const drawerAnim = useRef(new Animated.Value(0)).current;
-  const overlayAnim = useRef(new Animated.Value(0)).current;
   const [dType, setDType] = useState<InvType>('general');
   const [dAmount, setDAmount] = useState('');
   const [dAmountFocus, setDAmountFocus] = useState(false);
@@ -408,8 +405,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   // ── Drawer animation ──
   const openDrawer = (forEdit?: InvoiceRecord) => {
-    closeGuardRef.current++;  // invalidate any in-flight close callback
-    setDrawerKey(k => k + 1);
     setDrawerOpen(true);
     setEditingId(forEdit ? forEdit.id : null);
     setDType(forEdit ? (forEdit.type as InvType) : 'general');
@@ -422,10 +417,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
     setDFiles([]);
     setDExistingFilePath(forEdit ? parseFilePaths(forEdit.file_path) : []);
-    Animated.parallel([
-      Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-    ]).start();
     // Fetch batch list (lightweight, all un-invoiced batches)
     (async () => {
       try {
@@ -454,23 +445,13 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     }
   };
   const closeDrawer = () => {
-    const guard = ++closeGuardRef.current;
-    Animated.parallel([
-      Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => {
-      if (guard !== closeGuardRef.current) return;  // superseded by a new openDrawer
-      setDrawerOpen(false);
-      setEditingId(null);
-      setDStatus('pending');
-      setDInvoiceNo('');
-      setDExistingFilePath([]);
-      setDFiles([]);
-    });
+    setDrawerOpen(false);
+    setEditingId(null);
+    setDStatus('pending');
+    setDInvoiceNo('');
+    setDExistingFilePath([]);
+    setDFiles([]);
   };
-
-  const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
-  const overlayOpacity = overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
   // Auto-fill amount when batch selected
   useEffect(() => {
@@ -686,21 +667,40 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         onCancel={() => !deleting && setConfirmDeleteId(null)}
       />
 
-      {/* ═══ DRAWER ═══ */}
-      {drawerOpen && (
-        <>
-          <Animated.View style={[s.drawerOverlay, { opacity: overlayOpacity }]}>
-            <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
-          </Animated.View>
-          <Animated.View key={drawerKey} style={[s.drawer, { backgroundColor: c.surface, top: entryCardH || undefined, bottom: 0, transform: [{ translateY: drawerTranslateY }] }]} onTouchEnd={(e: any) => e.stopPropagation?.()}>
-            <View style={[s.drawerHandle, { backgroundColor: c.secondary }]} />
-            <View style={[s.drawerHead, { borderBottomColor: c.secondary }]}>
-              <Text style={[s.drawerTitle, { color: c.textMain }]}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
-              <TouchableOpacity style={s.drawerClose} onPress={() => closeDrawer()}>
-                <IcnClose color="#1c1c1a" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={s.drawerBody} contentContainerStyle={{ paddingBottom: 8 }}>
+      {/* ═══ DRAWER (stagger reveal) ═══ */}
+      <ModalOverlay
+        visible={drawerOpen}
+        onClose={closeDrawer}
+        animation="stagger"
+        staggerCount={4}
+        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        contentStyle={{ alignItems: 'stretch' } as any}
+      >
+        {(anims) => (
+          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%' }]}>
+            {/* Stagger item 0: handle bar */}
+            <Animated.View style={{
+              opacity: anims[0],
+              transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+            }}>
+              <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 16 }} />
+            </Animated.View>
+            {/* Stagger item 1: title */}
+            <Animated.View style={{
+              opacity: anims[1],
+              transform: [{ translateY: anims[1].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+            }}>
+              <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
+                <Text style={[s.drawerTitle, { color: c.textMain }]}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
+              </View>
+            </Animated.View>
+            {/* Stagger item 2: content */}
+            <Animated.View style={{
+              opacity: anims[2],
+              transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+              flex: 1, minHeight: 0,
+            }}>
+              <ScrollView style={s.drawerBody} contentContainerStyle={{ paddingBottom: 8 }}>
               <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerType')}</Text>
               <View style={s.dTypeRow}>
                 {(['general', 'vat'] as InvType[]).map(tp => (
@@ -851,7 +851,12 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               </View>
 
             </ScrollView>
-            {/* Submit — fixed below scroll area, not inside */}
+            </Animated.View>
+            {/* Stagger item 3: submit */}
+            <Animated.View style={{
+              opacity: anims[3],
+              transform: [{ translateY: anims[3].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+            }}>
             {(() => {
               const nonLoadDisabled = !dAmount || !data.company_name || !data.tax_id
                 || (dStatus === 'done' && !dInvoiceNo.trim())
@@ -867,18 +872,19 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
             />
               );
             })()}
-          </Animated.View>
+            </Animated.View>
+          </View>
+        )}
+      </ModalOverlay>
 
-          {/* Image preview overlay */}
-          {preview && (
-            <ImagePreview
-              images={preview.images}
-              initialIdx={preview.idx}
-              visible={true}
-              onClose={closePreview}
-            />
-          )}
-        </>
+      {/* Image preview overlay */}
+      {preview && (
+        <ImagePreview
+          images={preview.images}
+          initialIdx={preview.idx}
+          visible={true}
+          onClose={closePreview}
+        />
       )}
     </View>
   );
@@ -1034,7 +1040,7 @@ const s = StyleSheet.create({
 
   /* DRAWER */
   drawerOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
-  drawer: { position: 'absolute' as any, left: 0, right: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%', zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any } as any,
+  drawer: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any, maxHeight: '90%' } as any,
   drawerHandle: { width: 36, height: 4, borderRadius: 2, marginTop: 12, alignSelf: 'center', flexShrink: 0 } as any,
   drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 12, borderBottomWidth: 1, flexShrink: 0 } as any,
   drawerTitle: { fontSize: 15, fontWeight: '600' } as any,

@@ -19,6 +19,7 @@ import TextField from '../components/TextField';
 import ButtonPair from '../components/ButtonPair';
 import SubmitButton from '../components/SubmitButton';
 import { useToast } from '../hooks/useToast';
+import ModalOverlay from '../components/ModalOverlay';
 import CloseButton from '../components/CloseButton';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
@@ -241,9 +242,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Items modal
   itemsModalOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
-  itemsModalCard: { backgroundColor: c.surface, borderRadius: 16, width: 'calc(100% - 40px)' as any, maxWidth: 360, maxHeight: '75%' as any, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
+  itemsModalCard: { backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, width: '100%' as any, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
-  itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
+  itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
   // No horizontal padding here — ScrollView applies its own paddingHorizontal: 18 so that the
   // webkit scrollbar (which paints on the padding-box edge) lands in the rightmost 2px gutter
@@ -448,25 +449,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   };
 
   // ── Items modal animation (slide from top) ──
-  const itemsModalAnim = useRef(new Animated.Value(0)).current;
-  const itemsModalOverlayAnim = useRef(new Animated.Value(0)).current;
   const openItemsModal = () => {
     setItemsModalIsCart(true);
     setItemsModalView('items');
     setProductPickerSearch('');
     setShowItemsModal(true);
-    itemsModalAnim.setValue(-300);
-    itemsModalOverlayAnim.setValue(0);
-    Animated.parallel([
-      Animated.spring(itemsModalAnim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(itemsModalOverlayAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start();
-  };
-  const closeItemsModal = () => {
-    Animated.parallel([
-      Animated.timing(itemsModalAnim, { toValue: -300, duration: 180, useNativeDriver: true }),
-      Animated.timing(itemsModalOverlayAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
-    ]).start(() => setShowItemsModal(false));
   };
 
   // ── History Detail ──
@@ -1446,29 +1433,51 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         document.body
       )}
 
-      {/* ── Items Modal (slides from top) ── */}
-      {showItemsModal && createPortal(
-        <Animated.View style={[styles.itemsModalOverlay, { opacity: itemsModalOverlayAnim, zIndex: 600 }]}>
-          <Animated.View
-            style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}
-          >
-            <View style={styles.itemsModalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {itemsModalIsCart && itemsModalView === 'products' && (
-                  <TouchableOpacity onPress={() => setItemsModalView('items')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <Text style={[styles.itemsModalClose, { fontSize: 18 }]}>←</Text>
-                  </TouchableOpacity>
-                )}
+      {/* ── Items Modal (stagger reveal) ── */}
+      <ModalOverlay
+        visible={showItemsModal}
+        onClose={() => {
+          if (itemsModalIsCart && itemsModalView === 'products') {
+            setItemsModalView('items');
+          } else {
+            setShowItemsModal(false);
+          }
+        }}
+        animation="stagger"
+        staggerCount={4}
+        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        contentStyle={{ alignItems: 'stretch' } as any}
+      >
+        {(anims) => (
+          <View style={[styles.itemsModalCard, { width: '100%', maxHeight: '80%' } as any]}>
+            {/* Stagger item 0: handle bar */}
+            <Animated.View style={{
+              opacity: anims[0],
+              transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+            }}>
+              <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 16 }} />
+            </Animated.View>
+            {/* Stagger item 1: title */}
+            <Animated.View style={{
+              opacity: anims[1],
+              transform: [{ translateY: anims[1].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+            }}>
+              <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
                 <Text style={styles.itemsModalTitle}>
                   {itemsModalIsCart && itemsModalView === 'products' ? t('procAddProduct') : t('procOrderItems')}
                 </Text>
               </View>
-                <CloseButton onPress={closeItemsModal} />
-            </View>
+            </Animated.View>
+            {/* Stagger item 2: content */}
+            <Animated.View style={{
+              opacity: anims[2],
+              transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+              flex: 1, minHeight: 0,
+            }}>
             {itemsModalIsCart && itemsModalView === 'products' ? (
               // ── Product picker view ──
-              <>
-                <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8 }}>
+              <View style={{ flex: 1, minHeight: 0 }}>
+                <View style={{ paddingHorizontal: 18, paddingTop: 0, paddingBottom: 8 }}>
                   <TextInput
                     value={productPickerSearch}
                     onChangeText={setProductPickerSearch}
@@ -1521,16 +1530,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   )}
                   </ScrollView>
                 </View>
-                <TouchableOpacity
-                  style={{ marginHorizontal: 16, marginBottom: 16, marginTop: 4, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
-                  onPress={() => setItemsModalView('items')}
-                >
-                  <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
-                </TouchableOpacity>
-              </>
+              </View>
             ) : (
               // ── Cart edit view (with +/- qty) ──
-              <>
+              <View style={{ flex: 1, minHeight: 0 }}>
                 <View style={styles.itemsModalBodyWrap}>
                   <ScrollView
                     style={{ flex: 1, minHeight: 0, paddingHorizontal: 18, boxSizing: 'border-box' } as any}
@@ -1541,7 +1544,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                       </View>
                     ) : (
                       cartItems.map((i, idx, arr) => {
-                        // Display price: historical (snapshot) if available, else current product price
                         const unitPrice = cartUnitPrices[i.product.id] ?? i.product.price;
                         return (
                         <View key={i.product.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
@@ -1583,9 +1585,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
                   <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
                 </View>
-                {/* For settled batches, hide both the add-product entry and the done button —
-                    nothing in the cart can be modified, so there's nothing to confirm. The user
-                    closes the modal via the X button at the top of the modal. */}
+              </View>
+            )}
+            </Animated.View>
+            {/* Stagger item 3: buttons */}
+            {!(itemsModalIsCart && itemsModalView === 'products') ? (
+              <Animated.View style={{
+                opacity: anims[3],
+                transform: [{ translateY: anims[3].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+              }}>
                 {!editingBatchSettled && (
                 <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16, paddingTop: 4 }}>
                   <TouchableOpacity
@@ -1596,18 +1604,29 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
-                    onPress={closeItemsModal}
+                    onPress={() => setShowItemsModal(false)}
                   >
                     <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
                   </TouchableOpacity>
                 </View>
                 )}
-              </>
+              </Animated.View>
+            ) : (
+              <Animated.View style={{
+                opacity: anims[3],
+                transform: [{ translateY: anims[3].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+              }}>
+                <TouchableOpacity
+                  style={{ marginHorizontal: 16, marginBottom: 16, marginTop: 4, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
+                  onPress={() => setItemsModalView('items')}
+                >
+                  <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
+                </TouchableOpacity>
+              </Animated.View>
             )}
-          </Animated.View>
-        </Animated.View>,
-        document.body
-      )}
+          </View>
+        )}
+      </ModalOverlay>
 
       {/* ── Success ── */}
       {showSuccess && (
