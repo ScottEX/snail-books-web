@@ -1288,127 +1288,104 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         onCancel={() => closeSlideModal(() => setDeleteBatchTarget(null))}
       />
 
-      {/* ── Order Drawer (stagger reveal) ── */}
+      {/* ── Order Drawer (slide up + scale) ── */}
       <ModalOverlay
         visible={showDrawer}
         onClose={handleDrawerClose}
-        animation="stagger"
-        staggerCount={3}
-        overlayStyle={{ padding: 0, alignItems: 'stretch' } as any}
-        contentStyle={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'stretch' } as any}
+        animation="slideUpScale"
+        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        contentStyle={{ alignItems: 'stretch' } as any}
       >
-        {(anims) => (
-          <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', display: 'flex' as any, flexDirection: 'column' as any }]}>
-            {/* Stagger item 0: header (handle bar + title + X, theme bg) */}
-            <Animated.View style={{
-              opacity: anims[0],
-              transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
-            }}>
-              <View style={styles.drawerHead}>
-                <View style={styles.drawerHandle} />
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <Text style={styles.drawerHeadTitle}>
-                    {editingBatchId !== null
-                      ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
-                      : t('procConfirmOrder')}
-                  </Text>
-                  <TouchableOpacity style={styles.drawerClose} onPress={handleDrawerClose}>
-                    <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
-                      <Line x1="18" y1="6" x2="6" y2="18" />
-                      <Line x1="6" y1="6" x2="18" y2="18" />
-                    </Svg>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Animated.View>
-            {/* Stagger item 1: content */}
-            <Animated.View style={{
-              opacity: anims[1],
-              transform: [{ translateY: anims[1].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
-              flex: 1, minHeight: 0,
-            }}>
-            <ScrollView style={styles.drawerBody}>
-              {/* Date + Category — single line */}
-              <View style={styles.dateCatRow}>
-                <View style={styles.dateCatLine}>
-                  <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
-                  <DatePicker
-                    date={orderDate}
-                    onChange={setOrderDate}
-                    max={sd.today}
-                    displayDate={formatDate(orderDate)}
-                    fontSize={FONTS.sub.size}
-                    showChevron
-                    showCalendarIcon
-                  />
-                  <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>{t('goods')}</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Payment method */}
-              <PaymentMethodChips label={t('procPaymentMethod') as string} selected={payMethod} onSelect={(m) => setPayMethod(m as PayMethod)} />
-
-              {/* Upload receipts */}
-              <View style={{ marginTop: 12 }}>
-                <ReceiptUpload
-                  existingImages={existingImageUrls}
-                  newFiles={receipts}
-                  onAdd={handleAddFiles}
-                  onRemoveExisting={removeExistingImage}
-                  onRemoveNew={handleRemoveNewFile}
-                  getPreviewUrl={getPreviewUrl}
+        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', display: 'flex' as any, flexDirection: 'column' as any }]}>
+          <View style={styles.drawerHead}>
+            <View style={styles.drawerHandle} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <Text style={styles.drawerHeadTitle}>
+                {editingBatchId !== null
+                  ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
+                  : t('procConfirmOrder')}
+              </Text>
+              <TouchableOpacity style={styles.drawerClose} onPress={handleDrawerClose}>
+                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
+                  <Line x1="18" y1="6" x2="6" y2="18" />
+                  <Line x1="6" y1="6" x2="18" y2="18" />
+                </Svg>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <ScrollView style={styles.drawerBody}>
+            {/* Date + Category — single line */}
+            <View style={styles.dateCatRow}>
+              <View style={styles.dateCatLine}>
+                <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
+                <DatePicker
+                  date={orderDate}
+                  onChange={setOrderDate}
+                  max={sd.today}
+                  displayDate={formatDate(orderDate)}
+                  fontSize={FONTS.sub.size}
+                  showChevron
+                  showCalendarIcon
                 />
-              </View>
-
-              {/* Items row — matching 近7天 pattern: label left, theme button right */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
-                <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
-                <TouchableOpacity onPress={openItemsModal} activeOpacity={0.7}>
-                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary }}>{t('procViewDetail')} →</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
-                <Text style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>
-                  {t('procNowBatch').replace('{n}', String(editingBatchId !== null ? editingBatchNumber : stats.batch_count + 1))}
-                </Text>
-              </View>
-
-              <ExpenseNoteInput
-                label={t('procNoteOptional') as string}
-                value={orderNote}
-                onChangeText={setOrderNote}
-                placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`}
-              />
-
-              {/* Total + Submit moved to drawer footer */}
-            </ScrollView>
-            </Animated.View>
-            {/* Stagger item 2: footer (total + submit) */}
-            <Animated.View style={{
-              opacity: anims[2],
-              transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
-            }}>
-            <View style={styles.drawerFooter}>
-              <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
-                <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
-                <SubmitButton
-                  onPress={submitOrder}
-                  loading={submitting}
-                  disabled={cartCount === 0 || editUnchanged}
-                  label={t('procSubmit')}
-                  style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]}
-                  textStyle={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}
-                />
+                <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>{t('goods')}</Text>
+                </View>
               </View>
             </View>
-            </Animated.View>
+
+            {/* Payment method */}
+            <PaymentMethodChips label={t('procPaymentMethod') as string} selected={payMethod} onSelect={(m) => setPayMethod(m as PayMethod)} />
+
+            {/* Upload receipts */}
+            <View style={{ marginTop: 12 }}>
+              <ReceiptUpload
+                existingImages={existingImageUrls}
+                newFiles={receipts}
+                onAdd={handleAddFiles}
+                onRemoveExisting={removeExistingImage}
+                onRemoveNew={handleRemoveNewFile}
+                getPreviewUrl={getPreviewUrl}
+              />
+            </View>
+
+            {/* Items row — matching 近7天 pattern: label left, theme button right */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
+              <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
+              <TouchableOpacity onPress={openItemsModal} activeOpacity={0.7}>
+                <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary }}>{t('procViewDetail')} →</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
+              <Text style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>
+                {t('procNowBatch').replace('{n}', String(editingBatchId !== null ? editingBatchNumber : stats.batch_count + 1))}
+              </Text>
+            </View>
+
+            <ExpenseNoteInput
+              label={t('procNoteOptional') as string}
+              value={orderNote}
+              onChangeText={setOrderNote}
+              placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`}
+            />
+          </ScrollView>
+          {/* Footer: Total + Submit */}
+          <View style={styles.drawerFooter}>
+            <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
+              <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
+              <SubmitButton
+                onPress={submitOrder}
+                loading={submitting}
+                disabled={cartCount === 0 || editUnchanged}
+                label={t('procSubmit')}
+                style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]}
+                textStyle={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}
+              />
+            </View>
           </View>
-        )}
+        </View>
       </ModalOverlay>
 
       {/* ── Items Modal (stagger reveal) ── */}
