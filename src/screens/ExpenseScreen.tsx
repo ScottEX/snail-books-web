@@ -968,7 +968,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   />
                   <DateErrorHint trigger={feeDate.error} message={t('errDateFuture')} color={colors.danger} />
                 </View>
-                <View style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '22%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
+                <View style={{ position: 'absolute', right: 0, top: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                   <Text style={{ fontSize: 10, color: colors.danger }}>负数</Text>
                   <Switch value={negativeMode} onValueChange={setNegativeMode}
                     trackColor={{ false: colors.secondary, true: withAlpha(colors.danger, 0.4) }}
