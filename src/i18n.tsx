@@ -2382,7 +2382,9 @@ const LangContext = createContext<LangContextValue>({
 export function LangProvider({ children }: { children: React.ReactNode }): React.ReactNode {
   const [lang, setLangState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
+      const cur = (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
+      (window as any).curLang = cur;
+      return cur;
     }
     return 'zh-CN';
   });
