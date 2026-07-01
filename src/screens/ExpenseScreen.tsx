@@ -970,12 +970,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
                   <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>录入负数</Text>
-                  <View style={{ width: 51 }}>
-                    <Switch value={negativeMode} onValueChange={setNegativeMode}
-                      trackColor={{ false: colors.secondary, true: withAlpha(colors.warning, 0.4) }}
-                      thumbColor={negativeMode ? colors.warning : colors.surface}
-                    />
-                  </View>
+                  <Switch value={negativeMode} onValueChange={setNegativeMode}
+                    trackColor={{ false: colors.secondary, true: withAlpha(colors.warning, 0.4) }}
+                    thumbColor={negativeMode ? colors.warning : colors.surface}
+                  />
                 </View>
               </View>
 
