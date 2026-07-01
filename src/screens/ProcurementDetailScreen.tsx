@@ -375,7 +375,8 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
                 return (
                   <TouchableOpacity key={idx}
                     style={{
-                      paddingVertical: 9, paddingHorizontal: 14, borderRadius: 20,
+                      flexGrow: 1, flexBasis: '30%', maxWidth: '32%',
+                      paddingVertical: 9, borderRadius: 20, alignItems: 'center',
                       backgroundColor: withAlpha(c.primary, 0.08),
                       borderWidth: 1.5, borderColor: withAlpha(c.primary, 0.15),
                     }}
