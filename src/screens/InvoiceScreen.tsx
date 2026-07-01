@@ -677,7 +677,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         contentStyle={{ alignItems: 'stretch' } as any}
       >
         {(anims) => (
-          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', bottom: 0 }]}>
+          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%' }]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
@@ -1034,7 +1034,7 @@ const s = StyleSheet.create({
 
   /* DRAWER */
   drawerOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
-  drawer: { position: 'absolute' as any, left: 0, right: 0, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any, maxHeight: '90%' } as any,
+  drawer: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any, maxHeight: '90%' } as any,
   drawerHandle: { width: 36, height: 4, borderRadius: 2, marginTop: 12, alignSelf: 'center', flexShrink: 0 } as any,
   drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 12, borderBottomWidth: 1, flexShrink: 0 } as any,
   drawerTitle: { fontSize: 15, fontWeight: '600' } as any,
