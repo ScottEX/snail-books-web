@@ -312,7 +312,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   // Empty state
 
   loadingMore: { paddingVertical: 20, alignItems: 'center' as const },
-  contentArea: { flex: 1, paddingBottom: 130 },
+  contentArea: { flex: 1, paddingBottom: 150 },
 });
 
 // ═══════════════════════════════════════════════
