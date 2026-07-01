@@ -673,7 +673,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         onClose={closeDrawer}
         animation="stagger"
         staggerCount={3}
-        overlayStyle={{ justifyContent: 'flex-end', padding: 0, paddingBottom: 20, alignItems: 'stretch' } as any}
+        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
         contentStyle={{ alignItems: 'stretch' } as any}
       >
         {(anims) => (
@@ -1051,7 +1051,7 @@ const s = StyleSheet.create({
   dTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 14 } as any,
   dTypeChip: { flex: 1, flexDirection: 'row', paddingVertical: 10, borderRadius: 22, alignItems: 'center', justifyContent: 'center' } as any,
   dTypeChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight } as any,
-  dSubmit: { paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginHorizontal: 20, marginBottom: 0, marginTop: 12 } as any,
+  dSubmit: { paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginHorizontal: 20, marginBottom: 20, marginTop: 12 } as any,
   dSubmitText: { fontSize: 15, fontWeight: '600', color: '#fff' } as any,
 });
 
