@@ -725,7 +725,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       />
 
       {/* ====== PARTNER DETAIL MODAL (8600 exact) ====== */}
-        <ModalOverlay visible={!!showDetail} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDetail(null)}>
+        <ModalOverlay visible={!!showDetail} onClose={() => setShowDetail(null)} animation="springScale">
           {detailPartner && (
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
@@ -804,7 +804,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
         </ModalOverlay>
 
       {/* ====== ORG CHART MODAL (8600 exact) ====== */}
-        <ModalOverlay visible={showOrg} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowOrg(false)}>
+        <ModalOverlay visible={showOrg} onClose={() => setShowOrg(false)} animation="springScale">
           <View style={[mo.modalCard, { maxWidth: 360 }]} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
