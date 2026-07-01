@@ -674,7 +674,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         animation="stagger"
         staggerCount={3}
         overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
-        contentStyle={{ alignItems: 'stretch' } as any}
+        contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}
       >
         {(anims) => (
           <View style={[s.drawer, { backgroundColor: c.surface, width: '100%' }]}>
