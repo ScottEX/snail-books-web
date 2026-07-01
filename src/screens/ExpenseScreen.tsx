@@ -952,10 +952,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
-              {/* Date + Negative toggle — match fee row column widths */}
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 16 }}>
-                <Text style={{ flex: 1, minWidth: 80, maxWidth: 180, flexShrink: 1, fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
-                <View style={{ width: '44%' }}>
+              {/* Date + Negative toggle */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t('entryDate')}</Text>
+                <View style={{ flex: 1 }}>
                   <DatePicker
                     date={feeDate.value}
                     onChange={feeDate.setValue}
@@ -968,7 +968,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   />
                   <DateErrorHint trigger={feeDate.error} message={t('errDateFuture')} color={colors.danger} />
                 </View>
-                <View style={{ width: '22%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                   <Text style={{ fontSize: 10, color: colors.danger }}>负数</Text>
                   <Switch value={negativeMode} onValueChange={setNegativeMode}
                     trackColor={{ false: colors.secondary, true: withAlpha(colors.danger, 0.4) }}
