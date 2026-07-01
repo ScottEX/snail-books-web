@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image, Dimensions } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
@@ -677,7 +677,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}
       >
         {(anims) => (
-          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%' }]}>
+          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxHeight: entryCardH > 0 ? Dimensions.get('window').height - entryCardH : undefined }]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
