@@ -1079,7 +1079,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {(() => {
                 const filtered = feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month);
                 if (filtered.length === 0) return (
-                  <EmptyState icon={<Text style={{ fontSize: 48, opacity: 0.4 }}>📋</Text>} title="暂无手续费记录" hint="该月份还没有数据，去录入一笔吧" />
+                  <EmptyState icon={
+                    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                      <Path d="M4 4h16v16H4z" />
+                      <Path d="M8 9h8" />
+                      <Path d="M8 13h6" />
+                      <Path d="M8 17h4" />
+                    </Svg>
+                  } title="暂无手续费记录" hint="该月份还没有数据，去录入一笔吧" />
                 );
                 return filtered.map((f: any, _idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0);
