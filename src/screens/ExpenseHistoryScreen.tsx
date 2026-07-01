@@ -316,6 +316,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
             </View>
             {/* Quick date buttons */}
             <View style={st.filterField}>
+              <Text style={st.filterLabel}>　</Text>
               <View style={st.filterChipRow}>
                 {[
                   { label: '今天', date: sd.today },
