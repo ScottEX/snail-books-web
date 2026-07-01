@@ -673,7 +673,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         onClose={closeDrawer}
         animation="stagger"
         staggerCount={3}
-        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        overlayStyle={{ justifyContent: 'flex-end', padding: 0, paddingBottom: 20, alignItems: 'stretch' } as any}
         contentStyle={{ alignItems: 'stretch' } as any}
       >
         {(anims) => (
