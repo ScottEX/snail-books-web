@@ -955,23 +955,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               {/* Date + Negative toggle — match fee row column widths */}
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 16 }}>
                 <Text style={{ flex: 1, minWidth: 80, maxWidth: 180, flexShrink: 1, fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
-                <View style={{ width: '44%', flexDirection: 'row', alignItems: 'flex-start', gap: 4 }}>
-                  <View style={{ flex: 1 }}>
-                    <DatePicker
-                      date={feeDate.value}
-                      onChange={feeDate.setValue}
-                      max={sd.today}
-                      onFutureDate={() => feeDate.setError(Date.now())}
-                      displayDate={fmtLocalDate(feeDate.value)}
-                      fontSize={FONTS.subBold.size}
-                      showCalendarIcon
-                      showChevron
-                    />
-                    <DateErrorHint trigger={feeDate.error} message={t('errDateFuture')} color={colors.danger} />
-                  </View>
-                  <Text style={{ fontSize: FONTS.micro.size, color: colors.danger, marginTop: 4 }}>录入负数</Text>
+                <View style={{ width: '44%' }}>
+                  <DatePicker
+                    date={feeDate.value}
+                    onChange={feeDate.setValue}
+                    max={sd.today}
+                    onFutureDate={() => feeDate.setError(Date.now())}
+                    displayDate={fmtLocalDate(feeDate.value)}
+                    fontSize={FONTS.subBold.size}
+                    showCalendarIcon
+                    showChevron
+                  />
+                  <DateErrorHint trigger={feeDate.error} message={t('errDateFuture')} color={colors.danger} />
                 </View>
-                <View style={{ width: '22%', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 2 }}>
+                <View style={{ width: '22%', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.danger, marginBottom: 2 }}>录入负数</Text>
                   <Switch value={negativeMode} onValueChange={setNegativeMode}
                     trackColor={{ false: colors.secondary, true: withAlpha(colors.danger, 0.4) }}
                     thumbColor={negativeMode ? colors.danger : colors.surface}
