@@ -28,14 +28,16 @@ export function useNavigationStack({
   });
 
   const [removing, setRemoving] = useState<SubPage | null>(null);
-  const [pdfPreview, setPdfPreview] = useState<{ id: number; number: number } | null>(() => {
+  const [pdfPreview, setPdfPreview] = useState<{ id: number; number: number; supplier?: string } | null>(() => {
     if (previewRoute) return previewRoute;
     try {
       const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);
       if (!m) return null;
       const qs = window.location.hash.split('?')[1] || '';
-      const num = parseInt(new URLSearchParams(qs).get('number') || '0', 10);
-      return { id: parseInt(m[1], 10), number: num };
+      const params = new URLSearchParams(qs);
+      const num = parseInt(params.get('number') || '0', 10);
+      const sup = params.get('supplier') || undefined;
+      return { id: parseInt(m[1], 10), number: num, supplier: sup };
     } catch { return null; }
   });
 
