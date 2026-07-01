@@ -314,6 +314,26 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
                 </View>
               </View>
             </View>
+            {/* Quick date buttons */}
+            <View style={st.filterField}>
+              <View style={st.filterChipRow}>
+                {[
+                  { label: '今天', date: sd.today },
+                  { label: '昨天', date: sd.offset(-1) },
+                  { label: '前天', date: sd.offset(-2) },
+                  { label: '大前天', date: sd.offset(-3) },
+                ].map(q => {
+                  const active = filDateFrom === q.date && filDateTo === q.date;
+                  return (
+                    <TouchableOpacity key={q.label}
+                      style={[st.filterChip, active && st.filterChipActive]}
+                      onPress={() => { setFilDateFrom(q.date); setFilDateTo(q.date); }} activeOpacity={0.7}>
+                      <Text style={[st.filterChipText, active && st.filterChipTextActive]}>{q.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
             {/* Category chips */}
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('filterCategory')}</Text>
