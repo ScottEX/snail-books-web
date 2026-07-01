@@ -231,7 +231,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Items modal
   itemsModalOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
-  itemsModalCard: { backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, width: '90%' as any, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
+  itemsModalCard: { backgroundColor: c.surface, borderRadius: 24, width: '90%' as any, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
@@ -1400,8 +1400,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         }}
         animation="stagger"
         staggerCount={3}
-        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
-        contentStyle={{ alignItems: 'stretch' } as any}
+        overlayStyle={{ justifyContent: 'center', padding: 0, alignItems: 'center' } as any}
+        contentStyle={{ alignItems: 'center' } as any}
       >
         {(anims) => (
           <View style={[styles.itemsModalCard, { width: '90%', maxHeight: '60%' } as any]}>
