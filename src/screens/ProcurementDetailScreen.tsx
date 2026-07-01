@@ -356,10 +356,10 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
       <ModalOverlay visible={showSupplierPicker} onClose={() => setShowSupplierPicker(false)} animation="springScale">
         <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 300, maxWidth: '90%', overflow: 'hidden' as const }}>
           <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20 }}>
-            <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>选择供应商</Text>
+            <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('procSelectSupplier')}</Text>
           </View>
           <TouchableOpacity style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: c.secondary }} onPress={() => jumpToPdf()} activeOpacity={0.6}>
-            <Text style={{ fontSize: FONTS.body.size, color: c.textMain }}>全部</Text>
+            <Text style={{ fontSize: FONTS.body.size, color: c.textMain }}>{t('procAll')}</Text>
           </TouchableOpacity>
           {[...new Set((cur?.items || []).map(i => i.supplier).filter(Boolean))].map(sup => (
             <TouchableOpacity key={sup} style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: c.secondary }} onPress={() => jumpToPdf(sup)} activeOpacity={0.6}>
