@@ -952,10 +952,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
-              {/* Date + Negative toggle */}
+              {/* Date + Negative toggle — match fee row column widths */}
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 16 }}>
-                <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
-                <View style={{ flex: 1 }}>
+                <Text style={{ flex: 1, minWidth: 80, maxWidth: 180, flexShrink: 1, fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
+                <View style={{ width: '44%' }}>
                   <DatePicker
                     date={feeDate.value}
                     onChange={feeDate.setValue}
