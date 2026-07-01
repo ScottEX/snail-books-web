@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  FlatList, Image, ActivityIndicator, StyleSheet, Animated
+  FlatList, Image, ActivityIndicator, StyleSheet, Animated, Dimensions
 } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t } from '../i18n';
@@ -233,7 +233,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Items modal
   itemsModalOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
-  itemsModalCard: { backgroundColor: c.surface, borderRadius: 24, width: '90%' as any, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
+  itemsModalCard: { backgroundColor: c.surface, borderRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
@@ -1406,7 +1406,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         contentStyle={{ alignItems: 'stretch' } as any}
       >
         {(anims) => (
-          <View style={[styles.itemsModalCard, { width: '90%', maxHeight: '60%', alignSelf: 'center' } as any]}>
+          <View style={[styles.itemsModalCard, { width: '90%', maxHeight: Dimensions.get('window').height * 0.6, alignSelf: 'center' } as any]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
