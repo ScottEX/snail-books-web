@@ -1,5 +1,4 @@
 import React from 'react';
-import { createPortal } from 'react-dom';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   FlatList, Image, ActivityIndicator, StyleSheet, Animated
@@ -19,6 +18,7 @@ import TextField from '../components/TextField';
 import ButtonPair from '../components/ButtonPair';
 import SubmitButton from '../components/SubmitButton';
 import { useToast } from '../hooks/useToast';
+import ModalOverlay from '../components/ModalOverlay';
 import CloseButton from '../components/CloseButton';
 import { formatDate } from '../utils/format';
 import DatePicker from '../components/DatePicker';
@@ -193,10 +193,12 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   cartBar: {
     position: 'absolute' as const, bottom: 68, left: 0, right: 0, zIndex: 100,
-    marginHorizontal: 12, backgroundColor: withAlpha(c.surface, 0.95), borderRadius: 14,
+    marginHorizontal: 12, backgroundColor: withAlpha(c.surface, 0.65), borderRadius: 14,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     // @ts-ignore
-
+    backdropFilter: 'saturate(180%) blur(20px)',
+    // @ts-ignore
+    WebkitBackdropFilter: 'saturate(180%) blur(20px)',
   },
   cartPreview: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12, padding: 12 },
   cartIconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center' as const, justifyContent: 'center' as const, overflow: 'visible' as const },
@@ -209,20 +211,10 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartClearBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08) },
   cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
 
-  // Drawer overlay
-  overlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0)', zIndex: 200, maxWidth: 768, marginLeft: 'auto', marginRight: 'auto' },
   // Animated drawer — slides up
-  drawer: {
-    position: 'absolute' as any, bottom: 0, left: 0, right: 0,
-    maxWidth: 768, marginLeft: 'auto', marginRight: 'auto',
-    backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    maxHeight: '88%' as any, zIndex: 201, display: 'flex' as any, flexDirection: 'column' as any,
-    // @ts-ignore
-
-  },
-  drawerHandle: { width: 36, height: 4, backgroundColor: withAlpha(c.textMain, 0.15), borderRadius: 2, alignSelf: 'center' as const, marginTop: 10 },
-  drawerHead: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, padding: 12, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.08) },
-  drawerHeadTitle: { fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.textMain },
+  drawerHandle: { width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center' as const, marginBottom: 12 },
+  drawerHead: { flexDirection: 'column' as const, alignItems: 'flex-start' as const, paddingVertical: 14, paddingHorizontal: 20, backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
+  drawerHeadTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   drawerClose: { padding: 4 },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
@@ -241,9 +233,9 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Items modal
   itemsModalOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
-  itemsModalCard: { backgroundColor: c.surface, borderRadius: 16, width: 'calc(100% - 40px)' as any, maxWidth: 360, maxHeight: '75%' as any, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
+  itemsModalCard: { backgroundColor: c.surface, borderRadius: 24, width: '90%' as any, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
-  itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
+  itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
   // No horizontal padding here — ScrollView applies its own paddingHorizontal: 18 so that the
   // webkit scrollbar (which paints on the padding-box edge) lands in the rightmost 2px gutter
@@ -270,7 +262,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtMeta: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 2 },
   mgmtActions: { flexDirection: 'row' as const, gap: 8 },
   mgmtActionBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: withAlpha(c.textMain, 0.05) },
-  mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 8, flexDirection: 'row' as const, backgroundColor: 'rgba(255,255,255,0.20)', borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6, backdropFilter: 'saturate(220%) blur(20px)' as any, WebkitBackdropFilter: 'saturate(220%) blur(20px)' as any },
+  mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 8, flexDirection: 'row' as const, backgroundColor: c.surface, borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
   // Modal (product add/edit)
@@ -320,7 +312,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   // Empty state
 
   loadingMore: { paddingVertical: 20, alignItems: 'center' as const },
-  contentArea: { flex: 1, paddingBottom: 100 },
+  contentArea: { flex: 1, paddingBottom: 150 },
 });
 
 // ═══════════════════════════════════════════════
@@ -352,8 +344,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [editPriceVal, setEditPriceVal] = useState('');
 
   const [showDrawer, setShowDrawer] = useState(false);
-  const drawerAnim = useRef(new Animated.Value(0)).current;
-  const overlayAnim = useRef(new Animated.Value(0)).current;
+  const handleDrawerClose = () => {
+    setShowDrawer(false);
+    onDrawerClose?.();
+    if (editingBatchId !== null) {
+      setEditingBatchId(null); setEditingBatchNumber(0);
+      setEditingBatchSettled(false); setCartUnitPrices({});
+      setExistingImageUrls([]); setExistingThumbUrls([]);
+      setEditSnapshot(null);
+      setCart({}); setReceipts([]); setOrderNote('');
+      setOrderDate(sd.today); setPayMethod('payWechat');
+    }
+  };
   const [orderDate, setOrderDate] = useState('');
   useEffect(() => { if (sd.ready && orderDate === '') setOrderDate(sd.today); }, [sd.ready, sd.today, orderDate]);
   const [payMethod, setPayMethod] = useState<PayMethod>('payWechat');
@@ -448,61 +450,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   };
 
   // ── Items modal animation (slide from top) ──
-  const itemsModalAnim = useRef(new Animated.Value(0)).current;
-  const itemsModalOverlayAnim = useRef(new Animated.Value(0)).current;
   const openItemsModal = () => {
     setItemsModalIsCart(true);
     setItemsModalView('items');
     setProductPickerSearch('');
     setShowItemsModal(true);
-    itemsModalAnim.setValue(-300);
-    itemsModalOverlayAnim.setValue(0);
-    Animated.parallel([
-      Animated.spring(itemsModalAnim, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(itemsModalOverlayAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start();
-  };
-  const closeItemsModal = () => {
-    Animated.parallel([
-      Animated.timing(itemsModalAnim, { toValue: -300, duration: 180, useNativeDriver: true }),
-      Animated.timing(itemsModalOverlayAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
-    ]).start(() => setShowItemsModal(false));
   };
 
   // ── History Detail ──
   const openHistoryDetail = (batch: BatchRecord) => {
     onProcurementDetail?.(batch);
   };
-
-  // ── Drawer animation ──
-  const openDrawer = () => {
-    setShowDrawer(true);
-    onDrawerOpen?.();
-    Animated.parallel([
-      Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-    ]).start();
-  };
-  const closeDrawer = () => {
-    Animated.parallel([
-      Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => {
-      setShowDrawer(false); onDrawerClose?.();
-      // Reset edit state when drawer is closed (in any way)
-      if (editingBatchId !== null) {
-        setEditingBatchId(null); setEditingBatchNumber(0);
-        setEditingBatchSettled(false); setCartUnitPrices({});
-        setExistingImageUrls([]); setExistingThumbUrls([]);
-        setEditSnapshot(null);
-        setCart({}); setReceipts([]); setOrderNote('');
-        setOrderDate(sd.today); setPayMethod('payWechat');
-      }
-    });
-  };
-
-  const drawerTranslateY = drawerAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
-  const overlayOpacity = overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.45] });
 
   // todayStr replaced by useServerDate hook
 
@@ -768,23 +726,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           images: allImages, thumb_images: allThumbs, note: orderNote,
         });
         if (r?.status === 'ok') {
-          Animated.parallel([
-            Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-            Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-          ]).start(() => {
-            setCart({}); setReceipts([]); setOrderNote('');
-            setExistingImageUrls([]); setExistingThumbUrls([]);
-            setEditingBatchId(null); setEditingBatchNumber(0);
-            setEditingBatchSettled(false); setCartUnitPrices({});
-            setOrderDate(sd.today); setPayMethod('payWechat');
-            setShowDrawer(false); onDrawerClose?.();
-            // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
-            setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
-            setSuccessIsEdit(true);
-            openSlideModal(() => setShowSuccess(true));
-            loadPage(1, true);
-            loadStats();
-          });
+          setShowDrawer(false);
+          setCart({}); setReceipts([]); setOrderNote('');
+          setExistingImageUrls([]); setExistingThumbUrls([]);
+          setEditingBatchId(null); setEditingBatchNumber(0);
+          setEditingBatchSettled(false); setCartUnitPrices({});
+          setOrderDate(sd.today); setPayMethod('payWechat');
+          // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
+          setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
+          setSuccessIsEdit(true);
+          setTimeout(() => openSlideModal(() => setShowSuccess(true)), 250);
+          loadPage(1, true);
+          loadStats();
         } else {
           showToast(t('toastSubmitFailed'));
         }
@@ -799,14 +752,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       });
       if (r?.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setSuccessIsEdit(false);
-        Animated.parallel([
-          Animated.timing(drawerAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-          Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-        ]).start(() => {
-          setCart({}); api.clearCart().catch(() => {}); setReceipts([]); setOrderNote('');
-          setShowDrawer(false); onDrawerClose?.();
-          openSlideModal(() => setShowSuccess(true));
-        });
+        setShowDrawer(false);
+        setCart({}); api.clearCart().catch(() => {}); setReceipts([]); setOrderNote('');
+        setTimeout(() => openSlideModal(() => setShowSuccess(true)), 250);
         loadStats();
       } else {
         showToast(t('toastSubmitFailed'));
@@ -851,10 +799,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     // Open the same drawer the new-batch flow uses
     setShowDrawer(true);
     onDrawerOpen?.();
-    Animated.parallel([
-      Animated.spring(drawerAnim, { toValue: 1, useNativeDriver: true, bounciness: 4, speed: 14 }),
-      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-    ]).start();
   };
 
   // Expose edit function to parent via ref (for ProcurementDetailScreen edit button)
@@ -1024,7 +968,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
             {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
                 <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>
@@ -1081,7 +1025,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
           {cartCount > 0 && (
             <View style={styles.cartBar}>
-              <TouchableOpacity style={styles.cartPreview} onPress={openDrawer} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.cartPreview} onPress={() => { setShowDrawer(true); onDrawerOpen?.(); }} activeOpacity={0.8}>
                 <View style={[styles.cartIconWrap, { backgroundColor: c.primary }]}>
                   <CartIcon color={c.surface} />
                   <View style={styles.cartBadge}><Text style={styles.cartBadgeText}>{cartCount}</Text></View>
@@ -1346,129 +1290,156 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         onCancel={() => closeSlideModal(() => setDeleteBatchTarget(null))}
       />
 
-      {/* ── Order Drawer (slides up) ── */}
-      {showDrawer && createPortal(
-        <>
-          <Animated.View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: overlayOpacity }]}>
-            <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDrawer} />
-          </Animated.View>
-          <Animated.View style={[styles.drawer, { transform: [{ translateY: drawerTranslateY }] }]}>
+      {/* ── Order Drawer (slide up + scale) ── */}
+      <ModalOverlay
+        visible={showDrawer}
+        onClose={handleDrawerClose}
+        animation="slideUpScale"
+        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        contentStyle={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'stretch' } as any}
+      >
+        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', display: 'flex' as any, flexDirection: 'column' as any }]}>
+          <View style={styles.drawerHead}>
             <View style={styles.drawerHandle} />
-            <View style={styles.drawerHead}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
               <Text style={styles.drawerHeadTitle}>
                 {editingBatchId !== null
                   ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
                   : t('procConfirmOrder')}
               </Text>
-              <TouchableOpacity style={styles.drawerClose} onPress={closeDrawer}>
-                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.textSub} strokeWidth="2" fill="none">
+              <TouchableOpacity style={styles.drawerClose} onPress={handleDrawerClose}>
+                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
                   <Line x1="18" y1="6" x2="6" y2="18" />
                   <Line x1="6" y1="6" x2="18" y2="18" />
                 </Svg>
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.drawerBody}>
-              {/* Date + Category — single line */}
-              <View style={styles.dateCatRow}>
-                <View style={styles.dateCatLine}>
-                  <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
-                  <DatePicker
-                    date={orderDate}
-                    onChange={setOrderDate}
-                    max={sd.today}
-                    displayDate={formatDate(orderDate)}
-                    fontSize={FONTS.sub.size}
-                    showChevron
-                    showCalendarIcon
-                  />
-                  <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
-                    <Text style={{ fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>{t('goods')}</Text>
-                  </View>
+          </View>
+          <ScrollView style={styles.drawerBody}>
+            {/* Date + Category — single line */}
+            <View style={styles.dateCatRow}>
+              <View style={styles.dateCatLine}>
+                <Text style={styles.dateCatLabel}>{t('procOrderDate')}</Text>
+                <DatePicker
+                  date={orderDate}
+                  onChange={setOrderDate}
+                  max={sd.today}
+                  displayDate={formatDate(orderDate)}
+                  fontSize={FONTS.sub.size}
+                  showChevron
+                  showCalendarIcon
+                />
+                <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={styles.dateCatLabel}>{t('expenseCategory')}</Text>
+                  <Text style={{ fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>{t('goods')}</Text>
                 </View>
               </View>
-
-              {/* Payment method */}
-              <PaymentMethodChips label={t('procPaymentMethod') as string} selected={payMethod} onSelect={(m) => setPayMethod(m as PayMethod)} />
-
-              {/* Upload receipts */}
-              <View style={{ marginTop: 12 }}>
-                <ReceiptUpload
-                  existingImages={existingImageUrls}
-                  newFiles={receipts}
-                  onAdd={handleAddFiles}
-                  onRemoveExisting={removeExistingImage}
-                  onRemoveNew={handleRemoveNewFile}
-                  getPreviewUrl={getPreviewUrl}
-                />
-              </View>
-
-              {/* Items row — matching 近7天 pattern: label left, theme button right */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
-                <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
-                <TouchableOpacity onPress={openItemsModal} activeOpacity={0.7}>
-                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary }}>{t('procViewDetail')} →</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
-                <Text style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>
-                  {t('procNowBatch').replace('{n}', String(editingBatchId !== null ? editingBatchNumber : stats.batch_count + 1))}
-                </Text>
-              </View>
-
-              <ExpenseNoteInput
-                label={t('procNoteOptional') as string}
-                value={orderNote}
-                onChangeText={setOrderNote}
-                placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`}
-              />
-
-              {/* Total + Submit moved to drawer footer */}
-            </ScrollView>
-            {/* Footer: Total + Submit — fixed at drawer bottom, above nav bar */}
-            <View style={styles.drawerFooter}>
-              <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
-                <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
-                <SubmitButton
-                  onPress={submitOrder}
-                  loading={submitting}
-                  disabled={cartCount === 0 || editUnchanged}
-                  label={t('procSubmit')}
-                  style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]}
-                  textStyle={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}
-                />
-              </View>
             </View>
-          </Animated.View>
-        </>,
-        document.body
-      )}
 
-      {/* ── Items Modal (slides from top) ── */}
-      {showItemsModal && createPortal(
-        <Animated.View style={[styles.itemsModalOverlay, { opacity: itemsModalOverlayAnim, zIndex: 600 }]}>
-          <Animated.View
-            style={[styles.itemsModalCard, { transform: [{ translateY: itemsModalAnim }] }]}
-          >
-            <View style={styles.itemsModalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {itemsModalIsCart && itemsModalView === 'products' && (
-                  <TouchableOpacity onPress={() => setItemsModalView('items')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <Text style={[styles.itemsModalClose, { fontSize: 18 }]}>←</Text>
-                  </TouchableOpacity>
-                )}
-                <Text style={styles.itemsModalTitle}>
+            {/* Payment method */}
+            <PaymentMethodChips label={t('procPaymentMethod') as string} selected={payMethod} onSelect={(m) => setPayMethod(m as PayMethod)} />
+
+            {/* Upload receipts */}
+            <View style={{ marginTop: 12 }}>
+              <ReceiptUpload
+                existingImages={existingImageUrls}
+                newFiles={receipts}
+                onAdd={handleAddFiles}
+                onRemoveExisting={removeExistingImage}
+                onRemoveNew={handleRemoveNewFile}
+                getPreviewUrl={getPreviewUrl}
+              />
+            </View>
+
+            {/* Items row — matching 近7天 pattern: label left, theme button right */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
+              <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
+              <TouchableOpacity onPress={openItemsModal} activeOpacity={0.7}>
+                <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary }}>{t('procViewDetail')} →</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>{t('procBatchLabel')}</Text>
+              <Text style={{ flex: 1, fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight }}>
+                {t('procNowBatch').replace('{n}', String(editingBatchId !== null ? editingBatchNumber : stats.batch_count + 1))}
+              </Text>
+            </View>
+
+            <ExpenseNoteInput
+              label={t('procNoteOptional') as string}
+              value={orderNote}
+              onChangeText={setOrderNote}
+              placeholder={`${t('procNoteHintPhone')}\n${t('procNoteHintAddress')}`}
+            />
+          </ScrollView>
+          {/* Footer: Total + Submit */}
+          <View style={styles.drawerFooter}>
+            <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const }}>
+              <Text style={{ fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight, color: c.primary }}>{t('procTotal')}：¥{cartTotal.toFixed(2)}</Text>
+              <SubmitButton
+                onPress={submitOrder}
+                loading={submitting}
+                disabled={cartCount === 0 || editUnchanged}
+                label={t('procSubmit')}
+                style={[styles.submitBtn, (cartCount === 0 || editUnchanged) && styles.submitBtnDisabled, { marginTop: 0, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 22 }]}
+                textStyle={[styles.submitBtnText, { fontSize: FONTS.sub.size }]}
+              />
+            </View>
+          </View>
+        </View>
+      </ModalOverlay>
+
+      {/* ── Items Modal (stagger reveal) ── */}
+      <ModalOverlay
+        visible={showItemsModal}
+        onClose={() => {
+          if (itemsModalIsCart && itemsModalView === 'products') {
+            setItemsModalView('items');
+          } else {
+            setShowItemsModal(false);
+          }
+        }}
+        animation="stagger"
+        staggerCount={3}
+        overlayStyle={{ justifyContent: 'center', padding: 0, alignItems: 'stretch' } as any}
+        contentStyle={{ alignItems: 'stretch' } as any}
+      >
+        {(anims) => (
+          <View style={[styles.itemsModalCard, { width: '90%', maxHeight: '60%', alignSelf: 'center' } as any]}>
+            {/* Stagger item 0: header (handle bar + title, theme bg) */}
+            <Animated.View style={{
+              opacity: anims[0],
+              transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+            }}>
+              <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>
                   {itemsModalIsCart && itemsModalView === 'products' ? t('procAddProduct') : t('procOrderItems')}
                 </Text>
+                <TouchableOpacity style={{ padding: 4 }} onPress={() => {
+                  if (itemsModalIsCart && itemsModalView === 'products') {
+                    setItemsModalView('items');
+                  } else {
+                    setShowItemsModal(false);
+                  }
+                }}>
+                  <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
+                    <Line x1="18" y1="6" x2="6" y2="18" />
+                    <Line x1="6" y1="6" x2="18" y2="18" />
+                  </Svg>
+                </TouchableOpacity>
               </View>
-                <CloseButton onPress={closeItemsModal} />
-            </View>
+            </Animated.View>
+            {/* Stagger item 1: content */}
+            <Animated.View style={{
+              opacity: anims[1],
+              transform: [{ translateY: anims[1].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+              flex: 1, minHeight: 0,
+            }}>
             {itemsModalIsCart && itemsModalView === 'products' ? (
               // ── Product picker view ──
-              <>
-                <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8 }}>
+              <View style={{ flex: 1, minHeight: 0 }}>
+                <View style={{ paddingHorizontal: 18, paddingTop: 0, paddingBottom: 8 }}>
                   <TextInput
                     value={productPickerSearch}
                     onChangeText={setProductPickerSearch}
@@ -1521,16 +1492,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   )}
                   </ScrollView>
                 </View>
-                <TouchableOpacity
-                  style={{ marginHorizontal: 16, marginBottom: 16, marginTop: 4, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
-                  onPress={() => setItemsModalView('items')}
-                >
-                  <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
-                </TouchableOpacity>
-              </>
+              </View>
             ) : (
               // ── Cart edit view (with +/- qty) ──
-              <>
+              <View style={{ flex: 1, minHeight: 0 }}>
                 <View style={styles.itemsModalBodyWrap}>
                   <ScrollView
                     style={{ flex: 1, minHeight: 0, paddingHorizontal: 18, boxSizing: 'border-box' } as any}
@@ -1541,7 +1506,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                       </View>
                     ) : (
                       cartItems.map((i, idx, arr) => {
-                        // Display price: historical (snapshot) if available, else current product price
                         const unitPrice = cartUnitPrices[i.product.id] ?? i.product.price;
                         return (
                         <View key={i.product.id} style={[styles.itemsRow, idx === arr.length - 1 && styles.itemsRowLast]}>
@@ -1583,9 +1547,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   <Text style={styles.itemsTotalLabel}>{t('procTotal')}</Text>
                   <Text style={styles.itemsTotal}>¥{cartTotal.toFixed(2)}</Text>
                 </View>
-                {/* For settled batches, hide both the add-product entry and the done button —
-                    nothing in the cart can be modified, so there's nothing to confirm. The user
-                    closes the modal via the X button at the top of the modal. */}
+              </View>
+            )}
+            </Animated.View>
+            {/* Stagger item 3: buttons */}
+            {!(itemsModalIsCart && itemsModalView === 'products') ? (
+              <Animated.View style={{
+                opacity: anims[2],
+                transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+              }}>
                 {!editingBatchSettled && (
                 <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16, paddingTop: 4 }}>
                   <TouchableOpacity
@@ -1596,18 +1566,29 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={{ flex: 1, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
-                    onPress={closeItemsModal}
+                    onPress={() => setShowItemsModal(false)}
                   >
                     <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
                   </TouchableOpacity>
                 </View>
                 )}
-              </>
+              </Animated.View>
+            ) : (
+              <Animated.View style={{
+                opacity: anims[2],
+                transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
+              }}>
+                <TouchableOpacity
+                  style={{ marginHorizontal: 16, marginBottom: 16, marginTop: 4, paddingVertical: 12, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center' }}
+                  onPress={() => setItemsModalView('items')}
+                >
+                  <Text style={{ fontSize: FONTS.body.size, fontWeight: '600', color: c.surface }}>{t('done') || '完成'}</Text>
+                </TouchableOpacity>
+              </Animated.View>
             )}
-          </Animated.View>
-        </Animated.View>,
-        document.body
-      )}
+          </View>
+        )}
+      </ModalOverlay>
 
       {/* ── Success ── */}
       {showSuccess && (

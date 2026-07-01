@@ -568,9 +568,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             faceMode ? (
               /* ── Face ID mode ── */
               <View style={styles.formSection}>
-                <View style={styles.faceUserRow}>
-                  <Text style={styles.faceUsername}>{faceUsername}</Text>
-                </View>
                 <Animated.View style={{ transform: [{ scale: breatheAnim }], alignItems: 'center' }}>
                   <TouchableOpacity onPress={handleFaceIDLogin} style={styles.faceBtn} disabled={loading}>
                     <svg width="36" height="36" viewBox="0 0 1024 1024" fill="none">
@@ -578,6 +575,9 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     </svg>
                   </TouchableOpacity>
                 </Animated.View>
+                <View style={styles.faceUserRow}>
+                  <Text style={styles.faceUsername}>{faceUsername}</Text>
+                </View>
                 <TouchableOpacity onPress={() => { setFaceMode(false); }}>
                   <Text style={styles.faceSwitch}>{t('usePasswordLogin') || '使用密码登录'}</Text>
                 </TouchableOpacity>
@@ -625,7 +625,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                     </TouchableOpacity>
                   </View>
                 </View>
-                <SubmitButton onPress={handleLogin} loading={loading} label={t('loginBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
+                <SubmitButton onPress={handleLogin} loading={loading} disabled={!username || !password} label={t('loginBtn')} style={[styles.btnDark, (!username || !password) && { opacity: 0.4 }]} textStyle={[styles.btnDarkText, (!username || !password) && styles.disabledText]} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <TouchableOpacity onPress={() => { const next = !remember; setRemember(next); if (typeof localStorage !== 'undefined') localStorage.setItem('remember_me', String(next)); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <View style={{ width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', justifyContent: 'center', alignItems: 'center', backgroundColor: remember ? colors.primary : 'transparent' }}>
@@ -721,7 +721,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <SubmitButton onPress={handleRegister} loading={loading} label={t('registerBtn')} style={styles.btnDark} textStyle={styles.btnDarkText} />
+              <SubmitButton onPress={handleRegister} loading={loading} disabled={!username || !email || !password || !password2} label={t('registerBtn')} style={[styles.btnDark, (!username || !email || !password || !password2) && { opacity: 0.4 }]} textStyle={[styles.btnDarkText, (!username || !email || !password || !password2) && styles.disabledText]} />
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>
@@ -749,7 +749,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="number-pad" onSubmitEditing={handleVerify} autoFocus />
               </View>
-              <TouchableOpacity onPress={handleVerify} style={styles.btnRed} disabled={loading}>
+              <TouchableOpacity onPress={handleVerify} style={[styles.btnRed, (!code || code.length < 6) && { opacity: 0.4 }]} disabled={loading || !code || code.length < 6}>
                 <Text style={styles.btnRedText}>{loading ? '...' : t('verifyBtn')}</Text>
               </TouchableOpacity>
               <Text style={styles.verifyHint}>
@@ -774,7 +774,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder="Email" placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="email-address" onSubmitEditing={handleForgot} />
               </View>
-              <TouchableOpacity onPress={handleForgot} style={styles.btnDark} disabled={loading}>
+              <TouchableOpacity onPress={handleForgot} style={[styles.btnDark, !email && { opacity: 0.4 }]} disabled={loading || !email}>
                 <Text style={styles.btnDarkText}>{loading ? '...' : t('forgotSendBtn') || 'Send Code'}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={goLogin}>
@@ -824,7 +824,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleReset} style={styles.btnRed} disabled={loading}>
+              <TouchableOpacity onPress={handleReset} style={[styles.btnRed, (!code || !password) && { opacity: 0.4 }]} disabled={loading || !code || !password}>
                 <Text style={styles.btnRedText}>{loading ? '...' : t('resetBtn')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={goLogin}>
@@ -869,7 +869,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     backdropFilter: 'blur(24px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   shake: {}, // animation handled by CSS class
-  msgBox: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+  msgBox: { paddingHorizontal: 0, paddingVertical: 12, marginBottom: 16 },
   msgText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.danger },
   tabRow: {
     flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, padding: 4, marginBottom: 16,
@@ -905,14 +905,12 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   codeInput: { textAlign: 'center', letterSpacing: 6 },
   btnDark: {
     backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
-    // @ts-ignore
-    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   btnDarkText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
   btnRed: {
     backgroundColor: withAlpha(colors.primary, 0.7), borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
-    // @ts-ignore
-    backdropFilter: 'blur(8px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   btnRedText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },
   forgotText: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 8 },
@@ -933,7 +931,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: FONTS.micro.weight, marginBottom: 8 },
   devCodeValue: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.surface, letterSpacing: 8 },
   // Face ID mode
-  faceUserRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 24 },
+  faceUserRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 24 },
   faceAvatar: {
     width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
@@ -945,9 +943,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
     marginBottom: 24,
-    // @ts-ignore
-    boxShadow: '0 0 24px rgba(255,255,255,0.06)',
   },
-  faceSwitch: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.35)', textAlign: 'center' },
+  faceSwitch: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center' },
   copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });

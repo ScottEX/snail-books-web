@@ -53,6 +53,7 @@ export default function BgCropModal({
   const [phase, setPhase] = useState<'cropping' | 'preview' | 'uploading'>('cropping');
   const [cropBlob, setCropBlob] = useState<Blob | null>(null);
   const [cropDataUrl, setCropDataUrl] = useState('');
+  const [zoomSlider, setZoomSlider] = useState(0);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -80,7 +81,7 @@ export default function BgCropModal({
       imgRef.current = img;
       // Wait one tick for the cropping-stage View to mount + canvas to
       // have measurable dimensions, then size the crop guide + fit.
-      setTimeout(() => { setupCanvas(); fitImage(); drawCrop(); }, 0);
+      setTimeout(() => { setupCanvas(); fitImage(); drawCrop(); setZoomSlider(0); }, 0);
     };
     img.src = imageSrc;
   }, [imageSrc]);
@@ -183,6 +184,12 @@ export default function BgCropModal({
     clampCrop,
     zoomCrop,
     onSetup: onCropSetup,
+    onZoomChange: () => {
+      const s = stateRef.current;
+      const range = (s.maxScale - s.minScale) * 0.5;
+      const v = range > 0 ? Math.round(100 * (s.scale - s.minScale) / range) : 0;
+      setZoomSlider(Math.max(0, Math.min(100, v)));
+    },
   });
 
   // ── Render result blob. Two paths:
@@ -346,15 +353,16 @@ export default function BgCropModal({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
             <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
             <input
-              type="range" min="0" max="100" defaultValue={0}
+              type="range" min="0" max="100" value={zoomSlider}
               onChange={(e: any) => {
                 const s = stateRef.current;
                 const tt = Number(e.target.value) / 100;
                 s.scale = s.minScale + (s.maxScale - s.minScale) * tt * 0.5;
                 s.scale = Math.max(s.minScale, s.scale);
+                setZoomSlider(Number(e.target.value));
                 clampCrop(); drawCrop();
               }}
-              style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+              style={{ flex: 1, height: 3, appearance: 'none', accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${zoomSlider}%, rgba(255,255,255,0.2) ${zoomSlider}%)`, borderRadius: 2 } as any}
             />
             <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
           </View>
@@ -369,7 +377,7 @@ export default function BgCropModal({
             <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '500' } as any}>{t('cropRotate')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={{ paddingVertical: 6, paddingHorizontal: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
+            style={{ paddingVertical: 6, paddingHorizontal: 8, marginLeft: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
             onPress={() => { stateRef.current.flipX = !stateRef.current.flipX; drawCrop(); }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

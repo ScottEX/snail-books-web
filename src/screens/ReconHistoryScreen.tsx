@@ -1,8 +1,8 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated, Dimensions } from 'react-native';
+import Svg, { Path, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
-import useSlideModal from '../hooks/useSlideModal';
+import ModalOverlay from '../components/ModalOverlay';
 import { api } from '../api/client';
 import { useServerDate } from '../hooks/useServerDate';
 import { usePaginatedList } from '../hooks/usePaginatedList';
@@ -42,11 +42,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState<any>(null);
   const { showToast, ToastHost } = useToast();
   const swipeBack = useSwipeBack(onBack);
-
-  // ── Detail modal animation (shared slide-from-top hook) ──
-  const detail = useSlideModal();
-  const openDetail = (r: any) => detail.open(() => setSelected(r));
-  const closeDetail = () => detail.close(() => setSelected(null));
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
   const filDateFromRef = useRef<HTMLInputElement>(null);
   const filDateToRef = useRef<HTMLInputElement>(null);
@@ -159,7 +154,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   // Card: compact summary (tap to open detail modal)
   const renderCard = (r: any) => (
-    <TouchableOpacity key={r.id} style={st.card} onPress={() => openDetail(r)} activeOpacity={0.7}>
+    <TouchableOpacity key={r.id} style={st.card} onPress={() => setSelected(r)} activeOpacity={0.7}>
       {/* Row 1: two dates */}
       <View style={st.dateRow}>
         <View style={st.dateItem}>
@@ -223,92 +218,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       <Text style={st.tapHint}>{t('tapForDetail')}</Text>
     </TouchableOpacity>
   );
-
-  // Detail Modal: three vertical pairs + channel list
-  const renderModal = () => {
-    if (!selected) return null;
-    const r = selected;
-    return (
-      <View style={st.mask} onTouchStart={(e: any) => e.stopPropagation()} pointerEvents="box-none">
-        <Animated.View style={[st.maskBg, { opacity: detail.modalOverlay }]}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeDetail} />
-        </Animated.View>
-        <Animated.View style={[st.modal, { transform: [{ translateY: detail.modalSlide }] }]}>
-          {/* Header */}
-          <View style={st.modalHeader}>
-            <View>
-              <Text style={st.modalDate}>{t('reconDate')}: {fmtDateTime(r.created_at || r.date)}</Text>
-              <Text style={st.modalDateSub}>{t('billDate')}: {fmtDate(r.bill_date || r.date)}</Text>
-              {r.reconciled_by ? (
-                <Text style={st.modalDateSub}>{t('reconciledBy')}: {r.reconciled_by}</Text>
-              ) : null}
-            </View>
-            <TouchableOpacity onPress={closeDetail} activeOpacity={0.6}>
-              <Text style={st.modalClose}>{'\u2715'}</Text>
-            </TouchableOpacity>
-          </View>
-          {/* Three vertical pair groups */}
-          <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-          <View style={st.pairRow}>
-            {/* Group 1: 账面余额 / 卡余额 */}
-            <View style={st.pairCol}>
-              <View style={st.pairItem}>
-                <Text style={st.pairLabel}>{t('bookBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmtFull(r.cash_on_hand)}</Text>
-              </View>
-              <View style={st.pairDivider} />
-              <View style={st.pairItem}>
-                <Text style={st.pairLabel}>{t('cardBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmtFull(r.card_balance)}</Text>
-              </View>
-            </View>
-            {/* Group 2: 当前结余 / 现金 */}
-            <View style={st.pairCol}>
-              <View style={st.pairItem}>
-                <Text style={st.pairLabel}>{t('currentBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmtFull(r.real_total)}</Text>
-              </View>
-              <View style={st.pairDivider} />
-              <View style={st.pairItem}>
-                <Text style={st.pairLabel}>{t('cashBalance')}</Text>
-                <Text style={st.pairVal}>{fmtAmtFull(r.cash_balance)}</Text>
-              </View>
-            </View>
-            {/* Group 3: 账面差额 / 在途资金 */}
-            <View style={st.pairCol}>
-              <View style={st.pairItem}>
-                <Text style={st.pairLabel}>{t('bookDiff')}</Text>
-                <Text style={[st.pairVal, { color: r.diff > 0.005 ? colors.success : r.diff < -0.005 ? colors.danger : colors.textMain }]}>
-                  {r.diff >= 0 ? '+' : '-'}{fmtAmtFull(Math.abs(r.diff))}
-                </Text>
-              </View>
-              <View style={st.pairDivider} />
-              <View style={st.pairItem}>
-                <Text style={st.pairLabel}>{t('fundsInTransit')}</Text>
-                <Text style={[st.pairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmtFull(r.channel_total)}</Text>
-              </View>
-            </View>
-          </View>
-          {/* Channel detail rows */}
-          <View style={st.chanSection}>
-            {[
-              { label: t('dineIn'), value: r.dine_in },
-              { label: t('meituan'), value: r.meituan },
-              { label: t('flashSale'), value: r.flash_sale },
-              { label: t('jd'), value: r.jd },
-              { label: t('tuan'), value: r.tuan },
-            ].map((ch, i) => (
-              <View key={i} style={st.chanRow}>
-                <Text style={st.chanLabel}>{ch.label}</Text>
-                <Text style={st.chanVal}>{fmtAmtFull(ch.value)}</Text>
-              </View>
-            ))}
-          </View>
-          </ScrollView>
-        </Animated.View>
-      </View>
-    );
-  };
 
   const renderEmpty = () => (
     <EmptyState
@@ -420,10 +329,89 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             )}
           </>
         )}
-        <View style={{ height: 100 }} />
+        <View style={{ height: 20 }} />
       </ScrollView>
       {/* Detail Modal */}
-      {renderModal()}
+      <ModalOverlay visible={!!selected} onClose={() => setSelected(null)} animation="springScale">
+        {selected && (() => { const r = selected; return (
+          <View style={[st.modal, { width: Dimensions.get('window').width * 0.9 }]}>
+            {/* Header */}
+            <View style={st.modalHeader}>
+              <View>
+                <Text style={st.modalDate}>{t('reconDate')}: {fmtDateTime(r.created_at || r.date)}</Text>
+                <Text style={st.modalDateSub}>{t('billDate')}: {fmtDate(r.bill_date || r.date)}</Text>
+                {r.reconciled_by ? (
+                  <Text style={st.modalDateSub}>{t('reconciledBy')}: {r.reconciled_by}</Text>
+                ) : null}
+              </View>
+              <TouchableOpacity onPress={() => setSelected(null)} style={{ padding: 4 }}>
+                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={colors.surface} strokeWidth="2" fill="none">
+                  <Line x1="18" y1="6" x2="6" y2="18" />
+                  <Line x1="6" y1="6" x2="18" y2="18" />
+                </Svg>
+              </TouchableOpacity>
+            </View>
+            {/* Three vertical pair groups */}
+            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+            <View style={st.pairRow}>
+              {/* Group 1: 账面余额 / 卡余额 */}
+              <View style={st.pairCol}>
+                <View style={st.pairItem}>
+                  <Text style={st.pairLabel}>{t('bookBalance')}</Text>
+                  <Text style={st.pairVal}>{fmtAmtFull(r.cash_on_hand)}</Text>
+                </View>
+                <View style={st.pairDivider} />
+                <View style={st.pairItem}>
+                  <Text style={st.pairLabel}>{t('cardBalance')}</Text>
+                  <Text style={st.pairVal}>{fmtAmtFull(r.card_balance)}</Text>
+                </View>
+              </View>
+              {/* Group 2: 当前结余 / 现金 */}
+              <View style={st.pairCol}>
+                <View style={st.pairItem}>
+                  <Text style={st.pairLabel}>{t('currentBalance')}</Text>
+                  <Text style={st.pairVal}>{fmtAmtFull(r.real_total)}</Text>
+                </View>
+                <View style={st.pairDivider} />
+                <View style={st.pairItem}>
+                  <Text style={st.pairLabel}>{t('cashBalance')}</Text>
+                  <Text style={st.pairVal}>{fmtAmtFull(r.cash_balance)}</Text>
+                </View>
+              </View>
+              {/* Group 3: 账面差额 / 在途资金 */}
+              <View style={st.pairCol}>
+                <View style={st.pairItem}>
+                  <Text style={st.pairLabel}>{t('bookDiff')}</Text>
+                  <Text style={[st.pairVal, { color: r.diff > 0.005 ? colors.success : r.diff < -0.005 ? colors.danger : colors.textMain }]}>
+                    {r.diff >= 0 ? '+' : '-'}{fmtAmtFull(Math.abs(r.diff))}
+                  </Text>
+                </View>
+                <View style={st.pairDivider} />
+                <View style={st.pairItem}>
+                  <Text style={st.pairLabel}>{t('fundsInTransit')}</Text>
+                  <Text style={[st.pairVal, { color: (Math.abs(r.channel_total) < 0.005) ? colors.textMain : colors.primary }]}>{fmtAmtFull(r.channel_total)}</Text>
+                </View>
+              </View>
+            </View>
+            {/* Channel detail rows */}
+            <View style={st.chanSection}>
+              {[
+                { label: t('dineIn'), value: r.dine_in },
+                { label: t('meituan'), value: r.meituan },
+                { label: t('flashSale'), value: r.flash_sale },
+                { label: t('jd'), value: r.jd },
+                { label: t('tuan'), value: r.tuan },
+              ].map((ch, i) => (
+                <View key={i} style={st.chanRow}>
+                  <Text style={st.chanLabel}>{ch.label}</Text>
+                  <Text style={st.chanVal}>{fmtAmtFull(ch.value)}</Text>
+                </View>
+              ))}
+            </View>
+            </ScrollView>
+          </View>
+        ); })()}
+      </ModalOverlay>
     </View>
   );
 }
@@ -465,7 +453,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modal: {
-    width: '88%', maxWidth: 380,
     backgroundColor: colors.surface, borderRadius: 20,
     overflow: 'hidden',
     // @ts-ignore

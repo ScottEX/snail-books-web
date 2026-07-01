@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, TextInput } from 'react-native';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { FONTS } from '../theme';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import { modalClose } from '../sharedStyles';
@@ -7,6 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
+import CloseButton from '../components/CloseButton';
 import { getCurrentUserId } from '../utils/storage';
 import { api } from '../api/client';
 import { translateName } from './partner/usePartnerData';
@@ -121,6 +123,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const isSelf = String(user.id) === (getCurrentUserId() || '');
   const lang = getLang();
   const st = useMemo(() => getStyles(c), [c]);
+  const [showLinkedPartnerHint, setShowLinkedPartnerHint] = useState(false);
 
   const [detail, setDetail] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -146,6 +149,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [linkedPartnerNameTW, setLinkedPartnerNameTW] = useState('');
   const [showPartnerPicker, setShowPartnerPicker] = useState(false);
   const [partnerList, setPartnerList] = useState<any[]>([]);
+  const [partnersLoaded, setPartnersLoaded] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -172,6 +176,14 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   }, [user.id]);
 
   useEffect(() => { fetchDetail(); }, [fetchDetail]);
+
+  // 加载合伙人列表，用于判断是否有可关联的合伙人
+  useEffect(() => {
+    if (detail && !partnersLoaded && !linkedPartnerId) {
+      fetchPartnerList();
+      setPartnersLoaded(true);
+    }
+  }, [detail, partnersLoaded, linkedPartnerId]);
 
   const saveField = useCallback(async (field: string, value: string | boolean) => {
     setSaving(true);
@@ -242,6 +254,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setPartnerList(Array.isArray(data) ? data : []);
     } catch {}
   }, []);
+
+  const availablePartners = useMemo(() => partnerList.filter((p: any) => !p.linked_user_id), [partnerList]);
 
   const handleLinkPartner = useCallback(async (partnerId: number, partnerName: string) => {
     setShowPartnerPicker(false);
@@ -315,7 +329,13 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                 <Text style={st.avatarName}>{detail.username}</Text>
                 {/* Delete / Restore button (mutually exclusive, hidden for self) */}
                 {!isGrace && !isSelf ? (
-                  <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} activeOpacity={0.7} disabled={deleting}>
+                  <TouchableOpacity onPress={() => {
+                    if (linkedPartnerId) {
+                      setShowLinkedPartnerHint(true);
+                      return;
+                    }
+                    setShowDeleteConfirm(true);
+                  }} activeOpacity={0.7} disabled={deleting}>
                     <View style={[st.actionBtn, { backgroundColor: withAlpha(c.danger, 0.08) }]}>
                       {deleting ? (
                         <Text style={{ fontSize: 12, color: c.danger, fontWeight: '600' }}>...</Text>
@@ -413,7 +433,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
           )}
 
-          {/* Linked Partner */}
+          {/* Linked Partner — hide entirely when no partner linked and none available */}
+          {(linkedPartnerId !== null || !partnersLoaded || availablePartners.length > 0) && (
           <View style={st.section}>
             <View style={st.sectionTitleRow}>
               <Text style={st.sectionTitleText}>{t('linkedPartner')}</Text>
@@ -428,14 +449,11 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   <TouchableOpacity onPress={() => setShowUnlinkConfirm(true)} disabled={saving} activeOpacity={0.7}>
                     <Text style={{ color: c.danger, fontSize: 13, fontWeight: '500' }}>{t('unlinkPartner')}</Text>
                   </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity onPress={() => { fetchPartnerList(); setShowPartnerPicker(true); }} disabled={saving} activeOpacity={0.7}>
-                    <Text style={{ color: c.primary, fontSize: 13, fontWeight: '500' }}>{t('linkPartner')}</Text>
-                  </TouchableOpacity>
-                )}
+                ) : null}
               </View>
             </View>
           </View>
+          )}
 
           {/* Other Info */}
           <View style={st.section}>
@@ -487,7 +505,6 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         )}
         confirmLabel={deleting ? (t('loading') || '...') : (t('delete') || '删除')}
         cancelLabel={t('cancel')}
-        confirmColor={c.danger}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => { setShowDeleteConfirm(false); setDeleteError(''); }} />
@@ -502,7 +519,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         onCancel={() => setShowUnlinkConfirm(false)} />
 
       {/* Partner Picker Modal */}
-      <ModalOverlay visible={showPartnerPicker} overlayStyle={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 }} contentStyle={{ alignItems: 'center', justifyContent: 'center' }} onClose={() => setShowPartnerPicker(false)}>
+      <ModalOverlay visible={showPartnerPicker} onClose={() => setShowPartnerPicker(false)} animation="blurMorph">
         <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '100%', overflow: 'hidden', } as any} onStartShouldSetResponder={() => true}>
           <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 15, fontWeight: '700', color: c.surface }}>{t('selectPartner')}</Text>
@@ -511,7 +528,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             </TouchableOpacity>
           </View>
           <View style={{ padding: 16 }}>
-            {partnerList.filter((p: any) => !p.linked_user_id).map((p: any) => (
+            {availablePartners.map((p: any) => (
               <TouchableOpacity key={p.id}
                 onPress={() => handleLinkPartner(p.id, p.name)}
                 style={{ paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.08) }}
@@ -523,6 +540,22 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               style={{ marginTop: 12, alignItems: 'center', paddingVertical: 8 }}
               activeOpacity={0.7}>
               <Text style={{ fontSize: 13, color: c.textSub }}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ModalOverlay>
+
+      {/* Linked-partner delete hint modal */}
+      <ModalOverlay visible={showLinkedPartnerHint} onClose={() => setShowLinkedPartnerHint(false)} animation="blurMorph">
+        <View style={st.hintCard} onStartShouldSetResponder={() => true}>
+          <View style={st.hintHeader}>
+            <Text style={st.hintTitle}>{t('friendlyReminder')}</Text>
+            <CloseButton onPress={() => setShowLinkedPartnerHint(false)} />
+          </View>
+          <View style={st.hintBody}>
+            <Text style={st.hintMsg}>{t('err_user_linked_partner')}</Text>
+            <TouchableOpacity style={st.hintBtn} onPress={() => setShowLinkedPartnerHint(false)} activeOpacity={0.7}>
+              <Text style={st.hintBtnText}>{t('confirm')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -587,5 +620,25 @@ const getStyles = (c: ThemeColors) => {
       paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8,
     },
     roleItemText: { fontSize: 13 } as any,
+    /* Linked-partner delete hint modal */
+    hintCard: {
+      backgroundColor: c.surface, borderRadius: 16,
+      width: 340, maxWidth: '100%', overflow: 'hidden',
+    },
+    hintHeader: {
+      backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20,
+      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    },
+    hintTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
+    hintBody: { padding: 24, gap: 18 },
+    hintMsg: {
+      fontSize: FONTS.sub.size, color: c.textSub, textAlign: 'center', lineHeight: 22,
+      backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12,
+    },
+    hintBtn: {
+      width: '100%', paddingVertical: 12, borderRadius: 10,
+      backgroundColor: c.primary, justifyContent: 'center', alignItems: 'center',
+    },
+    hintBtnText: { fontSize: FONTS.sub.size, fontWeight: '600', color: c.surface },
   });
 };

@@ -147,6 +147,8 @@ const I18N: Record<string, Record<string, string>> = {
     errPwTooShort: '密码至少 8 位',
     errUserInfoUnavailable: '无法获取用户信息',
     errWrongCredentials: '账号或密码错误',
+    err_partner_cannot_delete: '合伙人账户无法注销。如需停用，请联系管理员操作。',
+    err_user_linked_partner: '该用户身为合伙人，不可删除，解除关联，即可删除。',
     expConfirmMsg: '提交后将无法修改，确定要记录吗？',
     expConfirmTitle: '确认记录',
     expDate: '日期',
@@ -732,6 +734,8 @@ const I18N: Record<string, Record<string, string>> = {
     errPwTooShort: '密碼至少 8 位',
     errUserInfoUnavailable: '無法獲取用戶信息',
     errWrongCredentials: '帳號或密碼錯誤',
+    err_partner_cannot_delete: '合夥人帳戶無法註銷。如需停用，請聯繫管理員操作。',
+    err_user_linked_partner: '該用戶身為合夥人，不可刪除，解除關聯，即可刪除。',
     expConfirmMsg: '提交後將無法修改，確定要記錄嗎？',
     expConfirmTitle: '確認記錄',
     expDate: '日期',
@@ -1316,6 +1320,8 @@ const I18N: Record<string, Record<string, string>> = {
     errPwTooShort: 'Password must be at least 8 chars',
     errUserInfoUnavailable: 'Cannot retrieve user info',
     errWrongCredentials: 'Wrong username or password',
+    err_partner_cannot_delete: 'Partner accounts cannot be deleted. Please contact an admin to deactivate.',
+    err_user_linked_partner: 'This user is linked as a partner and cannot be deleted. Unlink the partner first to delete.',
     expConfirmMsg: 'This cannot be edited after submission. Proceed?',
     expConfirmTitle: 'Confirm Record',
     expDate: 'Date',
@@ -1755,7 +1761,6 @@ const I18N: Record<string, Record<string, string>> = {
     yesterdayProfit: 'Yesterday Profit',
   },
 };
-;
 
 export type I18nKey =
   | 'accountCooldown'
@@ -1903,6 +1908,8 @@ export type I18nKey =
   | 'errPwTooShort'
   | 'errUserInfoUnavailable'
   | 'errWrongCredentials'
+  | 'err_partner_cannot_delete'
+  | 'err_user_linked_partner'
   | 'expConfirmMsg'
   | 'expConfirmTitle'
   | 'expDate'
@@ -2342,7 +2349,6 @@ export type I18nKey =
   | 'yesterdayIncome'
   | 'yesterdayProfit'
 
-
 type Lang = 'zh-CN' | 'zh-TW' | 'en';
 
 export const langs: [Lang, string][] = [
@@ -2376,9 +2382,7 @@ const LangContext = createContext<LangContextValue>({
 export function LangProvider({ children }: { children: React.ReactNode }): React.ReactNode {
   const [lang, setLangState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      const curOrSaved = (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
-      (window as any).curLang = curOrSaved;
-      return curOrSaved;
+      return (window as any).curLang || localStorage.getItem('lang') || 'zh-CN';
     }
     return 'zh-CN';
   });

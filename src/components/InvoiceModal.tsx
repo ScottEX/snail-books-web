@@ -1,10 +1,9 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
 import SubmitButton from './SubmitButton';
 import { useTheme, withAlpha } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
 import ModalOverlay from './ModalOverlay';
-import CloseButton from './CloseButton';
 import { FONTS } from '../theme';
 import { useEffect, useRef, useState } from 'react';
 
@@ -87,11 +86,17 @@ export default function InvoiceModal({ visible, onClose }: Props) {
   };
 
   return (
-    <ModalOverlay visible={visible} onClose={onClose}>
-      <View style={[s.card, { backgroundColor: c.surface }]}>
-        <View style={[s.header, { backgroundColor: c.primary }]}>
-          <Text style={[s.title, { color: c.surface }]}>{t('invoiceTitle')}</Text>
-          <CloseButton onPress={onClose} />
+    <ModalOverlay
+      visible={visible}
+      onClose={onClose}
+      animation="slideUpScale"
+      overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+      contentStyle={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'stretch' } as any}
+    >
+      <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, width: '100%', overflow: 'hidden' as any, display: 'flex' as any, flexDirection: 'column' as any }]}>
+        <View style={{ backgroundColor: c.primary, paddingTop: 14, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'column', alignItems: 'flex-start' }}>
+          <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
+          <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('invoiceTitle')}</Text>
         </View>
         <View style={s.body}>
           {FIELDS.map((f) => (
@@ -128,17 +133,7 @@ export default function InvoiceModal({ visible, onClose }: Props) {
 }
 
 const s = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff', borderRadius: 16,
-    width: 340, maxWidth: '100%', overflow: 'hidden' as any,
-
-  } as any,
-  header: {
-    paddingHorizontal: 20, paddingVertical: 14,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  title: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight },
-  body: { padding: 24, gap: 14 },
+  body: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, gap: 12 },
   fieldRow: { gap: 4 },
   label: { fontSize: 12, fontWeight: '500' },
   input: {

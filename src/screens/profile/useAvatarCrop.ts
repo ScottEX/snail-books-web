@@ -24,6 +24,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
   const [cropResult, setCropResult] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [cropMsg, setCropMsg] = useState('');
+  const [zoomSlider, setZoomSlider] = useState(0);
 
   // ── Avatar crop refs ──
   const cropImgRef = useRef<HTMLImageElement | null>(null);
@@ -126,6 +127,12 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
     zoomCrop,
     onSetup: onCropSetup,
     onBeforeDrag: hidePill,
+    onZoomChange: () => {
+      const s = cropState.current;
+      const range = (s.maxScale - s.minScale) * 0.5;
+      const v = range > 0 ? Math.round(100 * (s.scale - s.minScale) / range) : 0;
+      setZoomSlider(Math.max(0, Math.min(100, v)));
+    },
   });
 
   // ── User actions ──
@@ -138,7 +145,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
       const src = reader.result as string;
       setCropSrc(src); setCropMsg(''); setShowResult(false);
       const img = document.createElement('img') as HTMLImageElement;
-      img.onload = () => { cropImgRef.current = img; setupCanvas(); fitImage(); drawCrop(); };
+      img.onload = () => { cropImgRef.current = img; setupCanvas(); fitImage(); drawCrop(); setZoomSlider(0); };
       img.src = src;
     };
     reader.readAsDataURL(file);
@@ -218,5 +225,6 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
     loadAvatar,
     // Toolbar
     cropState, clampCrop, drawCrop,
+    zoomSlider, setZoomSlider,
   };
 }

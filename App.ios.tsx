@@ -29,12 +29,17 @@ export default function App() {
 
   const goHome = useCallback(() => setPage('home'), []);
   const goLogin = useCallback(() => {
-    // Preserve lang across logout
-    let lang = '';
+    // Preserve lang, theme, and background across logout
+    let lang = '', themeId = '', bgImage = '';
     try {
       lang = localStorage.getItem('lang') || '';
+      { const uid = localStorage.getItem('user_id');
+        if (uid) themeId = localStorage.getItem('snail-books-theme-' + uid) || ''; }
+      bgImage = localStorage.getItem('bg-image') || '';
       localStorage.clear();
       if (lang) localStorage.setItem('lang', lang);
+      if (themeId) localStorage.setItem('snail-books-theme', themeId);
+      if (bgImage) localStorage.setItem('bg-image', bgImage);
     } catch {}
     setAppKey((k) => k + 1);
     setPage('login');

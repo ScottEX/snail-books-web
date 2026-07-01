@@ -18,6 +18,7 @@ interface UseCropCanvasOptions {
   scheduleDraw: () => void;
   clampCrop: () => void;
   zoomCrop: (delta: number, px: number, py: number) => void;
+  onZoomChange?: () => void;        // called after scale changes (wheel/pinch)
   onSetup: () => void;               // called on mount and resize
   onGuideActiveChange?: (active: boolean) => void;
   onBeforeDrag?: () => void;         // e.g. hidePill() in ProfileScreen
@@ -38,13 +39,13 @@ interface UseCropCanvasOptions {
 export function useCropCanvas(opts: UseCropCanvasOptions) {
   const {
     active, canvasRef, stageRef, guideRef, stateRef,
-    scheduleDraw, clampCrop, zoomCrop, onSetup,
+    scheduleDraw, clampCrop, zoomCrop, onZoomChange, onSetup,
     onGuideActiveChange, onBeforeDrag,
   } = opts;
 
   // Refs to hold the callbacks so the effect can depend only on 'active'
-  const callbacks = useRef({ scheduleDraw, clampCrop, zoomCrop, onSetup, onGuideActiveChange, onBeforeDrag });
-  callbacks.current = { scheduleDraw, clampCrop, zoomCrop, onSetup, onGuideActiveChange, onBeforeDrag };
+  const callbacks = useRef({ scheduleDraw, clampCrop, zoomCrop, onZoomChange, onSetup, onGuideActiveChange, onBeforeDrag });
+  callbacks.current = { scheduleDraw, clampCrop, zoomCrop, onZoomChange, onSetup, onGuideActiveChange, onBeforeDrag };
 
   useEffect(() => {
     if (!active) return;
@@ -52,7 +53,7 @@ export function useCropCanvas(opts: UseCropCanvasOptions) {
     const canvas = canvasRef.current;
     if (!stage || !canvas) return;
 
-    const { scheduleDraw: sched, clampCrop: clamp, zoomCrop: zoom, onSetup: setup, onGuideActiveChange: guideChange, onBeforeDrag: beforeDrag } = callbacks.current;
+    const { scheduleDraw: sched, clampCrop: clamp, zoomCrop: zoom, onZoomChange: zoomChanged, onSetup: setup, onGuideActiveChange: guideChange, onBeforeDrag: beforeDrag } = callbacks.current;
 
     setTimeout(() => { setup(); clamp(); sched(); }, 60);
 
@@ -100,6 +101,7 @@ export function useCropCanvas(opts: UseCropCanvasOptions) {
       e.preventDefault();
       const p = toLocal(e.clientX, e.clientY);
       zoom(e.deltaY > 0 ? -0.08 : 0.08, p.x, p.y);
+      zoomChanged?.();
     };
 
     // ── Touch ──
@@ -139,6 +141,7 @@ export function useCropCanvas(opts: UseCropCanvasOptions) {
         s.x = s.pinch.midX + (s.x - s.pinch.midX) * sd;
         s.y = s.pinch.midY + (s.y - s.pinch.midY) * sd;
         s.scale = ns; clamp(); rafDraw();
+        zoomChanged?.();
       }
     };
     const onTE = (e: TouchEvent) => {

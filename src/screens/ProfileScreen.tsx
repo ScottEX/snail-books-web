@@ -63,12 +63,14 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     handleAvatarSelect, confirmCrop, doUpload,
     loadAvatar,
     cropState, clampCrop, drawCrop,
+    zoomSlider, setZoomSlider,
   } = useAvatarCrop(onAvatarChange);
   const {
     coverUrl, setCoverUrl, coverKey, setCoverKey,
     coverOpacity, setCoverUploading, coverUploading,
     coverCropSrc, coverCropResult, coverShowResult, coverCropMsg,
     setCoverCropSrc, setCoverCropResult, setCoverShowResult, setCoverCropMsg,
+    coverZoomSlider, setCoverZoomSlider,
     coverInputRef, coverCropImgRef, coverCanvasRef, coverStageRef, coverGuideRef,
     handleCoverSelect, coverConfirmCrop, coverDoUpload,
     handleCoverOpacityChange, handleCoverReset,
@@ -97,6 +99,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   } = useSignatureForm();
   const [daysSince, setDaysSince] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPartner, setIsPartner] = useState(false);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
 
   const checkAdmin = async (): Promise<boolean> => {
@@ -138,6 +141,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAdminBlockModal, setShowAdminBlockModal] = useState(false);
+  const [showPartnerBlockModal, setShowPartnerBlockModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteConfirmUsername, setDeleteConfirmUsername] = useState('');
   const [showThemeModal, setShowThemeModal] = useState(false);
@@ -217,6 +221,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       }
       if (typeof data.session_timeout_hours === 'number' && [1, 2, 6, 24].includes(data.session_timeout_hours)) {
         setSessionTimeoutHours(data.session_timeout_hours);
+      }
+      if (data.partner_name) {
+        setIsPartner(true);
       }
     } catch {}
   };
@@ -529,7 +536,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         {/* ── Profile head ── */}
         <View style={st.profileHead}>
           <Text style={st.profileName}>{username}</Text>
-          <Text style={st.profileEmail}>{email || '—'}</Text>
           {/* Signature */}
           {signatureEditing ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 }}>
@@ -757,6 +763,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           <View style={st.card}>
             <TouchableOpacity style={st.iconRow} onPress={() => {
               if (isAdmin) { setShowAdminBlockModal(true); }
+              else if (isPartner) { setShowPartnerBlockModal(true); }
               else { setDeleteConfirmUsername(''); setShowDeleteModal(true); }
             }}>
               <View style={[st.iconWrap, st.iconDanger]}>
@@ -812,14 +819,14 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       {/* Shared modals */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
       {/* Admin cannot self-delete modal */}
-      <ModalOverlay visible={showAdminBlockModal} onClose={() => setShowAdminBlockModal(false)}>
+      <ModalOverlay visible={showAdminBlockModal} onClose={() => setShowAdminBlockModal(false)} animation="blurMorph">
         <View style={mo.card}>
           <View style={mo.header}>
             <Text style={mo.title}>{t('deleteAccount')}</Text>
             <CloseButton onPress={() => setShowAdminBlockModal(false)} />
           </View>
           <View style={mo.body}>
-            <Text style={{ color: colors.textMain, fontSize: 15, lineHeight: 22, marginBottom: 16 }}>
+            <Text style={mo.warnMsg}>
               {t('adminCannotDelete')}
             </Text>
             <TouchableOpacity style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center' }} onPress={() => setShowAdminBlockModal(false)}>
@@ -828,8 +835,25 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
         </View>
       </ModalOverlay>
+      {/* Partner cannot self-delete modal */}
+      <ModalOverlay visible={showPartnerBlockModal} onClose={() => setShowPartnerBlockModal(false)} animation="blurMorph">
+        <View style={mo.card}>
+          <View style={mo.header}>
+            <Text style={mo.title}>{t('deleteAccount')}</Text>
+            <CloseButton onPress={() => setShowPartnerBlockModal(false)} />
+          </View>
+          <View style={mo.body}>
+            <Text style={mo.warnMsg}>
+              {t('err_partner_cannot_delete')}
+            </Text>
+            <TouchableOpacity style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center' }} onPress={() => setShowPartnerBlockModal(false)}>
+              <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>{t('confirm')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ModalOverlay>
       {/* Delete account modal */}
-      <ModalOverlay visible={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+      <ModalOverlay visible={showDeleteModal} onClose={() => setShowDeleteModal(false)} animation="blurMorph">
         <View style={mo.card}>
           <View style={mo.header}>
             <Text style={mo.title}>{t('deleteAccountConfirmTitle')}</Text>
@@ -867,7 +891,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       />
 
       {/* ── Change Password Modal ── */}
-      <ModalOverlay visible={showPwModal} onClose={() => setShowPwModal(false)}>
+      <ModalOverlay visible={showPwModal} onClose={() => setShowPwModal(false)} animation="springScale">
         <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changePassword')}</Text>
@@ -907,7 +931,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       </ModalOverlay>
 
       {/* ── Change Email Modal ── */}
-      <ModalOverlay visible={showEmailModal} onClose={() => setShowEmailModal(false)}>
+      <ModalOverlay visible={showEmailModal} onClose={() => setShowEmailModal(false)} animation="springScale">
         <View style={mo.card}>
             <View style={mo.header}>
               <Text style={mo.title}>{t('changeEmail')}</Text>
@@ -1000,15 +1024,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           <View style={cropS.toolbar as any}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>A</Text>
-              <input type="range" min="0" max="100" defaultValue={0}
+              <input type="range" min="0" max="100" value={zoomSlider}
                 onChange={(e: any) => {
                   const s = cropState.current;
                   const t = Number(e.target.value) / 100;
                   s.scale = s.minScale + (s.maxScale - s.minScale) * t * 0.5;
                   s.scale = Math.max(s.minScale, s.scale);
+                  setZoomSlider(Number(e.target.value));
                   clampCrop(); drawCrop();
                 }}
-                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+                style={{ flex: 1, height: 3, appearance: 'none', accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${zoomSlider}%, rgba(255,255,255,0.2) ${zoomSlider}%)`, borderRadius: 2 } as any}
               />
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
@@ -1019,7 +1044,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </svg>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{t('cropRotate')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { cropState.current.flipX = !cropState.current.flipX; drawCrop(); }}>
+            <TouchableOpacity style={[cropS.toolBtn, { marginLeft: 8 }] as any} onPress={() => { cropState.current.flipX = !cropState.current.flipX; drawCrop(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -1106,15 +1131,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           <View style={cropS.toolbar as any}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>A</Text>
-              <input type="range" min="0" max="100" defaultValue={0}
+              <input type="range" min="0" max="100" value={coverZoomSlider}
                 onChange={(e: any) => {
                   const s = coverCropState.current;
                   const t = Number(e.target.value) / 100;
                   s.scale = s.minScale + (s.maxScale - s.minScale) * t * 0.5;
                   s.scale = Math.max(s.minScale, s.scale);
+                  setCoverZoomSlider(Number(e.target.value));
                   coverClampCrop(); coverDrawCrop();
                 }}
-                style={{ flex: 1, height: 3, appearance: 'none',  accentColor: '#5B5BD6', background: 'rgba(255,255,255,0.2)', borderRadius: 2 } as any}
+                style={{ flex: 1, height: 3, appearance: 'none', accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${coverZoomSlider}%, rgba(255,255,255,0.2) ${coverZoomSlider}%)`, borderRadius: 2 } as any}
               />
               <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>A</Text>
             </View>
@@ -1125,7 +1151,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </svg>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{t('cropRotate')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={cropS.toolBtn as any} onPress={() => { coverCropState.current.flipX = !coverCropState.current.flipX; coverDrawCrop(); }}>
+            <TouchableOpacity style={[cropS.toolBtn, { marginLeft: 8 }] as any} onPress={() => { coverCropState.current.flipX = !coverCropState.current.flipX; coverDrawCrop(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -1293,6 +1319,8 @@ function getStyles(colors: ThemeColors) {
     signatureInput: {
       fontSize: 13, color: colors.textMain,
       paddingVertical: 4, flex: 1,
+      // @ts-ignore - web-only
+      outlineStyle: 'none' as any, borderWidth: 0,
     } as any,
     // Icon rows
     iconRow: {
@@ -1365,6 +1393,11 @@ function getMo(colors: ThemeColors) {
     },
     pwHint: { fontSize: FONTS.micro.size, color: colors.textSub, lineHeight: 18 },
     err: { fontSize: FONTS.micro.size, color: colors.danger },
+    warnMsg: {
+      fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'center', lineHeight: 22,
+      backgroundColor: withAlpha(colors.primary, 0.1), borderRadius: 12, padding: 12,
+      marginBottom: 16,
+    },
   });
 }
 

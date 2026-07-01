@@ -134,7 +134,7 @@ export default function App() {
             onLogout={() => {
               let savedLogin = '', rememberMe = '', lang = '', apiBase = '',
                   webauthnBound = '', webauthnUser = '', webauthnCredentialId = '',
-                  webauthnUserIdB64 = '';
+                  webauthnUserIdB64 = '', themeId = '', bgImage = '';
               try {
                 savedLogin = localStorage.getItem('saved_login') || '';
                 rememberMe = localStorage.getItem('remember_me') || '';
@@ -144,6 +144,14 @@ export default function App() {
                 webauthnUser = localStorage.getItem('webauthn_user') || '';
                 webauthnCredentialId = localStorage.getItem('webauthn_credential_id') || '';
                 webauthnUserIdB64 = localStorage.getItem('webauthn_user_id_b64') || '';
+                // Preserve theme and background across logout so the login
+                // page renders with the user's chosen theme, not the default.
+                // Theme is stored per-user: snail-books-theme-{uid} when logged
+                // in, snail-books-theme when logged out. Read from uid-suffixed
+                // key before clear, write back to the bare key for login page.
+                { const uid = localStorage.getItem('user_id');
+                  if (uid) themeId = localStorage.getItem('snail-books-theme-' + uid) || ''; }
+                bgImage = localStorage.getItem('bg-image') || '';
                 localStorage.clear();
                 sessionStorage.clear();
                 if (savedLogin) localStorage.setItem('saved_login', savedLogin);
@@ -154,6 +162,8 @@ export default function App() {
                 if (webauthnUser) localStorage.setItem('webauthn_user', webauthnUser);
                 if (webauthnCredentialId) localStorage.setItem('webauthn_credential_id', webauthnCredentialId);
                 if (webauthnUserIdB64) localStorage.setItem('webauthn_user_id_b64', webauthnUserIdB64);
+                if (themeId) localStorage.setItem('snail-books-theme', themeId);
+                if (bgImage) localStorage.setItem('bg-image', bgImage);
               } catch {}
               // Clear history.state so stale sub-page stack isn't restored on next login
               try { history.replaceState(null, '', location.href); } catch {}

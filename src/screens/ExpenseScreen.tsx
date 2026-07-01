@@ -5,7 +5,7 @@ import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, useWindowDimensions,
 } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import { useToast } from '../hooks/useToast';
@@ -25,6 +25,7 @@ import { useServerDate } from '../hooks/useServerDate';
 import CategoryChips from '../components/CategoryChips';
 import ButtonPair from '../components/ButtonPair';
 import CloseButton from '../components/CloseButton';
+import EmptyState from '../components/EmptyState';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
@@ -312,7 +313,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [savingFee, setSavingFee] = useState(false);
   const pickerTriggerRef = useRef<any>(null);
   const feeHistoryFilterTriggerRef = useRef<any>(null);
-  const [pickerAnim] = useState(new Animated.Value(0));
   const [feeHistoryPickerAnim] = useState(new Animated.Value(0));
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
   const [feeHistoryPickerPos, setFeeHistoryPickerPos] = useState({ top: 0, left: 0 });
@@ -618,15 +618,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                       if (pickerTriggerRef.current && typeof (pickerTriggerRef.current as any).measureInWindow === 'function') {
                         (pickerTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
                           setPickerPos({ top: y + h + 4, left: x });
+                          feeMonthPicker.show();
                         });
+                      } else {
+                        feeMonthPicker.show();
                       }
-                      pickerAnim.setValue(0);
-                      Animated.spring(pickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
-                      feeMonthPicker.show();
                     } else {
-                      Animated.timing(pickerAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-                        feeMonthPicker.hide();
-                      });
+                      feeMonthPicker.hide();
                     }
                   }}
                   activeOpacity={0.7}
@@ -933,13 +931,23 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           </View>
         </ModalOverlay>
       {/* Platform fee entry bottom sheet */}
-        <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()}>
-          <View style={[st.feeSheet, { maxWidth: 720 }]} onStartShouldSetResponder={() => true}>
+        <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
+          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+          contentStyle={{ alignItems: 'stretch' } as any}>
+          <View style={[st.feeSheet, { width: '100%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
-              <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
-              <CloseButton onPress={() => feeSheet.hide()} />
+              <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
+                <TouchableOpacity style={{ padding: 4 }} onPress={() => feeSheet.hide()}>
+                  <Svg width="18" height="18" viewBox="0 0 24 24" stroke={colors.surface} strokeWidth="2" fill="none">
+                    <Line x1="18" y1="6" x2="6" y2="18" />
+                    <Line x1="6" y1="6" x2="18" y2="18" />
+                  </Svg>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
+            <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
               {/* Date */}
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16 }}>
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
@@ -959,11 +967,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
 
               {/* Column headers */}
-              <View style={{ flexDirection: 'row', marginBottom: 10, gap: 6, paddingHorizontal: 2 }}>
-                <Text style={{ flex: 1, minWidth: 100, maxWidth: 220, flexShrink: 1, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight }}></Text>
-                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feePreview')}</Text>
-                <Text style={{ width: 80, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feeCurrent')}</Text>
-                <Text style={{ width: 76, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeEntry')}</Text>
+              <View style={{ flexDirection: 'row', marginBottom: 10, gap: 6 }}>
+                <Text style={{ flex: 1, minWidth: 80, maxWidth: 180, flexShrink: 1, fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight }}></Text>
+                <Text style={{ width: '22%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feePreview')}</Text>
+                <Text style={{ width: '22%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feeCurrent')}</Text>
+                <Text style={{ width: '22%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeEntry')}</Text>
               </View>
 
               {/* Fee rows */}
@@ -976,15 +984,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 const inputNum = toNum(row.val);
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 6 }}>
-                    <Text style={{ flex: 1, minWidth: 100, maxWidth: 220, flexShrink: 1, fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 8 }}>{t(row.k)}</Text>
-                    <Text style={{ width: 80, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left', marginTop: 8 }}>
+                    <Text style={{ flex: 1, minWidth: 80, maxWidth: 180, flexShrink: 1, fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 8 }}>{t(row.k)}</Text>
+                    <Text style={{ width: '22%', fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left', marginTop: 8 }}>
                       ¥{(row.cur + inputNum).toFixed(2)}
                     </Text>
-                    <Text style={{ width: 80, fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left', marginTop: 10 }}>
+                    <Text style={{ width: '22%', fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left', marginTop: 10 }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
                     <TextInput
-                      style={{ width: 76, height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
+                      style={{ width: '22%', height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
                       value={row.val} onChangeText={(v: string) => row.set(fmtDecInput(v))}
                       keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub}
                     />
@@ -998,7 +1006,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 loading={savingFee}
                 disabled={toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0}
                 label={t('confirm')}
-                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 8, opacity: (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0) ? 0.35 : 1 }}
+                style={{ backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 16, opacity: (toNum(feeMc) + toNum(feeMw) + toNum(feeEw) + toNum(feeMt) === 0) ? 0.35 : 1 }}
                 textStyle={{ color: colors.surface, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight }}
               />
             </View>
@@ -1006,14 +1014,24 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         </ModalOverlay>
 
       {/* Fee history bottom sheet — "全部" detail view */}
-        <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }}>
-          <View style={[st.feeSheet, { height: winH * 0.75, width: '96%' }]} onStartShouldSetResponder={() => true}>
+        <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
+          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+          contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}>
+          <View style={[st.feeSheet, { height: winH * 0.7, width: '100%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
-              <Text style={st.modalTitle}>{t('feeHistory')}</Text>
-              <CloseButton onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} />
+              <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Text style={st.modalTitle}>{t('feeHistory')}</Text>
+                <TouchableOpacity style={{ padding: 4 }} onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }}>
+                  <Svg width="18" height="18" viewBox="0 0 24 24" stroke={colors.surface} strokeWidth="2" fill="none">
+                    <Line x1="18" y1="6" x2="6" y2="18" />
+                    <Line x1="6" y1="6" x2="18" y2="18" />
+                  </Svg>
+                </TouchableOpacity>
+              </View>
             </View>
             {/* Month filter */}
-            <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ paddingHorizontal: 20, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity
                 ref={feeHistoryFilterTriggerRef}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, position: 'relative' }}
@@ -1048,8 +1066,20 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ flex: 1, paddingHorizontal: 12, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-              {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, _idx: number) => {
+            <ScrollView style={{ flex: 1, paddingHorizontal: 12 }} showsVerticalScrollIndicator={false}>
+              {(() => {
+                const filtered = feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month);
+                if (filtered.length === 0) return (
+                  <EmptyState icon={
+                    <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" stroke={colors.textSub} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                      <Path d="M4 4h16v16H4z" />
+                      <Path d="M8 9h8" />
+                      <Path d="M8 13h6" />
+                      <Path d="M8 17h4" />
+                    </Svg>
+                  } title="暂无手续费记录" hint="该月份还没有数据，去录入一笔吧" />
+                );
+                return filtered.map((f: any, _idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
                   { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: colors.info },
@@ -1076,45 +1106,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     </View>
                   </View>
                 );
-              })}
+              })})()}
             </ScrollView>
           </View>
         </ModalOverlay>
       {ToastHost}
       {/* Month picker dropdown — animated spring popover */}
-      {feeMonthPicker.open && createPortal(
-        <>
-          {/* Animated backdrop */}
-          <Animated.View style={{ position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: pickerAnim }}>
-            <TouchableOpacity
-              style={{ flex: 1 }}
-              activeOpacity={1}
-              onPress={() => {
-                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeMonthPicker.hide());
-              }}
-            />
-          </Animated.View>
-          <Animated.View style={{
-            position: 'fixed' as any,
-            top: pickerPos.top || '38%',
-            left: pickerPos.left || 10,
-            zIndex: 9999,
-            backgroundColor: colors.surface,
-            borderRadius: 14,
-
-            paddingVertical: 6,
-            width: 140,
-            maxHeight: 240,
-            overflow: 'scroll' as any,
-            opacity: pickerAnim,
-            transform: [{ scale: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: pickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
-          }}>
+      {/* ── Fee month picker (springScale popup) ── */}
+      <ModalOverlay visible={feeMonthPicker.open} onClose={feeMonthPicker.hide} animation="springScale"
+        contentStyle={pickerPos.top ? { position: 'absolute' as any, top: pickerPos.top, left: pickerPos.left, width: 140, alignItems: 'stretch' } as any : {}}
+      >
+        {pickerPos.top ? (
+          <div style={{ backgroundColor: colors.surface, borderRadius: 14, padding: '6px 0', maxHeight: 240, overflowY: 'auto' as any }}>
             <TouchableOpacity
               style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
-              onPress={() => {
-                setFeeMonth('all');
-                Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeMonthPicker.hide());
-              }}
+              onPress={() => { setFeeMonth('all'); feeMonthPicker.hide(); }}
               activeOpacity={0.6}
             >
               <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
@@ -1126,24 +1132,20 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <TouchableOpacity
                   key={`${f.year}-${f.month}`}
                   style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
-                  onPress={() => {
-                    setFeeMonth({ year: f.year, month: f.month });
-                    Animated.timing(pickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeMonthPicker.hide());
-                  }}
+                  onPress={() => { setFeeMonth({ year: f.year, month: f.month }); feeMonthPicker.hide(); }}
                   activeOpacity={0.6}
                 >
                   <Text style={{ fontSize: FONTS.sub.size, fontWeight: isSel ? '700' : '400', color: isSel ? colors.primary : colors.textMain }}>{fmtMonth(f.year, f.month)}</Text>
                 </TouchableOpacity>
               );
             })}
-          </Animated.View>
-        </>,
-        document.body
-      )}
+          </div>
+        ) : null}
+      </ModalOverlay>
       {/* Fee history filter dropdown — animated to match platform fee picker */}
       {feeHistoryFilterPicker.open && createPortal(
         <>
-          <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 9998, opacity: feeHistoryPickerAnim }}>
+          <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(20,18,16,0.65)', zIndex: 9998, opacity: feeHistoryPickerAnim }}>
             <TouchableOpacity
               style={{ flex: 1 }}
               activeOpacity={1}
@@ -1483,19 +1485,17 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   modalHeader: {
     backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    flexDirection: 'column', alignItems: 'flex-start',
   },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
   /* Platform fee sheet — bottom half-screen */
   feeSheet: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
     overflow: 'hidden',
-    paddingBottom: 0,
     // @ts-ignore
     display: 'flex', flexDirection: 'column',
-    width: '96%', maxWidth: 500,
+    boxShadow: '0 -8px 40px rgba(0,0,0,.18)',
     // @ts-ignore
 
     // @ts-ignore
