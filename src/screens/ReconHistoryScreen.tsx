@@ -334,7 +334,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       {/* Detail Modal */}
       <ModalOverlay visible={!!selected} onClose={() => setSelected(null)} animation="springScale">
         {selected && (() => { const r = selected; return (
-          <View style={[st.modal, { width: '88%', maxWidth: 380 }]}>
+          <View style={st.modal}>
             {/* Header */}
             <View style={st.modalHeader}>
               <View>
@@ -453,7 +453,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modal: {
-    width: '88%', maxWidth: 380,
+    width: 340, maxWidth: '90%',
     backgroundColor: colors.surface, borderRadius: 20,
     overflow: 'hidden',
     // @ts-ignore
