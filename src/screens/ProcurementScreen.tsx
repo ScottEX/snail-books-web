@@ -1410,11 +1410,22 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               opacity: anims[0],
               transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
             }}>
-              <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 14, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'column', alignItems: 'flex-start' }}>
-                <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
+              <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>
                   {itemsModalIsCart && itemsModalView === 'products' ? t('procAddProduct') : t('procOrderItems')}
                 </Text>
+                <TouchableOpacity style={{ padding: 4 }} onPress={() => {
+                  if (itemsModalIsCart && itemsModalView === 'products') {
+                    setItemsModalView('items');
+                  } else {
+                    setShowItemsModal(false);
+                  }
+                }}>
+                  <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
+                    <Line x1="18" y1="6" x2="6" y2="18" />
+                    <Line x1="6" y1="6" x2="18" y2="18" />
+                  </Svg>
+                </TouchableOpacity>
               </View>
             </Animated.View>
             {/* Stagger item 1: content */}
