@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
   ActivityIndicator, Image, Switch,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Line } from 'react-native-svg';
 import { t } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
@@ -354,18 +354,43 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
 
       {/* Supplier picker for PDF */}
       <ModalOverlay visible={showSupplierPicker} onClose={() => setShowSupplierPicker(false)} animation="springScale">
-        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 300, maxWidth: '90%', overflow: 'hidden' as const }}>
-          <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20 }}>
-            <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('procSelectSupplier')}</Text>
+        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '90%', overflow: 'hidden' as const }}>
+          {/* Header — handle bar + title + X */}
+          <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingTop: 14, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'column', alignItems: 'flex-start' }}>
+            <View style={{ width: 36, height: 4, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('procSelectSupplier')}</Text>
+              <TouchableOpacity style={{ padding: 4 }} onPress={() => setShowSupplierPicker(false)}>
+                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
+                  <Line x1="18" y1="6" x2="6" y2="18" />
+                  <Line x1="6" y1="6" x2="18" y2="18" />
+                </Svg>
+              </TouchableOpacity>
+            </View>
           </View>
-          <TouchableOpacity style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: c.secondary }} onPress={() => jumpToPdf()} activeOpacity={0.6}>
-            <Text style={{ fontSize: FONTS.body.size, color: c.textMain }}>{t('procAll')}</Text>
-          </TouchableOpacity>
-          {[...new Set((cur?.items || []).map(i => i.supplier).filter(Boolean))].map(sup => (
-            <TouchableOpacity key={sup} style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: c.secondary }} onPress={() => jumpToPdf(sup)} activeOpacity={0.6}>
-              <Text style={{ fontSize: FONTS.body.size, color: c.textMain }}>{sup}</Text>
-            </TouchableOpacity>
-          ))}
+          {/* Body — capsule grid */}
+          <View style={{ padding: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {(() => {
+              const suppliers = ['__all__', ...new Set((cur?.items || []).map(i => i.supplier).filter(Boolean))];
+              return suppliers.map((sup, idx) => {
+                const isAll = sup === '__all__';
+                const label = isAll ? t('procAll') : sup;
+                return (
+                  <TouchableOpacity key={idx}
+                    style={{
+                      paddingVertical: 9, paddingHorizontal: 14, borderRadius: 20,
+                      backgroundColor: withAlpha(c.primary, 0.08),
+                      borderWidth: 1.5, borderColor: withAlpha(c.primary, 0.15),
+                    }}
+                    onPress={() => jumpToPdf(isAll ? undefined : sup)}
+                    activeOpacity={0.6}
+                  >
+                    <Text style={{ fontSize: FONTS.sub.size, color: c.primary, fontWeight: '500' }}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              });
+            })()}
+          </View>
         </View>
       </ModalOverlay>
 
