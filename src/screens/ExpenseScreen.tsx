@@ -5,7 +5,7 @@ import {
   View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, useWindowDimensions,
 } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
 import { useToast } from '../hooks/useToast';
@@ -936,7 +936,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={[st.feeSheet, { width: '100%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
-              <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
+                <TouchableOpacity style={{ padding: 4 }} onPress={() => feeSheet.hide()}>
+                  <Svg width="18" height="18" viewBox="0 0 24 24" stroke={colors.surface} strokeWidth="2" fill="none">
+                    <Line x1="18" y1="6" x2="6" y2="18" />
+                    <Line x1="6" y1="6" x2="18" y2="18" />
+                  </Svg>
+                </TouchableOpacity>
+              </View>
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
               {/* Date */}
@@ -1011,7 +1019,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           <View style={[st.feeSheet, { height: winH * 0.7, width: '100%' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
-              <Text style={st.modalTitle}>{t('feeHistory')}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Text style={st.modalTitle}>{t('feeHistory')}</Text>
+                <TouchableOpacity style={{ padding: 4 }} onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }}>
+                  <Svg width="18" height="18" viewBox="0 0 24 24" stroke={colors.surface} strokeWidth="2" fill="none">
+                    <Line x1="18" y1="6" x2="6" y2="18" />
+                    <Line x1="6" y1="6" x2="18" y2="18" />
+                  </Svg>
+                </TouchableOpacity>
+              </View>
             </View>
             {/* Month filter */}
             <View style={{ paddingHorizontal: 20, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' }}>

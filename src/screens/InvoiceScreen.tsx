@@ -685,7 +685,15 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
             }}>
               <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 14, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'column', alignItems: 'flex-start' }}>
                 <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
-                <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
+                  <TouchableOpacity style={{ padding: 4 }} onPress={closeDrawer}>
+                    <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
+                      <Line x1="18" y1="6" x2="6" y2="18" />
+                      <Line x1="6" y1="6" x2="18" y2="18" />
+                    </Svg>
+                  </TouchableOpacity>
+                </View>
               </View>
             </Animated.View>
             {/* Stagger item 1: content */}
