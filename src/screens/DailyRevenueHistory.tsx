@@ -198,7 +198,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 214 : 112, paddingHorizontal: 16, paddingBottom: 20 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 224 : 112, paddingHorizontal: 16, paddingBottom: 20 }}>
         {loading ? (
           <LoadingSpinner />
         ) : records.length === 0 ? (
