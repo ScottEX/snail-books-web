@@ -12,6 +12,7 @@ import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import ModalOverlay from '../components/ModalOverlay';
 import ImagePreview from '../components/ImagePreview';
 import { useImagePreview } from '../hooks/useImagePreview';
 import { formatDate } from '../utils/format';
@@ -27,6 +28,7 @@ interface BatchItem {
   quantity: number;
   subtotal?: number;
   unit_price?: number;
+  supplier?: string;
 }
 
 interface BatchRecord {
@@ -66,7 +68,7 @@ function EditIcon({ color }: { color: string }) {
   );
 }
 
-export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPreview }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void; onPreview?: (id: number, number: number) => void }) {
+export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPreview }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void; onPreview?: (id: number, number: number, supplier?: string) => void }) {
   const { colors: c, theme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const styles = useMemo(() => getStyles(c), [c]);
@@ -100,13 +102,24 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
     );
   }
 
+  const [showSupplierPicker, setShowSupplierPicker] = useState(false);
   const downloadPDF = () => {
-    // Jump to the dedicated PDF preview page. The preview page handles
-    // PDF generation and provides download/share/save UX.
+    const suppliers = [...new Set((cur?.items || []).map(i => i.supplier).filter(Boolean))];
+    if (suppliers.length === 0) {
+      // No suppliers, generate full PDF directly
+      jumpToPdf();
+      return;
+    }
+    setShowSupplierPicker(true);
+  };
+  const jumpToPdf = (supplier?: string) => {
+    setShowSupplierPicker(false);
+    let url = `#/preview-pdf?id=${cur!.id}&number=${cur!.batch_number}`;
+    if (supplier) url += `&supplier=${encodeURIComponent(supplier)}`;
     if (onPreview) {
-      onPreview(cur.id, cur.batch_number);
+      onPreview(cur!.id, cur!.batch_number, supplier);
     } else {
-      window.location.hash = `#/preview-pdf?id=${cur.id}&number=${cur.batch_number}`;
+      window.location.hash = url;
     }
   };
 
@@ -338,6 +351,24 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
           onClose={closePreview}
         />
       )}
+
+      {/* Supplier picker for PDF */}
+      <ModalOverlay visible={showSupplierPicker} onClose={() => setShowSupplierPicker(false)} animation="springScale">
+        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 300, maxWidth: '90%', overflow: 'hidden' as const }}>
+          <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20 }}>
+            <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>选择供应商</Text>
+          </View>
+          <TouchableOpacity style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: c.secondary }} onPress={() => jumpToPdf()} activeOpacity={0.6}>
+            <Text style={{ fontSize: FONTS.body.size, color: c.textMain }}>全部</Text>
+          </TouchableOpacity>
+          {[...new Set((cur?.items || []).map(i => i.supplier).filter(Boolean))].map(sup => (
+            <TouchableOpacity key={sup} style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: c.secondary }} onPress={() => jumpToPdf(sup)} activeOpacity={0.6}>
+              <Text style={{ fontSize: FONTS.body.size, color: c.textMain }}>{sup}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ModalOverlay>
+
     </View>
   );
 }
