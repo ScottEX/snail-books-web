@@ -1034,7 +1034,7 @@ const s = StyleSheet.create({
 
   /* DRAWER */
   drawerOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
-  drawer: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any } as any,
+  drawer: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any, maxHeight: '90%' } as any,
   drawerHandle: { width: 36, height: 4, borderRadius: 2, marginTop: 12, alignSelf: 'center', flexShrink: 0 } as any,
   drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 12, borderBottomWidth: 1, flexShrink: 0 } as any,
   drawerTitle: { fontSize: 15, fontWeight: '600' } as any,
@@ -1051,7 +1051,7 @@ const s = StyleSheet.create({
   dTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 14 } as any,
   dTypeChip: { flex: 1, flexDirection: 'row', paddingVertical: 10, borderRadius: 22, alignItems: 'center', justifyContent: 'center' } as any,
   dTypeChipText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight } as any,
-  dSubmit: { paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginHorizontal: 20, marginBottom: 20, marginTop: 12 } as any,
+  dSubmit: { paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginHorizontal: 20, marginBottom: 16, marginTop: 8 } as any,
   dSubmitText: { fontSize: 15, fontWeight: '600', color: '#fff' } as any,
 });
 
