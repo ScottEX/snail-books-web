@@ -2,7 +2,7 @@ import { useDisclosure } from '../hooks/useDisclosure';
 import { useDateField } from '../hooks/useDateField';
 import { createPortal } from 'react-dom';
 import {
-  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, useWindowDimensions,
+  View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Animated, Switch, useWindowDimensions,
 } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
@@ -311,6 +311,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     setFeeForm(f => ({ ...f, [k]: v }));
   const { feeMc, feeMw, feeEw, feeMt } = feeForm;
   const [savingFee, setSavingFee] = useState(false);
+  const [negativeMode, setNegativeMode] = useState(false);
   const pickerTriggerRef = useRef<any>(null);
   const feeHistoryFilterTriggerRef = useRef<any>(null);
   const [feeHistoryPickerAnim] = useState(new Animated.Value(0));
@@ -338,7 +339,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const handleAddFee = async () => {
     if (feeMonth === 'all') return;
     if (sd.isFuture(feeDate.value)) { showToast(t('errDateFuture')); return; }
-    const mc = toNum(feeMc), mw = toNum(feeMw), ew = toNum(feeEw), mt = toNum(feeMt);
+    const factor = negativeMode ? -1 : 1;
+    const mc = toNum(feeMc) * factor, mw = toNum(feeMw) * factor, ew = toNum(feeEw) * factor, mt = toNum(feeMt) * factor;
     if (mc + mw + ew + mt === 0) { showToast(t('atLeastOneFee')); return; }
     setSavingFee(true);
     try {
@@ -351,6 +353,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       if (r?.status === 'ok') {
         setFeeData(r?.data);
         setFeeForm({ feeMc: '', feeMw: '', feeEw: '', feeMt: '' });
+        setNegativeMode(false);
         feeSheet.hide();
         // Reload all months to keep totals accurate
         api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : [])).catch(() => {});
@@ -645,6 +648,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     feeHistory.show(); setFeeHistoryFilter('all');
                   } else {
                     setFeeForm({ feeMc: '', feeMw: '', feeEw: '', feeMt: '' });
+                    setNegativeMode(false);
                     feeDate.setError(0); loadFeeData(); feeSheet.show();
                   }
                 }}
@@ -948,10 +952,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
-              {/* Date */}
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16 }}>
-                <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
-                <View>
+              {/* Date + Negative toggle */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight }}>{t('entryDate')}</Text>
+                <View style={{ flex: 1 }}>
                   <DatePicker
                     date={feeDate.value}
                     onChange={feeDate.setValue}
@@ -964,6 +968,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   />
                   <DateErrorHint trigger={feeDate.error} message={t('errDateFuture')} color={colors.danger} />
                 </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  <Text style={{ fontSize: 10, color: colors.danger }}>负数</Text>
+                  <Switch value={negativeMode} onValueChange={setNegativeMode}
+                    trackColor={{ false: colors.secondary, true: withAlpha(colors.danger, 0.4) }}
+                    thumbColor={negativeMode ? colors.danger : colors.surface}
+                  />
+                </View>
               </View>
 
               {/* Column headers */}
@@ -975,27 +986,33 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
 
               {/* Fee rows */}
-              {([
+              {([ 
                 { k: 'meituanCashier', cur: feeData?.meituan_cashier || 0, val: feeMc, set: (v: string) => updateFee('feeMc', v) },
                 { k: 'meituanWaimai', cur: feeData?.meituan_waimai || 0, val: feeMw, set: (v: string) => updateFee('feeMw', v) },
                 { k: 'shangouWaimai', cur: feeData?.shangou_waimai || 0, val: feeEw, set: (v: string) => updateFee('feeEw', v) },
                 { k: 'meituanTuan', cur: feeData?.meituan_tuan || 0, val: feeMt, set: (v: string) => updateFee('feeMt', v) },
               ] as const).map((row) => {
                 const inputNum = toNum(row.val);
+                const sign = negativeMode ? -1 : 1;
                 return (
                   <View key={row.k} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 6 }}>
                     <Text style={{ flex: 1, minWidth: 80, maxWidth: 180, flexShrink: 1, fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 8 }}>{t(row.k)}</Text>
                     <Text style={{ width: '22%', fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textMain, textAlign: 'left', marginTop: 8 }}>
-                      ¥{(row.cur + inputNum).toFixed(2)}
+                      ¥{(row.cur + inputNum * sign).toFixed(2)}
                     </Text>
                     <Text style={{ width: '22%', fontSize: FONTS.micro.size, color: colors.textSub, textAlign: 'left', marginTop: 10 }}>
                       ¥{row.cur.toFixed(2)}
                     </Text>
-                    <TextInput
-                      style={{ width: '22%', height: 38, borderWidth: 1, borderColor: colors.secondary, borderRadius: 8, paddingHorizontal: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
-                      value={row.val} onChangeText={(v: string) => row.set(fmtDecInput(v))}
-                      keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub}
-                    />
+                    <View style={{ width: '22%', flexDirection: 'row', alignItems: 'center', position: 'relative' }}>
+                      {negativeMode && (
+                        <Text style={{ position: 'absolute', left: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.danger, zIndex: 1 }}>−</Text>
+                      )}
+                      <TextInput
+                        style={{ width: '100%', height: 38, borderWidth: 1, borderColor: negativeMode ? colors.danger : colors.secondary, borderRadius: 8, paddingLeft: negativeMode ? 24 : 10, paddingRight: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
+                        value={row.val} onChangeText={(v: string) => row.set(fmtDecInput(v))}
+                        keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub}
+                      />
+                    </View>
                   </View>
                 );
               })}
