@@ -1400,8 +1400,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         }}
         animation="stagger"
         staggerCount={3}
-        overlayStyle={{ justifyContent: 'center', padding: 0, alignItems: 'center' } as any}
-        contentStyle={{ alignItems: 'center' } as any}
+        overlayStyle={{ justifyContent: 'center', padding: 0, alignItems: 'stretch' } as any}
+        contentStyle={{ alignItems: 'stretch' } as any}
       >
         {(anims) => (
           <View style={[styles.itemsModalCard, { width: '90%', maxHeight: '60%' } as any]}>
