@@ -727,6 +727,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         });
         if (r?.status === 'ok') {
           setShowDrawer(false);
+          onDrawerClose?.();
           setCart({}); setReceipts([]); setOrderNote('');
           setExistingImageUrls([]); setExistingThumbUrls([]);
           setEditingBatchId(null); setEditingBatchNumber(0);
@@ -753,6 +754,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       if (r?.status === 'ok') {
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setSuccessIsEdit(false);
         setShowDrawer(false);
+        onDrawerClose?.();
         setCart({}); api.clearCart().catch(() => {}); setReceipts([]); setOrderNote('');
         setTimeout(() => openSlideModal(() => setShowSuccess(true)), 250);
         loadStats();
