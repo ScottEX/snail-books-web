@@ -25,6 +25,7 @@ import { useServerDate } from '../hooks/useServerDate';
 import CategoryChips from '../components/CategoryChips';
 import ButtonPair from '../components/ButtonPair';
 import CloseButton from '../components/CloseButton';
+import EmptyState from '../components/EmptyState';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import ReceiptUpload from '../components/ReceiptUpload';
@@ -1075,7 +1076,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </TouchableOpacity>
             </View>
             <ScrollView style={{ flex: 1, paddingHorizontal: 12 }} showsVerticalScrollIndicator={false}>
-              {(feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month)).map((f: any, _idx: number) => {
+              {(() => {
+                const filtered = feeHistoryFilter === 'all' ? allFees : allFees.filter((f: any) => f.year === feeHistoryFilter.year && f.month === feeHistoryFilter.month);
+                if (filtered.length === 0) return (
+                  <EmptyState icon={<Text style={{ fontSize: 48, opacity: 0.4 }}>📋</Text>} title={t('noRecords')} hint={t('emptyReconHint')} />
+                );
+                return filtered.map((f: any, _idx: number) => {
                 const monthTotal = (f.meituan_cashier || 0) + (f.meituan_waimai || 0) + (f.shangou_waimai || 0) + (f.meituan_tuan || 0);
                 const platforms = [
                   { label: t('meituanCashier'), value: f.meituan_cashier || 0, color: colors.info },
@@ -1102,7 +1108,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     </View>
                   </View>
                 );
-              })}
+              })})()}
             </ScrollView>
           </View>
         </ModalOverlay>
