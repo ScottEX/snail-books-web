@@ -455,7 +455,7 @@ export default function HomeScreen({
               popPage();
               setPendingEditBatch(procDetailBatch);
             }}
-            onPreview={(id, number) => {
+            onPreview={(id, number, supplier) => {
               // In-app nav to PDF preview: silent URL update via
               // replaceState (no popstate, no hashchange) + push
               // 'pdf' to the pageStack directly. Bypasses App.tsx's
@@ -466,14 +466,17 @@ export default function HomeScreen({
               // (URL hash on app load) still goes through App.tsx's
               // hashchange listener → previewRoute → the
               // [previewRoute] useEffect, unchanged.
+              const url = supplier
+                ? `#/preview-pdf?id=${id}&number=${number}&supplier=${encodeURIComponent(supplier)}`
+                : `#/preview-pdf?id=${id}&number=${number}`;
               try {
                 history.replaceState(
                   { app: 'snail-books' },
                   '',
-                  `#/preview-pdf?id=${id}&number=${number}`,
+                  url,
                 );
               } catch {}
-              setPdfPreview({ id, number });
+              setPdfPreview({ id, number, supplier });
               pushPage('pdf');
             }}
           />
@@ -488,6 +491,7 @@ export default function HomeScreen({
           <PdfPreviewPage
             batchId={pdfPreview?.id ?? 0}
             batchNumber={pdfPreview?.number ?? 0}
+            supplier={pdfPreview?.supplier}
             onBack={onBack}
           />
         );

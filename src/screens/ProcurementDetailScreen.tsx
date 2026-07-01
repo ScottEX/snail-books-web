@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
   ActivityIndicator, Image, Switch,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Line } from 'react-native-svg';
 import { t } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
@@ -12,6 +12,7 @@ import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import ModalOverlay from '../components/ModalOverlay';
 import ImagePreview from '../components/ImagePreview';
 import { useImagePreview } from '../hooks/useImagePreview';
 import { formatDate } from '../utils/format';
@@ -27,6 +28,7 @@ interface BatchItem {
   quantity: number;
   subtotal?: number;
   unit_price?: number;
+  supplier?: string;
 }
 
 interface BatchRecord {
@@ -66,7 +68,7 @@ function EditIcon({ color }: { color: string }) {
   );
 }
 
-export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPreview }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void; onPreview?: (id: number, number: number) => void }) {
+export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPreview }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void; onPreview?: (id: number, number: number, supplier?: string) => void }) {
   const { colors: c, theme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const styles = useMemo(() => getStyles(c), [c]);
@@ -100,13 +102,24 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
     );
   }
 
+  const [showSupplierPicker, setShowSupplierPicker] = useState(false);
   const downloadPDF = () => {
-    // Jump to the dedicated PDF preview page. The preview page handles
-    // PDF generation and provides download/share/save UX.
+    const suppliers = [...new Set((cur?.items || []).map(i => i.supplier).filter(Boolean))];
+    if (suppliers.length === 0) {
+      // No suppliers, generate full PDF directly
+      jumpToPdf();
+      return;
+    }
+    setShowSupplierPicker(true);
+  };
+  const jumpToPdf = (supplier?: string) => {
+    setShowSupplierPicker(false);
+    let url = `#/preview-pdf?id=${cur!.id}&number=${cur!.batch_number}`;
+    if (supplier) url += `&supplier=${encodeURIComponent(supplier)}`;
     if (onPreview) {
-      onPreview(cur.id, cur.batch_number);
+      onPreview(cur!.id, cur!.batch_number, supplier);
     } else {
-      window.location.hash = `#/preview-pdf?id=${cur.id}&number=${cur.batch_number}`;
+      window.location.hash = url;
     }
   };
 
@@ -338,6 +351,47 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
           onClose={closePreview}
         />
       )}
+
+      {/* Supplier picker for PDF */}
+      <ModalOverlay visible={showSupplierPicker} onClose={() => setShowSupplierPicker(false)} animation="springScale">
+        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '90%', overflow: 'hidden' as const }}>
+          {/* Header — handle bar + title + X */}
+          <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('procSelectSupplier')}</Text>
+              <TouchableOpacity style={{ padding: 4 }} onPress={() => setShowSupplierPicker(false)}>
+                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
+                  <Line x1="18" y1="6" x2="6" y2="18" />
+                  <Line x1="6" y1="6" x2="18" y2="18" />
+                </Svg>
+              </TouchableOpacity>
+          </View>
+          {/* Body — capsule grid */}
+          <View style={{ padding: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {(() => {
+              const suppliers = ['__all__', ...new Set((cur?.items || []).map(i => i.supplier).filter(Boolean))];
+              return suppliers.map((sup, idx) => {
+                const isAll = sup === '__all__';
+                const label = isAll ? t('procAll') : sup;
+                return (
+                  <TouchableOpacity key={idx}
+                    style={{
+                      flexGrow: 1, flexBasis: '30%', maxWidth: '32%',
+                      paddingVertical: 9, borderRadius: 20, alignItems: 'center',
+                      backgroundColor: withAlpha(c.primary, 0.08),
+                      borderWidth: 1.5, borderColor: withAlpha(c.primary, 0.15),
+                    }}
+                    onPress={() => jumpToPdf(isAll ? undefined : sup)}
+                    activeOpacity={0.6}
+                  >
+                    <Text style={{ fontSize: FONTS.sub.size, color: c.primary, fontWeight: '500' }}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              });
+            })()}
+          </View>
+        </View>
+      </ModalOverlay>
+
     </View>
   );
 }

@@ -11,6 +11,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 interface Props {
   batchId: number;
   batchNumber: number;
+  supplier?: string;
   onBack: () => void;
 }
 
@@ -65,11 +66,13 @@ html.pv-lock{overflow:hidden;touch-action:none}
 `;
 };
 
-export default function PdfPreviewPage({ batchId, batchNumber, onBack }: Props) {
+export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack }: Props) {
   const { colors: c } = useTheme();
   const st = useMemo(() => getStyles(c), [c]);
   const title = t('procPdfTitle').replace('{n}', String(batchNumber));
-  const pdfUrl = `/api/procurement-batches/${batchId}/pdf`;
+  const pdfUrl = supplier
+    ? `/api/procurement-batches/${batchId}/pdf?supplier=${encodeURIComponent(supplier)}`
+    : `/api/procurement-batches/${batchId}/pdf`;
 
   const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
