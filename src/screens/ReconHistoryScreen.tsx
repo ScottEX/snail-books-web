@@ -329,7 +329,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             )}
           </>
         )}
-        <View style={{ height: 100 }} />
+        <View style={{ height: 20 }} />
       </ScrollView>
       {/* Detail Modal */}
       <ModalOverlay visible={!!selected} onClose={() => setSelected(null)} animation="springScale">
