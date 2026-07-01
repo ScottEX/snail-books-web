@@ -640,7 +640,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       </ScrollView>
 
       {/* ====== DIVIDEND MODAL ====== */}
-        <ModalOverlay visible={showDividend} overlayStyle={mo.overlay} contentStyle={mo.content} onClose={() => setShowDividend(false)}>
+        <ModalOverlay visible={showDividend} onClose={() => setShowDividend(false)} animation="springScale">
           <View style={mo.modalCard} onStartShouldSetResponder={() => true}>
             <View style={mo.header}>
               <View>
