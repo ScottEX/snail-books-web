@@ -1008,7 +1008,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                         <Text style={{ position: 'absolute', left: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.warning, zIndex: 1 }}>−</Text>
                       )}
                       <TextInput
-                        style={{ flex: 1, height: 38, borderWidth: 1, borderColor: negativeMode ? colors.warning : colors.secondary, borderRadius: 8, paddingLeft: negativeMode ? 24 : 10, paddingRight: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
+                        style={{ width: '100%', height: 38, borderWidth: 1, borderColor: negativeMode ? colors.warning : colors.secondary, borderRadius: 8, paddingLeft: negativeMode ? 24 : 10, paddingRight: 10, fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.textSub, textAlign: 'right', backgroundColor: colors.surface, outline: 'none' } as any}
                         value={row.val} onChangeText={(v: string) => row.set(fmtDecInput(v))}
                         keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={colors.textSub}
                       />
