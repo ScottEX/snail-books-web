@@ -952,10 +952,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </View>
             </View>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
-              {/* Date */}
+              {/* Date + Negative toggle */}
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16 }}>
                 <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, fontWeight: FONTS.sub.weight, marginTop: 2 }}>{t('entryDate')}</Text>
-                <View>
+                <View style={{ flex: 1 }}>
                   <DatePicker
                     date={feeDate.value}
                     onChange={feeDate.setValue}
@@ -968,6 +968,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   />
                   <DateErrorHint trigger={feeDate.error} message={t('errDateFuture')} color={colors.danger} />
                 </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                  <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>录入负数</Text>
+                  <Switch value={negativeMode} onValueChange={setNegativeMode}
+                    trackColor={{ false: colors.secondary, true: withAlpha(colors.warning, 0.4) }}
+                    thumbColor={negativeMode ? colors.warning : colors.surface}
+                  />
+                </View>
               </View>
 
               {/* Column headers */}
@@ -976,15 +983,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ width: '22%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feePreview')}</Text>
                 <Text style={{ width: '22%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'left' }}>{t('feeCurrent')}</Text>
                 <Text style={{ width: '22%', fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight, textAlign: 'right' }}>{t('feeEntry')}</Text>
-              </View>
-
-              {/* Negative mode toggle */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 10, gap: 8 }}>
-                <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>录入负数（用于修正此前录入错误）</Text>
-                <Switch value={negativeMode} onValueChange={setNegativeMode}
-                  trackColor={{ false: colors.secondary, true: withAlpha(colors.warning, 0.4) }}
-                  thumbColor={negativeMode ? colors.warning : colors.surface}
-                />
               </View>
 
               {/* Fee rows */}
