@@ -293,6 +293,15 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const [allFees, setAllFees] = useState<any[]>([]);         // all months for detail
   const [feeMonth, setFeeMonth] = useState<'all' | { year: number; month: number }>('all');
   const feeMonthInited = useRef(false);
+  const feeMonthList = useMemo(() => {
+    const list: { year: number; month: number }[] = [];
+    for (let y = 2024; y <= sd.year; y++) {
+      const startM = (y === 2024) ? 5 : 1;
+      const endM = (y === sd.year) ? sd.month : 12;
+      for (let m = startM; m <= endM; m++) list.push({ year: y, month: m });
+    }
+    return list.reverse();
+  }, [sd.year, sd.month]);
   const feeLoadId = useRef(0);  // guard against stale async responses
   useEffect(() => { if (sd.ready && !feeMonthInited.current) { feeMonthInited.current = true; setFeeMonth({ year: sd.year, month: sd.month }); } }, [sd.ready, sd.year, sd.month]);
   const feeMonthPicker = useDisclosure(false);
@@ -1113,7 +1122,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
             </TouchableOpacity>
             <View style={{ height: 1, backgroundColor: colors.secondary, marginHorizontal: 12, marginVertical: 4 }} />
-            {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
+            {feeMonthList.map((f) => {
               const isSel = feeMonth !== 'all' && feeMonth.year === f.year && feeMonth.month === f.month;
               return (
                 <TouchableOpacity
