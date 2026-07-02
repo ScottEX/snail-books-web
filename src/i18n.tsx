@@ -267,7 +267,8 @@ const I18N: Record<string, Record<string, string>> = {
     invUrge: '催一下',
     invVatSpecial: '增值税专票',
     invVatSpecialFull: '增值税专用发票',
-    invVatGoMaintain: '请去开票信息维护',
+    invVatGoMaintain: 'Please fill in Invoice Settings',
+    invPleaseMaintain: 'Please fill in',
     invest: '出资',
     investComplete: '出资完结',
     invoiceSave: '保存',
@@ -857,6 +858,7 @@ const I18N: Record<string, Record<string, string>> = {
     invVatSpecial: '增值稅專票',
     invVatSpecialFull: '增值稅專用發票',
     invVatGoMaintain: '請去開票信息維護',
+    invPleaseMaintain: '請維護信息',
     invest: '出資',
     investComplete: '出資完結',
     invoiceSave: '保存',
@@ -2008,6 +2010,7 @@ export type I18nKey =
   | 'invRecStatusDone'
   | 'invRecStatusPending'
   | 'invReceipt'
+  | 'invPleaseMaintain'
   | 'invReceiveMethod'
   | 'invRecordsTab'
   | 'invSave'
