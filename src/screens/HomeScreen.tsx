@@ -298,10 +298,13 @@ export default function HomeScreen({
     document.head.appendChild(style);
   }, []);
 
-  // ── Body background: match container bg so area outside 520px isn't white ──
+  // ── Body background + max-width constraint ──
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.body.style.backgroundColor = colors.bg;
+      document.body.style.maxWidth = '768px';
+      document.body.style.margin = '0 auto';
+      document.documentElement.style.backgroundColor = colors.bg;
     }
   }, [colors.bg]);
 
