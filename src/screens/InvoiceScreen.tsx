@@ -177,6 +177,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const swipeBack = useSwipeBack(onBack);
   const [tab, setTab] = useState<number>(filterBatchId ? 1 : 0);
   const [entryCardH, setEntryCardH] = useState(0);
+  const entryCardHRef = useRef(false);
   const [invType, setInvType] = useState<InvType>('vat');
   const [data, setData] = useState<InvoiceData>(EMPTY_INV);
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
@@ -483,7 +484,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       {/* ═══ ENTRY CARD ═══ */}
-      <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h) setEntryCardH(h); }}>
+      <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h && !entryCardHRef.current) { entryCardHRef.current = true; setEntryCardH(h); } }}>
           <View style={s.ecTop}>
             <TouchableOpacity style={[s.ecBackBtn, { backgroundColor: 'rgba(255,255,255,0.12)' }]} onPress={onBack}>
               <IcnBack color="rgba(255,255,255,0.8)" />
