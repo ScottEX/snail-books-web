@@ -350,6 +350,9 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     if (submitting) return;
     if (!dAmount) { showToast('⚠️ ' + t('invDrawerAmount')); return; }
     if (!data.company_name || !data.tax_id) { showToast('⚠️ ' + t('invEmpty')); return; }
+    if (dType === 'vat' && (!data.address || !data.phone || !data.bank_name || !data.bank_account)) {
+      showToast('⚠️ ' + t('invVatInfoEmpty')); return;
+    }
     if (dStatus === 'done' && !dInvoiceNo.trim()) {
       showToast('⚠️ ' + t('invRecInvoiceNo'));
       return;
@@ -779,6 +782,28 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <Text style={[s.dLabel, { color: c.textSub }]}>{t('invDrawerTaxId')}<Text style={{ color: REQUIRED_COLOR }}>*</Text><Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
                 <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
               </View>
+
+              {/* VAT-only fields — 从开票信息反显 */}
+              {dType === 'vat' && (
+                <>
+                  <View style={s.dField}>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('addressPhone')}<Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.address} editable={false} />
+                  </View>
+                  <View style={s.dField}>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('companyPhone')}<Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.phone} editable={false} />
+                  </View>
+                  <View style={s.dField}>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankName')}<Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.bank_name} editable={false} />
+                  </View>
+                  <View style={s.dField}>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankAccount')}<Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.bank_account} editable={false} />
+                  </View>
+                </>
+              )}
 
               {/* Date + Email side by side */}
               <View style={s.dRow}>

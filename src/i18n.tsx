@@ -1980,6 +1980,7 @@ export type I18nKey =
   | 'invEditInfo'
   | 'invEmail'
   | 'invEmpty'
+  | 'invVatInfoEmpty'
   | 'invExportToast'
   | 'invFileUploaded'
   | 'invFilterAll'
