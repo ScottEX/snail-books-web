@@ -354,7 +354,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
 
       {/* Supplier picker for PDF */}
       <ModalOverlay visible={showSupplierPicker} onClose={() => setShowSupplierPicker(false)} animation="springScale">
-        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '90%', overflow: 'hidden' as const }}>
+        <View style={{ backgroundColor: c.surface, borderRadius: 24, width: 320, maxWidth: '90%', overflow: 'hidden' as const }}>
           {/* Header — handle bar + title + X */}
           <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('procSelectSupplier')}</Text>

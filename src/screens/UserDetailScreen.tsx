@@ -520,7 +520,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
       {/* Partner Picker Modal */}
       <ModalOverlay visible={showPartnerPicker} onClose={() => setShowPartnerPicker(false)} animation="blurMorph">
-        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '100%', overflow: 'hidden', } as any} onStartShouldSetResponder={() => true}>
+        <View style={{ backgroundColor: c.surface, borderRadius: 24, width: 320, maxWidth: '100%', overflow: 'hidden', } as any} onStartShouldSetResponder={() => true}>
           <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 15, fontWeight: '700', color: c.surface }}>{t('selectPartner')}</Text>
             <TouchableOpacity onPress={() => setShowPartnerPicker(false)}>
@@ -622,7 +622,7 @@ const getStyles = (c: ThemeColors) => {
     roleItemText: { fontSize: 13 } as any,
     /* Linked-partner delete hint modal */
     hintCard: {
-      backgroundColor: c.surface, borderRadius: 16,
+      backgroundColor: c.surface, borderRadius: 24,
       width: 340, maxWidth: '100%', overflow: 'hidden',
     },
     hintHeader: {

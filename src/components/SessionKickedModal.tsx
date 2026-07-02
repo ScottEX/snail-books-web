@@ -94,7 +94,7 @@ export default function SessionKickedModal() {
 
 const getStyles = (c: ThemeColors) => StyleSheet.create({
   card: {
-    backgroundColor: c.surface, borderRadius: 16,
+    backgroundColor: c.surface, borderRadius: 24,
     width: 340, maxWidth: '90%', overflow: 'hidden',
     // @ts-ignore
 

@@ -1493,7 +1493,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modalCard: {
-    backgroundColor: colors.surface, borderRadius: 20, width: 320, maxWidth: '100%',
+    backgroundColor: colors.surface, borderRadius: 24, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
 

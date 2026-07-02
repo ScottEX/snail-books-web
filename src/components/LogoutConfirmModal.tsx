@@ -46,7 +46,7 @@ export default function LogoutConfirmModal({ visible, onClose, onLogout }: Logou
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
-    backgroundColor: colors.surface, borderRadius: 16,
+    backgroundColor: colors.surface, borderRadius: 24,
     width: 340, maxWidth: '90%', overflow: 'hidden',
   },
   header: {

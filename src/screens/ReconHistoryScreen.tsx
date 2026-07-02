@@ -453,7 +453,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modal: {
-    backgroundColor: colors.surface, borderRadius: 20,
+    backgroundColor: colors.surface, borderRadius: 24,
     overflow: 'hidden',
     // @ts-ignore
 
