@@ -386,9 +386,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         }
       }
       closeDrawer();
-      setEditingId(null);
-      setDFiles([]);
-      setDExistingFilePath([]);
       await loadRecords();
     } catch (e: any) {
       showToast('⚠️ ' + (e?.message || t('errSessionExpired')));
@@ -461,11 +458,13 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   };
   const closeDrawer = () => {
     setDrawerOpen(false);
+    setTimeout(() => {
     setEditingId(null);
     setDStatus('pending');
     setDInvoiceNo('');
     setDExistingFilePath([]);
     setDFiles([]);
+    }, 250);
   };
 
   // Auto-fill amount when batch selected
