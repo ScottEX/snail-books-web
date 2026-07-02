@@ -1,4 +1,4 @@
-import { ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING } from '../theme';
+import { ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Props {
@@ -20,7 +20,7 @@ const SS_CSS = `
 @keyframes ss-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .ss-root{
   position:absolute;top:0;left:0;right:0;bottom:0;
-  max-width:768px;margin-left:auto;margin-right:auto;
+  max-width:${CONTENT_MAX_WIDTH}px;margin-left:auto;margin-right:auto;
 }
 .ss-root.ss-enter{animation:ss-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
 .ss-root.ss-exit{animation:ss-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}

@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
-import { FONTS } from '../theme';
+import { FONTS, CONTENT_MAX_WIDTH } from '../theme';
 import { useToast } from '../hooks/useToast';
 import PartnerScreen from './PartnerScreen';
 import ProcurementScreen from './ProcurementScreen';
@@ -510,7 +510,7 @@ export default function HomeScreen({
       <View style={styles.inner}>
         {/* Background — constrained to 520px container so bg image doesn't stretch on desktop */}
       <View style={styles.bgWrapper}>
-        <View style={{ width: '100%', maxWidth: 768, height: '100%', position: 'relative' }}>
+        <View style={{ width: '100%', maxWidth: CONTENT_MAX_WIDTH, height: '100%', position: 'relative' }}>
           <View style={[styles.bgLayer, { backgroundImage: `url(/img/bg.jpg?v=3)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: bgOpacity } as any]} />
           <View style={[styles.bgLayer, styles.bgCustom, { backgroundImage: `url(${bgImage}?v=${bgVersion})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: bgReady && bgImage !== '/img/bg.jpg?v=3' ? 'blur(0)' : 'blur(16px)', opacity: bgReady && bgImage !== '/img/bg.jpg?v=3' ? bgOpacity : 0 } as any]} />
         </View>
@@ -936,7 +936,7 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  inner: { flex: 1, maxWidth: 768, alignSelf: 'center', width: '100%', position: 'relative' as const },
+  inner: { flex: 1, maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center', width: '100%', position: 'relative' as const },
   bgLayer: {
     position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
