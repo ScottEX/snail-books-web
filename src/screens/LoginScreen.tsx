@@ -5,6 +5,7 @@ import { t, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { validateEmail, EMAIL_RE } from '../utils/validation';
 import { getCurrentUser } from '../utils/storage';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -26,8 +27,6 @@ function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
 }
 
 type Step = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<Step>('login');
@@ -282,10 +281,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     return ok ? '' : 'errPwRequirements';
   };
 
-  const validateEmail = (em: string): string => {
-    if (!EMAIL_RE.test(em)) return 'errEmailInvalid';
-    return '';
-  };
+
 
   const triggerShake = () => {
     setShake(true); setTimeout(() => setShake(false), 400);

@@ -5,6 +5,7 @@ import { t, getLang, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { EMAIL_RE } from '../utils/validation';
 import { useToast } from '../hooks/useToast';
 
 // Base64url helpers for WebAuthn
@@ -945,7 +946,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                     placeholder={t('newEmail')}
                     placeholderTextColor={colors.textSub}
                     value={newEmail}
-                    onChangeText={setNewEmail}
+                    onChangeText={(v) => { setNewEmail(v); if (modalMsg) setModalMsg(''); }}
+                    onBlur={() => {
+                      if (newEmail && !EMAIL_RE.test(newEmail)) {
+                        setNewEmail('');
+                        setModalMsg(t('errEmailInvalid'));
+                      }
+                    }}
                     autoFocus
                     keyboardType="email-address"
                   />

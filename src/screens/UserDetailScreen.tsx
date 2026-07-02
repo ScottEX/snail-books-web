@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, TextInput } from 'react-native';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { EMAIL_RE } from '../utils/validation';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import { modalClose } from '../sharedStyles';
@@ -394,7 +395,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               <View style={st.divider} />
               <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} />
               <View style={st.divider} />
-              <EditableField label={t('profileEmail')} value={email} onChangeText={setEmail} onBlurSave={() => saveField('email', email)} c={c} />
+              <EditableField label={t('profileEmail')} value={email} onChangeText={setEmail} onBlurSave={() => { if (email && !EMAIL_RE.test(email)) return; saveField('email', email); }} c={c} />
               <View style={st.divider} />
               <View style={st.infoRow}>
                 <Text style={st.infoLabel}>{t('registrationTime')}</Text>

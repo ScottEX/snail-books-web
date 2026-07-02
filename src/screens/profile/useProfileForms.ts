@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { t } from '../../i18n';
 import { api } from '../../api/client';
+import { validateEmail } from '../../utils/validation';
 
 export function useProfileForms(setToast: (msg: string) => void) {
   // ── Change Password ──
@@ -44,6 +45,7 @@ export function useProfileForms(setToast: (msg: string) => void) {
   const handleSendCode = async () => {
     setModalMsg('');
     if (!newEmail) { setModalMsg('请输入新邮箱'); return; }
+    if (validateEmail(newEmail)) { setModalMsg(t('errEmailInvalid')); return; }
     setModalLoading(true);
     try {
       const r: any = await api.sendEmailCode(newEmail);

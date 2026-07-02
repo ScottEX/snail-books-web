@@ -7,6 +7,7 @@ import { api } from '../api/client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
+import { EMAIL_RE } from '../utils/validation';
 import { bottomSheetOverlay, sheetHandle } from '../sharedStyles';
 import SheetHeader from '../components/SheetHeader';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -221,7 +222,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
   const [dEmailErr, setDEmailErr] = useState('');
-  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const [dInvoiceNo, setDInvoiceNo] = useState('');
   const [dStatus, setDStatus] = useState<InvStatus>('pending');
 
