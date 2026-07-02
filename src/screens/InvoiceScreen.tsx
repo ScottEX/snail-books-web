@@ -241,6 +241,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   // Edit / delete target
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [editSnapshot, setEditSnapshot] = useState<any>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -417,6 +418,18 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
     setDFiles([]);
     setDExistingFilePath(forEdit ? parseFilePaths(forEdit.file_path) : []);
+    // Save edit snapshot for unchanged detection
+    if (forEdit) {
+      setEditSnapshot({
+        type: forEdit.type, amount: String(forEdit.amount),
+        date: forEdit.date, note: forEdit.note || '',
+        invoice_number: forEdit.invoice_number || '',
+        status: forEdit.status, procurement_batch_id: forEdit.procurement_batch_id ?? null,
+        existingFiles: parseFilePaths(forEdit.file_path),
+      });
+    } else {
+      setEditSnapshot(null);
+    }
     // Fetch batch list (lightweight, all un-invoiced batches)
     (async () => {
       try {
@@ -860,9 +873,20 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
             }}>
             {(() => {
+              const unchangedInEdit = editingId && editSnapshot
+                && dType === editSnapshot.type
+                && dAmount === editSnapshot.amount
+                && dDate === editSnapshot.date
+                && dNote === editSnapshot.note
+                && dInvoiceNo === editSnapshot.invoice_number
+                && dStatus === editSnapshot.status
+                && dBatchId === editSnapshot.procurement_batch_id
+                && dFiles.length === 0
+                && JSON.stringify(dExistingFilePath) === JSON.stringify(editSnapshot.existingFiles);
               const nonLoadDisabled = !dAmount || !data.company_name || !data.tax_id
                 || (dStatus === 'done' && !dInvoiceNo.trim())
-                || (dStatus === 'done' && dFiles.length === 0 && dExistingFilePath.length === 0);
+                || (dStatus === 'done' && dFiles.length === 0 && dExistingFilePath.length === 0)
+                || unchangedInEdit;
               return (
             <SubmitButton
               onPress={handleDrawerSubmit}
