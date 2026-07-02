@@ -91,9 +91,9 @@ export default function InvoiceModal({ visible, onClose }: Props) {
       onClose={onClose}
       animation="slideUpScale"
       overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
-      contentStyle={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'stretch' } as any}
+      contentStyle={{ alignItems: 'stretch' } as any}
     >
-      <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, width: '100%', maxWidth: CONTENT_MAX_WIDTH, marginLeft: 'auto', marginRight: 'auto', overflow: 'hidden' as any, display: 'flex' as any, flexDirection: 'column' as any }]}>
+      <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center', overflow: 'hidden' as any, display: 'flex' as any, flexDirection: 'column' as any }]}>
         <View style={{ backgroundColor: c.primary, paddingTop: 14, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'column', alignItems: 'flex-start' }}>
           <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
           <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('invoiceTitle')}</Text>
