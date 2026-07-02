@@ -282,18 +282,14 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     (async () => {
       try {
         const inv = await api.getInvoice();
+        const perUserEmail = await api.getInvoiceEmail().catch(() => ({}));
         if (inv.status === 'ok' && inv.data) {
-          const d = { ...EMPTY_INV, ...inv.data };
+          const d = { ...EMPTY_INV, ...inv.data, email: perUserEmail.email || inv.data.email || '' };
           setData(d);
           setOrig(d);
-          setDEmail(inv.data.email || '');
+          setDEmail(d.email);
           setInvType(inv.data.inv_type || 'vat');
         }
-        // Per-user invoice email (separate from admin-level invoice info)
-        try {
-          const em = await api.getInvoiceEmail();
-          if (em.email) setData(prev => ({ ...prev, email: em.email }));
-        } catch { }
       } catch { }
       setLoaded(true);
     })();
