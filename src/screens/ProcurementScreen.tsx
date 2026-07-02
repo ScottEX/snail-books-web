@@ -1305,7 +1305,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         overlayStyle={bottomSheetOverlay as any}
         contentStyle={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'stretch' } as any}
       >
-        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '70%' as any, width: '100%', maxWidth: 768, alignSelf: 'center', overflow: 'hidden' as any, display: 'flex' as any, flexDirection: 'column' as any }]}>
+        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '70vh' as any, width: '100%', maxWidth: 768, alignSelf: 'center', overflow: 'hidden' as any, display: 'flex' as any, flexDirection: 'column' as any }]}>
           <View style={styles.drawerHead}>
             <SheetHeader
               title={editingBatchId !== null
