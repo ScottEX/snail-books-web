@@ -939,7 +939,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
           overlayStyle={bottomSheetOverlay as any}
           contentStyle={{ alignItems: 'stretch' } as any}>
-          <View style={[st.feeSheet, { width: '100%' }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { width: '100%', maxWidth: 768, alignSelf: 'center' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -1035,7 +1035,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
           overlayStyle={bottomSheetOverlay as any}
           contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}>
-          <View style={[st.feeSheet, { height: winH * 0.7, width: '100%' }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { height: winH * 0.7, width: '100%', maxWidth: 768, alignSelf: 'center' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>

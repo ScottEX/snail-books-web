@@ -304,7 +304,6 @@ export default function HomeScreen({
       document.body.style.backgroundColor = colors.bg;
       document.body.style.maxWidth = `${CONTENT_MAX_WIDTH}px`;
       document.body.style.margin = '0 auto';
-      document.body.style.position = 'relative';
       document.body.style.overflow = 'hidden';
       document.documentElement.style.backgroundColor = colors.bg;
     }

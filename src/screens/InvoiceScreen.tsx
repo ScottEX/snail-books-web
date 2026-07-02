@@ -695,7 +695,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}
       >
         {(anims) => (
-          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxHeight: drawerMaxH }]}>
+          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxWidth: 768, alignSelf: 'center', maxHeight: drawerMaxH }]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],

@@ -1305,7 +1305,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         overlayStyle={bottomSheetOverlay as any}
         contentStyle={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'stretch' } as any}
       >
-        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88vh' as any, width: '100%', overflow: 'hidden' as any, display: 'flex' as any, flexDirection: 'column' as any }]}>
+        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88vh' as any, width: '100%', maxWidth: 768, alignSelf: 'center', overflow: 'hidden' as any, display: 'flex' as any, flexDirection: 'column' as any }]}>
           <View style={styles.drawerHead}>
             <SheetHeader
               title={editingBatchId !== null
@@ -1405,7 +1405,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         contentStyle={{ alignItems: 'stretch' } as any}
       >
         {(anims) => (
-          <View style={[styles.itemsModalCard, { width: '90%', maxHeight: Dimensions.get('window').height * 0.6, alignSelf: 'center' } as any]}>
+          <View style={[styles.itemsModalCard, { width: '90%', maxWidth: 768 * 0.9, maxHeight: Dimensions.get('window').height * 0.6, alignSelf: 'center' } as any]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
