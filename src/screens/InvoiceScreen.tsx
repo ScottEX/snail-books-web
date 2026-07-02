@@ -1001,7 +1001,7 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
             onBlur={commit}
             autoFocus
             keyboardType={keyboardType as any}
-            placeholder={value || '—'}
+            placeholder={placeholder || '—'}
             placeholderTextColor={colors.textSub}
           />
           {err !== '' && <Text style={{ color: colors.danger, fontSize: 11, marginTop: 2 }}>{err}</Text>}
