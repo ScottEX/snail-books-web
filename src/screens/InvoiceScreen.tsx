@@ -588,7 +588,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
-                <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} placeholder={t('invPleaseMaintain')} value={data.email} colors={c} onChange={(v) => setData({ ...data, email: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} placeholder={t('invPleaseMaintain')} value={data.email} colors={c} onChange={(v) => { setData({ ...data, email: v }); api.saveInvoiceEmail(v).catch(() => {}); }} />
               </View>
             </View>
           </View>
