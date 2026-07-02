@@ -347,6 +347,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const handleDrawerClose = () => {
     setShowDrawer(false);
     onDrawerClose?.();
+    setTimeout(() => {
     if (editingBatchId !== null) {
       setEditingBatchId(null); setEditingBatchNumber(0);
       setEditingBatchSettled(false); setCartUnitPrices({});
@@ -355,6 +356,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       setCart({}); setReceipts([]); setOrderNote('');
       setOrderDate(sd.today); setPayMethod('payWechat');
     }
+    }, 300);
   };
   const [orderDate, setOrderDate] = useState('');
   useEffect(() => { if (sd.ready && orderDate === '') setOrderDate(sd.today); }, [sd.ready, sd.today, orderDate]);
@@ -728,11 +730,13 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         if (r?.status === 'ok') {
           setShowDrawer(false);
           onDrawerClose?.();
+          setTimeout(() => {
           setCart({}); setReceipts([]); setOrderNote('');
           setExistingImageUrls([]); setExistingThumbUrls([]);
           setEditingBatchId(null); setEditingBatchNumber(0);
           setEditingBatchSettled(false); setCartUnitPrices({});
           setOrderDate(sd.today); setPayMethod('payWechat');
+          }, 300);
           // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
           setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
           setSuccessIsEdit(true);
@@ -755,7 +759,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         setSuccessTotal(r.total); setSuccessBatch(r.batch_number); setSuccessIsEdit(false);
         setShowDrawer(false);
         onDrawerClose?.();
+        setTimeout(() => {
         setCart({}); api.clearCart().catch(() => {}); setReceipts([]); setOrderNote('');
+        }, 300);
         setTimeout(() => openSlideModal(() => setShowSuccess(true)), 250);
         loadStats();
       } else {
