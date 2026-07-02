@@ -1015,7 +1015,7 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
       <View style={[sIR.icon, { backgroundColor: iconBg }]}>{icon}</View>
       <View style={sIR.body}>
         <Text style={[sIR.label, { color: colors.textSub }]}>{label}</Text>
-        <Text style={[sIR.value, { color: value && value !== '-' ? colors.textMain : colors.textSub, fontWeight: value && value !== '-' ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value && value !== '-' ? value : placeholder || t('invEmpty')}</Text>
+        <Text style={[sIR.value, { color: value && !isDash(value) ? colors.textMain : colors.textSub, fontWeight: value && !isDash(value) ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value && !isDash(value) ? value : placeholder || t('invEmpty')}</Text>
       </View>
       {editable && (
         <TouchableOpacity onPress={() => { setDraft(isDash(value) ? '' : value); setEditing(true); }} activeOpacity={0.7}>
