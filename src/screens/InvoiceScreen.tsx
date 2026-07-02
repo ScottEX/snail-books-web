@@ -176,6 +176,9 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const [tab, setTab] = useState<number>(filterBatchId ? 1 : 0);
+  const [entryCardH, setEntryCardH] = useState(0);
+  const winHRef = useRef(0);
+  const drawerMaxH = entryCardH > 0 ? winHRef.current - entryCardH : undefined;
   const [invType, setInvType] = useState<InvType>('vat');
   const [data, setData] = useState<InvoiceData>(EMPTY_INV);
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
@@ -404,6 +407,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   // ── Drawer animation ──
   const openDrawer = (forEdit?: InvoiceRecord) => {
     setDrawerOpen(true);
+    winHRef.current = window.innerHeight;
     setEditingId(forEdit ? forEdit.id : null);
     setDType(forEdit ? (forEdit.type as InvType) : 'general');
     setDAmount(forEdit ? String(forEdit.amount) : '');
@@ -481,7 +485,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       {/* ═══ ENTRY CARD ═══ */}
-      <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]}>
+      <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h && entryCardH === 0) setEntryCardH(h); }}>
           <View style={s.ecTop}>
             <TouchableOpacity style={[s.ecBackBtn, { backgroundColor: 'rgba(255,255,255,0.12)' }]} onPress={onBack}>
               <IcnBack color="rgba(255,255,255,0.8)" />
@@ -689,7 +693,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}
       >
         {(anims) => (
-          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%' }]}>
+          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxHeight: drawerMaxH }]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
