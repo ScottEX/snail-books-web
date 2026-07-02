@@ -175,6 +175,9 @@ interface Props {
   filterBatchId?: number | null;
 }
 
+/** 判断是否为数据库占位符（- 或 —） */
+function isDash(v: string) { return v === '-' || v === '\u2014'; }
+
 export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
@@ -222,7 +225,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
   const [dEmailErr, setDEmailErr] = useState('');
-  const isDash = (v: string) => v === '-' || v === '\u2014';
   const [dInvoiceNo, setDInvoiceNo] = useState('');
   const [dStatus, setDStatus] = useState<InvStatus>('pending');
 
