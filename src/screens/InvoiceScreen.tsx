@@ -5,7 +5,7 @@ import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors, REQUIRED_COLOR } from '../theme';
 import { api } from '../api/client';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { FONTS } from '../theme';
+import { FONTS, CONTENT_MAX_WIDTH } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useImagePreview } from '../hooks/useImagePreview';
 import { useToast } from '../hooks/useToast';
@@ -677,7 +677,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}
       >
         {(anims) => (
-          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxHeight: entryCardH > 0 ? Dimensions.get('window').height - entryCardH : undefined }]}>
+          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center', maxHeight: entryCardH > 0 ? Dimensions.get('window').height - entryCardH : undefined }]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
