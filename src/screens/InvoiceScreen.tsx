@@ -789,19 +789,19 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 return (
                 <>
                   <View style={s.dField}>
-                    <Text style={[s.dLabel, { color: c.textSub }]}><Text style={{ color: REQUIRED_COLOR }}>*</Text> {t('addressPhone')}{hint(data.address)}</Text>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('addressPhone')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.address)}</Text>
                     <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.address} editable={false} />
                   </View>
                   <View style={s.dField}>
-                    <Text style={[s.dLabel, { color: c.textSub }]}><Text style={{ color: REQUIRED_COLOR }}>*</Text> {t('companyPhone')}{hint(data.phone)}</Text>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('companyPhone')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.phone)}</Text>
                     <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.phone} editable={false} />
                   </View>
                   <View style={s.dField}>
-                    <Text style={[s.dLabel, { color: c.textSub }]}><Text style={{ color: REQUIRED_COLOR }}>*</Text> {t('bankName')}{hint(data.bank_name)}</Text>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankName')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.bank_name)}</Text>
                     <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.bank_name} editable={false} />
                   </View>
                   <View style={s.dField}>
-                    <Text style={[s.dLabel, { color: c.textSub }]}><Text style={{ color: REQUIRED_COLOR }}>*</Text> {t('bankAccount')}{hint(data.bank_account)}</Text>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankAccount')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.bank_account)}</Text>
                     <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.bank_account} editable={false} />
                   </View>
                 </>
