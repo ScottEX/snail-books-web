@@ -588,7 +588,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
-                <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} placeholder={t('invPleaseMaintain')} value={data.email} colors={c} onChange={async (v) => { setData({ ...data, email: v }); await api.saveInvoiceEmail(v).catch(() => {}); if (!v) { const em = await api.getInvoiceEmail().catch(() => ({})); setData(prev => ({ ...prev, email: em.email || '' })); } }} />
+                <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} placeholder={t('invPleaseMaintain')} value={data.email} colors={c} validate={(v: string) => v && !EMAIL_RE.test(v) ? t('errEmailInvalid') : null} onChange={async (v) => { setData({ ...data, email: v }); await api.saveInvoiceEmail(v).catch(() => {}); if (!v) { const em = await api.getInvoiceEmail().catch(() => ({})); setData(prev => ({ ...prev, email: em.email || '' })); } }} />
               </View>
             </View>
           </View>
