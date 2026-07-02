@@ -14,7 +14,7 @@ interface Props {
 /** 底部 sheet 抽屉统一头部：灰色把手 + 标题 + 关闭按钮 */
 export default function SheetHeader({ title, onClose, titleColor = '#fff' }: Props) {
   return (
-    <View>
+    <View style={{ width: '100%' }}>
       <View style={sheetHandle} />
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
         <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: titleColor }}>{title}</Text>
