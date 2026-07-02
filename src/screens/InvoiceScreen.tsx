@@ -350,9 +350,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     if (submitting) return;
     if (!dAmount) { showToast('⚠️ ' + t('invDrawerAmount')); return; }
     if (!data.company_name || !data.tax_id) { showToast('⚠️ ' + t('invEmpty')); return; }
-    if (dType === 'vat' && (!data.address || !data.phone || !data.bank_name || !data.bank_account)) {
-      showToast('⚠️ ' + t('invVatInfoEmpty')); return;
-    }
     if (dStatus === 'done' && !dInvoiceNo.trim()) {
       showToast('⚠️ ' + t('invRecInvoiceNo'));
       return;
@@ -784,26 +781,32 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               </View>
 
               {/* VAT-only fields — 从开票信息反显 */}
-              {dType === 'vat' && (
+              {dType === 'vat' && (() => {
+                const vatFilled = (v: string) => v && v !== '-';
+                const hint = (v: string) => vatFilled(v)
+                  ? <Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text>
+                  : <Text style={{ color: c.danger, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invVatGoMaintain')}</Text>;
+                return (
                 <>
                   <View style={s.dField}>
-                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('addressPhone')}<Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                    <Text style={[s.dLabel, { color: c.textSub }]}><Text style={{ color: REQUIRED_COLOR }}>*</Text> {t('addressPhone')}{hint(data.address)}</Text>
                     <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.address} editable={false} />
                   </View>
                   <View style={s.dField}>
-                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('companyPhone')}<Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                    <Text style={[s.dLabel, { color: c.textSub }]}><Text style={{ color: REQUIRED_COLOR }}>*</Text> {t('companyPhone')}{hint(data.phone)}</Text>
                     <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.phone} editable={false} />
                   </View>
                   <View style={s.dField}>
-                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankName')}<Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                    <Text style={[s.dLabel, { color: c.textSub }]}><Text style={{ color: REQUIRED_COLOR }}>*</Text> {t('bankName')}{hint(data.bank_name)}</Text>
                     <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.bank_name} editable={false} />
                   </View>
                   <View style={s.dField}>
-                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankAccount')}<Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text></Text>
+                    <Text style={[s.dLabel, { color: c.textSub }]}><Text style={{ color: REQUIRED_COLOR }}>*</Text> {t('bankAccount')}{hint(data.bank_account)}</Text>
                     <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.bank_account} editable={false} />
                   </View>
                 </>
-              )}
+                );
+              })()}
 
               {/* Date + Email side by side */}
               <View style={s.dRow}>
@@ -904,9 +907,16 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 && dBatchId === editSnapshot.procurement_batch_id
                 && dFiles.length === 0
                 && JSON.stringify(dExistingFilePath) === JSON.stringify(editSnapshot.existingFiles);
+              const vatMissing = dType === 'vat' && (
+                !data.address || data.address === '-' ||
+                !data.phone || data.phone === '-' ||
+                !data.bank_name || data.bank_name === '-' ||
+                !data.bank_account || data.bank_account === '-'
+              );
               const nonLoadDisabled = !dAmount || !data.company_name || !data.tax_id
                 || (dStatus === 'done' && !dInvoiceNo.trim())
                 || (dStatus === 'done' && dFiles.length === 0 && dExistingFilePath.length === 0)
+                || vatMissing
                 || unchangedInEdit;
               return (
             <SubmitButton
