@@ -220,6 +220,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [dRef, setDRef] = useState('');
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
+  const [dEmailErr, setDEmailErr] = useState('');
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const [dInvoiceNo, setDInvoiceNo] = useState('');
   const [dStatus, setDStatus] = useState<InvStatus>('pending');
 
@@ -352,6 +354,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     if (!data.company_name || !data.tax_id) { showToast('⚠️ ' + t('invEmpty')); return; }
     if (dStatus === 'done' && !dInvoiceNo.trim()) {
       showToast('⚠️ ' + t('invRecInvoiceNo'));
+      return;
+    }
+    if (dEmail && !EMAIL_RE.test(dEmail)) {
+      setDEmailErr(t('errEmailInvalid'));
       return;
     }
     setSubmitting(true);
@@ -824,7 +830,16 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 </View>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
-                  <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
+                  <TextInput
+                    style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), borderColor: dEmailErr ? c.danger : 'transparent', borderWidth: dEmailErr ? 1 : 0 }]}
+                    value={dEmail}
+                    onChangeText={(v) => { setDEmail(v); if (dEmailErr) setDEmailErr(''); }}
+                    onBlur={() => { if (dEmail && !EMAIL_RE.test(dEmail)) { setDEmail(''); setDEmailErr(t('errEmailInvalid')); } }}
+                    placeholder="email@example.com"
+                    placeholderTextColor={c.textSub}
+                    keyboardType="email-address"
+                  />
+                  {dEmailErr !== '' && <Text style={{ color: c.danger, fontSize: 11, marginTop: 4 }}>{dEmailErr}</Text>}
                 </View>
               </View>
 
