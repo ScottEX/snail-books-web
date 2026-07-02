@@ -796,19 +796,19 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <>
                   <View style={s.dField}>
                     <Text style={[s.dLabel, { color: c.textSub }]}>{t('addressPhone')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.address)}</Text>
-                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.address} editable={false} />
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.address === '-' ? '' : data.address} editable={false} />
                   </View>
                   <View style={s.dField}>
                     <Text style={[s.dLabel, { color: c.textSub }]}>{t('companyPhone')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.phone)}</Text>
-                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.phone} editable={false} />
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.phone === '-' ? '' : data.phone} editable={false} />
                   </View>
                   <View style={s.dField}>
                     <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankName')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.bank_name)}</Text>
-                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.bank_name} editable={false} />
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.bank_name === '-' ? '' : data.bank_name} editable={false} />
                   </View>
                   <View style={s.dField}>
                     <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankAccount')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.bank_account)}</Text>
-                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.bank_account} editable={false} />
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.bank_account === '-' ? '' : data.bank_account} editable={false} />
                   </View>
                 </>
                 );
@@ -1012,10 +1012,10 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
       <View style={[sIR.icon, { backgroundColor: iconBg }]}>{icon}</View>
       <View style={sIR.body}>
         <Text style={[sIR.label, { color: colors.textSub }]}>{label}</Text>
-        <Text style={[sIR.value, { color: value ? colors.textMain : colors.textSub, fontWeight: value ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value || placeholder || t('invEmpty')}</Text>
+        <Text style={[sIR.value, { color: value && value !== '-' ? colors.textMain : colors.textSub, fontWeight: value && value !== '-' ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value && value !== '-' ? value : placeholder || t('invEmpty')}</Text>
       </View>
       {editable && (
-        <TouchableOpacity onPress={() => { setDraft(value); setEditing(true); }} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => { setDraft(value === '-' ? '' : value); setEditing(true); }} activeOpacity={0.7}>
           <PencilSvg color={colors.textSub} />
         </TouchableOpacity>
       )}
