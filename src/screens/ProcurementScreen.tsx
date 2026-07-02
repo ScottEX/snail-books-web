@@ -8,7 +8,8 @@ import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
-import { bottomSheetOverlay, sheetHandle } from '../sharedStyles';
+import { bottomSheetOverlay } from '../sharedStyles';
+import SheetHeader from '../components/SheetHeader';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
 
@@ -214,8 +215,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Animated drawer — slides up
   drawerHead: { flexDirection: 'column' as const, alignItems: 'flex-start' as const, paddingVertical: 14, paddingHorizontal: 20, backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  drawerHeadTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
-  drawerClose: { padding: 4 },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
   drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 18, paddingVertical: 10, paddingBottom: 24 },
@@ -1308,20 +1307,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       >
         <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', display: 'flex' as any, flexDirection: 'column' as any }]}>
           <View style={styles.drawerHead}>
-            <View style={sheetHandle} />
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-              <Text style={styles.drawerHeadTitle}>
-                {editingBatchId !== null
-                  ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
-                  : t('procConfirmOrder')}
-              </Text>
-              <TouchableOpacity style={styles.drawerClose} onPress={handleDrawerClose}>
-                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
-                  <Line x1="18" y1="6" x2="6" y2="18" />
-                  <Line x1="6" y1="6" x2="18" y2="18" />
-                </Svg>
-              </TouchableOpacity>
-            </View>
+            <SheetHeader
+              title={editingBatchId !== null
+                ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
+                : t('procConfirmOrder')}
+              onClose={handleDrawerClose}
+            />
           </View>
           <ScrollView style={styles.drawerBody}>
             {/* Date + Category — single line */}
