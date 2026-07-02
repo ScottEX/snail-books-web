@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
-import { FONTS } from '../theme';
+import { FONTS, CONTENT_MAX_WIDTH } from '../theme';
 import { useToast } from '../hooks/useToast';
 import PartnerScreen from './PartnerScreen';
 import ProcurementScreen from './ProcurementScreen';
@@ -302,7 +302,7 @@ export default function HomeScreen({
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.body.style.backgroundColor = colors.bg;
-      document.body.style.maxWidth = '768px';
+      document.body.style.maxWidth = `${CONTENT_MAX_WIDTH}px`;
       document.body.style.margin = '0 auto';
       document.body.style.position = 'relative';
       document.body.style.overflow = 'hidden';
