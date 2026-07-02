@@ -554,11 +554,11 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, borderWidth: 0, marginHorizontal: 16 }]}>
                 <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onChange={(v) => setData({ ...data, tax_id: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono filter={(v: string) => v.replace(/[^a-zA-Z0-9]/g, '')} onChange={(v) => setData({ ...data, tax_id: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
                 <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={formatPhone(data.phone)} colors={c} mono onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={data.phone} colors={c} keyboardType="phone-pad" filter={(v: string) => v.replace(/[^\d]/g, '')} validate={(v: string) => v && !/^1[3-9]\d{9}$/.test(v) ? t('errPhoneInvalid') : null} onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
               </View>
             </View>
 
@@ -571,7 +571,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
                 <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono keyboardType="numeric" onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
               </View>
             </View>
 
@@ -965,19 +965,19 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
 /* ═══════════════ EDITABLE INFO ROW ═══════════════ */
 
-function formatPhone(phone: string): string {
-  const d = phone.replace(/\D/g, '');
-  if (d.length === 11) return `${d.slice(0,3)} ${d.slice(3,7)} ${d.slice(7)}`;
-  return phone;
-}
-
-function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, editable = true }: {
-  icon: React.ReactNode; iconBg: string; label: string; value: string; colors: ThemeColors; mono?: boolean; onChange: (v: string) => void; editable?: boolean;
+function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, editable = true, keyboardType, filter, validate }: {
+  icon: React.ReactNode; iconBg: string; label: string; value: string; colors: ThemeColors; mono?: boolean; onChange: (v: string) => void; editable?: boolean; keyboardType?: string; filter?: (v: string) => string; validate?: (v: string) => string | null;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [err, setErr] = useState('');
 
   const commit = () => {
+    if (validate) {
+      const msg = validate(draft);
+      if (msg) { setErr(msg); return; }
+    }
+    setErr('');
     if (draft !== value) onChange(draft);
     setEditing(false);
   };
@@ -991,12 +991,14 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
           <TextInput
             style={[sIR.valueInput, { color: colors.textMain, fontFamily: mono ? 'DM Mono' : undefined } as any]}
             value={draft}
-            onChangeText={setDraft}
+            onChangeText={(v) => setDraft(filter ? filter(v) : v)}
             onBlur={commit}
             autoFocus
+            keyboardType={keyboardType as any}
             placeholder={value || '—'}
             placeholderTextColor={colors.textSub}
           />
+          {err !== '' && <Text style={{ color: colors.danger, fontSize: 11, marginTop: 2 }}>{err}</Text>}
         </View>
         <TouchableOpacity style={sIR.editBtn} onPress={commit}>
           <PencilSvg color={colors.primary} />
