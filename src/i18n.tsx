@@ -134,6 +134,7 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRange: '结束日期必须晚于开始日期',
     errDateRangeTooLong: '日期范围不能超过 24 个月',
     errEmailInvalid: '邮箱格式不正确',
+    errPhoneInvalid: '请输入正确的手机号码',
     errEmptyFields: '请填写所有字段',
     errEnterCode: '请输入验证码',
     errFileSize: '图片不能超过10MB',
@@ -724,6 +725,7 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRange: '結束日期必須晚於開始日期',
     errDateRangeTooLong: '日期範圍不能超過 24 個月',
     errEmailInvalid: '郵箱格式不正確',
+    errPhoneInvalid: '請輸入正確的手機號碼',
     errEmptyFields: '請填寫所有字段',
     errEnterCode: '請輸入驗證碼',
     errFileSize: '圖片不能超過10MB',
@@ -1903,6 +1905,7 @@ export type I18nKey =
   | 'errDateRange'
   | 'errDateRangeTooLong'
   | 'errEmailInvalid'
+  | 'errPhoneInvalid'
   | 'errEmptyFields'
   | 'errEnterCode'
   | 'errFileSize'
