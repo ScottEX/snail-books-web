@@ -222,6 +222,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
   const [dEmailErr, setDEmailErr] = useState('');
+  const isDash = (v: string) => v === '-' || v === '\u2014';
   const [dInvoiceNo, setDInvoiceNo] = useState('');
   const [dStatus, setDStatus] = useState<InvStatus>('pending');
 
@@ -788,7 +789,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
               {/* VAT-only fields — 从开票信息反显 */}
               {dType === 'vat' && (() => {
-                const vatFilled = (v: string) => v && v !== '-';
+                const vatFilled = (v: string) => v && !isDash(v);
                 const hint = (v: string) => vatFilled(v)
                   ? <Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text>
                   : <Text style={{ color: c.danger, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invVatGoMaintain')}</Text>;
@@ -796,19 +797,19 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <>
                   <View style={s.dField}>
                     <Text style={[s.dLabel, { color: c.textSub }]}>{t('addressPhone')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.address)}</Text>
-                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.address === '-' ? '' : data.address} editable={false} />
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={isDash(data.address) ? '' : data.address} editable={false} />
                   </View>
                   <View style={s.dField}>
                     <Text style={[s.dLabel, { color: c.textSub }]}>{t('companyPhone')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.phone)}</Text>
-                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.phone === '-' ? '' : data.phone} editable={false} />
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={isDash(data.phone) ? '' : data.phone} editable={false} />
                   </View>
                   <View style={s.dField}>
                     <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankName')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.bank_name)}</Text>
-                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={data.bank_name === '-' ? '' : data.bank_name} editable={false} />
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={isDash(data.bank_name) ? '' : data.bank_name} editable={false} />
                   </View>
                   <View style={s.dField}>
                     <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankAccount')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.bank_account)}</Text>
-                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.bank_account === '-' ? '' : data.bank_account} editable={false} />
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={isDash(data.bank_account) ? '' : data.bank_account} editable={false} />
                   </View>
                 </>
                 );
@@ -923,10 +924,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 && dFiles.length === 0
                 && JSON.stringify(dExistingFilePath) === JSON.stringify(editSnapshot.existingFiles);
               const vatMissing = dType === 'vat' && (
-                !data.address || data.address === '-' ||
-                !data.phone || data.phone === '-' ||
-                !data.bank_name || data.bank_name === '-' ||
-                !data.bank_account || data.bank_account === '-'
+                !data.address || isDash(data.address) ||
+                !data.phone || isDash(data.phone) ||
+                !data.bank_name || isDash(data.bank_name) ||
+                !data.bank_account || isDash(data.bank_account)
               );
               const nonLoadDisabled = !dAmount || !data.company_name || !data.tax_id
                 || (dStatus === 'done' && !dInvoiceNo.trim())
@@ -1015,7 +1016,7 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
         <Text style={[sIR.value, { color: value && value !== '-' ? colors.textMain : colors.textSub, fontWeight: value && value !== '-' ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value && value !== '-' ? value : placeholder || t('invEmpty')}</Text>
       </View>
       {editable && (
-        <TouchableOpacity onPress={() => { setDraft(value === '-' ? '' : value); setEditing(true); }} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => { setDraft(isDash(value) ? '' : value); setEditing(true); }} activeOpacity={0.7}>
           <PencilSvg color={colors.textSub} />
         </TouchableOpacity>
       )}
