@@ -1,10 +1,11 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors, REQUIRED_COLOR } from '../theme';
 import { api } from '../api/client';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useImagePreview } from '../hooks/useImagePreview';
@@ -176,6 +177,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const swipeBack = useSwipeBack(onBack);
   const [tab, setTab] = useState<number>(filterBatchId ? 1 : 0);
   const [entryCardH, setEntryCardH] = useState(0);
+  const winHRef = useRef(0);
+  const drawerMaxH = entryCardH > 0 ? winHRef.current - entryCardH : undefined;
   const [invType, setInvType] = useState<InvType>('vat');
   const [data, setData] = useState<InvoiceData>(EMPTY_INV);
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
@@ -241,6 +244,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   // Edit / delete target
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [editSnapshot, setEditSnapshot] = useState<any>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -383,9 +387,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         }
       }
       closeDrawer();
-      setEditingId(null);
-      setDFiles([]);
-      setDExistingFilePath([]);
       await loadRecords();
     } catch (e: any) {
       showToast('⚠️ ' + (e?.message || t('errSessionExpired')));
@@ -406,6 +407,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   // ── Drawer animation ──
   const openDrawer = (forEdit?: InvoiceRecord) => {
     setDrawerOpen(true);
+    winHRef.current = window.innerHeight;
     setEditingId(forEdit ? forEdit.id : null);
     setDType(forEdit ? (forEdit.type as InvType) : 'general');
     setDAmount(forEdit ? String(forEdit.amount) : '');
@@ -417,6 +419,18 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
     setDFiles([]);
     setDExistingFilePath(forEdit ? parseFilePaths(forEdit.file_path) : []);
+    // Save edit snapshot for unchanged detection
+    if (forEdit) {
+      setEditSnapshot({
+        type: forEdit.type, amount: String(forEdit.amount),
+        date: forEdit.date, note: forEdit.note || '',
+        invoice_number: forEdit.invoice_number || '',
+        status: forEdit.status, procurement_batch_id: forEdit.procurement_batch_id ?? null,
+        existingFiles: parseFilePaths(forEdit.file_path),
+      });
+    } else {
+      setEditSnapshot(null);
+    }
     // Fetch batch list (lightweight, all un-invoiced batches)
     (async () => {
       try {
@@ -446,11 +460,13 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   };
   const closeDrawer = () => {
     setDrawerOpen(false);
+    setTimeout(() => {
     setEditingId(null);
     setDStatus('pending');
     setDInvoiceNo('');
     setDExistingFilePath([]);
     setDFiles([]);
+    }, 250);
   };
 
   // Auto-fill amount when batch selected
@@ -469,7 +485,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   return (
     <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
       {/* ═══ ENTRY CARD ═══ */}
-      <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h) setEntryCardH(h); }}>
+      <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h && entryCardH === 0) setEntryCardH(h); }}>
           <View style={s.ecTop}>
             <TouchableOpacity style={[s.ecBackBtn, { backgroundColor: 'rgba(255,255,255,0.12)' }]} onPress={onBack}>
               <IcnBack color="rgba(255,255,255,0.8)" />
@@ -677,7 +693,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}
       >
         {(anims) => (
-          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxHeight: entryCardH > 0 ? Dimensions.get('window').height - entryCardH : undefined }]}>
+          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxHeight: drawerMaxH }]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
@@ -860,9 +876,20 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               transform: [{ translateY: anims[2].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
             }}>
             {(() => {
+              const unchangedInEdit = editingId && editSnapshot
+                && dType === editSnapshot.type
+                && dAmount === editSnapshot.amount
+                && dDate === editSnapshot.date
+                && dNote === editSnapshot.note
+                && dInvoiceNo === editSnapshot.invoice_number
+                && dStatus === editSnapshot.status
+                && dBatchId === editSnapshot.procurement_batch_id
+                && dFiles.length === 0
+                && JSON.stringify(dExistingFilePath) === JSON.stringify(editSnapshot.existingFiles);
               const nonLoadDisabled = !dAmount || !data.company_name || !data.tax_id
                 || (dStatus === 'done' && !dInvoiceNo.trim())
-                || (dStatus === 'done' && dFiles.length === 0 && dExistingFilePath.length === 0);
+                || (dStatus === 'done' && dFiles.length === 0 && dExistingFilePath.length === 0)
+                || unchangedInEdit;
               return (
             <SubmitButton
               onPress={handleDrawerSubmit}
@@ -879,14 +906,15 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         )}
       </ModalOverlay>
 
-      {/* Image preview overlay */}
-      {preview && (
+      {/* Image preview overlay — portal above drawer */}
+      {preview && createPortal(
         <ImagePreview
           images={preview.images}
           initialIdx={preview.idx}
           visible={true}
           onClose={closePreview}
-        />
+        />,
+        document.body,
       )}
     </View>
   );

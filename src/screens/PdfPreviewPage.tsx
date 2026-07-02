@@ -382,7 +382,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack 
 
   return (
     <View style={st.container} {...swipeBack}>
-      {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'absolute', inset: 0, zIndex: 9999, maxWidth: '768px', marginLeft: 'auto', marginRight: 'auto' }}>
+      {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'absolute', inset: 0, zIndex: 9999, marginLeft: 'auto', marginRight: 'auto' }}>
         <style dangerouslySetInnerHTML={{ __html: getCSS(c) }} />
 
         {/* Navbar */}
