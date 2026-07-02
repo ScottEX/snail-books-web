@@ -4,7 +4,7 @@ import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
-import { FONTS, CONTENT_MAX_WIDTH } from '../theme';
+import { FONTS } from '../theme';
 import { getCurrentUser } from '../utils/storage';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -843,7 +843,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 }
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
-  container: { flex: 1, maxWidth: CONTENT_MAX_WIDTH, marginLeft: 'auto', marginRight: 'auto', width: '100%' },
+  container: { flex: 1, marginLeft: 'auto', marginRight: 'auto', width: '100%' },
   inner: { flex: 1, position: 'relative' as const },
   bgWrapper: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     // @ts-ignore - web-only

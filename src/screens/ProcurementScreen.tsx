@@ -7,7 +7,7 @@ import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
-import { useTheme, withAlpha, ThemeColors, FONTS, CONTENT_MAX_WIDTH } from '../theme';
+import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
 
@@ -1306,7 +1306,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
         contentStyle={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'stretch' } as any}
       >
-        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center', display: 'flex' as any, flexDirection: 'column' as any }]}>
+        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', display: 'flex' as any, flexDirection: 'column' as any }]}>
           <View style={styles.drawerHead}>
             <View style={styles.drawerHandle} />
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -1414,7 +1414,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         contentStyle={{ alignItems: 'stretch' } as any}
       >
         {(anims) => (
-          <View style={[styles.itemsModalCard, { width: '90%', maxWidth: CONTENT_MAX_WIDTH * 0.9, maxHeight: Dimensions.get('window').height * 0.6, alignSelf: 'center' } as any]}>
+          <View style={[styles.itemsModalCard, { width: '90%', maxHeight: Dimensions.get('window').height * 0.6 } as any]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
