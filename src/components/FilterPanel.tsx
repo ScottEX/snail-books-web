@@ -1,6 +1,6 @@
 import { View, TouchableOpacity, Animated, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useTheme, withAlpha, ThemeColors, BACKDROP_COLOR } from '../theme';
 
 interface FilterPanelProps {
   visible: boolean;
@@ -102,7 +102,7 @@ const getStyles = (c: ThemeColors) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(20,18,16,0.65)',
+      backgroundColor: BACKDROP_COLOR,
       zIndex: 9998,
     },
     panel: {
