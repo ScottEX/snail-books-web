@@ -5,6 +5,7 @@ import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors, REQUIRED_COLOR } from '../theme';
 import { api } from '../api/client';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useImagePreview } from '../hooks/useImagePreview';
@@ -903,14 +904,15 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         )}
       </ModalOverlay>
 
-      {/* Image preview overlay */}
-      {preview && (
+      {/* Image preview overlay — portal above drawer */}
+      {preview && createPortal(
         <ImagePreview
           images={preview.images}
           initialIdx={preview.idx}
           visible={true}
           onClose={closePreview}
-        />
+        />,
+        document.body,
       )}
     </View>
   );
