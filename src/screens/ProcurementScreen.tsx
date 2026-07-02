@@ -8,6 +8,7 @@ import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
+import { bottomSheetOverlay, sheetHandle } from '../sharedStyles';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
 
@@ -212,7 +213,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
 
   // Animated drawer — slides up
-  drawerHandle: { width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center' as const, marginBottom: 12 },
   drawerHead: { flexDirection: 'column' as const, alignItems: 'flex-start' as const, paddingVertical: 14, paddingHorizontal: 20, backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
   drawerHeadTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   drawerClose: { padding: 4 },
@@ -1303,12 +1303,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         visible={showDrawer}
         onClose={handleDrawerClose}
         animation="slideUpScale"
-        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        overlayStyle={bottomSheetOverlay as any}
         contentStyle={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'stretch' } as any}
       >
         <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', display: 'flex' as any, flexDirection: 'column' as any }]}>
           <View style={styles.drawerHead}>
-            <View style={styles.drawerHandle} />
+            <View style={sheetHandle} />
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
               <Text style={styles.drawerHeadTitle}>
                 {editingBatchId !== null

@@ -7,6 +7,8 @@ import { api } from '../api/client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
+import { bottomSheetOverlay, sheetHandle } from '../sharedStyles';
+import SheetHeader from '../components/SheetHeader';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useImagePreview } from '../hooks/useImagePreview';
 import { useToast } from '../hooks/useToast';
@@ -689,7 +691,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         onClose={closeDrawer}
         animation="stagger"
         staggerCount={3}
-        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        overlayStyle={bottomSheetOverlay as any}
         contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}
       >
         {(anims) => (
@@ -700,16 +702,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
             }}>
               <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 14, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'column', alignItems: 'flex-start' }}>
-                <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
-                  <TouchableOpacity style={{ padding: 4 }} onPress={closeDrawer}>
-                    <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
-                      <Line x1="18" y1="6" x2="6" y2="18" />
-                      <Line x1="6" y1="6" x2="18" y2="18" />
-                    </Svg>
-                  </TouchableOpacity>
-                </View>
+                <SheetHeader title={editingId ? t('invRecEditTitle') : t('invRecAddTitle')} onClose={closeDrawer} />
               </View>
             </Animated.View>
             {/* Stagger item 1: content */}

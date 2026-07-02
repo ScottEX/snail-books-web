@@ -69,6 +69,9 @@ export const MODAL_BACKDROP_OPACITY = 0.8;
 /** 内容区最大宽度，桌面端居中约束。修改此值全局生效。 */
 export const CONTENT_MAX_WIDTH = 768;
 
+/** Sheet 抽屉顶部灰色把手颜色 */
+export const SHEET_HANDLE_COLOR = '#D4D0C8';
+
 export const REQUIRED_COLOR = '#E84040';
 
 // ─── 方案一：勃艮第红与暖沙白 ───
