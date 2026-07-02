@@ -289,6 +289,11 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
           setDEmail(inv.data.email || '');
           setInvType(inv.data.inv_type || 'vat');
         }
+        // Per-user invoice email (separate from admin-level invoice info)
+        try {
+          const em = await api.getInvoiceEmail();
+          if (em.email) setData(prev => ({ ...prev, email: em.email }));
+        } catch { }
       } catch { }
       setLoaded(true);
     })();
@@ -304,6 +309,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
       const json = await api.updateInvoice({ ...data, inv_type: invType } as any);
       if (json.status === 'ok') {
         setOrig({ ...data, inv_type: invType });
+      }
+      // Save per-user email separately
+      if (data.email !== orig.email) {
+        await api.saveInvoiceEmail(data.email).catch(() => {});
       }
     } catch { }
     isSaving.current = false;
