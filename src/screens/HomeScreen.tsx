@@ -304,6 +304,7 @@ export default function HomeScreen({
       document.body.style.backgroundColor = colors.bg;
       document.body.style.maxWidth = '768px';
       document.body.style.margin = '0 auto';
+      document.body.style.position = 'relative';
       document.documentElement.style.backgroundColor = colors.bg;
     }
   }, [colors.bg]);
