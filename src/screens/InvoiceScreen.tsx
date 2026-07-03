@@ -160,6 +160,7 @@ interface InvoiceRecord {
   email: string;
   status: InvStatus;
   file_path?: string;
+  file_thumb_paths?: string;
   file_type?: string;
   file_size?: number;
   note?: string;
@@ -275,6 +276,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [dFiles, setDFiles] = useState<File[]>([]);
   // Existing file path (for edit mode — already uploaded)
   const [dExistingFilePath, setDExistingFilePath] = useState<string[]>([]);
+  // Existing thumb paths (128×128 thumbnails for display)
+  const [dExistingThumbPaths, setDExistingThumbPaths] = useState<string[]>([]);
   // Preview state
   const { preview, openPreview, closePreview } = useImagePreview();
 
@@ -466,13 +469,16 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
       if (editingId) {
         // Edit mode: upload new files first, then PUT with merged file_path
         const uploadedPaths: string[] = [];
+        const uploadedThumbPaths: string[] = [];
         for (const f of dFiles) {
           const res = await api.uploadInvoiceFile(editingId, f);
           uploadedPaths.push(res.file_path);
+          uploadedThumbPaths.push(res.thumb_path || res.file_path);
         }
         // Compute final file_path: kept existing (after deletions) + newly uploaded
         const finalFilePath = JSON.stringify([...dExistingFilePath, ...uploadedPaths]);
-        await api.updateInvoiceRecord(editingId, { ...payload, file_path: finalFilePath });
+        const finalThumbPath = JSON.stringify([...dExistingThumbPaths, ...uploadedThumbPaths]);
+        await api.updateInvoiceRecord(editingId, { ...payload, file_path: finalFilePath, file_thumb_paths: finalThumbPath });
         rid = editingId;
       } else {
         // New mode: create record first to get rid, then upload all files
@@ -494,8 +500,11 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   // ── Memoized ReceiptUpload props to prevent re-render flash ──
   const memoExistingImages = useMemo(() => {
     if (!editingId || dExistingFilePath.length === 0) return [];
-    return dExistingFilePath.map(p => api.getInvoiceFileUrl(p));
-  }, [editingId, dExistingFilePath]);
+    // Prefer thumbnails for display (128×128, fast); fall back to original
+    const thumbs = dExistingThumbPaths.length === dExistingFilePath.length ? dExistingThumbPaths : [];
+    const paths = thumbs.length ? thumbs : dExistingFilePath;
+    return paths.map(p => api.getInvoiceFileUrl(p));
+  }, [editingId, dExistingFilePath, dExistingThumbPaths]);
 
   const memoOnAdd = useCallback((files: File[]) => {
     setDFiles(prev => [...prev, ...files]);
@@ -503,6 +512,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   const memoOnRemoveExisting = useCallback((i: number) => {
     setDExistingFilePath(prev => prev.filter((_, j) => j !== i));
+    setDExistingThumbPaths(prev => prev.filter((_, j) => j !== i));
   }, []);
 
   const memoOnRemoveNew = useCallback((i: number) => {
@@ -512,13 +522,13 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const memoGetPreviewUrl = useCallback((f: File) => URL.createObjectURL(f), []);
 
   // ── Preview handlers ──
-  const handlePreviewExisting = (index: number) => {
+  const handlePreviewExisting = useCallback((index: number) => {
     openPreview(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)), index);
-  };
+  }, [dExistingFilePath, openPreview]);
 
-  const handlePreviewNew = (index: number) => {
+  const handlePreviewNew = useCallback((index: number) => {
     openPreview(dFiles.map(f => URL.createObjectURL(f)), index);
-  };
+  }, [dFiles, openPreview]);
 
   // ── Drawer animation ──
   const openDrawer = (forEdit?: InvoiceRecord) => {
@@ -535,6 +545,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
     setDFiles([]);
     setDExistingFilePath(forEdit ? parseFilePaths(forEdit.file_path) : []);
+    setDExistingThumbPaths(forEdit ? parseFilePaths(forEdit.file_thumb_paths) : []);
     // Save edit snapshot for unchanged detection
     if (forEdit) {
       setEditSnapshot({
@@ -570,6 +581,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDStatus('pending');
     setDInvoiceNo('');
     setDExistingFilePath([]);
+    setDExistingThumbPaths([]);
     setDFiles([]);
     }, 250);
   };
@@ -1082,7 +1094,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         )}
       </ModalOverlay>
 
-      {/* Image preview overlay — portal above drawer */}
+      {/* Image preview — portal to body so it renders above drawer */}
       {preview && createPortal(
         <ImagePreview
           images={preview.images}

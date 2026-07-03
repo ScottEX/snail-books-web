@@ -147,9 +147,13 @@ export default function ImagePreview({
         ))}
       </ScrollView>
 
-      {/* Counter */}
+      {/* Counter — dots */}
       {images.length > 1 && (
-        <Text style={styles.counter}>{idx + 1} / {images.length}</Text>
+        <View style={styles.dots}>
+          {images.map((_, i) => (
+            <View key={i} style={[styles.dot, i === idx && styles.dotActive]} />
+          ))}
+        </View>
       )}
     </Animated.View>
   );
@@ -179,7 +183,7 @@ function ImageElement({ src }: { src: string }) {
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
+    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
     backgroundColor: 'rgba(0,0,0,0.85)',
   },
   scrollView: {
@@ -201,5 +205,16 @@ const styles = StyleSheet.create({
   counter: {
     position: 'absolute', bottom: 60, alignSelf: 'center', zIndex: 10,
     fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)',
+  },
+  dots: {
+    position: 'absolute' as any, bottom: 60, alignSelf: 'center', zIndex: 10,
+    flexDirection: 'row' as any, gap: 6,
+  },
+  dot: {
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+  },
+  dotActive: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
   },
 });

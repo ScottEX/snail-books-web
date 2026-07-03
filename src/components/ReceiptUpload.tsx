@@ -35,7 +35,7 @@ const MAX_IMAGES = 9;
 const isPdfFile = (f: File) => f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
 const isPdfUrl = (url: string) => /\.pdf(\?|$)/i.test(url);
 
-export default function ReceiptUpload({
+const ReceiptUpload = React.memo(function ReceiptUpload({
   existingImages = [],
   newFiles = [],
   onAdd,
@@ -215,4 +215,6 @@ export default function ReceiptUpload({
       )}
     </View>
   );
-}
+});
+
+export default ReceiptUpload;

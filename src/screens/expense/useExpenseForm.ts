@@ -33,51 +33,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
   const [expImages, setExpImages] = useState<File[]>([]);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [loadingExp, setLoadingExp] = useState(false);
-  const [showExpConfirm, setShowExpConfirm] = useState(false);
   const [isRefund, setIsRefund] = useState(false);
-
-  /* ── image compression ── */
-  const compressImage = (file: File): Promise<File> => {
-    return new Promise((resolve, _reject) => {
-      if (file.size < 500 * 1024) return resolve(file);
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const MAX = 1920;
-        let { width, height } = img;
-        if (width > MAX || height > MAX) {
-          if (width > height) {
-            height = Math.round((height * MAX) / width);
-            width = MAX;
-          } else {
-            width = Math.round((width * MAX) / height);
-            height = MAX;
-          }
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(file);
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) return resolve(file);
-            const compressed = new File([blob], file.name, { type: 'image/jpeg' });
-            resolve(compressed.size < file.size ? compressed : file);
-          },
-          'image/jpeg',
-          0.8,
-        );
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        resolve(file);
-      };
-      img.src = url;
-    });
-  };
 
   /* ── image select / remove ── */
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,8 +45,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) continue;
       if (f.size > 10 * 1024 * 1024) continue;
       if (expImages.some((ei) => ei.name === f.name && ei.size === f.size)) continue;
-      const compressed = await compressImage(f);
-      newFiles.push(compressed);
+      newFiles.push(f);
     }
     setExpImages((prev) => [...prev, ...newFiles]);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -196,7 +151,6 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     setExpDate(sd.today);
     setExpImages([]);
     setExpDateErr(0);
-    setShowExpConfirm(false);
     setLoadingExp(false);
     setUploadingImg(false);
     setIsRefund(false);
@@ -224,8 +178,6 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     setExpImages,
     uploadingImg,
     loadingExp,
-    showExpConfirm,
-    setShowExpConfirm,
     isRefund,
     setIsRefund,
     // actions

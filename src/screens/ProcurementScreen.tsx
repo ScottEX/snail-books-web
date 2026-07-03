@@ -465,36 +465,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   // todayStr replaced by useServerDate hook
 
-  // ── Image compression (matching ExpenseScreen) ──
-  const compressImage = (file: File): Promise<File> => {
-    return new Promise((resolve) => {
-      if (file.size < 500 * 1024) return resolve(file);
-      const img = document.createElement('img');
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const MAX = 1920;
-        let { width, height } = img;
-        if (width > MAX || height > MAX) {
-          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
-          else { width = Math.round(width * MAX / height); height = MAX; }
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(file);
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          if (!blob) return resolve(file);
-          const compressed = new File([blob], file.name, { type: 'image/jpeg' });
-          resolve(compressed.size < file.size ? compressed : file);
-        }, 'image/jpeg', 0.8);
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
-      img.src = url;
-    });
-  };
-
   // ── Suppliers ──
   const suppliers = useMemo(() => {
     const set = new Set(products.map(p => p.supplier).filter(Boolean));
@@ -663,8 +633,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     const newFiles: File[] = [];
     for (const f of files) {
       if (receipts.some(r => r.name === f.name && r.size === f.size)) continue;
-      const compressed = await compressImage(f);
-      newFiles.push(compressed);
+      newFiles.push(f);
     }
     setReceipts(prev => [...prev, ...newFiles]);
   };

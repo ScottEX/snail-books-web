@@ -104,10 +104,10 @@ html = html.replace('</body>', IDLE_TIMEOUT_JS + '\n</body>')
 html = html.replace('</body>', BOOT_JS + '\n</body>')
 # Insert PWA tags
 html = html.replace('<head>', '<head>\n' + PWA_TAGS)
-# Insert non-blocking font link
-html = html.replace('<head>', '<head>\n' + FONT_LINK)
 # Insert custom CSS into the existing expo-reset style block, or add a new one
 html = html.replace('</style>', '</style>\n<style>' + INJECT_CSS + '</style>')
+# Insert non-blocking font link — AFTER inline CSS so splash renders before external fetch
+html = html.replace('<head>', '<head>\n' + FONT_LINK)
 
 # Fix viewport to prevent iOS auto-zoom on input focus
 html = html.replace(

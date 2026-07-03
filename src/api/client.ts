@@ -399,7 +399,7 @@ export const api = {
   createInvoiceRecord: (data: Record<string, any>) => authFetch('/api/invoice-records', { method: 'POST', body: JSON.stringify(data) }),
   updateInvoiceRecord: (id: number, data: Record<string, any>) => authFetch(`/api/invoice-records/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteInvoiceRecord: (id: number) => authFetch(`/api/invoice-records/${id}`, { method: 'DELETE' }),
-  uploadInvoiceFile: (id: number, file: File): Promise<{ status: string; file_path: string; file_type: string; file_size: number }> => {
+  uploadInvoiceFile: (id: number, file: File): Promise<{ status: string; file_path: string; thumb_path?: string; file_type: string; file_size: number }> => {
     const fd = new FormData();
     fd.append('file', file);
     return authFetch(`/api/invoice-records/${id}/file`, { method: 'POST', body: fd });
