@@ -128,10 +128,10 @@ function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c,
           />
           <PencilSvg color={c.textSub} />
         </View>
-        {err !== '' && (
-          <Text style={{ fontSize: 11, color: c.danger, flexShrink: 0 }}>{err}</Text>
-        )}
       </View>
+      {err !== '' && (
+        <Text style={{ fontSize: 11, color: c.danger, textAlign: 'right', paddingHorizontal: 16, paddingBottom: 8, marginTop: -6 }}>{err}</Text>
+      )}
     </View>
   );
 }
