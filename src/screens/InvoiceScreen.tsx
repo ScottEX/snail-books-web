@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
 import { validateEmail } from '../utils/validation';
+import { BANK_ICON_MAP, DefaultBankIcon } from '../components/BankIcons';
 import { bottomSheetOverlay, sheetHandle } from '../sharedStyles';
 import SheetHeader from '../components/SheetHeader';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -203,19 +204,9 @@ const BANK_COLORS: Record<string, string> = {
 };
 
 /** 银行图标：品牌色圆底 + 首字 */
-function BankIcon({ code }: { code: string }) {
-  const label = code === 'psbc' ? '邮' : code === 'icbc' ? '工' : code === 'ccb' ? '建'
-    : code === 'abc' ? '农' : code === 'boc' ? '中' : code === 'bocom' ? '交'
-    : code === 'cmb' ? '招' : code === 'cib' ? '兴' : code === 'citic' ? '信'
-    : code === 'ceb' ? '光' : code === 'cmbc' ? '民' : code === 'pab' ? '平'
-    : code === 'spdb' ? '浦' : code === 'hxb' ? '华' : code === 'gdb' ? '广'
-    : code === 'bob' ? '京' : code === 'bosh' ? '沪' : '银';
-  const bg = BANK_COLORS[code] || '#888';
-  return (
-    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#fff', lineHeight: 13 }}>{label}</Text>
-    </View>
-  );
+function BankIconView({ code, size = 24 }: { code: string; size?: number }) {
+  const IconComponent = BANK_ICON_MAP[code] || DefaultBankIcon;
+  return <IconComponent size={size} />;
 }
 
 export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
@@ -650,7 +641,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               </View>
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
                 <EditableInfoRow
-                  icon={bankCode ? <BankIcon code={bankCode} /> : <IcnBank color={c.primary} />}
+                  icon={bankCode ? <BankIconView code={bankCode} size={22} /> : <IcnBank color={c.primary} />}
                   iconBg={bankCode ? (BANK_COLORS[bankCode] || c.primary) + '20' : withAlpha(c.primary, 0.08)}
                   label={t('bankName')} placeholder={t('invPleaseMaintain')}
                   value={data.bank_name} colors={c}
@@ -667,7 +658,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                     setData({ ...data, bank_account: v });
                     setBankLookupError('');
                     const clean = v.replace(/\s/g, '');
-                    if (!clean || clean.length < 6) { setBankCode(''); return; }
+                    if (!clean || clean.length < 6) { setBankCode(''); setData(prev => ({ ...prev, bank_name: '' })); return; }
                     try {
                       const res = await api.bankLookup(clean.slice(0, 6));
                       if (res.status === 'ok' && res.data) {
