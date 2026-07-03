@@ -886,14 +886,14 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 rightOnPress={handleAddExpense}
                 rightDisabled={isAmountInvalid}
                 rightLoading={loadingExp}
-                />
-                </View>
-                </View>
-                </FadeInView>
-                )}
-                </ScrollView>
+              />
+            </View>
+          </View>
+        </FadeInView>
+        )}
+      </ScrollView>
 
-                {/* 添加提示弹窗 */}
+      {/* 添加提示弹窗 */}
         <ModalOverlay visible={showCardToast} onClose={hideCardToast}>
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
@@ -914,7 +914,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           </View>
         </ModalOverlay>
       {/* Platform fee entry bottom sheet */}
-        <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
+      <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
           overlayStyle={bottomSheetOverlay as any}
           contentStyle={{ alignItems: 'stretch' } as any}>
           <View style={[st.feeSheet, { width: '100%', maxWidth: 768, alignSelf: 'center' }]} onStartShouldSetResponder={() => true}>
@@ -1007,10 +1007,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               />
             </View>
           </View>
-        </ModalOverlay>
+      </ModalOverlay>
 
       {/* Fee history bottom sheet — "全部" detail view */}
-        <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
+      <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
           overlayStyle={bottomSheetOverlay as any}
           contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}>
           <View style={[st.feeSheet, { height: winH * 0.7, width: '100%', maxWidth: 768, alignSelf: 'center' }]} onStartShouldSetResponder={() => true}>
