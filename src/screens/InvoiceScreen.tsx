@@ -178,6 +178,12 @@ interface Props {
 /** 判断是否为数据库占位符（- 或 —） */
 function isDash(v: string) { return v === '-' || v === '\u2014'; }
 
+/** 格式化银行卡号：每4位加空格 */
+function fmtBankAccount(v: string) {
+  if (!v) return '';
+  return v.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
+}
+
 export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
@@ -580,7 +586,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
                 <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} placeholder={t('invPleaseMaintain')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} placeholder={t('invPleaseMaintain')} value={data.bank_account} colors={c} mono keyboardType="numeric" onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} placeholder={t('invPleaseMaintain')} value={fmtBankAccount(data.bank_account)} colors={c} mono keyboardType="numeric" filter={(v: string) => v.replace(/[^\d]/g, '')} onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
               </View>
             </View>
 
@@ -987,7 +993,8 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
       if (msg) { setErr(msg); return; }
     }
     setErr('');
-    if (draft !== value) onChange(draft);
+    const clean = draft.replace(/\s/g, '');
+    if (clean !== value.replace(/\s/g, '')) onChange(clean);
     setEditing(false);
   };
 
@@ -1024,7 +1031,7 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
         <Text style={[sIR.value, { color: value && !isDash(value) ? colors.textMain : colors.textSub, fontWeight: value && !isDash(value) ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value && !isDash(value) ? value : placeholder || t('invEmpty')}</Text>
       </View>
       {editable && (
-        <TouchableOpacity onPress={() => { setDraft(isDash(value) ? '' : value); setEditing(true); }} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => { const raw = isDash(value) ? '' : value; setDraft(filter ? filter(raw) : raw); setEditing(true); }} activeOpacity={0.7}>
           <PencilSvg color={colors.textSub} />
         </TouchableOpacity>
       )}
