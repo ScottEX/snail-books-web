@@ -1397,6 +1397,8 @@ const I18N: Record<string, Record<string, string>> = {
     invEditBank: 'Edit Bank Info',
     invEditInfo: 'Edit Invoice Info',
     invEmail: 'Receiving Email',
+    invPleaseMaintain: 'Please fill in',
+    invVatGoMaintain: 'Please fill in Invoice Settings',
     invEmpty: 'No invoice records',
     invExportToast: 'Export records',
     invFileUploaded: 'Uploaded Invoice',
