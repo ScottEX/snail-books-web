@@ -13,7 +13,7 @@ import CloseButton from '../components/CloseButton';
 import { getCurrentUserId } from '../utils/storage';
 import { api } from '../api/client';
 import { translateName } from './partner/usePartnerData';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface UserData {
   id: number;
@@ -93,6 +93,10 @@ function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c,
   label: string; value: string; onChangeText: (t: string) => void; onBlurSave: () => void; placeholder?: string; c: ThemeColors; editable?: boolean; validate?: (v: string) => string | null; keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad'; filter?: (v: string) => string;
 }) {
   const [err, setErr] = useState('');
+  // Track latest value in ref so handleBlur always reads the most recent input,
+  // even if React hasn't re-rendered after onChangeText → setState yet.
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   if (!editable) {
     return (
@@ -104,8 +108,9 @@ function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c,
   }
 
   const handleBlur = () => {
-    if (validate && value) {
-      const msg = validate(value);
+    const v = valueRef.current;
+    if (validate && v) {
+      const msg = validate(v);
       if (msg) { setErr(msg); return; }
     }
     setErr('');
@@ -120,7 +125,7 @@ function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c,
           <TextInput
             style={{ fontSize: 14, fontWeight: '500', color: c.textMain, textAlign: 'right', borderWidth: 0, outline: 'none', background: 'transparent', padding: 0, flex: 1, minWidth: 60 } as any}
             value={value}
-            onChangeText={(txt) => { const v = filter ? filter(txt) : txt; onChangeText(v); if (err) setErr(''); }}
+            onChangeText={(txt) => { const v = filter ? filter(txt) : txt; valueRef.current = v; onChangeText(v); if (err) setErr(''); }}
             onBlur={handleBlur}
             placeholder={placeholder || '—'}
             placeholderTextColor={c.textSub}
