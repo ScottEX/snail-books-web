@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, TextInput } from 'react-native';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { EMAIL_RE } from '../utils/validation';
+import { validateEmail, validatePhone } from '../utils/validation';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import { modalClose } from '../sharedStyles';
@@ -89,9 +89,11 @@ function UndoIconSvg({ color }: { color: string }) {
 }
 
 // EditableField extracted outside to prevent re-mount on parent re-render
-function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c, editable = true }: {
-  label: string; value: string; onChangeText: (t: string) => void; onBlurSave: () => void; placeholder?: string; c: ThemeColors; editable?: boolean;
+function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c, editable = true, validate, keyboardType, filter }: {
+  label: string; value: string; onChangeText: (t: string) => void; onBlurSave: () => void; placeholder?: string; c: ThemeColors; editable?: boolean; validate?: (v: string) => string | null; keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad'; filter?: (v: string) => string;
 }) {
+  const [err, setErr] = useState('');
+
   if (!editable) {
     return (
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
@@ -100,20 +102,36 @@ function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c,
       </View>
     );
   }
+
+  const handleBlur = () => {
+    if (validate && value) {
+      const msg = validate(value);
+      if (msg) { setErr(msg); return; }
+    }
+    setErr('');
+    onBlurSave();
+  };
+
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
-      <Text style={{ fontSize: 14, color: c.textSub, flexShrink: 0 }}>{label}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
-        <TextInput
-          style={{ fontSize: 14, fontWeight: '500', color: c.textMain, textAlign: 'right', borderWidth: 0, outline: 'none', background: 'transparent', padding: 0, flex: 1, minWidth: 60 } as any}
-          value={value}
-          onChangeText={onChangeText}
-          onBlur={onBlurSave}
-          placeholder={placeholder || '—'}
-          placeholderTextColor={c.textSub}
-        />
-        <PencilSvg color={c.textSub} />
+    <View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
+        <Text style={{ fontSize: 14, color: c.textSub, flexShrink: 0 }}>{label}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
+          <TextInput
+            style={{ fontSize: 14, fontWeight: '500', color: c.textMain, textAlign: 'right', borderWidth: 0, outline: 'none', background: 'transparent', padding: 0, flex: 1, minWidth: 60 } as any}
+            value={value}
+            onChangeText={(txt) => { const v = filter ? filter(txt) : txt; onChangeText(v); if (err) setErr(''); }}
+            onBlur={handleBlur}
+            placeholder={placeholder || '—'}
+            placeholderTextColor={c.textSub}
+            keyboardType={keyboardType || 'default'}
+          />
+          <PencilSvg color={c.textSub} />
+        </View>
       </View>
+      {err !== '' && (
+        <Text style={{ fontSize: 11, color: c.danger, paddingHorizontal: 16, paddingBottom: 8, marginTop: -6 }}>{err}</Text>
+      )}
     </View>
   );
 }
@@ -393,9 +411,9 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               <View style={st.divider} />
               <EditableField label={t('realName')} value={lang === 'en' ? (realNamePinyin || realName) : lang === 'zh-TW' ? (realNameTW || realName) : realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} editable={lang === 'zh-CN'} />
               <View style={st.divider} />
-              <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} />
+              <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} keyboardType="phone-pad" filter={(v: string) => v.replace(/[^\d]/g, '').slice(0, 11)} validate={(v) => validatePhone(v, t)} />
               <View style={st.divider} />
-              <EditableField label={t('profileEmail')} value={email} onChangeText={setEmail} onBlurSave={() => { if (email && !EMAIL_RE.test(email)) return; saveField('email', email); }} c={c} />
+              <EditableField label={t('profileEmail')} value={email} onChangeText={setEmail} onBlurSave={() => saveField('email', email)} c={c} validate={(v) => validateEmail(v, t)} />
               <View style={st.divider} />
               <View style={st.infoRow}>
                 <Text style={st.infoLabel}>{t('registrationTime')}</Text>

@@ -7,7 +7,7 @@ import { api } from '../api/client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
-import { EMAIL_RE } from '../utils/validation';
+import { validateEmail } from '../utils/validation';
 import { bottomSheetOverlay, sheetHandle } from '../sharedStyles';
 import SheetHeader from '../components/SheetHeader';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -362,9 +362,12 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
       showToast('⚠️ ' + t('invRecInvoiceNo'));
       return;
     }
-    if (dEmail && !EMAIL_RE.test(dEmail)) {
-      setDEmailErr(t('errEmailInvalid'));
-      return;
+    if (dEmail) {
+      const emailErr = validateEmail(dEmail, t);
+      if (emailErr) {
+        setDEmailErr(emailErr);
+        return;
+      }
     }
     setSubmitting(true);
     try {
@@ -588,7 +591,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
-                <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} placeholder={t('invPleaseMaintain')} value={data.email} colors={c} validate={(v: string) => v && !EMAIL_RE.test(v) ? t('errEmailInvalid') : null} onChange={async (v) => { setData({ ...data, email: v }); await api.saveInvoiceEmail(v).catch(() => {}); if (!v) { const em = await api.getInvoiceEmail().catch(() => ({})); setData(prev => ({ ...prev, email: em.email || '' })); } }} />
+                <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} placeholder={t('invPleaseMaintain')} value={data.email} colors={c} validate={(v: string) => validateEmail(v, t)} onChange={async (v) => { setData({ ...data, email: v }); await api.saveInvoiceEmail(v).catch(() => {}); if (!v) { const em = await api.getInvoiceEmail().catch(() => ({})); setData(prev => ({ ...prev, email: em.email || '' })); } }} />
               </View>
             </View>
           </View>
@@ -840,7 +843,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                     style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), borderColor: dEmailErr ? c.danger : 'transparent', borderWidth: dEmailErr ? 1 : 0 }]}
                     value={dEmail}
                     onChangeText={(v) => { setDEmail(v); if (dEmailErr) setDEmailErr(''); }}
-                    onBlur={() => { if (dEmail && !EMAIL_RE.test(dEmail)) { setDEmail(''); setDEmailErr(t('errEmailInvalid')); } }}
+                    onBlur={() => { const emailErr = validateEmail(dEmail, t); if (emailErr) { setDEmail(''); setDEmailErr(emailErr); } }}
                     placeholder="email@example.com"
                     placeholderTextColor={c.textSub}
                     keyboardType="email-address"

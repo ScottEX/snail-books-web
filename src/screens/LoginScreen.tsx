@@ -5,7 +5,7 @@ import { t, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { validateEmail, EMAIL_RE } from '../utils/validation';
+import { validateEmail } from '../utils/validation';
 import { getCurrentUser } from '../utils/storage';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
