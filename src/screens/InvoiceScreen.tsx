@@ -602,7 +602,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
                 <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} placeholder={t('invPleaseMaintain')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} placeholder={t('invPleaseMaintain')} value={fmtPhone(data.phone)} colors={c} mono keyboardType="phone-pad" filter={(v: string) => v.replace(/[^\d]/g, '').slice(0, 11)} validate={(v: string) => v && !/^1[3-9]\d{9}$/.test(v) ? t('errPhoneInvalid') : null} onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} placeholder={t('invPleaseMaintain')} value={fmtPhone(data.phone)} colors={c} keyboardType="phone-pad" filter={(v: string) => v.replace(/[^\d]/g, '').slice(0, 11)} validate={(v: string) => v && !/^1[3-9]\d{9}$/.test(v) ? t('errPhoneInvalid') : null} onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
               </View>
             </View>
 
