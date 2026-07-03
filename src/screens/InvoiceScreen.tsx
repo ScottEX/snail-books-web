@@ -655,7 +655,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                   label={t('bankName')} placeholder={t('invPleaseMaintain')}
                   value={data.bank_name} colors={c}
                   onChange={(v) => setData({ ...data, bank_name: v })}
-                  editable={isAdmin && !bankCode}
+                  editable={false}
                 />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
                 <EditableInfoRow
