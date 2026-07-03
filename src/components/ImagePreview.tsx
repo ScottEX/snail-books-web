@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder, ScrollView, Image, Platform, useWindowDimensions } from 'react-native';
+import {
+  View, Text, TouchableOpacity, StyleSheet, Animated,
+  PanResponder, ScrollView, Image, Platform, useWindowDimensions,
+} from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { FONTS } from '../theme';
 
@@ -9,6 +12,9 @@ const DISMISS_VELOCITY = 0.4;
 const OPEN_DURATION = 220;
 const CLOSE_DURATION = 200;
 const SNAP_DURATION = 220;
+const MAX_ZOOM = 4;
+const DOUBLE_TAP_MS = 300;
+const DOUBLE_TAP_ZOOM = 2;
 
 interface ImagePreviewProps {
   images: string[];
@@ -32,9 +38,6 @@ export default function ImagePreview({
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const imageScale = useRef(new Animated.Value(0.92)).current;
   const panY = useRef(new Animated.Value(0)).current;
-
-  // ── Gesture refs ──
-  const gestureType = useRef<'none' | 'horizontal' | 'vertical'>('none');
 
   // ── ① Mount: fade + scale ──
   useEffect(() => {
@@ -63,7 +66,7 @@ export default function ImagePreview({
     ]).start(() => onClose());
   }, [dismissing, overlayOpacity, imageScale, onClose]);
 
-  // ── PanResponder — vertical dismiss only ──
+  // ── PanResponder — vertical dismiss (only when not zoomed) ──
   const panResponder = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => !dismissing,
     onMoveShouldSetPanResponder: (_, gs) =>
@@ -142,7 +145,7 @@ export default function ImagePreview({
             key={i}
             style={[styles.page, { width: WINDOW_W, transform: [{ scale: imageScale }] }]}
           >
-            <ImageElement src={src} />
+            <ZoomableImage src={src} windowW={WINDOW_W} windowH={WINDOW_H} />
           </Animated.View>
         ))}
       </ScrollView>
@@ -159,25 +162,172 @@ export default function ImagePreview({
   );
 }
 
-/** Platform-aware image element */
-function ImageElement({ src }: { src: string }) {
-  if (Platform.OS === 'web') {
-    return React.createElement('img', {
-      src,
-      draggable: false as any,
-      style: {
-        width: '100vw', maxHeight: '90vh', objectFit: 'contain',
-        pointerEvents: 'none' as any,
+/** Zoomable image with pinch-to-zoom (min 1×) and double-tap toggle. Web-only. */
+function ZoomableImage({ src, windowW, windowH }: { src: string; windowW: number; windowH: number }) {
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
-      },
-      alt: 'preview',
-    });
+  const pinchBase = useRef({ dist: 0, scale: 1 });
+  const panBase = useRef({ x: 0, y: 0 });
+  const lastTap = useRef(0);
+  const tapPos = useRef({ x: 0, y: 0 });
+
+  // ── Zoom-center maths: keep the point under the pinch centroid stationary ──
+  const zoomed = scale > 1.01;
+
+  const handleTouchStart = useCallback((e: any) => {
+    const ts = e.nativeEvent?.touches || e.touches || [];
+    const isPinch = ts.length === 2;
+    const isPan = ts.length === 1 && zoomed;
+
+    if (!isPinch && !isPan) return; // let event bubble to parent for dismiss/swipe
+
+    e.stopPropagation();
+    if (isPinch) {
+      const dx = ts[0].clientX - ts[1].clientX;
+      const dy = ts[0].clientY - ts[1].clientY;
+      pinchBase.current = { dist: Math.hypot(dx, dy), scale };
+    } else {
+      panBase.current = { x: offset.x, y: offset.y };
+    }
+  }, [scale, offset, zoomed]);
+
+  const handleTouchMove = useCallback((e: any) => {
+    const ts = e.nativeEvent?.touches || e.touches || [];
+    const isPinch = ts.length === 2;
+    const isPan = ts.length === 1 && zoomed;
+
+    if (!isPinch && !isPan) return; // let parent handle scrolling/swiping
+
+    e.stopPropagation();
+    e.preventDefault?.();
+
+    if (isPinch) {
+      const dx = ts[0].clientX - ts[1].clientX;
+      const dy = ts[0].clientY - ts[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      if (pinchBase.current.dist > 0) {
+        const newScale = Math.max(1, Math.min(MAX_ZOOM, pinchBase.current.scale * (dist / pinchBase.current.dist)));
+        setScale(newScale);
+      }
+    } else {
+      const touch = ts[0];
+      setOffset({
+        x: panBase.current.x + (touch.clientX - touchRef.current.startX),
+        y: panBase.current.y + (touch.clientY - touchRef.current.startY),
+      });
+    }
+  }, [zoomed]);
+
+  const handleTouchEnd = useCallback((e: any) => {
+    const ts = e.nativeEvent?.changedTouches || e.changedTouches || [];
+    const isPinch = ts.length === 2;
+
+    // Only block propagation if we're handling our own gesture
+    if (zoomed || isPinch) {
+      e.stopPropagation();
+    } else {
+      return; // let parent handle (dismiss)
+    }
+
+    const now = Date.now();
+
+    // Double-tap detection
+    if (ts.length === 1 && now - lastTap.current < DOUBLE_TAP_MS) {
+      const touch = ts[0];
+      if (scale > 1.01) {
+        // Zoom out
+        setScale(1);
+        setOffset({ x: 0, y: 0 });
+      } else {
+        // Zoom in to 2× centered on tap
+        setScale(DOUBLE_TAP_ZOOM);
+        const cx = windowW / 2;
+        const cy = windowH / 2;
+        const newOx = (cx - touch.clientX) * (DOUBLE_TAP_ZOOM - 1);
+        const newOy = (cy - touch.clientY) * (DOUBLE_TAP_ZOOM - 1);
+        setOffset({ x: newOx, y: newOy });
+      }
+      lastTap.current = 0;
+      return;
+    }
+
+    if (ts.length === 1) {
+      lastTap.current = now;
+      tapPos.current = { x: ts[0].clientX, y: ts[0].clientY };
+    }
+
+    // Clamp pan on release: don't let image drift too far offscreen
+    if (scale <= 1.01) {
+      setScale(1);
+      setOffset({ x: 0, y: 0 });
+    }
+  }, [scale, windowW, windowH]);
+
+  // Track single-touch reference point for panning
+  const touchRef = useRef({ startX: 0, startY: 0 });
+
+  const onTouchStartFull = useCallback((e: any) => {
+    const ts = e.nativeEvent.touches || e.touches || [];
+    if (ts.length === 1 && zoomed) {
+      touchRef.current = { startX: ts[0].clientX, startY: ts[0].clientY };
+    }
+    handleTouchStart(e);
+  }, [zoomed, handleTouchStart]);
+
+  const onTouchMoveFull = useCallback((e: any) => {
+    const ts = e.nativeEvent.touches || e.touches || [];
+    if (ts.length === 1 && zoomed) {
+      const dx = ts[0].clientX - touchRef.current.startX;
+      const dy = ts[0].clientY - touchRef.current.startY;
+      setOffset({ x: panBase.current.x + dx, y: panBase.current.y + dy });
+    } else if (ts.length === 2) {
+      handleTouchMove(e);
+    }
+  }, [zoomed, handleTouchMove]);
+
+  // Only render interactive wrapper on web
+  if (Platform.OS !== 'web') {
+    return (
+      <Image
+        source={{ uri: src }}
+        style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
+      />
+    );
   }
-  return (
-    <Image
-      source={{ uri: src }}
-      style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
-    />
+
+  // Web-only: raw div for touch event fidelity
+  return React.createElement('div', {
+    style: {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+      touchAction: zoomed ? 'none' : 'auto',
+    } as React.CSSProperties,
+    onTouchStart: onTouchStartFull,
+    onTouchMove: onTouchMoveFull,
+    onTouchEnd: handleTouchEnd,
+  },
+    React.createElement('img', {
+      src,
+      draggable: false,
+      alt: 'preview',
+      style: {
+        width: `${100 * scale}%`,
+        maxWidth: 'none',
+        height: 'auto',
+        maxHeight: `${90 * scale}vh`,
+        objectFit: 'contain',
+        transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+        transformOrigin: 'center center',
+        transition: scale === 1 && offset.x === 0 && offset.y === 0
+          ? 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        pointerEvents: 'none',
+      } as React.CSSProperties,
+    })
   );
 }
 
