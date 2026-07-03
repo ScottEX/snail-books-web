@@ -675,7 +675,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                         {!!r.invoice_number && (
                           <>
                             <Text style={{ color: c.secondary }}>·</Text>
-                            <Text style={[s.invNo, { color: c.textSub }]}>{r.invoice_number}</Text>
+                            <Text style={[s.invNo, { color: c.textSub, fontFamily: 'DM Mono' }]}>{r.invoice_number}</Text>
                           </>
                         )}
                         {!!r.batch_number && (
