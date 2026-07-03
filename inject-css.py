@@ -96,11 +96,12 @@ PWA_TAGS = '''
 # Fonts: non-blocking <link> — avoids @import blocking splash CSS rendering on iOS Safari
 FONT_LINK = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,500;1,400&amp;family=DM+Mono:wght@300;400&amp;display=swap" media="print" onload="this.media=\'all\'">'
 
-# Inject idle timeout first (before any other scripts, so it wraps fetch early)
-html = html.replace('<head>', '<head>\n' + IDLE_TIMEOUT_JS)
+# Inject idle timeout first (before any other scripts, so it wraps fetch early).
+# Moved to end of <body> with defer so it doesn't block the splash screen from rendering.
+html = html.replace('</body>', IDLE_TIMEOUT_JS + '\n</body>')
 
 # Inject boot.js (for Capacitor config)
-html = html.replace('<head>', '<head>\n' + BOOT_JS)
+html = html.replace('</body>', BOOT_JS + '\n</body>')
 # Insert PWA tags
 html = html.replace('<head>', '<head>\n' + PWA_TAGS)
 # Insert non-blocking font link
