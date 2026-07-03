@@ -338,7 +338,18 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const hasChanged = JSON.stringify(data) !== JSON.stringify(orig);
   const isSaving = useRef(false);
 
-  // Auto-save on unmount (catches language-switch remount, back nav, etc.)
+  // Auto-save on data change (debounced 2s), not just on unmount
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!loaded) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      handleSaveInfo();
+    }, 2000);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, [data, invType]);
+
+  // Also save on unmount (immediate, no debounce)
   const dataRef = useRef(data);
   dataRef.current = data;
   const origRef = useRef(orig);
