@@ -302,6 +302,26 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const hasChanged = JSON.stringify(data) !== JSON.stringify(orig);
   const isSaving = useRef(false);
 
+  // Auto-save on unmount (catches language-switch remount, back nav, etc.)
+  const dataRef = useRef(data);
+  dataRef.current = data;
+  const origRef = useRef(orig);
+  origRef.current = orig;
+  const invTypeRef = useRef(invType);
+  invTypeRef.current = invType;
+  useEffect(() => {
+    return () => {
+      const d = dataRef.current;
+      const o = origRef.current;
+      if (JSON.stringify(d) !== JSON.stringify(o)) {
+        api.updateInvoice({ ...d, inv_type: invTypeRef.current } as any).catch(() => {});
+        if (d.email !== o.email) {
+          api.saveInvoiceEmail(d.email).catch(() => {});
+        }
+      }
+    };
+  }, []);
+
   const handleSaveInfo = async () => {
     if (!hasChanged || isSaving.current) return;
     isSaving.current = true;
