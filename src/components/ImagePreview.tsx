@@ -66,11 +66,14 @@ export default function ImagePreview({
     ]).start(() => onClose());
   }, [dismissing, overlayOpacity, imageScale, onClose]);
 
-  // ── PanResponder — vertical dismiss (only when not zoomed) ──
+  // ── Pinch-zoom guard: suppress overlay PanResponder while zooming ──
+  const zoomActiveRef = useRef(false);
+
+  // ── PanResponder — vertical dismiss (disabled during pinch-zoom) ──
   const panResponder = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => !dismissing,
+    onStartShouldSetPanResponder: () => !dismissing && !zoomActiveRef.current,
     onMoveShouldSetPanResponder: (_, gs) =>
-      !dismissing && Math.abs(gs.dy) > Math.abs(gs.dx) * 1.5 && Math.abs(gs.dy) > 20,
+      !dismissing && !zoomActiveRef.current && Math.abs(gs.dy) > Math.abs(gs.dx) * 1.5 && Math.abs(gs.dy) > 20,
 
     onPanResponderGrant: () => {
       panY.stopAnimation();
@@ -145,7 +148,7 @@ export default function ImagePreview({
             key={i}
             style={[styles.page, { width: WINDOW_W, transform: [{ scale: imageScale }] }]}
           >
-            <ZoomableImage src={src} windowW={WINDOW_W} windowH={WINDOW_H} />
+            <ZoomableImage src={src} windowW={WINDOW_W} windowH={WINDOW_H} onZoomActive={(v) => { zoomActiveRef.current = v; }} />
           </Animated.View>
         ))}
       </ScrollView>
@@ -163,7 +166,10 @@ export default function ImagePreview({
 }
 
 /** Zoomable image with pinch-to-zoom (min 1×) and double-tap toggle. Web-only. */
-function ZoomableImage({ src, windowW, windowH }: { src: string; windowW: number; windowH: number }) {
+function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
+  src: string; windowW: number; windowH: number;
+  onZoomActive: (active: boolean) => void;
+}) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
@@ -183,6 +189,7 @@ function ZoomableImage({ src, windowW, windowH }: { src: string; windowW: number
     if (!isPinch && !isPan) return; // let event bubble to parent for dismiss/swipe
 
     e.stopPropagation();
+    onZoomActive(true); // suppress overlay PanResponder during zoom/pan
     if (isPinch) {
       const dx = ts[0].clientX - ts[1].clientX;
       const dy = ts[0].clientY - ts[1].clientY;
@@ -190,7 +197,7 @@ function ZoomableImage({ src, windowW, windowH }: { src: string; windowW: number
     } else {
       panBase.current = { x: offset.x, y: offset.y };
     }
-  }, [scale, offset, zoomed]);
+  }, [scale, offset, zoomed, onZoomActive]);
 
   const handleTouchMove = useCallback((e: any) => {
     const ts = e.nativeEvent?.touches || e.touches || [];
@@ -239,6 +246,7 @@ function ZoomableImage({ src, windowW, windowH }: { src: string; windowW: number
         // Zoom out
         setScale(1);
         setOffset({ x: 0, y: 0 });
+        onZoomActive(false);
       } else {
         // Zoom in to 2× centered on tap
         setScale(DOUBLE_TAP_ZOOM);
@@ -261,8 +269,9 @@ function ZoomableImage({ src, windowW, windowH }: { src: string; windowW: number
     if (scale <= 1.01) {
       setScale(1);
       setOffset({ x: 0, y: 0 });
+      onZoomActive(false);
     }
-  }, [scale, windowW, windowH]);
+  }, [scale, windowW, windowH, onZoomActive]);
 
   // Track single-touch reference point for panning
   const touchRef = useRef({ startX: 0, startY: 0 });
