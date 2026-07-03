@@ -411,7 +411,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               <View style={st.divider} />
               <EditableField label={t('realName')} value={lang === 'en' ? (realNamePinyin || realName) : lang === 'zh-TW' ? (realNameTW || realName) : realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} editable={lang === 'zh-CN'} />
               <View style={st.divider} />
-              <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} keyboardType="phone-pad" filter={(v: string) => v.replace(/[^\d]/g, '').slice(0, 11)} validate={(v) => validatePhone(v, t)} />
+              <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} keyboardType="phone-pad" filter={(v: string) => v.replace(/[^\d]/g, '').slice(0, 11)} validate={(v) => { if (!v) return null; if (v.length < 11) return t('errPhoneInvalid'); return validatePhone(v, t); }} />
               <View style={st.divider} />
               <EditableField label={t('profileEmail')} value={email} onChangeText={setEmail} onBlurSave={() => saveField('email', email)} c={c} validate={(v) => validateEmail(v, t)} />
               <View style={st.divider} />
