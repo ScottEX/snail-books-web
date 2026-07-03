@@ -745,9 +745,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder={t('verifyCode')} placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="number-pad" onSubmitEditing={handleVerify} autoFocus />
               </View>
-              <TouchableOpacity onPress={handleVerify} style={[styles.btnRed, (!code || code.length < 6) && { opacity: 0.4 }]} disabled={loading || !code || code.length < 6}>
-                <Text style={styles.btnRedText}>{loading ? '...' : t('verifyBtn')}</Text>
-              </TouchableOpacity>
+              <SubmitButton onPress={handleVerify} loading={loading} disabled={!code || code.length < 6} label={t('verifyBtn')} style={[styles.btnDark, (!code || code.length < 6) && { opacity: 0.4 }]} textStyle={[styles.btnDarkText, (!code || code.length < 6) && styles.disabledText]} />
               <Text style={styles.verifyHint}>
                 {t('verifyNewNoEmail') || '一直没收到？别着急，您可以 '}
                 <Text style={styles.verifyLink} onPress={handleResend}>{resendCooldown > 0 ? `${resendCooldown}s 后${t('verifyNewResend')}` : t('verifyNewResend')}</Text>
@@ -770,9 +768,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   placeholder="Email" placeholderTextColor="rgba(255,255,255,0.55)"
                   keyboardType="email-address" onSubmitEditing={handleForgot} />
               </View>
-              <TouchableOpacity onPress={handleForgot} style={[styles.btnDark, !email && { opacity: 0.4 }]} disabled={loading || !email}>
-                <Text style={styles.btnDarkText}>{loading ? '...' : t('forgotSendBtn') || 'Send Code'}</Text>
-              </TouchableOpacity>
+              <SubmitButton onPress={handleForgot} loading={loading} disabled={!email} label={t('forgotSendBtn') || 'Send Code'} style={[styles.btnDark, !email && { opacity: 0.4 }]} textStyle={[styles.btnDarkText, !email && styles.disabledText]} />
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>
@@ -820,9 +816,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleReset} style={[styles.btnRed, (!code || !password) && { opacity: 0.4 }]} disabled={loading || !code || !password}>
-                <Text style={styles.btnRedText}>{loading ? '...' : t('resetBtn')}</Text>
-              </TouchableOpacity>
+              <SubmitButton onPress={handleReset} loading={loading} disabled={!code || !password} label={t('resetBtn')} style={[styles.btnDark, (!code || !password) && { opacity: 0.4 }]} textStyle={[styles.btnDarkText, (!code || !password) && styles.disabledText]} />
               <TouchableOpacity onPress={goLogin}>
                 <Text style={styles.forgotText}>{t('backToLogin')}</Text>
               </TouchableOpacity>
@@ -860,7 +854,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   langBtn: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   langActive: { color: colors.surface, backgroundColor: 'rgba(255,255,255,0.15)' },
   glassCard: {
-    backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 16, padding: 28,
+    backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 24, padding: 28,
     // @ts-ignore - web-only
     backdropFilter: 'blur(24px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
@@ -900,7 +894,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   codeInput: { textAlign: 'center', letterSpacing: 6 },
   btnDark: {
-    backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
+    backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   btnDarkText: { fontSize: FONTS.sub.size, fontWeight: FONTS.sub.weight, color: colors.surface, letterSpacing: 1 },

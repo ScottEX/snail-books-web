@@ -1,5 +1,6 @@
-import { Text, TouchableOpacity, ActivityIndicator, type StyleProp, type ViewStyle, type TextStyle } from 'react-native';
+import { Text, TouchableOpacity, type StyleProp, type ViewStyle, type TextStyle } from 'react-native';
 import type { ReactNode } from 'react';
+import LoadingSpinner from './LoadingSpinner';
 
 interface SubmitButtonProps {
   onPress: () => void;
@@ -28,7 +29,7 @@ export default function SubmitButton({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator size="small" color="#fff" />
+        <LoadingSpinner label={false} size={20} color="#fff" />
       ) : children ? (
         children
       ) : (

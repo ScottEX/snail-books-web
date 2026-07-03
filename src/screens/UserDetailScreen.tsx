@@ -6,6 +6,7 @@ import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import { modalClose } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import LoadingSpinner from '../components/LoadingSpinner';
 import ModalOverlay from '../components/ModalOverlay';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -362,7 +363,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   }} activeOpacity={0.7} disabled={deleting}>
                     <View style={[st.actionBtn, { backgroundColor: withAlpha(c.danger, 0.08) }]}>
                       {deleting ? (
-                        <Text style={{ fontSize: 12, color: c.danger, fontWeight: '600' }}>...</Text>
+                        <LoadingSpinner label={false} size={16} color={c.danger} />
                       ) : (
                         <TrashIcon color={c.danger} />
                       )}
