@@ -4,7 +4,7 @@ import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors, REQUIRED_COLOR } from '../theme';
 import { api } from '../api/client';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
 import { validateEmail } from '../utils/validation';
@@ -490,6 +490,26 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
       setSubmitting(false);
     }
   };
+
+  // ── Memoized ReceiptUpload props to prevent re-render flash ──
+  const memoExistingImages = useMemo(() => {
+    if (!editingId || dExistingFilePath.length === 0) return [];
+    return dExistingFilePath.map(p => api.getInvoiceFileUrl(p));
+  }, [editingId, dExistingFilePath]);
+
+  const memoOnAdd = useCallback((files: File[]) => {
+    setDFiles(prev => [...prev, ...files]);
+  }, []);
+
+  const memoOnRemoveExisting = useCallback((i: number) => {
+    setDExistingFilePath(prev => prev.filter((_, j) => j !== i));
+  }, []);
+
+  const memoOnRemoveNew = useCallback((i: number) => {
+    setDFiles(prev => prev.filter((_, j) => j !== i));
+  }, []);
+
+  const memoGetPreviewUrl = useCallback((f: File) => URL.createObjectURL(f), []);
 
   // ── Preview handlers ──
   const handlePreviewExisting = (index: number) => {
@@ -993,12 +1013,12 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               {dStatus === 'done' && (
                 <View style={{ marginBottom: 8 }}>
                   <ReceiptUpload
-                    existingImages={editingId && dExistingFilePath.length > 0 ? dExistingFilePath.map(p => api.getInvoiceFileUrl(p)) : []}
+                    existingImages={memoExistingImages}
                     newFiles={dFiles}
-                    onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files])}
-                    onRemoveExisting={(i: number) => { setDExistingFilePath(prev => prev.filter((_, j) => j !== i)); }}
-                    onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
-                    getPreviewUrl={(f: File) => URL.createObjectURL(f)}
+                    onAdd={memoOnAdd}
+                    onRemoveExisting={memoOnRemoveExisting}
+                    onRemoveNew={memoOnRemoveNew}
+                    getPreviewUrl={memoGetPreviewUrl}
                     label={t('invUploadInvoice') as string}
                     accept="image/jpeg,image/png,image/webp,application/pdf"
                     required
