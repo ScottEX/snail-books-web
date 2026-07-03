@@ -25,7 +25,7 @@ with open(dist_index, 'r') as f:
 # CSS to inject (glass-morphism + background styles from production login page)
 INJECT_CSS = '''
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
+    body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; background:#FAF9F6; }
     input, textarea { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
     /* Keep #root flex for React Native Web layout — don't override */
     .bg-wrapper { position: fixed; inset: 0; z-index: 0; background: url(/img/bg.jpg?v=3) center/cover no-repeat; }
