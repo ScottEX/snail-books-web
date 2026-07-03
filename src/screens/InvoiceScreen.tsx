@@ -260,7 +260,13 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [dEmail, setDEmail] = useState('');
   const [dEmailErr, setDEmailErr] = useState('');
   const [dInvoiceNo, setDInvoiceNo] = useState('');
+  const [dInvoiceNoErr, setDInvoiceNoErr] = useState('');
   const [dStatus, setDStatus] = useState<InvStatus>('pending');
+
+  // Sync drawer email with invoice info email whenever data.email changes
+  useEffect(() => {
+    if (data.email) setDEmail(data.email);
+  }, [data.email]);
 
   // Batch selector
   const [dBatchId, setDBatchId] = useState<number | null>(null);
@@ -944,13 +950,11 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
                   <TextInput
-                    style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), borderColor: dEmailErr ? c.danger : 'transparent', borderWidth: dEmailErr ? 1 : 0 }]}
+                    style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]}
                     value={dEmail}
-                    onChangeText={(v) => { setDEmail(v); if (dEmailErr) setDEmailErr(''); }}
-                    onBlur={() => { const emailErr = validateEmail(dEmail, t); if (emailErr) { setDEmail(''); setDEmailErr(emailErr); } }}
+                    editable={false}
                     placeholder="email@example.com"
                     placeholderTextColor={c.textSub}
-                    keyboardType="email-address"
                   />
                   {dEmailErr !== '' && <Text style={{ color: c.danger, fontSize: 11, marginTop: 4 }}>{dEmailErr}</Text>}
                 </View>
@@ -980,12 +984,19 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                   {t('invRecInvoiceNo')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>
                 </Text>
                 <TextInput
-                  style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]}
+                  style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono', borderColor: dInvoiceNoErr ? c.danger : 'transparent', borderWidth: dInvoiceNoErr ? 1 : 0 } as any]}
                   value={dInvoiceNo}
-                  onChangeText={(v) => setDInvoiceNo(v.replace(/[^a-zA-Z0-9]/g, ''))}
-                  placeholder="NO.2026060001"
+                  onChangeText={(v) => { setDInvoiceNo(v.replace(/[^\d]/g, '').slice(0, 20)); if (dInvoiceNoErr) setDInvoiceNoErr(''); }}
+                  onBlur={() => {
+                    if (!dInvoiceNo) { setDInvoiceNoErr(''); return; }
+                    if (dInvoiceNo.length < 8 || dInvoiceNo.length > 20) { setDInvoiceNoErr(t('errInvoiceNoLength')); }
+                  }}
+                  placeholder="20260600000001"
                   placeholderTextColor={c.textSub}
+                  keyboardType="numeric"
+                  maxLength={20}
                 />
+                {dInvoiceNoErr !== '' && <Text style={{ color: c.danger, fontSize: 11, marginTop: 4 }}>{dInvoiceNoErr}</Text>}
               </View>
               )}
 

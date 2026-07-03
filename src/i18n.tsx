@@ -136,6 +136,7 @@ const I18N: Record<string, Record<string, string>> = {
     errEmailInvalid: '邮箱格式不正确',
     errPhoneInvalid: '请输入正确的手机号码',
     errBankCardInvalid: '卡号有误',
+    errInvoiceNoLength: '发票号需为8-20位数字',
     errEmptyFields: '请填写所有字段',
     errEnterCode: '请输入验证码',
     errFileSize: '图片不能超过10MB',
@@ -728,6 +729,7 @@ const I18N: Record<string, Record<string, string>> = {
     errEmailInvalid: '郵箱格式不正確',
     errPhoneInvalid: '請輸入正確的手機號碼',
     errBankCardInvalid: '卡號有誤',
+    errInvoiceNoLength: '發票號需為8-20位數字',
     errEmptyFields: '請填寫所有字段',
     errEnterCode: '請輸入驗證碼',
     errFileSize: '圖片不能超過10MB',
@@ -1318,6 +1320,7 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRangeTooLong: 'Date range cannot exceed 24 months',
     errEmailInvalid: 'Invalid email format',
     errPhoneInvalid: 'Please enter a valid phone number',
+    errInvoiceNoLength: 'Invoice number must be 8-20 digits',
     errExpense: 'Expense operation failed',
     errEnterCode: 'Please enter verification code',
     errFileSize: 'Image must be under 10MB',
@@ -1910,6 +1913,8 @@ export type I18nKey =
   | 'errDateRangeTooLong'
   | 'errEmailInvalid'
   | 'errPhoneInvalid'
+  | 'errBankCardInvalid'
+  | 'errInvoiceNoLength'
   | 'errEmptyFields'
   | 'errEnterCode'
   | 'errFileSize'
