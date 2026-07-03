@@ -540,19 +540,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         setBatchList(batches);
       } catch { setBatchList([]); }
     })();
-    // Auto-fill user email from localStorage, fallback to API
-    const stored = (() => { try { return localStorage.getItem('email'); } catch { return null; } })();
-    if (stored) {
-      setDEmail(stored);
-    } else {
-      (async () => {
-        try {
-          const j: any = await api.admin.getMe();
-          const user = j.user || j.data || j;
-          if (user.email) setDEmail(user.email);
-        } catch { }
-      })();
-    }
+    // Use invoice email from server data (already loaded)
+    setDEmail(data.email || '');
   };
   const closeDrawer = () => {
     setDrawerOpen(false);
