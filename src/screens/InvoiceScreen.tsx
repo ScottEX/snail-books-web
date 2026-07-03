@@ -331,6 +331,14 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         setOrig(d);
         setDEmail(d.email);
         setInvType(inv.data?.inv_type || 'vat');
+        // Re-detect bank on load
+        const acct = (d.bank_account || '').replace(/\s/g, '');
+        if (acct.length >= 6) {
+          try {
+            const r = await api.bankLookup(acct.slice(0, 6));
+            if (r.status === 'ok' && r.data) setBankCode(r.data.code);
+          } catch { }
+        }
       } catch { }
       setLoaded(true);
     })();
