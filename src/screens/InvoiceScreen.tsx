@@ -193,6 +193,31 @@ function fmtPhone(v: string) {
   return raw.slice(0, 3) + ' ' + raw.slice(3, 7) + ' ' + raw.slice(7);
 }
 
+/** 银行品牌色 */
+const BANK_COLORS: Record<string, string> = {
+  icbc: '#C41E2A', ccb: '#005BAC', abc: '#1A8B4A', boc: '#C41E2A',
+  bocom: '#003D83', cmb: '#E61138', psbc: '#00843D', cib: '#003F87',
+  citic: '#D7102A', ceb: '#7B2D8B', cmbc: '#00A950', pab: '#F46300',
+  spdb: '#002C77', hxb: '#C41E2A', gdb: '#C41E2A', bob: '#C41E2A',
+  bosh: '#005BAC',
+};
+
+/** 银行图标：品牌色圆底 + 首字 */
+function BankIcon({ code }: { code: string }) {
+  const label = code === 'psbc' ? '邮' : code === 'icbc' ? '工' : code === 'ccb' ? '建'
+    : code === 'abc' ? '农' : code === 'boc' ? '中' : code === 'bocom' ? '交'
+    : code === 'cmb' ? '招' : code === 'cib' ? '兴' : code === 'citic' ? '信'
+    : code === 'ceb' ? '光' : code === 'cmbc' ? '民' : code === 'pab' ? '平'
+    : code === 'spdb' ? '浦' : code === 'hxb' ? '华' : code === 'gdb' ? '广'
+    : code === 'bob' ? '京' : code === 'bosh' ? '沪' : '银';
+  const bg = BANK_COLORS[code] || '#888';
+  return (
+    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: '#fff', lineHeight: 13 }}>{label}</Text>
+    </View>
+  );
+}
+
 export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
@@ -203,6 +228,9 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [invType, setInvType] = useState<InvType>('vat');
   const [data, setData] = useState<InvoiceData>(EMPTY_INV);
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
+  // Bank BIN lookup
+  const [bankCode, setBankCode] = useState('');
+  const [bankLookupError, setBankLookupError] = useState('');
   const [loaded, setLoaded] = useState(false);
 
   // Admin check
@@ -613,9 +641,40 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
-                <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} placeholder={t('invPleaseMaintain')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} editable={isAdmin} />
+                <EditableInfoRow
+                  icon={bankCode ? <BankIcon code={bankCode} /> : <IcnBank color={c.primary} />}
+                  iconBg={bankCode ? (BANK_COLORS[bankCode] || c.primary) + '20' : withAlpha(c.primary, 0.08)}
+                  label={t('bankName')} placeholder={t('invPleaseMaintain')}
+                  value={data.bank_name} colors={c}
+                  onChange={(v) => setData({ ...data, bank_name: v })}
+                  editable={isAdmin && !bankCode}
+                />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} placeholder={t('invPleaseMaintain')} value={fmtBankAccount(data.bank_account)} colors={c} mono keyboardType="numeric" filter={(v: string) => v.replace(/[^\d]/g, '')} onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
+                <EditableInfoRow
+                  icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)}
+                  label={t('bankAccount')} placeholder={t('invPleaseMaintain')}
+                  value={fmtBankAccount(data.bank_account)} colors={c} mono keyboardType="numeric"
+                  filter={(v: string) => v.replace(/[^\d]/g, '')}
+                  onChange={async (v) => {
+                    setData({ ...data, bank_account: v });
+                    setBankLookupError('');
+                    const clean = v.replace(/\s/g, '');
+                    if (!clean || clean.length < 6) { setBankCode(''); return; }
+                    try {
+                      const res = await api.bankLookup(clean.slice(0, 6));
+                      if (res.status === 'ok' && res.data) {
+                        setData(prev => ({ ...prev, bank_name: res.data.name }));
+                        setBankCode(res.data.code);
+                      } else {
+                        setBankLookupError(t('errBankCardInvalid'));
+                      }
+                    } catch { setBankLookupError(t('errBankCardInvalid')); }
+                  }}
+                  editable={isAdmin}
+                />
+                {bankLookupError !== '' && (
+                  <Text style={{ fontSize: 11, color: c.danger, textAlign: 'right', paddingHorizontal: 16, paddingBottom: 8, marginTop: -6 }}>{bankLookupError}</Text>
+                )}
               </View>
             </View>
 

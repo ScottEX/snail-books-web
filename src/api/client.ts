@@ -384,6 +384,7 @@ export const api = {
   updateInvoice: (data: Record<string, string>) => authFetch('/api/admin/invoice', { method: 'PUT', body: JSON.stringify(data) }),
   getInvoiceEmail: () => authFetch('/api/invoice-email'),
   saveInvoiceEmail: (email: string) => authFetch('/api/invoice-email', { method: 'PUT', body: JSON.stringify({ email }) }),
+  bankLookup: (prefix: string) => authFetch(`/api/bank-lookup?prefix=${encodeURIComponent(prefix)}`),
 
   // Invoice records (开票记录 — user-level CRUD)
   getInvoiceRecords: (filter?: { status?: 'pending' | 'done'; type?: 'vat' | 'general'; procurement_batch_id?: number }) => {
