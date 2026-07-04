@@ -163,7 +163,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                 setUsername(r.username);
                 localStorage.setItem('webauthn_bound', '1');
                 localStorage.setItem('webauthn_user', r.username);
-                setFaceMode(true);
+                switchToFaceMode();
               }
             }).catch(() => {});
           });
@@ -185,7 +185,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setPassword(''); setPassword2(''); setEmail('');
     // Stay in face mode if user has a credential
     if (faceUsername && hasFaceID) {
-      setFaceMode(true);
+      switchToFaceMode();
       setUsername(faceUsername);
     } else {
       setFaceMode(false);
