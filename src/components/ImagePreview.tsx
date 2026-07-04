@@ -397,6 +397,8 @@ function ZoomableImage({
       setOffset({ x: snapX, y: snapY });
       offRef.current = { x: snapX, y: snapY };
     }
+    // Gesture ended — unlock ScrollView for page swiping
+    onZoomActive(false);
   }, [windowW, windowH, onZoomActive, onSwipeToPage, computeBounds]);
 
   // ── Image load: capture natural dimensions ──
