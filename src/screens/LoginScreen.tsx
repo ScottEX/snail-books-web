@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
-import { t, langs, useLang, I18nKey } from '../i18n';
+import { t, getLang, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -324,6 +324,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             }
           }
         } catch {}
+        try { await api.saveLang(getLang()); } catch {}
         onLogin();
       } else if (r.need_verify) {
         setEmail(r.email); setStep('verify'); setMsg(''); setMsgKey('');
@@ -395,6 +396,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
+        try { await api.saveLang(getLang()); } catch {}
         onLogin();
       }
     } catch (e: any) {
