@@ -300,11 +300,18 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
 
-  // Auto-open drawer when coming from "去开票" with a pre-selected batch
+  // Auto-open drawer when coming from "去开票" — edit if record exists, new otherwise
+  const autoOpenedRef = useRef(false);
   useEffect(() => {
-    if (!filterBatchId) return;
-    openDrawer(undefined, filterBatchId);
-  }, [filterBatchId]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!filterBatchId || recordsLoading || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
+    const existing = records.find((r: any) => r.procurement_batch_id === filterBatchId);
+    if (existing) {
+      openDrawer(existing);
+    } else {
+      openDrawer(undefined, filterBatchId);
+    }
+  }, [filterBatchId, recordsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load invoice data (backend allows all logged-in users since 4b00e12)
   useEffect(() => {
