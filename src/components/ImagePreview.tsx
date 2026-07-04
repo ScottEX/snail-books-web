@@ -222,12 +222,13 @@ function ZoomableImage({
   const touchRef = useRef({ startX: 0, startY: 0 });
   const lastTap = useRef(0);
   const wasPinch = useRef(false);
+  const didPan = useRef(false);    // true if this gesture involved horizontal panning
 
   // Image natural size — updated on load; used to compute pan boundaries
   const imgNatural = useRef({ w: 0, h: 0 });
   const imgRef = useRef<HTMLImageElement | null>(null);
 
-  const zoomed = scaleRef.current > 1.01;
+  const zoomed = scaleRef.current > 1.005;
 
   /** Current allowed pan range given zoom level and natural image size. */
   const computeBounds = useCallback(() => {
@@ -253,6 +254,7 @@ function ZoomableImage({
     e.stopPropagation();
     onZoomActive(true);
     wasPinch.current = isPinch;
+    didPan.current = false;
 
     if (isPinch) {
       const dx = ts[0].clientX - ts[1].clientX;
@@ -284,6 +286,7 @@ function ZoomableImage({
         setScale(newScale);
       }
     } else {
+      didPan.current = true;
       const rawX = panBase.current.x + (ts[0].clientX - touchRef.current.startX);
       const rawY = panBase.current.y + (ts[0].clientY - touchRef.current.startY);
 
@@ -301,7 +304,7 @@ function ZoomableImage({
     const ts = e.nativeEvent?.changedTouches || e.changedTouches || [];
     const isPinch = ts.length === 2;
     const curScale = scaleRef.current;
-    const curZoomed = curScale > 1.01;
+    const curZoomed = curScale > 1.005;
 
     if (curZoomed || isPinch) {
       e.stopPropagation();
@@ -339,7 +342,7 @@ function ZoomableImage({
       }
     }
 
-    if (curScale <= 1.01) {
+    if (curScale <= 1.005) {
       scaleRef.current = 1;
       setScale(1);
       setOffset({ x: 0, y: 0 });
@@ -347,8 +350,8 @@ function ZoomableImage({
       return;
     }
 
-    // ── Edge-swipe to next/prev page ──
-    if (curZoomed) {
+    // ── Edge-swipe to next/prev page (only if user actually panned) ──
+    if (curZoomed && didPan.current) {
       const { maxX } = computeBounds();
       const rawX = offsetRef.current.x;
 
