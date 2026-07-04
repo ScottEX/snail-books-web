@@ -563,17 +563,15 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           {step === 'login' && (
             faceMode ? (
               /* ── Face ID mode ── */
-              <View style={styles.formSection}>
-                <Animated.View style={{ transform: [{ scale: breatheAnim }], alignItems: 'center' }}>
+              <View style={styles.faceModeWrap}>
+                <Animated.View style={{ transform: [{ scale: breatheAnim }] }}>
                   <TouchableOpacity onPress={handleFaceIDLogin} style={styles.faceBtn} disabled={loading}>
-                    <svg width="36" height="36" viewBox="0 0 1024 1024" fill="none">
+                    <svg width="56" height="56" viewBox="0 0 1024 1024" fill="none">
                       <path d="M997.052632 839.787789v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821a108.112842 108.112842 0 0 1-108.005053 108.005053h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821A157.453474 157.453474 0 0 0 997.052632 839.787789m-679.262316 132.634948a24.629895 24.629895 0 0 0-24.629895-24.629895H184.212211a108.112842 108.112842 0 0 1-108.005053-108.005053v-108.94821a24.629895 24.629895 0 0 0-49.25979 0v108.94821A157.453474 157.453474 0 0 0 184.212211 997.052632h108.94821c13.608421 0 24.629895-11.048421 24.629895-24.629895M76.207158 293.160421V184.212211a108.112842 108.112842 0 0 1 108.005053-108.005053h108.94821a24.629895 24.629895 0 0 0 0-49.25979H184.212211A157.453474 157.453474 0 0 0 26.947368 184.212211v108.94821a24.629895 24.629895 0 0 0 49.25979 0m920.845474 0V184.212211A157.453474 157.453474 0 0 0 839.787789 26.947368h-108.94821a24.629895 24.629895 0 0 0 0 49.25979h108.94821a108.112842 108.112842 0 0 1 108.005053 108.005053v108.94821a24.629895 24.629895 0 0 0 49.25979 0M681.984 743.962947a25.6 25.6 0 0 0-34.708211-37.591579A198.790737 198.790737 0 0 1 512 759.269053a198.790737 198.790737 0 0 1-135.275789-52.897685 25.6 25.6 0 0 0-34.708211 37.591579A249.802105 249.802105 0 0 0 512 810.415158a249.802105 249.802105 0 0 0 169.984-66.452211m-118.837895-169.445052v-181.894737a25.6 25.6 0 1 0-51.146105 0v181.894737c0 7.841684-6.386526 14.228211-14.201263 14.22821h-20.857263a25.6 25.6 0 1 0 0 51.146106h20.857263a65.455158 65.455158 0 0 0 65.347368-65.374316m176.23579-110.349474v-72.946526a24.144842 24.144842 0 0 0-48.316632 0v72.946526a24.144842 24.144842 0 0 0 48.316632 0m-424.906106 24.144842a24.144842 24.144842 0 0 1-24.171789-24.144842v-72.946526a24.144842 24.144842 0 0 1 48.316632 0v72.946526a24.144842 24.144842 0 0 1-24.144843 24.144842" fill={colors.surface} />
                     </svg>
                   </TouchableOpacity>
                 </Animated.View>
-                <View style={styles.faceUserRow}>
-                  <Text style={styles.faceUsername}>{faceUsername}</Text>
-                </View>
+                <Text style={styles.faceUsername}>{faceUsername}</Text>
                 <TouchableOpacity onPress={() => { setFaceMode(false); }}>
                   <Text style={styles.faceSwitch}>{t('usePasswordLogin') || '使用密码登录'}</Text>
                 </TouchableOpacity>
@@ -921,19 +919,14 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   devCodeLabel: { fontSize: FONTS.micro.size, color: colors.warning, fontWeight: FONTS.micro.weight, marginBottom: 8 },
   devCodeValue: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.surface, letterSpacing: 8 },
   // Face ID mode
-  faceUserRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 24 },
-  faceAvatar: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)',
-    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
-  },
-  faceUsername: { fontSize: FONTS.body.size, fontWeight: FONTS.body.weight, color: 'rgba(255,255,255,0.8)' },
+  faceModeWrap: { alignItems: 'center', gap: 16 },
   faceBtn: {
     width: 80, height: 80, borderRadius: 40,
     backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
-    marginBottom: 24,
   },
+  faceUsername: { fontSize: 18, fontWeight: '500', color: 'rgba(255,255,255,0.8)', marginBottom: 16 },
   faceSwitch: { fontSize: FONTS.micro.size, color: colors.primary, textAlign: 'center' },
   copyright: { fontSize: FONTS.micro.size, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 20 },
 });
