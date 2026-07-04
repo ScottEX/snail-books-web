@@ -73,7 +73,7 @@ export default function SessionKickedModal() {
   };
 
   return (
-    <ModalOverlay visible={visible} onClose={handleClose}>
+    <ModalOverlay visible={visible} onClose={handleClose} animation="blurMorph">
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('sessionKickedTitle') || '账号已退出'}</Text>

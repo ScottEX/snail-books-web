@@ -894,7 +894,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       </ScrollView>
 
       {/* 添加提示弹窗 */}
-        <ModalOverlay visible={showCardToast} onClose={hideCardToast}>
+        <ModalOverlay visible={showCardToast} onClose={hideCardToast} animation="springScale">
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
