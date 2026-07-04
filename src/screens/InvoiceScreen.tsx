@@ -300,6 +300,12 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
 
+  // Auto-open drawer when coming from "去开票" with a pre-selected batch
+  useEffect(() => {
+    if (!filterBatchId) return;
+    openDrawer(undefined, filterBatchId);
+  }, [filterBatchId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Load invoice data (backend allows all logged-in users since 4b00e12)
   useEffect(() => {
     (async () => {
@@ -511,7 +517,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   }, [dFiles, openPreview]);
 
   // ── Drawer animation ──
-  const openDrawer = (forEdit?: InvoiceRecord) => {
+  const openDrawer = (forEdit?: InvoiceRecord, preSelectBatchId?: number | null) => {
     setDrawerOpen(true);
     winHRef.current = window.innerHeight;
     setEditingId(forEdit ? forEdit.id : null);
@@ -521,7 +527,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDNote(forEdit ? (forEdit.note || '') : '');
     setDInvoiceNo(forEdit ? (forEdit.invoice_number || '') : '');
     setDStatus(forEdit ? (forEdit.status as InvStatus) : 'pending');
-    setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
+    setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : (preSelectBatchId ?? null));
     setDFiles([]);
     setDExistingFilePath(forEdit ? parseFilePaths(forEdit.file_path) : []);
     setDExistingThumbPaths(forEdit ? parseFilePaths(forEdit.file_thumb_paths) : []);
