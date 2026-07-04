@@ -854,7 +854,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   glassCard: {
     backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 24, padding: 28,
     // @ts-ignore - web-only
-    backdropFilter: 'blur(24px)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    backdropFilter: 'blur(24px)', boxShadow: '0 4px 30px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.08)',
   },
   shake: {}, // animation handled by CSS class
   msgBox: { paddingHorizontal: 0, paddingVertical: 12, marginBottom: 16 },
