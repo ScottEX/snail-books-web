@@ -173,13 +173,16 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
+  // Ref mirror of scale — read synchronously in touch handlers to avoid stale
+  // state closure causing spurious zoom-out on fast pinch release.
+  const scaleRef = useRef(1);
+
   const pinchBase = useRef({ dist: 0, scale: 1 });
   const panBase = useRef({ x: 0, y: 0 });
   const lastTap = useRef(0);
   const tapPos = useRef({ x: 0, y: 0 });
 
-  // ── Zoom-center maths: keep the point under the pinch centroid stationary ──
-  const zoomed = scale > 1.01;
+  const zoomed = scaleRef.current > 1.01;
 
   const handleTouchStart = useCallback((e: any) => {
     const ts = e.nativeEvent?.touches || e.touches || [];
@@ -193,11 +196,11 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
     if (isPinch) {
       const dx = ts[0].clientX - ts[1].clientX;
       const dy = ts[0].clientY - ts[1].clientY;
-      pinchBase.current = { dist: Math.hypot(dx, dy), scale };
+      pinchBase.current = { dist: Math.hypot(dx, dy), scale: scaleRef.current };
     } else {
       panBase.current = { x: offset.x, y: offset.y };
     }
-  }, [scale, offset, zoomed, onZoomActive]);
+  }, [offset, zoomed, onZoomActive]);
 
   const handleTouchMove = useCallback((e: any) => {
     const ts = e.nativeEvent?.touches || e.touches || [];
@@ -215,6 +218,7 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
       const dist = Math.hypot(dx, dy);
       if (pinchBase.current.dist > 0) {
         const newScale = Math.max(1, Math.min(MAX_ZOOM, pinchBase.current.scale * (dist / pinchBase.current.dist)));
+        scaleRef.current = newScale;
         setScale(newScale);
       }
     } else {
@@ -229,9 +233,11 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
   const handleTouchEnd = useCallback((e: any) => {
     const ts = e.nativeEvent?.changedTouches || e.changedTouches || [];
     const isPinch = ts.length === 2;
+    const curScale = scaleRef.current;
+    const curZoomed = curScale > 1.01;
 
     // Only block propagation if we're handling our own gesture
-    if (zoomed || isPinch) {
+    if (curZoomed || isPinch) {
       e.stopPropagation();
     } else {
       return; // let parent handle (dismiss)
@@ -242,13 +248,15 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
     // Double-tap detection
     if (ts.length === 1 && now - lastTap.current < DOUBLE_TAP_MS) {
       const touch = ts[0];
-      if (scale > 1.01) {
+      if (curZoomed) {
         // Zoom out
+        scaleRef.current = 1;
         setScale(1);
         setOffset({ x: 0, y: 0 });
         onZoomActive(false);
       } else {
         // Zoom in to 2× centered on tap
+        scaleRef.current = DOUBLE_TAP_ZOOM;
         setScale(DOUBLE_TAP_ZOOM);
         const cx = windowW / 2;
         const cy = windowH / 2;
@@ -266,12 +274,13 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
     }
 
     // Clamp pan on release: don't let image drift too far offscreen
-    if (scale <= 1.01) {
+    if (curScale <= 1.01) {
+      scaleRef.current = 1;
       setScale(1);
       setOffset({ x: 0, y: 0 });
       onZoomActive(false);
     }
-  }, [scale, windowW, windowH, onZoomActive]);
+  }, [windowW, windowH, onZoomActive]);
 
   // Track single-touch reference point for panning
   const touchRef = useRef({ startX: 0, startY: 0 });
