@@ -181,6 +181,7 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
   const panBase = useRef({ x: 0, y: 0 });
   const lastTap = useRef(0);
   const tapPos = useRef({ x: 0, y: 0 });
+  const wasPinch = useRef(false); // suppress double-tap after pinch release
 
   const zoomed = scaleRef.current > 1.01;
 
@@ -193,6 +194,7 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
 
     e.stopPropagation();
     onZoomActive(true); // suppress overlay PanResponder during zoom/pan
+    wasPinch.current = isPinch;
     if (isPinch) {
       const dx = ts[0].clientX - ts[1].clientX;
       const dy = ts[0].clientY - ts[1].clientY;
@@ -244,33 +246,39 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
     }
 
     const now = Date.now();
+    const endOfPinch = wasPinch.current;
+    wasPinch.current = false;
 
-    // Double-tap detection
-    if (ts.length === 1 && now - lastTap.current < DOUBLE_TAP_MS) {
-      const touch = ts[0];
-      if (curZoomed) {
-        // Zoom out
-        scaleRef.current = 1;
-        setScale(1);
-        setOffset({ x: 0, y: 0 });
-        onZoomActive(false);
-      } else {
-        // Zoom in to 2× centered on tap
-        scaleRef.current = DOUBLE_TAP_ZOOM;
-        setScale(DOUBLE_TAP_ZOOM);
-        const cx = windowW / 2;
-        const cy = windowH / 2;
-        const newOx = (cx - touch.clientX) * (DOUBLE_TAP_ZOOM - 1);
-        const newOy = (cy - touch.clientY) * (DOUBLE_TAP_ZOOM - 1);
-        setOffset({ x: newOx, y: newOy });
+    // After a pinch, skip double-tap detection — two fingers lifting in quick
+    // succession looks like a rapid double-tap, which would spuriously zoom out.
+    if (!endOfPinch) {
+      // Double-tap detection
+      if (ts.length === 1 && now - lastTap.current < DOUBLE_TAP_MS) {
+        const touch = ts[0];
+        if (curZoomed) {
+          // Zoom out
+          scaleRef.current = 1;
+          setScale(1);
+          setOffset({ x: 0, y: 0 });
+          onZoomActive(false);
+        } else {
+          // Zoom in to 2× centered on tap
+          scaleRef.current = DOUBLE_TAP_ZOOM;
+          setScale(DOUBLE_TAP_ZOOM);
+          const cx = windowW / 2;
+          const cy = windowH / 2;
+          const newOx = (cx - touch.clientX) * (DOUBLE_TAP_ZOOM - 1);
+          const newOy = (cy - touch.clientY) * (DOUBLE_TAP_ZOOM - 1);
+          setOffset({ x: newOx, y: newOy });
+        }
+        lastTap.current = 0;
+        return;
       }
-      lastTap.current = 0;
-      return;
-    }
 
-    if (ts.length === 1) {
-      lastTap.current = now;
-      tapPos.current = { x: ts[0].clientX, y: ts[0].clientY };
+      if (ts.length === 1) {
+        lastTap.current = now;
+        tapPos.current = { x: ts[0].clientX, y: ts[0].clientY };
+      }
     }
 
     // Clamp pan on release: don't let image drift too far offscreen
