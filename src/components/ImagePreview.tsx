@@ -287,6 +287,18 @@ function ZoomableImage({
         const newScale = Math.max(1, Math.min(MAX_ZOOM, pinchBase.current.scale * (dist / pinchBase.current.dist)));
         scaleRef.current = newScale;
         setScale(newScale);
+
+        // Re-clamp offset — zooming out shrinks allowed pan area
+        const { maxX, maxY } = computeBounds();
+        const cx = offRef.current.x;
+        const cy = offRef.current.y;
+        const nx = Math.max(-maxX, Math.min(maxX, cx));
+        const ny = Math.max(-maxY, Math.min(maxY, cy));
+        if (nx !== cx || ny !== cy) {
+          offRef.current = { x: nx, y: ny };
+          rawOffsetRef.current = { x: nx, y: ny };
+          setOffset({ x: nx, y: ny });
+        }
       }
     } else {
       didPan.current = true;
