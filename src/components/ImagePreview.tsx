@@ -217,7 +217,8 @@ function ZoomableImage({
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   const scaleRef = useRef(1);
-  const offsetRef = useRef({ x: 0, y: 0 }); // raw offset for edge detection in handleTouchEnd
+  const rawOffsetRef = useRef({ x: 0, y: 0 }); // raw unclamped — for edge-swipe detection only
+  const offRef = useRef({ x: 0, y: 0 });        // always synced with state — for snap-back
 
   const pinchBase = useRef({ dist: 0, scale: 1 });
   const panBase = useRef({ x: 0, y: 0 });
@@ -297,7 +298,8 @@ function ZoomableImage({
       const clampedX = clampResist(rawX, -maxX, maxX);
       const clampedY = clampResist(rawY, -maxY, maxY);
 
-      offsetRef.current = { x: rawX, y: rawY }; // keep raw for edge-swipe detection
+      rawOffsetRef.current = { x: rawX, y: rawY }; // for edge-swipe
+      offRef.current = { x: rawX, y: rawY };
       setOffset({ x: clampedX, y: clampedY });
     }
   }, [zoomed, computeBounds]);
@@ -325,6 +327,8 @@ function ZoomableImage({
           scaleRef.current = 1;
           setScale(1);
           setOffset({ x: 0, y: 0 });
+          offRef.current = { x: 0, y: 0 };
+          rawOffsetRef.current = { x: 0, y: 0 };
           onZoomActive(false);
         } else {
           scaleRef.current = DOUBLE_TAP_ZOOM;
@@ -335,6 +339,8 @@ function ZoomableImage({
             x: (cx - touch.clientX) * (DOUBLE_TAP_ZOOM - 1),
             y: (cy - touch.clientY) * (DOUBLE_TAP_ZOOM - 1),
           });
+          offRef.current = { x: (cx - touch.clientX) * (DOUBLE_TAP_ZOOM - 1), y: (cy - touch.clientY) * (DOUBLE_TAP_ZOOM - 1) };
+          rawOffsetRef.current = { x: (cx - touch.clientX) * (DOUBLE_TAP_ZOOM - 1), y: (cy - touch.clientY) * (DOUBLE_TAP_ZOOM - 1) };
         }
         lastTap.current = 0;
         return;
@@ -348,6 +354,8 @@ function ZoomableImage({
       scaleRef.current = 1;
       setScale(1);
       setOffset({ x: 0, y: 0 });
+      offRef.current = { x: 0, y: 0 };
+      rawOffsetRef.current = { x: 0, y: 0 };
       onZoomActive(false);
       return;
     }
@@ -355,34 +363,39 @@ function ZoomableImage({
     // ── Edge-swipe to next/prev page (only if user actually panned) ──
     if (curZoomed && didPan.current) {
       const { maxX } = computeBounds();
-      const rawX = offsetRef.current.x;
+      const rawX = rawOffsetRef.current.x;
 
       if (rawX < -maxX - OVERSCROLL_SWIPE) {
         onSwipeToPage?.(1);
         scaleRef.current = 1;
         setScale(1);
         setOffset({ x: 0, y: 0 });
+        offRef.current = { x: 0, y: 0 };
+        rawOffsetRef.current = { x: 0, y: 0 };
         onZoomActive(false);
         return;
       }
       if (rawX > maxX + OVERSCROLL_SWIPE) {
         onSwipeToPage?.(-1);
-        scaleRef.current = 1;
         setScale(1);
         setOffset({ x: 0, y: 0 });
+        offRef.current = { x: 0, y: 0 };
+        rawOffsetRef.current = { x: 0, y: 0 };
         onZoomActive(false);
+        return;
         return;
       }
     }
 
     // ── Snap pan back within bounds ──
     const { maxX, maxY } = computeBounds();
-    const curX = offsetRef.current.x;
-    const curY = offsetRef.current.y;
+    const curX = offRef.current.x;
+    const curY = offRef.current.y;
     const snapX = Math.max(-maxX, Math.min(maxX, curX));
     const snapY = Math.max(-maxY, Math.min(maxY, curY));
     if (snapX !== curX || snapY !== curY) {
       setOffset({ x: snapX, y: snapY });
+      offRef.current = { x: snapX, y: snapY };
     }
   }, [windowW, windowH, onZoomActive, onSwipeToPage, computeBounds]);
 
