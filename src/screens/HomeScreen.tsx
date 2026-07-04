@@ -25,7 +25,6 @@ import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useDailyRevenueForm } from './home/useDailyRevenueForm';
 import { useNavigationStack, type SubPage } from './home/useNavigationStack';
 import { useHomeData } from './home/useHomeData';
-import { useServerDate } from '../hooks/useServerDate';
 import DailyRevenuePanel from './home/DailyRevenuePanel';
 import ExpenseSummaryCards from './expense/ExpenseSummaryCards';
 import ChartsPanel from './ChartsPanel';
@@ -147,9 +146,6 @@ export default function HomeScreen({
     toDec2Comma,
   } = useHomeData(tab, showToast);
 
-  // Background image crop moved to shared BgCropModal component.
-
-  const sd = useServerDate();
   const {
     pageStack, removing, pdfPreview, setPdfPreview,
     pushPage, popPage, clearStack,
