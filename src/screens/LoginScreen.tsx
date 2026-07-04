@@ -199,8 +199,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   const switchToFaceMode = () => {
     setFaceMode(true);
-    setFaceUsername(username);
-    setPassword('');
     setMsg(''); setMsgKey('');
   };
 
