@@ -921,7 +921,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   // Face ID mode
   faceModeWrap: { alignItems: 'center', gap: 16 },
   faceBtn: {
-    width: 80, height: 80, borderRadius: 40,
+    width: 88, height: 88, borderRadius: 44,
     backgroundColor: 'rgba(0,0,0,0.35)',
     justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
