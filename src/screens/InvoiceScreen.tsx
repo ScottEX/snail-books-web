@@ -296,6 +296,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editSnapshot, setEditSnapshot] = useState<any>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const deleteIdRef = useRef<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -422,10 +423,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   // ── Confirm delete invoice record (physical delete) ──
   const handleConfirmDelete = async () => {
-    if (confirmDeleteId == null || deleting) return;
+    if (deleteIdRef.current == null || deleting) return;
     setDeleting(true);
     try {
-      await api.deleteInvoiceRecord(confirmDeleteId);
+      await api.deleteInvoiceRecord(deleteIdRef.current!);
       setConfirmDeleteId(null);
       await loadRecords();
     } catch (e: any) {
@@ -796,7 +797,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                       <Text style={[s.invAmountLabel, { color: c.textSub }]}>{r.status === 'pending' ? t('invApplyAmount') : t('invTaxAmount')}</Text>
                     </View>
                     <View style={s.invActions}>
-                      <TouchableOpacity style={[s.invDelBtn, { backgroundColor: withAlpha(c.textMain, 0.05) }]} onPress={() => setConfirmDeleteId(r.id)}>
+                      <TouchableOpacity style={[s.invDelBtn, { backgroundColor: withAlpha(c.textMain, 0.05) }]} onPress={() => { deleteIdRef.current = r.id; setConfirmDeleteId(r.id); }}>
                         <TrashIcon color={c.danger} size={14} />
                       </TouchableOpacity>
                     </View>
@@ -820,7 +821,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
           <>
             {t('invDelConfirmPrefix')}
             <Text style={{ fontWeight: '600', color: c.textMain }}>
-              {records.find(r => r.id === confirmDeleteId)?.invoice_number || '—'}
+              {records.find(r => r.id === deleteIdRef.current)?.invoice_number || '—'}
             </Text>
             {t('invDelConfirmSuffix')}
           </>

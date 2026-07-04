@@ -380,6 +380,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [editSnapshot, setEditSnapshot] = useState<string | null>(null);
   // Delete confirmation target (batch record)
   const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
+  const delBatchRef = useRef<BatchRecord | null>(null);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [itemsModalIsCart, setItemsModalIsCart] = useState(false);
@@ -430,6 +431,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '', note: '' });
   const [prodSaving, setProdSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const delTargetRef = useRef<Product | null>(null);
 
   // ── Shared slide-from-top animation for product/delete/success modals ──
   const modalSlide = useRef(new Animated.Value(0)).current;
@@ -798,8 +800,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   // Confirm delete batch + cascade
   const confirmDeleteBatch = async () => {
-    if (!deleteBatchTarget) return;
-    const targetId = deleteBatchTarget.id;
+    if (!delBatchRef.current) return;
+    const targetId = delBatchRef.current.id;
     setDeleteBatchTarget(null);
     try {
       const r = await api.deleteProcurementBatch(targetId);
@@ -850,11 +852,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setProdSaving(false);
   };
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!delTargetRef.current) return;
     try {
-      await api.deleteProduct(deleteTarget.id);
-      // Clean orphan cart entries for deleted product
-      setCart(prev => { const cp = { ...prev }; delete cp[deleteTarget.id]; return cp; });
+      await api.deleteProduct(delTargetRef.current.id);
+      setCart(prev => { const cp = { ...prev }; delete cp[delTargetRef.current!.id]; return cp; });
       loadProducts();
     } catch {
       showToast(t('toastSubmitFailed'));
@@ -1104,7 +1105,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.histActionBtn, batch.settled_at && { opacity: 0.3 }]}
-                        onPress={(e) => { e.stopPropagation?.(); if (!batch.settled_at) openSlideModal(() => setDeleteBatchTarget(batch)); }}
+                        onPress={(e) => { e.stopPropagation?.(); if (!batch.settled_at) { delBatchRef.current = batch; openSlideModal(() => setDeleteBatchTarget(batch)); } }}
                         disabled={!!batch.settled_at}
                         activeOpacity={batch.settled_at ? 1 : 0.7}
                         hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -1192,7 +1193,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openEditProduct(p)}>
                     <PencilIcon color={c.textSub} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openSlideModal(() => setDeleteTarget(p))}>
+                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => { delTargetRef.current = p; openSlideModal(() => setDeleteTarget(p)); }}>
                     <TrashIcon color={c.danger} size={14} />
                   </TouchableOpacity>
                 </View>
@@ -1250,7 +1251,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       <ConfirmModal
         visible={deleteTarget !== null}
         title={t('procDeleteProduct') || '删除商品'}
-        message={<>{t('procDeleteProductConfirm').split('{name}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{deleteTarget?.name}</Text>{t('procDeleteProductConfirm').split('{name}')[1]}{' '}{t('procDeleteProductWarning')}</>}
+        message={<>{t('procDeleteProductConfirm').split('{name}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{delTargetRef.current?.name}</Text>{t('procDeleteProductConfirm').split('{name}')[1]}{' '}{t('procDeleteProductWarning')}</>}
         confirmLabel={t('delete')}
         onConfirm={() => confirmDelete()}
         onCancel={() => closeSlideModal(() => setDeleteTarget(null))}
@@ -1260,7 +1261,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       <ConfirmModal
         visible={deleteBatchTarget !== null}
         title={t('procDeleteBatch')}
-        message={<>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(deleteBatchTarget?.batch_number ?? ''))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>}
+        message={<>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(delBatchRef.current?.batch_number ?? ''))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>}
         confirmLabel={t('delete')}
         onConfirm={() => confirmDeleteBatch()}
         onCancel={() => closeSlideModal(() => setDeleteBatchTarget(null))}

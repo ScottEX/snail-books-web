@@ -40,6 +40,7 @@ function ReconEmptyIcon({ color }: { color: string }) {
 
 export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState<any>(null);
+  const selectedRef = useRef<any>(null);
   const { showToast, ToastHost } = useToast();
   const swipeBack = useSwipeBack(onBack);
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
@@ -154,7 +155,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   // Card: compact summary (tap to open detail modal)
   const renderCard = (r: any) => (
-    <TouchableOpacity key={r.id} style={st.card} onPress={() => setSelected(r)} activeOpacity={0.7}>
+    <TouchableOpacity key={r.id} style={st.card} onPress={() => { selectedRef.current = r; setSelected(r); }} activeOpacity={0.7}>
       {/* Row 1: two dates */}
       <View style={st.dateRow}>
         <View style={st.dateItem}>
@@ -333,7 +334,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </ScrollView>
       {/* Detail Modal */}
       <ModalOverlay visible={!!selected} onClose={() => setSelected(null)} animation="springScale">
-        {selected && (() => { const r = selected; return (
+        {selectedRef.current && (() => { const r = selectedRef.current; return (
           <View style={[st.modal, { width: Dimensions.get('window').width * 0.9 }]}>
             {/* Header */}
             <View style={st.modalHeader}>
