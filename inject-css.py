@@ -25,7 +25,7 @@ with open(dist_index, 'r') as f:
 # CSS to inject (glass-morphism + background styles from production login page)
 INJECT_CSS = '''
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
+    body { font-family:'Inter','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; background:#FAF9F6; }
     input, textarea { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
     /* Keep #root flex for React Native Web layout — don't override */
     .bg-wrapper { position: fixed; inset: 0; z-index: 0; background: url(/img/bg.jpg?v=3) center/cover no-repeat; }
@@ -96,17 +96,21 @@ PWA_TAGS = '''
 # Fonts: non-blocking <link> — avoids @import blocking splash CSS rendering on iOS Safari
 FONT_LINK = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,500;1,400&amp;family=DM+Mono:wght@300;400&amp;display=swap" media="print" onload="this.media=\'all\'">'
 
-# Inject idle timeout first (before any other scripts, so it wraps fetch early)
-html = html.replace('<head>', '<head>\n' + IDLE_TIMEOUT_JS)
+# Inject idle timeout first (before any other scripts, so it wraps fetch early).
+# Moved to end of <body> with defer so it doesn't block the splash screen from rendering.
+html = html.replace('</body>', IDLE_TIMEOUT_JS + '\n</body>')
 
 # Inject boot.js (for Capacitor config)
-html = html.replace('<head>', '<head>\n' + BOOT_JS)
+html = html.replace('</body>', BOOT_JS + '\n</body>')
 # Insert PWA tags
 html = html.replace('<head>', '<head>\n' + PWA_TAGS)
-# Insert non-blocking font link
-html = html.replace('<head>', '<head>\n' + FONT_LINK)
 # Insert custom CSS into the existing expo-reset style block, or add a new one
 html = html.replace('</style>', '</style>\n<style>' + INJECT_CSS + '</style>')
+# Insert non-blocking font link — AFTER inline CSS so splash renders before external fetch
+html = html.replace('<head>', '<head>\n' + FONT_LINK)
+# Set body background IMMEDIATELY — last <head> injection so it appears FIRST.
+# This prevents any white flash before the splash screen paints.
+html = html.replace('<head>', '<head>\n<style>html,body{background:#FAF9F6}</style>')
 
 # Fix viewport to prevent iOS auto-zoom on input focus
 html = html.replace(
@@ -127,41 +131,41 @@ SPLASH_HTML = """<div id="splash" style="position:fixed;inset:0;z-index:9999;bac
 <div style="position:absolute;width:14px;height:14px;bottom:110px;right:36px;border-bottom:1px solid #E4E0D6;border-right:1px solid #E4E0D6"></div>
 <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;position:relative;z-index:2;margin-top:-32px">
 <div style="position:relative;width:96px;height:96px;margin-bottom:28px">
-<div style="position:absolute;inset:-16px;border-radius:50%;background:radial-gradient(circle, rgba(201,169,110,.14) 0%, transparent 70%);animation:glowPulse 3s ease-in-out 1.2s infinite"></div>
+<div style="position:absolute;inset:-16px;border-radius:50%;background:radial-gradient(circle, rgba(201,169,110,.14) 0%, transparent 70%);animation:splashGlowPulse 3s ease-in-out 1.2s infinite"></div>
 <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="48" cy="48" r="40" stroke="#C9A96E" stroke-width="1" opacity=".4" stroke-dasharray="200" stroke-dashoffset="200" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .5s forwards"/>
-<path d="M24 42 Q24 66 48 68 Q72 66 72 42" stroke="#7A1A1A" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="200" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .65s forwards"/>
-<path d="M20 42 L76 42" stroke="#7A1A1A" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="200" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .78s forwards"/>
-<path d="M38 34 Q40 28 38 22" stroke="#C9A96E" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="60" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .96s forwards"/>
-<path d="M48 32 Q50 26 48 20" stroke="#C9A96E" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="60" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .96s forwards"/>
-<path d="M58 34 Q60 28 58 22" stroke="#C9A96E" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="60" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) 1.05s forwards"/>
-<circle cx="32" cy="78" r="3" stroke="#7A1A1A" stroke-width="1.2" fill="#FAF9F6" stroke-dasharray="200" stroke-dashoffset="200" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
-<circle cx="48" cy="78" r="3" stroke="#C9A96E" stroke-width="1.2" fill="#FAF9F6" stroke-dasharray="200" stroke-dashoffset="200" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
-<circle cx="64" cy="78" r="3" stroke="#7A1A1A" stroke-width="1.2" fill="#FAF9F6" stroke-dasharray="200" stroke-dashoffset="200" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
-<line x1="35" y1="78" x2="45" y2="78" stroke="#B0ADA5" stroke-width="1" stroke-dasharray="2 2" stroke-dashoffset="200" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
-<line x1="51" y1="78" x2="61" y2="78" stroke="#B0ADA5" stroke-width="1" stroke-dasharray="2 2" stroke-dashoffset="200" style="animation:drawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
+<circle cx="48" cy="48" r="40" stroke="#C9A96E" stroke-width="1" opacity=".4" stroke-dasharray="200" stroke-dashoffset="200" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .5s forwards"/>
+<path d="M24 42 Q24 66 48 68 Q72 66 72 42" stroke="#7A1A1A" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="200" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .65s forwards"/>
+<path d="M20 42 L76 42" stroke="#7A1A1A" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="200" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .78s forwards"/>
+<path d="M38 34 Q40 28 38 22" stroke="#C9A96E" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="60" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .96s forwards"/>
+<path d="M48 32 Q50 26 48 20" stroke="#C9A96E" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="60" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .96s forwards"/>
+<path d="M58 34 Q60 28 58 22" stroke="#C9A96E" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="60" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) 1.05s forwards"/>
+<circle cx="32" cy="78" r="3" stroke="#7A1A1A" stroke-width="1.2" fill="#FAF9F6" stroke-dasharray="200" stroke-dashoffset="200" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
+<circle cx="48" cy="78" r="3" stroke="#C9A96E" stroke-width="1.2" fill="#FAF9F6" stroke-dasharray="200" stroke-dashoffset="200" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
+<circle cx="64" cy="78" r="3" stroke="#7A1A1A" stroke-width="1.2" fill="#FAF9F6" stroke-dasharray="200" stroke-dashoffset="200" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
+<line x1="35" y1="78" x2="45" y2="78" stroke="#B0ADA5" stroke-width="1" stroke-dasharray="2 2" stroke-dashoffset="200" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
+<line x1="51" y1="78" x2="61" y2="78" stroke="#B0ADA5" stroke-width="1" stroke-dasharray="2 2" stroke-dashoffset="200" style="animation:splashDrawIn .8s cubic-bezier(.4,0,.2,1) .88s forwards"/>
 </svg>
 </div>
-<div style="text-align:center;opacity:0;animation:fadeUp .7s cubic-bezier(.22,.88,.4,1) .95s forwards">
+<div style="text-align:center;opacity:0;animation:splashFadeUp .7s cubic-bezier(.22,.88,.4,1) .95s forwards">
 <div style="font-family:'DM Mono',monospace;font-size:10px;font-weight:300;letter-spacing:.28em;text-transform:uppercase;color:#A88040;margin-bottom:6px">Liuwei &middot; Supply Chain</div>
 <div style="font-family:'Playfair Display',serif;font-size:34px;font-weight:400;color:#7A1A1A;letter-spacing:.12em;line-height:1">柳味探秘</div>
-<div style="font-family:'Noto Sans SC',sans-serif;font-size:11px;font-weight:300;color:#B0ADA5;letter-spacing:.18em;margin-top:18px;opacity:0;animation:fadeIn .6s ease 1.5s forwards">生活不简单，尽量简单过～</div>
+<div style="font-family:'Noto Sans SC',sans-serif;font-size:11px;font-weight:300;color:#B0ADA5;letter-spacing:.18em;margin-top:18px;opacity:0;animation:splashFadeIn .6s ease 1.5s forwards">生活不简单，尽量简单过～</div>
 </div>
-<div style="margin-top:40px;text-align:center;opacity:0;animation:fadeIn .6s ease 1.7s forwards">
+<div style="margin-top:40px;text-align:center;opacity:0;animation:splashFadeIn .6s ease 1.7s forwards">
 <span style="font-family:'Noto Sans SC',sans-serif;font-size:12px;font-weight:400;color:#B0ADA5;letter-spacing:.1em;display:flex;align-items:center;gap:10px;justify-content:center"><span style="width:24px;height:1px;background:#E4E0D6;display:inline-block"></span>每一笔流水，清晰可查<span style="width:24px;height:1px;background:#E4E0D6;display:inline-block"></span></span>
 </div>
-<div style="position:absolute;bottom:0;left:0;right:0;padding-bottom:52px;display:flex;flex-direction:column;align-items:center;gap:14px;z-index:2;opacity:0;animation:fadeIn .6s ease 1.9s forwards">
-<div style="width:56px;height:2px;background:#E4E0D6;border-radius:1px;overflow:hidden"><div style="height:100%;width:100%;background:linear-gradient(90deg,#A88040,#C9A96E);border-radius:1px;animation:loadFill 1.8s cubic-bezier(.4,0,.2,1) 2s forwards;width:0%"></div></div>
+<div style="position:absolute;bottom:0;left:0;right:0;padding-bottom:52px;display:flex;flex-direction:column;align-items:center;gap:14px;z-index:2;opacity:0;animation:splashFadeIn .6s ease 1.9s forwards">
+<div style="width:56px;height:2px;background:#E4E0D6;border-radius:1px;overflow:hidden"><div style="height:100%;width:100%;background:linear-gradient(90deg,#A88040,#C9A96E);border-radius:1px;animation:splashLoadFill 1.8s cubic-bezier(.4,0,.2,1) 2s forwards;width:0%"></div></div>
 <div style="font-family:'DM Mono',monospace;font-size:9px;font-weight:300;letter-spacing:.2em;text-transform:uppercase;color:#B0ADA5">Loading</div>
 </div>
 </div>
 </div>"""
 SPLASH_CSS = """
-@keyframes drawIn{to{stroke-dashoffset:0}}
-@keyframes glowPulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
-@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{to{opacity:1}}
-@keyframes loadFill{to{width:100%}}
+@keyframes splashDrawIn{to{stroke-dashoffset:0}}
+@keyframes splashGlowPulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+@keyframes splashFadeUp{to{opacity:1;transform:translateY(0)}}
+@keyframes splashFadeIn{to{opacity:1}}
+@keyframes splashLoadFill{to{width:100%}}
 """
 SPLASH_JS = """<script>
 (function(){

@@ -73,7 +73,7 @@ export default function SessionKickedModal() {
   };
 
   return (
-    <ModalOverlay visible={visible} onClose={handleClose}>
+    <ModalOverlay visible={visible} onClose={handleClose} animation="blurMorph">
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('sessionKickedTitle') || '账号已退出'}</Text>
@@ -94,7 +94,7 @@ export default function SessionKickedModal() {
 
 const getStyles = (c: ThemeColors) => StyleSheet.create({
   card: {
-    backgroundColor: c.surface, borderRadius: 16,
+    backgroundColor: c.surface, borderRadius: 24,
     width: 340, maxWidth: '90%', overflow: 'hidden',
     // @ts-ignore
 

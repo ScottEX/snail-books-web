@@ -5,6 +5,7 @@ import { t, getLang, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { validateEmail } from '../utils/validation';
 import { useToast } from '../hooks/useToast';
 
 // Base64url helpers for WebAuthn
@@ -34,7 +35,6 @@ import { useSignatureForm } from './profile/useSignatureForm';
 import { useCoverCrop } from './profile/useCoverCrop';
 import { useAvatarCrop } from './profile/useAvatarCrop';
 import { useSwipeBack } from '../hooks/useSwipeBack';
-import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
 import CloseButton from '../components/CloseButton';
 import TextField from '../components/TextField';
@@ -56,24 +56,23 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const { colors, theme, setTheme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const {
-    avatarUrl, setAvatarUrl, avatarKey, setAvatarKey,
+    avatarUrl, avatarKey,
     cropSrc, cropResult, showResult, cropMsg,
-    setCropSrc, setCropResult, setShowResult, setCropMsg,
-    cropImgRef, canvasRef, stageRef, guideRef,
+    setCropSrc, setShowResult,
+    canvasRef, stageRef, guideRef,
     handleAvatarSelect, confirmCrop, doUpload,
     loadAvatar,
     cropState, clampCrop, drawCrop,
     zoomSlider, setZoomSlider,
   } = useAvatarCrop(onAvatarChange);
   const {
-    coverUrl, setCoverUrl, coverKey, setCoverKey,
+    coverUrl, coverKey,
     coverOpacity, setCoverUploading, coverUploading,
     coverCropSrc, coverCropResult, coverShowResult, coverCropMsg,
-    setCoverCropSrc, setCoverCropResult, setCoverShowResult, setCoverCropMsg,
+    setCoverCropSrc, setCoverCropResult, setCoverShowResult,
     coverZoomSlider, setCoverZoomSlider,
-    coverInputRef, coverCropImgRef, coverCanvasRef, coverStageRef, coverGuideRef,
+    coverInputRef, coverCanvasRef, coverStageRef, coverGuideRef,
     handleCoverSelect, coverConfirmCrop, coverDoUpload,
-    handleCoverOpacityChange, handleCoverReset,
     loadCover,
     coverCropState, coverClampCrop, coverDrawCrop,
   } = useCoverCrop();
@@ -93,7 +92,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [email, setEmail] = useState('');
   const {
     signature, setSignature,
-    signatureEditing, setSignatureEditing,
+    signatureEditing,
     signatureDraft, setSignatureDraft,
     handleSignatureSave, startEditing,
   } = useSignatureForm();
@@ -115,14 +114,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try {
       const data = await api.admin.getUnreviewedCount();
       setUnreviewedCount(data.count ?? 0);
-    } catch {}
-  };
-
-  const markReviewed = async () => {
-    if (unreviewedCount === 0 || !isAdmin) return;
-    setUnreviewedCount(0);
-    try {
-      await api.admin.markReviewed();
     } catch {}
   };
 
@@ -945,7 +936,14 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                     placeholder={t('newEmail')}
                     placeholderTextColor={colors.textSub}
                     value={newEmail}
-                    onChangeText={setNewEmail}
+                    onChangeText={(v) => { setNewEmail(v); if (modalMsg) setModalMsg(''); }}
+                    onBlur={() => {
+                      const emailErr = validateEmail(newEmail, t);
+                      if (emailErr) {
+                        setNewEmail('');
+                        setModalMsg(emailErr);
+                      }
+                    }}
                     autoFocus
                     keyboardType="email-address"
                   />
@@ -1375,7 +1373,7 @@ function getStyles(colors: ThemeColors) {
 function getMo(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
-      backgroundColor: colors.surface, borderRadius: 16,
+      backgroundColor: colors.surface, borderRadius: 24,
       width: 340, maxWidth: '90%', overflow: 'hidden' as any,
 
     },
@@ -1437,7 +1435,7 @@ function getCropStyles() {
       flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6',
       justifyContent: 'center', alignItems: 'center', flexDirection: 'row',
     } as any,
-    resultCard: { backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12 } as any,
+    resultCard: { backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 24, padding: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12 } as any,
     resultBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any,
     resultLabel: { fontSize: 14, fontWeight: '600' as const, color: '#fff' },
     sizePreviews: { flexDirection: 'row', gap: 16, alignItems: 'flex-end' } as any,

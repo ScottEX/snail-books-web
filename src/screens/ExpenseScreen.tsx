@@ -13,9 +13,9 @@ import ModalOverlay from '../components/ModalOverlay';
 import NumberTicker from '../components/NumberTicker';
 import FadeInView from '../components/FadeInView';
 import DateErrorHint from '../components/DateErrorHint';
-import { useTheme, withAlpha, ThemeColors } from '../theme';
+import { useTheme, withAlpha, ThemeColors, BACKDROP_COLOR } from '../theme';
 import { FONTS } from '../theme';
-import { uploadReceiptStyles } from '../sharedStyles';
+import { uploadReceiptStyles, bottomSheetOverlay } from '../sharedStyles';
 import { fmtAmt as fmt, fmtAmtFull } from '../utils/format';
 import { blockNeg, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
@@ -374,9 +374,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     expCategory, setExpCategory,
     payMethod, setPayMethod,
     expNote, setExpNote,
-    expImages, setExpImages,
+    expImages,
     loadingExp,
-    showExpConfirm, setShowExpConfirm,
     handleAddExpense,
     handleImageSelect, removeImage,
     isAmountInvalid,
@@ -619,7 +618,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     if (!feeMonthPicker.open) {
                       // Measure trigger position for dropdown placement
                       if (pickerTriggerRef.current && typeof (pickerTriggerRef.current as any).measureInWindow === 'function') {
-                        (pickerTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
+                        (pickerTriggerRef.current as any).measureInWindow((x: number, y: number, _w: number, h: number) => {
                           setPickerPos({ top: y + h + 4, left: x });
                           feeMonthPicker.show();
                         });
@@ -883,7 +882,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 leftLabel={t('expenseHistory')}
                 leftOnPress={() => onExpenseHistory?.()}
                 rightLabel={t('confirmRecord')}
-                rightOnPress={() => { if (parseFloat(expAmount.replace(/,/g, '')) !== 0) setShowExpConfirm(true); }}
+                rightOnPress={handleAddExpense}
                 rightDisabled={isAmountInvalid}
                 rightLoading={loadingExp}
               />
@@ -893,29 +892,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         )}
       </ScrollView>
 
-      {/* 支出确认弹窗 */}
-        <ModalOverlay visible={showExpConfirm} onClose={() => setShowExpConfirm(false)}>
-          <View style={st.modalCard} onStartShouldSetResponder={() => true}>
-            <View style={st.modalHeader}>
-              <Text style={st.modalTitle}>{t('expConfirmTitle')}</Text>
-              <CloseButton onPress={() => setShowExpConfirm(false)} />
-            </View>
-            <View style={{ padding: 20, gap: 16 }}>
-              <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
-                {t('expConfirmMsg')}
-              </Text>
-              <ButtonPair
-                leftLabel={t('cancel')}
-                leftOnPress={() => setShowExpConfirm(false)}
-                rightLabel={t('confirm')}
-                rightOnPress={() => { setShowExpConfirm(false); handleAddExpense(); }}
-              />
-            </View>
-          </View>
-        </ModalOverlay>
-
       {/* 添加提示弹窗 */}
-        <ModalOverlay visible={showCardToast} onClose={hideCardToast}>
+        <ModalOverlay visible={showCardToast} onClose={hideCardToast} animation="springScale">
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
@@ -935,10 +913,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           </View>
         </ModalOverlay>
       {/* Platform fee entry bottom sheet */}
-        <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
-          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+      <ModalOverlay visible={feeSheet.open} onClose={() => feeSheet.hide()} animation="slideUpScale"
+          overlayStyle={bottomSheetOverlay as any}
           contentStyle={{ alignItems: 'stretch' } as any}>
-          <View style={[st.feeSheet, { width: '100%' }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { width: '100%', maxWidth: 768, alignSelf: 'center' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -1028,13 +1006,13 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               />
             </View>
           </View>
-        </ModalOverlay>
+      </ModalOverlay>
 
       {/* Fee history bottom sheet — "全部" detail view */}
-        <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
-          overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+      <ModalOverlay visible={feeHistory.open} onClose={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }} animation="slideUpScale"
+          overlayStyle={bottomSheetOverlay as any}
           contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}>
-          <View style={[st.feeSheet, { height: winH * 0.7, width: '100%' }]} onStartShouldSetResponder={() => true}>
+          <View style={[st.feeSheet, { height: winH * 0.7, width: '100%', maxWidth: 768, alignSelf: 'center' }]} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -1055,7 +1033,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 onPress={() => {
                   if (!feeHistoryFilterPicker.open) {
                     if (feeHistoryFilterTriggerRef.current) {
-                      (feeHistoryFilterTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
+                      (feeHistoryFilterTriggerRef.current as any).measureInWindow((x: number, y: number, _w: number, _h: number) => {
                         setFeeHistoryPickerPos({ top: y + 30, left: x });
                         feeHistoryPickerAnim.setValue(0);
                         Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();
@@ -1162,7 +1140,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Fee history filter dropdown — animated to match platform fee picker */}
       {feeHistoryFilterPicker.open && createPortal(
         <>
-          <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(20,18,16,0.65)', zIndex: 9998, opacity: feeHistoryPickerAnim }}>
+          <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: BACKDROP_COLOR, zIndex: 9998, opacity: feeHistoryPickerAnim }}>
             <TouchableOpacity
               style={{ flex: 1 }}
               activeOpacity={1}
@@ -1493,7 +1471,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modalCard: {
-    backgroundColor: colors.surface, borderRadius: 20, width: 320, maxWidth: '100%',
+    backgroundColor: colors.surface, borderRadius: 24, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
 

@@ -134,6 +134,9 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRange: '结束日期必须晚于开始日期',
     errDateRangeTooLong: '日期范围不能超过 24 个月',
     errEmailInvalid: '邮箱格式不正确',
+    errPhoneInvalid: '请输入正确的手机号码',
+    errBankCardInvalid: '卡号有误',
+    errInvoiceNoLength: '发票号需为8-20位数字',
     errEmptyFields: '请填写所有字段',
     errEnterCode: '请输入验证码',
     errFileSize: '图片不能超过10MB',
@@ -267,6 +270,8 @@ const I18N: Record<string, Record<string, string>> = {
     invUrge: '催一下',
     invVatSpecial: '增值税专票',
     invVatSpecialFull: '增值税专用发票',
+    invVatGoMaintain: '请完善开票信息',
+    invPleaseMaintain: '请完善信息',
     invest: '出资',
     investComplete: '出资完结',
     invoiceSave: '保存',
@@ -722,6 +727,9 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRange: '結束日期必須晚於開始日期',
     errDateRangeTooLong: '日期範圍不能超過 24 個月',
     errEmailInvalid: '郵箱格式不正確',
+    errPhoneInvalid: '請輸入正確的手機號碼',
+    errBankCardInvalid: '卡號有誤',
+    errInvoiceNoLength: '發票號需為8-20位數字',
     errEmptyFields: '請填寫所有字段',
     errEnterCode: '請輸入驗證碼',
     errFileSize: '圖片不能超過10MB',
@@ -855,6 +863,8 @@ const I18N: Record<string, Record<string, string>> = {
     invUrge: '催一下',
     invVatSpecial: '增值稅專票',
     invVatSpecialFull: '增值稅專用發票',
+    invVatGoMaintain: '請去開票信息維護',
+    invPleaseMaintain: '請維護信息',
     invest: '出資',
     investComplete: '出資完結',
     invoiceSave: '保存',
@@ -1309,7 +1319,9 @@ const I18N: Record<string, Record<string, string>> = {
     errDateRange: 'End date must be after start date',
     errDateRangeTooLong: 'Date range cannot exceed 24 months',
     errEmailInvalid: 'Invalid email format',
-    errEmptyFields: 'Please fill all fields',
+    errPhoneInvalid: 'Please enter a valid phone number',
+    errInvoiceNoLength: 'Invoice number must be 8-20 digits',
+    errExpense: 'Expense operation failed',
     errEnterCode: 'Please enter verification code',
     errFileSize: 'Image must be under 10MB',
     errNetworkError: 'Network error, please check your connection',
@@ -1390,6 +1402,8 @@ const I18N: Record<string, Record<string, string>> = {
     invEditBank: 'Edit Bank Info',
     invEditInfo: 'Edit Invoice Info',
     invEmail: 'Receiving Email',
+    invPleaseMaintain: 'Please fill in',
+    invVatGoMaintain: 'Please fill in Invoice Settings',
     invEmpty: 'No invoice records',
     invExportToast: 'Export records',
     invFileUploaded: 'Uploaded Invoice',
@@ -1898,6 +1912,9 @@ export type I18nKey =
   | 'errDateRange'
   | 'errDateRangeTooLong'
   | 'errEmailInvalid'
+  | 'errPhoneInvalid'
+  | 'errBankCardInvalid'
+  | 'errInvoiceNoLength'
   | 'errEmptyFields'
   | 'errEnterCode'
   | 'errFileSize'
@@ -2005,6 +2022,7 @@ export type I18nKey =
   | 'invRecStatusDone'
   | 'invRecStatusPending'
   | 'invReceipt'
+  | 'invPleaseMaintain'
   | 'invReceiveMethod'
   | 'invRecordsTab'
   | 'invSave'
@@ -2031,6 +2049,7 @@ export type I18nKey =
   | 'invUrge'
   | 'invVatSpecial'
   | 'invVatSpecialFull'
+  | 'invVatGoMaintain'
   | 'invest'
   | 'investComplete'
   | 'invoiceSave'

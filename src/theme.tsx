@@ -64,10 +64,20 @@ export const EXIT_EASING = 'cubic-bezier(0.55, 0.055, 0.675, 0.19)';
 // ═══════════════════════════════════════════
 // 弹窗遮罩常量（统一控制，PDF 预览页除外）
 // ═══════════════════════════════════════════
-export const MODAL_BACKDROP_OPACITY = 0.8;
+/** 弹窗遮罩背景 RGB（不含 alpha） */
+export const BACKDROP_RGB = '20,18,16';
+
+/** 弹窗遮罩透明度 */
+export const MODAL_BACKDROP_OPACITY = 0.65;
+
+/** 弹窗遮罩完整颜色 */
+export const BACKDROP_COLOR = `rgba(${BACKDROP_RGB},${MODAL_BACKDROP_OPACITY})`;
 
 /** 内容区最大宽度，桌面端居中约束。修改此值全局生效。 */
 export const CONTENT_MAX_WIDTH = 768;
+
+/** Sheet 抽屉顶部灰色把手颜色 */
+export const SHEET_HANDLE_COLOR = '#D4D0C8';
 
 export const REQUIRED_COLOR = '#E84040';
 

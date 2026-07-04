@@ -382,6 +382,9 @@ export const api = {
   // Invoice info (system-level)
   getInvoice: () => authFetch('/api/admin/invoice'),
   updateInvoice: (data: Record<string, string>) => authFetch('/api/admin/invoice', { method: 'PUT', body: JSON.stringify(data) }),
+  getInvoiceEmail: () => authFetch('/api/invoice-email'),
+  saveInvoiceEmail: (email: string) => authFetch('/api/invoice-email', { method: 'PUT', body: JSON.stringify({ email }) }),
+  bankLookup: (prefix: string) => authFetch(`/api/bank-lookup?prefix=${encodeURIComponent(prefix)}`),
 
   // Invoice records (开票记录 — user-level CRUD)
   getInvoiceRecords: (filter?: { status?: 'pending' | 'done'; type?: 'vat' | 'general'; procurement_batch_id?: number }) => {
@@ -396,7 +399,7 @@ export const api = {
   createInvoiceRecord: (data: Record<string, any>) => authFetch('/api/invoice-records', { method: 'POST', body: JSON.stringify(data) }),
   updateInvoiceRecord: (id: number, data: Record<string, any>) => authFetch(`/api/invoice-records/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteInvoiceRecord: (id: number) => authFetch(`/api/invoice-records/${id}`, { method: 'DELETE' }),
-  uploadInvoiceFile: (id: number, file: File): Promise<{ status: string; file_path: string; file_type: string; file_size: number }> => {
+  uploadInvoiceFile: (id: number, file: File): Promise<{ status: string; file_path: string; thumb_path?: string; file_type: string; file_size: number }> => {
     const fd = new FormData();
     fd.append('file', file);
     return authFetch(`/api/invoice-records/${id}/file`, { method: 'POST', body: fd });

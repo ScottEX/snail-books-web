@@ -3,9 +3,25 @@
 // Import these instead of copying animation/sizing properties per-screen.
 // ═══════════════════════════════════════════
 
-import { ThemeColors, withAlpha, FONTS } from './theme';
+import { ThemeColors, withAlpha, FONTS, SHEET_HANDLE_COLOR } from './theme';
 
 // ─── Modal / Popup ──────────────────────────
+
+/** 底部 sheet 抽屉的 ModalOverlay overlayStyle 共用配置 */
+export const bottomSheetOverlay = {
+  justifyContent: 'flex-end' as const,
+  padding: 0,
+  alignItems: 'stretch' as const,
+};
+
+/** Sheet 抽屉顶部灰色把手 */
+export const sheetHandle = {
+  width: 36, height: 4,
+  backgroundColor: SHEET_HANDLE_COLOR,
+  borderRadius: 2,
+  alignSelf: 'center' as const,
+  marginBottom: 12,
+};
 
 /** Modal close button (✕) — white at 70% opacity, light weight. Used on dark primary headers. */
 export const modalClose = {

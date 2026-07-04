@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import Svg, { Path, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -40,6 +40,7 @@ function ReconEmptyIcon({ color }: { color: string }) {
 
 export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState<any>(null);
+  const selectedRef = useRef<any>(null);
   const { showToast, ToastHost } = useToast();
   const swipeBack = useSwipeBack(onBack);
   // Uncontrolled date refs — React Native Web <input type="date"> crashes with controlled value={state}
@@ -62,8 +63,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [appliedTo, setAppliedTo] = useState(sd.today);
   const [appliedBy, setAppliedBy] = useState('');
   const [filterDateError, setFilterDateError] = useState(0);
-  const [filDateFromKey, setFilDateFromKey] = useState(0);
-  const [filDateToKey, setFilDateToKey] = useState(0);
 
   // Once server date arrives, backfill the date filter defaults
   useEffect(() => {
@@ -106,7 +105,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   }, [appliedFrom, appliedTo, appliedBy]);
 
   // Paginated list hook
-  const { records, page, total, totalAll, hasMore, loading, loadPage, handleScroll } = usePaginatedList({
+  const { records, total, totalAll, hasMore, loading, loadPage, handleScroll } = usePaginatedList({
     fetchPage: useCallback(async (pg: number, perPage: number) => {
       const data: any = await api.getReconciliationsPage(pg, perPage, getFilterParams());
       return { items: data?.records || [], total: data?.total || 0, totalAll: data?.total_all, pages: data?.pages || 1 };
@@ -154,7 +153,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
   // Card: compact summary (tap to open detail modal)
   const renderCard = (r: any) => (
-    <TouchableOpacity key={r.id} style={st.card} onPress={() => setSelected(r)} activeOpacity={0.7}>
+    <TouchableOpacity key={r.id} style={st.card} onPress={() => { selectedRef.current = r; setSelected(r); }} activeOpacity={0.7}>
       {/* Row 1: two dates */}
       <View style={st.dateRow}>
         <View style={st.dateItem}>
@@ -333,7 +332,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       </ScrollView>
       {/* Detail Modal */}
       <ModalOverlay visible={!!selected} onClose={() => setSelected(null)} animation="springScale">
-        {selected && (() => { const r = selected; return (
+        {selectedRef.current && (() => { const r = selectedRef.current; return (
           <View style={[st.modal, { width: Dimensions.get('window').width * 0.9 }]}>
             {/* Header */}
             <View style={st.modalHeader}>
@@ -453,7 +452,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modal: {
-    backgroundColor: colors.surface, borderRadius: 20,
+    backgroundColor: colors.surface, borderRadius: 24,
     overflow: 'hidden',
     // @ts-ignore
 

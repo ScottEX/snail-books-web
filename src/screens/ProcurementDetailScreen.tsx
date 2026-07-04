@@ -1,13 +1,12 @@
-import { createPortal } from 'react-dom';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  ActivityIndicator, Image, Switch,
+  Image, Switch,
 } from 'react-native';
 import Svg, { Path, Line } from 'react-native-svg';
 import { t } from '../i18n';
 import { trCategory, trPayment } from '../i18nHelpers';
 import { api } from '../api/client';
-import { useTheme, withAlpha, ThemeColors, MODAL_BACKDROP_OPACITY } from '../theme';
+import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
 import { historyHeader } from '../sharedStyles';
@@ -19,7 +18,7 @@ import { formatDate } from '../utils/format';
 import BackArrow from '../components/icons/BackArrow';
 import TrashIcon from '../components/icons/TrashIcon';
 import { getCurrentUser } from '../utils/storage';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface BatchItem {
   name?: string;
@@ -69,7 +68,7 @@ function EditIcon({ color }: { color: string }) {
 }
 
 export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPreview }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void; onPreview?: (id: number, number: number, supplier?: string) => void }) {
-  const { colors: c, theme } = useTheme();
+  const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const styles = useMemo(() => getStyles(c), [c]);
   const [deleting, setDeleting] = useState(false);
@@ -166,8 +165,6 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
   const images: string[] = cur.images || [];
   const items = cur.items || [];
 
-  // Map DB payment_method values ('现金','微信','支付宝') to i18n keys
-  const PAY_MAP: Record<string, string> = { '现金': 'payCash', '微信': 'payWechat', '支付宝': 'payAlipay' };
   const paymentLabel = trPayment(cur.payment_method);
 
   return (
@@ -354,7 +351,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
 
       {/* Supplier picker for PDF */}
       <ModalOverlay visible={showSupplierPicker} onClose={() => setShowSupplierPicker(false)} animation="springScale">
-        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '90%', overflow: 'hidden' as const }}>
+        <View style={{ backgroundColor: c.surface, borderRadius: 24, width: 320, maxWidth: '90%', overflow: 'hidden' as const }}>
           {/* Header — handle bar + title + X */}
           <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('procSelectSupplier')}</Text>

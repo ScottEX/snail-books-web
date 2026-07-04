@@ -1,9 +1,10 @@
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme, ThemeColors, withAlpha } from '../theme';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 import ModalOverlay from './ModalOverlay';
 import CloseButton from './CloseButton';
+import LoadingSpinner from './LoadingSpinner';
 
 interface ConfirmModalProps {
   visible: boolean;
@@ -55,7 +56,7 @@ export default function ConfirmModal({
             </TouchableOpacity>
             <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: btn }, loading && styles.btnDisabled]} onPress={onConfirm} disabled={loading}>
               {loading ? (
-                <ActivityIndicator size="small" color={c.surface} />
+                <LoadingSpinner label={false} size={20} color={c.surface} />
               ) : (
                 <Text style={styles.confirmText}>{confirmLabel || t('delete')}</Text>
               )}
@@ -69,7 +70,7 @@ export default function ConfirmModal({
 
 const getStyles = (c: ThemeColors) => StyleSheet.create({
   card: {
-    backgroundColor: c.surface, borderRadius: 16,
+    backgroundColor: c.surface, borderRadius: 24,
     width: 340, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
 

@@ -25,7 +25,7 @@ interface ThemePickerModalProps {
 function getStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
-      backgroundColor: colors.surface, borderRadius: 16,
+      backgroundColor: colors.surface, borderRadius: 24,
       width: 340, maxWidth: '90%', overflow: 'hidden' as any,
     },
     header: {

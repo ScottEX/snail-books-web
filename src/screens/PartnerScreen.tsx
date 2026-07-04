@@ -82,6 +82,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   } = usePartnerData(showToast, refreshKey);
   const [showDividend, setShowDividend] = useState(false);
   const [showDelete, setShowDelete] = useState<any>(null);
+  const deleteNoteRef = useRef<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [showDetail, setShowDetail] = useState<any>(null);
@@ -116,7 +117,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   });
 
   const { colors } = useTheme();
-  const swipeBack = useSwipeBack(onBack);
+  useSwipeBack(onBack);
 
   const s = useMemo(() => getS(colors), [colors]);
   const mo = useMemo(() => getMo(colors), [colors]);
@@ -164,7 +165,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
     // Result preview
     resultCard: {
       position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: -160 }, { translateY: -100 }],
-      backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 20, padding: 32,
+      backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 24, padding: 32,
       borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12,
     } as any,
     resultBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any,
@@ -208,10 +209,11 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   };
 
   const handleDelete = async () => {
-    if (showDelete === null) return;
+    const note = deleteNoteRef.current;
+    if (!note) return;
     setDeleting(true);
     setDeleteError('');
-    const toDelete = dividends.filter((d: any) => d.note === showDelete);
+    const toDelete = dividends.filter((d: any) => d.note === note);
     let failed = 0;
     for (const d of toDelete) {
       try { await api.deleteDividend(d.id); }
@@ -225,14 +227,6 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       setShowDelete(null);
       loadData();
     }
-  };
-
-  const switchLang = (l: string) => {
-    // setLangState (from LangContext) writes curLang + localStorage +
-    // server AND triggers a re-render — replacing the old
-    // two-step `setLang(l); setLangState(l);`.
-    setLangState(l);
-    loadData();
   };
 
   const loadAvatar = async () => {
@@ -393,12 +387,6 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
     s.scale = newScale;
     clampCrop();
     drawCrop();
-  };
-
-  const updateSliderPct = () => {
-    const s = cropState.current;
-    const t = (s.scale - s.minScale) / ((s.maxScale - s.minScale) * 0.5);
-    return Math.max(0, Math.min(100, t * 100));
   };
 
   // ── Pill auto-hide (3s) ──
@@ -632,7 +620,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
                 <TableGroup key={note} title={translateDividendNote(note, items[0].date)} type="dividend" total={total}
                   themeColors={colors} styles={tg}
                   items={items.map((d: any) => ({ name: translateName(d.partner, d.name_pinyin, d.name_tw), sub: '', amount: d.amount }))}
-                  onDelete={() => setShowDelete(note)} />
+                  onDelete={() => { deleteNoteRef.current = note; setShowDelete(note); }} />
               );
             })}
           </View>
@@ -716,7 +704,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
         message={deleteError ? (
           <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'center' }}>{deleteError}</Text>
         ) : (
-          <>{t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{translateDividendNote(showDelete, grouped[showDelete ?? '']?.[0]?.date)}</Text>{t('allDividendRecords')}</>
+          <>{t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{deleteNoteRef.current ? translateDividendNote(deleteNoteRef.current, grouped[deleteNoteRef.current]?.[0]?.date) : ''}</Text>{t('allDividendRecords')}</>
         )}
         confirmLabel={deleting ? '删除中…' : t('confirmDeleteRecord')}
         loading={deleting}
@@ -1099,7 +1087,7 @@ const getMo = (colors: ThemeColors) => StyleSheet.create({
   overlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 },
   content: { alignItems: 'center', justifyContent: 'center' },
   modalCard: {
-    backgroundColor: colors.surface, borderRadius: 16, width: 360, maxWidth: '100%', overflow: 'hidden',
+    backgroundColor: colors.surface, borderRadius: 24, width: 360, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
 
     // @ts-ignore

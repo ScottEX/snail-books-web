@@ -1,12 +1,16 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
 import { useTheme, withAlpha, ThemeColors, REQUIRED_COLOR } from '../theme';
 import { api } from '../api/client';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
+import { validateEmail } from '../utils/validation';
+import { BANK_ICON_MAP, DefaultBankIcon } from '../components/BankIcons';
+import { bottomSheetOverlay } from '../sharedStyles';
+import SheetHeader from '../components/SheetHeader';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useImagePreview } from '../hooks/useImagePreview';
 import { useToast } from '../hooks/useToast';
@@ -74,12 +78,6 @@ const IcnAccount = ({ color }: { color: string }) => (
     <Path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
   </Svg>
 );
-const IcnClose = ({ color }: { color: string }) => (
-  <Svg width="14" height="14" viewBox="0 0 1088 1024">
-    <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill={color} />
-  </Svg>
-);
-
 /** Pen icon — same SVG as UserDetailScreen.PencilSvg */
 const PencilSvg = ({ color }: { color: string }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -156,6 +154,7 @@ interface InvoiceRecord {
   email: string;
   status: InvStatus;
   file_path?: string;
+  file_thumb_paths?: string;
   file_type?: string;
   file_size?: number;
   note?: string;
@@ -172,6 +171,39 @@ interface Props {
   filterBatchId?: number | null;
 }
 
+/** 判断是否为数据库占位符（- 或 —） */
+function isDash(v: string) { return v === '-' || v === '\u2014'; }
+
+/** 格式化银行卡号：每4位加空格 */
+function fmtBankAccount(v: string) {
+  if (!v) return '';
+  return v.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
+}
+
+/** 格式化手机号：138 1234 5678（3-4-4） */
+function fmtPhone(v: string) {
+  if (!v) return '';
+  const raw = v.replace(/\s/g, '');
+  if (raw.length <= 3) return raw;
+  if (raw.length <= 7) return raw.slice(0, 3) + ' ' + raw.slice(3);
+  return raw.slice(0, 3) + ' ' + raw.slice(3, 7) + ' ' + raw.slice(7);
+}
+
+/** 银行品牌色 */
+const BANK_COLORS: Record<string, string> = {
+  icbc: '#C41E2A', ccb: '#005BAC', abc: '#1A8B4A', boc: '#C41E2A',
+  bocom: '#003D83', cmb: '#E61138', psbc: '#00843D', cib: '#003F87',
+  citic: '#D7102A', ceb: '#7B2D8B', cmbc: '#00A950', pab: '#F46300',
+  spdb: '#002C77', hxb: '#C41E2A', gdb: '#C41E2A', bob: '#C41E2A',
+  bosh: '#005BAC',
+};
+
+/** 银行图标：品牌色圆底 + 首字 */
+function BankIconView({ code, size = 24 }: { code: string; size?: number }) {
+  const IconComponent = BANK_ICON_MAP[code] || DefaultBankIcon;
+  return <IconComponent size={size} />;
+}
+
 export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
@@ -182,6 +214,9 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [invType, setInvType] = useState<InvType>('vat');
   const [data, setData] = useState<InvoiceData>(EMPTY_INV);
   const [orig, setOrig] = useState<InvoiceData>(EMPTY_INV);
+  // Bank BIN lookup
+  const [bankCode, setBankCode] = useState('');
+  const [bankLookupError, setBankLookupError] = useState('');
   const [loaded, setLoaded] = useState(false);
 
   // Admin check
@@ -195,31 +230,23 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     })();
   }, []);
 
-  // User email for display
-  const [userEmail, setUserEmail] = useState('');
-  useEffect(() => {
-    const stored = (() => { try { return localStorage.getItem('email'); } catch { return null; } })();
-    if (stored) { setUserEmail(stored); return; }
-    (async () => {
-      try {
-        const j: any = await api.admin.getMe();
-        const u = j.user || j.data || j;
-        if (u.email) setUserEmail(u.email);
-      } catch { }
-    })();
-  }, []);
-
   // CSS injection for drawer animation
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dType, setDType] = useState<InvType>('general');
   const [dAmount, setDAmount] = useState('');
   const [dAmountFocus, setDAmountFocus] = useState(false);
   const [dDate, setDDate] = useState(new Date().toISOString().slice(0, 10));
-  const [dRef, setDRef] = useState('');
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
+  const [dEmailErr, setDEmailErr] = useState('');
   const [dInvoiceNo, setDInvoiceNo] = useState('');
+  const [dInvoiceNoErr, setDInvoiceNoErr] = useState('');
   const [dStatus, setDStatus] = useState<InvStatus>('pending');
+
+  // Sync drawer email with invoice info email whenever data.email changes
+  useEffect(() => {
+    if (data.email) setDEmail(data.email);
+  }, [data.email]);
 
   // Batch selector
   const [dBatchId, setDBatchId] = useState<number | null>(null);
@@ -228,6 +255,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [dFiles, setDFiles] = useState<File[]>([]);
   // Existing file path (for edit mode — already uploaded)
   const [dExistingFilePath, setDExistingFilePath] = useState<string[]>([]);
+  // Existing thumb paths (128×128 thumbnails for display)
+  const [dExistingThumbPaths, setDExistingThumbPaths] = useState<string[]>([]);
   // Preview state
   const { preview, openPreview, closePreview } = useImagePreview();
 
@@ -246,6 +275,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editSnapshot, setEditSnapshot] = useState<any>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const deleteIdRef = useRef<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -275,12 +305,19 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     (async () => {
       try {
         const inv = await api.getInvoice();
-        if (inv.status === 'ok' && inv.data) {
-          const d = { ...EMPTY_INV, ...inv.data };
-          setData(d);
-          setOrig(d);
-          setDEmail(inv.data.email || '');
-          setInvType(inv.data.inv_type || 'vat');
+        const perUserEmail = await api.getInvoiceEmail().catch(() => ({}));
+        const d = { ...EMPTY_INV, ...(inv.status === 'ok' && inv.data ? inv.data : {}), email: perUserEmail.email || (inv.data && inv.data.email) || '' };
+        setData(d);
+        setOrig(d);
+        setDEmail(d.email);
+        setInvType(inv.data?.inv_type || 'vat');
+        // Re-detect bank on load
+        const acct = (d.bank_account || '').replace(/\s/g, '');
+        if (acct.length >= 6) {
+          try {
+            const r = await api.bankLookup(acct.slice(0, 6));
+            if (r.status === 'ok' && r.data) setBankCode(r.data.code);
+          } catch { }
         }
       } catch { }
       setLoaded(true);
@@ -290,6 +327,37 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const hasChanged = JSON.stringify(data) !== JSON.stringify(orig);
   const isSaving = useRef(false);
 
+  // Auto-save on data change (debounced 2s), not just on unmount
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!loaded) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      handleSaveInfo();
+    }, 2000);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, [data, invType]);
+
+  // Also save on unmount (immediate, no debounce)
+  const dataRef = useRef(data);
+  dataRef.current = data;
+  const origRef = useRef(orig);
+  origRef.current = orig;
+  const invTypeRef = useRef(invType);
+  invTypeRef.current = invType;
+  useEffect(() => {
+    return () => {
+      const d = dataRef.current;
+      const o = origRef.current;
+      if (JSON.stringify(d) !== JSON.stringify(o)) {
+        api.updateInvoice({ ...d, inv_type: invTypeRef.current } as any).catch(() => {});
+        if (d.email !== o.email) {
+          api.saveInvoiceEmail(d.email).catch(() => {});
+        }
+      }
+    };
+  }, []);
+
   const handleSaveInfo = async () => {
     if (!hasChanged || isSaving.current) return;
     isSaving.current = true;
@@ -297,6 +365,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
       const json = await api.updateInvoice({ ...data, inv_type: invType } as any);
       if (json.status === 'ok') {
         setOrig({ ...data, inv_type: invType });
+      }
+      // Save per-user email separately
+      if (data.email !== orig.email) {
+        await api.saveInvoiceEmail(data.email).catch(() => {});
       }
     } catch { }
     isSaving.current = false;
@@ -330,10 +402,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   // ── Confirm delete invoice record (physical delete) ──
   const handleConfirmDelete = async () => {
-    if (confirmDeleteId == null || deleting) return;
+    if (deleteIdRef.current == null || deleting) return;
     setDeleting(true);
     try {
-      await api.deleteInvoiceRecord(confirmDeleteId);
+      await api.deleteInvoiceRecord(deleteIdRef.current!);
       setConfirmDeleteId(null);
       await loadRecords();
     } catch (e: any) {
@@ -351,6 +423,13 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     if (dStatus === 'done' && !dInvoiceNo.trim()) {
       showToast('⚠️ ' + t('invRecInvoiceNo'));
       return;
+    }
+    if (dEmail) {
+      const emailErr = validateEmail(dEmail, t);
+      if (emailErr) {
+        setDEmailErr(emailErr);
+        return;
+      }
     }
     setSubmitting(true);
     try {
@@ -370,13 +449,16 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
       if (editingId) {
         // Edit mode: upload new files first, then PUT with merged file_path
         const uploadedPaths: string[] = [];
+        const uploadedThumbPaths: string[] = [];
         for (const f of dFiles) {
           const res = await api.uploadInvoiceFile(editingId, f);
           uploadedPaths.push(res.file_path);
+          uploadedThumbPaths.push(res.thumb_path || res.file_path);
         }
         // Compute final file_path: kept existing (after deletions) + newly uploaded
         const finalFilePath = JSON.stringify([...dExistingFilePath, ...uploadedPaths]);
-        await api.updateInvoiceRecord(editingId, { ...payload, file_path: finalFilePath });
+        const finalThumbPath = JSON.stringify([...dExistingThumbPaths, ...uploadedThumbPaths]);
+        await api.updateInvoiceRecord(editingId, { ...payload, file_path: finalFilePath, file_thumb_paths: finalThumbPath });
         rid = editingId;
       } else {
         // New mode: create record first to get rid, then upload all files
@@ -395,14 +477,38 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     }
   };
 
-  // ── Preview handlers ──
-  const handlePreviewExisting = (index: number) => {
-    openPreview(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)), index);
-  };
+  // ── Memoized ReceiptUpload props to prevent re-render flash ──
+  const memoExistingImages = useMemo(() => {
+    if (!editingId || dExistingFilePath.length === 0) return [];
+    // Prefer thumbnails for display (128×128, fast); fall back to original
+    const thumbs = dExistingThumbPaths.length === dExistingFilePath.length ? dExistingThumbPaths : [];
+    const paths = thumbs.length ? thumbs : dExistingFilePath;
+    return paths.map(p => api.getInvoiceFileUrl(p));
+  }, [editingId, dExistingFilePath, dExistingThumbPaths]);
 
-  const handlePreviewNew = (index: number) => {
+  const memoOnAdd = useCallback((files: File[]) => {
+    setDFiles(prev => [...prev, ...files]);
+  }, []);
+
+  const memoOnRemoveExisting = useCallback((i: number) => {
+    setDExistingFilePath(prev => prev.filter((_, j) => j !== i));
+    setDExistingThumbPaths(prev => prev.filter((_, j) => j !== i));
+  }, []);
+
+  const memoOnRemoveNew = useCallback((i: number) => {
+    setDFiles(prev => prev.filter((_, j) => j !== i));
+  }, []);
+
+  const memoGetPreviewUrl = useCallback((f: File) => URL.createObjectURL(f), []);
+
+  // ── Preview handlers ──
+  const handlePreviewExisting = useCallback((index: number) => {
+    openPreview(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)), index);
+  }, [dExistingFilePath, openPreview]);
+
+  const handlePreviewNew = useCallback((index: number) => {
     openPreview(dFiles.map(f => URL.createObjectURL(f)), index);
-  };
+  }, [dFiles, openPreview]);
 
   // ── Drawer animation ──
   const openDrawer = (forEdit?: InvoiceRecord) => {
@@ -412,13 +518,13 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDType(forEdit ? (forEdit.type as InvType) : 'general');
     setDAmount(forEdit ? String(forEdit.amount) : '');
     setDDate(forEdit ? forEdit.date : new Date().toISOString().slice(0, 10));
-    setDRef('');
     setDNote(forEdit ? (forEdit.note || '') : '');
     setDInvoiceNo(forEdit ? (forEdit.invoice_number || '') : '');
     setDStatus(forEdit ? (forEdit.status as InvStatus) : 'pending');
     setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
     setDFiles([]);
     setDExistingFilePath(forEdit ? parseFilePaths(forEdit.file_path) : []);
+    setDExistingThumbPaths(forEdit ? parseFilePaths(forEdit.file_thumb_paths) : []);
     // Save edit snapshot for unchanged detection
     if (forEdit) {
       setEditSnapshot({
@@ -444,19 +550,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         setBatchList(batches);
       } catch { setBatchList([]); }
     })();
-    // Auto-fill user email from localStorage, fallback to API
-    const stored = (() => { try { return localStorage.getItem('email'); } catch { return null; } })();
-    if (stored) {
-      setDEmail(stored);
-    } else {
-      (async () => {
-        try {
-          const j: any = await api.admin.getMe();
-          const user = j.user || j.data || j;
-          if (user.email) setDEmail(user.email);
-        } catch { }
-      })();
-    }
+    // Use invoice email from server data (already loaded)
+    setDEmail(data.email || '');
   };
   const closeDrawer = () => {
     setDrawerOpen(false);
@@ -465,6 +560,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDStatus('pending');
     setDInvoiceNo('');
     setDExistingFilePath([]);
+    setDExistingThumbPaths([]);
     setDFiles([]);
     }, 250);
   };
@@ -493,7 +589,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
             <Text style={[s.ecTitle, { color: '#fff', flex: 1 }]}>{t('invTitle')}</Text>
             <TouchableOpacity style={[s.ecBtn, { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, flexShrink: 0 }]} onPress={() => {
             setDDate(new Date().toISOString().slice(0, 10));
-            setDRef('');
             setDNote('');
             openDrawer();
           }}>
@@ -544,13 +639,13 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, borderWidth: 0, marginHorizontal: 16 }]}>
-                <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnCompany color={c.info} />} iconBg={withAlpha(c.info, 0.1)} label={t('companyName')} placeholder={t('invPleaseMaintain')} value={data.company_name} colors={c} onChange={(v) => setData({ ...data, company_name: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} value={data.tax_id} colors={c} mono onChange={(v) => setData({ ...data, tax_id: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnTax color={c.warning} />} iconBg={withAlpha(c.warning, 0.1)} label={t('taxId')} placeholder={t('invPleaseMaintain')} value={data.tax_id} colors={c} mono filter={(v: string) => v.replace(/[^a-zA-Z0-9]/g, '')} onChange={(v) => setData({ ...data, tax_id: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnAddr color={c.success} />} iconBg={withAlpha(c.success, 0.1)} label={t('addressPhone')} placeholder={t('invPleaseMaintain')} value={data.address} colors={c} onChange={(v) => setData({ ...data, address: v })} editable={isAdmin} />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} value={formatPhone(data.phone)} colors={c} mono onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
+                <EditableInfoRow icon={<IcnPhone color="#2E8B4A" />} iconBg="#EAF8EE" label={t('companyPhone')} placeholder={t('invPleaseMaintain')} value={fmtPhone(data.phone)} colors={c} mono keyboardType="phone-pad" filter={(v: string) => v.replace(/[^\d]/g, '').slice(0, 11)} validate={(v: string) => v && !/^1[3-9]\d{9}$/.test(v) ? t('errPhoneInvalid') : null} onChange={(v) => setData({ ...data, phone: v })} editable={isAdmin} />
               </View>
             </View>
 
@@ -561,9 +656,40 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
-                <EditableInfoRow icon={<IcnBank color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankName')} value={data.bank_name} colors={c} onChange={(v) => setData({ ...data, bank_name: v })} editable={isAdmin} />
+                <EditableInfoRow
+                  icon={bankCode ? <BankIconView code={bankCode} size={22} /> : <IcnBank color={c.primary} />}
+                  iconBg={bankCode ? (BANK_COLORS[bankCode] || c.primary) + '20' : withAlpha(c.primary, 0.08)}
+                  label={t('bankName')} placeholder={t('invPleaseMaintain')}
+                  value={data.bank_name} colors={c}
+                  onChange={(v) => setData({ ...data, bank_name: v })}
+                  editable={false}
+                />
                 <View style={{ height: 0.5, backgroundColor: withAlpha(c.textMain, 0.08), marginLeft: 16 }} />
-                <EditableInfoRow icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)} label={t('bankAccount')} value={data.bank_account} colors={c} mono onChange={(v) => setData({ ...data, bank_account: v })} editable={isAdmin} />
+                <EditableInfoRow
+                  icon={<IcnAccount color={c.primary} />} iconBg={withAlpha(c.primary, 0.08)}
+                  label={t('bankAccount')} placeholder={t('invPleaseMaintain')}
+                  value={fmtBankAccount(data.bank_account)} colors={c} mono keyboardType="numeric"
+                  filter={(v: string) => v.replace(/[^\d]/g, '')}
+                  onChange={async (v) => {
+                    setData({ ...data, bank_account: v });
+                    setBankLookupError('');
+                    const clean = v.replace(/\s/g, '');
+                    if (!clean || clean.length < 6) { setBankCode(''); setData(prev => ({ ...prev, bank_name: '' })); return; }
+                    try {
+                      const res = await api.bankLookup(clean.slice(0, 6));
+                      if (res.status === 'ok' && res.data) {
+                        setData(prev => ({ ...prev, bank_name: res.data.name }));
+                        setBankCode(res.data.code);
+                      } else {
+                        setBankLookupError(t('errBankCardInvalid'));
+                      }
+                    } catch { setBankLookupError(t('errBankCardInvalid')); }
+                  }}
+                  editable={isAdmin}
+                />
+                {bankLookupError !== '' && (
+                  <Text style={{ fontSize: 11, color: c.danger, textAlign: 'right', paddingHorizontal: 16, paddingBottom: 8, marginTop: -6 }}>{bankLookupError}</Text>
+                )}
               </View>
             </View>
 
@@ -574,7 +700,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <View style={[s.sectionTitleLine, { backgroundColor: withAlpha(c.textMain, 0.08) }]} />
               </View>
               <View style={[s.infoCard, { backgroundColor: c.surface, borderRadius: 12, marginBottom: 0, marginHorizontal: 16, borderWidth: 0 }]}>
-                <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} value={userEmail || data.email} colors={c} onChange={(v) => setData({ ...data, email: v })} />
+                <EditableInfoRow icon={<IcnMail color="#7B52AB" />} iconBg="#F0EAF8" label={t('invEmail')} placeholder={t('invPleaseMaintain')} value={data.email} colors={c} validate={(v: string) => validateEmail(v, t)} onChange={async (v) => { setData({ ...data, email: v }); await api.saveInvoiceEmail(v).catch(() => {}); if (!v) { const em = await api.getInvoiceEmail().catch(() => ({})); setData(prev => ({ ...prev, email: em.email || '' })); } }} />
               </View>
             </View>
           </View>
@@ -623,7 +749,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                         {!!r.invoice_number && (
                           <>
                             <Text style={{ color: c.secondary }}>·</Text>
-                            <Text style={[s.invNo, { color: c.textSub }]}>{r.invoice_number}</Text>
+                            <Text style={[s.invNo, { color: c.textSub, fontFamily: 'DM Mono' }]}>{r.invoice_number}</Text>
                           </>
                         )}
                         {!!r.batch_number && (
@@ -648,7 +774,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                       <Text style={[s.invAmountLabel, { color: c.textSub }]}>{r.status === 'pending' ? t('invApplyAmount') : t('invTaxAmount')}</Text>
                     </View>
                     <View style={s.invActions}>
-                      <TouchableOpacity style={[s.invDelBtn, { backgroundColor: withAlpha(c.textMain, 0.05) }]} onPress={() => setConfirmDeleteId(r.id)}>
+                      <TouchableOpacity style={[s.invDelBtn, { backgroundColor: withAlpha(c.textMain, 0.05) }]} onPress={() => { deleteIdRef.current = r.id; setConfirmDeleteId(r.id); }}>
                         <TrashIcon color={c.danger} size={14} />
                       </TouchableOpacity>
                     </View>
@@ -672,7 +798,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
           <>
             {t('invDelConfirmPrefix')}
             <Text style={{ fontWeight: '600', color: c.textMain }}>
-              {records.find(r => r.id === confirmDeleteId)?.invoice_number || '—'}
+              {records.find(r => r.id === deleteIdRef.current)?.invoice_number || '—'}
             </Text>
             {t('invDelConfirmSuffix')}
           </>
@@ -689,27 +815,18 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         onClose={closeDrawer}
         animation="stagger"
         staggerCount={3}
-        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        overlayStyle={bottomSheetOverlay as any}
         contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}
       >
         {(anims) => (
-          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxHeight: drawerMaxH }]}>
+          <View style={[s.drawer, { backgroundColor: c.surface, width: '100%', maxWidth: 768, alignSelf: 'center', maxHeight: drawerMaxH }]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],
               transform: [{ translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }]
             }}>
               <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 14, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'column', alignItems: 'flex-start' }}>
-                <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{editingId ? t('invRecEditTitle') : t('invRecAddTitle')}</Text>
-                  <TouchableOpacity style={{ padding: 4 }} onPress={closeDrawer}>
-                    <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
-                      <Line x1="18" y1="6" x2="6" y2="18" />
-                      <Line x1="6" y1="6" x2="18" y2="18" />
-                    </Svg>
-                  </TouchableOpacity>
-                </View>
+                <SheetHeader title={editingId ? t('invRecEditTitle') : t('invRecAddTitle')} onClose={closeDrawer} />
               </View>
             </Animated.View>
             {/* Stagger item 1: content */}
@@ -787,6 +904,34 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={data.tax_id} editable={false} />
               </View>
 
+              {/* VAT-only fields — 从开票信息反显 */}
+              {dType === 'vat' && (() => {
+                const vatFilled = (v: string) => v && !isDash(v);
+                const hint = (v: string) => vatFilled(v)
+                  ? <Text style={{ color: c.textSub, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invAutoFilled')}</Text>
+                  : <Text style={{ color: c.danger, fontWeight: '400', fontSize: 11, marginLeft: 'auto' } as any}>{t('invVatGoMaintain')}</Text>;
+                return (
+                <>
+                  <View style={s.dField}>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('addressPhone')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.address)}</Text>
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={isDash(data.address) ? '' : data.address} editable={false} />
+                  </View>
+                  <View style={s.dField}>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('companyPhone')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.phone)}</Text>
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={isDash(data.phone) ? '' : data.phone} editable={false} />
+                  </View>
+                  <View style={s.dField}>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankName')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.bank_name)}</Text>
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={isDash(data.bank_name) ? '' : data.bank_name} editable={false} />
+                  </View>
+                  <View style={s.dField}>
+                    <Text style={[s.dLabel, { color: c.textSub }]}>{t('bankAccount')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>{hint(data.bank_account)}</Text>
+                    <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]} value={isDash(data.bank_account) ? '' : data.bank_account} editable={false} />
+                  </View>
+                </>
+                );
+              })()}
+
               {/* Date + Email side by side */}
               <View style={s.dRow}>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
@@ -803,7 +948,14 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 </View>
                 <View style={[s.dField, { flex: 1, minWidth: 0, overflow: 'hidden' } as any]}>
                   <Text style={[s.dLabel, { color: c.textSub }]}>{t('invEmail')}</Text>
-                  <TextInput style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]} value={dEmail} onChangeText={setDEmail} placeholder="email@example.com" placeholderTextColor={c.textSub} keyboardType="email-address" />
+                  <TextInput
+                    style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03) }]}
+                    value={dEmail}
+                    editable={false}
+                    placeholder="email@example.com"
+                    placeholderTextColor={c.textSub}
+                  />
+                  {dEmailErr !== '' && <Text style={{ color: c.danger, fontSize: 11, marginTop: 4 }}>{dEmailErr}</Text>}
                 </View>
               </View>
 
@@ -831,12 +983,19 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                   {t('invRecInvoiceNo')}<Text style={{ color: REQUIRED_COLOR }}>*</Text>
                 </Text>
                 <TextInput
-                  style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono' } as any]}
+                  style={[s.dInput, { color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), fontFamily: 'DM Mono', borderColor: dInvoiceNoErr ? c.danger : 'transparent', borderWidth: dInvoiceNoErr ? 1 : 0 } as any]}
                   value={dInvoiceNo}
-                  onChangeText={(v) => setDInvoiceNo(v.replace(/[^a-zA-Z0-9]/g, ''))}
-                  placeholder="NO.2026060001"
+                  onChangeText={(v) => { setDInvoiceNo(v.replace(/[^\d]/g, '').slice(0, 20)); if (dInvoiceNoErr) setDInvoiceNoErr(''); }}
+                  onBlur={() => {
+                    if (!dInvoiceNo) { setDInvoiceNoErr(''); return; }
+                    if (dInvoiceNo.length < 8 || dInvoiceNo.length > 20) { setDInvoiceNoErr(t('errInvoiceNoLength')); }
+                  }}
+                  placeholder="20260600000001"
                   placeholderTextColor={c.textSub}
+                  keyboardType="numeric"
+                  maxLength={20}
                 />
+                {dInvoiceNoErr !== '' && <Text style={{ color: c.danger, fontSize: 11, marginTop: 4 }}>{dInvoiceNoErr}</Text>}
               </View>
               )}
 
@@ -844,12 +1003,12 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
               {dStatus === 'done' && (
                 <View style={{ marginBottom: 8 }}>
                   <ReceiptUpload
-                    existingImages={editingId && dExistingFilePath.length > 0 ? dExistingFilePath.map(p => api.getInvoiceFileUrl(p)) : []}
+                    existingImages={memoExistingImages}
                     newFiles={dFiles}
-                    onAdd={(files: File[]) => setDFiles(prev => [...prev, ...files])}
-                    onRemoveExisting={(i: number) => { setDExistingFilePath(prev => prev.filter((_, j) => j !== i)); }}
-                    onRemoveNew={(i: number) => setDFiles(dFiles.filter((_, j) => j !== i))}
-                    getPreviewUrl={(f: File) => URL.createObjectURL(f)}
+                    onAdd={memoOnAdd}
+                    onRemoveExisting={memoOnRemoveExisting}
+                    onRemoveNew={memoOnRemoveNew}
+                    getPreviewUrl={memoGetPreviewUrl}
                     label={t('invUploadInvoice') as string}
                     accept="image/jpeg,image/png,image/webp,application/pdf"
                     required
@@ -886,9 +1045,16 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
                 && dBatchId === editSnapshot.procurement_batch_id
                 && dFiles.length === 0
                 && JSON.stringify(dExistingFilePath) === JSON.stringify(editSnapshot.existingFiles);
+              const vatMissing = dType === 'vat' && (
+                !data.address || isDash(data.address) ||
+                !data.phone || isDash(data.phone) ||
+                !data.bank_name || isDash(data.bank_name) ||
+                !data.bank_account || isDash(data.bank_account)
+              );
               const nonLoadDisabled = !dAmount || !data.company_name || !data.tax_id
                 || (dStatus === 'done' && !dInvoiceNo.trim())
                 || (dStatus === 'done' && dFiles.length === 0 && dExistingFilePath.length === 0)
+                || vatMissing
                 || unchangedInEdit;
               return (
             <SubmitButton
@@ -906,7 +1072,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         )}
       </ModalOverlay>
 
-      {/* Image preview overlay — portal above drawer */}
+      {/* Image preview — portal to body so it renders above drawer */}
       {preview && createPortal(
         <ImagePreview
           images={preview.images}
@@ -922,20 +1088,21 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
 /* ═══════════════ EDITABLE INFO ROW ═══════════════ */
 
-function formatPhone(phone: string): string {
-  const d = phone.replace(/\D/g, '');
-  if (d.length === 11) return `${d.slice(0,3)} ${d.slice(3,7)} ${d.slice(7)}`;
-  return phone;
-}
-
-function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, editable = true }: {
-  icon: React.ReactNode; iconBg: string; label: string; value: string; colors: ThemeColors; mono?: boolean; onChange: (v: string) => void; editable?: boolean;
+function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, editable = true, keyboardType, filter, validate, placeholder }: {
+  icon: React.ReactNode; iconBg: string; label: string; value: string; colors: ThemeColors; mono?: boolean; onChange: (v: string) => void; editable?: boolean; keyboardType?: string; filter?: (v: string) => string; validate?: (v: string) => string | null; placeholder?: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [err, setErr] = useState('');
 
   const commit = () => {
-    if (draft !== value) onChange(draft);
+    if (validate) {
+      const msg = validate(draft);
+      if (msg) { setErr(msg); return; }
+    }
+    setErr('');
+    const clean = draft.replace(/\s/g, '');
+    if (clean !== value.replace(/\s/g, '')) onChange(clean);
     setEditing(false);
   };
 
@@ -948,12 +1115,14 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
           <TextInput
             style={[sIR.valueInput, { color: colors.textMain, fontFamily: mono ? 'DM Mono' : undefined } as any]}
             value={draft}
-            onChangeText={setDraft}
+            onChangeText={(v) => setDraft(filter ? filter(v) : v)}
             onBlur={commit}
             autoFocus
-            placeholder={value || '—'}
+            keyboardType={keyboardType as any}
+            placeholder={placeholder || '—'}
             placeholderTextColor={colors.textSub}
           />
+          {err !== '' && <Text style={{ color: colors.danger, fontSize: 11, marginTop: 2 }}>{err}</Text>}
         </View>
         <TouchableOpacity style={sIR.editBtn} onPress={commit}>
           <PencilSvg color={colors.primary} />
@@ -967,10 +1136,10 @@ function EditableInfoRow({ icon, iconBg, label, value, colors, mono, onChange, e
       <View style={[sIR.icon, { backgroundColor: iconBg }]}>{icon}</View>
       <View style={sIR.body}>
         <Text style={[sIR.label, { color: colors.textSub }]}>{label}</Text>
-        <Text style={[sIR.value, { color: value ? colors.textMain : colors.textSub, fontWeight: value ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value || t('invEmpty')}</Text>
+        <Text style={[sIR.value, { color: value && !isDash(value) ? colors.textMain : colors.textSub, fontWeight: value && !isDash(value) ? '500' : '400', fontFamily: mono ? 'DM Mono' : undefined } as any]} numberOfLines={1}>{value && !isDash(value) ? value : placeholder || t('invEmpty')}</Text>
       </View>
       {editable && (
-        <TouchableOpacity onPress={() => { setDraft(value); setEditing(true); }} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => { const raw = isDash(value) ? '' : value; setDraft(filter ? filter(raw) : raw); setEditing(true); }} activeOpacity={0.7}>
           <PencilSvg color={colors.textSub} />
         </TouchableOpacity>
       )}
@@ -1071,10 +1240,6 @@ const s = StyleSheet.create({
   /* DRAWER */
   drawerOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 },
   drawer: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any, maxHeight: '90%' } as any,
-  drawerHandle: { width: 36, height: 4, borderRadius: 2, marginTop: 12, alignSelf: 'center', flexShrink: 0 } as any,
-  drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 12, borderBottomWidth: 1, flexShrink: 0 } as any,
-  drawerTitle: { fontSize: 15, fontWeight: '600' } as any,
-  drawerClose: { padding: 4 } as any,
   drawerBody: { flex: 1, paddingHorizontal: 20, paddingTop: 16 } as any,
 
   dLabel: { fontSize: 14, fontWeight: '500', marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as any,

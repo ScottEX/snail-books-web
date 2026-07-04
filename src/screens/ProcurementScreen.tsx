@@ -8,6 +8,8 @@ import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
+import { bottomSheetOverlay } from '../sharedStyles';
+import SheetHeader from '../components/SheetHeader';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
 
@@ -212,10 +214,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
 
   // Animated drawer — slides up
-  drawerHandle: { width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center' as const, marginBottom: 12 },
   drawerHead: { flexDirection: 'column' as const, alignItems: 'flex-start' as const, paddingVertical: 14, paddingHorizontal: 20, backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  drawerHeadTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
-  drawerClose: { padding: 4 },
   drawerCloseText: { fontSize: FONTS.h2.size, color: c.textSub },
   drawerBody: { padding: 16, overflow: 'scroll' as any, flex: 1 } as any,
   drawerFooter: { backgroundColor: c.surface, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.08), paddingHorizontal: 18, paddingVertical: 10, paddingBottom: 24 },
@@ -232,7 +231,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
 
   // Items modal
-  itemsModalOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
   itemsModalCard: { backgroundColor: c.surface, borderRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
@@ -265,9 +263,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 8, flexDirection: 'row' as const, backgroundColor: c.surface, borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
-  // Modal (product add/edit)
-  modalOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 400, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center' as const, alignItems: 'center' as const },
-  modalCard: { backgroundColor: c.surface, borderRadius: 16, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
+  modalCard: { backgroundColor: c.surface, borderRadius: 24, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
     // @ts-ignore
      },
   modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
@@ -299,7 +295,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Success
   successOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
-  successCard: { backgroundColor: c.surface, borderRadius: 20, padding: 28, width: 'calc(100% - 40px)' as any, maxWidth: 320, alignItems: 'center' as const },
+  successCard: { backgroundColor: c.surface, borderRadius: 24, padding: 28, width: 'calc(100% - 40px)' as any, maxWidth: 320, alignItems: 'center' as const },
   successTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.textMain, marginBottom: 6, marginTop: 8 },
   successSub: { fontSize: FONTS.sub.size, color: c.textSub, lineHeight: 20 } as any,
   successAmount: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.primary, marginVertical: 12 },
@@ -336,7 +332,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // Auto-clear search when switching between sub-tabs
   useEffect(() => { setSearch(''); }, [subTab]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [productsLoaded, setProductsLoaded] = useState(false);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [search, setSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('全部');
@@ -381,6 +376,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [editSnapshot, setEditSnapshot] = useState<string | null>(null);
   // Delete confirmation target (batch record)
   const [deleteBatchTarget, setDeleteBatchTarget] = useState<BatchRecord | null>(null);
+  const delBatchRef = useRef<BatchRecord | null>(null);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [itemsModalIsCart, setItemsModalIsCart] = useState(false);
@@ -431,6 +427,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [prodForm, setProdForm] = useState({ name: '', spec: '', price: '', supplier: '', note: '' });
   const [prodSaving, setProdSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const delTargetRef = useRef<Product | null>(null);
 
   // ── Shared slide-from-top animation for product/delete/success modals ──
   const modalSlide = useRef(new Animated.Value(0)).current;
@@ -466,36 +463,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   // todayStr replaced by useServerDate hook
 
-  // ── Image compression (matching ExpenseScreen) ──
-  const compressImage = (file: File): Promise<File> => {
-    return new Promise((resolve) => {
-      if (file.size < 500 * 1024) return resolve(file);
-      const img = document.createElement('img');
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const MAX = 1920;
-        let { width, height } = img;
-        if (width > MAX || height > MAX) {
-          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
-          else { width = Math.round(width * MAX / height); height = MAX; }
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(file);
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          if (!blob) return resolve(file);
-          const compressed = new File([blob], file.name, { type: 'image/jpeg' });
-          resolve(compressed.size < file.size ? compressed : file);
-        }, 'image/jpeg', 0.8);
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
-      img.src = url;
-    });
-  };
-
   // ── Suppliers ──
   const suppliers = useMemo(() => {
     const set = new Set(products.map(p => p.supplier).filter(Boolean));
@@ -505,15 +472,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   const loadProducts = useCallback(() => {
     api.getProducts().then((data: any) => {
-      if (Array.isArray(data)) { setProducts(data); setProductsLoaded(true); }
+      if (Array.isArray(data)) { setProducts(data); }
       // If there was a deferred pending edit, process it now that products are loaded.
       if (pendingEditRef.current) {
         openEditBatch(pendingEditRef.current);
         onPendingEditConsumedRef.current?.();
       }
     }).catch(() => {
-      setProductsLoaded(true);
-      // Even on failure, try to process pending edit (cart will be empty but drawer opens).
+      // Even on failure, try to process pending edit
       if (pendingEditRef.current) {
         openEditBatch(pendingEditRef.current);
         onPendingEditConsumedRef.current?.();
@@ -664,8 +630,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     const newFiles: File[] = [];
     for (const f of files) {
       if (receipts.some(r => r.name === f.name && r.size === f.size)) continue;
-      const compressed = await compressImage(f);
-      newFiles.push(compressed);
+      newFiles.push(f);
     }
     setReceipts(prev => [...prev, ...newFiles]);
   };
@@ -830,8 +795,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   // Confirm delete batch + cascade
   const confirmDeleteBatch = async () => {
-    if (!deleteBatchTarget) return;
-    const targetId = deleteBatchTarget.id;
+    if (!delBatchRef.current) return;
+    const targetId = delBatchRef.current.id;
     setDeleteBatchTarget(null);
     try {
       const r = await api.deleteProcurementBatch(targetId);
@@ -861,12 +826,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const openAddProduct = () => {
     setEditingProduct(null);
     setProdForm({ name: '', spec: '', price: '', supplier: '', note: '' });
-    openSlideModal(() => setShowProductModal(true));
+    setShowProductModal(true);
   };
   const openEditProduct = (p: Product) => {
     setEditingProduct(p);
     setProdForm({ name: p.name, spec: p.spec, price: String(p.price), supplier: p.supplier, note: p.note || '' });
-    openSlideModal(() => setShowProductModal(true));
+    setShowProductModal(true);
   };
   const saveProduct = async () => {
     if (!prodForm.name || prodSaving) return;
@@ -874,7 +839,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     const data = { name: prodForm.name, spec: prodForm.spec, price: parseFloat(prodForm.price) || 0, supplier: prodForm.supplier, note: prodForm.note };
     try {
       editingProduct ? await api.updateProduct({ ...data, id: editingProduct.id }) : await api.createProduct(data);
-      closeSlideModal(() => setShowProductModal(false));
+      setShowProductModal(false);
       loadProducts();
     } catch {
       showToast(t('toastSubmitFailed'));
@@ -882,16 +847,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setProdSaving(false);
   };
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!delTargetRef.current) return;
     try {
-      await api.deleteProduct(deleteTarget.id);
-      // Clean orphan cart entries for deleted product
-      setCart(prev => { const cp = { ...prev }; delete cp[deleteTarget.id]; return cp; });
+      await api.deleteProduct(delTargetRef.current.id);
+      setCart(prev => { const cp = { ...prev }; delete cp[delTargetRef.current!.id]; return cp; });
       loadProducts();
     } catch {
       showToast(t('toastSubmitFailed'));
     }
-    closeSlideModal(() => setDeleteTarget(null));
+    setDeleteTarget(null);
   };
 
   return (
@@ -1136,7 +1100,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.histActionBtn, batch.settled_at && { opacity: 0.3 }]}
-                        onPress={(e) => { e.stopPropagation?.(); if (!batch.settled_at) openSlideModal(() => setDeleteBatchTarget(batch)); }}
+                        onPress={(e) => { e.stopPropagation?.(); if (!batch.settled_at) { delBatchRef.current = batch; openSlideModal(() => setDeleteBatchTarget(batch)); } }}
                         disabled={!!batch.settled_at}
                         activeOpacity={batch.settled_at ? 1 : 0.7}
                         hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -1224,7 +1188,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                   <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openEditProduct(p)}>
                     <PencilIcon color={c.textSub} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => openSlideModal(() => setDeleteTarget(p))}>
+                  <TouchableOpacity style={styles.mgmtActionBtn} onPress={() => { delTargetRef.current = p; openSlideModal(() => setDeleteTarget(p)); }}>
                     <TrashIcon color={c.danger} size={14} />
                   </TouchableOpacity>
                 </View>
@@ -1235,67 +1199,67 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </>
       )}
 
-      {/* ── Product Modal ── */}
-      {showProductModal && (
-        <Animated.View style={[styles.modalOverlay, { opacity: modalOverlayFade }]}>
-          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{editingProduct ? t('procEditProduct') : t('procAddProduct')}</Text>
-              <CloseButton onPress={() => closeSlideModal(() => setShowProductModal(false))} />
-            </View>
-            <View style={styles.modalBody}>
-              <TextField placeholder={t('procProductName')} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
-              <TextField placeholder={t('procProductSpec')} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
-              <View style={[styles.modalInput, { position: 'relative', justifyContent: 'center' }]}>
-                <Text style={{ fontSize: FONTS.sub.size, color: prodForm.supplier ? c.textMain : c.textSub }}>
-                  {prodForm.supplier || t('procProductSupplier')}
-                </Text>
-                <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, justifyContent: 'center' }}>
-                  <ChevronDownIcon color={c.textSub} />
-                </View>
-                {React.createElement('select', {
-                  value: prodForm.supplier,
-                  onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
-                  style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.01, } as any,
-                },
-                  <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
-                  suppliers.filter((s: string) => s !== '全部').map((s: string) => (
-                    React.createElement('option', { key: s, value: s }, s)
-                  ))
-                )}
+      {/* ── Product Modal (springScale) ── */}
+      <ModalOverlay visible={showProductModal} onClose={() => setShowProductModal(false)} animation="springScale">
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{editingProduct ? t('procEditProduct') : t('procAddProduct')}</Text>
+            <CloseButton onPress={() => setShowProductModal(false)} />
+          </View>
+          <View style={styles.modalBody}>
+            <TextField placeholder={t('procProductName')} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
+            <TextField placeholder={t('procProductSpec')} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
+            <View style={[styles.modalInput, { position: 'relative', justifyContent: 'center' }]}>
+              <Text style={{ fontSize: FONTS.sub.size, color: prodForm.supplier ? c.textMain : c.textSub }}>
+                {prodForm.supplier || t('procProductSupplier')}
+              </Text>
+              <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, justifyContent: 'center' }}>
+                <ChevronDownIcon color={c.textSub} />
               </View>
-              <TextField placeholder={t('procProductPrice')} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="decimal-pad" />
-              <TextField placeholder={t('procProductNote')} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
-              <ButtonPair
-                leftLabel={t('cancel')}
-                leftOnPress={() => closeSlideModal(() => setShowProductModal(false))}
-                rightLabel={t('procSubmit')}
-                rightOnPress={saveProduct}
-                rightLoading={prodSaving}
-              />
+              {React.createElement('select', {
+                value: prodForm.supplier,
+                onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
+                style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.01, } as any,
+              },
+                <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
+                suppliers.filter((s: string) => s !== '全部').map((s: string) => (
+                  React.createElement('option', { key: s, value: s }, s)
+                ))
+              )}
             </View>
-          </Animated.View>
-        </Animated.View>
-      )}
+            <TextField placeholder={t('procProductPrice')} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="decimal-pad" />
+            <TextField placeholder={t('procProductNote')} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
+            <ButtonPair
+              leftLabel={t('cancel')}
+              leftOnPress={() => setShowProductModal(false)}
+              rightLabel={t('procSubmit')}
+              rightOnPress={saveProduct}
+              rightLoading={prodSaving}
+            />
+          </View>
+        </View>
+      </ModalOverlay>
 
       {/* ── Delete confirmation modal (product) ── */}
       <ConfirmModal
         visible={deleteTarget !== null}
         title={t('procDeleteProduct') || '删除商品'}
-        message={<>{t('procDeleteProductConfirm').split('{name}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{deleteTarget?.name}</Text>{t('procDeleteProductConfirm').split('{name}')[1]}{' '}{t('procDeleteProductWarning')}</>}
+        message={<>{t('procDeleteProductConfirm').split('{name}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{delTargetRef.current?.name}</Text>{t('procDeleteProductConfirm').split('{name}')[1]}{' '}{t('procDeleteProductWarning')}</>}
         confirmLabel={t('delete')}
         onConfirm={() => confirmDelete()}
-        onCancel={() => closeSlideModal(() => setDeleteTarget(null))}
+        onCancel={() => setDeleteTarget(null)}
+        animation="blurMorph"
       />
 
       {/* ── Delete batch confirmation modal ── */}
       <ConfirmModal
         visible={deleteBatchTarget !== null}
         title={t('procDeleteBatch')}
-        message={<>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(deleteBatchTarget?.batch_number ?? ''))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>}
+        message={<>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(delBatchRef.current?.batch_number ?? ''))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>}
         confirmLabel={t('delete')}
         onConfirm={() => confirmDeleteBatch()}
-        onCancel={() => closeSlideModal(() => setDeleteBatchTarget(null))}
+        onCancel={() => setDeleteBatchTarget(null)}
+        animation="blurMorph"
       />
 
       {/* ── Order Drawer (slide up + scale) ── */}
@@ -1303,25 +1267,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         visible={showDrawer}
         onClose={handleDrawerClose}
         animation="slideUpScale"
-        overlayStyle={{ justifyContent: 'flex-end', padding: 0, alignItems: 'stretch' } as any}
+        overlayStyle={bottomSheetOverlay as any}
         contentStyle={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'stretch' } as any}
       >
-        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' as any, width: '100%', display: 'flex' as any, flexDirection: 'column' as any }]}>
+        <View style={[{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '70vh' as any, width: '100%', maxWidth: 768, alignSelf: 'center', overflow: 'hidden' as any, display: 'flex' as any, flexDirection: 'column' as any }]}>
           <View style={styles.drawerHead}>
-            <View style={styles.drawerHandle} />
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-              <Text style={styles.drawerHeadTitle}>
-                {editingBatchId !== null
-                  ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
-                  : t('procConfirmOrder')}
-              </Text>
-              <TouchableOpacity style={styles.drawerClose} onPress={handleDrawerClose}>
-                <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
-                  <Line x1="18" y1="6" x2="6" y2="18" />
-                  <Line x1="6" y1="6" x2="18" y2="18" />
-                </Svg>
-              </TouchableOpacity>
-            </View>
+            <SheetHeader
+              title={editingBatchId !== null
+                ? t('procEditBatch').replace('{n}', String(editingBatchNumber))
+                : t('procConfirmOrder')}
+              onClose={handleDrawerClose}
+            />
           </View>
           <ScrollView style={styles.drawerBody}>
             {/* Date + Category — single line */}
@@ -1414,7 +1370,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         contentStyle={{ alignItems: 'stretch' } as any}
       >
         {(anims) => (
-          <View style={[styles.itemsModalCard, { width: '90%', maxHeight: Dimensions.get('window').height * 0.6, alignSelf: 'center' } as any]}>
+          <View style={[styles.itemsModalCard, { width: '90%', maxWidth: 768 * 0.9, maxHeight: Dimensions.get('window').height * 0.6, alignSelf: 'center' } as any]}>
             {/* Stagger item 0: header (handle bar + title, theme bg) */}
             <Animated.View style={{
               opacity: anims[0],

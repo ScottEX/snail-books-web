@@ -1,5 +1,6 @@
 import { TouchableOpacity, Animated, Easing } from 'react-native';
 import { createPortal } from 'react-dom';
+import { BACKDROP_COLOR } from '../theme';
 import { useEffect, useRef, useState, useMemo } from 'react';
 
 interface ModalOverlayProps {
@@ -14,7 +15,7 @@ interface ModalOverlayProps {
   staggerCount?: number;
 }
 
-/** Uniform animated modal overlay. Backdrop uses reference-style rgba(20,18,16,0.45). */
+/** Uniform animated modal overlay. Backdrop color → theme.BACKDROP_COLOR. */
 export default function ModalOverlay({ visible = true, onClose, children, overlayStyle, contentStyle, animation = 'slide', staggerCount = 4 }: ModalOverlayProps) {
   const [show, setShow] = useState(false);
   const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : animation === 'slideUpScale' ? 1 : animation === 'stagger' ? 40 : -300)).current;
@@ -144,7 +145,7 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
   return createPortal(
     <Animated.View style={[{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, justifyContent: 'center', alignItems: 'center', padding: 16 }, overlayStyle]}>
       <TouchableOpacity activeOpacity={1} onPress={onClose} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as any}>
-        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(20,18,16,0.65)', opacity: back as any } as any} />
+        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: BACKDROP_COLOR, opacity: back as any } as any} />
       </TouchableOpacity>
       <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, contentStyle, { opacity: fade, transform: getTrans() }]}>
         {animation === 'stagger' && typeof children === 'function' ? children(staggerAnims) : (children as React.ReactNode)}

@@ -1,10 +1,12 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Image, TextInput } from 'react-native';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
+import { validateEmail, validatePhone } from '../utils/validation';
 import { t, getLang } from '../i18n';
 import { historyHeader } from '../sharedStyles';
 import { modalClose } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
+import LoadingSpinner from '../components/LoadingSpinner';
 import ModalOverlay from '../components/ModalOverlay';
 import TrashIcon from '../components/icons/TrashIcon';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -12,7 +14,7 @@ import CloseButton from '../components/CloseButton';
 import { getCurrentUserId } from '../utils/storage';
 import { api } from '../api/client';
 import { translateName } from './partner/usePartnerData';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface UserData {
   id: number;
@@ -88,9 +90,15 @@ function UndoIconSvg({ color }: { color: string }) {
 }
 
 // EditableField extracted outside to prevent re-mount on parent re-render
-function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c, editable = true }: {
-  label: string; value: string; onChangeText: (t: string) => void; onBlurSave: () => void; placeholder?: string; c: ThemeColors; editable?: boolean;
+function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c, editable = true, validate, keyboardType, filter }: {
+  label: string; value: string; onChangeText: (t: string) => void; onBlurSave: () => void; placeholder?: string; c: ThemeColors; editable?: boolean; validate?: (v: string) => string | null; keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad'; filter?: (v: string) => string;
 }) {
+  const [err, setErr] = useState('');
+  // Track latest value in ref so handleBlur always reads the most recent input,
+  // even if React hasn't re-rendered after onChangeText → setState yet.
+  const valueRef = useRef(value);
+  valueRef.current = value;
+
   if (!editable) {
     return (
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
@@ -99,20 +107,37 @@ function EditableField({ label, value, onChangeText, onBlurSave, placeholder, c,
       </View>
     );
   }
+
+  const handleBlur = () => {
+    const v = valueRef.current;
+    if (validate && v) {
+      const msg = validate(v);
+      if (msg) { setErr(msg); return; }
+    }
+    setErr('');
+    onBlurSave();
+  };
+
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
-      <Text style={{ fontSize: 14, color: c.textSub, flexShrink: 0 }}>{label}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
-        <TextInput
-          style={{ fontSize: 14, fontWeight: '500', color: c.textMain, textAlign: 'right', borderWidth: 0, outline: 'none', background: 'transparent', padding: 0, flex: 1, minWidth: 60 } as any}
-          value={value}
-          onChangeText={onChangeText}
-          onBlur={onBlurSave}
-          placeholder={placeholder || '—'}
-          placeholderTextColor={c.textSub}
-        />
-        <PencilSvg color={c.textSub} />
+    <View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 }}>
+        <Text style={{ fontSize: 14, color: c.textSub, flexShrink: 0 }}>{label}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
+          <TextInput
+            style={{ fontSize: 14, fontWeight: '500', color: c.textMain, textAlign: 'right', borderWidth: 0, outline: 'none', background: 'transparent', padding: 0, flex: 1, minWidth: 60 } as any}
+            value={value}
+            onChangeText={(txt) => { const v = filter ? filter(txt) : txt; valueRef.current = v; onChangeText(v); if (err) setErr(''); }}
+            onBlur={handleBlur}
+            placeholder={placeholder || '—'}
+            placeholderTextColor={c.textSub}
+            keyboardType={keyboardType || 'default'}
+          />
+          <PencilSvg color={c.textSub} />
+        </View>
       </View>
+      {err !== '' && (
+        <Text style={{ fontSize: 11, color: c.danger, textAlign: 'right', paddingHorizontal: 16, paddingBottom: 8, marginTop: -6 }}>{err}</Text>
+      )}
     </View>
   );
 }
@@ -338,7 +363,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   }} activeOpacity={0.7} disabled={deleting}>
                     <View style={[st.actionBtn, { backgroundColor: withAlpha(c.danger, 0.08) }]}>
                       {deleting ? (
-                        <Text style={{ fontSize: 12, color: c.danger, fontWeight: '600' }}>...</Text>
+                        <LoadingSpinner label={false} size={16} color={c.danger} />
                       ) : (
                         <TrashIcon color={c.danger} />
                       )}
@@ -392,9 +417,9 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               <View style={st.divider} />
               <EditableField label={t('realName')} value={lang === 'en' ? (realNamePinyin || realName) : lang === 'zh-TW' ? (realNameTW || realName) : realName} onChangeText={setRealName} onBlurSave={() => saveField('real_name', realName)} c={c} editable={lang === 'zh-CN'} />
               <View style={st.divider} />
-              <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} />
+              <EditableField label={t('phone')} value={phone} onChangeText={setPhone} onBlurSave={() => saveField('phone', phone)} c={c} keyboardType="phone-pad" filter={(v: string) => v.replace(/[^\d]/g, '').slice(0, 11)} validate={(v) => { if (!v) return null; if (!/^1[3-9]\d{9}$/.test(v)) return t('errPhoneInvalid'); return null; }} />
               <View style={st.divider} />
-              <EditableField label={t('profileEmail')} value={email} onChangeText={setEmail} onBlurSave={() => saveField('email', email)} c={c} />
+              <EditableField label={t('profileEmail')} value={email} onChangeText={setEmail} onBlurSave={() => saveField('email', email)} c={c} validate={(v) => validateEmail(v, t)} />
               <View style={st.divider} />
               <View style={st.infoRow}>
                 <Text style={st.infoLabel}>{t('registrationTime')}</Text>
@@ -520,7 +545,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
       {/* Partner Picker Modal */}
       <ModalOverlay visible={showPartnerPicker} onClose={() => setShowPartnerPicker(false)} animation="blurMorph">
-        <View style={{ backgroundColor: c.surface, borderRadius: 16, width: 320, maxWidth: '100%', overflow: 'hidden', } as any} onStartShouldSetResponder={() => true}>
+        <View style={{ backgroundColor: c.surface, borderRadius: 24, width: 320, maxWidth: '100%', overflow: 'hidden', } as any} onStartShouldSetResponder={() => true}>
           <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 15, fontWeight: '700', color: c.surface }}>{t('selectPartner')}</Text>
             <TouchableOpacity onPress={() => setShowPartnerPicker(false)}>
@@ -622,7 +647,7 @@ const getStyles = (c: ThemeColors) => {
     roleItemText: { fontSize: 13 } as any,
     /* Linked-partner delete hint modal */
     hintCard: {
-      backgroundColor: c.surface, borderRadius: 16,
+      backgroundColor: c.surface, borderRadius: 24,
       width: 340, maxWidth: '100%', overflow: 'hidden',
     },
     hintHeader: {
