@@ -325,6 +325,7 @@ function ZoomableImage({
     if (curZoomed || isPinch) {
       e.stopPropagation();
     } else {
+      onZoomActive(false); // ensure ScrollView unlocked (touchcancel safety)
       return;
     }
 
@@ -439,6 +440,7 @@ function ZoomableImage({
     onTouchStart: handleTouchStart,
     onTouchMove: handleTouchMove,
     onTouchEnd: handleTouchEnd,
+    onTouchCancel: handleTouchEnd,  // same cleanup: unlock ScrollView
   },
     React.createElement('img', {
       ref: imgRef,
