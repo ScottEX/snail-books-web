@@ -15,7 +15,7 @@ import FadeInView from '../components/FadeInView';
 import DateErrorHint from '../components/DateErrorHint';
 import { useTheme, withAlpha, ThemeColors, BACKDROP_COLOR } from '../theme';
 import { FONTS } from '../theme';
-import { uploadReceiptStyles, bottomSheetOverlay, sheetHandle } from '../sharedStyles';
+import { uploadReceiptStyles, bottomSheetOverlay } from '../sharedStyles';
 import { fmtAmt as fmt, fmtAmtFull } from '../utils/format';
 import { blockNeg, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
@@ -25,7 +25,6 @@ import { useServerDate } from '../hooks/useServerDate';
 import CategoryChips from '../components/CategoryChips';
 import ButtonPair from '../components/ButtonPair';
 import CloseButton from '../components/CloseButton';
-import SheetHeader from '../components/SheetHeader';
 import EmptyState from '../components/EmptyState';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
@@ -375,7 +374,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     expCategory, setExpCategory,
     payMethod, setPayMethod,
     expNote, setExpNote,
-    expImages, setExpImages,
+    expImages,
     loadingExp,
     handleAddExpense,
     handleImageSelect, removeImage,
@@ -619,7 +618,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                     if (!feeMonthPicker.open) {
                       // Measure trigger position for dropdown placement
                       if (pickerTriggerRef.current && typeof (pickerTriggerRef.current as any).measureInWindow === 'function') {
-                        (pickerTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
+                        (pickerTriggerRef.current as any).measureInWindow((x: number, y: number, _w: number, h: number) => {
                           setPickerPos({ top: y + h + 4, left: x });
                           feeMonthPicker.show();
                         });
@@ -1034,7 +1033,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 onPress={() => {
                   if (!feeHistoryFilterPicker.open) {
                     if (feeHistoryFilterTriggerRef.current) {
-                      (feeHistoryFilterTriggerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
+                      (feeHistoryFilterTriggerRef.current as any).measureInWindow((x: number, y: number, _w: number, _h: number) => {
                         setFeeHistoryPickerPos({ top: y + 30, left: x });
                         feeHistoryPickerAnim.setValue(0);
                         Animated.spring(feeHistoryPickerAnim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 24 }).start();

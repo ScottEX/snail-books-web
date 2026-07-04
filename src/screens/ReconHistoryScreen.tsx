@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import Svg, { Path, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -63,8 +63,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [appliedTo, setAppliedTo] = useState(sd.today);
   const [appliedBy, setAppliedBy] = useState('');
   const [filterDateError, setFilterDateError] = useState(0);
-  const [filDateFromKey, setFilDateFromKey] = useState(0);
-  const [filDateToKey, setFilDateToKey] = useState(0);
 
   // Once server date arrives, backfill the date filter defaults
   useEffect(() => {
@@ -107,7 +105,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   }, [appliedFrom, appliedTo, appliedBy]);
 
   // Paginated list hook
-  const { records, page, total, totalAll, hasMore, loading, loadPage, handleScroll } = usePaginatedList({
+  const { records, total, totalAll, hasMore, loading, loadPage, handleScroll } = usePaginatedList({
     fetchPage: useCallback(async (pg: number, perPage: number) => {
       const data: any = await api.getReconciliationsPage(pg, perPage, getFilterParams());
       return { items: data?.records || [], total: data?.total || 0, totalAll: data?.total_all, pages: data?.pages || 1 };

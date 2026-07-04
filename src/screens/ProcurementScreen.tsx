@@ -231,7 +231,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
 
   // Items modal
-  itemsModalOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 500, alignItems: 'center' as const, justifyContent: 'center' as const },
   itemsModalCard: { backgroundColor: c.surface, borderRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
@@ -264,8 +263,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 8, flexDirection: 'row' as const, backgroundColor: c.surface, borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
-  // Modal (product add/edit)
-  modalOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 400, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center' as const, alignItems: 'center' as const },
   modalCard: { backgroundColor: c.surface, borderRadius: 24, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
     // @ts-ignore
      },
@@ -335,7 +332,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // Auto-clear search when switching between sub-tabs
   useEffect(() => { setSearch(''); }, [subTab]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [productsLoaded, setProductsLoaded] = useState(false);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [search, setSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('全部');
@@ -476,15 +472,14 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
   const loadProducts = useCallback(() => {
     api.getProducts().then((data: any) => {
-      if (Array.isArray(data)) { setProducts(data); setProductsLoaded(true); }
+      if (Array.isArray(data)) { setProducts(data); }
       // If there was a deferred pending edit, process it now that products are loaded.
       if (pendingEditRef.current) {
         openEditBatch(pendingEditRef.current);
         onPendingEditConsumedRef.current?.();
       }
     }).catch(() => {
-      setProductsLoaded(true);
-      // Even on failure, try to process pending edit (cart will be empty but drawer opens).
+      // Even on failure, try to process pending edit
       if (pendingEditRef.current) {
         openEditBatch(pendingEditRef.current);
         onPendingEditConsumedRef.current?.();

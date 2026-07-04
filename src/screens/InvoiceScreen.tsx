@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Animated } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Polyline, Line, Circle, Rect } from 'react-native-svg';
 import { t } from '../i18n';
@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
 import { validateEmail } from '../utils/validation';
 import { BANK_ICON_MAP, DefaultBankIcon } from '../components/BankIcons';
-import { bottomSheetOverlay, sheetHandle } from '../sharedStyles';
+import { bottomSheetOverlay } from '../sharedStyles';
 import SheetHeader from '../components/SheetHeader';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useImagePreview } from '../hooks/useImagePreview';
@@ -78,12 +78,6 @@ const IcnAccount = ({ color }: { color: string }) => (
     <Path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
   </Svg>
 );
-const IcnClose = ({ color }: { color: string }) => (
-  <Svg width="14" height="14" viewBox="0 0 1088 1024">
-    <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill={color} />
-  </Svg>
-);
-
 /** Pen icon — same SVG as UserDetailScreen.PencilSvg */
 const PencilSvg = ({ color }: { color: string }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -236,27 +230,12 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     })();
   }, []);
 
-  // User email for display
-  const [userEmail, setUserEmail] = useState('');
-  useEffect(() => {
-    const stored = (() => { try { return localStorage.getItem('email'); } catch { return null; } })();
-    if (stored) { setUserEmail(stored); return; }
-    (async () => {
-      try {
-        const j: any = await api.admin.getMe();
-        const u = j.user || j.data || j;
-        if (u.email) setUserEmail(u.email);
-      } catch { }
-    })();
-  }, []);
-
   // CSS injection for drawer animation
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dType, setDType] = useState<InvType>('general');
   const [dAmount, setDAmount] = useState('');
   const [dAmountFocus, setDAmountFocus] = useState(false);
   const [dDate, setDDate] = useState(new Date().toISOString().slice(0, 10));
-  const [dRef, setDRef] = useState('');
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
   const [dEmailErr, setDEmailErr] = useState('');
@@ -539,7 +518,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDType(forEdit ? (forEdit.type as InvType) : 'general');
     setDAmount(forEdit ? String(forEdit.amount) : '');
     setDDate(forEdit ? forEdit.date : new Date().toISOString().slice(0, 10));
-    setDRef('');
     setDNote(forEdit ? (forEdit.note || '') : '');
     setDInvoiceNo(forEdit ? (forEdit.invoice_number || '') : '');
     setDStatus(forEdit ? (forEdit.status as InvStatus) : 'pending');
@@ -611,7 +589,6 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
             <Text style={[s.ecTitle, { color: '#fff', flex: 1 }]}>{t('invTitle')}</Text>
             <TouchableOpacity style={[s.ecBtn, { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, flexShrink: 0 }]} onPress={() => {
             setDDate(new Date().toISOString().slice(0, 10));
-            setDRef('');
             setDNote('');
             openDrawer();
           }}>

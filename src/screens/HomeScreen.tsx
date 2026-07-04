@@ -63,12 +63,6 @@ export default function HomeScreen({
   // side language actually reaches the lang selector).
   const { lang, setLang: setLangState } = useLang();
 
-  // Add form
-  const [txType, setTxType] = useState('expense');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('');
-  const [account, setAccount] = useState('');
-  const [note, setNote] = useState('');
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
@@ -145,14 +139,12 @@ export default function HomeScreen({
 
   // ── 收支总览数据（图表 Tab）──
   const {
-    summary, transactions, page, pages,
-    chart, chartMonthly, products,
-    businessSummary, dailyRevenues,
+    chartMonthly,
+    businessSummary,
     last7Records, setLast7Records, avatarUrl,
     loadData, loadAvatar,
-    todayExpenseSummary, monthExpenseSummary, yesterdayIncome, yesterdayExpense, yesterdayProfit, monthIncome,
+    monthExpenseSummary, yesterdayIncome, yesterdayExpense, monthIncome,
     toDec2Comma,
-    handlePage,
   } = useHomeData(tab, showToast);
 
   // Background image crop moved to shared BgCropModal component.
@@ -321,34 +313,6 @@ export default function HomeScreen({
       }).start();
     });
   }, [tab]);
-
-  const handleAddTx = async () => {
-    if (!amount || !category || !account) return;
-    try {
-      await api.createTransaction({ type: txType, amount: parseFloat(amount), category, account, note });
-      setAmount(''); setCategory(''); setAccount(''); setNote('');
-      loadData();
-    } catch {
-      showToast(t('toastSubmitFailed'));
-    }
-  };
-
-
-  // handlePage → useHomeData
-
-  const handleDeleteTx = async (id: number) => {
-    try {
-      await api.deleteTransaction(id);
-      loadData();
-    } catch {
-      showToast(t('toastSubmitFailed'));
-    }
-  };
-
-
-  const todayStr = sd.ready
-    ? new Date(sd.today + 'T00:00:00').toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })
-    : '';
 
   // Background image crop flow is self-contained inside ThemePickerModal —
   // it calls onCoverImagePicked(file) after the user confirms in the

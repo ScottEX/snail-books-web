@@ -35,7 +35,6 @@ import { useSignatureForm } from './profile/useSignatureForm';
 import { useCoverCrop } from './profile/useCoverCrop';
 import { useAvatarCrop } from './profile/useAvatarCrop';
 import { useSwipeBack } from '../hooks/useSwipeBack';
-import { useCropCanvas } from '../hooks/useCropCanvas';
 import ButtonPair from '../components/ButtonPair';
 import CloseButton from '../components/CloseButton';
 import TextField from '../components/TextField';
@@ -57,24 +56,23 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const { colors, theme, setTheme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const {
-    avatarUrl, setAvatarUrl, avatarKey, setAvatarKey,
+    avatarUrl, avatarKey,
     cropSrc, cropResult, showResult, cropMsg,
-    setCropSrc, setCropResult, setShowResult, setCropMsg,
-    cropImgRef, canvasRef, stageRef, guideRef,
+    setCropSrc, setShowResult,
+    canvasRef, stageRef, guideRef,
     handleAvatarSelect, confirmCrop, doUpload,
     loadAvatar,
     cropState, clampCrop, drawCrop,
     zoomSlider, setZoomSlider,
   } = useAvatarCrop(onAvatarChange);
   const {
-    coverUrl, setCoverUrl, coverKey, setCoverKey,
+    coverUrl, coverKey,
     coverOpacity, setCoverUploading, coverUploading,
     coverCropSrc, coverCropResult, coverShowResult, coverCropMsg,
-    setCoverCropSrc, setCoverCropResult, setCoverShowResult, setCoverCropMsg,
+    setCoverCropSrc, setCoverCropResult, setCoverShowResult,
     coverZoomSlider, setCoverZoomSlider,
-    coverInputRef, coverCropImgRef, coverCanvasRef, coverStageRef, coverGuideRef,
+    coverInputRef, coverCanvasRef, coverStageRef, coverGuideRef,
     handleCoverSelect, coverConfirmCrop, coverDoUpload,
-    handleCoverOpacityChange, handleCoverReset,
     loadCover,
     coverCropState, coverClampCrop, coverDrawCrop,
   } = useCoverCrop();
@@ -94,7 +92,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [email, setEmail] = useState('');
   const {
     signature, setSignature,
-    signatureEditing, setSignatureEditing,
+    signatureEditing,
     signatureDraft, setSignatureDraft,
     handleSignatureSave, startEditing,
   } = useSignatureForm();
@@ -116,14 +114,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     try {
       const data = await api.admin.getUnreviewedCount();
       setUnreviewedCount(data.count ?? 0);
-    } catch {}
-  };
-
-  const markReviewed = async () => {
-    if (unreviewedCount === 0 || !isAdmin) return;
-    setUnreviewedCount(0);
-    try {
-      await api.admin.markReviewed();
     } catch {}
   };
 

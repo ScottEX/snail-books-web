@@ -117,7 +117,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   });
 
   const { colors } = useTheme();
-  const swipeBack = useSwipeBack(onBack);
+  useSwipeBack(onBack);
 
   const s = useMemo(() => getS(colors), [colors]);
   const mo = useMemo(() => getMo(colors), [colors]);
@@ -227,14 +227,6 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
       setShowDelete(null);
       loadData();
     }
-  };
-
-  const switchLang = (l: string) => {
-    // setLangState (from LangContext) writes curLang + localStorage +
-    // server AND triggers a re-render — replacing the old
-    // two-step `setLang(l); setLangState(l);`.
-    setLangState(l);
-    loadData();
   };
 
   const loadAvatar = async () => {
@@ -395,12 +387,6 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
     s.scale = newScale;
     clampCrop();
     drawCrop();
-  };
-
-  const updateSliderPct = () => {
-    const s = cropState.current;
-    const t = (s.scale - s.minScale) / ((s.maxScale - s.minScale) * 0.5);
-    return Math.max(0, Math.min(100, t * 100));
   };
 
   // ── Pill auto-hide (3s) ──

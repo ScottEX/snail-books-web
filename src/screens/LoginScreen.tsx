@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated, Platform, ImageBackground } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t, langs, useLang, I18nKey } from '../i18n';
