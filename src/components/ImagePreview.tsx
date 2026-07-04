@@ -69,6 +69,7 @@ export default function ImagePreview({
 
   // ── Pinch-zoom guard: suppress overlay PanResponder while zooming ──
   const zoomActiveRef = useRef(false);
+  const [scrollLocked, setScrollLocked] = useState(false);
 
   // ── PanResponder — vertical dismiss (disabled during pinch-zoom) ──
   const panResponder = useMemo(() => PanResponder.create({
@@ -151,6 +152,7 @@ export default function ImagePreview({
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         bounces={false}
+        scrollEnabled={!scrollLocked}
       >
         {images.map((src, i) => (
           <Animated.View
@@ -161,7 +163,7 @@ export default function ImagePreview({
               src={src}
               windowW={WINDOW_W}
               windowH={WINDOW_H}
-              onZoomActive={(v) => { zoomActiveRef.current = v; }}
+              onZoomActive={(v) => { zoomActiveRef.current = v; setScrollLocked(v); }}
               onSwipeToPage={handleSwipeToPage}
             />
           </Animated.View>
