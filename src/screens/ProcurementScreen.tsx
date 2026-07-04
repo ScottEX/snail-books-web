@@ -831,12 +831,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const openAddProduct = () => {
     setEditingProduct(null);
     setProdForm({ name: '', spec: '', price: '', supplier: '', note: '' });
-    openSlideModal(() => setShowProductModal(true));
+    setShowProductModal(true);
   };
   const openEditProduct = (p: Product) => {
     setEditingProduct(p);
     setProdForm({ name: p.name, spec: p.spec, price: String(p.price), supplier: p.supplier, note: p.note || '' });
-    openSlideModal(() => setShowProductModal(true));
+    setShowProductModal(true);
   };
   const saveProduct = async () => {
     if (!prodForm.name || prodSaving) return;
@@ -844,7 +844,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     const data = { name: prodForm.name, spec: prodForm.spec, price: parseFloat(prodForm.price) || 0, supplier: prodForm.supplier, note: prodForm.note };
     try {
       editingProduct ? await api.updateProduct({ ...data, id: editingProduct.id }) : await api.createProduct(data);
-      closeSlideModal(() => setShowProductModal(false));
+      setShowProductModal(false);
       loadProducts();
     } catch {
       showToast(t('toastSubmitFailed'));
@@ -1204,48 +1204,46 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </>
       )}
 
-      {/* ── Product Modal ── */}
-      {showProductModal && (
-        <Animated.View style={[styles.modalOverlay, { opacity: modalOverlayFade }]}>
-          <Animated.View style={[styles.modalCard, { transform: [{ translateY: modalSlide }] }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{editingProduct ? t('procEditProduct') : t('procAddProduct')}</Text>
-              <CloseButton onPress={() => closeSlideModal(() => setShowProductModal(false))} />
-            </View>
-            <View style={styles.modalBody}>
-              <TextField placeholder={t('procProductName')} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
-              <TextField placeholder={t('procProductSpec')} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
-              <View style={[styles.modalInput, { position: 'relative', justifyContent: 'center' }]}>
-                <Text style={{ fontSize: FONTS.sub.size, color: prodForm.supplier ? c.textMain : c.textSub }}>
-                  {prodForm.supplier || t('procProductSupplier')}
-                </Text>
-                <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, justifyContent: 'center' }}>
-                  <ChevronDownIcon color={c.textSub} />
-                </View>
-                {React.createElement('select', {
-                  value: prodForm.supplier,
-                  onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
-                  style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.01, } as any,
-                },
-                  <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
-                  suppliers.filter((s: string) => s !== '全部').map((s: string) => (
-                    React.createElement('option', { key: s, value: s }, s)
-                  ))
-                )}
+      {/* ── Product Modal (springScale) ── */}
+      <ModalOverlay visible={showProductModal} onClose={() => setShowProductModal(false)} animation="springScale">
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{editingProduct ? t('procEditProduct') : t('procAddProduct')}</Text>
+            <CloseButton onPress={() => setShowProductModal(false)} />
+          </View>
+          <View style={styles.modalBody}>
+            <TextField placeholder={t('procProductName')} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
+            <TextField placeholder={t('procProductSpec')} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
+            <View style={[styles.modalInput, { position: 'relative', justifyContent: 'center' }]}>
+              <Text style={{ fontSize: FONTS.sub.size, color: prodForm.supplier ? c.textMain : c.textSub }}>
+                {prodForm.supplier || t('procProductSupplier')}
+              </Text>
+              <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, justifyContent: 'center' }}>
+                <ChevronDownIcon color={c.textSub} />
               </View>
-              <TextField placeholder={t('procProductPrice')} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="decimal-pad" />
-              <TextField placeholder={t('procProductNote')} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
-              <ButtonPair
-                leftLabel={t('cancel')}
-                leftOnPress={() => closeSlideModal(() => setShowProductModal(false))}
-                rightLabel={t('procSubmit')}
-                rightOnPress={saveProduct}
-                rightLoading={prodSaving}
-              />
+              {React.createElement('select', {
+                value: prodForm.supplier,
+                onChange: (e: any) => setProdForm(p => ({ ...p, supplier: e.target.value })),
+                style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.01, } as any,
+              },
+                <option key="__placeholder" value="" disabled>{t('procProductSupplier')}</option>,
+                suppliers.filter((s: string) => s !== '全部').map((s: string) => (
+                  React.createElement('option', { key: s, value: s }, s)
+                ))
+              )}
             </View>
-          </Animated.View>
-        </Animated.View>
-      )}
+            <TextField placeholder={t('procProductPrice')} value={prodForm.price} onChangeText={v => setProdForm(p => ({ ...p, price: fmtDecInput(v) }))} keyboardType="decimal-pad" />
+            <TextField placeholder={t('procProductNote')} value={prodForm.note} onChangeText={v => setProdForm(p => ({ ...p, note: v }))} />
+            <ButtonPair
+              leftLabel={t('cancel')}
+              leftOnPress={() => setShowProductModal(false)}
+              rightLabel={t('procSubmit')}
+              rightOnPress={saveProduct}
+              rightLoading={prodSaving}
+            />
+          </View>
+        </View>
+      </ModalOverlay>
 
       {/* ── Delete confirmation modal (product) ── */}
       <ConfirmModal
