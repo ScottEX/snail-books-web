@@ -666,7 +666,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>
                   {t('password')}{' '}
-                  <Text style={styles.hintText}>{t('pwHint') || '6+ chars, letter + number'}</Text>
+                  <Text style={styles.hintText}>{t('pwHint') || '8+ chars, letter + number + special'}</Text>
                 </Text>
                 <View style={styles.pwWrap}>
                   <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}
