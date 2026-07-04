@@ -860,7 +860,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     } catch {
       showToast(t('toastSubmitFailed'));
     }
-    closeSlideModal(() => setDeleteTarget(null));
+    setDeleteTarget(null);
   };
 
   return (
@@ -1254,7 +1254,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         message={<>{t('procDeleteProductConfirm').split('{name}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{delTargetRef.current?.name}</Text>{t('procDeleteProductConfirm').split('{name}')[1]}{' '}{t('procDeleteProductWarning')}</>}
         confirmLabel={t('delete')}
         onConfirm={() => confirmDelete()}
-        onCancel={() => closeSlideModal(() => setDeleteTarget(null))}
+        onCancel={() => setDeleteTarget(null)}
+        animation="blurMorph"
       />
 
       {/* ── Delete batch confirmation modal ── */}
@@ -1264,7 +1265,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         message={<>{t('procDeleteBatchConfirmV2').split('{batch}')[0]}<Text style={{ color: c.primary, fontWeight: '600' }}>{t('procNowBatch').replace('{n}', String(delBatchRef.current?.batch_number ?? ''))}</Text>{t('procDeleteBatchConfirmV2').split('{batch}')[1]}</>}
         confirmLabel={t('delete')}
         onConfirm={() => confirmDeleteBatch()}
-        onCancel={() => closeSlideModal(() => setDeleteBatchTarget(null))}
+        onCancel={() => setDeleteBatchTarget(null)}
+        animation="blurMorph"
       />
 
       {/* ── Order Drawer (slide up + scale) ── */}
