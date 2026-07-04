@@ -1210,7 +1210,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <TextField placeholder={t('procProductName')} value={prodForm.name} onChangeText={v => setProdForm(p => ({ ...p, name: v }))} />
             <TextField placeholder={t('procProductSpec')} value={prodForm.spec} onChangeText={v => setProdForm(p => ({ ...p, spec: v }))} />
             <View style={[styles.modalInput, { position: 'relative', justifyContent: 'center' }]}>
-              <Text style={{ fontSize: FONTS.sub.size, color: prodForm.supplier ? c.textMain : c.textSub }}>
+              <Text style={{ fontSize: FONTS.sub.size, color: c.primary }}>
                 {prodForm.supplier || t('procProductSupplier')}
               </Text>
               <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, justifyContent: 'center' }}>
