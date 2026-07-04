@@ -15,6 +15,7 @@ const SNAP_DURATION = 220;
 const MAX_ZOOM = 4;
 const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_ZOOM = 2;
+const OVERSCROLL_SWIPE = 60; // px past boundary to trigger page change
 
 interface ImagePreviewProps {
   images: string[];
@@ -113,6 +114,14 @@ export default function ImagePreview({
     },
   }), [dismissing, panY, overlayOpacity, imageScale, WINDOW_H, onClose]);
 
+  // ── Edge-swipe page change when zoomed ──
+  const handleSwipeToPage = useCallback((direction: -1 | 1) => {
+    const nextIdx = idx + direction;
+    if (nextIdx < 0 || nextIdx >= images.length) return;
+    setIdx(nextIdx);
+    scrollRef.current?.scrollTo({ x: nextIdx * WINDOW_W, animated: true });
+  }, [idx, images.length, WINDOW_W]);
+
   if (!visible || images.length === 0 || WINDOW_W === 0) return null;
 
   return (
@@ -148,7 +157,13 @@ export default function ImagePreview({
             key={i}
             style={[styles.page, { width: WINDOW_W, transform: [{ scale: imageScale }] }]}
           >
-            <ZoomableImage src={src} windowW={WINDOW_W} windowH={WINDOW_H} onZoomActive={(v) => { zoomActiveRef.current = v; }} />
+            <ZoomableImage
+              src={src}
+              windowW={WINDOW_W}
+              windowH={WINDOW_H}
+              onZoomActive={(v) => { zoomActiveRef.current = v; }}
+              onSwipeToPage={handleSwipeToPage}
+            />
           </Animated.View>
         ))}
       </ScrollView>
@@ -165,51 +180,96 @@ export default function ImagePreview({
   );
 }
 
-/** Zoomable image with pinch-to-zoom (min 1×) and double-tap toggle. Web-only. */
-function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
+// ── Helpers ──
+
+/** Compute the fitted image dimensions given natural size and viewport constraints. */
+function getFittedSize(naturalW: number, naturalH: number, viewW: number, viewH: number) {
+  if (!naturalW || !naturalH) return { w: viewW, h: viewH };
+  const imgRatio = naturalW / naturalH;
+  const viewRatio = viewW / viewH;
+  if (imgRatio > viewRatio) {
+    return { w: viewW, h: viewW / imgRatio };
+  }
+  return { w: viewH * imgRatio, h: viewH };
+}
+
+/** Clamp a value within [low, high], applying sqrt resistance beyond bounds (iOS-style). */
+function clampResist(val: number, low: number, high: number) {
+  if (val < low) return low - Math.sqrt(low - val) * 2;
+  if (val > high) return high + Math.sqrt(val - high) * 2;
+  return val;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  ZoomableImage — pinch-to-zoom + edge-constrained pan + edge-swipe page
+// ═══════════════════════════════════════════════════════════════════════
+
+function ZoomableImage({
+  src, windowW, windowH, onZoomActive, onSwipeToPage,
+}: {
   src: string; windowW: number; windowH: number;
   onZoomActive: (active: boolean) => void;
+  onSwipeToPage?: (direction: -1 | 1) => void;
 }) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
-  // Ref mirror of scale — read synchronously in touch handlers to avoid stale
-  // state closure causing spurious zoom-out on fast pinch release.
   const scaleRef = useRef(1);
+  const offsetRef = useRef({ x: 0, y: 0 }); // raw offset for edge detection in handleTouchEnd
 
   const pinchBase = useRef({ dist: 0, scale: 1 });
   const panBase = useRef({ x: 0, y: 0 });
+  const touchRef = useRef({ startX: 0, startY: 0 });
   const lastTap = useRef(0);
-  const tapPos = useRef({ x: 0, y: 0 });
-  const wasPinch = useRef(false); // suppress double-tap after pinch release
+  const wasPinch = useRef(false);
+
+  // Image natural size — updated on load; used to compute pan boundaries
+  const imgNatural = useRef({ w: 0, h: 0 });
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   const zoomed = scaleRef.current > 1.01;
+
+  /** Current allowed pan range given zoom level and natural image size. */
+  const computeBounds = useCallback(() => {
+    const viewH = windowH * 0.9;
+    const fitted = getFittedSize(imgNatural.current.w, imgNatural.current.h, windowW, viewH);
+    const s = scaleRef.current;
+    const scaledW = fitted.w * s;
+    const scaledH = fitted.h * s;
+    const maxX = Math.max(0, (scaledW - windowW) / 2);
+    const maxY = Math.max(0, (scaledH - windowH) / 2);
+    return { maxX, maxY, scaledW, scaledH, fitted };
+  }, [windowW, windowH]);
+
+  // ── Touch handlers ──
 
   const handleTouchStart = useCallback((e: any) => {
     const ts = e.nativeEvent?.touches || e.touches || [];
     const isPinch = ts.length === 2;
     const isPan = ts.length === 1 && zoomed;
 
-    if (!isPinch && !isPan) return; // let event bubble to parent for dismiss/swipe
+    if (!isPinch && !isPan) return;
 
     e.stopPropagation();
-    onZoomActive(true); // suppress overlay PanResponder during zoom/pan
+    onZoomActive(true);
     wasPinch.current = isPinch;
+
     if (isPinch) {
       const dx = ts[0].clientX - ts[1].clientX;
       const dy = ts[0].clientY - ts[1].clientY;
       pinchBase.current = { dist: Math.hypot(dx, dy), scale: scaleRef.current };
     } else {
       panBase.current = { x: offset.x, y: offset.y };
+      touchRef.current = { startX: ts[0].clientX, startY: ts[0].clientY };
     }
-  }, [offset, zoomed, onZoomActive]);
+  }, [offset.x, offset.y, zoomed, onZoomActive]);
 
   const handleTouchMove = useCallback((e: any) => {
     const ts = e.nativeEvent?.touches || e.touches || [];
     const isPinch = ts.length === 2;
     const isPan = ts.length === 1 && zoomed;
 
-    if (!isPinch && !isPan) return; // let parent handle scrolling/swiping
+    if (!isPinch && !isPan) return;
 
     e.stopPropagation();
     e.preventDefault?.();
@@ -224,13 +284,18 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
         setScale(newScale);
       }
     } else {
-      const touch = ts[0];
-      setOffset({
-        x: panBase.current.x + (touch.clientX - touchRef.current.startX),
-        y: panBase.current.y + (touch.clientY - touchRef.current.startY),
-      });
+      const rawX = panBase.current.x + (ts[0].clientX - touchRef.current.startX);
+      const rawY = panBase.current.y + (ts[0].clientY - touchRef.current.startY);
+
+      // Clamp with iOS-style resistance beyond boundaries
+      const { maxX, maxY } = computeBounds();
+      const clampedX = clampResist(rawX, -maxX, maxX);
+      const clampedY = clampResist(rawY, -maxY, maxY);
+
+      offsetRef.current = { x: rawX, y: rawY }; // keep raw for edge-swipe detection
+      setOffset({ x: clampedX, y: clampedY });
     }
-  }, [zoomed]);
+  }, [zoomed, computeBounds]);
 
   const handleTouchEnd = useCallback((e: any) => {
     const ts = e.nativeEvent?.changedTouches || e.changedTouches || [];
@@ -238,81 +303,90 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
     const curScale = scaleRef.current;
     const curZoomed = curScale > 1.01;
 
-    // Only block propagation if we're handling our own gesture
     if (curZoomed || isPinch) {
       e.stopPropagation();
     } else {
-      return; // let parent handle (dismiss)
+      return;
     }
 
     const now = Date.now();
     const endOfPinch = wasPinch.current;
     wasPinch.current = false;
 
-    // After a pinch, skip double-tap detection — two fingers lifting in quick
-    // succession looks like a rapid double-tap, which would spuriously zoom out.
     if (!endOfPinch) {
-      // Double-tap detection
       if (ts.length === 1 && now - lastTap.current < DOUBLE_TAP_MS) {
         const touch = ts[0];
         if (curZoomed) {
-          // Zoom out
           scaleRef.current = 1;
           setScale(1);
           setOffset({ x: 0, y: 0 });
           onZoomActive(false);
         } else {
-          // Zoom in to 2× centered on tap
           scaleRef.current = DOUBLE_TAP_ZOOM;
           setScale(DOUBLE_TAP_ZOOM);
           const cx = windowW / 2;
           const cy = windowH / 2;
-          const newOx = (cx - touch.clientX) * (DOUBLE_TAP_ZOOM - 1);
-          const newOy = (cy - touch.clientY) * (DOUBLE_TAP_ZOOM - 1);
-          setOffset({ x: newOx, y: newOy });
+          setOffset({
+            x: (cx - touch.clientX) * (DOUBLE_TAP_ZOOM - 1),
+            y: (cy - touch.clientY) * (DOUBLE_TAP_ZOOM - 1),
+          });
         }
         lastTap.current = 0;
         return;
       }
-
       if (ts.length === 1) {
         lastTap.current = now;
-        tapPos.current = { x: ts[0].clientX, y: ts[0].clientY };
       }
     }
 
-    // Clamp pan on release: don't let image drift too far offscreen
     if (curScale <= 1.01) {
       scaleRef.current = 1;
       setScale(1);
       setOffset({ x: 0, y: 0 });
       onZoomActive(false);
+      return;
     }
-  }, [windowW, windowH, onZoomActive]);
 
-  // Track single-touch reference point for panning
-  const touchRef = useRef({ startX: 0, startY: 0 });
+    // ── Edge-swipe to next/prev page ──
+    if (curZoomed) {
+      const { maxX } = computeBounds();
+      const rawX = offsetRef.current.x;
 
-  const onTouchStartFull = useCallback((e: any) => {
-    const ts = e.nativeEvent.touches || e.touches || [];
-    if (ts.length === 1 && zoomed) {
-      touchRef.current = { startX: ts[0].clientX, startY: ts[0].clientY };
+      if (rawX < -maxX - OVERSCROLL_SWIPE) {
+        onSwipeToPage?.(1);
+        scaleRef.current = 1;
+        setScale(1);
+        setOffset({ x: 0, y: 0 });
+        onZoomActive(false);
+        return;
+      }
+      if (rawX > maxX + OVERSCROLL_SWIPE) {
+        onSwipeToPage?.(-1);
+        scaleRef.current = 1;
+        setScale(1);
+        setOffset({ x: 0, y: 0 });
+        onZoomActive(false);
+        return;
+      }
     }
-    handleTouchStart(e);
-  }, [zoomed, handleTouchStart]);
 
-  const onTouchMoveFull = useCallback((e: any) => {
-    const ts = e.nativeEvent.touches || e.touches || [];
-    if (ts.length === 1 && zoomed) {
-      const dx = ts[0].clientX - touchRef.current.startX;
-      const dy = ts[0].clientY - touchRef.current.startY;
-      setOffset({ x: panBase.current.x + dx, y: panBase.current.y + dy });
-    } else if (ts.length === 2) {
-      handleTouchMove(e);
+    // ── Snap pan back within bounds ──
+    const { maxX, maxY } = computeBounds();
+    const curX = offsetRef.current.x;
+    const curY = offsetRef.current.y;
+    const snapX = Math.max(-maxX, Math.min(maxX, curX));
+    const snapY = Math.max(-maxY, Math.min(maxY, curY));
+    if (snapX !== curX || snapY !== curY) {
+      setOffset({ x: snapX, y: snapY });
     }
-  }, [zoomed, handleTouchMove]);
+  }, [windowW, windowH, onZoomActive, onSwipeToPage, computeBounds]);
 
-  // Only render interactive wrapper on web
+  // ── Image load: capture natural dimensions ──
+  const onImgLoad = useCallback((e: any) => {
+    const img = e.target || e.currentTarget;
+    imgNatural.current = { w: img.naturalWidth || 0, h: img.naturalHeight || 0 };
+  }, []);
+
   if (Platform.OS !== 'web') {
     return (
       <Image
@@ -322,25 +396,24 @@ function ZoomableImage({ src, windowW, windowH, onZoomActive }: {
     );
   }
 
-  // Web-only: raw div for touch event fidelity
+  // Web-only: raw elements for precise touch handling
   return React.createElement('div', {
     style: {
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      width: '100%', height: '100%', display: 'flex',
+      alignItems: 'center', justifyContent: 'center',
       overflow: 'hidden',
       touchAction: zoomed ? 'none' : 'auto',
     } as React.CSSProperties,
-    onTouchStart: onTouchStartFull,
-    onTouchMove: onTouchMoveFull,
+    onTouchStart: handleTouchStart,
+    onTouchMove: handleTouchMove,
     onTouchEnd: handleTouchEnd,
   },
     React.createElement('img', {
+      ref: imgRef,
       src,
       draggable: false,
       alt: 'preview',
+      onLoad: onImgLoad,
       style: {
         width: `${100 * scale}%`,
         maxWidth: 'none',
@@ -362,25 +435,14 @@ const styles = StyleSheet.create({
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
     backgroundColor: 'rgba(0,0,0,0.85)',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    alignItems: 'center',
-  },
-  page: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  scrollView: { flex: 1 },
+  scrollContent: { alignItems: 'center' },
+  page: { alignItems: 'center', justifyContent: 'center' },
   close: {
     position: 'absolute', top: 48, right: 20, zIndex: 10,
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
-  },
-  counter: {
-    position: 'absolute', bottom: 60, alignSelf: 'center', zIndex: 10,
-    fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)',
   },
   dots: {
     position: 'absolute' as any, bottom: 60, alignSelf: 'center', zIndex: 10,
@@ -390,7 +452,5 @@ const styles = StyleSheet.create({
     width: 6, height: 6, borderRadius: 3,
     backgroundColor: 'rgba(255,255,255,0.35)',
   },
-  dotActive: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
-  },
+  dotActive: { backgroundColor: 'rgba(255,255,255,0.9)' },
 });
