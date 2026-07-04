@@ -82,6 +82,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   } = usePartnerData(showToast, refreshKey);
   const [showDividend, setShowDividend] = useState(false);
   const [showDelete, setShowDelete] = useState<any>(null);
+  const deleteNoteRef = useRef<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [showDetail, setShowDetail] = useState<any>(null);
@@ -208,10 +209,11 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
   };
 
   const handleDelete = async () => {
-    if (showDelete === null) return;
+    const note = deleteNoteRef.current;
+    if (!note) return;
     setDeleting(true);
     setDeleteError('');
-    const toDelete = dividends.filter((d: any) => d.note === showDelete);
+    const toDelete = dividends.filter((d: any) => d.note === note);
     let failed = 0;
     for (const d of toDelete) {
       try { await api.deleteDividend(d.id); }
@@ -632,7 +634,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
                 <TableGroup key={note} title={translateDividendNote(note, items[0].date)} type="dividend" total={total}
                   themeColors={colors} styles={tg}
                   items={items.map((d: any) => ({ name: translateName(d.partner, d.name_pinyin, d.name_tw), sub: '', amount: d.amount }))}
-                  onDelete={() => setShowDelete(note)} />
+                  onDelete={() => { deleteNoteRef.current = note; setShowDelete(note); }} />
               );
             })}
           </View>
@@ -716,7 +718,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
         message={deleteError ? (
           <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'center' }}>{deleteError}</Text>
         ) : (
-          <>{t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{translateDividendNote(showDelete, grouped[showDelete ?? '']?.[0]?.date)}</Text>{t('allDividendRecords')}</>
+          <>{t('willDelete')}<Text style={{ fontWeight: '600', color: colors.primary }}>{deleteNoteRef.current ? translateDividendNote(deleteNoteRef.current, grouped[deleteNoteRef.current]?.[0]?.date) : ''}</Text>{t('allDividendRecords')}</>
         )}
         confirmLabel={deleting ? '删除中…' : t('confirmDeleteRecord')}
         loading={deleting}
