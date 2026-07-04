@@ -407,19 +407,20 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack 
         {/* Zoom indicator */}
         <div className={`pv-zi${zoomVis ? ' on' : ''}`}>{zoomPct}%</div>
 
+        {/* Intro loading — outside viewport for full-screen centering */}
+        {pdfLoading && !pdfError && (
+          <div className="pv-intro-overlay">
+            <div className="pv-intro on">
+              <div className="pv-intro-text">{t('pdfGenerating')}</div>
+              <div className="pv-intro-sec" style={{ color: c.primary }}>{introSec}s</div>
+            </div>
+          </div>
+        )}
+
         {/* PDF Viewport */}
         <div className="pv-vp">
           {/* Mask — blocks interaction while PDF loads */}
           {pdfLoading && !pdfError && <div className="pv-loading-mask" />}
-          {/* Intro loading — centered, shows while PDF loads */}
-          {pdfLoading && !pdfError && (
-            <div className="pv-intro-overlay">
-              <div className="pv-intro on">
-                <div className="pv-intro-text">{t('pdfGenerating')}</div>
-                <div className="pv-intro-sec" style={{ color: c.textMain }}>{introSec}s</div>
-              </div>
-            </div>
-          )}
           {pdfError && (
             <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
               <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round">

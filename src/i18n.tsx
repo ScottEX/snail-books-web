@@ -198,6 +198,7 @@ const I18N: Record<string, Record<string, string>> = {
     invApplyAmount: '申请金额',
     invAutoFilled: '已自动填入',
     invBankInfo: '银行信息',
+    invManage: '发票管理',
     invCenter: '发票管理中心',
     invContact: '联系开票方',
     invDelConfirmPrefix: '此操作将删除「',

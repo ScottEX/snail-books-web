@@ -268,7 +268,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   };
   // Records (API-driven, no more stub)
   const [records, setRecords] = useState<InvoiceRecord[]>([]);
-  const [recordsLoading, setRecordsLoading] = useState(false);
+  const [recordsLoading, setRecordsLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
 
   // Edit / delete target
@@ -299,6 +299,19 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   }, [filterBatchId]);
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
+
+  // Auto-open drawer when coming from "去开票" — edit if record exists, new otherwise
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (!filterBatchId || recordsLoading || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
+    const existing = records.find((r: any) => r.procurement_batch_id === filterBatchId);
+    if (existing) {
+      openDrawer(existing);
+    } else {
+      openDrawer(undefined, filterBatchId);
+    }
+  }, [filterBatchId, recordsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load invoice data (backend allows all logged-in users since 4b00e12)
   useEffect(() => {
@@ -511,7 +524,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   }, [dFiles, openPreview]);
 
   // ── Drawer animation ──
-  const openDrawer = (forEdit?: InvoiceRecord) => {
+  const openDrawer = (forEdit?: InvoiceRecord, preSelectBatchId?: number | null) => {
     setDrawerOpen(true);
     winHRef.current = window.innerHeight;
     setEditingId(forEdit ? forEdit.id : null);
@@ -521,7 +534,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setDNote(forEdit ? (forEdit.note || '') : '');
     setDInvoiceNo(forEdit ? (forEdit.invoice_number || '') : '');
     setDStatus(forEdit ? (forEdit.status as InvStatus) : 'pending');
-    setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : null);
+    setDBatchId(forEdit ? (forEdit.procurement_batch_id ?? null) : (preSelectBatchId ?? null));
     setDFiles([]);
     setDExistingFilePath(forEdit ? parseFilePaths(forEdit.file_path) : []);
     setDExistingThumbPaths(forEdit ? parseFilePaths(forEdit.file_thumb_paths) : []);
