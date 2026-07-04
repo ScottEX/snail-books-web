@@ -268,7 +268,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   };
   // Records (API-driven, no more stub)
   const [records, setRecords] = useState<InvoiceRecord[]>([]);
-  const [recordsLoading, setRecordsLoading] = useState(false);
+  const [recordsLoading, setRecordsLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
 
   // Edit / delete target
