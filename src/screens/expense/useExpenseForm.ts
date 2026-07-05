@@ -80,6 +80,20 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     return fmtDecInput(stripped);
   }, [isRefund]);
 
+  /* ── reset form ── */
+  const resetForm = useCallback(() => {
+    setExpAmount('');
+    setExpCategory('daily');
+    setPayMethod('payWechat');
+    setExpNote('');
+    setExpDate(sd.today);
+    setExpImages([]);
+    setExpDateErr(0);
+    setLoadingExp(false);
+    setUploadingImg(false);
+    setIsRefund(false);
+  }, [sd.today]);
+
   const handleAddExpense = useCallback(async () => {
     const raw = parseFloat(expAmount.replace(/,/g, ''));
     if (!expAmount || raw === 0) return;
@@ -116,13 +130,7 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
         thumb_images: thumbUrls,
       });
       clearUrlCache();
-      setExpAmount('');
-      setExpCategory('daily');
-      setPayMethod('payWechat');
-      setExpNote('');
-      setExpDate(sd.today);
-      setExpImages([]);
-      setIsRefund(false);
+      resetForm();
       onExpenseHistory?.();
       onExpenseAdded?.();
     } catch {
@@ -138,23 +146,10 @@ export function useExpenseForm(options: UseExpenseFormOptions) {
     expNote,
     isRefund,
     clearUrlCache,
+    resetForm,
     onExpenseHistory,
     onExpenseAdded,
   ]);
-
-  /* ── reset form ── */
-  const resetForm = useCallback(() => {
-    setExpAmount('');
-    setExpCategory('daily');
-    setPayMethod('payWechat');
-    setExpNote('');
-    setExpDate(sd.today);
-    setExpImages([]);
-    setExpDateErr(0);
-    setLoadingExp(false);
-    setUploadingImg(false);
-    setIsRefund(false);
-  }, []);
 
   // Derived: true when the form should be disabled (no amount, zero, or loading)
   const isAmountInvalid =
