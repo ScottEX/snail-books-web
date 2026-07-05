@@ -421,6 +421,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                   fontSize={FONTS.sub.size}
                   color={c.textSub}
                   disabled={!!record.procurement_batch_id}
+                  showCalendarIcon
                   showChevron
                 />
               </View>
@@ -437,6 +438,8 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               onRemoveExisting={removeImage}
               onRemoveNew={removeNewFile}
               getPreviewUrl={getPreviewUrl}
+              maxThumbSize={thumbSize}
+              onPreviewExisting={(i: number) => openPreview(previewImgs, i)}
             />
           </View>
         )}
