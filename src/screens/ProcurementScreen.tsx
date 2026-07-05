@@ -200,6 +200,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     backdropFilter: 'saturate(180%) blur(20px)',
     // @ts-ignore
+  },
   cartPreview: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12, padding: 12 },
   cartIconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center' as const, justifyContent: 'center' as const, overflow: 'visible' as const },
   cartBadge: { position: 'absolute' as const, top: -4, right: -4, minWidth: 18, height: 18, backgroundColor: c.warning, borderRadius: 9, borderWidth: 2, borderColor: c.surface, alignItems: 'center' as const, justifyContent: 'center' as const, paddingHorizontal: 3 },
