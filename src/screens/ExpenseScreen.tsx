@@ -116,8 +116,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     if (i === 1) setExpDateErr(0);
     try { localStorage.setItem('expense_active_tab', String(i)); } catch {}
   };
-  const [showCardToast, setShowCardToast] = useState(false);
-  const hideCardToast = () => setShowCardToast(false);
+  const [showReconConfirm, setShowReconConfirm] = useState(false);
+  const hideReconConfirm = () => setShowReconConfirm(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollElRef = useRef<HTMLElement | null>(null);
 
@@ -795,7 +795,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               leftLabel={t('reconHistory')}
               leftOnPress={onReconHistory}
               rightLabel={t('reconComplete')}
-              rightOnPress={() => hasReconChanges && setShowCardToast(true)}
+              rightOnPress={() => hasReconChanges && setShowReconConfirm(true)}
               rightDisabled={!hasReconChanges}
             />
           </View>
@@ -893,11 +893,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       </ScrollView>
 
       {/* 添加提示弹窗 */}
-        <ModalOverlay visible={showCardToast} onClose={hideCardToast} animation="springScale">
+        <ModalOverlay visible={showReconConfirm} onClose={hideReconConfirm} animation="springScale">
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
-              <CloseButton onPress={hideCardToast} />
+              <CloseButton onPress={hideReconConfirm} />
             </View>
             <View style={{ padding: 20, gap: 16 }}>
               <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
@@ -905,9 +905,9 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </Text>
               <ButtonPair
                 leftLabel={t('cancel')}
-                leftOnPress={hideCardToast}
+                leftOnPress={hideReconConfirm}
                 rightLabel={t('confirm')}
-                rightOnPress={() => { hideCardToast(); submitRecon(); }}
+                rightOnPress={() => { hideReconConfirm(); submitRecon(); }}
               />
             </View>
           </View>
