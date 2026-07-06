@@ -15,7 +15,7 @@ import FadeInView from '../components/FadeInView';
 import DateErrorHint from '../components/DateErrorHint';
 import { useTheme, withAlpha, ThemeColors, BACKDROP_COLOR } from '../theme';
 import { FONTS } from '../theme';
-import { uploadReceiptStyles, bottomSheetOverlay } from '../sharedStyles';
+import { uploadReceiptStyles, bottomSheetOverlay, MODAL_CARD_RADIUS } from '../sharedStyles';
 import { fmtAmt as fmt, fmtAmtFull } from '../utils/format';
 import { blockNeg, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
@@ -1472,7 +1472,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modalCard: {
-    backgroundColor: colors.surface, borderRadius: 24, width: 320, maxWidth: '100%',
+    backgroundColor: colors.surface, borderRadius: MODAL_CARD_RADIUS, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
 

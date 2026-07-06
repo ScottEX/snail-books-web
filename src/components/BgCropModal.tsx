@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
+import { MODAL_CARD_RADIUS } from '../sharedStyles';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import { useEffect, useRef, useState } from 'react';
 
@@ -303,7 +304,7 @@ export default function BgCropModal({
           cover-crop preview style. */}
       {phase === 'preview' && cropDataUrl !== '' && (
         <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', padding: 24 } as any}>
-          <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 24, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360, width: '100%' } as any}>
+          <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: MODAL_CARD_RADIUS, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360, width: '100%' } as any}>
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' } as any}>✓</Text>
             </View>

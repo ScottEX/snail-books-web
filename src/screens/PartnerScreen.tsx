@@ -12,7 +12,7 @@ import SlideScreen from '../components/SlideScreen';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
-import { modalClose } from '../sharedStyles';
+import { modalClose, MODAL_CARD_RADIUS } from '../sharedStyles';
 
 import {
   partnerShare, translateName, translateDividendNote, getRoleKey,
@@ -165,7 +165,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
     // Result preview
     resultCard: {
       position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: -160 }, { translateY: -100 }],
-      backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: 24, padding: 32,
+      backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: MODAL_CARD_RADIUS, padding: 32,
       borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12,
     } as any,
     resultBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any,
@@ -1092,7 +1092,7 @@ const getMo = (colors: ThemeColors) => StyleSheet.create({
   overlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'center', alignItems: 'center', padding: 16 },
   content: { alignItems: 'center', justifyContent: 'center' },
   modalCard: {
-    backgroundColor: colors.surface, borderRadius: 24, width: 360, maxWidth: '100%', overflow: 'hidden',
+    backgroundColor: colors.surface, borderRadius: MODAL_CARD_RADIUS, width: 360, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
 
     // @ts-ignore

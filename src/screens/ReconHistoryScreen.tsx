@@ -12,7 +12,7 @@ import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalClose, historyHeader } from '../sharedStyles';
+import { modalClose, historyHeader, MODAL_CARD_RADIUS } from '../sharedStyles';
 import { fmtAmtFull } from '../utils/format';
 import DateErrorHint from '../components/DateErrorHint';
 import BackArrow from '../components/icons/BackArrow';
@@ -452,7 +452,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modal: {
-    backgroundColor: colors.surface, borderRadius: 24,
+    backgroundColor: colors.surface, borderRadius: MODAL_CARD_RADIUS,
     overflow: 'hidden',
     // @ts-ignore
 
