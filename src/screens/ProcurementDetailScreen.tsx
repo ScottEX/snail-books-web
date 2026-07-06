@@ -203,7 +203,7 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
                 // Only react to flip-ON; flipping OFF is ignored (irreversible).
                 if (v && !cur.settled_at) setShowSettleConfirm(true);
               }}
-              disabled={settling}
+              disabled={settling || !!cur.settled_at}
               trackColor={{ false: withAlpha(c.textMain, 0.18), true: '#3DBC75' }}
               thumbColor="#fff"
             />
