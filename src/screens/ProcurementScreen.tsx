@@ -1402,7 +1402,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             {itemsModalIsCart && itemsModalView === 'products' ? (
               // ── Product picker view ──
               <View style={{ flex: 1, minHeight: 0 }}>
-                <View style={{ paddingHorizontal: 18, paddingTop: 0, paddingBottom: 8 }}>
+                <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8 }}>
                   <TextInput
                     value={productPickerSearch}
                     onChangeText={setProductPickerSearch}
