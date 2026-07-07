@@ -729,7 +729,6 @@ export default function HomeScreen({
                   {/* KPI 三行 */}
                   <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartKpiCard}>
-                      <View style={styles.chartKpiRow}>
                         <View style={styles.chartKpiItem}>
                           <Text style={styles.chartKpiLabel}>{t('actualReceived')}</Text>
                           <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.actual_received)}</Text>
@@ -742,7 +741,6 @@ export default function HomeScreen({
                           <Text style={styles.chartKpiLabel}>{t('discountAmount')}</Text>
                           <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.discount)}</Text>
                         </View>
-                      </View>
                     </View>
                   </View>
                   {/* 6 张收支卡片 */}
@@ -754,7 +752,7 @@ export default function HomeScreen({
                   />
                   {/* 图表：月度趋势 + 分类占比 */}
                   {chartMonthly && (
-                    <View style={{ marginTop: 16 }}>
+                    <View style={{ marginTop: 12 }}>
                     <ChartsPanel
                       months={chartMonthly.months || []}
                       income={chartMonthly.income || []}
@@ -989,12 +987,11 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   barVal: { fontSize: FONTS.micro.size, color: colors.textSub, width: 90 },
   // ── Chart KPI cards ──
   chartKpiCard: {
-    borderRadius: 14, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12, gap: 14,
+    borderRadius: 14, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12,
     backgroundColor: colors.surface,
     borderWidth: 0.5, borderColor: colors.secondary,
 
   },
-  chartKpiRow: { flexDirection: 'column' as any },
   chartKpiItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 8,
