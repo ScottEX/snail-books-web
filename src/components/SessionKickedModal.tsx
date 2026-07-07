@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { THEMES, DEFAULT_THEME_ID, getThemeKey, ThemeColors, withAlpha, FONTS } from '../theme';
+import { MODAL_CARD_RADIUS } from '../sharedStyles';
 import { t } from '../i18n';
 import { onSessionKicked } from '../api/client';
 import ModalOverlay from './ModalOverlay';
@@ -94,7 +95,7 @@ export default function SessionKickedModal() {
 
 const getStyles = (c: ThemeColors) => StyleSheet.create({
   card: {
-    backgroundColor: c.surface, borderRadius: 24,
+    backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS,
     width: 340, maxWidth: '90%', overflow: 'hidden',
     // @ts-ignore
 

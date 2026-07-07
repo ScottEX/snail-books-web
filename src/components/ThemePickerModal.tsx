@@ -6,6 +6,7 @@ import CloseButton from './CloseButton';
 import BgCropModal from './BgCropModal';
 import ModalOverlay from './ModalOverlay';
 import { useTheme, ThemeColors, FONTS } from '../theme';
+import { MODAL_CARD_RADIUS } from '../sharedStyles';
 import { useRef, useState } from 'react';
 
 interface ThemePickerModalProps {
@@ -25,7 +26,7 @@ interface ThemePickerModalProps {
 function getStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
-      backgroundColor: colors.surface, borderRadius: 24,
+      backgroundColor: colors.surface, borderRadius: MODAL_CARD_RADIUS,
       width: 340, maxWidth: '90%', overflow: 'hidden' as any,
     },
     header: {

@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme, ThemeColors, withAlpha } from '../theme';
+import { MODAL_CARD_RADIUS } from '../sharedStyles';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 import ModalOverlay from './ModalOverlay';
@@ -70,7 +71,7 @@ export default function ConfirmModal({
 
 const getStyles = (c: ThemeColors) => StyleSheet.create({
   card: {
-    backgroundColor: c.surface, borderRadius: 24,
+    backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS,
     width: 340, maxWidth: '100%', overflow: 'hidden',
     // @ts-ignore
 
