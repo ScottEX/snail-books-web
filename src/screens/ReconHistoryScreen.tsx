@@ -314,7 +314,38 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 266 : 112 }}>
         {loading ? (
-          <LoadingSpinner />
+          <View style={{ paddingTop: 112, paddingHorizontal: 12 }}>
+            {[...Array(6)].map((_, i) => (
+              <View key={i} style={[st.card, { pointerEvents: 'none' as any }]}>
+                <View style={st.dateRow}>
+                  <View style={{ flex: 1, alignItems: 'center' as const }}>
+                    <View style={{ width: 48, height: 11, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 3, marginBottom: 4 }} />
+                    <View style={{ width: 80, height: 14, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4 }} />
+                  </View>
+                  <View style={{ width: 1, height: 24, backgroundColor: withAlpha(colors.textSub, 0.06) }} />
+                  <View style={{ flex: 1, alignItems: 'center' as const }}>
+                    <View style={{ width: 48, height: 11, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 3, marginBottom: 4 }} />
+                    <View style={{ width: 80, height: 14, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4 }} />
+                  </View>
+                </View>
+                <View style={st.cardPairRow}>
+                  {[...Array(3)].map((_, j) => (
+                    <View key={j} style={st.cardPairCol}>
+                      <View style={st.cardPairItem}>
+                        <View style={{ width: 52, height: 11, backgroundColor: withAlpha(colors.textSub, 0.05), borderRadius: 3 }} />
+                        <View style={{ width: 60, height: 16, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4, marginTop: 4 }} />
+                      </View>
+                      <View style={[st.cardPairDiv, { backgroundColor: withAlpha(colors.textSub, 0.04) }]} />
+                      <View style={st.cardPairItem}>
+                        <View style={{ width: 40, height: 11, backgroundColor: withAlpha(colors.textSub, 0.05), borderRadius: 3 }} />
+                        <View style={{ width: 64, height: 16, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4, marginTop: 4 }} />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
         ) : records.length === 0 ? (
           renderEmpty()
         ) : (
