@@ -101,7 +101,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   const [dateTo, setDateTo] = useState('');
   // Date picker local state (year + month selection)
   const [dropYear, setDropYear] = useState(FALLBACK_YEAR);
-  useEffect(() => { if (sd.ready && sd.year !== FALLBACK_YEAR) setDropYear(sd.year); }, [sd.ready, sd.year]);
+  useEffect(() => { if (sd.ready) { setDropYear(sd.year || FALLBACK_YEAR); setDropMonth(sd.month); } }, [sd.ready, sd.year, sd.month]);
   const [dropMonth, setDropMonth] = useState(new Date().getMonth() + 1);
 
   const fetchUsers = useCallback(async (sts: string, df: string, dt: string) => {
@@ -203,7 +203,7 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
       setDropMonth(parseInt(dateFrom.slice(5, 7)));
     } else {
       setDropYear(sd.year || FALLBACK_YEAR);
-      setDropMonth(new Date().getMonth() + 1);
+      setDropMonth(sd.month || new Date().getMonth() + 1);
     }
     setShowDateDrop(true);
     setShowStatusDrop(false);

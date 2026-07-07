@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../../api/client';
 import { t } from '../../i18n';
 import { getCurrentUserId } from '../../utils/storage';
+import { useServerDate } from '../../hooks/useServerDate';
 
 type Tab = 'list' | 'expense' | 'supply' | 'chart' | 'partner';
 
@@ -18,6 +19,8 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   const [dailyRevenues, setDailyRevenues] = useState<any[]>([]);
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [avatarUrl, setAvatarUrl] = useState('');
+
+  const sd = useServerDate();
 
   // ── Last 7 days ──
   const loadLast7Days = useCallback(async () => {
@@ -85,7 +88,7 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   };
   const loadDailyRevenues = async () => {
     try {
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = sd.today || new Date().toISOString().slice(0, 10);
       const monthStart = todayStr.slice(0, 7) + '-01';
       const r: any = await api.getDailyRevenue(1, 31, undefined, undefined, undefined, undefined, monthStart, todayStr);
       setDailyRevenues(r?.records || []);
