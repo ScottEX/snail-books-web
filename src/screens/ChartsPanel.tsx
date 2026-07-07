@@ -294,7 +294,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
       {donutData.length > 0 && (
         <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
           <View style={chartStyles.titleRow}>
-            <Text style={[chartStyles.title, { marginBottom: 0 }]}>{monthName(currentMonth) + t('expenseBreakdownOfMonth')}</Text>
+            <Text style={[chartStyles.title, { color: subTextColor, marginBottom: 0 }]}>{monthName(currentMonth) + t('expenseBreakdownOfMonth')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={{ color: tickColor, fontSize: 10 }}>{t('chartSwitchHint')}</Text>
               <TouchableOpacity
