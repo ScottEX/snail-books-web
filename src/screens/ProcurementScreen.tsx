@@ -335,7 +335,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const style = document.createElement('style');
-    style.textContent = '.proc-scroll::-webkit-scrollbar{display:none}.proc-scroll{scrollbar-width:none}';
+    style.textContent = '.proc-scroll-wrap ::-webkit-scrollbar{display:none}.proc-scroll-wrap *{scrollbar-width:none}';
     document.head.appendChild(style);
     return () => { document.head.removeChild(style); };
   }, []);
@@ -941,11 +941,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </View>
       </View>
 
+      <View {...{ className: 'proc-scroll-wrap' } as any} style={{ flex: 1 }}>
+
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
-          {/* @ts-ignore */}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }} className="proc-scroll">
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
             {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
                 <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>
@@ -1060,12 +1061,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             hint={t('procEmptyHistoryHint')}
           />
         ) : (
-          {/* @ts-ignore */}
-        <FlatList
+          <FlatList
             data={filteredBatches}
             keyExtractor={item => String(item.id)}
             contentContainerStyle={styles.historyList}
-            className="proc-scroll"
             onEndReached={hasMore ? onEndReached : undefined}
             onEndReachedThreshold={0.4}
             renderItem={({ item: batch }) => (
@@ -1177,8 +1176,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <PlusIcon color={c.primary} />
             <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
-          {/* @ts-ignore */}
-        <ScrollView style={styles.contentArea} className="proc-scroll">
+          <ScrollView style={styles.contentArea}>
           {filteredMgmtProducts.length === 0 ? (
             <EmptyState
               icon={<EmptyBoxIcon color={c.textSub} />}
@@ -1206,6 +1204,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </ScrollView>
         </>
       )}
+
+      </View>
 
       {/* ── Product Modal (springScale) ── */}
       <ModalOverlay visible={showProductModal} onClose={() => setShowProductModal(false)} animation="springScale">
