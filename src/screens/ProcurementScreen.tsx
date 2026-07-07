@@ -8,7 +8,7 @@ import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
-import { bottomSheetOverlay } from '../sharedStyles';
+import { bottomSheetOverlay, MODAL_CARD_RADIUS } from '../sharedStyles';
 import SheetHeader from '../components/SheetHeader';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
@@ -230,7 +230,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
 
   // Items modal
-  itemsModalCard: { backgroundColor: c.surface, borderRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
+  itemsModalCard: { backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
@@ -262,7 +262,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 8, flexDirection: 'row' as const, backgroundColor: c.surface, borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
-  modalCard: { backgroundColor: c.surface, borderRadius: 24, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
+  modalCard: { backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
     // @ts-ignore
      },
   modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
@@ -294,7 +294,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Success
   successOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
-  successCard: { backgroundColor: c.surface, borderRadius: 24, padding: 28, width: 'calc(100% - 40px)' as any, maxWidth: 320, alignItems: 'center' as const },
+  successCard: { backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, padding: 28, width: 'calc(100% - 40px)' as any, maxWidth: 320, alignItems: 'center' as const },
   successTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.textMain, marginBottom: 6, marginTop: 8 },
   successSub: { fontSize: FONTS.sub.size, color: c.textSub, lineHeight: 20 } as any,
   successAmount: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.primary, marginVertical: 12 },
@@ -330,6 +330,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   }, [subTab]);
   // Auto-clear search when switching between sub-tabs
   useEffect(() => { setSearch(''); }, [subTab]);
+
+  // Hide webkit scrollbar on scrollable sections
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const style = document.createElement('style');
+    style.textContent = '.proc-scroll::-webkit-scrollbar{display:none}.proc-scroll{scrollbar-width:none}';
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [search, setSearch] = useState('');
@@ -382,11 +392,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
   const [productPickerSearch, setProductPickerSearch] = useState('');
 
-  // Note: webkit scrollbar cannot be hidden via React/JS — its ::-webkit-scrollbar pseudo-elements
-  // are not addressable. We accept the scrollbar exists and instead position it OUT of the +/-
-  // button area by giving the ScrollView itself paddingHorizontal: 18 + boxSizing: 'border-box';
-  // the webkit scrollbar paints on the padding box edge (the card's rightmost 2px), well clear
-  // of the +/- buttons (which live in the content area, 16px inset from that edge).
   // detailItems, detailTotal, detailBatchId, downloadingPDF, pdfDone — removed with history detail modal (moved to ProcurementDetailScreen)
 
   const [successTotal, setSuccessTotal] = useState(0);
@@ -939,7 +944,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }} className="proc-scroll">
             {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
                 <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>
@@ -1058,6 +1063,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             data={filteredBatches}
             keyExtractor={item => String(item.id)}
             contentContainerStyle={styles.historyList}
+            className="proc-scroll"
             onEndReached={hasMore ? onEndReached : undefined}
             onEndReachedThreshold={0.4}
             renderItem={({ item: batch }) => (
@@ -1169,7 +1175,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <PlusIcon color={c.primary} />
             <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
-          <ScrollView style={styles.contentArea}>
+          <ScrollView style={styles.contentArea} className="proc-scroll">
           {filteredMgmtProducts.length === 0 ? (
             <EmptyState
               icon={<EmptyBoxIcon color={c.textSub} />}
