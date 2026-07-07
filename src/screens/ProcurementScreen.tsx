@@ -944,7 +944,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }} className="proc-scroll">
+          {/* @ts-ignore */}
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }} className="proc-scroll">
             {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
                 <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>
@@ -1059,7 +1060,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             hint={t('procEmptyHistoryHint')}
           />
         ) : (
-          <FlatList
+          {/* @ts-ignore */}
+        <FlatList
             data={filteredBatches}
             keyExtractor={item => String(item.id)}
             contentContainerStyle={styles.historyList}
@@ -1175,7 +1177,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <PlusIcon color={c.primary} />
             <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
-          <ScrollView style={styles.contentArea} className="proc-scroll">
+          {/* @ts-ignore */}
+        <ScrollView style={styles.contentArea} className="proc-scroll">
           {filteredMgmtProducts.length === 0 ? (
             <EmptyState
               icon={<EmptyBoxIcon color={c.textSub} />}
