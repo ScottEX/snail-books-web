@@ -335,7 +335,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const style = document.createElement('style');
-    style.textContent = '*::-webkit-scrollbar{display:none}*{scrollbar-width:none}';
+    style.textContent = '.proc-scroll-wrap ::-webkit-scrollbar{display:none}.proc-scroll-wrap *{scrollbar-width:none}';
     document.head.appendChild(style);
     return () => { document.head.removeChild(style); };
   }, []);
@@ -944,6 +944,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </View>
       </View>
 
+      <View {...{ className: 'proc-scroll-wrap' } as any} style={{ flex: 1 }}>
+
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
@@ -1250,6 +1252,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           )}
         </>
       )}
+
+      </View>
 
       {/* ── Product Modal (springScale) ── */}
       <ModalOverlay visible={showProductModal} onClose={() => setShowProductModal(false)} animation="springScale">
