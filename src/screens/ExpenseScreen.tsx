@@ -11,6 +11,7 @@ import { api } from '../api/client';
 import { useToast } from '../hooks/useToast';
 import ModalOverlay from '../components/ModalOverlay';
 import NumberTicker from '../components/NumberTicker';
+import FadeInView from '../components/FadeInView';
 import DateErrorHint from '../components/DateErrorHint';
 import { useTheme, withAlpha, ThemeColors, BACKDROP_COLOR } from '../theme';
 import { FONTS } from '../theme';
@@ -631,6 +632,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
         {/* ── 模块一：每日对账 ── */}
         {activeTab === 0 && (
+        <FadeInView style={st.moduleWrap}>
           {/* Platform fees card */}
           <View style={[st.card]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
@@ -824,10 +826,12 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               rightDisabled={!hasReconChanges}
             />
           </View>
+        </FadeInView>
         )}
 
         {/* ── 模块三：支出明细 ── */}
         {activeTab === 1 && (
+        <FadeInView style={st.moduleWrap}>
           <View style={st.card}>
             {/* 录入台 */}
             <View style={st.expForm}>
@@ -911,6 +915,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               />
             </View>
           </View>
+        </FadeInView>
         )}
       </ScrollView>
 
