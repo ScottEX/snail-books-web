@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SessionKickedModal from './src/components/SessionKickedModal';
-import { ThemeProvider } from './src/theme';
+import { ThemeProvider, CONTENT_MAX_WIDTH } from './src/theme';
 import { LangProvider } from './src/i18n';
 
 // Parse a #/preview-pdf?… hash into { id, number } or null.
@@ -65,6 +65,14 @@ export default function App() {
     const el = document.documentElement;
     el.style.fontFamily = '"Inter", -apple-system, "PingFang SC", sans-serif';
     el.style.fontVariantNumeric = 'tabular-nums';
+  }, []);
+
+  // 全局页面宽度限制（登录页 & 首页统一）
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.style.maxWidth = `${CONTENT_MAX_WIDTH}px`;
+    document.body.style.margin = '0 auto';
+    document.body.style.overflow = 'hidden';
   }, []);
 
   // Listen for user state changes (401 handler, login, logout).
