@@ -182,7 +182,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const { cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd } = reconForm;
 
   const initReconValues = useRef({ card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' });
-  const reconJustLoaded = useRef(false);
   const reconLoadId = useRef(0);  // guard against stale async responses
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
@@ -201,7 +200,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           updateRecon('cardBalance', ''); updateRecon('cashBalance', '');
           updateRecon('dineIn', ''); updateRecon('meituan', '');
           updateRecon('flashSale', ''); updateRecon('tuan', ''); updateRecon('jd', '');
-          reconJustLoaded.current = true;
+          initReconValues.current = { card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' };
+          forceUpdate();
           return;
         }
         const last = data[0]; // most recent record
@@ -214,6 +214,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           updateRecon('flashSale', toDec2(match.flash_sale));
           updateRecon('tuan', toDec2(match.tuan));
           updateRecon('jd', toDec2(match.jd));
+          initReconValues.current = {
+            card: toDec2(match.card_balance), cash: toDec2(match.cash_balance),
+            dine: toDec2(match.dine_in), mt: toDec2(match.meituan),
+            fs: toDec2(match.flash_sale), jd: toDec2(match.jd), tuan: toDec2(match.tuan),
+          };
         } else if (recDate.value >= (last.bill_date || '')) {
           updateRecon('cardBalance', toDec2(last.card_balance));
           updateRecon('cashBalance', toDec2(last.cash_balance));
@@ -222,24 +227,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           updateRecon('flashSale', toDec2(last.flash_sale));
           updateRecon('tuan', toDec2(last.tuan));
           updateRecon('jd', toDec2(last.jd));
+          initReconValues.current = {
+            card: toDec2(last.card_balance), cash: toDec2(last.cash_balance),
+            dine: toDec2(last.dine_in), mt: toDec2(last.meituan),
+            fs: toDec2(last.flash_sale), jd: toDec2(last.jd), tuan: toDec2(last.tuan),
+          };
         } else {
           updateRecon('cardBalance', ''); updateRecon('cashBalance', '');
           updateRecon('dineIn', ''); updateRecon('meituan', '');
           updateRecon('flashSale', ''); updateRecon('tuan', ''); updateRecon('jd', '');
+          initReconValues.current = { card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' };
         }
-        reconJustLoaded.current = true;
+        forceUpdate();
       } catch { showToast(t('toastLoadFailed')); }
     })();
   }, [recDate.value]);
-
-  // Capture initial values after data load settles
-  useEffect(() => {
-    if (reconJustLoaded.current) {
-      reconJustLoaded.current = false;
-      initReconValues.current = { card: cardBalance, cash: cashBalance, dine: dineIn, mt: meituan, fs: flashSale, jd, tuan };
-      forceUpdate();
-    }
-  }, [cardBalance, cashBalance, dineIn, meituan, flashSale, jd, tuan]);
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
