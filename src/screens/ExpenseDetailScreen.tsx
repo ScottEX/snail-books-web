@@ -306,7 +306,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                   {(() => {
                     const raw = record.created_at || '';
                     if (!raw) return '—';
-                    const d = new Date(raw);
+                    const d = new Date(raw.replace(' ', 'T') + '+08:00');
                     if (isNaN(d.getTime())) return raw.slice(0, 19).replace('T', ' ');
                     const y = d.getFullYear();
                     const mo = d.getMonth() + 1;
