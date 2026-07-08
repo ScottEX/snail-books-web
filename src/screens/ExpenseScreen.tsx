@@ -631,7 +631,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
         {/* ── 模块一：每日对账 ── */}
         {activeTab === 0 && (
-          <View style={st.moduleWrap}>
           <View style={[st.card]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
@@ -824,12 +823,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               rightDisabled={!hasReconChanges}
             />
           </View>
-          </View>
         )}
 
         {/* ── 模块三：支出明细 ── */}
         {activeTab === 1 && (
-          <View style={st.moduleWrap}>
           <View style={st.card}>
             {/* 录入台 */}
             <View style={st.expForm}>
@@ -912,7 +909,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 rightLoading={loadingExp}
               />
             </View>
-          </View>
           </View>
         )}
       </ScrollView>
