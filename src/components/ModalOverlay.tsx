@@ -6,17 +6,16 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 interface ModalOverlayProps {
   visible?: boolean;
   onClose: () => void;
+  onClosed?: () => void;
   children: React.ReactNode | ((staggerAnims: Animated.Value[]) => React.ReactNode);
   overlayStyle?: any;
   contentStyle?: any;
-  /** 动画类型：'slide' 默认顶部滑入、'springScale' 弹性缩放、'blurMorph' 模糊渐显、'slideUpScale' 底部滑入缩放、'stagger' 内容错峰浮现 */
   animation?: 'slide' | 'springScale' | 'blurMorph' | 'slideUpScale' | 'stagger';
-  /** Only for animation='stagger': number of child items to stagger */
   staggerCount?: number;
 }
 
 /** Uniform animated modal overlay. Backdrop color → theme.BACKDROP_COLOR. */
-export default function ModalOverlay({ visible = true, onClose, children, overlayStyle, contentStyle, animation = 'slide', staggerCount = 4 }: ModalOverlayProps) {
+export default function ModalOverlay({ visible = true, onClose, onClosed, children, overlayStyle, contentStyle, animation = 'slide', staggerCount = 4 }: ModalOverlayProps) {
   const [show, setShow] = useState(false);
   const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : animation === 'slideUpScale' ? 1 : animation === 'stagger' ? 40 : -300)).current;
   const fade = useRef(new Animated.Value(0)).current;
@@ -101,33 +100,33 @@ export default function ModalOverlay({ visible = true, onClose, children, overla
           Animated.timing(scale, { toValue: 0.92, duration: 220, useNativeDriver: false }),
           Animated.timing(slide, { toValue: 8, duration: 220, useNativeDriver: false }),
           Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: false }),
-        ]).start(() => setShow(false));
+        ]).start(() => { setShow(false); onClosed?.(); });
       } else if (animation === 'blurMorph') {
         Animated.parallel([
           backOut,
           Animated.timing(scale, { toValue: 0.97, duration: 250, useNativeDriver: false }),
           Animated.timing(fade, { toValue: 0, duration: 200, useNativeDriver: false }),
-        ]).start(() => setShow(false));
+        ]).start(() => { setShow(false); onClosed?.(); });
       } else if (animation === 'slideUpScale') {
         Animated.parallel([
           backOut,
           Animated.timing(slide, { toValue: 1, duration: 280, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
           Animated.timing(scale, { toValue: 0.96, duration: 280, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
           Animated.timing(fade, { toValue: 0, duration: 220, useNativeDriver: false }),
-        ]).start(() => setShow(false));
+        ]).start(() => { setShow(false); onClosed?.(); });
       } else if (animation === 'stagger') {
         Animated.parallel([
           backOut,
           Animated.timing(slide, { toValue: 40, duration: 220, easing: Easing.bezier(0.4, 0, 1, 1), useNativeDriver: false }),
           Animated.timing(scale, { toValue: 0.97, duration: 220, useNativeDriver: false }),
           Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: false }),
-        ]).start(() => setShow(false));
+        ]).start(() => { setShow(false); onClosed?.(); });
       } else {
         Animated.parallel([
           backOut,
           Animated.timing(slide, { toValue: -300, duration: 180, useNativeDriver: false }),
           Animated.timing(fade, { toValue: 0, duration: 180, useNativeDriver: false }),
-        ]).start(() => setShow(false));
+        ]).start(() => { setShow(false); onClosed?.(); });
       }
     }
   }, [visible]);
