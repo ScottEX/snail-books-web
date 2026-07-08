@@ -200,27 +200,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
         onScroll={handleScroll} scrollEventThrottle={50}
         contentContainerStyle={{ paddingTop: showFilter ? 224 : 112, paddingHorizontal: 16, paddingBottom: 20 }}>
         {loading ? (
-          <View style={{ paddingTop: 112, paddingHorizontal: 16 }}>
-            {[...Array(6)].map((_, i) => (
-              <View key={i} style={[st.card, { pointerEvents: 'none' as any }]}>
-                <View style={st.cardTop}>
-                  <View style={{ width: 90, height: 16, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4 }} />
-                  <View style={{ width: 56, height: 20, backgroundColor: withAlpha(colors.textSub, 0.06), borderRadius: 10 }} />
-                </View>
-                <View style={st.cardAmounts}>
-                  {[...Array(3)].map((_, j) => (
-                    <View key={j} style={st.cardAmtCol}>
-                      <View style={{ width: 64, height: 20, backgroundColor: withAlpha(colors.textSub, 0.08), borderRadius: 4 }} />
-                      <View style={{ width: 40, height: 11, backgroundColor: withAlpha(colors.textSub, 0.05), borderRadius: 3, marginTop: 4 }} />
-                    </View>
-                  ))}
-                </View>
-                <View style={[st.cardFooter, { borderTopColor: withAlpha(colors.textSub, 0.04) }]}>
-                  <View style={{ width: 100, height: 11, backgroundColor: withAlpha(colors.textSub, 0.05), borderRadius: 3 }} />
-                </View>
-              </View>
-            ))}
-          </View>
+          <LoadingSpinner />
         ) : records.length === 0 ? (
           <EmptyState
             icon={<RevenueEmptyIcon color={colors.textSub} />}
