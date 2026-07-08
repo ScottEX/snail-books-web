@@ -839,7 +839,7 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   bgCustom: { zIndex: 0, transition: 'opacity 0.5s ease, filter 0.5s ease' },
   bgOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)', zIndex: 1 },
-  content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', alignSelf: 'center' },
+  content: { flex: 1, position: 'relative' as any, zIndex: 2, width: '100%', maxWidth: 380, alignSelf: 'center' },
   contentScroll: { paddingTop: 8, paddingBottom: 40 },
   brand: { alignItems: 'center', marginBottom: 32 },
   logoWrap: {
