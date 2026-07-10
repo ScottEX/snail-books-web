@@ -319,10 +319,10 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
               <Text style={st.filterLabel}>　</Text>
               <View style={st.filterChipRow}>
                 {[
-                  { label: '今天', date: sd.today },
-                  { label: '昨天', date: sd.offset(-1) },
-                  { label: '前天', date: sd.offset(-2) },
-                  { label: '大前天', date: sd.offset(-3) },
+                  { label: t('quickToday'), date: sd.today },
+                  { label: t('quickYesterday'), date: sd.offset(-1) },
+                  { label: t('quickDBY'), date: sd.offset(-2) },
+                  { label: t('quick3DAgo'), date: sd.offset(-3) },
                 ].map(q => {
                   const active = filDateFrom === q.date && filDateTo === q.date;
                   return (

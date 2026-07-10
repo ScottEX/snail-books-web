@@ -486,6 +486,10 @@ const I18N: Record<string, Record<string, string>> = {
     revQuickDB4: '前天',
     revQuickToday: '今天',
     revQuickYesterday: '昨天',
+    quickToday: '今天',
+    quickYesterday: '昨天',
+    quickDBY: '前天',
+    quick3DAgo: '大前天',
     revRevenue: '营业额收入',
     revRevenueSub: '实际到账金额',
     revSaveDate: '储存{date}数据',
@@ -1082,6 +1086,10 @@ const I18N: Record<string, Record<string, string>> = {
     revQuickDB4: '前天',
     revQuickToday: '今天',
     revQuickYesterday: '昨天',
+    quickToday: '今天',
+    quickYesterday: '昨天',
+    quickDBY: '前天',
+    quick3DAgo: '大前天',
     revRevenue: '營業額收入',
     revRevenueSub: '實際到賬金額',
     revSaveDate: '儲存{date}數據',
@@ -1677,6 +1685,10 @@ const I18N: Record<string, Record<string, string>> = {
     revQuickDB4: 'DB4',
     revQuickToday: 'Today',
     revQuickYesterday: 'Ytd',
+    quickToday: 'Today',
+    quickYesterday: 'Yesterday',
+    quickDBY: '2 days ago',
+    quick3DAgo: '3 days ago',
     revRevenue: 'Revenue',
     revRevenueSub: 'Actual Received',
     revSaveDate: 'Save {date} Data',
@@ -2276,6 +2288,10 @@ export type I18nKey =
   | 'revQuickDB4'
   | 'revQuickToday'
   | 'revQuickYesterday'
+  | 'quickToday'
+  | 'quickYesterday'
+  | 'quickDBY'
+  | 'quick3DAgo'
   | 'revRevenue'
   | 'revRevenueSub'
   | 'revSaveDate'
