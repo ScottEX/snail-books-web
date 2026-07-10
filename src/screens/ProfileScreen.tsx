@@ -1,5 +1,4 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput, Switch, Animated } from 'react-native';
-import { createPortal } from 'react-dom';
 import Svg, { Path, Defs, LinearGradient as SVGGradient, Stop, Rect } from 'react-native-svg';
 import { t, getLang, useLang } from '../i18n';
 import { api } from '../api/client';
@@ -989,9 +988,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
         </View>
       </ModalOverlay>
 
-      {/* ====== AVATAR CROP MODAL (portal) ====== */}
-      {cropSrc !== '' && !showResult && createPortal(
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) setCropSrc(''); }}>
+      {/* ====== AVATAR CROP MODAL ====== */}
+      <ModalOverlay visible={cropSrc !== '' && !showResult} onClose={() => setCropSrc('')} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }}>
+        <View style={{ flex: 1, flexDirection: 'column' }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('avatarCropTitle')}</Text>
             <TouchableOpacity onPress={() => setCropSrc('')} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
@@ -1064,43 +1063,39 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           {cropMsg !== '' && (
             <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: 500 }}>{cropMsg}</Text>
           )}
-        </div>,
-        document.body
-      )}
+        </View>
+      </ModalOverlay>
 
       {/* ====== AVATAR RESULT PREVIEW ====== */}
-      {showResult && cropResult !== '' && createPortal(
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setShowResult(false); setCropSrc(''); } }}>
-          <View style={cropS.resultCard as any}>
-            <View style={cropS.resultBadge as any}>
-              <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
-            </View>
-            <Text style={cropS.resultLabel}>{t('avatarUpdated')}</Text>
-            <View style={cropS.sizePreviews as any}>
-              {[80, 48, 32].map((size) => (
-                <View key={size} style={{ alignItems: 'center', gap: 6 }}>
-                  <img src={cropResult} width={size} height={size} style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} />
-                  <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>{size}px</Text>
-                </View>
-              ))}
-            </View>
-            <Text style={cropS.resultSub}>{t('avatarSizeHint')}</Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
-              <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setShowResult(false); }}>
-                <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('recrop')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={cropS.saveBtn as any} onPress={doUpload}>
-                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
-              </TouchableOpacity>
-            </View>
+      <ModalOverlay visible={showResult && cropResult !== ''} onClose={() => { setShowResult(false); setCropSrc(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ padding: 0 }}>
+        <View style={cropS.resultCard as any}>
+          <View style={cropS.resultBadge as any}>
+            <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
           </View>
-        </div>,
-        document.body
-      )}
+          <Text style={cropS.resultLabel}>{t('avatarUpdated')}</Text>
+          <View style={cropS.sizePreviews as any}>
+            {[80, 48, 32].map((size) => (
+              <View key={size} style={{ alignItems: 'center', gap: 6 }}>
+                <img src={cropResult} width={size} height={size} style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} />
+                <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>{size}px</Text>
+              </View>
+            ))}
+          </View>
+          <Text style={cropS.resultSub}>{t('avatarSizeHint')}</Text>
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
+            <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setShowResult(false); }}>
+              <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('recrop')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={cropS.saveBtn as any} onPress={doUpload}>
+              <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ModalOverlay>
 
-      {/* ====== COVER CROP MODAL (portal) ====== */}
-      {coverCropSrc !== '' && !coverShowResult && createPortal(
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverCropSrc(''); setCoverCropResult(''); } }}>
+      {/* ====== COVER CROP MODAL ====== */}
+      <ModalOverlay visible={coverCropSrc !== '' && !coverShowResult} onClose={() => { setCoverCropSrc(''); setCoverCropResult(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }}>
+        <View style={{ flex: 1, flexDirection: 'column' }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('coverCropTitle')}</Text>
             <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
@@ -1121,8 +1116,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
                 <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '66.6%' } as any} />
               </View>
             </View>
-            {/* Hint pill — mirrors the avatar crop modal's "drag · pinch to zoom" hint
-                so the user knows the cover stage supports the same gestures. */}
             <View style={cropS.pill as any} pointerEvents="none" data-pill="true">
               <Text style={cropS.pillText}>{t('cropPill')}</Text>
             </View>
@@ -1171,32 +1164,28 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           {coverCropMsg !== '' && (
             <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: 500 }}>{coverCropMsg}</Text>
           )}
-        </div>,
-        document.body
-      )}
+        </View>
+      </ModalOverlay>
 
       {/* ====== COVER RESULT PREVIEW ====== */}
-      {coverShowResult && createPortal(
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' } as any} onClick={(e: any) => { if (e.target === e.currentTarget) { setCoverShowResult(false); setCoverCropSrc(''); } }}>
-          <View style={cropS.resultCard as any}>
-            <View style={cropS.resultBadge as any}>
-              <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
-            </View>
-            <Text style={cropS.resultLabel}>{t('coverUpdated')}</Text>
-            {coverCropResult ? <img src={coverCropResult} width={240} height={Math.round(240 * coverCropState.current.cropRatio)} style={{ borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} /> : null}
-            <Text style={cropS.resultSub}>{t('coverHint')}</Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
-              <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setCoverShowResult(false); }}>
-                <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('recrop')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={cropS.saveBtn as any} onPress={coverDoUpload}>
-                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
-              </TouchableOpacity>
-            </View>
+      <ModalOverlay visible={coverShowResult} onClose={() => { setCoverShowResult(false); setCoverCropSrc(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ padding: 0 }}>
+        <View style={cropS.resultCard as any}>
+          <View style={cropS.resultBadge as any}>
+            <Text style={{ fontSize: 20, color: '#1B7A4A' }}>✓</Text>
           </View>
-        </div>,
-        document.body
-      )}
+          <Text style={cropS.resultLabel}>{t('coverUpdated')}</Text>
+          {coverCropResult ? <img src={coverCropResult} width={240} height={Math.round(240 * coverCropState.current.cropRatio)} style={{ borderRadius: 4, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} /> : null}
+          <Text style={cropS.resultSub}>{t('coverHint')}</Text>
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, width: '100%' }}>
+            <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setCoverShowResult(false); }}>
+              <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('recrop')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={cropS.saveBtn as any} onPress={coverDoUpload}>
+              <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ModalOverlay>
     </View>
   );
 }

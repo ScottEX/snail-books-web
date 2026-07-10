@@ -12,10 +12,11 @@ interface ModalOverlayProps {
   contentStyle?: any;
   animation?: 'slide' | 'springScale' | 'blurMorph' | 'slideUpScale' | 'stagger';
   staggerCount?: number;
+  backdropColor?: string;
 }
 
-/** Uniform animated modal overlay. Backdrop color → theme.BACKDROP_COLOR. */
-export default function ModalOverlay({ visible = true, onClose, onClosed, children, overlayStyle, contentStyle, animation = 'slide', staggerCount = 4 }: ModalOverlayProps) {
+/** Uniform animated modal overlay. Backdrop color → theme.BACKDROP_COLOR by default. */
+export default function ModalOverlay({ visible = true, onClose, onClosed, children, overlayStyle, contentStyle, animation = 'slide', staggerCount = 4, backdropColor = BACKDROP_COLOR }: ModalOverlayProps) {
   const [show, setShow] = useState(false);
   const slide = useRef(new Animated.Value(animation === 'springScale' ? 12 : animation === 'slideUpScale' ? 1 : animation === 'stagger' ? 40 : -300)).current;
   const fade = useRef(new Animated.Value(0)).current;
@@ -144,7 +145,7 @@ export default function ModalOverlay({ visible = true, onClose, onClosed, childr
   return createPortal(
     <Animated.View style={[{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, justifyContent: 'center', alignItems: 'center', padding: 16 }, overlayStyle]}>
       <TouchableOpacity activeOpacity={1} onPress={onClose} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as any}>
-        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: BACKDROP_COLOR, opacity: back as any } as any} />
+        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: backdropColor, opacity: back as any } as any} />
       </TouchableOpacity>
       <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, contentStyle, { opacity: fade, transform: getTrans() }]}>
         {animation === 'stagger' && typeof children === 'function' ? children(staggerAnims) : (children as React.ReactNode)}
