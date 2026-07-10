@@ -836,8 +836,9 @@ export default function HomeScreen({
 
       {/* ProfileScreen portal — same pattern as PartnerScreen invoice portal */}
       {showProfile && createPortal(
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }}>
         <SlideScreen
-          visible={showProfile}
+          visible={showProfile && !fromProfileRef.current}
           onClose={() => setShowProfile(false)}
         >
           {(close) => (
@@ -846,11 +847,12 @@ export default function HomeScreen({
               onLogout={onLogout}
               onLangChange={() => loadData()}
               onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
-              onManageUsers={() => { setShowProfile(false); fromProfileRef.current = true; pushPage('usermgmt'); }}
+              onManageUsers={() => { fromProfileRef.current = true; pushPage('usermgmt'); }}
               refreshKey={userRefreshKey}
             />
           )}
         </SlideScreen>,
+        </div>,
         document.body
       )}
       </View>
@@ -916,7 +918,7 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  inner: { flex: 1, alignSelf: 'center', width: '100%', position: 'relative' as const },
+  inner: { flex: 1, alignSelf: 'center', width: '100%', position: 'relative' as const, zIndex: 100 },
   bgLayer: {
     position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
