@@ -390,8 +390,7 @@ export default function BgCropModal({
         backdropColor="rgba(8,8,12,0.92)"
         overlayStyle={{ padding: 0 }}
       >
-        <View style={{ alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: MODAL_CARD_RADIUS, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360, width: '100%' } as any}>
+        <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: MODAL_CARD_RADIUS, padding: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', width: 320, alignItems: 'center', gap: 12 } as any}>
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' } as any}>✓</Text>
             </View>
@@ -433,8 +432,7 @@ export default function BgCropModal({
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </ModalOverlay>
+        </ModalOverlay>
     </>
   );
 }
