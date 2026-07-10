@@ -606,7 +606,7 @@ const getStyles = (c: ThemeColors) => {
     title: { ...hdr.title, color: c.textMain },
     body: {
       flex: 1,
-      marginTop: 54,
+      marginTop: 53,
       backgroundColor: c.bg,
     },
     avatarSection: {
