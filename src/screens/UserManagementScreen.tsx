@@ -433,7 +433,7 @@ const getStyles = (c: ThemeColors) => {
     // Body (below absolute header)
     body: {
       flex: 1,
-      marginTop: 100,
+      marginTop: 72,
       backgroundColor: c.bg,
     },
     // Search bar
