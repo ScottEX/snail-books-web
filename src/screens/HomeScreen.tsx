@@ -529,8 +529,8 @@ export default function HomeScreen({
       </View>
       )}
 
-      {/* Page content — kept mounted, hidden by display:none when sub-pages are on stack */}
-      <View style={[styles.page, { display: pageStack.length === 0 ? 'flex' : 'none' }]}>
+      {/* Page content — kept mounted, hidden by opacity when sub-pages are on stack */}
+      <View style={[styles.page, pageStack.length > 0 && { opacity: 0, pointerEvents: 'none' } as any]}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} refreshKey={partnerRefreshKey} />
         ) : tab === 'supply' ? (
@@ -789,8 +789,8 @@ export default function HomeScreen({
       {/* Shared modal */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
 
-      {/* Bottom Nav — kept mounted, hidden by display:none when sub-pages / cart drawer active */}
-      <View style={[styles.bottomNav, { display: pageStack.length === 0 && !showCartDrawer ? 'flex' : 'none' }]}>
+      {/* Bottom Nav — kept mounted, hidden by opacity when sub-pages / cart drawer active */}
+      <View style={[styles.bottomNav, (pageStack.length > 0 || showCartDrawer) && { opacity: 0, pointerEvents: 'none' } as any]}>
         {([
           { id: 'expense', icon: NavIconExpense },
           { id: 'list', icon: NavIconList },
