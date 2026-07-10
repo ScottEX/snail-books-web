@@ -207,7 +207,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       if (data.email) setEmail(data.email);
       if (data.signature) setSignature(data.signature);
       if (data.created_at) {
-        const days = Math.floor((Date.now() - new Date(data.created_at).getTime()) / 86400000);
+        const days = Math.floor((Date.now() - new Date(data.created_at.replace(' ', 'T') + '+08:00').getTime()) / 86400000);
         setDaysSince(Math.max(1, days));
       }
       if (typeof data.enforce_single_session === 'number') {

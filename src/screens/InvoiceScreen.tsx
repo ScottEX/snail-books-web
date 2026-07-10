@@ -153,6 +153,10 @@ interface InvoiceRecord {
   date: string;
   invoice_number: string;
   email: string;
+  address?: string;
+  phone?: string;
+  bank_name?: string;
+  bank_account?: string;
   status: InvStatus;
   file_path?: string;
   file_thumb_paths?: string;
@@ -456,6 +460,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         tax_id: data.tax_id,
         invoice_number: dInvoiceNo.trim(),
         email: dEmail.trim(),
+        address: data.address,
+        phone: data.phone,
+        bank_name: data.bank_name,
+        bank_account: data.bank_account,
         status: dStatus,
         procurement_batch_id: dBatchId,
         note: dNote.trim(),
