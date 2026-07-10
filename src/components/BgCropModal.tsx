@@ -322,7 +322,7 @@ export default function BgCropModal({
           buttons live INSIDE the card so the user sees the image and
           the 重新裁剪 / 确认使用 buttons in one place, matching the
           cover-crop preview style. */}
-      {phase === 'preview' && cropDataUrl !== '' && (
+      {(phase === 'preview' || phase === 'uploading') && cropDataUrl !== '' && (
         <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: 24, opacity: previewFade as any, transform: [{ scale: previewScale as any }] } as any}>
           <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: MODAL_CARD_RADIUS, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360, width: '100%' } as any}>
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any}>
@@ -344,6 +344,7 @@ export default function BgCropModal({
             <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 4 } as any}>
               <TouchableOpacity
                 style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
+                disabled={phase === 'uploading'}
                 onPress={() => {
                   Animated.parallel([
                     Animated.timing(previewScale, { toValue: 0.92, duration: 220, useNativeDriver: false }),
@@ -433,12 +434,6 @@ export default function BgCropModal({
             </View>
             <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{confirmLabel || t('useThisBg')}</Text>
           </TouchableOpacity>
-        </View>
-      )}
-
-      {phase === 'uploading' && (
-        <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', flexShrink: 0 } as any}>
-          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' } as any}>{t('uploading')}</Text>
         </View>
       )}
 
