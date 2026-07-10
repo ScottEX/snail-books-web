@@ -427,13 +427,13 @@ const getStyles = (c: ThemeColors) => {
   return StyleSheet.create({
     container: { flex: 1 },
     ...hdr as any,
-    header: { ...hdr.header, top: 0, paddingTop: 8 },
+    header: { ...hdr.header, top: 0, paddingTop: 3, paddingBottom: 3, height: 42 },
     // Override title color for light bg (historyHeader defaults to #F0EDE8)
     title: { ...hdr.title, color: c.textMain },
     // Body (below absolute header)
     body: {
       flex: 1,
-      marginTop: 53,
+      marginTop: 43,
       backgroundColor: c.bg,
     },
     // Search bar
