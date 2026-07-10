@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Animated, Image, Platform
+  View, Text, TouchableOpacity, FlatList, ScrollView, StyleSheet, ActivityIndicator, Animated, Image, Platform
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -283,7 +283,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
       </View>
 
       {/* Filter panel */}
-      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
+      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)} top={50}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
@@ -319,10 +319,10 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
               <Text style={st.filterLabel}>　</Text>
               <View style={st.filterChipRow}>
                 {[
-                  { label: '今天', date: sd.today },
-                  { label: '昨天', date: sd.offset(-1) },
-                  { label: '前天', date: sd.offset(-2) },
-                  { label: '大前天', date: sd.offset(-3) },
+                  { label: t('quickToday'), date: sd.today },
+                  { label: t('quickYesterday'), date: sd.offset(-1) },
+                  { label: t('quickDBY'), date: sd.offset(-2) },
+                  { label: t('quick3DAgo'), date: sd.offset(-3) },
                 ].map(q => {
                   const active = filDateFrom === q.date && filDateTo === q.date;
                   return (
@@ -389,7 +389,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
         onEndReached={onEndReached}
         onEndReachedThreshold={0.4}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: showFilter ? 292 : 112, paddingHorizontal: 16, paddingBottom: 20 }}
+        contentContainerStyle={{ paddingTop: showFilter ? 190 : 4, paddingHorizontal: 16, paddingBottom: 20 }}
         ListEmptyComponent={!loading ? (
           <EmptyState
             icon={<ExpenseEmptyIcon color={colors.textSub} />}
@@ -407,7 +407,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
 
       {/* Loading overlay — covers empty state during initial load */}
       {loading && records.length === 0 && (
-        <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', paddingTop: 112 }}>
+        <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', paddingTop: 50 }}>
           <LoadingSpinner label={false} />
         </View>
       )}
@@ -426,12 +426,15 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
   );
 }
 
-const getSt = (colors: ThemeColors): any => StyleSheet.create({
+const getSt = (colors: ThemeColors): any => {
+  const hdr = historyHeader(colors);
+  return StyleSheet.create({
   /* Root — flex: 1, no background (page bg from parent) */
   root: { flex: 1 },
-  ...historyHeader(colors),
+  ...hdr as any,
+  header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
   /* List — scrolls under absolute header (matches ReconHistoryScreen list) */
-  list: { flex: 1 },
+  list: { flex: 1, marginTop: 50 },
   /* Row */
   row: {
     backgroundColor: colors.surface, borderRadius: 12,
@@ -533,3 +536,4 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     color: colors.textSub,
   },
 } as any);
+};

@@ -15,7 +15,7 @@ import FadeInView from '../components/FadeInView';
 import DateErrorHint from '../components/DateErrorHint';
 import { useTheme, withAlpha, ThemeColors, BACKDROP_COLOR } from '../theme';
 import { FONTS } from '../theme';
-import { uploadReceiptStyles, bottomSheetOverlay } from '../sharedStyles';
+import { uploadReceiptStyles, bottomSheetOverlay, MODAL_CARD_RADIUS } from '../sharedStyles';
 import { fmtAmt as fmt, fmtAmtFull } from '../utils/format';
 import { blockNeg, toDec2, toDec2Comma } from '../utils/numbers';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
@@ -116,8 +116,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     if (i === 1) setExpDateErr(0);
     try { localStorage.setItem('expense_active_tab', String(i)); } catch {}
   };
-  const [showCardToast, setShowCardToast] = useState(false);
-  const hideCardToast = () => setShowCardToast(false);
+  const [showReconConfirm, setShowReconConfirm] = useState(false);
+  const hideReconConfirm = () => setShowReconConfirm(false);
+  const [showFeeReminder, setShowFeeReminder] = useState(false);
+  const wantsFeeSheet = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollElRef = useRef<HTMLElement | null>(null);
 
@@ -181,7 +183,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   const { cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd } = reconForm;
 
   const initReconValues = useRef({ card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' });
-  const reconJustLoaded = useRef(false);
   const reconLoadId = useRef(0);  // guard against stale async responses
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
@@ -200,7 +201,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           updateRecon('cardBalance', ''); updateRecon('cashBalance', '');
           updateRecon('dineIn', ''); updateRecon('meituan', '');
           updateRecon('flashSale', ''); updateRecon('tuan', ''); updateRecon('jd', '');
-          reconJustLoaded.current = true;
+          initReconValues.current = { card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' };
+          forceUpdate();
           return;
         }
         const last = data[0]; // most recent record
@@ -213,6 +215,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           updateRecon('flashSale', toDec2(match.flash_sale));
           updateRecon('tuan', toDec2(match.tuan));
           updateRecon('jd', toDec2(match.jd));
+          initReconValues.current = {
+            card: toDec2(match.card_balance), cash: toDec2(match.cash_balance),
+            dine: toDec2(match.dine_in), mt: toDec2(match.meituan),
+            fs: toDec2(match.flash_sale), jd: toDec2(match.jd), tuan: toDec2(match.tuan),
+          };
         } else if (recDate.value >= (last.bill_date || '')) {
           updateRecon('cardBalance', toDec2(last.card_balance));
           updateRecon('cashBalance', toDec2(last.cash_balance));
@@ -221,24 +228,21 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           updateRecon('flashSale', toDec2(last.flash_sale));
           updateRecon('tuan', toDec2(last.tuan));
           updateRecon('jd', toDec2(last.jd));
+          initReconValues.current = {
+            card: toDec2(last.card_balance), cash: toDec2(last.cash_balance),
+            dine: toDec2(last.dine_in), mt: toDec2(last.meituan),
+            fs: toDec2(last.flash_sale), jd: toDec2(last.jd), tuan: toDec2(last.tuan),
+          };
         } else {
           updateRecon('cardBalance', ''); updateRecon('cashBalance', '');
           updateRecon('dineIn', ''); updateRecon('meituan', '');
           updateRecon('flashSale', ''); updateRecon('tuan', ''); updateRecon('jd', '');
+          initReconValues.current = { card: '', cash: '', dine: '', mt: '', fs: '', jd: '', tuan: '' };
         }
-        reconJustLoaded.current = true;
+        forceUpdate();
       } catch { showToast(t('toastLoadFailed')); }
     })();
   }, [recDate.value]);
-
-  // Capture initial values after data load settles
-  useEffect(() => {
-    if (reconJustLoaded.current) {
-      reconJustLoaded.current = false;
-      initReconValues.current = { card: cardBalance, cash: cashBalance, dine: dineIn, mt: meituan, fs: flashSale, jd, tuan };
-      forceUpdate();
-    }
-  }, [cardBalance, cashBalance, dineIn, meituan, flashSale, jd, tuan]);
 
   // 提交对账到后端
   const submitRecon = useCallback(async () => {
@@ -268,6 +272,29 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       onReconHistory?.();
     } catch { showToast(t('toastSubmitFailed')); }
   }, [recDate.value, cardBalance, cashBalance, dineIn, meituan, flashSale, tuan, jd, onReconHistory]);
+
+  // 检查对账当月手续费是否在今天更新过
+  const checkFeeToday = async (): Promise<boolean> => {
+    try {
+      const all = await api.getPlatformFees();
+      const allArr = Array.isArray(all) ? all : [];
+      const [ry, rm] = (recDate.value || '').split('-').map(Number);
+      const match = allArr.find((f: any) => f.year === ry && f.month === rm);
+      if (!match?.updated_at) return false;
+      const updatedDay = String(match.updated_at).split(' ')[0].split('T')[0];
+      return updatedDay === sd.today;
+    } catch { return true; } // 网络失败不拦
+  };
+
+  const handleReconPress = async () => {
+    if (!hasReconChanges) return;
+    const feeToday = await checkFeeToday();
+    if (feeToday) {
+      setShowReconConfirm(true);
+    } else {
+      setShowFeeReminder(true);
+    }
+  };
 
   // Precise arithmetic: convert to cents (integer), compute, convert back
   // Avoids IEEE 754 float issues (e.g., 0.1 + 0.2 !== 0.3)
@@ -795,7 +822,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               leftLabel={t('reconHistory')}
               leftOnPress={onReconHistory}
               rightLabel={t('reconComplete')}
-              rightOnPress={() => hasReconChanges && setShowCardToast(true)}
+              rightOnPress={handleReconPress}
               rightDisabled={!hasReconChanges}
             />
           </View>
@@ -893,11 +920,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       </ScrollView>
 
       {/* 添加提示弹窗 */}
-        <ModalOverlay visible={showCardToast} onClose={hideCardToast} animation="springScale">
+        <ModalOverlay visible={showReconConfirm} onClose={hideReconConfirm} animation="springScale">
           <View style={st.modalCard} onStartShouldSetResponder={() => true}>
             <View style={st.modalHeader}>
               <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
-              <CloseButton onPress={hideCardToast} />
+              <CloseButton onPress={hideReconConfirm} />
             </View>
             <View style={{ padding: 20, gap: 16 }}>
               <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
@@ -905,9 +932,29 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               </Text>
               <ButtonPair
                 leftLabel={t('cancel')}
-                leftOnPress={hideCardToast}
+                leftOnPress={hideReconConfirm}
                 rightLabel={t('confirm')}
-                rightOnPress={() => { hideCardToast(); submitRecon(); }}
+                rightOnPress={() => { hideReconConfirm(); submitRecon(); }}
+              />
+            </View>
+          </View>
+        </ModalOverlay>
+      {/* 手续费未更新提示弹窗 */}
+        <ModalOverlay visible={showFeeReminder} onClose={() => setShowFeeReminder(false)} onClosed={() => { if (wantsFeeSheet.current) { wantsFeeSheet.current = false; feeSheet.show(); } }} animation="springScale">
+          <View style={st.modalCard} onStartShouldSetResponder={() => true}>
+            <View style={st.modalHeader}>
+              <Text style={st.modalTitle}>{t('friendlyReminder')}</Text>
+              <CloseButton onPress={() => setShowFeeReminder(false)} />
+            </View>
+            <View style={{ padding: 20, gap: 16 }}>
+              <Text style={{ fontSize: FONTS.sub.size, color: colors.textSub, textAlign: 'center' }}>
+                {t('feeNotUpdated')}
+              </Text>
+              <ButtonPair
+                leftLabel={t('reconLater')}
+                leftOnPress={() => setShowFeeReminder(false)}
+                rightLabel={t('enterFeeFirst')}
+                rightOnPress={() => { wantsFeeSheet.current = true; setShowFeeReminder(false); }}
               />
             </View>
           </View>
@@ -917,9 +964,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           overlayStyle={bottomSheetOverlay as any}
           contentStyle={{ alignItems: 'stretch' } as any}>
           <View style={[st.feeSheet, { width: '100%', maxWidth: 768, alignSelf: 'center' }]} onStartShouldSetResponder={() => true}>
-            <View style={st.modalHeader}>
+            {/* Sheet header: handle on top, title + close button row below */}
+            <View style={{ backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20 }}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Text style={st.modalTitle}>{t('addFeeEntry')}</Text>
                 <TouchableOpacity style={{ padding: 4 }} onPress={() => feeSheet.hide()}>
                   <Svg width="18" height="18" viewBox="0 0 24 24" stroke={colors.surface} strokeWidth="2" fill="none">
@@ -1013,9 +1061,10 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
           overlayStyle={bottomSheetOverlay as any}
           contentStyle={{ alignItems: 'stretch', justifyContent: 'flex-end' } as any}>
           <View style={[st.feeSheet, { height: winH * 0.7, width: '100%', maxWidth: 768, alignSelf: 'center' }]} onStartShouldSetResponder={() => true}>
-            <View style={st.modalHeader}>
+            {/* Sheet header: handle on top, title + close button row below */}
+            <View style={{ backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20 }}>
               <View style={{ width: 36, height: 4, backgroundColor: '#D4D0C8', borderRadius: 2, alignSelf: 'center', marginBottom: 12 }} />
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Text style={st.modalTitle}>{t('feeHistory')}</Text>
                 <TouchableOpacity style={{ padding: 4 }} onPress={() => { feeHistory.hide(); setFeeHistoryFilter('all'); }}>
                   <Svg width="18" height="18" viewBox="0 0 24 24" stroke={colors.surface} strokeWidth="2" fill="none">
@@ -1301,7 +1350,6 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12,
     gap: 14,
     backgroundColor: colors.surface,
-    borderWidth: 0.5, borderColor: colors.secondary,
     // @ts-ignore
 
   },
@@ -1471,7 +1519,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modalCard: {
-    backgroundColor: colors.surface, borderRadius: 24, width: 320, maxWidth: '100%',
+    backgroundColor: colors.surface, borderRadius: MODAL_CARD_RADIUS, width: 320, maxWidth: '100%',
     overflow: 'hidden',
     // @ts-ignore
 
@@ -1480,7 +1528,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   },
   modalHeader: {
     backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 20,
-    flexDirection: 'column', alignItems: 'flex-start',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
   /* Platform fee sheet — bottom half-screen */

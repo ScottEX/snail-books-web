@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { t } from '../i18n';
 import { useTheme } from '../theme';
+import { useServerDate } from '../hooks/useServerDate';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -135,6 +136,7 @@ const DayIcon = ({ size, color }: { size: number; color: string }) => (
 
 export default function ChartsPanel({ months, income, expense, profit, categories, dailyDates, dailyIncome, dailyExpense, dailyProfitDates, dailyProfitValues }: Props) {
   const { colors } = useTheme();
+  const sd = useServerDate();
   const [showBar, setShowBar] = useState(false);
   const [showDaily, setShowDaily] = useState(false);
   const [showDailyProfit, setShowDailyProfit] = useState(false);
@@ -142,7 +144,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
   const hasDailyProfit = !!(dailyProfitDates?.length);
 
   // Current month number from the data
-  const currentMonth = months.length > 0 ? parseInt(months[months.length - 1].slice(5), 10) : new Date().getMonth() + 1;
+  const currentMonth = months.length > 0 ? parseInt(months[months.length - 1].slice(5), 10) : (sd.month || new Date().getMonth() + 1);
 
   // ── Kill recharts blue focus ring ──
   useEffect(() => {
@@ -294,7 +296,7 @@ export default function ChartsPanel({ months, income, expense, profit, categorie
       {donutData.length > 0 && (
         <View style={[chartStyles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
           <View style={chartStyles.titleRow}>
-            <Text style={[chartStyles.title, { marginBottom: 0 }]}>{monthName(currentMonth) + t('expenseBreakdownOfMonth')}</Text>
+            <Text style={[chartStyles.title, { color: subTextColor, marginBottom: 0 }]}>{monthName(currentMonth) + t('expenseBreakdownOfMonth')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={{ color: tickColor, fontSize: 10 }}>{t('chartSwitchHint')}</Text>
               <TouchableOpacity

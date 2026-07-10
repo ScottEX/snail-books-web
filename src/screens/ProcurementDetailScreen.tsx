@@ -9,7 +9,7 @@ import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { FONTS } from '../theme';
-import { historyHeader } from '../sharedStyles';
+import { historyHeader, MODAL_CARD_RADIUS } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
 import ImagePreview from '../components/ImagePreview';
@@ -200,8 +200,9 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
             <Switch
               value={!!cur.settled_at}
               onValueChange={(v) => {
-                // Only react to flip-ON; flipping OFF is ignored (irreversible).
+                // Irreversible — only react to flip-ON when not yet settled
                 if (v && !cur.settled_at) setShowSettleConfirm(true);
+                // Already settled → no-op (don't use disabled, it makes the Switch black on web)
               }}
               disabled={settling}
               trackColor={{ false: withAlpha(c.textMain, 0.18), true: '#3DBC75' }}
@@ -237,12 +238,12 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
             <Text style={styles.infoLabel}>{t('expenseCategory')}</Text>
             <Text style={styles.infoValue}>{trCategory(cur.category)}</Text>
           </View>
-          <View style={styles.infoRow}>
+          <View style={[styles.infoRow, !cur.note && { borderBottomWidth: 0 }]}>
             <Text style={styles.infoLabel}>{t('procOperator')}</Text>
             <Text style={styles.infoValue}>{getCurrentUser() || '—'}</Text>
           </View>
           {cur.note ? (
-            <View style={[styles.infoRow, { borderBottomWidth: 0, paddingTop: 0 }]}>
+            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
               <Text style={styles.infoLabel}>{t('procNoteLabel')}</Text>
               <Text style={styles.infoValue}>{cur.note}</Text>
             </View>
@@ -351,10 +352,10 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
 
       {/* Supplier picker for PDF */}
       <ModalOverlay visible={showSupplierPicker} onClose={() => setShowSupplierPicker(false)} animation="springScale">
-        <View style={{ backgroundColor: c.surface, borderRadius: 24, width: 320, maxWidth: '90%', overflow: 'hidden' as const }}>
+        <View style={{ backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, width: 320, maxWidth: '90%', overflow: 'hidden' as const }}>
           {/* Header — handle bar + title + X */}
           <View style={{ backgroundColor: c.primary, borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface }}>{t('procSelectSupplier')}</Text>
+              <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface, flex: 1 }} numberOfLines={1}>{t('procSelectSupplier')}</Text>
               <TouchableOpacity style={{ padding: 4 }} onPress={() => setShowSupplierPicker(false)}>
                 <Svg width="18" height="18" viewBox="0 0 24 24" stroke={c.surface} strokeWidth="2" fill="none">
                   <Line x1="18" y1="6" x2="6" y2="18" />
@@ -401,6 +402,7 @@ const getStyles = (c: ThemeColors) => {
       // No background — let HomeScreen bgLayer show through header area
     },
     ...hdr,
+    header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
     actionBtn: {
       width: 36, height: 36, borderRadius: 18,
       backgroundColor: withAlpha(c.bg, 0.30),
@@ -433,7 +435,7 @@ const getStyles = (c: ThemeColors) => {
     },
     body: {
       flex: 1,
-      marginTop: 100, // space for glass header + clearance
+      marginTop: 50, // space for glass header + clearance
       backgroundColor: c.bg, // bg moved from container so header area stays transparent
     },
     bodyContent: {

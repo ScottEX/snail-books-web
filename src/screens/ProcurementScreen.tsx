@@ -8,7 +8,7 @@ import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
-import { bottomSheetOverlay } from '../sharedStyles';
+import { bottomSheetOverlay, MODAL_CARD_RADIUS } from '../sharedStyles';
 import SheetHeader from '../components/SheetHeader';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useServerDate } from '../hooks/useServerDate';
@@ -157,7 +157,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   statNum: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   statLbl: { fontSize: FONTS.micro.size, color: c.textSub, marginTop: 3 },
 
-  searchSection: { paddingHorizontal: 18, paddingBottom: 8, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06) },
+  searchSection: { paddingHorizontal: 18, paddingBottom: 8, borderTopWidth: 0 },
   searchRow: { position: 'relative' as const },
   searchInput: { paddingHorizontal: 12, paddingVertical: 9, paddingRight: 36, borderWidth: 0, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), outline: 'none' as any },
   searchClear: { position: 'absolute' as const, right: 8, top: 0, bottom: 0, justifyContent: 'center' as const, alignItems: 'center' as const },
@@ -168,7 +168,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   filterChipTextOn: { color: c.surface },
 
   // Sub-tabs inside frosted block
-  subTabRow: { flexDirection: 'row' as const, borderTopWidth: 0.5, borderTopColor: withAlpha(c.textMain, 0.06), marginHorizontal: 4, paddingTop: 2, marginBottom: 6 },
+  subTabRow: { flexDirection: 'row' as const, borderTopWidth: 0, marginHorizontal: 4, paddingTop: 2, marginBottom: 6 },
   subTab: { flex: 1, flexDirection: 'row' as const, gap: 4, paddingVertical: 10, alignItems: 'center' as const, justifyContent: 'center' as const },
   subTabOn: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 10 },
   subTabText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: c.textSub },
@@ -200,7 +200,6 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
     // @ts-ignore
     backdropFilter: 'saturate(180%) blur(20px)',
     // @ts-ignore
-    WebkitBackdropFilter: 'saturate(180%) blur(20px)',
   },
   cartPreview: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12, padding: 12 },
   cartIconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center' as const, justifyContent: 'center' as const, overflow: 'visible' as const },
@@ -231,7 +230,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   itemsBtnText: { fontSize: FONTS.sub.size, color: c.textMain, fontWeight: FONTS.sub.weight },
 
   // Items modal
-  itemsModalCard: { backgroundColor: c.surface, borderRadius: 24, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
+  itemsModalCard: { backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, overflow: 'hidden' as const, display: 'flex' as any, flexDirection: 'column' as any },
   itemsModalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   itemsModalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.textMain },
   itemsModalClose: { fontSize: FONTS.h2.size, color: withAlpha(c.surface, 0.7), fontWeight: '300' as const },
@@ -263,13 +262,13 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   mgmtAddBtn: { marginHorizontal: 0, marginTop: 8, marginBottom: 8, flexDirection: 'row' as const, backgroundColor: c.surface, borderRadius: 10, paddingVertical: 11, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 6 },
   mgmtAddBtnText: { fontSize: FONTS.sub.size, fontWeight: FONTS.subBold.weight, color: c.primary },
 
-  modalCard: { backgroundColor: c.surface, borderRadius: 24, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
+  modalCard: { backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, width: 340, maxWidth: '90%' as any, overflow: 'hidden' as const,
     // @ts-ignore
      },
   modalHeader: { backgroundColor: c.primary, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const },
   modalTitle: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.surface },
   modalBody: { padding: 24 },
-  modalInput: { paddingHorizontal: 10, paddingVertical: 9, borderRadius: 8, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 10 },
+  modalInput: { paddingHorizontal: 14, paddingVertical: 13, borderRadius: 10, fontSize: FONTS.sub.size, color: c.textMain, backgroundColor: withAlpha(c.textMain, 0.03), marginBottom: 12 },
   modalDeleteBox: { backgroundColor: withAlpha(c.primary, 0.1), borderRadius: 12, padding: 12, alignItems: 'center' as const },
   modalDeleteText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' as const },
 
@@ -295,7 +294,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   // Success
   successOverlay: { position: 'absolute' as any, inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 400, alignItems: 'center' as const, justifyContent: 'center' as const },
-  successCard: { backgroundColor: c.surface, borderRadius: 24, padding: 28, width: 'calc(100% - 40px)' as any, maxWidth: 320, alignItems: 'center' as const },
+  successCard: { backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, padding: 28, width: 'calc(100% - 40px)' as any, maxWidth: 320, alignItems: 'center' as const },
   successTitle: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.textMain, marginBottom: 6, marginTop: 8 },
   successSub: { fontSize: FONTS.sub.size, color: c.textSub, lineHeight: 20 } as any,
   successAmount: { fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: c.primary, marginVertical: 12 },
@@ -331,7 +330,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   }, [subTab]);
   // Auto-clear search when switching between sub-tabs
   useEffect(() => { setSearch(''); }, [subTab]);
+
+  // Hide webkit scrollbar on scrollable sections
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const style = document.createElement('style');
+    style.textContent = '.proc-scroll-wrap ::-webkit-scrollbar{display:none}.proc-scroll-wrap *{scrollbar-width:none}';
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [search, setSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('全部');
@@ -383,11 +393,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [itemsModalView, setItemsModalView] = useState<'items' | 'products'>('items');
   const [productPickerSearch, setProductPickerSearch] = useState('');
 
-  // Note: webkit scrollbar cannot be hidden via React/JS — its ::-webkit-scrollbar pseudo-elements
-  // are not addressable. We accept the scrollbar exists and instead position it OUT of the +/-
-  // button area by giving the ScrollView itself paddingHorizontal: 18 + boxSizing: 'border-box';
-  // the webkit scrollbar paints on the padding box edge (the card's rightmost 2px), well clear
-  // of the +/- buttons (which live in the content area, 16px inset from that edge).
   // detailItems, detailTotal, detailBatchId, downloadingPDF, pdfDone — removed with history detail modal (moved to ProcurementDetailScreen)
 
   const [successTotal, setSuccessTotal] = useState(0);
@@ -484,6 +489,8 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         openEditBatch(pendingEditRef.current);
         onPendingEditConsumedRef.current?.();
       }
+    }).finally(() => {
+      setProductsLoading(false);
     });
   }, []);
   const loadStats = useCallback(() => {
@@ -937,11 +944,40 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </View>
       </View>
 
+      <View {...{ className: 'proc-scroll-wrap' } as any} style={{ flex: 1 }}>
+
       {/* ── New Order ── */}
       {subTab === 'new' && (
         <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
-            {groupedProducts.map(([sup, items]) => (
+          {productsLoading ? (
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
+              {[...Array(8)].map((_, i) => (
+                <View key={i} style={{ marginBottom: 12 }}>
+                  <View style={{ width: 56, height: 12, backgroundColor: withAlpha(c.textSub, 0.08), borderRadius: 4, marginLeft: 18, marginBottom: 8 }} />
+                  {[...Array(3)].map((_, j) => (
+                    <View key={j} style={[styles.productCard, { marginHorizontal: 0, pointerEvents: 'none' as any }]}>
+                      <View style={styles.prodRow}>
+                        <View style={styles.prodInfo}>
+                          <View style={{ width: 100, height: 14, backgroundColor: withAlpha(c.textSub, 0.08), borderRadius: 4 }} />
+                          <View style={{ width: 60, height: 11, backgroundColor: withAlpha(c.textSub, 0.05), borderRadius: 4, marginTop: 4 }} />
+                        </View>
+                        <View style={styles.prodPriceWrap}>
+                          <View style={{ width: 52, height: 14, backgroundColor: withAlpha(c.textSub, 0.08), borderRadius: 4 }} />
+                        </View>
+                        <View style={styles.qtyRow}>
+                          <View style={[styles.qtyBtn, styles.qtyBtnMinus]} />
+                          <View style={{ width: 24, height: 14, backgroundColor: withAlpha(c.textSub, 0.06), borderRadius: 4 }} />
+                          <View style={[styles.qtyBtn, styles.qtyBtnPlus, { backgroundColor: withAlpha(c.textSub, 0.08) }]} />
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+          ) : (
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
+              {groupedProducts.map(([sup, items]) => (
               <View key={sup}>
                 <Text style={styles.sectionHead}>{supplierLabel(sup)}</Text>
                 {items.map(p => {
@@ -994,6 +1030,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
               />
             )}
           </ScrollView>
+          )}
 
           {cartCount > 0 && (
             <View style={styles.cartBar}>
@@ -1170,6 +1207,22 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <PlusIcon color={c.primary} />
             <Text style={styles.mgmtAddBtnText}>{t('procAddProduct')}</Text>
           </TouchableOpacity>
+          {productsLoading ? (
+            <ScrollView style={styles.contentArea}>
+              {[...Array(6)].map((_, i) => (
+                <View key={i} style={[styles.mgmtRow, { pointerEvents: 'none' as any }]}>
+                  <View style={styles.mgmtInfo}>
+                    <View style={{ width: 90, height: 14, backgroundColor: withAlpha(c.textSub, 0.08), borderRadius: 4 }} />
+                    <View style={{ width: 140, height: 11, backgroundColor: withAlpha(c.textSub, 0.05), borderRadius: 4, marginTop: 4 }} />
+                  </View>
+                  <View style={styles.mgmtActions}>
+                    <View style={[styles.mgmtActionBtn, { backgroundColor: withAlpha(c.textSub, 0.05) }]} />
+                    <View style={[styles.mgmtActionBtn, { backgroundColor: withAlpha(c.textSub, 0.05) }]} />
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          ) : (
           <ScrollView style={styles.contentArea}>
           {filteredMgmtProducts.length === 0 ? (
             <EmptyState
@@ -1196,8 +1249,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             ))
           )}
         </ScrollView>
+          )}
         </>
       )}
+
+      </View>
 
       {/* ── Product Modal (springScale) ── */}
       <ModalOverlay visible={showProductModal} onClose={() => setShowProductModal(false)} animation="springScale">
@@ -1317,7 +1373,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
             {/* Items row — matching 近7天 pattern: label left, theme button right */}
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
-              <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
+              <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} {t('procOrderItemsCount').replace('{n}', '')}）</Text>
               <TouchableOpacity onPress={openItemsModal} activeOpacity={0.7}>
                 <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary }}>{t('procViewDetail')} →</Text>
               </TouchableOpacity>
@@ -1403,7 +1459,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             {itemsModalIsCart && itemsModalView === 'products' ? (
               // ── Product picker view ──
               <View style={{ flex: 1, minHeight: 0 }}>
-                <View style={{ paddingHorizontal: 18, paddingTop: 0, paddingBottom: 8 }}>
+                <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 0 }}>
                   <TextInput
                     value={productPickerSearch}
                     onChangeText={setProductPickerSearch}
@@ -1563,7 +1619,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             <Text style={styles.successSub}>{successIsEdit ? t('procUpdatedMsg') : t('procSubmittedMsg')}</Text>
             <Text style={styles.successAmount}>¥{successTotal.toFixed(2)}</Text>
             <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>
-              {t('procNowBatch').replace('{n}', String(successBatch))} · {orderDate} · {payMethod}
+              {t('procNowBatch').replace('{n}', String(successBatch))} · {orderDate} · {trPayment(payMethod)}
             </Text>
             <View style={styles.successBtns}>
               <TouchableOpacity style={[styles.successBtnView, !successIsEdit && { flex: 1 }]} onPress={() => { closeSlideModal(() => { setShowSuccess(false); setSuccessIsEdit(false); }); setSubTab('history'); }}>

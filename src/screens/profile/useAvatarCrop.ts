@@ -25,6 +25,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
   const [showResult, setShowResult] = useState(false);
   const [cropMsg, setCropMsg] = useState('');
   const [zoomSlider, setZoomSlider] = useState(0);
+  const [uploadLoading, setUploadLoading] = useState(false);
 
   // ── Avatar crop refs ──
   const cropImgRef = useRef<HTMLImageElement | null>(null);
@@ -44,13 +45,15 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
     const stage = stageRef.current;
     const canvas = canvasRef.current;
     if (!stage || !canvas) return;
-    const rect = stage.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
+    const w = stage.offsetWidth;
+    const h = stage.offsetHeight;
+    if (w === 0 || h === 0) return;
+    canvas.width = w;
+    canvas.height = h;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
     const s = cropState.current;
-    s.cropSize = Math.round(Math.min(rect.width, rect.height) * 0.76);
+    s.cropSize = Math.round(Math.min(w, h) * 0.76);
     const guide = guideRef.current;
     if (guide) {
       guide.style.width = s.cropSize + 'px';
@@ -174,9 +177,10 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
 
   const doUpload = async () => {
     if (!cropResult) return;
+    setUploadLoading(true);
     try {
       const uid = getCurrentUserId();
-      if (!uid) { setCropMsg('用户未登录'); return; }
+      if (!uid) { setCropMsg('用户未登录'); setUploadLoading(false); return; }
       const arr = cropResult.split(',');
       const mime = (arr[0].match(/:(.*?);/) || ['', 'image/png'])[1];
       const bstr = atob(arr[1]);
@@ -194,6 +198,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
         onAvatarChange?.();
       } else { setCropMsg('上传失败'); }
     } catch { setCropMsg('上传失败，请重试'); }
+    finally { setUploadLoading(false); }
   };
 
   // ── Load avatar from server ──
@@ -226,5 +231,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
     // Toolbar
     cropState, clampCrop, drawCrop,
     zoomSlider, setZoomSlider,
+    // Loading
+    uploadLoading,
   };
 }

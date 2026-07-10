@@ -172,7 +172,7 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
           </View>
           <Text style={styles.revInputCardFooter}>
             {t('revYesterdayLabel')}{' '}
-            {yesterdayRev ? `¥${toDec2(yesterdayRev.revenue)}` : t('revYesterdayNA')}
+            {yesterdayRev && yesterdayRev.revenue > 0 ? `¥${toDec2(yesterdayRev.revenue)}` : t('revYesterdayNA')}
           </Text>
         </View>
         <View style={styles.revInputCard}>
@@ -192,7 +192,7 @@ export default function DailyRevenuePanel(props: DailyRevenuePanelProps) {
           </View>
           <Text style={styles.revInputCardFooter}>
             {t('revYesterdayLabel')}{' '}
-            {yesterdayRev ? `¥${toDec2(yesterdayRev.turnover)}` : t('revYesterdayNA')}
+            {yesterdayRev && yesterdayRev.turnover > 0 ? `¥${toDec2(yesterdayRev.turnover)}` : t('revYesterdayNA')}
           </Text>
         </View>
         <View style={styles.revInputCard}>

@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { useTheme, ThemeColors } from '../theme';
+import { MODAL_CARD_RADIUS } from '../sharedStyles';
 import { FONTS } from '../theme';
 import { t } from '../i18n';
 import { api } from '../api/client';
@@ -60,8 +61,8 @@ export default function LogoutConfirmModal({ visible, onClose, onLogout }: Logou
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
-    backgroundColor: colors.surface, borderRadius: 24,
-    width: 340, maxWidth: '90%', overflow: 'hidden',
+    backgroundColor: colors.surface, borderRadius: MODAL_CARD_RADIUS,
+    width: 360, maxWidth: '94%', overflow: 'hidden',
   },
   header: {
     backgroundColor: colors.primary,

@@ -141,7 +141,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       </View>
 
       {/* Filter panel */}
-      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
+      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)} top={50}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
@@ -198,7 +198,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 224 : 112, paddingHorizontal: 16, paddingBottom: 20 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 170 : 54, paddingHorizontal: 16, paddingBottom: 20 }}>
         {loading ? (
           <LoadingSpinner />
         ) : records.length === 0 ? (
@@ -280,9 +280,12 @@ function fmtISO(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-const getSt = (colors: ThemeColors) => StyleSheet.create({
+const getSt = (colors: ThemeColors) => {
+  const hdr = historyHeader(colors);
+  return StyleSheet.create({
   root: { flex: 1 },
-  ...historyHeader(colors),
+  ...hdr as any,
+  header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
 
   filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   filterLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub, width: 64, flexShrink: 0 },
@@ -364,4 +367,5 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
 
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
   loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
-});
+} as any);
+};

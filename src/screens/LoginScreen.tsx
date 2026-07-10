@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Animated } from 'react-native';
 import SubmitButton from '../components/SubmitButton';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
-import { t, langs, useLang, I18nKey } from '../i18n';
+import { t, getLang, langs, useLang, I18nKey } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
@@ -163,7 +163,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
                 setUsername(r.username);
                 localStorage.setItem('webauthn_bound', '1');
                 localStorage.setItem('webauthn_user', r.username);
-                setFaceMode(true);
+                switchToFaceMode();
               }
             }).catch(() => {});
           });
@@ -185,7 +185,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     setPassword(''); setPassword2(''); setEmail('');
     // Stay in face mode if user has a credential
     if (faceUsername && hasFaceID) {
-      setFaceMode(true);
+      switchToFaceMode();
       setUsername(faceUsername);
     } else {
       setFaceMode(false);
@@ -199,8 +199,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   const switchToFaceMode = () => {
     setFaceMode(true);
-    setFaceUsername(username);
-    setPassword('');
     setMsg(''); setMsgKey('');
   };
 
@@ -326,6 +324,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             }
           }
         } catch {}
+        try { await api.saveLang(getLang()); } catch {}
         onLogin();
       } else if (r.need_verify) {
         setEmail(r.email); setStep('verify'); setMsg(''); setMsgKey('');
@@ -397,6 +396,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           localStorage.removeItem('active_tab');
           localStorage.removeItem('expense_active_tab');
         }
+        try { await api.saveLang(getLang()); } catch {}
         onLogin();
       }
     } catch (e: any) {
@@ -666,7 +666,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>
                   {t('password')}{' '}
-                  <Text style={styles.hintText}>{t('pwHint') || '6+ chars, letter + number'}</Text>
+                  <Text style={styles.hintText}>{t('pwHint') || '8+ chars, letter + number + special'}</Text>
                 </Text>
                 <View style={styles.pwWrap}>
                   <TextInput style={styles.pwInput} value={password} onChangeText={setPassword}

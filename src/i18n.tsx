@@ -173,6 +173,9 @@ const I18N: Record<string, Record<string, string>> = {
     feeCurrent: '当前手续费',
     feeDetail: '更新手续费',
     feeEntry: '今日手续费',
+    feeNotUpdated: '请先录入手续费，再发起对账',
+    enterFeeFirst: '先录入手续费',
+    reconLater: '稍后再对',
     feeHistory: '历史明细',
     feePreview: '累计手续费',
     feeViewDetail: '查看明细',
@@ -199,7 +202,7 @@ const I18N: Record<string, Record<string, string>> = {
     invAutoFilled: '已自动填入',
     invBankInfo: '银行信息',
     invManage: '发票管理',
-    invCenter: '发票管理中心',
+    invCenter: '发票管理',
     invContact: '联系开票方',
     invDelConfirmPrefix: '此操作将删除「',
     invDelConfirmSuffix: '」开票数据，请谨慎操作。',
@@ -289,6 +292,7 @@ const I18N: Record<string, Record<string, string>> = {
     last30Days: '近30天',
     last3Months: '近3月',
     last7Days: '近7天',
+    anyDate: '任何日期',
     lastLogin: '最后登录',
     linkCopied: '链接已复制',
     linkPartner: '关联',
@@ -404,6 +408,7 @@ const I18N: Record<string, Record<string, string>> = {
     procOperator: '经办人',
     procOrderDate: '进货日期',
     procOrderItems: '进货明细',
+    procOrderItemsCount: '{n} 项',
     procPaymentMethod: '支付方式',
     procPdfTitle: '进货单 #{n}',
     procProduct: '商品',
@@ -482,6 +487,10 @@ const I18N: Record<string, Record<string, string>> = {
     revQuickDB4: '前天',
     revQuickToday: '今天',
     revQuickYesterday: '昨天',
+    quickToday: '今天',
+    quickYesterday: '昨天',
+    quickDBY: '前天',
+    quick3DAgo: '大前天',
     revRevenue: '营业额收入',
     revRevenueSub: '实际到账金额',
     revSaveDate: '储存{date}数据',
@@ -767,6 +776,9 @@ const I18N: Record<string, Record<string, string>> = {
     feeCurrent: '當期手續費',
     feeDetail: '更新手續費',
     feeEntry: '今日手續費',
+    feeNotUpdated: '請先錄入手續費，再發起對賬',
+    enterFeeFirst: '先錄入手續費',
+    reconLater: '稍後再對',
     feeHistory: '歷史明細',
     feePreview: '累計手續費',
     feeViewDetail: '檢視明細',
@@ -792,7 +804,7 @@ const I18N: Record<string, Record<string, string>> = {
     invApplyAmount: '申請金額',
     invAutoFilled: '已自動填入',
     invBankInfo: '銀行信息',
-    invCenter: '發票管理中心',
+    invCenter: '發票管理',
     invContact: '聯繫開票方',
     invDelConfirmPrefix: '此操作將刪除「',
     invDelConfirmSuffix: '」開票數據，請謹慎操作。',
@@ -882,6 +894,7 @@ const I18N: Record<string, Record<string, string>> = {
     last30Days: '近30天',
     last3Months: '近3月',
     last7Days: '近7天',
+    anyDate: '任何日期',
     lastLogin: '最後登入',
     linkCopied: '連結已複製',
     linkPartner: '關聯',
@@ -996,6 +1009,7 @@ const I18N: Record<string, Record<string, string>> = {
     procOperator: '經辦人',
     procOrderDate: '進貨日期',
     procOrderItems: '進貨明細',
+    procOrderItemsCount: '{n} 項',
     procPaymentMethod: '支付方式',
     procPdfTitle: '進貨單 #{n}',
     procProduct: '商品',
@@ -1074,6 +1088,10 @@ const I18N: Record<string, Record<string, string>> = {
     revQuickDB4: '前天',
     revQuickToday: '今天',
     revQuickYesterday: '昨天',
+    quickToday: '今天',
+    quickYesterday: '昨天',
+    quickDBY: '前天',
+    quick3DAgo: '大前天',
     revRevenue: '營業額收入',
     revRevenueSub: '實際到賬金額',
     revSaveDate: '儲存{date}數據',
@@ -1358,6 +1376,9 @@ const I18N: Record<string, Record<string, string>> = {
     feeCurrent: 'Current Fee',
     feeDetail: 'Update Fees',
     feeEntry: 'Today Fee',
+    feeNotUpdated: 'Please enter platform fees first',
+    enterFeeFirst: 'Enter Fees First',
+    reconLater: 'Later',
     feeHistory: 'History',
     feePreview: 'Cumulative',
     feeViewDetail: 'View Details',
@@ -1383,7 +1404,7 @@ const I18N: Record<string, Record<string, string>> = {
     invApplyAmount: 'Apply Amount',
     invAutoFilled: 'Auto-filled',
     invBankInfo: 'Bank Info',
-    invCenter: 'Invoice Center',
+    invCenter: 'Invoice Management',
     invContact: 'Contact Issuer',
     invDelConfirmPrefix: 'This will delete invoice 「',
     invDelConfirmSuffix: '」. Proceed with caution.',
@@ -1473,6 +1494,7 @@ const I18N: Record<string, Record<string, string>> = {
     last30Days: 'Last 30 days',
     last3Months: 'Last 3 months',
     last7Days: 'Last 7 days',
+    anyDate: 'Any date',
     lastLogin: 'Last Login',
     linkCopied: 'Link copied',
     linkPartner: 'Link',
@@ -1587,6 +1609,7 @@ const I18N: Record<string, Record<string, string>> = {
     procOperator: 'Operator',
     procOrderDate: 'Date',
     procOrderItems: 'Items',
+    procOrderItemsCount: '{n} items',
     procPaymentMethod: 'Payment',
     procPdfTitle: 'Order #{n}',
     procProduct: 'Product',
@@ -1665,6 +1688,10 @@ const I18N: Record<string, Record<string, string>> = {
     revQuickDB4: 'DB4',
     revQuickToday: 'Today',
     revQuickYesterday: 'Ytd',
+    quickToday: 'Today',
+    quickYesterday: 'Yesterday',
+    quickDBY: '2 days ago',
+    quick3DAgo: '3 days ago',
     revRevenue: 'Revenue',
     revRevenueSub: 'Actual Received',
     revSaveDate: 'Save {date} Data',
@@ -1952,6 +1979,9 @@ export type I18nKey =
   | 'feeCurrent'
   | 'feeDetail'
   | 'feeEntry'
+  | 'feeNotUpdated'
+  | 'enterFeeFirst'
+  | 'reconLater'
   | 'feeHistory'
   | 'feePreview'
   | 'feeViewDetail'
@@ -2067,6 +2097,7 @@ export type I18nKey =
   | 'last30Days'
   | 'last3Months'
   | 'last7Days'
+  | 'anyDate'
   | 'lastLogin'
   | 'linkCopied'
   | 'linkPartner'
@@ -2182,6 +2213,7 @@ export type I18nKey =
   | 'procOperator'
   | 'procOrderDate'
   | 'procOrderItems'
+  | 'procOrderItemsCount'
   | 'procPaymentMethod'
   | 'procPdfTitle'
   | 'procProduct'
@@ -2260,6 +2292,10 @@ export type I18nKey =
   | 'revQuickDB4'
   | 'revQuickToday'
   | 'revQuickYesterday'
+  | 'quickToday'
+  | 'quickYesterday'
+  | 'quickDBY'
+  | 'quick3DAgo'
   | 'revRevenue'
   | 'revRevenueSub'
   | 'revSaveDate'

@@ -3,7 +3,7 @@ import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
 import { validateEmail, validatePhone } from '../utils/validation';
 import { t, getLang } from '../i18n';
-import { historyHeader } from '../sharedStyles';
+import { historyHeader, MODAL_CARD_RADIUS } from '../sharedStyles';
 import { modalClose } from '../sharedStyles';
 import ConfirmModal from '../components/ConfirmModal';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -175,6 +175,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [showPartnerPicker, setShowPartnerPicker] = useState(false);
   const [partnerList, setPartnerList] = useState<any[]>([]);
   const [partnersLoaded, setPartnersLoaded] = useState(false);
+  const [partnersLoading, setPartnersLoading] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -206,7 +207,6 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   useEffect(() => {
     if (detail && !partnersLoaded && !linkedPartnerId) {
       fetchPartnerList();
-      setPartnersLoaded(true);
     }
   }, [detail, partnersLoaded, linkedPartnerId]);
 
@@ -274,10 +274,13 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   };
 
   const fetchPartnerList = useCallback(async () => {
+    setPartnersLoading(true);
     try {
       const data: any = await api.getPartners();
       setPartnerList(Array.isArray(data) ? data : []);
     } catch {}
+    setPartnersLoaded(true);
+    setPartnersLoading(false);
   }, []);
 
   const availablePartners = useMemo(() => partnerList.filter((p: any) => !p.linked_user_id), [partnerList]);
@@ -303,6 +306,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       setLinkedPartnerName('');
       setLinkedPartnerNamePinyin('');
       setLinkedPartnerNameTW('');
+      setPartnersLoaded(false);
     } catch {}
     setSaving(false);
   }, [user.id]);
@@ -458,8 +462,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
           )}
 
-          {/* Linked Partner — hide entirely when no partner linked and none available */}
-          {(linkedPartnerId !== null || !partnersLoaded || availablePartners.length > 0) && (
+          {/* Linked Partner — hide when no partner linked and none available */}
+          {(linkedPartnerId !== null || partnersLoading || availablePartners.length > 0) && (
           <View style={st.section}>
             <View style={st.sectionTitleRow}>
               <Text style={st.sectionTitleText}>{t('linkedPartner')}</Text>
@@ -474,7 +478,11 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   <TouchableOpacity onPress={() => setShowUnlinkConfirm(true)} disabled={saving} activeOpacity={0.7}>
                     <Text style={{ color: c.danger, fontSize: 13, fontWeight: '500' }}>{t('unlinkPartner')}</Text>
                   </TouchableOpacity>
-                ) : null}
+                ) : (
+                  <TouchableOpacity onPress={() => { fetchPartnerList(); setShowPartnerPicker(true); }} disabled={saving} activeOpacity={0.7}>
+                    <Text style={{ color: c.primary, fontSize: 13, fontWeight: '500' }}>{t('linkPartner')}</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
@@ -545,7 +553,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
 
       {/* Partner Picker Modal */}
       <ModalOverlay visible={showPartnerPicker} onClose={() => setShowPartnerPicker(false)} animation="blurMorph">
-        <View style={{ backgroundColor: c.surface, borderRadius: 24, width: 320, maxWidth: '100%', overflow: 'hidden', } as any} onStartShouldSetResponder={() => true}>
+        <View style={{ backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, width: 320, maxWidth: '100%', overflow: 'hidden', } as any} onStartShouldSetResponder={() => true}>
           <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 15, fontWeight: '700', color: c.surface }}>{t('selectPartner')}</Text>
             <TouchableOpacity onPress={() => setShowPartnerPicker(false)}>
@@ -564,7 +572,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             <TouchableOpacity onPress={() => setShowPartnerPicker(false)}
               style={{ marginTop: 12, alignItems: 'center', paddingVertical: 8 }}
               activeOpacity={0.7}>
-              <Text style={{ fontSize: 13, color: c.textSub }}>{t('cancel')}</Text>
+              <Text style={{ fontSize: 13, color: c.textMain }}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -594,10 +602,11 @@ const getStyles = (c: ThemeColors) => {
   return StyleSheet.create({
     container: { flex: 1 },
     ...hdr as any,
+    header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
     title: { ...hdr.title, color: c.textMain },
     body: {
       flex: 1,
-      marginTop: 100,
+      marginTop: 50,
       backgroundColor: c.bg,
     },
     avatarSection: {
@@ -647,7 +656,7 @@ const getStyles = (c: ThemeColors) => {
     roleItemText: { fontSize: 13 } as any,
     /* Linked-partner delete hint modal */
     hintCard: {
-      backgroundColor: c.surface, borderRadius: 24,
+      backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS,
       width: 340, maxWidth: '100%', overflow: 'hidden',
     },
     hintHeader: {

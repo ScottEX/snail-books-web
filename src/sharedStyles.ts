@@ -30,6 +30,9 @@ export const modalClose = {
   fontWeight: '300' as const,
 };
 
+/** Modal card border radius — used by PartnerScreen, ThemePicker, etc. */
+export const MODAL_CARD_RADIUS = 24;
+
 // ─── History Page Header (‹ back + title + 🔍 filter) ──
 
 /** Shared header / back-button / title styles for all history sub-pages.

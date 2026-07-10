@@ -1,9 +1,10 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Image } from 'react-native';
+import { createPortal } from 'react-dom';
 import Svg, { Path } from 'react-native-svg';
 import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
-import { FONTS, CONTENT_MAX_WIDTH } from '../theme';
+import { FONTS } from '../theme';
 import { useToast } from '../hooks/useToast';
 import PartnerScreen from './PartnerScreen';
 import ProcurementScreen from './ProcurementScreen';
@@ -64,6 +65,8 @@ export default function HomeScreen({
 
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileSubPage, setProfileSubPage] = useState<'usermgmt' | 'userdetail' | null>(null);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
   const [invoiceFilterBatchId, setInvoiceFilterBatchId] = useState<number | null>(null);
   const [expDetailRecord, setExpDetailRecord] = useState<any>(null);
@@ -155,6 +158,7 @@ export default function HomeScreen({
     onPopProc: () => setProcDetailBatch(null),
     onPopUserDetail: () => { setSelectedUser(null); setPartnerRefreshKey(k => k + 1); },
   });
+
   const revForm = useDailyRevenueForm({
     tab,
     onToast: (msg: string) => showToast(msg),
@@ -290,9 +294,6 @@ export default function HomeScreen({
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.body.style.backgroundColor = colors.bg;
-      document.body.style.maxWidth = `${CONTENT_MAX_WIDTH}px`;
-      document.body.style.margin = '0 auto';
-      document.body.style.overflow = 'hidden';
       document.documentElement.style.backgroundColor = colors.bg;
     }
   }, [colors.bg]);
@@ -373,17 +374,6 @@ export default function HomeScreen({
   // No new <SlideScreen> block, no z-index math, no render-prop wiring.
   const renderSubPage = (p: SubPage) => (onBack: () => void) => {
     switch (p) {
-      case 'profile':
-        return (
-          <ProfileScreen
-            onBack={onBack}
-            onLogout={onLogout}
-            onLangChange={() => loadData()}
-            onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
-            onManageUsers={() => pushPage('usermgmt')}
-            refreshKey={userRefreshKey}
-          />
-        );
       case 'usermgmt':
         return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={async (u) => { if (!u.reviewed) { await api.admin.markReviewed(u.id); setUserRefreshKey(k => k + 1); } setSelectedUser(u); pushPage('userdetail'); }} />;
       case 'userdetail':
@@ -494,17 +484,18 @@ export default function HomeScreen({
             onClose={popPage}
             stackIndex={idx}
             isTop={isTop}
-            top={p === 'profile' || p === 'invoice' ? 48 : 0}
+            top={p === 'invoice' ? 48 : 0}
           >
             {renderSubPage(p)}
           </SlideScreen>
         );
       })}
 
-      {/* Header */}
+      {/* Header — hidden when profile portal is open or top page covers it */}
+      {!(['recon', 'expense', 'expdetail', 'daily', 'proc'].includes(pageStack[pageStack.length - 1])) && (
       <View style={styles.header}>
         <View style={styles.headerInner}>
-          <TouchableOpacity onPress={() => pushPage('profile')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <TouchableOpacity onPress={() => setShowProfile(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={{ width: 32, height: 32, borderRadius: 16 }} />
             ) : (
@@ -529,12 +520,13 @@ export default function HomeScreen({
           </View>
         </View>
       </View>
+      )}
 
       {/* Page content — hidden whenever any sub-page is on the stack */}
       {pageStack.length === 0 && (
       <View style={styles.page}>
         {tab === 'partner' ? (
-          <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} refreshKey={partnerRefreshKey} />
+          <PartnerScreen onBack={() => setTab('list')} onProfile={() => setShowProfile(true)} refreshKey={partnerRefreshKey} />
         ) : tab === 'supply' ? (
           <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} />
         ) : (
@@ -729,7 +721,6 @@ export default function HomeScreen({
                   {/* KPI 三行 */}
                   <View style={{ marginBottom: 12 }}>
                     <View style={styles.chartKpiCard}>
-                      <View style={styles.chartKpiRow}>
                         <View style={styles.chartKpiItem}>
                           <Text style={styles.chartKpiLabel}>{t('actualReceived')}</Text>
                           <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.actual_received)}</Text>
@@ -742,7 +733,6 @@ export default function HomeScreen({
                           <Text style={styles.chartKpiLabel}>{t('discountAmount')}</Text>
                           <Text style={styles.chartKpiVal}>{'¥' + toDec2Comma(businessSummary.discount)}</Text>
                         </View>
-                      </View>
                     </View>
                   </View>
                   {/* 6 张收支卡片 */}
@@ -754,7 +744,7 @@ export default function HomeScreen({
                   />
                   {/* 图表：月度趋势 + 分类占比 */}
                   {chartMonthly && (
-                    <View style={{ marginTop: 16 }}>
+                    <View style={{ marginTop: 12 }}>
                     <ChartsPanel
                       months={chartMonthly.months || []}
                       income={chartMonthly.income || []}
@@ -778,7 +768,7 @@ export default function HomeScreen({
         </>
       )}
     </View>
-      )}  {/* end page-content conditional */}
+      )}
 
       <ThemePickerModal
         visible={showBgModal}
@@ -837,6 +827,51 @@ export default function HomeScreen({
       {/* Background image crop handled by shared BgCropModal (rendered below) */}
 
       {ToastHost}
+
+      {/* Profile & sub-page portals — all on document.body, auto-stacked by render order */}
+      {showProfile && createPortal(
+        <SlideScreen
+          visible={showProfile}
+          onClose={() => setShowProfile(false)}
+        >
+          {(close) => (
+            <ProfileScreen
+              onBack={close}
+              onLogout={onLogout}
+              onLangChange={() => loadData()}
+              onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
+              onManageUsers={() => setProfileSubPage('usermgmt')}
+              refreshKey={userRefreshKey}
+            />
+          )}
+        </SlideScreen>,
+        document.body
+      )}
+      {showProfile && (profileSubPage === 'usermgmt' || profileSubPage === 'userdetail') && createPortal(
+        <SlideScreen
+          visible={true}
+          onClose={() => setProfileSubPage(null)}
+        >
+          {(close) => (
+            <UserManagementScreen key={userRefreshKey} onBack={close} onUserSelect={async (u) => {
+              if (!u.reviewed) { await api.admin.markReviewed(u.id); setUserRefreshKey(k => k + 1); }
+              setSelectedUser(u); setProfileSubPage('userdetail');
+            }} />
+          )}
+        </SlideScreen>,
+        document.body
+      )}
+      {showProfile && profileSubPage === 'userdetail' && createPortal(
+        <SlideScreen
+          visible={profileSubPage === 'userdetail'}
+          onClose={() => setProfileSubPage('usermgmt')}
+        >
+          {(close) => selectedUser ? (
+            <UserDetailScreen user={selectedUser} onBack={close} onUpdated={() => setUserRefreshKey(k => k + 1)} />
+          ) : null}
+        </SlideScreen>,
+        document.body
+      )}
       </View>
     </View>
   );
@@ -989,12 +1024,11 @@ const getStyles = (colors: ThemeColors) => StyleSheet.create({
   barVal: { fontSize: FONTS.micro.size, color: colors.textSub, width: 90 },
   // ── Chart KPI cards ──
   chartKpiCard: {
-    borderRadius: 14, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12, gap: 14,
+    borderRadius: 14, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 12,
     backgroundColor: colors.surface,
     borderWidth: 0.5, borderColor: colors.secondary,
 
   },
-  chartKpiRow: { flexDirection: 'column' as any },
   chartKpiItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 8,

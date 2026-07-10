@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FONTS } from '../theme';
 import { validateEmail } from '../utils/validation';
+import { useServerDate } from '../hooks/useServerDate';
 import { BANK_ICON_MAP, DefaultBankIcon } from '../components/BankIcons';
 import { bottomSheetOverlay } from '../sharedStyles';
 import SheetHeader from '../components/SheetHeader';
@@ -152,6 +153,10 @@ interface InvoiceRecord {
   date: string;
   invoice_number: string;
   email: string;
+  address?: string;
+  phone?: string;
+  bank_name?: string;
+  bank_account?: string;
   status: InvStatus;
   file_path?: string;
   file_thumb_paths?: string;
@@ -206,6 +211,7 @@ function BankIconView({ code, size = 24 }: { code: string; size?: number }) {
 
 export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const { colors: c } = useTheme();
+  const sd = useServerDate();
   const swipeBack = useSwipeBack(onBack);
   const [tab, setTab] = useState<number>(filterBatchId ? 1 : 0);
   const [entryCardH, setEntryCardH] = useState(0);
@@ -235,7 +241,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const [dType, setDType] = useState<InvType>('general');
   const [dAmount, setDAmount] = useState('');
   const [dAmountFocus, setDAmountFocus] = useState(false);
-  const [dDate, setDDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dDate, setDDate] = useState(sd.today || new Date().toISOString().slice(0, 10));
   const [dNote, setDNote] = useState('');
   const [dEmail, setDEmail] = useState('');
   const [dEmailErr, setDEmailErr] = useState('');
@@ -454,6 +460,10 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         tax_id: data.tax_id,
         invoice_number: dInvoiceNo.trim(),
         email: dEmail.trim(),
+        address: data.address,
+        phone: data.phone,
+        bank_name: data.bank_name,
+        bank_account: data.bank_account,
         status: dStatus,
         procurement_batch_id: dBatchId,
         note: dNote.trim(),
@@ -530,7 +540,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     setEditingId(forEdit ? forEdit.id : null);
     setDType(forEdit ? (forEdit.type as InvType) : 'general');
     setDAmount(forEdit ? String(forEdit.amount) : '');
-    setDDate(forEdit ? forEdit.date : new Date().toISOString().slice(0, 10));
+    setDDate(forEdit ? forEdit.date : (sd.today || new Date().toISOString().slice(0, 10)));
     setDNote(forEdit ? (forEdit.note || '') : '');
     setDInvoiceNo(forEdit ? (forEdit.invoice_number || '') : '');
     setDStatus(forEdit ? (forEdit.status as InvStatus) : 'pending');
@@ -601,7 +611,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
             </TouchableOpacity>
             <Text style={[s.ecTitle, { color: '#fff', flex: 1 }]}>{t('invTitle')}</Text>
             <TouchableOpacity style={[s.ecBtn, { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, flexShrink: 0 }]} onPress={() => {
-            setDDate(new Date().toISOString().slice(0, 10));
+            setDDate(sd.today || new Date().toISOString().slice(0, 10));
             setDNote('');
             openDrawer();
           }}>

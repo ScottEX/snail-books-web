@@ -136,9 +136,13 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   }, [date]);
 
   const handleSave = async () => {
-    const absAmt = parseFloat(amount) || Math.abs(Number(record.amount));
-    if (!absAmt || absAmt <= 0) { showToast(t('enterAmount')); return; }
-    const amt = absAmt * (Number(record.amount) < 0 ? -1 : 1);
+    const isLinked = !!record.procurement_batch_id;
+    let amt = 0;
+    if (!isLinked) {
+      const absAmt = parseFloat(amount) || Math.abs(Number(record.amount));
+      if (!absAmt || absAmt <= 0) { showToast(t('enterAmount')); return; }
+      amt = absAmt * (Number(record.amount) < 0 ? -1 : 1);
+    }
     setSaving(true);
     try {
       let finalImages = images;
@@ -153,8 +157,11 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
         finalImages = [...images, ...(uploadRes.images || [])];
         finalThumbs = [...thumbImages, ...(uploadRes.thumb_images || uploadRes.images || [])];
       }
-      await api.updateTransaction(record.id, { amount: amt, category, account, date, note, images: finalImages, thumb_images: finalThumbs });
-      record.amount = amt; record.category = category; record.account = account;
+      const payload: any = { category, account, date, note, images: finalImages, thumb_images: finalThumbs };
+      if (!isLinked) payload.amount = amt;
+      await api.updateTransaction(record.id, payload);
+      if (!isLinked) record.amount = amt;
+      record.category = category; record.account = account;
       record.date = date; record.note = note; record.images = JSON.stringify(finalImages);
       record.thumb_images = JSON.stringify(finalThumbs);
       setImages(finalImages); setThumbImages(finalThumbs); setNewFiles([]); setEditMode(false);
@@ -306,7 +313,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                   {(() => {
                     const raw = record.created_at || '';
                     if (!raw) return '—';
-                    const d = new Date(raw.endsWith('Z') ? raw : raw + 'Z');
+                    const d = new Date(raw.replace(' ', 'T') + '+08:00');
                     if (isNaN(d.getTime())) return raw.slice(0, 19).replace('T', ' ');
                     const y = d.getFullYear();
                     const mo = d.getMonth() + 1;
@@ -421,6 +428,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
                   fontSize={FONTS.sub.size}
                   color={c.textSub}
                   disabled={!!record.procurement_batch_id}
+                  showCalendarIcon
                   showChevron
                 />
               </View>
@@ -437,6 +445,8 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               onRemoveExisting={removeImage}
               onRemoveNew={removeNewFile}
               getPreviewUrl={getPreviewUrl}
+              maxThumbSize={thumbSize}
+              onPreviewExisting={(i: number) => openPreview(previewImgs, i)}
             />
           </View>
         )}
@@ -516,6 +526,7 @@ const getStyles = (c: ThemeColors) => {
   return StyleSheet.create({
     container: { flex: 1 },
     ...hdr as any,
+    header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
     actionBtn: {
       width: 36, height: 36, borderRadius: 18,
       backgroundColor: withAlpha(c.bg, 0.30),
@@ -525,7 +536,7 @@ const getStyles = (c: ThemeColors) => {
     },
     body: {
       flex: 1,
-      marginTop: 100,
+      marginTop: 50,
       backgroundColor: c.bg,
     },
     bodyContent: {

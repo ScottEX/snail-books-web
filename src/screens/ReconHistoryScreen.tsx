@@ -12,7 +12,7 @@ import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
 import { FONTS } from '../theme';
-import { modalClose, historyHeader } from '../sharedStyles';
+import { modalClose, historyHeader, MODAL_CARD_RADIUS } from '../sharedStyles';
 import { fmtAmtFull } from '../utils/format';
 import DateErrorHint from '../components/DateErrorHint';
 import BackArrow from '../components/icons/BackArrow';
@@ -247,7 +247,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         </TouchableOpacity>
       </View>
       {/* Filter bar */}
-      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)}>
+      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)} top={50}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
@@ -312,7 +312,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 266 : 112 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 165 : 4 }}>
         {loading ? (
           <LoadingSpinner />
         ) : records.length === 0 ? (
@@ -415,10 +415,13 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-const getSt = (colors: ThemeColors) => StyleSheet.create({
+const getSt = (colors: ThemeColors) => {
+  const hdr = historyHeader(colors);
+  return StyleSheet.create({
   root: { flex: 1 },
-  ...historyHeader(colors),
-  list: { flex: 1, paddingHorizontal: 12 },
+  ...hdr as any,
+  header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
+  list: { flex: 1, paddingHorizontal: 12, marginTop: 50 },
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
   loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Card */
@@ -452,7 +455,7 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: withAlpha(colors.textMain, 0.4),
   },
   modal: {
-    backgroundColor: colors.surface, borderRadius: 24,
+    backgroundColor: colors.surface, borderRadius: MODAL_CARD_RADIUS,
     overflow: 'hidden',
     // @ts-ignore
 
@@ -586,3 +589,4 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   reconByRow: { alignItems: 'center', paddingBottom: 2 },
   reconByText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
 } as any);
+};
