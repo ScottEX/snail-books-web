@@ -322,7 +322,7 @@ export default function BgCropModal({
           the 重新裁剪 / 确认使用 buttons in one place, matching the
           cover-crop preview style. */}
       {phase === 'preview' && cropDataUrl !== '' && (
-        <Animated.View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', padding: 24, opacity: previewFade as any, transform: [{ scale: previewScale as any }] } as any}>
+        <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: 24, opacity: previewFade as any, transform: [{ scale: previewScale as any }] } as any}>
           <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: MODAL_CARD_RADIUS, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360, width: '100%' } as any}>
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' } as any}>✓</Text>
@@ -344,14 +344,14 @@ export default function BgCropModal({
               <TouchableOpacity
                 style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
                 onPress={() => {
-                  setPhase('cropping');
-                  setMsg('');
-                  // Preview 阶段 canvas/stage/view 不在 DOM 中（refs 变 null），
-                  // 切回 cropping 后新元素挂载。src useEffect 依赖是
-                  // [src, phase] 会重跑（含 setupCanvas + 绑事件），这里
-                  // 再 setTimeout 0 跑一次 setupCanvas + drawCrop 让图片
-                  // 立即可见（不等 src useEffect 内的 60ms setTimeout）。
-                  setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 0);
+                  Animated.parallel([
+                    Animated.timing(previewScale, { toValue: 0.92, duration: 220, useNativeDriver: false }),
+                    Animated.timing(previewFade, { toValue: 0, duration: 180, useNativeDriver: false }),
+                  ]).start(() => {
+                    setPhase('cropping');
+                    setMsg('');
+                    setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 0);
+                  });
                 }}
               >
                 <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('recrop') || '再编辑'}</Text>
