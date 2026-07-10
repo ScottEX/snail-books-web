@@ -136,9 +136,13 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   }, [date]);
 
   const handleSave = async () => {
-    const absAmt = parseFloat(amount) || Math.abs(Number(record.amount));
-    if (!absAmt || absAmt <= 0) { showToast(t('enterAmount')); return; }
-    const amt = absAmt * (Number(record.amount) < 0 ? -1 : 1);
+    const isLinked = !!record.procurement_batch_id;
+    let amt = 0;
+    if (!isLinked) {
+      const absAmt = parseFloat(amount) || Math.abs(Number(record.amount));
+      if (!absAmt || absAmt <= 0) { showToast(t('enterAmount')); return; }
+      amt = absAmt * (Number(record.amount) < 0 ? -1 : 1);
+    }
     setSaving(true);
     try {
       let finalImages = images;
@@ -153,8 +157,11 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
         finalImages = [...images, ...(uploadRes.images || [])];
         finalThumbs = [...thumbImages, ...(uploadRes.thumb_images || uploadRes.images || [])];
       }
-      await api.updateTransaction(record.id, { amount: amt, category, account, date, note, images: finalImages, thumb_images: finalThumbs });
-      record.amount = amt; record.category = category; record.account = account;
+      const payload: any = { category, account, date, note, images: finalImages, thumb_images: finalThumbs };
+      if (!isLinked) payload.amount = amt;
+      await api.updateTransaction(record.id, payload);
+      if (!isLinked) record.amount = amt;
+      record.category = category; record.account = account;
       record.date = date; record.note = note; record.images = JSON.stringify(finalImages);
       record.thumb_images = JSON.stringify(finalThumbs);
       setImages(finalImages); setThumbImages(finalThumbs); setNewFiles([]); setEditMode(false);

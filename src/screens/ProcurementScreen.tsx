@@ -1373,7 +1373,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
 
             {/* Items row — matching 近7天 pattern: label left, theme button right */}
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 }}>
-              <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} 项）</Text>
+              <Text style={styles.itemsBtnText}>{t('procOrderItems')}（{cartCount} {t('procOrderItemsCount').replace('{n}', '')}）</Text>
               <TouchableOpacity onPress={openItemsModal} activeOpacity={0.7}>
                 <Text style={{ fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary }}>{t('procViewDetail')} →</Text>
               </TouchableOpacity>

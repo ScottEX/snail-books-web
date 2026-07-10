@@ -465,7 +465,7 @@ export default function PartnerScreen({ onBack, onProfile, refreshKey = 0 }: { o
                 </View>
               </View>
               <TouchableOpacity style={s.dividendBtn} onPress={() => setShowInvoice(true)}>
-                <Text style={s.dividendBtnText}>{t('invManage')}</Text>
+                <Text style={s.dividendBtnText}>{t('invCenter')}</Text>
               </TouchableOpacity>
             </View>
 

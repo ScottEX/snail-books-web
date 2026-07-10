@@ -408,6 +408,7 @@ const I18N: Record<string, Record<string, string>> = {
     procOperator: '经办人',
     procOrderDate: '进货日期',
     procOrderItems: '进货明细',
+    procOrderItemsCount: '{n} 项',
     procPaymentMethod: '支付方式',
     procPdfTitle: '进货单 #{n}',
     procProduct: '商品',
@@ -1008,6 +1009,7 @@ const I18N: Record<string, Record<string, string>> = {
     procOperator: '經辦人',
     procOrderDate: '進貨日期',
     procOrderItems: '進貨明細',
+    procOrderItemsCount: '{n} 項',
     procPaymentMethod: '支付方式',
     procPdfTitle: '進貨單 #{n}',
     procProduct: '商品',
@@ -1607,6 +1609,7 @@ const I18N: Record<string, Record<string, string>> = {
     procOperator: 'Operator',
     procOrderDate: 'Date',
     procOrderItems: 'Items',
+    procOrderItemsCount: '{n} items',
     procPaymentMethod: 'Payment',
     procPdfTitle: 'Order #{n}',
     procProduct: 'Product',
@@ -2210,6 +2213,7 @@ export type I18nKey =
   | 'procOperator'
   | 'procOrderDate'
   | 'procOrderItems'
+  | 'procOrderItemsCount'
   | 'procPaymentMethod'
   | 'procPdfTitle'
   | 'procProduct'
