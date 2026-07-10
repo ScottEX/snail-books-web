@@ -143,7 +143,7 @@ export default function ModalOverlay({ visible = true, onClose, onClosed, childr
   };
 
   return createPortal(
-    <Animated.View style={[{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, justifyContent: 'center', alignItems: 'center', padding: 12 }, overlayStyle]}> 
+    <Animated.View style={[{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, justifyContent: 'center', alignItems: 'center', padding: 8 }, overlayStyle]}> 
       <TouchableOpacity activeOpacity={1} onPress={onClose} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as any}>
         <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: backdropColor, opacity: back as any } as any} />
       </TouchableOpacity>
