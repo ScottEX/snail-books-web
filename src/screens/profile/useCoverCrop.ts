@@ -44,14 +44,16 @@ export function useCoverCrop() {
     const stage = coverStageRef.current;
     const canvas = coverCanvasRef.current;
     if (!stage || !canvas) return;
-    const rect = stage.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
+    const w = stage.offsetWidth;
+    const h = stage.offsetHeight;
+    if (w === 0 || h === 0) return;
+    canvas.width = w;
+    canvas.height = h;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
     const s = coverCropState.current;
-    s.cropW = Math.round(rect.width * 0.8);
-    s.cropRatio = 260 / rect.width;
+    s.cropW = Math.round(w * 0.8);
+    s.cropRatio = 260 / w;
     s.cropH = Math.round(s.cropW * s.cropRatio);
     const guide = coverGuideRef.current;
     if (guide) {

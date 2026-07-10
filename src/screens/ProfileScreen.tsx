@@ -27,6 +27,7 @@ function base64urlToArrayBuffer(base64url: string): ArrayBuffer {
 import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
+import FullscreenOverlay from '../components/FullscreenOverlay';
 import BackArrow from '../components/icons/BackArrow';
 import CameraIcon from '../components/icons/CameraIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
@@ -989,8 +990,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       </ModalOverlay>
 
       {/* ====== AVATAR CROP MODAL ====== */}
-      <ModalOverlay visible={cropSrc !== '' && !showResult} onClose={() => setCropSrc('')} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ padding: 0 }}>
-        <View style={{ width: '100vw' as any, height: '100vh' as any, display: 'flex', flexDirection: 'column' as any }}>
+      <FullscreenOverlay visible={cropSrc !== '' && !showResult} onClose={() => setCropSrc('')}>
+        <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' as any }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('avatarCropTitle')}</Text>
             <TouchableOpacity onPress={() => setCropSrc('')} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
@@ -1064,7 +1065,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: 500 }}>{cropMsg}</Text>
           )}
         </View>
-      </ModalOverlay>
+      </FullscreenOverlay>
 
       {/* ====== AVATAR RESULT PREVIEW ====== */}
       <ModalOverlay visible={showResult && cropResult !== ''} onClose={() => { setShowResult(false); setCropSrc(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ padding: 0 }}>
@@ -1094,8 +1095,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       </ModalOverlay>
 
       {/* ====== COVER CROP MODAL ====== */}
-      <ModalOverlay visible={coverCropSrc !== '' && !coverShowResult} onClose={() => { setCoverCropSrc(''); setCoverCropResult(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ padding: 0 }}>
-        <View style={{ width: '100vw' as any, height: '100vh' as any, display: 'flex', flexDirection: 'column' as any }}>
+      <FullscreenOverlay visible={coverCropSrc !== '' && !coverShowResult} onClose={() => { setCoverCropSrc(''); setCoverCropResult(''); }}>
+        <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' as any }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('coverCropTitle')}</Text>
             <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
@@ -1165,7 +1166,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: 500 }}>{coverCropMsg}</Text>
           )}
         </View>
-      </ModalOverlay>
+      </FullscreenOverlay>
 
       {/* ====== COVER RESULT PREVIEW ====== */}
       <ModalOverlay visible={coverShowResult} onClose={() => { setCoverShowResult(false); setCoverCropSrc(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ padding: 0 }}>

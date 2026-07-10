@@ -44,13 +44,15 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
     const stage = stageRef.current;
     const canvas = canvasRef.current;
     if (!stage || !canvas) return;
-    const rect = stage.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
+    const w = stage.offsetWidth;
+    const h = stage.offsetHeight;
+    if (w === 0 || h === 0) return;
+    canvas.width = w;
+    canvas.height = h;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
     const s = cropState.current;
-    s.cropSize = Math.round(Math.min(rect.width, rect.height) * 0.76);
+    s.cropSize = Math.round(Math.min(w, h) * 0.76);
     const guide = guideRef.current;
     if (guide) {
       guide.style.width = s.cropSize + 'px';

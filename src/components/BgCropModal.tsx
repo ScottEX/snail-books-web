@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { MODAL_CARD_RADIUS } from '../sharedStyles';
-import ModalOverlay from './ModalOverlay';
+import FullscreenOverlay from './FullscreenOverlay';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import { useEffect, useRef, useState } from 'react';
 
@@ -105,18 +105,20 @@ export default function BgCropModal({
     const stage = stageRef.current;
     const canvas = canvasRef.current;
     if (!stage || !canvas) return;
-    const rect = stage.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
+    const w = stage.offsetWidth;
+    const h = stage.offsetHeight;
+    if (w === 0 || h === 0) return;
+    canvas.width = w;
+    canvas.height = h;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
     const s = stateRef.current;
     if (aspectRatio != null) {
       s.cropRatio = Math.max(0.5, Math.min(2.4, aspectRatio));
     } else {
       s.cropRatio = window.innerHeight / window.innerWidth;
     }
-    s.cropW = Math.min(rect.width, rect.height / s.cropRatio);
+    s.cropW = Math.min(w, h / s.cropRatio);
     s.cropH = s.cropW * s.cropRatio;
     const guide = guideRef.current;
     if (guide) {
@@ -260,14 +262,12 @@ export default function BgCropModal({
   if (imageSrc === '') return null;
 
   return (
-    <ModalOverlay
+    <FullscreenOverlay
       visible
       onClose={close}
-      animation="springScale"
       backdropColor="rgba(8,8,12,0.92)"
-      overlayStyle={{ padding: 0 }}
     >
-      <View style={{ width: '100vw' as any, height: '100vh' as any, display: 'flex', flexDirection: 'column' as any }}>
+      <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' as any }}>
 
       {/* Header */}
       <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any}>
@@ -429,6 +429,6 @@ export default function BgCropModal({
         <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: '500' } as any}>{msg}</Text>
       )}
       </View>
-    </ModalOverlay>
+    </FullscreenOverlay>
   );
 }
