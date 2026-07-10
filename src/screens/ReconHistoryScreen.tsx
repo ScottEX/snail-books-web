@@ -415,10 +415,13 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-const getSt = (colors: ThemeColors) => StyleSheet.create({
+const getSt = (colors: ThemeColors) => {
+  const hdr = historyHeader(colors);
+  return StyleSheet.create({
   root: { flex: 1 },
-  ...historyHeader(colors),
-  list: { flex: 1, paddingHorizontal: 12 },
+  ...hdr as any,
+  header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
+  list: { flex: 1, paddingHorizontal: 12, marginTop: 50 },
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
   loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Card */
@@ -586,3 +589,4 @@ const getSt = (colors: ThemeColors) => StyleSheet.create({
   reconByRow: { alignItems: 'center', paddingBottom: 2 },
   reconByText: { fontSize: FONTS.micro.size, color: colors.textSub, fontWeight: FONTS.micro.weight },
 } as any);
+};

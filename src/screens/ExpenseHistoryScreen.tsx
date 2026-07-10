@@ -426,12 +426,15 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
   );
 }
 
-const getSt = (colors: ThemeColors): any => StyleSheet.create({
+const getSt = (colors: ThemeColors): any => {
+  const hdr = historyHeader(colors);
+  return StyleSheet.create({
   /* Root — flex: 1, no background (page bg from parent) */
   root: { flex: 1 },
-  ...historyHeader(colors),
+  ...hdr as any,
+  header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
   /* List — scrolls under absolute header (matches ReconHistoryScreen list) */
-  list: { flex: 1 },
+  list: { flex: 1, marginTop: 50 },
   /* Row */
   row: {
     backgroundColor: colors.surface, borderRadius: 12,
@@ -533,3 +536,4 @@ const getSt = (colors: ThemeColors): any => StyleSheet.create({
     color: colors.textSub,
   },
 } as any);
+};
