@@ -989,7 +989,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       </ModalOverlay>
 
       {/* ====== AVATAR CROP MODAL ====== */}
-      <ModalOverlay visible={cropSrc !== '' && !showResult} onClose={() => setCropSrc('')} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }}>
+      <ModalOverlay visible={cropSrc !== '' && !showResult} onClose={() => setCropSrc('')} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }} contentStyle={{ flex: 1, alignItems: 'stretch' as any, justifyContent: 'flex-start' as any }}>
         <View style={{ flex: 1, flexDirection: 'column' }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('avatarCropTitle')}</Text>
@@ -1094,7 +1094,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       </ModalOverlay>
 
       {/* ====== COVER CROP MODAL ====== */}
-      <ModalOverlay visible={coverCropSrc !== '' && !coverShowResult} onClose={() => { setCoverCropSrc(''); setCoverCropResult(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }}>
+      <ModalOverlay visible={coverCropSrc !== '' && !coverShowResult} onClose={() => { setCoverCropSrc(''); setCoverCropResult(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }} contentStyle={{ flex: 1, alignItems: 'stretch' as any, justifyContent: 'flex-start' as any }}>
         <View style={{ flex: 1, flexDirection: 'column' }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('coverCropTitle')}</Text>

@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { createPortal } from 'react-dom';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { MODAL_CARD_RADIUS } from '../sharedStyles';
+import ModalOverlay from './ModalOverlay';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import { useEffect, useRef, useState } from 'react';
 
@@ -259,11 +259,17 @@ export default function BgCropModal({
   // before setting visible=true.
   if (imageSrc === '') return null;
 
-  return createPortal(
-    <div
-      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(8,8,12,0.92)', display: 'flex', flexDirection: 'column' } as any}
-      onClick={(e: any) => { if (e.target === e.currentTarget) close(); }}
+  return (
+    <ModalOverlay
+      visible
+      onClose={close}
+      animation="springScale"
+      backdropColor="rgba(8,8,12,0.92)"
+      overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }}
+      contentStyle={{ flex: 1, alignItems: 'stretch' as any, justifyContent: 'flex-start' as any }}
     >
+      <View style={{ flex: 1, flexDirection: 'column' as any }}>
+
       {/* Header */}
       <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any}>
         <Text style={{ fontSize: 14, fontWeight: '600' as any, color: '#fff', letterSpacing: -0.2 }}>{title || t('editBg')}</Text>
@@ -423,7 +429,7 @@ export default function BgCropModal({
       {msg !== '' && phase === 'cropping' && (
         <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: '500' } as any}>{msg}</Text>
       )}
-    </div>,
-    document.body
+      </View>
+    </ModalOverlay>
   );
 }
