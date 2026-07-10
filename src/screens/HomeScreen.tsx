@@ -167,13 +167,6 @@ export default function HomeScreen({
     }
   }, [pageStack]);
 
-  // Raise React root stacking context above profile portal (zIndex:90)
-  useEffect(() => {
-    const root = document.getElementById('root');
-    if (root) { root.style.position = 'relative'; root.style.zIndex = '100'; }
-    return () => { if (root) { root.style.removeProperty('position'); root.style.removeProperty('z-index'); } };
-  }, []);
-
   const revForm = useDailyRevenueForm({
     tab,
     onToast: (msg: string) => showToast(msg),
@@ -491,6 +484,8 @@ export default function HomeScreen({
           hand-written SlideScreens: adding a new sub-page is now one
           switch case + one push site, not a new <SlideScreen> block. */}
       {pageStack.map((p, idx) => {
+        // When profile portal is open, render profile sub-pages as portals instead
+        if (showProfile && (p === 'usermgmt' || p === 'userdetail')) return null;
         const isTop = idx === pageStack.length - 1;
         return (
           <SlideScreen
@@ -862,6 +857,38 @@ export default function HomeScreen({
         </div>,
         document.body
       )}
+
+      {/* Profile sub-pages portal — renders above profile (zIndex:110) */}
+      {showProfile && pageStack.includes('usermgmt') && createPortal(
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 110 }}>
+        <SlideScreen
+          visible={removing !== 'usermgmt'}
+          onClose={popPage}
+        >
+          {(close) => (
+            <UserManagementScreen key={userRefreshKey} onBack={close} onUserSelect={async (u) => {
+              if (!u.reviewed) { await api.admin.markReviewed(u.id); setUserRefreshKey(k => k + 1); }
+              setSelectedUser(u); pushPage('userdetail');
+            }} />
+          )}
+        </SlideScreen>,
+        </div>,
+        document.body
+      )}
+
+      {showProfile && pageStack.includes('userdetail') && createPortal(
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 110 }}>
+        <SlideScreen
+          visible={removing !== 'userdetail'}
+          onClose={popPage}
+        >
+          {(close) => selectedUser ? (
+            <UserDetailScreen user={selectedUser} onBack={close} onUpdated={() => setUserRefreshKey(k => k + 1)} />
+          ) : null}
+        </SlideScreen>,
+        </div>,
+        document.body
+      )}
       </View>
     </View>
   );
@@ -925,7 +952,7 @@ function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColo
 
 const getStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  inner: { flex: 1, alignSelf: 'center', width: '100%', position: 'relative' as const, zIndex: 100 },
+  inner: { flex: 1, alignSelf: 'center', width: '100%', position: 'relative' as const },
   bgLayer: {
     position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
   },
