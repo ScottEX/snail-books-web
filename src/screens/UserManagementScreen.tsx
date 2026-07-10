@@ -151,10 +151,12 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     fetchUsers(statusFilter, from, to);
   }, [dropYear, dropMonth, statusFilter, fetchUsers]);
 
-  // Quick presets
+  // Quick presets — fetch immediately (matching iOS)
   const applyQuick = useCallback((days: number) => {
     setDateFrom(sd.offset(-days)); setDateTo(sd.today);
-  }, [sd.today, sd.offset]);
+    setShowDateDrop(false);
+    fetchUsers(statusFilter, sd.offset(-days), sd.today);
+  }, [sd.today, sd.offset, statusFilter, fetchUsers]);
 
   const clearDate = useCallback(() => {
     setDateFrom('');
@@ -163,11 +165,18 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
     fetchUsers(statusFilter, '', '');
   }, [statusFilter, fetchUsers]);
 
+  // ── Which quick preset is active? (matching iOS) ──
+  const quickActive = useMemo(() => {
+    if (!dateFrom && !dateTo) return 0;
+    if (sd.ready && dateFrom === sd.offset(-7) && dateTo === sd.today) return 7;
+    if (sd.ready && dateFrom === sd.offset(-30) && dateTo === sd.today) return 30;
+    if (sd.ready && dateFrom === sd.offset(-90) && dateTo === sd.today) return 90;
+    return null;
+  }, [dateFrom, dateTo, sd.today, sd.ready]);
+
   const statusLabel = statusFilter === 'normal' ? t('normalStatus') : statusFilter === 'disabled' ? t('disabledStatus') : statusFilter === 'grace' ? t('graceStatus') : t('all');
   const dateLabel = (dateFrom || dateTo)
-    ? (dateFrom && dateTo && dateFrom.slice(0, 7) === dateTo.slice(0, 7)
-        ? `${dropYear}年${dropMonth}月`
-        : `${dateFrom || '…'} - ${dateTo || '…'}`)
+    ? `${dateFrom || '…'} - ${dateTo || '…'}`
     : t('registrationTime');
 
   // Refs for dropdown positioning via portal
@@ -326,14 +335,17 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
               </View>
               {/* Quick presets */}
               <View style={st.quickRow}>
-                <TouchableOpacity style={st.quickBtn} onPress={() => applyQuick(7)}>
-                  <Text style={st.quickBtnText}>{t('last7Days')}</Text>
+                <TouchableOpacity style={[st.quickBtn, quickActive === 0 && st.quickBtnOn]} onPress={clearDate}>
+                  <Text style={[st.quickBtnText, quickActive === 0 && st.quickBtnTextOn]}>{t('anyDate')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={st.quickBtn} onPress={() => applyQuick(30)}>
-                  <Text style={st.quickBtnText}>{t('last30Days')}</Text>
+                <TouchableOpacity style={[st.quickBtn, quickActive === 7 && st.quickBtnOn]} onPress={() => applyQuick(7)}>
+                  <Text style={[st.quickBtnText, quickActive === 7 && st.quickBtnTextOn]}>{t('last7Days')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={st.quickBtn} onPress={() => applyQuick(90)}>
-                  <Text style={st.quickBtnText}>{t('last3Months')}</Text>
+                <TouchableOpacity style={[st.quickBtn, quickActive === 30 && st.quickBtnOn]} onPress={() => applyQuick(30)}>
+                  <Text style={[st.quickBtnText, quickActive === 30 && st.quickBtnTextOn]}>{t('last30Days')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[st.quickBtn, quickActive === 90 && st.quickBtnOn]} onPress={() => applyQuick(90)}>
+                  <Text style={[st.quickBtnText, quickActive === 90 && st.quickBtnTextOn]}>{t('last3Months')}</Text>
                 </TouchableOpacity>
               </View>
               {/* Actions */}
@@ -490,6 +502,8 @@ const getStyles = (c: ThemeColors) => {
       borderRadius: 8, backgroundColor: withAlpha(c.textMain, 0.04),
     },
     quickBtnText: { fontSize: 12, color: c.textSub },
+    quickBtnOn: { backgroundColor: c.primary },
+    quickBtnTextOn: { color: '#fff', fontWeight: '600' as any },
     // ── Actions ──
     dateActions: {
       flexDirection: 'row' as const, justifyContent: 'flex-end', gap: 8,
