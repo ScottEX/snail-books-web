@@ -20,6 +20,7 @@ interface UseCropCanvasOptions {
   zoomCrop: (delta: number, px: number, py: number) => void;
   onZoomChange?: () => void;        // called after scale changes (wheel/pinch)
   onSetup: () => void;               // called on mount and resize
+  onInit?: () => void;               // called once on initial mount (before first draw); falls back to onSetup
   onGuideActiveChange?: (active: boolean) => void;
   onBeforeDrag?: () => void;         // e.g. hidePill() in ProfileScreen
 }
@@ -44,13 +45,14 @@ export function useCropCanvas(opts: UseCropCanvasOptions) {
     zoomCrop,
     onZoomChange,
     onSetup,
+    onInit,
     onGuideActiveChange,
     onBeforeDrag,
   } = opts;
 
   // Refs to hold the callbacks so the effect can depend only on 'active'
-  const callbacks = useRef({ scheduleDraw, clampCrop, zoomCrop, onZoomChange, onSetup, onGuideActiveChange, onBeforeDrag });
-  callbacks.current = { scheduleDraw, clampCrop, zoomCrop, onZoomChange, onSetup, onGuideActiveChange, onBeforeDrag };
+  const callbacks = useRef({ scheduleDraw, clampCrop, zoomCrop, onZoomChange, onSetup, onInit, onGuideActiveChange, onBeforeDrag });
+  callbacks.current = { scheduleDraw, clampCrop, zoomCrop, onZoomChange, onSetup, onInit, onGuideActiveChange, onBeforeDrag };
 
   useEffect(() => {
     if (!active) return;
@@ -81,10 +83,12 @@ export function useCropCanvas(opts: UseCropCanvasOptions) {
         return;
       }
 
-      const { scheduleDraw: sched, clampCrop: clamp, zoomCrop: zoom, onZoomChange: zoomChanged, onSetup: setup, onGuideActiveChange: guideChange, onBeforeDrag: beforeDrag } = callbacks.current;
+      const { scheduleDraw: sched, clampCrop: clamp, zoomCrop: zoom, onZoomChange: zoomChanged, onSetup: setup, onInit: init, onGuideActiveChange: guideChange, onBeforeDrag: beforeDrag } = callbacks.current;
 
       // Initial setup (60ms delay to let layout settle)
-      setupTimer = setTimeout(() => { if (mounted) { setup(); clamp(); sched(); } }, 60);
+      // Use onInit for first mount (e.g. fitImage), falls back to onSetup
+      const firstSetup = init || setup;
+      setupTimer = setTimeout(() => { if (mounted) { firstSetup(); } }, 60);
 
       const rafDraw = () => {
         if (!frameId) frameId = requestAnimationFrame(() => { frameId = 0; sched(); });

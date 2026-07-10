@@ -114,6 +114,7 @@ export function useCoverCrop() {
 
   // ── useCropCanvas event binding ──
   const onCoverCropSetup = () => { coverSetupCanvas(); coverClampCrop(); coverDrawCrop(); };
+  const onCoverCropInit = () => { coverSetupCanvas(); coverFitImage(); coverClampCrop(); coverDrawCrop(); };
   useCropCanvas({
     active: !!coverCropSrc && !coverShowResult,
     canvasRef: coverCanvasRef,
@@ -124,6 +125,7 @@ export function useCoverCrop() {
     clampCrop: coverClampCrop,
     zoomCrop: coverZoomCrop,
     onSetup: onCoverCropSetup,
+    onInit: onCoverCropInit,
     onZoomChange: () => {
       const s = coverCropState.current;
       const range = (s.maxScale - s.minScale) * 0.5;
@@ -142,7 +144,7 @@ export function useCoverCrop() {
       const src = reader.result as string;
       setCoverCropSrc(src); setCoverCropMsg(''); setCoverShowResult(false);
       const img = document.createElement('img') as HTMLImageElement;
-      img.onload = () => { coverCropImgRef.current = img; coverSetupCanvas(); coverFitImage(); coverDrawCrop(); setCoverZoomSlider(0); };
+      img.onload = () => { coverCropImgRef.current = img; setCoverZoomSlider(0); };
       img.src = src;
     };
     reader.readAsDataURL(file);
