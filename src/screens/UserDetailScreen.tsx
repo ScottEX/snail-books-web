@@ -175,6 +175,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const [showPartnerPicker, setShowPartnerPicker] = useState(false);
   const [partnerList, setPartnerList] = useState<any[]>([]);
   const [partnersLoaded, setPartnersLoaded] = useState(false);
+  const [partnersLoading, setPartnersLoading] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -273,11 +274,13 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   };
 
   const fetchPartnerList = useCallback(async () => {
+    setPartnersLoading(true);
     try {
       const data: any = await api.getPartners();
       setPartnerList(Array.isArray(data) ? data : []);
     } catch {}
     setPartnersLoaded(true);
+    setPartnersLoading(false);
   }, []);
 
   const availablePartners = useMemo(() => partnerList.filter((p: any) => !p.linked_user_id), [partnerList]);
@@ -460,7 +463,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           )}
 
           {/* Linked Partner — hide when no partner linked and none available */}
-          {(linkedPartnerId !== null || !partnersLoaded || availablePartners.length > 0) && (
+          {(linkedPartnerId !== null || partnersLoading || availablePartners.length > 0) && (
           <View style={st.section}>
             <View style={st.sectionTitleRow}>
               <Text style={st.sectionTitleText}>{t('linkedPartner')}</Text>
