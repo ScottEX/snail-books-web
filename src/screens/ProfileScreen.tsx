@@ -989,8 +989,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       </ModalOverlay>
 
       {/* ====== AVATAR CROP MODAL ====== */}
-      <ModalOverlay visible={cropSrc !== '' && !showResult} onClose={() => setCropSrc('')} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }} contentStyle={{ flex: 1, alignItems: 'stretch' as any, justifyContent: 'flex-start' as any }}>
-        <View style={{ flex: 1, flexDirection: 'column' }}>
+      <ModalOverlay visible={cropSrc !== '' && !showResult} onClose={() => setCropSrc('')} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ padding: 0 }}>
+        <View style={{ width: '100vw' as any, height: '100vh' as any, display: 'flex', flexDirection: 'column' as any }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('avatarCropTitle')}</Text>
             <TouchableOpacity onPress={() => setCropSrc('')} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
@@ -1094,8 +1094,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       </ModalOverlay>
 
       {/* ====== COVER CROP MODAL ====== */}
-      <ModalOverlay visible={coverCropSrc !== '' && !coverShowResult} onClose={() => { setCoverCropSrc(''); setCoverCropResult(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }} contentStyle={{ flex: 1, alignItems: 'stretch' as any, justifyContent: 'flex-start' as any }}>
-        <View style={{ flex: 1, flexDirection: 'column' }}>
+      <ModalOverlay visible={coverCropSrc !== '' && !coverShowResult} onClose={() => { setCoverCropSrc(''); setCoverCropResult(''); }} animation="springScale" backdropColor="rgba(8,8,12,0.92)" overlayStyle={{ padding: 0 }}>
+        <View style={{ width: '100vw' as any, height: '100vh' as any, display: 'flex', flexDirection: 'column' as any }}>
           <View style={cropS.header as any}>
             <Text style={cropS.title}>{t('coverCropTitle')}</Text>
             <TouchableOpacity onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>

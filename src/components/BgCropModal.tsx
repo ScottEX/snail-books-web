@@ -265,10 +265,9 @@ export default function BgCropModal({
       onClose={close}
       animation="springScale"
       backdropColor="rgba(8,8,12,0.92)"
-      overlayStyle={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }}
-      contentStyle={{ flex: 1, alignItems: 'stretch' as any, justifyContent: 'flex-start' as any }}
+      overlayStyle={{ padding: 0 }}
     >
-      <View style={{ flex: 1, flexDirection: 'column' as any }}>
+      <View style={{ width: '100vw' as any, height: '100vh' as any, display: 'flex', flexDirection: 'column' as any }}>
 
       {/* Header */}
       <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any}>
