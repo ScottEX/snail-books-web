@@ -1375,7 +1375,7 @@ function getMo(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
       backgroundColor: colors.surface, borderRadius: MODAL_CARD_RADIUS,
-      width: '90%', maxWidth: 400, overflow: 'hidden' as any,
+      width: 340, maxWidth: '90%', overflow: 'hidden' as any,
 
     },
     header: {
