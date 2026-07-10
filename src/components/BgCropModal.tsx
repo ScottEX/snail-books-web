@@ -3,6 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { MODAL_CARD_RADIUS } from '../sharedStyles';
 import FullscreenOverlay from './FullscreenOverlay';
+import LoadingSpinner from './LoadingSpinner';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import { useEffect, useRef, useState } from 'react';
 
@@ -359,8 +360,13 @@ export default function BgCropModal({
               <TouchableOpacity
                 style={{ flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6', justifyContent: 'center', alignItems: 'center' } as any}
                 onPress={handleConfirm}
+                disabled={phase === 'uploading'}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{t('confirmUse') || '确认使用'}</Text>
+                {phase === 'uploading' ? (
+                  <LoadingSpinner label={false} size={20} color="#fff" />
+                ) : (
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{t('confirmUse') || '确认使用'}</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
