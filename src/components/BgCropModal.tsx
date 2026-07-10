@@ -294,8 +294,10 @@ export default function BgCropModal({
         </TouchableOpacity>
       </View>
 
-      {/* Stage — cropping phase: live canvas crop. preview phase: thumbnail. */}
-      {src !== '' && (phase === 'cropping' || phase === 'preview') && (
+      {/* Stage — cropping phase: live canvas crop. Hidden during preview so the
+          preview card renders on the clean overlay backdrop, not on top of the
+          crop canvas + toolbar + actions (same UX as ProfileScreen cover flow). */}
+      {src !== '' && phase === 'cropping' && (
         <View style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', } as any} ref={stageRef as any}>
           <canvas
             ref={canvasRef as any}
@@ -375,7 +377,7 @@ export default function BgCropModal({
       )}
 
       {/* Toolbar (only when cropping) */}
-      {src !== '' && (phase === 'cropping' || phase === 'preview') && (
+      {src !== '' && phase === 'cropping' && (
         <View style={{ paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', flexShrink: 0 } as any}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
             <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
@@ -416,7 +418,7 @@ export default function BgCropModal({
       )}
 
       {/* Actions — different button set per phase */}
-      {(phase === 'cropping' || phase === 'preview') && (
+      {phase === 'cropping' && (
         <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0 } as any}>
           <TouchableOpacity
             style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
