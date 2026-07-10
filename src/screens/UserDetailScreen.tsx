@@ -569,7 +569,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             <TouchableOpacity onPress={() => setShowPartnerPicker(false)}
               style={{ marginTop: 12, alignItems: 'center', paddingVertical: 8 }}
               activeOpacity={0.7}>
-              <Text style={{ fontSize: 13, color: c.textSub }}>{t('cancel')}</Text>
+              <Text style={{ fontSize: 13, color: c.textMain }}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
