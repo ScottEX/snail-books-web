@@ -427,6 +427,7 @@ const getStyles = (c: ThemeColors) => {
   return StyleSheet.create({
     container: { flex: 1 },
     ...hdr as any,
+    header: { ...hdr.header, top: 0 },
     // Override title color for light bg (historyHeader defaults to #F0EDE8)
     title: { ...hdr.title, color: c.textMain },
     // Body (below absolute header)

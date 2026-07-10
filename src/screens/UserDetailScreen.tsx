@@ -602,6 +602,7 @@ const getStyles = (c: ThemeColors) => {
   return StyleSheet.create({
     container: { flex: 1 },
     ...hdr as any,
+    header: { ...hdr.header, top: 0 },
     title: { ...hdr.title, color: c.textMain },
     body: {
       flex: 1,
