@@ -518,12 +518,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             ) : (
               <Image source={{ uri: '/img/logo.jpg' }} style={st.avatar} />
             )}
-            <View style={st.camBadge}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#fff" strokeWidth="2" />
-                <circle cx="12" cy="13" r="4" stroke="#fff" strokeWidth="2" />
-              </svg>
-            </View>
           </TouchableOpacity>
         </TouchableOpacity>
 
