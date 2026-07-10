@@ -25,6 +25,8 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
   const [showResult, setShowResult] = useState(false);
   const [cropMsg, setCropMsg] = useState('');
   const [zoomSlider, setZoomSlider] = useState(0);
+  const [cropLoading, setCropLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
 
   // ── Avatar crop refs ──
   const cropImgRef = useRef<HTMLImageElement | null>(null);
@@ -155,9 +157,10 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
   };
 
   const confirmCrop = () => {
+    setCropLoading(true);
     try {
       const img = cropImgRef.current;
-      if (!img) { setCropMsg('图片未加载'); return; }
+      if (!img) { setCropMsg('图片未加载'); setCropLoading(false); return; }
       const s = cropState.current;
       const outW = 320, outH = 320;
       const output = document.createElement('canvas');
@@ -171,14 +174,16 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
       octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
       setCropResult(output.toDataURL('image/png'));
       setShowResult(true);
-    } catch { setCropMsg('裁切失败，请重试'); }
+      setCropLoading(false);
+    } catch { setCropMsg('裁切失败，请重试'); setCropLoading(false); }
   };
 
   const doUpload = async () => {
     if (!cropResult) return;
+    setUploadLoading(true);
     try {
       const uid = getCurrentUserId();
-      if (!uid) { setCropMsg('用户未登录'); return; }
+      if (!uid) { setCropMsg('用户未登录'); setUploadLoading(false); return; }
       const arr = cropResult.split(',');
       const mime = (arr[0].match(/:(.*?);/) || ['', 'image/png'])[1];
       const bstr = atob(arr[1]);
@@ -196,6 +201,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
         onAvatarChange?.();
       } else { setCropMsg('上传失败'); }
     } catch { setCropMsg('上传失败，请重试'); }
+    finally { setUploadLoading(false); }
   };
 
   // ── Load avatar from server ──
@@ -228,5 +234,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
     // Toolbar
     cropState, clampCrop, drawCrop,
     zoomSlider, setZoomSlider,
+    // Loading
+    cropLoading, uploadLoading,
   };
 }

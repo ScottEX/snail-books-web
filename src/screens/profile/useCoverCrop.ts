@@ -25,6 +25,7 @@ export function useCoverCrop() {
   const [coverShowResult, setCoverShowResult] = useState(false);
   const [coverCropMsg, setCoverCropMsg] = useState('');
   const [coverZoomSlider, setCoverZoomSlider] = useState(0);
+  const [coverCropLoading, setCoverCropLoading] = useState(false);
 
   // ── Cover crop refs ──
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -150,9 +151,10 @@ export function useCoverCrop() {
   };
 
   const coverConfirmCrop = () => {
+    setCoverCropLoading(true);
     try {
       const img = coverCropImgRef.current;
-      if (!img) { setCoverCropMsg('图片未加载'); return; }
+      if (!img) { setCoverCropMsg('图片未加载'); setCoverCropLoading(false); return; }
       const s = coverCropState.current;
       const outW = 720, outH = Math.round(outW * s.cropRatio);
       const output = document.createElement('canvas');
@@ -166,7 +168,8 @@ export function useCoverCrop() {
       octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
       setCoverCropResult(output.toDataURL('image/jpeg', 0.92));
       setCoverShowResult(true);
-    } catch { setCoverCropMsg('裁切失败，请重试'); }
+      setCoverCropLoading(false);
+    } catch { setCoverCropMsg('裁切失败，请重试'); setCoverCropLoading(false); }
   };
 
   const coverDoUpload = async () => {
@@ -235,5 +238,7 @@ export function useCoverCrop() {
     loadCover,
     // Crop toolbar actions
     coverCropState, coverClampCrop, coverDrawCrop,
+    // Loading
+    coverCropLoading,
   };
 }

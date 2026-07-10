@@ -28,6 +28,7 @@ import ThemePickerModal from '../components/ThemePickerModal';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ModalOverlay from '../components/ModalOverlay';
 import FullscreenOverlay from '../components/FullscreenOverlay';
+import LoadingSpinner from '../components/LoadingSpinner';
 import BackArrow from '../components/icons/BackArrow';
 import CameraIcon from '../components/icons/CameraIcon';
 import { getCurrentUser, getCurrentUserId } from '../utils/storage';
@@ -65,6 +66,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     loadAvatar,
     cropState, clampCrop, drawCrop,
     zoomSlider, setZoomSlider,
+    cropLoading, uploadLoading,
   } = useAvatarCrop(onAvatarChange);
   const {
     coverUrl, coverKey,
@@ -76,6 +78,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     handleCoverSelect, coverConfirmCrop, coverDoUpload,
     loadCover,
     coverCropState, coverClampCrop, coverDrawCrop,
+    coverCropLoading,
   } = useCoverCrop();
   const { showToast, ToastHost } = useToast();
 
@@ -1054,11 +1057,17 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <TouchableOpacity style={cropS.cancelBtn as any} onPress={() => setCropSrc('')}>
               <Text style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('cancel')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={cropS.confirmBtn as any} onPress={confirmCrop}>
-              <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 }}>
-                <Text style={{ fontSize: 10, color: '#fff' }}>✓</Text>
-              </View>
-              <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{t('useThisAvatar')}</Text>
+            <TouchableOpacity style={cropS.confirmBtn as any} onPress={confirmCrop} disabled={cropLoading}>
+              {cropLoading ? (
+                <LoadingSpinner label={false} size={20} color="#fff" />
+              ) : (
+                <>
+                  <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 }}>
+                    <Text style={{ fontSize: 10, color: '#fff' }}>✓</Text>
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{t('useThisAvatar')}</Text>
+                </>
+              )}
             </TouchableOpacity>
           </View>
           {cropMsg !== '' && (
@@ -1087,8 +1096,12 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setShowResult(false); }}>
               <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('recrop')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={cropS.saveBtn as any} onPress={doUpload}>
-              <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
+            <TouchableOpacity style={cropS.saveBtn as any} onPress={doUpload} disabled={uploadLoading}>
+              {uploadLoading ? (
+                <LoadingSpinner label={false} size={20} color="#fff" />
+              ) : (
+                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -1155,11 +1168,17 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <TouchableOpacity style={cropS.cancelBtn as any} onPress={() => { setCoverCropSrc(''); setCoverCropResult(''); }}>
               <Text style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('cancel')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={cropS.confirmBtn as any} onPress={coverConfirmCrop}>
-              <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 }}>
-                <Text style={{ fontSize: 10, color: '#fff' }}>✓</Text>
-              </View>
-              <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{t('useThisCover')}</Text>
+            <TouchableOpacity style={cropS.confirmBtn as any} onPress={coverConfirmCrop} disabled={coverCropLoading}>
+              {coverCropLoading ? (
+                <LoadingSpinner label={false} size={20} color="#fff" />
+              ) : (
+                <>
+                  <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 }}>
+                    <Text style={{ fontSize: 10, color: '#fff' }}>✓</Text>
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{t('useThisCover')}</Text>
+                </>
+              )}
             </TouchableOpacity>
           </View>
           {coverCropMsg !== '' && (
@@ -1181,8 +1200,12 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <TouchableOpacity style={cropS.reEditBtn as any} onPress={() => { setCoverShowResult(false); }}>
               <Text style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{t('recrop')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={cropS.saveBtn as any} onPress={coverDoUpload}>
-              <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
+            <TouchableOpacity style={cropS.saveBtn as any} onPress={coverDoUpload} disabled={coverUploading}>
+              {coverUploading ? (
+                <LoadingSpinner label={false} size={20} color="#fff" />
+              ) : (
+                <Text style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t('confirmUse')}</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
