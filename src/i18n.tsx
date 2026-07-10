@@ -292,6 +292,7 @@ const I18N: Record<string, Record<string, string>> = {
     last30Days: '近30天',
     last3Months: '近3月',
     last7Days: '近7天',
+    anyDate: '任何日期',
     lastLogin: '最后登录',
     linkCopied: '链接已复制',
     linkPartner: '关联',
@@ -888,6 +889,7 @@ const I18N: Record<string, Record<string, string>> = {
     last30Days: '近30天',
     last3Months: '近3月',
     last7Days: '近7天',
+    anyDate: '任何日期',
     lastLogin: '最後登入',
     linkCopied: '連結已複製',
     linkPartner: '關聯',
@@ -1482,6 +1484,7 @@ const I18N: Record<string, Record<string, string>> = {
     last30Days: 'Last 30 days',
     last3Months: 'Last 3 months',
     last7Days: 'Last 7 days',
+    anyDate: 'Any date',
     lastLogin: 'Last Login',
     linkCopied: 'Link copied',
     linkPartner: 'Link',
@@ -2079,6 +2082,7 @@ export type I18nKey =
   | 'last30Days'
   | 'last3Months'
   | 'last7Days'
+  | 'anyDate'
   | 'lastLogin'
   | 'linkCopied'
   | 'linkPartner'

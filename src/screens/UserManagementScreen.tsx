@@ -310,10 +310,10 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                 {(sd.ready ? [sd.year - 2, sd.year - 1, sd.year, sd.year + 1] : FALLBACK_YEARS).map(y => (
                   <TouchableOpacity
                     key={y}
-                    style={[st.pickerBtn, dropYear === y && st.pickerBtnOn]}
+                    style={[st.pickerBtn, dateFrom && dropYear === y && st.pickerBtnOn]}
                     onPress={() => setDropYear(y)}
                   >
-                    <Text style={[st.pickerBtnText, dropYear === y && st.pickerBtnTextOn]}>
+                    <Text style={[st.pickerBtnText, dateFrom && dropYear === y && st.pickerBtnTextOn]}>
                       {y}
                     </Text>
                   </TouchableOpacity>
@@ -324,10 +324,10 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
                 {MONTHS.map(m => (
                   <TouchableOpacity
                     key={m}
-                    style={[st.monthBtn, dropMonth === m && st.monthBtnOn]}
+                    style={[st.monthBtn, dateFrom && dropMonth === m && st.monthBtnOn]}
                     onPress={() => setDropMonth(m)}
                   >
-                    <Text style={[st.monthBtnText, dropMonth === m && st.monthBtnTextOn]}>
+                    <Text style={[st.monthBtnText, dateFrom && dropMonth === m && st.monthBtnTextOn]}>
                       {m}{t('monthUnit')}
                     </Text>
                   </TouchableOpacity>
