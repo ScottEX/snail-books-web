@@ -58,6 +58,12 @@ export default function BgCropModal({
   const [zoomSlider, setZoomSlider] = useState(0);
   const previewScale = useRef(new Animated.Value(0.85)).current;
   const previewFade = useRef(new Animated.Value(0)).current;
+  const cropOpacity = useRef(new Animated.Value(1)).current;
+
+  // Internal overlay visibility — decoupled from parent's `visible` so
+  // FullscreenOverlay can play its exit animation before the component
+  // unmounts (same pattern as ProfileScreen avatar/cover crop flows).
+  const [overlayShow, setOverlayShow] = useState(true);
 
   // Preview card springScale animation on phase → 'preview'
   useEffect(() => {
@@ -70,6 +76,20 @@ export default function BgCropModal({
       ]).start();
     }
   }, [phase]);
+
+  // Crop UI fade-in when returning from preview → cropping ("重新裁剪").
+  // cropOpacity is pre-set to 0 in the recrop button's animation callback
+  // so the crop elements render hidden, then fade in.
+  const prevPhase = useRef(phase);
+  useEffect(() => {
+    if (phase === 'cropping' && prevPhase.current === 'preview') {
+      Animated.timing(cropOpacity, { toValue: 1, duration: 280, useNativeDriver: false }).start();
+    } else if (phase === 'cropping') {
+      cropOpacity.setValue(1);
+    }
+    prevPhase.current = phase;
+  }, [phase]);
+
   const imgRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -92,6 +112,7 @@ export default function BgCropModal({
       return;
     }
     setSrc(imageSrc);
+    setOverlayShow(true);
     const img = new Image() as HTMLImageElement;
     img.onload = () => {
       imgRef.current = img;
@@ -102,17 +123,25 @@ export default function BgCropModal({
     img.src = imageSrc;
   }, [imageSrc]);
 
-  // ── Reset internal state on close ──
+  // ── Reset internal state when parent closes ──
   useEffect(() => {
     if (!visible) {
       setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
+      setOverlayShow(false);
     }
   }, [visible]);
 
+  // ── Close handler: trigger FullscreenOverlay exit animation first,
+  //     then notify parent. Same pattern as ProfileScreen where
+  //     onClose toggles the `visible` prop and FullscreenOverlay
+  //     plays its own exit. ──
   const close = () => {
-    setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
-    onClearImage();
-    onClose();
+    setOverlayShow(false); // triggers FullscreenOverlay exit (backdrop + scale + fade)
+    setTimeout(() => {
+      setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
+      onClearImage();
+      onClose();
+    }, 450); // FullscreenOverlay exit is max ~220ms; 450ms gives comfortable buffer
   };
 
   // ── Canvas / crop geometry ──
@@ -269,16 +298,18 @@ export default function BgCropModal({
     }
   };
 
-  if (!visible) return null;
+  // Don't unmount while FullscreenOverlay is still playing its exit
+  // animation (overlayShow tracks the internal visibility).
+  if (!visible && !overlayShow) return null;
   // Don't render the modal shell until an image has been picked —
   // otherwise the user sees an empty "crop" frame before they've even
   // chosen a photo. The parent owns the file picker and sets imageSrc
   // before setting visible=true.
-  if (imageSrc === '') return null;
+  if (imageSrc === '' && src === '') return null;
 
   return (
     <FullscreenOverlay
-      visible
+      visible={overlayShow}
       onClose={close}
       backdropColor="rgba(8,8,12,0.92)"
     >
@@ -294,30 +325,94 @@ export default function BgCropModal({
         </TouchableOpacity>
       </View>
 
-      {/* Stage — cropping phase: live canvas crop. Hidden during preview so the
-          preview card renders on the clean overlay backdrop, not on top of the
-          crop canvas + toolbar + actions (same UX as ProfileScreen cover flow). */}
+      {/* ── CROP SECTION (stage + toolbar + actions) ──
+          Rendered as one block so the crop UI can fade in with a single
+          animated opacity. Hidden during preview so the preview card
+          renders on the clean overlay backdrop (same UX as ProfileScreen
+          cover flow). */}
       {src !== '' && phase === 'cropping' && (
-        <View style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000', } as any} ref={stageRef as any}>
-          <canvas
-            ref={canvasRef as any}
-            style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none', } as any}
-          />
-          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any} pointerEvents="none">
-            <View
-              style={{ borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative',  } as any}
-              ref={guideRef as any}
-            >
-              <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '33.3%' } as any} />
-              <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '66.6%' } as any} />
-              <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '33.3%' } as any} />
-              <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '66.6%' } as any} />
+        <Animated.View style={{ flex: 1, display: 'flex' as any, flexDirection: 'column' as any, opacity: cropOpacity as any } as any}>
+          {/* Stage — live canvas crop */}
+          <View style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000' } as any} ref={stageRef as any}>
+            <canvas
+              ref={canvasRef as any}
+              style={{ display: 'block', width: '100%', height: '100%', touchAction: 'none' } as any}
+            />
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' } as any} pointerEvents="none">
+              <View
+                style={{ borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)', position: 'relative' } as any}
+                ref={guideRef as any}
+              >
+                <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '33.3%' } as any} />
+                <View style={{ position: 'absolute', width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)', top: '66.6%' } as any} />
+                <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '33.3%' } as any} />
+                <View style={{ position: 'absolute', width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.18)', left: '66.6%' } as any} />
+              </View>
+            </View>
+            <View style={{ position: 'absolute', bottom: 8, left: '50%', transform: [{ translateX: -75 }] as any, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, paddingVertical: 4, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' } as any} pointerEvents="none">
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' } as any}>{t('cropPill')}</Text>
             </View>
           </View>
-          <View style={{ position: 'absolute', bottom: 8, left: '50%', transform: [{ translateX: -75 }] as any, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, paddingVertical: 4, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' } as any} pointerEvents="none">
-            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' } as any}>{t('cropPill')}</Text>
+
+          {/* Toolbar */}
+          <View style={{ paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', flexShrink: 0 } as any}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
+              <input
+                type="range" min="0" max="100" value={zoomSlider}
+                onChange={(e: any) => {
+                  const s = stateRef.current;
+                  const tt = Number(e.target.value) / 100;
+                  s.scale = s.minScale + (s.maxScale - s.minScale) * tt * 0.5;
+                  s.scale = Math.max(s.minScale, s.scale);
+                  setZoomSlider(Number(e.target.value));
+                  clampCrop(); drawCrop();
+                }}
+                style={{ flex: 1, height: 3, appearance: 'none', accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${zoomSlider}%, rgba(255,255,255,0.2) ${zoomSlider}%)`, borderRadius: 2 } as any}
+              />
+              <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
+            </View>
+            <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.12)', marginHorizontal: 10 } as any} />
+            <TouchableOpacity
+              style={{ paddingVertical: 6, paddingHorizontal: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
+              onPress={() => { stateRef.current.rotation = (stateRef.current.rotation + 90) % 360; drawCrop(); }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M3 12a9 9 0 109-9H9m0 0l3 3m-3-3l3-3" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '500' } as any}>{t('cropRotate')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ paddingVertical: 6, paddingHorizontal: 8, marginLeft: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
+              onPress={() => { stateRef.current.flipX = !stateRef.current.flipX; drawCrop(); }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '500' } as any}>{t('cropFlip')}</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+
+          {/* Actions — cropping phase buttons */}
+          <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0 } as any}>
+            <TouchableOpacity
+              style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
+              onPress={close}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('cancel')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6', justifyContent: 'center', alignItems: 'center', flexDirection: 'row' } as any}
+              onPress={handleConfirm}
+              disabled={!src}
+            >
+              <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 } as any}>
+                <Text style={{ fontSize: 10, color: '#fff' } as any}>✓</Text>
+              </View>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{confirmLabel || t('useThisBg')}</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
       )}
 
       {/* Preview — shows the cropped result before upload. Action
@@ -348,6 +443,9 @@ export default function BgCropModal({
                 style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
                 disabled={phase === 'uploading'}
                 onPress={() => {
+                  // Pre-set crop opacity to 0 so the crop UI renders
+                  // invisible and fades in when phase switches back.
+                  cropOpacity.setValue(0);
                   Animated.parallel([
                     Animated.timing(previewScale, { toValue: 0.92, duration: 220, useNativeDriver: false }),
                     Animated.timing(previewFade, { toValue: 0, duration: 180, useNativeDriver: false }),
@@ -376,73 +474,7 @@ export default function BgCropModal({
         </Animated.View>
       )}
 
-      {/* Toolbar (only when cropping) */}
-      {src !== '' && phase === 'cropping' && (
-        <View style={{ paddingVertical: 8, paddingHorizontal: 16, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', flexShrink: 0 } as any}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
-            <input
-              type="range" min="0" max="100" value={zoomSlider}
-              onChange={(e: any) => {
-                const s = stateRef.current;
-                const tt = Number(e.target.value) / 100;
-                s.scale = s.minScale + (s.maxScale - s.minScale) * tt * 0.5;
-                s.scale = Math.max(s.minScale, s.scale);
-                setZoomSlider(Number(e.target.value));
-                clampCrop(); drawCrop();
-              }}
-              style={{ flex: 1, height: 3, appearance: 'none', accentColor: '#5B5BD6', background: `linear-gradient(to right, #5B5BD6 ${zoomSlider}%, rgba(255,255,255,0.2) ${zoomSlider}%)`, borderRadius: 2 } as any}
-            />
-            <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' } as any}>A</Text>
-          </View>
-          <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.12)', marginHorizontal: 10 } as any} />
-          <TouchableOpacity
-            style={{ paddingVertical: 6, paddingHorizontal: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
-            onPress={() => { stateRef.current.rotation = (stateRef.current.rotation + 90) % 360; drawCrop(); }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M3 12a9 9 0 109-9H9m0 0l3 3m-3-3l3-3" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '500' } as any}>{t('cropRotate')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ paddingVertical: 6, paddingHorizontal: 8, marginLeft: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 } as any}
-            onPress={() => { stateRef.current.flipX = !stateRef.current.flipX; drawCrop(); }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '500' } as any}>{t('cropFlip')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Actions — different button set per phase */}
-      {phase === 'cropping' && (
-        <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row', gap: 10, flexShrink: 0 } as any}>
-          <TouchableOpacity
-            style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
-            onPress={close}
-          >
-            <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('cancel')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ flex: 2, padding: 11, borderRadius: 12, backgroundColor: '#5B5BD6', justifyContent: 'center', alignItems: 'center', flexDirection: 'row' } as any}
-            onPress={handleConfirm}
-            disabled={!src}
-          >
-            <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 6 } as any}>
-              <Text style={{ fontSize: 10, color: '#fff' } as any}>✓</Text>
-            </View>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{confirmLabel || t('useThisBg')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {msg !== '' && phase !== 'cropping' && (
-        <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: '500' } as any}>{msg}</Text>
-      )}
-      {msg !== '' && phase === 'cropping' && (
+      {msg !== '' && (
         <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: '500' } as any}>{msg}</Text>
       )}
       </View>
