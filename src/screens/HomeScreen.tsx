@@ -498,7 +498,8 @@ export default function HomeScreen({
         );
       })}
 
-      {/* Header */}
+      {/* Header — hidden when profile is showing */}
+      {!pageStack.includes('profile') && (
       <View style={styles.header}>
         <View style={styles.headerInner}>
           <TouchableOpacity onPress={() => pushPage('profile')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -526,6 +527,7 @@ export default function HomeScreen({
           </View>
         </View>
       </View>
+      )}
 
       {/* Page content — hidden whenever any sub-page is on the stack */}
       {pageStack.length === 0 && (
