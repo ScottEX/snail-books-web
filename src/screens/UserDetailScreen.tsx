@@ -206,7 +206,6 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   useEffect(() => {
     if (detail && !partnersLoaded && !linkedPartnerId) {
       fetchPartnerList();
-      setPartnersLoaded(true);
     }
   }, [detail, partnersLoaded, linkedPartnerId]);
 
@@ -278,6 +277,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       const data: any = await api.getPartners();
       setPartnerList(Array.isArray(data) ? data : []);
     } catch {}
+    setPartnersLoaded(true);
   }, []);
 
   const availablePartners = useMemo(() => partnerList.filter((p: any) => !p.linked_user_id), [partnerList]);
