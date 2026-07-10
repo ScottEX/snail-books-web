@@ -845,9 +845,9 @@ export default function HomeScreen({
         </SlideScreen>,
         document.body
       )}
-      {showProfile && profileSubPage === 'usermgmt' && createPortal(
+      {showProfile && (profileSubPage === 'usermgmt' || profileSubPage === 'userdetail') && createPortal(
         <SlideScreen
-          visible={profileSubPage === 'usermgmt'}
+          visible={true}
           onClose={() => setProfileSubPage(null)}
         >
           {(close) => (
