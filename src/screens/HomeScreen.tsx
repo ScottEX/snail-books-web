@@ -167,6 +167,13 @@ export default function HomeScreen({
     }
   }, [pageStack]);
 
+  // Raise React root stacking context above profile portal (zIndex:90)
+  useEffect(() => {
+    const root = document.getElementById('root');
+    if (root) { root.style.position = 'relative'; root.style.zIndex = '100'; }
+    return () => { if (root) { root.style.removeProperty('position'); root.style.removeProperty('z-index'); } };
+  }, []);
+
   const revForm = useDailyRevenueForm({
     tab,
     onToast: (msg: string) => showToast(msg),
