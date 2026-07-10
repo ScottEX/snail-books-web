@@ -402,6 +402,7 @@ const getStyles = (c: ThemeColors) => {
       // No background — let HomeScreen bgLayer show through header area
     },
     ...hdr,
+    header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
     actionBtn: {
       width: 36, height: 36, borderRadius: 18,
       backgroundColor: withAlpha(c.bg, 0.30),
@@ -434,7 +435,7 @@ const getStyles = (c: ThemeColors) => {
     },
     body: {
       flex: 1,
-      marginTop: 100, // space for glass header + clearance
+      marginTop: 50, // space for glass header + clearance
       backgroundColor: c.bg, // bg moved from container so header area stays transparent
     },
     bodyContent: {

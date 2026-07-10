@@ -492,7 +492,7 @@ export default function HomeScreen({
       })}
 
       {/* Header — hidden when profile portal is open or top page covers it */}
-      {!(showProfile || ['recon', 'expense', 'expdetail', 'daily'].includes(pageStack[pageStack.length - 1])) && (
+      {!(showProfile || ['recon', 'expense', 'expdetail', 'daily', 'proc'].includes(pageStack[pageStack.length - 1])) && (
       <View style={styles.header}>
         <View style={styles.headerInner}>
           <TouchableOpacity onPress={() => setShowProfile(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
