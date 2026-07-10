@@ -25,7 +25,6 @@ export function useCoverCrop() {
   const [coverShowResult, setCoverShowResult] = useState(false);
   const [coverCropMsg, setCoverCropMsg] = useState('');
   const [coverZoomSlider, setCoverZoomSlider] = useState(0);
-  const [coverCropLoading, setCoverCropLoading] = useState(false);
 
   // ── Cover crop refs ──
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -151,27 +150,23 @@ export function useCoverCrop() {
   };
 
   const coverConfirmCrop = () => {
-    setCoverCropLoading(true);
-    setTimeout(() => {
-      try {
-        const img = coverCropImgRef.current;
-        if (!img) { setCoverCropMsg('图片未加载'); setCoverCropLoading(false); return; }
-        const s = coverCropState.current;
-        const outW = 720, outH = Math.round(outW * s.cropRatio);
-        const output = document.createElement('canvas');
-        output.width = outW; output.height = outH;
-        const octx = output.getContext('2d')!;
-        const outScale = outW / s.cropW;
-        octx.translate(outW / 2 + s.x * outScale, outH / 2 + s.y * outScale);
-        octx.rotate(s.rotation * Math.PI / 180);
-        if (s.flipX) octx.scale(-1, 1);
-        octx.scale(s.scale * outScale, s.scale * outScale);
-        octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
-        setCoverCropResult(output.toDataURL('image/jpeg', 0.92));
-        setCoverShowResult(true);
-        setCoverCropLoading(false);
-      } catch { setCoverCropMsg('裁切失败，请重试'); setCoverCropLoading(false); }
-    }, 0);
+    try {
+      const img = coverCropImgRef.current;
+      if (!img) { setCoverCropMsg('图片未加载'); return; }
+      const s = coverCropState.current;
+      const outW = 720, outH = Math.round(outW * s.cropRatio);
+      const output = document.createElement('canvas');
+      output.width = outW; output.height = outH;
+      const octx = output.getContext('2d')!;
+      const outScale = outW / s.cropW;
+      octx.translate(outW / 2 + s.x * outScale, outH / 2 + s.y * outScale);
+      octx.rotate(s.rotation * Math.PI / 180);
+      if (s.flipX) octx.scale(-1, 1);
+      octx.scale(s.scale * outScale, s.scale * outScale);
+      octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+      setCoverCropResult(output.toDataURL('image/jpeg', 0.92));
+      setCoverShowResult(true);
+    } catch { setCoverCropMsg('裁切失败，请重试'); }
   };
 
   const coverDoUpload = async () => {
@@ -240,7 +235,5 @@ export function useCoverCrop() {
     loadCover,
     // Crop toolbar actions
     coverCropState, coverClampCrop, coverDrawCrop,
-    // Loading
-    coverCropLoading,
   };
 }
