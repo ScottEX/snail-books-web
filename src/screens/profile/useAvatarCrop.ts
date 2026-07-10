@@ -158,24 +158,28 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
 
   const confirmCrop = () => {
     setCropLoading(true);
-    try {
-      const img = cropImgRef.current;
-      if (!img) { setCropMsg('图片未加载'); setCropLoading(false); return; }
-      const s = cropState.current;
-      const outW = 320, outH = 320;
-      const output = document.createElement('canvas');
-      output.width = outW; output.height = outH;
-      const octx = output.getContext('2d')!;
-      const outScale = outW / s.cropSize;
-      octx.translate(outW / 2 + s.x * outScale, outH / 2 + s.y * outScale);
-      octx.rotate(s.rotation * Math.PI / 180);
-      if (s.flipX) octx.scale(-1, 1);
-      octx.scale(s.scale * outScale, s.scale * outScale);
-      octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
-      setCropResult(output.toDataURL('image/png'));
-      setShowResult(true);
-      setCropLoading(false);
-    } catch { setCropMsg('裁切失败，请重试'); setCropLoading(false); }
+    // Defer to next tick so React renders the spinner before the
+    // synchronous canvas work blocks the main thread.
+    setTimeout(() => {
+      try {
+        const img = cropImgRef.current;
+        if (!img) { setCropMsg('图片未加载'); setCropLoading(false); return; }
+        const s = cropState.current;
+        const outW = 320, outH = 320;
+        const output = document.createElement('canvas');
+        output.width = outW; output.height = outH;
+        const octx = output.getContext('2d')!;
+        const outScale = outW / s.cropSize;
+        octx.translate(outW / 2 + s.x * outScale, outH / 2 + s.y * outScale);
+        octx.rotate(s.rotation * Math.PI / 180);
+        if (s.flipX) octx.scale(-1, 1);
+        octx.scale(s.scale * outScale, s.scale * outScale);
+        octx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+        setCropResult(output.toDataURL('image/png'));
+        setShowResult(true);
+        setCropLoading(false);
+      } catch { setCropMsg('裁切失败，请重试'); setCropLoading(false); }
+    }, 0);
   };
 
   const doUpload = async () => {
