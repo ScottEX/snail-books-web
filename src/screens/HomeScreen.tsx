@@ -66,7 +66,7 @@ export default function HomeScreen({
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const fromProfileRef = useRef(false);
+  const [profileSubPage, setProfileSubPage] = useState<'usermgmt' | 'userdetail' | null>(null);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
   const [invoiceFilterBatchId, setInvoiceFilterBatchId] = useState<number | null>(null);
   const [expDetailRecord, setExpDetailRecord] = useState<any>(null);
@@ -158,14 +158,6 @@ export default function HomeScreen({
     onPopProc: () => setProcDetailBatch(null),
     onPopUserDetail: () => { setSelectedUser(null); setPartnerRefreshKey(k => k + 1); },
   });
-
-  // Reopen profile portal when returning from usermgmt → profile
-  useEffect(() => {
-    if (pageStack.length === 0 && fromProfileRef.current) {
-      setShowProfile(true);
-      fromProfileRef.current = false;
-    }
-  }, [pageStack]);
 
   const revForm = useDailyRevenueForm({
     tab,
@@ -484,8 +476,6 @@ export default function HomeScreen({
           hand-written SlideScreens: adding a new sub-page is now one
           switch case + one push site, not a new <SlideScreen> block. */}
       {pageStack.map((p, idx) => {
-        // When profile portal is open, render profile sub-pages as portals instead
-        if (showProfile && (p === 'usermgmt' || p === 'userdetail')) return null;
         const isTop = idx === pageStack.length - 1;
         return (
           <SlideScreen
@@ -836,9 +826,8 @@ export default function HomeScreen({
 
       {ToastHost}
 
-      {/* ProfileScreen portal — same pattern as PartnerScreen invoice portal */}
+      {/* Profile & sub-page portals — all on document.body, auto-stacked by render order */}
       {showProfile && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }}>
         <SlideScreen
           visible={showProfile}
           onClose={() => setShowProfile(false)}
@@ -849,44 +838,36 @@ export default function HomeScreen({
               onLogout={onLogout}
               onLangChange={() => loadData()}
               onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
-              onManageUsers={() => { fromProfileRef.current = true; pushPage('usermgmt'); }}
+              onManageUsers={() => setProfileSubPage('usermgmt')}
               refreshKey={userRefreshKey}
             />
           )}
         </SlideScreen>,
-        </div>,
         document.body
       )}
-
-      {/* Profile sub-pages portal — renders above profile (zIndex:110) */}
-      {showProfile && pageStack.includes('usermgmt') && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 110 }}>
+      {showProfile && profileSubPage === 'usermgmt' && createPortal(
         <SlideScreen
-          visible={removing !== 'usermgmt'}
-          onClose={popPage}
+          visible={profileSubPage === 'usermgmt'}
+          onClose={() => setProfileSubPage(null)}
         >
           {(close) => (
             <UserManagementScreen key={userRefreshKey} onBack={close} onUserSelect={async (u) => {
               if (!u.reviewed) { await api.admin.markReviewed(u.id); setUserRefreshKey(k => k + 1); }
-              setSelectedUser(u); pushPage('userdetail');
+              setSelectedUser(u); setProfileSubPage('userdetail');
             }} />
           )}
         </SlideScreen>,
-        </div>,
         document.body
       )}
-
-      {showProfile && pageStack.includes('userdetail') && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 110 }}>
+      {showProfile && profileSubPage === 'userdetail' && createPortal(
         <SlideScreen
-          visible={removing !== 'userdetail'}
-          onClose={popPage}
+          visible={profileSubPage === 'userdetail'}
+          onClose={() => setProfileSubPage('usermgmt')}
         >
           {(close) => selectedUser ? (
             <UserDetailScreen user={selectedUser} onBack={close} onUpdated={() => setUserRefreshKey(k => k + 1)} />
           ) : null}
         </SlideScreen>,
-        </div>,
         document.body
       )}
       </View>
