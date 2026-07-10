@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Image } from 'react-native';
+import { createPortal } from 'react-dom';
 import Svg, { Path } from 'react-native-svg';
 import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
@@ -64,6 +65,8 @@ export default function HomeScreen({
 
   const [showBgModal, setShowBgModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const fromProfileRef = useRef(false);
   const [procDetailBatch, setProcDetailBatch] = useState<any>(null);
   const [invoiceFilterBatchId, setInvoiceFilterBatchId] = useState<number | null>(null);
   const [expDetailRecord, setExpDetailRecord] = useState<any>(null);
@@ -155,6 +158,15 @@ export default function HomeScreen({
     onPopProc: () => setProcDetailBatch(null),
     onPopUserDetail: () => { setSelectedUser(null); setPartnerRefreshKey(k => k + 1); },
   });
+
+  // Reopen profile portal when returning from usermgmt → profile
+  useEffect(() => {
+    if (pageStack.length === 0 && fromProfileRef.current) {
+      setShowProfile(true);
+      fromProfileRef.current = false;
+    }
+  }, [pageStack]);
+
   const revForm = useDailyRevenueForm({
     tab,
     onToast: (msg: string) => showToast(msg),
@@ -370,17 +382,6 @@ export default function HomeScreen({
   // No new <SlideScreen> block, no z-index math, no render-prop wiring.
   const renderSubPage = (p: SubPage) => (onBack: () => void) => {
     switch (p) {
-      case 'profile':
-        return (
-          <ProfileScreen
-            onBack={onBack}
-            onLogout={onLogout}
-            onLangChange={() => loadData()}
-            onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
-            onManageUsers={() => pushPage('usermgmt')}
-            refreshKey={userRefreshKey}
-          />
-        );
       case 'usermgmt':
         return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={async (u) => { if (!u.reviewed) { await api.admin.markReviewed(u.id); setUserRefreshKey(k => k + 1); } setSelectedUser(u); pushPage('userdetail'); }} />;
       case 'userdetail':
@@ -498,11 +499,11 @@ export default function HomeScreen({
         );
       })}
 
-      {/* Header — hidden when profile is the top page */}
-      {pageStack[pageStack.length - 1] !== 'profile' && (
+      {/* Header — hidden when profile portal is showing */}
+      {!showProfile && (
       <View style={styles.header}>
         <View style={styles.headerInner}>
-          <TouchableOpacity onPress={() => pushPage('profile')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <TouchableOpacity onPress={() => setShowProfile(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={{ width: 32, height: 32, borderRadius: 16 }} />
             ) : (
@@ -529,10 +530,11 @@ export default function HomeScreen({
       </View>
       )}
 
-      {/* Page content — kept mounted, hidden by opacity when sub-pages are on stack */}
-      <View style={[styles.page, pageStack.length > 0 && { opacity: 0, pointerEvents: 'none' } as any]}>
+      {/* Page content — hidden whenever any sub-page is on the stack */}
+      {pageStack.length === 0 && (
+      <View style={styles.page}>
         {tab === 'partner' ? (
-          <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} refreshKey={partnerRefreshKey} />
+          <PartnerScreen onBack={() => setTab('list')} onProfile={() => setShowProfile(true)} refreshKey={partnerRefreshKey} />
         ) : tab === 'supply' ? (
           <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} />
         ) : (
@@ -774,6 +776,7 @@ export default function HomeScreen({
         </>
       )}
     </View>
+      )}
 
       <ThemePickerModal
         visible={showBgModal}
@@ -789,8 +792,9 @@ export default function HomeScreen({
       {/* Shared modal */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
 
-      {/* Bottom Nav — kept mounted, hidden by opacity when sub-pages / cart drawer active */}
-      <View style={[styles.bottomNav, (pageStack.length > 0 || showCartDrawer) && { opacity: 0, pointerEvents: 'none' } as any]}>
+      {/* Bottom Nav — hidden when any sub-page is on the stack or cart drawer is active */}
+      {pageStack.length === 0 && !showCartDrawer && (
+      <View style={styles.bottomNav}>
         {([
           { id: 'expense', icon: NavIconExpense },
           { id: 'list', icon: NavIconList },
@@ -827,9 +831,30 @@ export default function HomeScreen({
           </TouchableOpacity>
         ))}
       </View>
+      )}
       {/* Background image crop handled by shared BgCropModal (rendered below) */}
 
       {ToastHost}
+
+      {/* ProfileScreen portal — same pattern as PartnerScreen invoice portal */}
+      {showProfile && createPortal(
+        <SlideScreen
+          visible={showProfile}
+          onClose={() => setShowProfile(false)}
+        >
+          {(close) => (
+            <ProfileScreen
+              onBack={close}
+              onLogout={onLogout}
+              onLangChange={() => loadData()}
+              onAvatarChange={() => { try { sessionStorage.removeItem('cached_avatar_b64'); } catch {} loadAvatar(); }}
+              onManageUsers={() => { setShowProfile(false); fromProfileRef.current = true; pushPage('usermgmt'); }}
+              refreshKey={userRefreshKey}
+            />
+          )}
+        </SlideScreen>,
+        document.body
+      )}
       </View>
     </View>
   );
