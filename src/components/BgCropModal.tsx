@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { MODAL_CARD_RADIUS } from '../sharedStyles';
 import FullscreenOverlay from './FullscreenOverlay';
+import ModalOverlay from './ModalOverlay';
 import LoadingSpinner from './LoadingSpinner';
 import { useCropCanvas } from '../hooks/useCropCanvas';
 import { useEffect, useRef, useState } from 'react';
@@ -38,10 +39,15 @@ interface BgCropModalProps {
 }
 
 /** Fullscreen crop modal used by the background image flow.
- *  Originally embedded in HomeScreen; extracted so ProfileScreen's
- *  "主题" button (which sets the background image) can use the same
- *  crop experience. Output aspect ratio is viewport-adaptive by
- *  default — the cropped image is intended to fill the screen. */
+ *
+ *  Two-overlay architecture (matching ProfileScreen's cover crop):
+ *   1. FullscreenOverlay — the crop editor (canvas + toolbar + actions)
+ *   2. ModalOverlay (springScale) — the result preview card
+ *
+ *  When the user clicks "重新裁剪" the preview ModalOverlay closes
+ *  (springScale exit) and the crop FullscreenOverlay reappears from
+ *  hidden → visible (springScale entry). Both animate independently,
+ *  giving the same bounce feel as the cover/avatar crop flows. */
 export default function BgCropModal({
   visible, onClose, imageSrc, onClearImage,
   onConfirm, onUploaded, aspectRatio, title, confirmLabel,
@@ -56,39 +62,11 @@ export default function BgCropModal({
   const [cropBlob, setCropBlob] = useState<Blob | null>(null);
   const [cropDataUrl, setCropDataUrl] = useState('');
   const [zoomSlider, setZoomSlider] = useState(0);
-  const previewScale = useRef(new Animated.Value(0.85)).current;
-  const previewFade = useRef(new Animated.Value(0)).current;
-  const cropOpacity = useRef(new Animated.Value(1)).current;
 
-  // Internal overlay visibility — decoupled from parent's `visible` so
-  // FullscreenOverlay can play its exit animation before the component
-  // unmounts (same pattern as ProfileScreen avatar/cover crop flows).
+  // Internal visibility — decoupled from parent's `visible` so both
+  // overlays can finish their exit animations before the component
+  // yields control back to the parent (same pattern as ProfileScreen).
   const [overlayShow, setOverlayShow] = useState(true);
-
-  // Preview card springScale animation on phase → 'preview'
-  useEffect(() => {
-    if (phase === 'preview') {
-      previewScale.setValue(0.85);
-      previewFade.setValue(0);
-      Animated.parallel([
-        Animated.spring(previewScale, { toValue: 1, useNativeDriver: false, bounciness: 8, speed: 14 }),
-        Animated.timing(previewFade, { toValue: 1, duration: 250, useNativeDriver: false }),
-      ]).start();
-    }
-  }, [phase]);
-
-  // Crop UI fade-in when returning from preview → cropping ("重新裁剪").
-  // cropOpacity is pre-set to 0 in the recrop button's animation callback
-  // so the crop elements render hidden, then fade in.
-  const prevPhase = useRef(phase);
-  useEffect(() => {
-    if (phase === 'cropping' && prevPhase.current === 'preview') {
-      Animated.timing(cropOpacity, { toValue: 1, duration: 280, useNativeDriver: false }).start();
-    } else if (phase === 'cropping') {
-      cropOpacity.setValue(1);
-    }
-    prevPhase.current = phase;
-  }, [phase]);
 
   const imgRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -102,9 +80,6 @@ export default function BgCropModal({
   });
 
   // ── Load image into canvas whenever parent passes a new imageSrc ──
-  // The file picker is owned by the parent (ThemePickerModal); this
-  // modal just renders whatever imageSrc it is given. Going from '' →
-  // dataURL loads the image; dataURL → '' clears the canvas.
   useEffect(() => {
     if (!imageSrc) {
       setSrc('');
@@ -116,8 +91,6 @@ export default function BgCropModal({
     const img = new Image() as HTMLImageElement;
     img.onload = () => {
       imgRef.current = img;
-      // Wait one tick for the cropping-stage View to mount + canvas to
-      // have measurable dimensions, then size the crop guide + fit.
       setTimeout(() => { setupCanvas(); fitImage(); drawCrop(); setZoomSlider(0); }, 0);
     };
     img.src = imageSrc;
@@ -131,17 +104,15 @@ export default function BgCropModal({
     }
   }, [visible]);
 
-  // ── Close handler: trigger FullscreenOverlay exit animation first,
-  //     then notify parent. Same pattern as ProfileScreen where
-  //     onClose toggles the `visible` prop and FullscreenOverlay
-  //     plays its own exit. ──
+  // ── Close handler: hide both overlays, then notify parent after exit
+  //     animations finish. ──
   const close = () => {
-    setOverlayShow(false); // triggers FullscreenOverlay exit (backdrop + scale + fade)
+    setOverlayShow(false);
     setTimeout(() => {
       setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
       onClearImage();
       onClose();
-    }, 450); // FullscreenOverlay exit is max ~220ms; 450ms gives comfortable buffer
+    }, 450);
   };
 
   // ── Canvas / crop geometry ──
@@ -222,7 +193,6 @@ export default function BgCropModal({
   };
 
   // ── Shared crop event binding (mouse / touch / wheel / resize) ──
-  // Extracted to useCropCanvas hook — also used by ProfileScreen and PartnerScreen.
   const onCropSetup = () => { setupCanvas(); clampCrop(); drawCrop(); };
   useCropCanvas({
     active: !!src && phase === 'cropping',
@@ -239,10 +209,7 @@ export default function BgCropModal({
     },
   });
 
-  // ── Render result blob. Two paths:
-  //   - 'cropping' phase (first confirm click) → render to blob + dataURL,
-  //     set phase to 'preview'. User can still go back.
-  //   - 'preview' phase (final confirm) → call onConfirm(blob).
+  // ── Render result blob ──
   const handleConfirm = async () => {
     try {
       const img = imgRef.current;
@@ -263,7 +230,6 @@ export default function BgCropModal({
         output.toBlob((b) => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/jpeg', 0.92);
       });
       if (phase === 'cropping') {
-        // Generate a dataURL for the preview thumbnail
         const dataUrl = await new Promise<string>((resolve, reject) => {
           const r = new FileReader();
           r.onload = () => resolve(r.result as string);
@@ -279,12 +245,6 @@ export default function BgCropModal({
         setPhase('uploading');
         try {
           await onConfirm(blob);
-          // Upload succeeded. Fire onUploaded (parent uses this to
-          // close the surrounding modal). Do NOT call onClose here —
-          // the parent's onConfirm wrapper already cleared our
-          // imageSrc, which made us return null already. Calling
-          // onClose would also clear the parent's imageSrc, which is
-          // a no-op but obscures intent.
           setSrc(''); setMsg(''); setPhase('cropping'); setCropBlob(null); setCropDataUrl('');
           onUploaded?.();
         } catch (e: any) {
@@ -298,40 +258,38 @@ export default function BgCropModal({
     }
   };
 
-  // Don't unmount while FullscreenOverlay is still playing its exit
-  // animation (overlayShow tracks the internal visibility).
+  // Don't unmount while overlays are still playing exit animations.
   if (!visible && !overlayShow) return null;
-  // Don't render the modal shell until an image has been picked —
-  // otherwise the user sees an empty "crop" frame before they've even
-  // chosen a photo. The parent owns the file picker and sets imageSrc
-  // before setting visible=true.
+  // Don't render anything until an image has been picked.
   if (imageSrc === '' && src === '') return null;
 
+  const cropOverlayVisible = overlayShow && src !== '' && phase === 'cropping';
+  const previewVisible = overlayShow && (phase === 'preview' || phase === 'uploading') && cropDataUrl !== '';
+
   return (
-    <FullscreenOverlay
-      visible={overlayShow}
-      onClose={close}
-      backdropColor="rgba(8,8,12,0.92)"
-    >
-      <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' as any }}>
+    <>
+      {/* ====== CROP OVERLAY ======
+           FullscreenOverlay for the canvas-based editor. Visible when
+           the user is actively cropping; hidden during preview so the
+           preview ModalOverlay takes over. Entering / leaving triggers
+           FullscreenOverlay's built-in springScale animation. */}
+      <FullscreenOverlay
+        visible={cropOverlayVisible}
+        onClose={close}
+        backdropColor="rgba(8,8,12,0.92)"
+      >
+        <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' as any }}>
 
-      {/* Header */}
-      <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any}>
-        <Text style={{ fontSize: 14, fontWeight: '600' as any, color: '#fff', letterSpacing: -0.2 }}>{title || t('editBg')}</Text>
-        <TouchableOpacity onPress={close} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
-          <Svg width="14" height="14" viewBox="0 0 1088 1024">
-            <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
-          </Svg>
-        </TouchableOpacity>
-      </View>
+          {/* Header */}
+          <View style={{ paddingTop: 10, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 } as any}>
+            <Text style={{ fontSize: 14, fontWeight: '600' as any, color: '#fff', letterSpacing: -0.2 }}>{title || t('editBg')}</Text>
+            <TouchableOpacity onPress={close} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
+              <Svg width="14" height="14" viewBox="0 0 1088 1024">
+                <Path d="M843.712 191.936l-6.08-5.568-5.184-3.84-5.696-3.328a67.712 67.712 0 0 0-80.448 11.264L520.768 416.064l-224.64-224.64-2.688-2.56c-27.968-24.32-68.224-24.256-92.672 0.128l-4.8 5.12-4.608 6.144-3.392 5.632a67.84 67.84 0 0 0 11.328 80.512L424.96 512l-227.2 227.328c-24.32 28.16-24.32 68.48 0 92.864l5.12 4.8 6.208 4.608 5.632 3.392c26.816 14.336 59.136 9.984 80.448-11.328l225.6-225.728 227.072 227.2c28.608 24.832 68.928 24 94.336-1.472l4.544-5.056 4.096-5.568a67.84 67.84 0 0 0-8.64-85.312L616.64 512.064l224.512-224.64 4.16-4.352c23.04-26.752 22.4-67.008-1.6-91.136z" fill="rgba(255,255,255,0.7)" />
+              </Svg>
+            </TouchableOpacity>
+          </View>
 
-      {/* ── CROP SECTION (stage + toolbar + actions) ──
-          Rendered as one block so the crop UI can fade in with a single
-          animated opacity. Hidden during preview so the preview card
-          renders on the clean overlay backdrop (same UX as ProfileScreen
-          cover flow). */}
-      {src !== '' && phase === 'cropping' && (
-        <Animated.View style={{ flex: 1, display: 'flex' as any, flexDirection: 'column' as any, opacity: cropOpacity as any } as any}>
           {/* Stage — live canvas crop */}
           <View style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#000' } as any} ref={stageRef as any}>
             <canvas
@@ -412,15 +370,27 @@ export default function BgCropModal({
               <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' } as any}>{confirmLabel || t('useThisBg')}</Text>
             </TouchableOpacity>
           </View>
-        </Animated.View>
-      )}
 
-      {/* Preview — shows the cropped result before upload. Action
-          buttons live INSIDE the card so the user sees the image and
-          the 重新裁剪 / 确认使用 buttons in one place, matching the
-          cover-crop preview style. */}
-      {(phase === 'preview' || phase === 'uploading') && cropDataUrl !== '' && (
-        <Animated.View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: 24, opacity: previewFade as any, transform: [{ scale: previewScale as any }] } as any}>
+          {msg !== '' && (
+            <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: '500' } as any}>{msg}</Text>
+          )}
+        </View>
+      </FullscreenOverlay>
+
+      {/* ====== PREVIEW OVERLAY ======
+           Separate ModalOverlay (springScale) for the result preview.
+           When the user clicks "重新裁剪" we set phase back to
+           'cropping' — this ModalOverlay exits (springScale) and the
+           FullscreenOverlay above enters (springScale). Same pattern
+           as ProfileScreen's cover result preview. */}
+      <ModalOverlay
+        visible={previewVisible}
+        onClose={close}
+        animation="springScale"
+        backdropColor="rgba(8,8,12,0.92)"
+        overlayStyle={{ padding: 0 }}
+      >
+        <View style={{ alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: MODAL_CARD_RADIUS, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360, width: '100%' } as any}>
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' } as any}>✓</Text>
@@ -434,26 +404,18 @@ export default function BgCropModal({
               }}
               alt=""
             />
-            {/* Hint text — sits ABOVE the action buttons, matching the
-                avatar-result preview style. */}
             <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' } as any}>{t('bgResultHint')}</Text>
-            {/* Action buttons — inside the card, under the hint text */}
             <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 4 } as any}>
               <TouchableOpacity
                 style={{ flex: 1, padding: 11, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' } as any}
                 disabled={phase === 'uploading'}
                 onPress={() => {
-                  // Pre-set crop opacity to 0 so the crop UI renders
-                  // invisible and fades in when phase switches back.
-                  cropOpacity.setValue(0);
-                  Animated.parallel([
-                    Animated.timing(previewScale, { toValue: 0.92, duration: 220, useNativeDriver: false }),
-                    Animated.timing(previewFade, { toValue: 0, duration: 180, useNativeDriver: false }),
-                  ]).start(() => {
-                    setPhase('cropping');
-                    setMsg('');
-                    setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 0);
-                  });
+                  setPhase('cropping');
+                  setMsg('');
+                  // Canvas will be set up via useCropCanvas polling when the
+                  // crop FullscreenOverlay remounts; fire a deferred draw for
+                  // immediate visual feedback.
+                  setTimeout(() => { setupCanvas(); clampCrop(); drawCrop(); }, 80);
                 }}
               >
                 <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)' } as any}>{t('recrop') || '再编辑'}</Text>
@@ -471,13 +433,8 @@ export default function BgCropModal({
               </TouchableOpacity>
             </View>
           </View>
-        </Animated.View>
-      )}
-
-      {msg !== '' && (
-        <Text style={{ fontSize: 12, color: '#ef4444', textAlign: 'center', paddingBottom: 8, fontWeight: '500' } as any}>{msg}</Text>
-      )}
-      </View>
-    </FullscreenOverlay>
+        </View>
+      </ModalOverlay>
+    </>
   );
 }
