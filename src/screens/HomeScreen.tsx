@@ -498,8 +498,8 @@ export default function HomeScreen({
         );
       })}
 
-      {/* Header — hidden when profile is showing */}
-      {!pageStack.includes('profile') && (
+      {/* Header — hidden when profile is the top page */}
+      {pageStack[pageStack.length - 1] !== 'profile' && (
       <View style={styles.header}>
         <View style={styles.headerInner}>
           <TouchableOpacity onPress={() => pushPage('profile')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
