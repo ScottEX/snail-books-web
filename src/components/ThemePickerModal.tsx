@@ -27,7 +27,7 @@ function getStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
       backgroundColor: colors.surface, borderRadius: MODAL_CARD_RADIUS,
-      width: 360, maxWidth: '90%', overflow: 'hidden' as any,
+      width: 360, maxWidth: '94%', overflow: 'hidden' as any,
     },
     header: {
       backgroundColor: colors.primary,
