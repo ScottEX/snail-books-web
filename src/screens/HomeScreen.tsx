@@ -529,9 +529,8 @@ export default function HomeScreen({
       </View>
       )}
 
-      {/* Page content — hidden whenever any sub-page is on the stack */}
-      {pageStack.length === 0 && (
-      <View style={styles.page}>
+      {/* Page content — kept mounted, hidden by display:none when sub-pages are on stack */}
+      <View style={[styles.page, { display: pageStack.length === 0 ? 'flex' : 'none' }]}>
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} onProfile={() => pushPage('profile')} refreshKey={partnerRefreshKey} />
         ) : tab === 'supply' ? (
@@ -775,7 +774,6 @@ export default function HomeScreen({
         </>
       )}
     </View>
-      )}  {/* end page-content conditional */}
 
       <ThemePickerModal
         visible={showBgModal}
@@ -791,9 +789,8 @@ export default function HomeScreen({
       {/* Shared modal */}
       <LogoutConfirmModal visible={showLogoutModal} onClose={() => setShowLogoutModal(false)} onLogout={onLogout} />
 
-      {/* Bottom Nav — hidden when any sub-page is on the stack or cart drawer is active */}
-      {pageStack.length === 0 && !showCartDrawer && (
-      <View style={styles.bottomNav}>
+      {/* Bottom Nav — kept mounted, hidden by display:none when sub-pages / cart drawer active */}
+      <View style={[styles.bottomNav, { display: pageStack.length === 0 && !showCartDrawer ? 'flex' : 'none' }]}>
         {([
           { id: 'expense', icon: NavIconExpense },
           { id: 'list', icon: NavIconList },
@@ -830,7 +827,6 @@ export default function HomeScreen({
           </TouchableOpacity>
         ))}
       </View>
-      )}
       {/* Background image crop handled by shared BgCropModal (rendered below) */}
 
       {ToastHost}
