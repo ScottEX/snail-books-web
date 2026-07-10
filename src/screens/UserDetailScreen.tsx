@@ -459,7 +459,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
           )}
 
-          {/* Linked Partner */}
+          {/* Linked Partner — hide when no partner linked and none available */}
+          {(linkedPartnerId !== null || !partnersLoaded || availablePartners.length > 0) && (
           <View style={st.section}>
             <View style={st.sectionTitleRow}>
               <Text style={st.sectionTitleText}>{t('linkedPartner')}</Text>
@@ -482,6 +483,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
               </View>
             </View>
           </View>
+          )}
 
           {/* Other Info */}
           <View style={st.section}>
