@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t } from '../i18n';
 import { MODAL_CARD_RADIUS } from '../sharedStyles';
@@ -55,6 +55,20 @@ export default function BgCropModal({
   const [cropBlob, setCropBlob] = useState<Blob | null>(null);
   const [cropDataUrl, setCropDataUrl] = useState('');
   const [zoomSlider, setZoomSlider] = useState(0);
+  const previewScale = useRef(new Animated.Value(0.85)).current;
+  const previewFade = useRef(new Animated.Value(0)).current;
+
+  // Preview card springScale animation on phase → 'preview'
+  useEffect(() => {
+    if (phase === 'preview') {
+      previewScale.setValue(0.85);
+      previewFade.setValue(0);
+      Animated.parallel([
+        Animated.spring(previewScale, { toValue: 1, useNativeDriver: false, bounciness: 8, speed: 14 }),
+        Animated.timing(previewFade, { toValue: 1, duration: 250, useNativeDriver: false }),
+      ]).start();
+    }
+  }, [phase]);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -308,7 +322,7 @@ export default function BgCropModal({
           the 重新裁剪 / 确认使用 buttons in one place, matching the
           cover-crop preview style. */}
       {phase === 'preview' && cropDataUrl !== '' && (
-        <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', padding: 24 } as any}>
+        <Animated.View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', padding: 24, opacity: previewFade as any, transform: [{ scale: previewScale as any }] } as any}>
           <View style={{ backgroundColor: 'rgba(28,28,32,0.95)', borderRadius: MODAL_CARD_RADIUS, padding: 24, alignItems: 'center', gap: 12, maxWidth: 360, width: '100%' } as any}>
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(27,122,74,0.2)', justifyContent: 'center', alignItems: 'center' } as any}>
               <Text style={{ fontSize: 20, color: '#1B7A4A' } as any}>✓</Text>
@@ -350,7 +364,7 @@ export default function BgCropModal({
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </Animated.View>
       )}
 
       {/* Toolbar (only when cropping) */}
