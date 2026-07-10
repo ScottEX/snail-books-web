@@ -602,11 +602,11 @@ const getStyles = (c: ThemeColors) => {
   return StyleSheet.create({
     container: { flex: 1 },
     ...hdr as any,
-    header: { ...hdr.header, top: 0, paddingTop: 3, paddingBottom: 3, height: 42 },
+    header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
     title: { ...hdr.title, color: c.textMain },
     body: {
       flex: 1,
-      marginTop: 42,
+      marginTop: 50,
       backgroundColor: c.bg,
     },
     avatarSection: {
