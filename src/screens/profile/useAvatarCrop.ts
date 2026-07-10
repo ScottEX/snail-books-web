@@ -122,6 +122,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
 
   // ── useCropCanvas event binding ──
   const onCropSetup = () => { setupCanvas(); clampCrop(); drawCrop(); };
+  const onCropInit = () => { setupCanvas(); fitImage(); clampCrop(); drawCrop(); };
   useCropCanvas({
     active: !!cropSrc && !showResult,
     canvasRef, stageRef, guideRef, stateRef: cropState,
@@ -129,6 +130,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
     clampCrop,
     zoomCrop,
     onSetup: onCropSetup,
+    onInit: onCropInit,
     onBeforeDrag: hidePill,
     onZoomChange: () => {
       const s = cropState.current;
@@ -148,7 +150,7 @@ export function useAvatarCrop(onAvatarChange?: () => void) {
       const src = reader.result as string;
       setCropSrc(src); setCropMsg(''); setShowResult(false);
       const img = document.createElement('img') as HTMLImageElement;
-      img.onload = () => { cropImgRef.current = img; setupCanvas(); fitImage(); drawCrop(); setZoomSlider(0); };
+      img.onload = () => { cropImgRef.current = img; setZoomSlider(0); };
       img.src = src;
     };
     reader.readAsDataURL(file);
