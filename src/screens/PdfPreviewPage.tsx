@@ -16,7 +16,7 @@ interface Props {
 }
 
 const MAX_SCALE = 4;
-const NAV_H = 56;
+const NAV_H = 50;
 
 const getCSS = (c: ThemeColors) => {
   const r = parseInt(c.bg.slice(1,3),16);
