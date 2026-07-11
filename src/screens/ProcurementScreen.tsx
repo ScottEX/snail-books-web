@@ -462,9 +462,9 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   };
 
   // ── History Detail ──
-  const openHistoryDetail = useCallback((batch: BatchRecord) => {
+  const openHistoryDetail = (batch: BatchRecord) => {
     onProcurementDetail?.(batch);
-  }, [onProcurementDetail]);
+  };
 
   // todayStr replaced by useServerDate hook
 
@@ -747,13 +747,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   };
 
   // Open drawer in edit mode, prefilled from the batch
-  const openEditBatch = useCallback((batch: BatchRecord) => {
+  const openEditBatch = (batch: BatchRecord) => {
     setEditingBatchId(batch.id);
     setEditingBatchNumber(batch.batch_number);
     setOrderDate(batch.date);
     setPayMethod((payKey(batch.payment_method) as PayMethod) || 'payWechat');
     setOrderNote(batch.note || '');
+    // Rebuild cart from batch items: look up current product by id
     const newCart: Record<number, number> = {};
+    // For SETTLED batches, snapshot the historical unit prices so the cart displays them
+    // and the backend can preserve them on save. For unsettled, leave it empty — cart
+    // shows current product prices and backend uses current prices (intentional, so
+    // the user can fix entry errors by editing).
     const newUnitPrices: Record<number, number> = {};
     const isSettled = !!batch.settled_at;
     for (const it of batch.items) {
@@ -771,11 +776,12 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
     setExistingImageUrls(batch.images || []);
     setExistingThumbUrls(batch.thumb_images || []);
     setEditSnapshot(JSON.stringify({ date: batch.date, pm: payKey(batch.payment_method), cart: newCart, note: batch.note || '', imgs: (batch.images || []).length }));
+    // Open the same drawer the new-batch flow uses
     setShowDrawer(true);
     onDrawerOpen?.();
-  }, [onDrawerOpen]);
+  };
 
-  // Expose edit function to parent ref
+  // Expose edit function to parent via ref (for ProcurementDetailScreen edit button)
   // External edit signal from ProcurementDetailScreen. Always runs on
   // the freshly-mounted instance (the one whose parent just flipped
   // setShowProcDetail(false)), so openEditBatch's setState calls all
@@ -1092,7 +1098,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
             contentContainerStyle={styles.historyList}
             onEndReached={hasMore ? onEndReached : undefined}
             onEndReachedThreshold={0.4}
-            renderItem={({ item: batch }: { item: BatchRecord }) => (
+            renderItem={({ item: batch }) => (
             <View style={styles.historyCard}>
               <TouchableOpacity onPress={() => openHistoryDetail(batch)} activeOpacity={0.7}>
                 <View style={styles.histHead}>
