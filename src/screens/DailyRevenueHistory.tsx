@@ -111,7 +111,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       return `${months[+m-1]} ${+day}, ${y}`;
     }
-    return `${y}/${m}/${day}`;
+    return `${y}年${+m}月${+day}日`;
   };
 
 
