@@ -331,15 +331,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // Auto-clear search when switching between sub-tabs
   useEffect(() => { setSearch(''); }, [subTab]);
 
-  // Hide webkit scrollbar on scrollable sections
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const style = document.createElement('style');
-    style.textContent = '.proc-scroll-wrap ::-webkit-scrollbar{display:none}.proc-scroll-wrap *{scrollbar-width:none}';
-    document.head.appendChild(style);
-    return () => { document.head.removeChild(style); };
-  }, []);
-
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [cart, setCart] = useState<Record<number, number>>({});
@@ -945,6 +936,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       </View>
 
       <View {...{ className: 'proc-scroll-wrap' } as any} style={{ flex: 1 }}>
+        <style>{'.proc-scroll-wrap ::-webkit-scrollbar{display:none}.proc-scroll-wrap *{scrollbar-width:none}'}</style>
 
       {/* ── New Order ── */}
       {subTab === 'new' && (
