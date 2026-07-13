@@ -337,7 +337,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack 
     const dlBlob = new Blob([blob], { type: 'application/octet-stream' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(dlBlob);
-    a.download = `procurement_${batchId}.pdf`;
+    a.download = `procurement_${batchId}_${getLang()}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -358,7 +358,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack 
       }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `procurement_${batchId}.png`;
+      a.download = `procurement_${batchId}_${getLang()}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
