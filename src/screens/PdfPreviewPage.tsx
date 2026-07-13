@@ -344,30 +344,28 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack 
   }, [batchId, title]);
 
   const doDownloadImage = useCallback(async () => {
-    const canvas = document.querySelector('.pv-pdf-wrap canvas') as HTMLCanvasElement;
-    if (!canvas) return;
-    const dataUrl = canvas.toDataURL('image/png');
-    const resp = await fetch(dataUrl);
-    const blob = await resp.blob();
-    const file = new File([blob], `procurement_${batchId}.png`, { type: 'image/png' });
-    // 1. Try real file sharing
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title });
-        return;
-      } catch (e) {
-        if ((e as DOMException).name === 'AbortError') return;
+    const pngUrl = supplier
+      ? `/api/procurement-batches/${batchId}/png?supplier=${encodeURIComponent(supplier)}`
+      : `/api/procurement-batches/${batchId}/png`;
+    try {
+      const res = await fetch(pngUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const file = new File([blob], `procurement_${batchId}.png`, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], title }); return; }
+        catch (e) { if ((e as DOMException).name === 'AbortError') return; }
       }
-    }
-    // 2. Fallback: download
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = `procurement_${batchId}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }, [batchId, title]);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `procurement_${batchId}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (e) { /* silently fail */ }
+  }, [batchId, supplier, title]);
 
+  /* ── Zoom ── */
   const stepZoom = useCallback((delta: number) => {
     const g = gRef.current;
     g.scale = Math.max(1, Math.min(MAX_SCALE, g.scale + delta));
