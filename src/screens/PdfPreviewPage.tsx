@@ -323,7 +323,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack 
   const doDownload = useCallback(async () => {
     const blob = pdfBlobRef.current;
     if (!blob) return;
-    const file = new File([blob], `procurement_${batchId}.pdf`, { type: 'application/pdf' });
+    const file = new File([blob], `procurement_${batchId}_${getLang()}.pdf`, { type: 'application/pdf' });
     // 1. Try real file sharing (works on HTTPS, Chrome, Android)
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
@@ -351,7 +351,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack 
       const res = await fetch(pngUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-      const file = new File([blob], `procurement_${batchId}.png`, { type: 'image/png' });
+      const file = new File([blob], `procurement_${batchId}_${getLang()}.png`, { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try { await navigator.share({ files: [file], title }); return; }
         catch (e) { if ((e as DOMException).name === 'AbortError') return; }
