@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   scrollContent: { alignItems: 'center' },
   page: { alignItems: 'center', justifyContent: 'center' },
   close: {
-    position: 'absolute', top: 14, right: 20, zIndex: 10,
+    position: 'absolute', top: 7, right: 20, zIndex: 10,
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
