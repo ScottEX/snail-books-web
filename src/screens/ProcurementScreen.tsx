@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   FlatList, Image, ActivityIndicator, StyleSheet, Animated, Dimensions
 } from 'react-native';
+import { createPortal } from 'react-dom';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
@@ -1633,14 +1634,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       )}
       {ToastHost}
 
-      {/* Image preview */}
-      {preview && (
+      {/* Image preview — portal to body so it renders above nav bar */}
+      {preview && createPortal(
         <ImagePreview
           images={preview.images}
           initialIdx={preview.idx}
           visible={true}
           onClose={closePreview}
-        />
+        />,
+        document.body,
       )}
     </View>
   );
