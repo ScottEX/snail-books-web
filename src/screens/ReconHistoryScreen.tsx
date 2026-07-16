@@ -359,7 +359,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           transformOrigin: 'top left' as any,
         }}>
         <View style={{
-          backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
+          backgroundColor: colors.surface, borderRadius: 10,
           overflow: 'hidden' as any,
         }}>
           <ScrollView style={{ maxHeight: 240 }} showsVerticalScrollIndicator={false}>
