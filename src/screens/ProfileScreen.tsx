@@ -485,11 +485,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     <View style={st.root} {...swipeBack}>
       <ScrollView style={st.scroll} showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}>
         {/* Cover Image — nav & controls overlaid on top */}
+        <Animated.View style={{ marginTop: scrollY.interpolate({
+          inputRange: [-200, 0],
+          outputRange: [-200, 0],
+          extrapolate: 'clamp' as any,
+        }) }}>
         <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
             <Animated.Image
               source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }}
-              style={[st.coverImg, { opacity: coverOpacity, transform: [{ scale: pullScale as any }, { translateY: pullTranslateY as any }] }]}
+              style={[st.coverImg, { opacity: coverOpacity, transform: [{ scale: pullScale as any }], transformOrigin: 'top center' as any }]}
             />
           ) : (
             <View style={st.coverGradient}>
@@ -537,6 +542,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             )}
           </TouchableOpacity>
         </TouchableOpacity>
+        </Animated.View>
 
         {/* ── Profile head ── */}
         <View style={st.profileHead}>
