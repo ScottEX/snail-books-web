@@ -85,16 +85,17 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [stickyHeaderVisible, setStickyHeaderVisible] = useState(false);
   const stickyOpacity = useRef(new Animated.Value(0)).current;
 
-  // Pull-down cover stretch
+  // Pull-down cover stretch (all transforms for GPU acceleration)
   const scrollY = useRef(new Animated.Value(0)).current;
   const baseCoverHeight = 260;
-  const maxStretch = 200; // max extra pixels on pull-down
-  const coverHeight = scrollY.interpolate({
+  const maxStretch = 200;
+  // Scale Y instead of changing height — keeps layout stable, GPU-accelerated
+  const coverScaleY = scrollY.interpolate({
     inputRange: [-maxStretch, 0],
-    outputRange: [baseCoverHeight + maxStretch, baseCoverHeight],
+    outputRange: [(baseCoverHeight + maxStretch) / baseCoverHeight, 1],
     extrapolate: 'clamp' as any,
   });
-  // Slide cover up when scrolling down so it scrolls out of view
+  // Slide cover up when scrolling down
   const coverTranslate = scrollY.interpolate({
     inputRange: [0, baseCoverHeight],
     outputRange: [0, -baseCoverHeight],
@@ -494,8 +495,9 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       {/* Fixed cover — stays at top, stretches on pull-down */}
       <Animated.View style={{
         position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 10,
-        height: coverHeight, overflow: 'hidden' as any,
-        transform: [{ translateY: coverTranslate as any }],
+        height: baseCoverHeight, overflow: 'hidden' as any,
+        transform: [{ scaleY: coverScaleY as any }, { translateY: coverTranslate as any }],
+        transformOrigin: 'top center' as any,
       }}>
         <TouchableOpacity style={[st.coverWrap, { height: '100%' } as any]} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
