@@ -86,17 +86,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const stickyOpacity = useRef(new Animated.Value(0)).current;
 
   // Pull-down cover stretch
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const pullScale = scrollY.interpolate({
-    inputRange: [-200, 0],
-    outputRange: [1 + 200 / 260, 1],
-    extrapolate: 'clamp' as any,
-  });
-  const pullTranslateY = scrollY.interpolate({
-    inputRange: [-200, 0],
-    outputRange: [-200, 0],
-    extrapolate: 'clamp' as any,
-  });
+  const [pullOffset, setPullOffset] = useState(0);
 
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount.
@@ -467,7 +457,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   const handleScroll = (e: any) => {
     const y = e.nativeEvent.contentOffset.y;
-    scrollY.setValue(y);
+    setPullOffset(y < 0 ? -y : 0);
     const threshold = 260; // cover height
     const shouldShow = y >= threshold;
     if (shouldShow !== stickyHeaderVisible) {
@@ -485,17 +475,18 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
     <View style={st.root} {...swipeBack}>
       <ScrollView style={st.scroll} showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}>
         {/* Cover Image — nav & controls overlaid on top */}
-        <Animated.View style={{ marginTop: scrollY.interpolate({
-          inputRange: [-200, 0],
-          outputRange: [-200, 0],
-          extrapolate: 'clamp' as any,
-        }) }}>
         <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
-            <Animated.Image
-              source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }}
-              style={[st.coverImg, { opacity: coverOpacity, transform: [{ scale: pullScale as any }], transformOrigin: 'top center' as any }]}
-            />
+            <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' as any }}>
+              <Image
+                source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }}
+                style={[st.coverImg, {
+                  opacity: coverOpacity,
+                  transform: pullOffset > 0 ? `scale(${1 + pullOffset / 260})` : 'none' as any,
+                  transformOrigin: 'top center' as any,
+                } as any]}
+              />
+            </View>
           ) : (
             <View style={st.coverGradient}>
               <Svg width="100%" height="100%" viewBox="0 0 360 180" preserveAspectRatio="none">
@@ -542,7 +533,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             )}
           </TouchableOpacity>
         </TouchableOpacity>
-        </Animated.View>
 
         {/* ── Profile head ── */}
         <View style={st.profileHead}>
