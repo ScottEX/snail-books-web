@@ -89,7 +89,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const scrollY = useRef(new Animated.Value(0)).current;
   const coverSlide = scrollY.interpolate({ inputRange: [-200, 0], outputRange: [-200, 0], extrapolate: 'clamp' as any });
   const imgScale = scrollY.interpolate({ inputRange: [-200, 0], outputRange: [1 + 200 / 260, 1], extrapolate: 'clamp' as any });
-  const imgShift = Animated.multiply(Animated.subtract(imgScale, 1), -130);
+  const imgShift = scrollY.interpolate({ inputRange: [-200, 0], outputRange: [-100, 0], extrapolate: 'clamp' as any });
 
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount.
