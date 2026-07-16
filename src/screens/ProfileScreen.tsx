@@ -85,11 +85,21 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [stickyHeaderVisible, setStickyHeaderVisible] = useState(false);
   const stickyOpacity = useRef(new Animated.Value(0)).current;
 
-  // Pull-down: cover slides up, image stretches from top
+  // Pull-down cover stretch
   const scrollY = useRef(new Animated.Value(0)).current;
-  const coverSlide = scrollY.interpolate({ inputRange: [-200, 0], outputRange: [-200, 0], extrapolate: 'clamp' as any });
-  const imgScale = scrollY.interpolate({ inputRange: [-200, 0], outputRange: [1 + 200 / 260, 1], extrapolate: 'clamp' as any });
-  const imgShift = scrollY.interpolate({ inputRange: [-200, 0], outputRange: [-100, 0], extrapolate: 'clamp' as any });
+  const baseCoverHeight = 260;
+  const maxStretch = 200; // max extra pixels on pull-down
+  const coverHeight = scrollY.interpolate({
+    inputRange: [-maxStretch, 0],
+    outputRange: [baseCoverHeight + maxStretch, baseCoverHeight],
+    extrapolate: 'clamp' as any,
+  });
+  // Slide cover up when scrolling down so it scrolls out of view
+  const coverTranslate = scrollY.interpolate({
+    inputRange: [0, baseCoverHeight],
+    outputRange: [0, -baseCoverHeight],
+    extrapolate: 'clamp' as any,
+  });
 
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount.
@@ -460,25 +470,36 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { listener: (e: any) => {
+    {
+      listener: (e: any) => {
         const y = e.nativeEvent.contentOffset.y;
-        const s = y >= 260;
-        if (s !== stickyHeaderVisible) { setStickyHeaderVisible(s); Animated.timing(stickyOpacity, { toValue: s?1:0, duration:200, useNativeDriver:true }).start(); }
-      }, useNativeDriver: false }
+        const threshold = baseCoverHeight;
+        const shouldShow = y >= threshold;
+        if (shouldShow !== stickyHeaderVisible) {
+          setStickyHeaderVisible(shouldShow);
+          Animated.timing(stickyOpacity, {
+            toValue: shouldShow ? 1 : 0,
+            duration: 200,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+      useNativeDriver: false,
+    }
   );
 
 
   return (
     <View style={st.root} {...swipeBack}>
-      <ScrollView style={st.scroll} showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}>
-        {/* Cover — slides up on pull-down, image stretches from top */}
-        <Animated.View style={{ transform: [{ translateY: coverSlide as any }] }}>
-        <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
+      {/* Fixed cover — stays at top, stretches on pull-down */}
+      <Animated.View style={{
+        position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 10,
+        height: coverHeight, overflow: 'hidden' as any,
+        transform: [{ translateY: coverTranslate as any }],
+      }}>
+        <TouchableOpacity style={[st.coverWrap, { height: '100%' } as any]} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' } as any}>
-              <Animated.Image source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }}
-                style={[st.coverImg, { opacity: coverOpacity, transform: [{ scale: imgScale as any }, { translateY: imgShift as any }] }]} />
-            </View>
+            <Image source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }} style={[st.coverImg, { opacity: coverOpacity }]} />
           ) : (
             <View style={st.coverGradient}>
               <Svg width="100%" height="100%" viewBox="0 0 360 180" preserveAspectRatio="none">
@@ -511,22 +532,36 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <CameraIcon color="#fff" size={14} strokeWidth={2} />
             <Text style={st.coverOverlayText}>{t('editCover')}</Text>
           </View>
-
-          {/* Avatar — right side, half overlapping cover bottom */}
-          <TouchableOpacity
-            onPress={(e: any) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
-            style={st.avatarFloat}
-            activeOpacity={0.8}
-          >
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={st.avatar} key={avatarKey} />
-            ) : (
-              <Image source={{ uri: '/img/logo.jpg' }} style={st.avatar} />
-            )}
-          </TouchableOpacity>
         </TouchableOpacity>
 
-        </Animated.View>
+        {/* Sticky header — appears when scrolled past cover */}
+        {stickyHeaderVisible && (
+          <Animated.View style={[st.stickyHeader, { position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 101, opacity: stickyOpacity }]}>
+            <TouchableOpacity onPress={onBack} style={st.stickyBackBtn}>
+              <BackArrow color={colors.textMain} />
+            </TouchableOpacity>
+            <Text style={st.stickyTitle}>{t('editProfile')}</Text>
+          </Animated.View>
+        )}
+      </Animated.View>
+
+      {/* Avatar — positioned below cover, overlaps bottom edge */}
+      <TouchableOpacity
+        onPress={(e: any) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
+        style={[st.avatarFloat, {
+          position: 'absolute' as any, right: 20, top: baseCoverHeight - 40, zIndex: 11,
+        } as any]}
+        activeOpacity={0.8}
+      >
+        {avatarUrl ? (
+          <Image source={{ uri: avatarUrl }} style={st.avatar} key={avatarKey} />
+        ) : (
+          <Image source={{ uri: '/img/logo.jpg' }} style={st.avatar} />
+        )}
+      </TouchableOpacity>
+
+      <ScrollView style={st.scroll} showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}
+        contentContainerStyle={{ paddingTop: baseCoverHeight }}>
 
         {/* ── Profile head ── */}
         <View style={st.profileHead}>
@@ -793,16 +828,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
         )}
       </ScrollView>
-
-      {/* Sticky header — appears when cover scrolls out of view */}
-      {stickyHeaderVisible && (
-        <Animated.View style={[st.stickyHeader, { opacity: stickyOpacity }]}>
-          <TouchableOpacity onPress={onBack} style={st.stickyBackBtn}>
-            <BackArrow color={colors.textMain} />
-          </TouchableOpacity>
-          <Text style={st.stickyTitle}>{t('editProfile')}</Text>
-        </Animated.View>
-      )}
 
       {/* Hidden file inputs */}
       <input type="file" accept="image/*" ref={coverInputRef as any} style={{ display: 'none' }} onChange={handleCoverSelect} />
