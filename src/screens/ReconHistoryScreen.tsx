@@ -72,7 +72,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
       const el = userBtnRef.current;
       if (typeof el.getBoundingClientRect === 'function') {
         const r = el.getBoundingClientRect();
-        setDropPos({ x: r.left - 6, y: r.bottom + 4, w: 160 });
+        setDropPos({ x: r.left - 8, y: r.bottom + 4, w: 160 });
       } else if (el.measure) {
         el.measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
           setDropPos({ x: px, y: py + 34 + 4, w: _w });
