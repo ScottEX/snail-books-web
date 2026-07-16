@@ -532,33 +532,31 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <CameraIcon color="#fff" size={14} strokeWidth={2} />
             <Text style={st.coverOverlayText}>{t('editCover')}</Text>
           </View>
-        </TouchableOpacity>
 
-        {/* Sticky header — appears when scrolled past cover */}
-        {stickyHeaderVisible && (
-          <Animated.View style={[st.stickyHeader, { position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 101, opacity: stickyOpacity }]}>
-            <TouchableOpacity onPress={onBack} style={st.stickyBackBtn}>
-              <BackArrow color={colors.textMain} />
-            </TouchableOpacity>
-            <Text style={st.stickyTitle}>{t('editProfile')}</Text>
-          </Animated.View>
-        )}
+          {/* Avatar — right side, half overlapping cover bottom */}
+          <TouchableOpacity
+            onPress={(e: any) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
+            style={st.avatarFloat}
+            activeOpacity={0.8}
+          >
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={st.avatar} key={avatarKey} />
+            ) : (
+              <Image source={{ uri: '/img/logo.jpg' }} style={st.avatar} />
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Animated.View>
 
-      {/* Avatar — positioned below cover, overlaps bottom edge */}
-      <TouchableOpacity
-        onPress={(e: any) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
-        style={[st.avatarFloat, {
-          position: 'absolute' as any, right: 20, top: baseCoverHeight - 40, zIndex: 11,
-        } as any]}
-        activeOpacity={0.8}
-      >
-        {avatarUrl ? (
-          <Image source={{ uri: avatarUrl }} style={st.avatar} key={avatarKey} />
-        ) : (
-          <Image source={{ uri: '/img/logo.jpg' }} style={st.avatar} />
-        )}
-      </TouchableOpacity>
+      {/* Sticky header — outside cover layer so it stays visible */}
+      {stickyHeaderVisible && (
+        <Animated.View style={[st.stickyHeader, { position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 101, opacity: stickyOpacity }]}>
+          <TouchableOpacity onPress={onBack} style={st.stickyBackBtn}>
+            <BackArrow color={colors.textMain} />
+          </TouchableOpacity>
+          <Text style={st.stickyTitle}>{t('editProfile')}</Text>
+        </Animated.View>
+      )}
 
       <ScrollView style={st.scroll} showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}
         contentContainerStyle={{ paddingTop: baseCoverHeight }}>
