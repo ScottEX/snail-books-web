@@ -87,6 +87,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   // Pull-down cover stretch
   const [pullOffset, setPullOffset] = useState(0);
+  const touchStartY = useRef(0);
+  const scrollPos = useRef(0);
 
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount.
@@ -457,6 +459,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
   const handleScroll = (e: any) => {
     const y = e.nativeEvent.contentOffset.y;
+    scrollPos.current = y;
     setPullOffset(y < 0 ? -y : 0);
     const threshold = 260; // cover height
     const shouldShow = y >= threshold;
@@ -472,21 +475,37 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
 
   return (
-    <View style={st.root} {...swipeBack}>
-      <ScrollView style={st.scroll} showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}>
-        {/* Cover Image — nav & controls overlaid on top */}
-        <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
+    <View style={st.root} {...swipeBack}
+      onTouchStart={(e: any) => {
+        touchStartY.current = e.nativeEvent.pageY;
+        // Only enable pull-down when at the very top of the page
+        if (scrollPos.current > 10) return;
+      }}
+      onTouchMove={(e: any) => {
+        if (scrollPos.current > 10) return;
+        const dy = e.nativeEvent.pageY - touchStartY.current;
+        if (dy > 10) setPullOffset(Math.min(dy, 200));
+      }}
+      onTouchEnd={() => {
+        if (pullOffset > 0) setPullOffset(0);
+      }}
+    >
+      {/* Fixed cover — stays at top, stretches on pull-down */}
+      <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 10,
+        height: 260 + pullOffset,
+        overflow: 'hidden' as any,
+        transition: pullOffset === 0 ? 'height 0.35s ease-out' : 'none' as any,
+      }}>
+        <TouchableOpacity
+          style={[st.coverWrap, { height: '100%' } as any]}
+          onPress={() => coverInputRef.current?.click()}
+          activeOpacity={0.9}
+        >
           {coverUrl ? (
-            <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' as any }}>
-              <Image
-                source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }}
-                style={[st.coverImg, {
-                  opacity: coverOpacity,
-                  transform: pullOffset > 0 ? `scale(${1 + pullOffset / 260})` : 'none' as any,
-                  transformOrigin: 'top center' as any,
-                } as any]}
-              />
-            </View>
+            <Image
+              source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }}
+              style={[st.coverImg, { opacity: coverOpacity }]}
+            />
           ) : (
             <View style={st.coverGradient}>
               <Svg width="100%" height="100%" viewBox="0 0 360 180" preserveAspectRatio="none">
@@ -533,6 +552,25 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             )}
           </TouchableOpacity>
         </TouchableOpacity>
+
+        {/* Sticky header inside fixed cover */}
+        {stickyHeaderVisible && (
+          <Animated.View style={[st.stickyHeader, { position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 101, opacity: stickyOpacity }]}>
+            <TouchableOpacity onPress={onBack} style={st.stickyBackBtn}>
+              <BackArrow color={colors.textMain} />
+            </TouchableOpacity>
+            <Text style={st.stickyTitle}>{t('editProfile')}</Text>
+          </Animated.View>
+        )}
+      </View>
+
+      <ScrollView
+        style={[st.scroll, { marginTop: 260 + pullOffset } as any]}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
 
         {/* ── Profile head ── */}
         <View style={st.profileHead}>
@@ -799,16 +837,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
         )}
       </ScrollView>
-
-      {/* Sticky header — appears when cover scrolls out of view */}
-      {stickyHeaderVisible && (
-        <Animated.View style={[st.stickyHeader, { opacity: stickyOpacity }]}>
-          <TouchableOpacity onPress={onBack} style={st.stickyBackBtn}>
-            <BackArrow color={colors.textMain} />
-          </TouchableOpacity>
-          <Text style={st.stickyTitle}>{t('editProfile')}</Text>
-        </Animated.View>
-      )}
 
       {/* Hidden file inputs */}
       <input type="file" accept="image/*" ref={coverInputRef as any} style={{ display: 'none' }} onChange={handleCoverSelect} />
