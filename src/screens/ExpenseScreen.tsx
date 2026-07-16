@@ -661,7 +661,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                   <Text style={{ fontSize: FONTS.microBold.size, color: colors.primary, fontWeight: FONTS.microBold.weight }}>
                     {feeMonth === 'all' ? t('feeAllMonths') : fmtMonth(feeMonth.year, feeMonth.month)}
                   </Text>
-                  <Svg width={14} height={14} viewBox="0 0 1024 1024" style={{ marginLeft: 2 }}>
+                  <Svg width={14} height={14} viewBox="0 0 1024 1024" style={{ marginLeft: 2, transform: [{ rotate: feeMonthPicker.open ? '180deg' : '0deg' }] }}>
                     <Path d="M836.899 399.237l-218.01 335.037c-47.506 73.007-166.272 73.007-213.778 0l-218.01-335.037C139.595 326.23 198.977 234.97 293.99 234.97h436.02c95.013 0 154.395 91.26 106.889 164.267z" fill={colors.primary} />
                   </Svg>
                 </TouchableOpacity>
@@ -1104,7 +1104,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 <Text style={{ fontSize: FONTS.microBold.size, color: colors.primary, fontWeight: FONTS.microBold.weight }}>
                   {feeHistoryFilter === 'all' ? t('feeAllMonths') : fmtMonth(feeHistoryFilter.year, feeHistoryFilter.month)}
                 </Text>
-                <Svg width={14} height={14} viewBox="0 0 1024 1024" style={{ marginLeft: 2 }}>
+                <Svg width={14} height={14} viewBox="0 0 1024 1024" style={{ marginLeft: 2, transform: [{ rotate: feeHistoryFilterPicker.open ? '180deg' : '0deg' }] }}>
                     <Path d="M836.899 399.237l-218.01 335.037c-47.506 73.007-166.272 73.007-213.778 0l-218.01-335.037C139.595 326.23 198.977 234.97 293.99 234.97h436.02c95.013 0 154.395 91.26 106.889 164.267z" fill={colors.primary} />
                   </Svg>
 
