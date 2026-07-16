@@ -467,13 +467,13 @@ function ZoomableImage({
 const styles = StyleSheet.create({
   overlay: {
     position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: 'rgba(0,0,0,0.95)',
   },
   scrollView: { flex: 1 },
   scrollContent: { alignItems: 'center' },
   page: { alignItems: 'center', justifyContent: 'center' },
   close: {
-    position: 'absolute', top: 48, right: 20, zIndex: 10,
+    position: 'absolute', top: 7, right: 20, zIndex: 10,
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',

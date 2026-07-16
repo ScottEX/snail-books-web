@@ -1158,24 +1158,24 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Month picker dropdown — animated spring popover */}
       {/* ── Fee month picker (springScale popup) ── */}
       <ModalOverlay visible={feeMonthPicker.open} onClose={feeMonthPicker.hide} animation="springScale"
-        contentStyle={pickerPos.top ? { position: 'absolute' as any, top: pickerPos.top, left: pickerPos.left, width: 140, alignItems: 'stretch' } as any : {}}
+        contentStyle={pickerPos.top ? { position: 'absolute' as any, top: pickerPos.top, left: pickerPos.left, width: 160, alignItems: 'stretch' } as any : {}}
       >
         {pickerPos.top ? (
-          <div style={{ backgroundColor: colors.surface, borderRadius: 14, padding: '6px 0', maxHeight: 240, overflowY: 'auto' as any }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: 10, overflow: 'hidden' as any }}>
+            <ScrollView style={{ maxHeight: 240 }} showsVerticalScrollIndicator={false}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeMonth === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 10, backgroundColor: feeMonth === 'all' ? withAlpha(colors.primary, 0.15) : 'transparent', borderRadius: 8, marginHorizontal: 4, marginTop: 4 }}
               onPress={() => { setFeeMonth('all'); feeMonthPicker.hide(); }}
               activeOpacity={0.6}
             >
-              <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeMonth === 'all' ? '700' : '500', color: feeMonth === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeMonth === 'all' ? '700' : '400', color: feeMonth === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
             </TouchableOpacity>
-            <View style={{ height: 1, backgroundColor: colors.secondary, marginHorizontal: 12, marginVertical: 4 }} />
-            {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
+            {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any, i: number, arr: any[]) => {
               const isSel = feeMonth !== 'all' && feeMonth.year === f.year && feeMonth.month === f.month;
               return (
                 <TouchableOpacity
                   key={`${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 10, backgroundColor: isSel ? withAlpha(colors.primary, 0.15) : 'transparent', borderRadius: 8, marginHorizontal: 4, marginBottom: i === arr.length - 1 ? 4 : 0 }}
                   onPress={() => { setFeeMonth({ year: f.year, month: f.month }); feeMonthPicker.hide(); }}
                   activeOpacity={0.6}
                 >
@@ -1183,7 +1183,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </TouchableOpacity>
               );
             })}
-          </div>
+            </ScrollView>
+          </View>
         ) : null}
       </ModalOverlay>
       {/* Fee history filter dropdown — animated to match platform fee picker */}
@@ -1204,32 +1205,29 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             left: feeHistoryPickerPos.left || 10,
             zIndex: 9999,
             backgroundColor: colors.surface,
-            borderRadius: 14,
-
-            paddingVertical: 6,
-            width: 140,
-            maxHeight: 240,
-            overflow: 'scroll' as any,
+            borderRadius: 10,
+            overflow: 'hidden' as any,
+            width: 160,
             opacity: feeHistoryPickerAnim,
             transform: [{ scale: feeHistoryPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1], extrapolate: 'clamp' }) }, { translateY: feeHistoryPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0], extrapolate: 'clamp' }) }],
           }}>
+            <ScrollView style={{ maxHeight: 240 }} showsVerticalScrollIndicator={false}>
             <TouchableOpacity
-              style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: feeHistoryFilter === 'all' ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 10, backgroundColor: feeHistoryFilter === 'all' ? withAlpha(colors.primary, 0.15) : 'transparent', borderRadius: 8, marginHorizontal: 4, marginTop: 4 }}
               onPress={() => {
                 setFeeHistoryFilter('all');
                 Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeHistoryFilterPicker.hide());
               }}
               activeOpacity={0.6}
             >
-              <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeHistoryFilter === 'all' ? '700' : '500', color: feeHistoryFilter === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
+              <Text style={{ fontSize: FONTS.sub.size, fontWeight: feeHistoryFilter === 'all' ? '700' : '400', color: feeHistoryFilter === 'all' ? colors.primary : colors.textMain }}>{t('feeAllMonths')}</Text>
             </TouchableOpacity>
-            <View style={{ height: 1, backgroundColor: colors.secondary, marginHorizontal: 12, marginVertical: 4 }} />
-            {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any) => {
+            {[...allFees].filter((f: any) => f.year > 2024 || (f.year === 2024 && f.month >= 5)).sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month)).map((f: any, i: number, arr: any[]) => {
               const isSel = feeHistoryFilter !== 'all' && feeHistoryFilter.year === f.year && feeHistoryFilter.month === f.month;
               return (
                 <TouchableOpacity
                   key={`hf-${f.year}-${f.month}`}
-                  style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: isSel ? withAlpha(colors.danger, 0.1) : 'transparent', borderRadius: 8, marginHorizontal: 4 }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 10, backgroundColor: isSel ? withAlpha(colors.primary, 0.15) : 'transparent', borderRadius: 8, marginHorizontal: 4, marginBottom: i === arr.length - 1 ? 4 : 0 }}
                   onPress={() => {
                     setFeeHistoryFilter({ year: f.year, month: f.month });
                     Animated.timing(feeHistoryPickerAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => feeHistoryFilterPicker.hide());
@@ -1240,6 +1238,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                 </TouchableOpacity>
               );
             })}
+            </ScrollView>
           </Animated.View>
         </>,
         document.body,

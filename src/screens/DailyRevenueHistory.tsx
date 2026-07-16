@@ -111,7 +111,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       return `${months[+m-1]} ${+day}, ${y}`;
     }
-    return `${y}/${m}/${day}`;
+    return `${y}年${+m}月${+day}日`;
   };
 
 
@@ -158,7 +158,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
                     onChange={(e: any) => { if (sd.isFuture(e.target.value)) { dateFromRef.current!.value = dateFrom; setDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setDateFrom(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
+                <Text style={{ color: colors.textSub, marginHorizontal: 2 }}>→</Text>
                 <View style={st.filterDateWrap}>
                   {dateTo ? (
                     <Text style={st.filterDateText}>{fmtDate(dateTo)}</Text>
@@ -198,7 +198,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 170 : 54, paddingHorizontal: 16, paddingBottom: 20 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 145 : 4, paddingHorizontal: 16, paddingBottom: 20 }}>
         {loading ? (
           <LoadingSpinner />
         ) : records.length === 0 ? (
@@ -287,7 +287,7 @@ const getSt = (colors: ThemeColors) => {
   ...hdr as any,
   header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
 
-  filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  filterField: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   filterLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub, width: 64, flexShrink: 0 },
   filterDateRange: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterDateWrap: {
@@ -296,13 +296,13 @@ const getSt = (colors: ThemeColors) => {
     borderWidth: 1, borderColor: colors.secondary,
     justifyContent: 'center', paddingHorizontal: 8,
   },
-  filterDateText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
-  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub },
+  filterDateText: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.primary },
+  filterDatePlaceholder: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: withAlpha(colors.primary, 0.5) },
   filterDateHidden: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     opacity: 0.01,  width: '100%', height: '100%',
   },
-  filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  filterActions: { flexDirection: 'row', gap: 8, paddingTop: 6 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.secondary, borderRadius: 8,
@@ -316,7 +316,7 @@ const getSt = (colors: ThemeColors) => {
   filterApplyBtnText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
   filterApplyBtnTextDisabled: { color: colors.textSub },
 
-  list: { flex: 1 },
+  list: { flex: 1, marginTop: 50 },
 
   card: {
     backgroundColor: colors.surface, borderRadius: 12,

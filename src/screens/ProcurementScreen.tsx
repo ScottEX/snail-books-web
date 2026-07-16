@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   FlatList, Image, ActivityIndicator, StyleSheet, Animated, Dimensions
 } from 'react-native';
+import { createPortal } from 'react-dom';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
@@ -28,6 +29,8 @@ import TrashIcon from '../components/icons/TrashIcon';
 import ReceiptUpload from '../components/ReceiptUpload';
 import PaymentMethodChips from '../components/PaymentMethodChips';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
+import ImagePreview from '../components/ImagePreview';
+import { useImagePreview } from '../hooks/useImagePreview';
 import PlusIcon from '../components/icons/PlusIcon';
 import { fmtDecInput } from '../utils/numbers';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -195,7 +198,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 
   cartBar: {
     position: 'absolute' as const, bottom: 68, left: 0, right: 0, zIndex: 100,
-    marginHorizontal: 12, backgroundColor: withAlpha(c.surface, 0.65), borderRadius: 14,
+    marginHorizontal: 0, backgroundColor: withAlpha(c.surface, 0.65), borderRadius: 14,
     borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     // @ts-ignore
     backdropFilter: 'saturate(180%) blur(20px)',
@@ -209,8 +212,8 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   cartInfoText: { fontSize: FONTS.micro.size, color: c.textSub },
   cartInfoCount: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: c.primary },
   cartTotal: { fontSize: FONTS.h2.size, fontWeight: FONTS.h2.weight, color: c.primary },
-  cartClearBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: withAlpha(c.primary, 0.08) },
-  cartClearBtnText: { fontSize: FONTS.micro.size, color: c.primary, fontWeight: FONTS.microBold.weight },
+  cartClearBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: withAlpha(c.danger, 0.08) },
+  cartClearBtnText: { fontSize: FONTS.micro.size, color: c.danger, fontWeight: FONTS.microBold.weight },
 
   // Animated drawer — slides up
   drawerHead: { flexDirection: 'column' as const, alignItems: 'flex-start' as const, paddingVertical: 14, paddingHorizontal: 20, backgroundColor: c.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
@@ -331,15 +334,6 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // Auto-clear search when switching between sub-tabs
   useEffect(() => { setSearch(''); }, [subTab]);
 
-  // Hide webkit scrollbar on scrollable sections
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const style = document.createElement('style');
-    style.textContent = '.proc-scroll-wrap ::-webkit-scrollbar{display:none}.proc-scroll-wrap *{scrollbar-width:none}';
-    document.head.appendChild(style);
-    return () => { document.head.removeChild(style); };
-  }, []);
-
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [cart, setCart] = useState<Record<number, number>>({});
@@ -382,6 +376,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   // Server-side image URLs kept across edit (new uploads get appended)
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [existingThumbUrls, setExistingThumbUrls] = useState<string[]>([]);
+  const { preview, openPreview, closePreview } = useImagePreview();
   // Edit mode snapshot: serialized initial values, used to detect changes
   const [editSnapshot, setEditSnapshot] = useState<string | null>(null);
   // Delete confirmation target (batch record)
@@ -945,6 +940,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       </View>
 
       <View {...{ className: 'proc-scroll-wrap' } as any} style={{ flex: 1 }}>
+        <style>{'.proc-scroll-wrap ::-webkit-scrollbar{display:none}.proc-scroll-wrap *{scrollbar-width:none}'}</style>
 
       {/* ── New Order ── */}
       {subTab === 'new' && (
@@ -1182,8 +1178,10 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     return thumbImgs.length > 0 && (
                       <View style={styles.histImages}>
                         {thumbImgs.map((img: string, i: number) => (
-                          <Image key={i} source={{ uri: img }}
-                            style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
+                          <TouchableOpacity key={i} onPress={() => openPreview((batch.images?.length ? batch.images : thumbImgs), i)}>
+                            <Image source={{ uri: img }}
+                              style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
+                          </TouchableOpacity>
                         ))}
                       </View>
                     );
@@ -1635,6 +1633,17 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </Animated.View>
       )}
       {ToastHost}
+
+      {/* Image preview — portal to body so it renders above nav bar */}
+      {preview && createPortal(
+        <ImagePreview
+          images={preview.images}
+          initialIdx={preview.idx}
+          visible={true}
+          onClose={closePreview}
+        />,
+        document.body,
+      )}
     </View>
   );
 }

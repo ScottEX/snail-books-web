@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Dimensions, Animated } from 'react-native';
 import Svg, { Path, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -58,6 +58,44 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   useEffect(() => { if (filDateToRef.current) filDateToRef.current.value = filDateTo; }, [filDateTo]);
   const [filBy, setFilBy] = useState('');
   const [users, setUsers] = useState<{id: number; username: string}[]>([]);
+  const [showUserPick, setShowUserPick] = useState(false);
+  const userDropAnim = useRef(new Animated.Value(0)).current;
+  const dropScale = useRef(new Animated.Value(0.85)).current;
+  const dropSlide = useRef(new Animated.Value(12)).current;
+  const userBtnRef = useRef<any>(null);
+  const [dropPos, setDropPos] = useState({ x: 0, y: 0, w: 160 });
+
+  const openUserDrop = () => {
+    if (showUserPick) { closeUserDrop(); return; }
+    // Measure button position for dropdown alignment
+    if (userBtnRef.current) {
+      const el = userBtnRef.current;
+      if (typeof el.getBoundingClientRect === 'function') {
+        const r = el.getBoundingClientRect();
+        setDropPos({ x: r.left - 8, y: r.bottom + 4, w: 160 });
+      } else if (el.measure) {
+        el.measure((_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
+          setDropPos({ x: px, y: py + 34 + 4, w: _w });
+        });
+      }
+    }
+    setShowUserPick(true);
+    dropScale.setValue(0.85);
+    dropSlide.setValue(12);
+    userDropAnim.setValue(0);
+    Animated.parallel([
+      Animated.spring(dropScale, { toValue: 1, useNativeDriver: true, bounciness: 8, speed: 14 }),
+      Animated.spring(dropSlide, { toValue: 0, useNativeDriver: true, bounciness: 8, speed: 14 }),
+      Animated.timing(userDropAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+    ]).start();
+  };
+  const closeUserDrop = () => {
+    Animated.parallel([
+      Animated.timing(dropScale, { toValue: 0.85, duration: 180, useNativeDriver: true }),
+      Animated.timing(dropSlide, { toValue: 12, duration: 180, useNativeDriver: true }),
+      Animated.timing(userDropAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+    ]).start(() => setShowUserPick(false));
+  };
   // Track applied filters (snapshot at last apply)
   const [appliedFrom, setAppliedFrom] = useState(sd.offset(-30));
   const [appliedTo, setAppliedTo] = useState(sd.today);
@@ -134,7 +172,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
     const [y, m, day] = d.split('-');
     const l = getLang();
     if (l.startsWith('en')) { const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${months[+m-1]} ${+day}, ${y}`; }
-    return `${y}/${m}/${day}`;
+    return `${y}年${+m}月${+day}日`;
   };
 
   const fmtDateTime = (d: string) => {
@@ -247,7 +285,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         </TouchableOpacity>
       </View>
       {/* Filter bar */}
-      <FilterPanel visible={showFilter} onClose={() => setShowFilter(false)} top={50}>
+      <FilterPanel visible={showFilter} onClose={() => { setShowFilter(false); closeUserDrop(); }} top={50}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
@@ -265,7 +303,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                     showChevron={false}
                   />
                 </View>
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
+                <Text style={{ color: colors.textSub, marginHorizontal: 2 }}>→</Text>
                 <View style={st.filterDateWrap}>
                   <DatePicker
                     date={filDateTo}
@@ -282,14 +320,16 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('reconciledBy')}</Text>
               <View style={st.filterSelectWrap}>
-                <select value={filBy} onChange={(e: any) => setFilBy(e.target.value)}
-                  style={st.filterSelect as any}>
-                  <option value="">{t('any')}</option>
-                  {users.map(u => (
-                    <option key={u.id} value={u.username}>{u.username}</option>
-                  ))}
-                </select>
-                <Text style={st.filterSelectArrow}>▾</Text>
+                <TouchableOpacity
+                  ref={userBtnRef}
+                  style={{ flex: 1, height: '100%', justifyContent: 'space-between', flexDirection: 'row', alignItems: 'center' }}
+                  onPress={openUserDrop} activeOpacity={0.7}
+                >
+                  <Text style={st.filterSelectText}>{filBy || t('any')}</Text>
+                  <Svg width={12} height={12} viewBox="0 0 1024 1024" style={{ marginLeft: 4, transform: [{ rotate: showUserPick ? '180deg' : '0deg' }] }}>
+                    <Path d="M836.899 399.237l-218.01 335.037c-47.506 73.007-166.272 73.007-213.778 0l-218.01-335.037C139.595 326.23 198.977 234.97 293.99 234.97h436.02c95.013 0 154.395 91.26 106.889 164.267z" fill={colors.textMain} />
+                  </Svg>
+                </TouchableOpacity>
               </View>
             </View>
             <View style={st.filterActions}>
@@ -309,10 +349,36 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               </TouchableOpacity>
             </View>
       </FilterPanel>
+
+      {/* User dropdown — outside FilterPanel, positioned dynamically */}
+      {showUserPick && (
+        <Animated.View style={{
+          position: 'fixed' as any, top: dropPos.y, left: dropPos.x, width: dropPos.w, zIndex: 10000,
+          opacity: userDropAnim,
+          transform: [{ translateY: dropSlide }, { scale: dropScale }],
+          transformOrigin: 'top left' as any,
+        }}>
+        <View style={{
+          backgroundColor: colors.surface, borderRadius: 10,
+          overflow: 'hidden' as any,
+        }}>
+          <ScrollView style={{ maxHeight: 240 }} showsVerticalScrollIndicator={false}>
+          <TouchableOpacity onPress={() => { setFilBy(''); closeUserDrop(); }} activeOpacity={0.6} style={{ paddingVertical: 10, paddingHorizontal: 12, marginHorizontal: 4, marginTop: 4, borderRadius: 8, backgroundColor: filBy === '' ? withAlpha(colors.primary, 0.15) : 'transparent' }}>
+            <Text style={{ fontSize: FONTS.sub.size, color: filBy === '' ? colors.primary : colors.textMain, fontWeight: filBy === '' ? '700' : FONTS.sub.weight }}>{t('any')}</Text>
+          </TouchableOpacity>
+          {users.map((u, i) => (
+            <TouchableOpacity key={u.id} onPress={() => { setFilBy(u.username); closeUserDrop(); }} activeOpacity={0.6} style={{ paddingVertical: 10, paddingHorizontal: 12, marginHorizontal: 4, marginBottom: i === users.length - 1 ? 4 : 0, borderRadius: 8, backgroundColor: filBy === u.username ? withAlpha(colors.primary, 0.15) : 'transparent' }}>
+              <Text style={{ fontSize: FONTS.sub.size, color: filBy === u.username ? colors.primary : colors.textMain, fontWeight: filBy === u.username ? '700' : FONTS.sub.weight }}>{u.username}</Text>
+            </TouchableOpacity>
+          ))}
+          </ScrollView>
+        </View>
+        </Animated.View>
+      )}
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
         onScroll={handleScroll} scrollEventThrottle={50}
-        contentContainerStyle={{ paddingTop: showFilter ? 165 : 4 }}>
+        contentContainerStyle={{ paddingTop: showFilter ? 200 : 4 }}>
         {loading ? (
           <LoadingSpinner />
         ) : records.length === 0 ? (
@@ -499,7 +565,7 @@ const getSt = (colors: ThemeColors) => {
   filterBtnText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub },
   filterBtnTextActive: { color: colors.surface },
   filterField: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12,
   },
   filterLabel: {
     fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub,
@@ -541,6 +607,9 @@ const getSt = (colors: ThemeColors) => {
   },
   filterSelectWrap: {
     flex: 1, position: 'relative',
+    height: 34, paddingHorizontal: 8, justifyContent: 'center',
+    backgroundColor: colors.surface, borderRadius: 6,
+    borderWidth: 1, borderColor: colors.secondary,
   },
   filterSelect: {
     width: '100%',
@@ -563,6 +632,9 @@ const getSt = (colors: ThemeColors) => {
     right: 8, top: 9,
     fontSize: FONTS.microBold.size, color: colors.textSub, fontWeight: FONTS.microBold.weight,
     pointerEvents: 'none',
+  },
+  filterSelectText: {
+    fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub,
   },
   filterActions: {
     flexDirection: 'row', gap: 8, paddingTop: 6,
