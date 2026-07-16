@@ -542,7 +542,6 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       } as any}>
         <TouchableOpacity
           onPress={(e: any) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
-          style={st.avatarFloat as any}
           activeOpacity={0.8}
         >
           {avatarUrl ? (
