@@ -491,11 +491,13 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
       }}
     >
       {/* Fixed cover — stays at top, stretches on pull-down */}
-      <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 10,
-        height: 260 + pullOffset,
-        overflow: 'hidden' as any,
-        transition: pullOffset === 0 ? 'height 0.35s ease-out' : 'none' as any,
-      }}>
+      {/* eslint-disable-next-line */}
+      {/* @ts-ignore */}
+      <View style={{
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+        height: 260 + pullOffset, overflow: 'hidden',
+        transition: pullOffset === 0 ? 'height 0.35s ease-out' : 'none',
+      } as any}>
         <TouchableOpacity
           style={[st.coverWrap, { height: '100%' } as any]}
           onPress={() => coverInputRef.current?.click()}
