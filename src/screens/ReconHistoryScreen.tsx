@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Dimensions, Animated } from 'react-native';
 import Svg, { Path, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
