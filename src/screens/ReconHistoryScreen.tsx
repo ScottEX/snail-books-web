@@ -266,7 +266,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
                     showChevron={false}
                   />
                 </View>
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
+                <Text style={{ color: colors.textSub, marginHorizontal: 2 }}>→</Text>
                 <View style={st.filterDateWrap}>
                   <DatePicker
                     date={filDateTo}
@@ -558,6 +558,9 @@ const getSt = (colors: ThemeColors) => {
   },
   filterSelectWrap: {
     flex: 1, position: 'relative',
+    height: 34, paddingHorizontal: 8, justifyContent: 'center',
+    backgroundColor: colors.surface, borderRadius: 6,
+    borderWidth: 1, borderColor: colors.secondary,
   },
   filterSelect: {
     width: '100%',
