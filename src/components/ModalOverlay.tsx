@@ -144,10 +144,10 @@ export default function ModalOverlay({ visible = true, onClose, onClosed, childr
 
   return createPortal(
     <Animated.View style={[{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, justifyContent: 'center', alignItems: 'center', padding: 16 }, overlayStyle]}> 
-      <TouchableOpacity activeOpacity={1} onPress={onClose} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as any}>
+      <TouchableOpacity activeOpacity={1} onPress={onClose} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 } as any}>
         <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: backdropColor, opacity: back as any } as any} />
       </TouchableOpacity>
-      <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, contentStyle, { opacity: fade, transform: getTrans() }]}>
+      <Animated.View style={[{ alignItems: 'center', justifyContent: 'center', zIndex: 1, position: 'relative' as any }, contentStyle, { opacity: fade, transform: getTrans() }]}>
         {animation === 'stagger' && typeof children === 'function' ? children(staggerAnims) : (children as React.ReactNode)}
       </Animated.View>
     </Animated.View>,
