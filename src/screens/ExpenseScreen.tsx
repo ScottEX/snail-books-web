@@ -1158,7 +1158,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       {/* Month picker dropdown — animated spring popover */}
       {/* ── Fee month picker (springScale popup) ── */}
       <ModalOverlay visible={feeMonthPicker.open} onClose={feeMonthPicker.hide} animation="springScale"
-        contentStyle={pickerPos.top ? { position: 'absolute' as any, top: pickerPos.top, left: pickerPos.left, width: 140, alignItems: 'stretch' } as any : {}}
+        contentStyle={pickerPos.top ? { position: 'absolute' as any, top: pickerPos.top, left: pickerPos.left, width: 160, alignItems: 'stretch' } as any : {}}
       >
         {pickerPos.top ? (
           <View style={{ backgroundColor: colors.surface, borderRadius: 10, overflow: 'hidden' as any }}>
