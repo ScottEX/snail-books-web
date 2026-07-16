@@ -301,7 +301,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
                     onChange={(e: any) => { if (sd.isFuture(e.target.value)) { filDateFromRef.current!.value = filDateFrom; setFilDateFromKey(k => k + 1); setFilterDateError(c => c + 1); } else { setFilDateFrom(e.target.value); } }}
                     style={st.filterDateHidden as any} />
                 </View>
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.secondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginHorizontal: 2, transform: [{ translateY: -1 }] }}><Path d="M9 18l6-6-6-6"/></Svg>
+                <Text style={{ color: colors.textSub, marginHorizontal: 2 }}>→</Text>
                 <View style={st.filterDateWrap}>
                   {filDateTo ? (
                     <Text style={st.filterDateText}>{fmtExpDate(filDateTo)}</Text>
@@ -389,7 +389,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
         onEndReached={onEndReached}
         onEndReachedThreshold={0.4}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: showFilter ? 190 : 4, paddingHorizontal: 16, paddingBottom: 20 }}
+        contentContainerStyle={{ paddingTop: showFilter ? 200 : 4, paddingHorizontal: 16, paddingBottom: 20 }}
         ListEmptyComponent={!loading ? (
           <EmptyState
             icon={<ExpenseEmptyIcon color={colors.textSub} />}
@@ -487,7 +487,7 @@ const getSt = (colors: ThemeColors): any => {
 
   /* Filter panel — matches ReconHistoryScreen */
   filterBtnTextActive: { color: colors.surface },
-  filterField: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  filterField: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   filterLabel: { fontSize: FONTS.micro.size, fontWeight: FONTS.micro.weight, color: colors.textSub, width: 64, flexShrink: 0 },
   filterDateRange: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   // @ts-ignore outline is web-only CSS, not in RN types
@@ -518,7 +518,7 @@ const getSt = (colors: ThemeColors): any => {
   filterChipActive: { backgroundColor: colors.primary },
   filterChipText: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: colors.textSub },
   filterChipTextActive: { color: colors.surface },
-  filterActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  filterActions: { flexDirection: 'row', gap: 8, paddingTop: 6 },
   filterResetBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
     backgroundColor: colors.secondary, borderRadius: 8,
