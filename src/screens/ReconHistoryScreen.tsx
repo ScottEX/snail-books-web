@@ -362,6 +362,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
           backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
           overflow: 'hidden' as any,
         }}>
+          <ScrollView style={{ maxHeight: 240 }} showsVerticalScrollIndicator={false}>
           <TouchableOpacity onPress={() => { setFilBy(''); closeUserDrop(); }} activeOpacity={0.6} style={{ paddingVertical: 10, paddingHorizontal: 12, backgroundColor: filBy === '' ? withAlpha(colors.primary, 0.15) : 'transparent' }}>
             <Text style={{ fontSize: FONTS.sub.size, color: filBy === '' ? colors.primary : colors.textMain, fontWeight: filBy === '' ? '700' : FONTS.sub.weight }}>{t('any')}</Text>
           </TouchableOpacity>
@@ -370,6 +371,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
               <Text style={{ fontSize: FONTS.sub.size, color: filBy === u.username ? colors.primary : colors.textMain, fontWeight: filBy === u.username ? '700' : FONTS.sub.weight }}>{u.username}</Text>
             </TouchableOpacity>
           ))}
+          </ScrollView>
         </View>
         </Animated.View>
       )}
