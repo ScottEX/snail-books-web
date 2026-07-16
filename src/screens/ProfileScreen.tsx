@@ -85,10 +85,18 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   const [stickyHeaderVisible, setStickyHeaderVisible] = useState(false);
   const stickyOpacity = useRef(new Animated.Value(0)).current;
 
-  // Pull-down cover stretch
-  const [pullOffset, setPullOffset] = useState(0);
-  const touchStartY = useRef(0);
-  const scrollPos = useRef(0);
+  // Pull-down: cover stays at top, image stretches
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const coverSlide = scrollY.interpolate({
+    inputRange: [-200, 0],
+    outputRange: [-200, 0],
+    extrapolate: 'clamp' as any,
+  });
+  const imageStretch = scrollY.interpolate({
+    inputRange: [-200, 0],
+    outputRange: [1 + 200 / 260, 1],
+    extrapolate: 'clamp' as any,
+  });
 
   // Pulled from LangContext — re-renders on LangContext value change
   // instead of capturing curLang at mount.
@@ -457,57 +465,40 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
   // Avatar canvas functions → useAvatarCrop hook
   // Cover crop canvas → useCoverCrop hook
 
-  const handleScroll = (e: any) => {
-    const y = e.nativeEvent.contentOffset.y;
-    scrollPos.current = y;
-    setPullOffset(y < 0 ? -y : 0);
-    const threshold = 260; // cover height
-    const shouldShow = y >= threshold;
-    if (shouldShow !== stickyHeaderVisible) {
-      setStickyHeaderVisible(shouldShow);
-      Animated.timing(stickyOpacity, {
-        toValue: shouldShow ? 1 : 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      listener: (e: any) => {
+        const y = e.nativeEvent.contentOffset.y;
+        const threshold = 260;
+        const shouldShow = y >= threshold;
+        if (shouldShow !== stickyHeaderVisible) {
+          setStickyHeaderVisible(shouldShow);
+          Animated.timing(stickyOpacity, {
+            toValue: shouldShow ? 1 : 0,
+            duration: 200,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+      useNativeDriver: false,
     }
-  };
+  );
 
 
   return (
-    <View style={st.root} {...swipeBack}
-      onTouchStart={(e: any) => {
-        touchStartY.current = e.nativeEvent.pageY;
-        // Only enable pull-down when at the very top of the page
-        if (scrollPos.current > 10) return;
-      }}
-      onTouchMove={(e: any) => {
-        if (scrollPos.current > 10) return;
-        const dy = e.nativeEvent.pageY - touchStartY.current;
-        if (dy > 10) setPullOffset(Math.min(dy, 200));
-      }}
-      onTouchEnd={() => {
-        if (pullOffset > 0) setPullOffset(0);
-      }}
-    >
-      {/* Fixed cover — stays at top, stretches on pull-down */}
-      {/* eslint-disable-next-line */}
-      {/* @ts-ignore */}
-      <View style={{
-        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-        height: 260 + pullOffset, overflow: 'hidden',
-        transition: pullOffset === 0 ? 'height 0.35s ease-out' : 'none',
-      } as any}>
-        <TouchableOpacity
-          style={[st.coverWrap, { height: '100%' } as any]}
-          onPress={() => coverInputRef.current?.click()}
-          activeOpacity={0.9}
-        >
+    <View style={st.root} {...swipeBack}>
+      <ScrollView style={st.scroll} showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}>
+        {/* Cover — slides up on pull-down to stay at viewport top */}
+        <Animated.View style={{ transform: [{ translateY: coverSlide as any }] }}>
+        <TouchableOpacity style={st.coverWrap} onPress={() => coverInputRef.current?.click()} activeOpacity={0.9}>
           {coverUrl ? (
-            <Image
-              source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }}
-              style={[st.coverImg, { opacity: coverOpacity }]}
-            />
+            <View style={{ position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' as any }}>
+              <Animated.Image
+                source={{ uri: (coverUrl.includes('?') ? coverUrl : coverUrl + '?') + '&u=' + (getCurrentUserId() || '0') + '&v=' + coverKey }}
+                style={[st.coverImg, { opacity: coverOpacity, transform: [{ scale: imageStretch as any }], transformOrigin: 'top center' as any }]}
+              />
+            </View>
           ) : (
             <View style={st.coverGradient}>
               <Svg width="100%" height="100%" viewBox="0 0 360 180" preserveAspectRatio="none">
@@ -554,25 +545,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             )}
           </TouchableOpacity>
         </TouchableOpacity>
-
-        {/* Sticky header inside fixed cover */}
-        {stickyHeaderVisible && (
-          <Animated.View style={[st.stickyHeader, { position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 101, opacity: stickyOpacity }]}>
-            <TouchableOpacity onPress={onBack} style={st.stickyBackBtn}>
-              <BackArrow color={colors.textMain} />
-            </TouchableOpacity>
-            <Text style={st.stickyTitle}>{t('editProfile')}</Text>
-          </Animated.View>
-        )}
-      </View>
-
-      <ScrollView
-        style={[st.scroll, { marginTop: 260 + pullOffset } as any]}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-      >
+        </Animated.View>
 
         {/* ── Profile head ── */}
         <View style={st.profileHead}>
@@ -839,6 +812,16 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
         )}
       </ScrollView>
+
+      {/* Sticky header — appears when cover scrolls out of view */}
+      {stickyHeaderVisible && (
+        <Animated.View style={[st.stickyHeader, { opacity: stickyOpacity }]}>
+          <TouchableOpacity onPress={onBack} style={st.stickyBackBtn}>
+            <BackArrow color={colors.textMain} />
+          </TouchableOpacity>
+          <Text style={st.stickyTitle}>{t('editProfile')}</Text>
+        </Animated.View>
+      )}
 
       {/* Hidden file inputs */}
       <input type="file" accept="image/*" ref={coverInputRef as any} style={{ display: 'none' }} onChange={handleCoverSelect} />
