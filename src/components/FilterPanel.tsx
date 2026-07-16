@@ -108,13 +108,13 @@ const getStyles = (c: ThemeColors) =>
     },
     panel: {
       backgroundColor: c.surface,
-      borderRadius: 10,
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: c.secondary,
       overflow: 'hidden' as any,
     },
     content: {
-      padding: 12,
+      padding: 16,
       gap: 8,
     },
   });
