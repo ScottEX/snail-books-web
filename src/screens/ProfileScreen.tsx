@@ -532,19 +532,24 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
             <CameraIcon color="#fff" size={14} strokeWidth={2} />
             <Text style={st.coverOverlayText}>{t('editCover')}</Text>
           </View>
+        </TouchableOpacity>
+      </Animated.View>
 
-          {/* Avatar — right side, half overlapping cover bottom */}
-          <TouchableOpacity
-            onPress={(e: any) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
-            style={st.avatarFloat}
-            activeOpacity={0.8}
-          >
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={st.avatar} key={avatarKey} />
-            ) : (
-              <Image source={{ uri: '/img/logo.jpg' }} style={st.avatar} />
-            )}
-          </TouchableOpacity>
+      {/* Avatar — follows cover translateY, positioned at cover bottom */}
+      <Animated.View style={{
+        position: 'absolute', right: 20, top: baseCoverHeight - 40, zIndex: 11,
+        transform: [{ translateY: coverTranslate as any }],
+      } as any}>
+        <TouchableOpacity
+          onPress={(e: any) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
+          style={st.avatarFloat as any}
+          activeOpacity={0.8}
+        >
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={st.avatar} key={avatarKey} />
+          ) : (
+            <Image source={{ uri: '/img/logo.jpg' }} style={st.avatar} />
+          )}
         </TouchableOpacity>
       </Animated.View>
 
