@@ -316,7 +316,7 @@ const getSt = (colors: ThemeColors) => {
   filterApplyBtnText: { fontSize: FONTS.subBold.size, fontWeight: FONTS.subBold.weight, color: colors.surface },
   filterApplyBtnTextDisabled: { color: colors.textSub },
 
-  list: { flex: 1 },
+  list: { flex: 1, marginTop: 50 },
 
   card: {
     backgroundColor: colors.surface, borderRadius: 12,
