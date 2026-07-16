@@ -59,6 +59,29 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
   const [filBy, setFilBy] = useState('');
   const [users, setUsers] = useState<{id: number; username: string}[]>([]);
   const [showUserPick, setShowUserPick] = useState(false);
+  const userDropAnim = useRef(new Animated.Value(0)).current;
+  const dropScale = useRef(new Animated.Value(0.85)).current;
+  const dropSlide = useRef(new Animated.Value(12)).current;
+
+  const openUserDrop = () => {
+    if (showUserPick) { closeUserDrop(); return; }
+    setShowUserPick(true);
+    dropScale.setValue(0.85);
+    dropSlide.setValue(12);
+    userDropAnim.setValue(0);
+    Animated.parallel([
+      Animated.spring(dropScale, { toValue: 1, useNativeDriver: true, bounciness: 8, speed: 14 }),
+      Animated.spring(dropSlide, { toValue: 0, useNativeDriver: true, bounciness: 8, speed: 14 }),
+      Animated.timing(userDropAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+    ]).start();
+  };
+  const closeUserDrop = () => {
+    Animated.parallel([
+      Animated.timing(dropScale, { toValue: 0.85, duration: 180, useNativeDriver: true }),
+      Animated.timing(dropSlide, { toValue: 12, duration: 180, useNativeDriver: true }),
+      Animated.timing(userDropAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+    ]).start(() => setShowUserPick(false));
+  };
   // Track applied filters (snapshot at last apply)
   const [appliedFrom, setAppliedFrom] = useState(sd.offset(-30));
   const [appliedTo, setAppliedTo] = useState(sd.today);
@@ -248,7 +271,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
         </TouchableOpacity>
       </View>
       {/* Filter bar */}
-      <FilterPanel visible={showFilter} onClose={() => { setShowFilter(false); setShowUserPick(false); }} top={50}>
+      <FilterPanel visible={showFilter} onClose={() => { setShowFilter(false); closeUserDrop(); }} top={50}>
             <DateErrorHint trigger={filterDateError} message={t('errDateFuture')} color={colors.danger} />
             {rangeInvalid && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRange')}</Text>}
             {rangeTooLong && <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'right', marginTop: 2 }}>{t('errDateRangeTooLong')}</Text>}
@@ -283,7 +306,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             <View style={st.filterField}>
               <Text style={st.filterLabel}>{t('reconciledBy')}</Text>
               <View style={st.filterSelectWrap}>
-                <TouchableOpacity style={{ flex: 1, height: '100%', justifyContent: 'space-between', flexDirection: 'row', alignItems: 'center' }} onPress={() => setShowUserPick(!showUserPick)} activeOpacity={0.7}>
+                <TouchableOpacity style={{ flex: 1, height: '100%', justifyContent: 'space-between', flexDirection: 'row', alignItems: 'center' }} onPress={openUserDrop} activeOpacity={0.7}>
                   <Text style={st.filterSelectText}>{filBy || t('any')}</Text>
                   <Svg width={12} height={12} viewBox="0 0 1024 1024" style={{ marginLeft: 4, transform: [{ rotate: showUserPick ? '180deg' : '0deg' }] }}>
                     <Path d="M836.899 399.237l-218.01 335.037c-47.506 73.007-166.272 73.007-213.778 0l-218.01-335.037C139.595 326.23 198.977 234.97 293.99 234.97h436.02c95.013 0 154.395 91.26 106.889 164.267z" fill={colors.textMain} />
@@ -311,20 +334,25 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
 
       {/* User dropdown — outside FilterPanel to avoid overflow clipping */}
       {showUserPick && (
-        <View style={{
-          position: 'absolute' as any, top: 170, left: 80, zIndex: 10000,
-          backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
-          minWidth: 140, overflow: 'hidden' as any,
+        <Animated.View style={{
+          position: 'absolute' as any, top: 212, left: 100, width: 160, zIndex: 10000,
+          opacity: userDropAnim,
+          transform: [{ translateY: dropSlide }, { scale: dropScale }],
         }}>
-          <TouchableOpacity onPress={() => { setFilBy(''); setShowUserPick(false); }} activeOpacity={0.6} style={{ paddingVertical: 10, paddingHorizontal: 12, backgroundColor: filBy === '' ? withAlpha(colors.primary, 0.15) : 'transparent' }}>
+        <View style={{
+          backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.secondary,
+          overflow: 'hidden' as any,
+        }}>
+          <TouchableOpacity onPress={() => { setFilBy(''); closeUserDrop(); }} activeOpacity={0.6} style={{ paddingVertical: 10, paddingHorizontal: 12, backgroundColor: filBy === '' ? withAlpha(colors.primary, 0.15) : 'transparent' }}>
             <Text style={{ fontSize: FONTS.sub.size, color: filBy === '' ? colors.primary : colors.textMain, fontWeight: filBy === '' ? '700' : FONTS.sub.weight }}>{t('any')}</Text>
           </TouchableOpacity>
           {users.map((u, i) => (
-            <TouchableOpacity key={u.id} onPress={() => { setFilBy(u.username); setShowUserPick(false); }} activeOpacity={0.6} style={{ paddingVertical: 10, paddingHorizontal: 12, backgroundColor: filBy === u.username ? withAlpha(colors.primary, 0.15) : 'transparent' }}>
+            <TouchableOpacity key={u.id} onPress={() => { setFilBy(u.username); closeUserDrop(); }} activeOpacity={0.6} style={{ paddingVertical: 10, paddingHorizontal: 12, backgroundColor: filBy === u.username ? withAlpha(colors.primary, 0.15) : 'transparent' }}>
               <Text style={{ fontSize: FONTS.sub.size, color: filBy === u.username ? colors.primary : colors.textMain, fontWeight: filBy === u.username ? '700' : FONTS.sub.weight }}>{u.username}</Text>
             </TouchableOpacity>
           ))}
         </View>
+        </Animated.View>
       )}
       {/* List */}
       <ScrollView style={st.list} showsVerticalScrollIndicator={false}
