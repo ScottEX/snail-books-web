@@ -8,6 +8,7 @@ import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { bottomSheetOverlay, MODAL_CARD_RADIUS } from '../sharedStyles';
 import SheetHeader from '../components/SheetHeader';

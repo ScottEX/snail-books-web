@@ -399,7 +399,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
         ) : null}
         ListFooterComponent={hasMore ? (
           <View style={st.loadingMore}>
-            <ActivityIndicator size="small" color={colors.primary} />
+            <LoadingSpinner label={false} size={16} color={colors.primary} />
             <Text style={st.loadingMoreText}>{t('loading')}...</Text>
           </View>
         ) : null}
