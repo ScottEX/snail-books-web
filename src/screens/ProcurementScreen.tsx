@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  FlatList, Image, ActivityIndicator, StyleSheet, Animated, Dimensions
+  FlatList, Image, StyleSheet, Animated, Dimensions
 } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
@@ -1207,7 +1207,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           )}
           ListFooterComponent={hasMore ? (
             <View style={styles.loadingMore}>
-              <ActivityIndicator size="small" color={c.primary} />
+              <LoadingSpinner label={false} size={16} color={c.primary} />
             </View>
           ) : null}
         />

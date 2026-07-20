@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { api } from '../api/client';
@@ -263,7 +263,7 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             ))}
             {hasMore && (
               <View style={st.loadingMore}>
-                <ActivityIndicator size="small" color={colors.primary} />
+                <LoadingSpinner label={false} size={16} color={colors.primary} />
                 <Text style={st.loadingMoreText}>{t('loading')}...</Text>
               </View>
             )}
