@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, TouchableOpacity, FlatList, ScrollView, StyleSheet, ActivityIndicator, Animated, Image, Platform
+  View, Text, TouchableOpacity, FlatList, ScrollView, StyleSheet, Animated, Image, Platform
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { t, getLang } from '../i18n';
@@ -399,7 +399,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
         ) : null}
         ListFooterComponent={hasMore ? (
           <View style={st.loadingMore}>
-            <ActivityIndicator size="small" color={colors.primary} />
+            <LoadingSpinner label={false} size={16} color={colors.primary} />
             <Text style={st.loadingMoreText}>{t('loading')}...</Text>
           </View>
         ) : null}

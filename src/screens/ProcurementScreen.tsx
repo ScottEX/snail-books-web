@@ -1,13 +1,14 @@
 import React from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  FlatList, Image, ActivityIndicator, StyleSheet, Animated, Dimensions
+  FlatList, Image, StyleSheet, Animated, Dimensions
 } from 'react-native';
 import { createPortal } from 'react-dom';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { t } from '../i18n';
 import { trPayment, payKey } from '../i18nHelpers';
 import { api } from '../api/client';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useTheme, withAlpha, ThemeColors, FONTS } from '../theme';
 import { bottomSheetOverlay, MODAL_CARD_RADIUS } from '../sharedStyles';
 import SheetHeader from '../components/SheetHeader';
@@ -1207,7 +1208,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           )}
           ListFooterComponent={hasMore ? (
             <View style={styles.loadingMore}>
-              <ActivityIndicator size="small" color={c.primary} />
+              <LoadingSpinner label={false} size={16} color={c.primary} />
             </View>
           ) : null}
         />

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Dimensions, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions, Animated } from 'react-native';
 import Svg, { Path, Line } from 'react-native-svg';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
@@ -388,7 +388,7 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             {records.map(renderCard)}
             {hasMore && (
               <View style={st.loadingMore}>
-                <ActivityIndicator size="small" color={colors.primary} />
+                <LoadingSpinner label={false} size={16} color={colors.primary} />
                 <Text style={st.loadingMoreText}>{t('loading')}...</Text>
               </View>
             )}
