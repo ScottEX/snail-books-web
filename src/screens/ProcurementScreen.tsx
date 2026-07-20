@@ -352,8 +352,16 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
       setEditingBatchSettled(false); setCartUnitPrices({});
       setExistingImageUrls([]); setExistingThumbUrls([]);
       setEditSnapshot(null);
-      setCart({}); setReceipts([]); setOrderNote('');
+      setReceipts([]); setOrderNote('');
       setOrderDate(sd.today); setPayMethod('payWechat');
+      // Reload cart from server — preserves items user added before editing
+      api.getCart().then((data: any) => {
+        if (Array.isArray(data)) {
+          const map: Record<number, number> = {};
+          data.forEach((item: any) => { map[item.product_id] = item.quantity; });
+          setCart(map);
+        }
+      }).catch(() => { setCart({}); });
     }
     }, 300);
   };
@@ -698,11 +706,18 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
           setShowDrawer(false);
           onDrawerClose?.();
           setTimeout(() => {
-          setCart({}); setReceipts([]); setOrderNote('');
+          setReceipts([]); setOrderNote('');
           setExistingImageUrls([]); setExistingThumbUrls([]);
           setEditingBatchId(null); setEditingBatchNumber(0);
           setEditingBatchSettled(false); setCartUnitPrices({});
           setOrderDate(sd.today); setPayMethod('payWechat');
+          api.getCart().then((data: any) => {
+            if (Array.isArray(data)) {
+              const map: Record<number, number> = {};
+              data.forEach((item: any) => { map[item.product_id] = item.quantity; });
+              setCart(map);
+            }
+          }).catch(() => { setCart({}); });
           }, 300);
           // Reuse the same success popup as new-batch flow (avoids Toast+Modal same-frame crash from 1d06376)
           setSuccessTotal(r.total); setSuccessBatch(editingBatchNumber);
