@@ -400,7 +400,6 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
         ListFooterComponent={hasMore ? (
           <View style={st.loadingMore}>
             <LoadingSpinner label={false} size={16} color={colors.primary} />
-            <Text style={st.loadingMoreText}>{t('loading')}...</Text>
           </View>
         ) : null}
       />
@@ -482,7 +481,6 @@ const getSt = (colors: ThemeColors): any => {
   } as any,
 
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 8 },
-  loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Preview overlay */
 
   /* Filter panel — matches ReconHistoryScreen */

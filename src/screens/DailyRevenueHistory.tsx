@@ -264,7 +264,6 @@ export default function DailyRevenueHistory({ onBack }: { onBack: () => void }) 
             {hasMore && (
               <View style={st.loadingMore}>
                 <LoadingSpinner label={false} size={16} color={colors.primary} />
-                <Text style={st.loadingMoreText}>{t('loading')}...</Text>
               </View>
             )}
           </>
