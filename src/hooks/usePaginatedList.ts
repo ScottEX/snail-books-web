@@ -25,7 +25,7 @@ export function usePaginatedList<T>({
   const [total, setTotal] = useState(0);
   const [totalAll, setTotalAll] = useState(0);
   const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadingRef = useRef(false);
   const reqIdRef = useRef(0);
