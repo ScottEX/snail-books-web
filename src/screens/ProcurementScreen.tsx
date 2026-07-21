@@ -955,8 +955,7 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
         </View>
       </View>
 
-      <View {...{ className: 'proc-scroll-wrap' } as any} style={{ flex: 1, paddingTop: 8 }}>
-        <style>{'.proc-scroll-wrap ::-webkit-scrollbar{display:none}.proc-scroll-wrap *{scrollbar-width:none}'}</style>
+      <View {...{ className: 'proc-scroll-wrap no-scrollbar' } as any} style={{ flex: 1, paddingTop: 8 }}>
 
       {/* ── New Order ── */}
       {subTab === 'new' && (

@@ -65,6 +65,13 @@ export default function App() {
     const el = document.documentElement;
     el.style.fontFamily = '"Inter", -apple-system, "PingFang SC", sans-serif';
     el.style.fontVariantNumeric = 'tabular-nums';
+    // One-shot: hide scrollbars on elements with class .no-scrollbar
+    if (!document.getElementById('no-scrollbar-style')) {
+      const s = document.createElement('style');
+      s.id = 'no-scrollbar-style';
+      s.textContent = '.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar,.no-scrollbar *{scrollbar-width:none}';
+      document.head.appendChild(s);
+    }
   }, []);
 
   // 全局页面宽度限制（登录页 & 首页统一）
