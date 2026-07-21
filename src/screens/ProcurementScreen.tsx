@@ -179,7 +179,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   subTabTextOn: { color: c.primary, fontWeight: FONTS.subBold.weight },
   subTabCount: { fontSize: 10, fontWeight: '600' as any, color: c.textSub, backgroundColor: withAlpha(c.textMain, 0.06), borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1, minWidth: 18, textAlign: 'center' as any, overflow: 'hidden' as const },
 
-  sectionHead: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 4, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary, textTransform: 'uppercase' as const, letterSpacing: 1 },
+  sectionHead: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 4, fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary, textTransform: 'uppercase' as const, letterSpacing: 1 },
   productCard: { marginHorizontal: 0, marginBottom: 6, backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), overflow: 'hidden' as const },
   productCardSel: { borderColor: c.primary, borderWidth: 1.5 },
   prodRow: { flexDirection: 'row' as const, alignItems: 'center' as const, paddingVertical: 10, paddingHorizontal: 18, gap: 10 },
@@ -277,7 +277,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
   modalDeleteText: { fontSize: FONTS.micro.size, color: c.textSub, textAlign: 'center' as const },
 
   // History
-  historyList: { paddingVertical: 12, paddingBottom: 100 },
+  historyList: { paddingBottom: 100 },
   historyCard: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.06), marginBottom: 10, overflow: 'hidden' as const },
   histHead: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const, padding: 10, borderBottomWidth: 1, borderBottomColor: withAlpha(c.textMain, 0.05) },
   histNo: { fontSize: FONTS.microBold.size, fontWeight: FONTS.microBold.weight, color: c.primary },
