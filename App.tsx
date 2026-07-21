@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SessionKickedModal from './src/components/SessionKickedModal';
@@ -44,7 +44,7 @@ export default function App() {
   // pageStack). Reading window.location.hash here is safe during SSR-
   // style checks because we guard with `typeof window !== 'undefined'`.
   const [previewRoute, setPreviewRoute] = useState<{ id: number; number: number } | null>(readPreviewHash);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
     const onHashChange = () => setPreviewRoute(readPreviewHash());
     window.addEventListener('hashchange', onHashChange);
@@ -60,15 +60,22 @@ export default function App() {
   };
 
   // 全局排版：字体家族 + 数字等宽（内联样式覆盖 Tailwind）
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof document === 'undefined') return;
     const el = document.documentElement;
     el.style.fontFamily = '"Inter", -apple-system, "PingFang SC", sans-serif';
     el.style.fontVariantNumeric = 'tabular-nums';
+    // One-shot: hide scrollbars on elements with class .no-scrollbar
+    if (!document.getElementById('no-scrollbar-style-v2')) {
+      const s = document.createElement('style');
+      s.id = 'no-scrollbar-style-v2';
+      s.textContent = '.no-scrollbar ::-webkit-scrollbar{display:none!important}.no-scrollbar,.no-scrollbar *{scrollbar-width:none!important}';
+      document.head.appendChild(s);
+    }
   }, []);
 
   // 全局页面宽度限制（登录页 & 首页统一）
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof document === 'undefined') return;
     document.body.style.maxWidth = `${CONTENT_MAX_WIDTH}px`;
     document.body.style.margin = '0 auto';
@@ -92,7 +99,7 @@ export default function App() {
   // false, swallowing the kick notification. Keeping it outside
   // preserves visible=true across the remount and the modal
   // continues to display after the page flips back to 'login'.
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
     const onUserChange = () => {
       setAppKey((k) => k + 1);
@@ -104,7 +111,7 @@ export default function App() {
 
   // Preload background image into browser cache; LoginScreen/HomeScreen
   // will signal __appReady once the actual background is rendered.
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
 
     try {

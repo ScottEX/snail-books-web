@@ -6,6 +6,7 @@ import { useServerDate } from '../hooks/useServerDate';
 import { historyHeader } from '../sharedStyles';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import EmptyState from '../components/EmptyState';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface UserItem {
@@ -364,7 +365,9 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
         {/* User list */}
         <ScrollView style={st.list} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
           {loading ? (
-            <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 40, fontSize: 13 }}>{t('loading') || '加载中...'}</Text>
+            <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+              <LoadingSpinner size={24} color={c.primary} />
+            </View>
           ) : users.length === 0 ? (
             <EmptyState
               icon={<UserEmptyIcon color={c.textSub} />}

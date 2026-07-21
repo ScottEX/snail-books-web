@@ -337,8 +337,8 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
       </View>
 
       {loading ? (
-        <View style={st.body}>
-          <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>{t('loading') || '加载中...'}</Text>
+        <View style={[st.body, { alignItems: 'center', justifyContent: 'center' }]}>
+          <LoadingSpinner size={24} color={c.primary} />
         </View>
       ) : !detail ? (
         <View style={st.body}>

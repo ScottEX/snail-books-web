@@ -389,7 +389,6 @@ export default function ReconHistoryScreen({ onBack }: { onBack: () => void }) {
             {hasMore && (
               <View style={st.loadingMore}>
                 <LoadingSpinner label={false} size={16} color={colors.primary} />
-                <Text style={st.loadingMoreText}>{t('loading')}...</Text>
               </View>
             )}
           </>
@@ -489,7 +488,6 @@ const getSt = (colors: ThemeColors) => {
   header: { ...hdr.header, top: 0, paddingTop: 7, paddingBottom: 7, height: 50 },
   list: { flex: 1, paddingHorizontal: 12, marginTop: 50 },
   loadingMore: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 20, gap: 8 },
-  loadingMoreText: { fontSize: FONTS.sub.size, color: colors.primary },
   /* Card */
   card: {
     backgroundColor: colors.surface, borderRadius: 14, padding: 14,
