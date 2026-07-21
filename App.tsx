@@ -69,7 +69,7 @@ export default function App() {
     if (!document.getElementById('no-scrollbar-style')) {
       const s = document.createElement('style');
       s.id = 'no-scrollbar-style';
-      s.textContent = '.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar,.no-scrollbar *{scrollbar-width:none}';
+      s.textContent = '.no-scrollbar ::-webkit-scrollbar{display:none}.no-scrollbar,.no-scrollbar *{scrollbar-width:none}';
       document.head.appendChild(s);
     }
   }, []);
