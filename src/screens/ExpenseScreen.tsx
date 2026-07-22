@@ -521,7 +521,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                             fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
                             color: colors.expenseAmountColor,
 
-                          } as any}>{toDec2Comma(Math.abs(diff))}</Text>
+                          } as any}><NumberTicker value={Math.abs(diff)} formatFn={toDec2Comma} /></Text>
                         </View>
                       </View>
                       {/* Sub-cards: 账面余额 | 当前资金 */}
@@ -539,7 +539,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                             color: 'rgba(255,255,255,0.95)',
-                          }}>{'¥' + toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
+                          }}><NumberTicker value={businessSummary.cash_on_hand || 0} formatFn={(v: number) => '¥' + toDec2Comma(v)} /></Text>
                         </View>
                         <View style={{
                           flex: 1, backgroundColor: withAlpha(colors.info, 0.15),
@@ -554,7 +554,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                             color: 'rgba(255,255,255,0.95)',
-                          }}>{'¥' + toDec2Comma(realTotal)}</Text>
+                          }}><NumberTicker value={realTotal} formatFn={(v: number) => '¥' + toDec2Comma(v)} /></Text>
                         </View>
                       </View>
                     </View>
@@ -700,8 +700,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 }}>
               <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.primary, marginRight: 6 }}>¥</Text>
               <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.textMain }}>
-                {feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </Text>
+                <NumberTicker value={feeTotal} formatFn={(v: number) => v.toLocaleString(undefined, { minimumFractionDigits: 2 })} />
+              </View>
             </View>
 
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
