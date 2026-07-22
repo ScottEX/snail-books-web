@@ -703,7 +703,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
               <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.primary, marginRight: 6 }}>¥</Text>
               <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.textMain }}>
                 <NumberTicker value={feeTotal} formatFn={(v: number) => v.toLocaleString(undefined, { minimumFractionDigits: 2 })} />
-              </View>
+              </Text>
             </View>
 
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
