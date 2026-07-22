@@ -384,6 +384,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         feeSheet.hide();
         // Reload all months to keep totals accurate
         api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : [])).catch(() => {});
+        loadBusinessSummary();
       } else {
         showToast(r?.message || t('toastSubmitFailed'));
       }
