@@ -538,10 +538,20 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   // ── Preview handlers ──
   const handlePreviewExisting = useCallback((index: number) => {
+    const path = dExistingFilePath[index];
+    if (path && /\.pdf(\?|$)/i.test(path)) {
+      window.open(api.getInvoiceFileUrl(path), '_blank');
+      return;
+    }
     openPreview(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)), index);
   }, [dExistingFilePath, openPreview]);
 
   const handlePreviewNew = useCallback((index: number) => {
+    const f = dFiles[index];
+    if (f && (f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''))) {
+      window.open(URL.createObjectURL(f), '_blank');
+      return;
+    }
     openPreview(dFiles.map(f => URL.createObjectURL(f)), index);
   }, [dFiles, openPreview]);
 
