@@ -19,6 +19,7 @@ import ReceiptUpload from '../components/ReceiptUpload';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import DatePicker from '../components/DatePicker';
 import EmptyState from '../components/EmptyState';
+import PdfPreviewPage from './PdfPreviewPage';
 import ConfirmModal from '../components/ConfirmModal';
 import TrashIcon from '../components/icons/TrashIcon';
 import ImagePreview from '../components/ImagePreview';
@@ -284,6 +285,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const deleteIdRef = useRef<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState('');
+  const [pdfPreviewTitle, setPdfPreviewTitle] = useState('');
 
   // Toast
   const { showToast, ToastHost } = useToast();
@@ -540,7 +543,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const handlePreviewExisting = useCallback((index: number) => {
     const path = dExistingFilePath[index];
     if (path && /\.pdf(\?|$)/i.test(path)) {
-      window.open(api.getInvoiceFileUrl(path), '_blank');
+      setPdfPreviewUrl(api.getInvoiceFileUrl(path));
+      setPdfPreviewTitle(path.split('/').pop() || 'PDF');
       return;
     }
     openPreview(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)), index);
@@ -549,7 +553,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const handlePreviewNew = useCallback((index: number) => {
     const f = dFiles[index];
     if (f && (f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''))) {
-      window.open(URL.createObjectURL(f), '_blank');
+      setPdfPreviewUrl(URL.createObjectURL(f));
+      setPdfPreviewTitle(f.name || 'PDF');
       return;
     }
     openPreview(dFiles.map(f => URL.createObjectURL(f)), index);
@@ -1124,6 +1129,14 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
           initialIdx={preview.idx}
           visible={true}
           onClose={closePreview}
+        />,
+        document.body,
+      )}
+      {pdfPreviewUrl !== '' && createPortal(
+        <PdfPreviewPage
+          fileUrl={pdfPreviewUrl}
+          title={pdfPreviewTitle}
+          onBack={() => { setPdfPreviewUrl(''); setPdfPreviewTitle(''); }}
         />,
         document.body,
       )}

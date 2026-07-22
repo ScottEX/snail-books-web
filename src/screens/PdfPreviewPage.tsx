@@ -9,9 +9,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface Props {
-  batchId: number;
-  batchNumber: number;
+  batchId?: number;
+  batchNumber?: number;
   supplier?: string;
+  /** If provided, preview this file URL directly instead of fetching by batchId */
+  fileUrl?: string;
+  /** Custom title (used with fileUrl mode) */
+  title?: string;
   onBack: () => void;
 }
 
@@ -66,13 +70,14 @@ html.pv-lock{overflow:hidden;touch-action:none}
 `;
 };
 
-export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack }: Props) {
+export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl, title: customTitle, onBack }: Props) {
   const { colors: c } = useTheme();
   const st = useMemo(() => getStyles(c), [c]);
-  const title = t('procPdfTitle').replace('{n}', String(batchNumber));
-  const pdfUrl = supplier
-    ? `/api/procurement-batches/${batchId}/pdf?supplier=${encodeURIComponent(supplier)}`
-    : `/api/procurement-batches/${batchId}/pdf`;
+  const title = customTitle || t('procPdfTitle').replace('{n}', String(batchNumber));
+  const pdfUrl = fileUrl
+    || (supplier
+      ? `/api/procurement-batches/${batchId}/pdf?supplier=${encodeURIComponent(supplier)}`
+      : `/api/procurement-batches/${batchId}/pdf`);
 
   const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
