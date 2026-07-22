@@ -105,7 +105,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
   }, []);
   useEffect(() => { loadBusinessSummary(); }, [loadBusinessSummary]);
 
-
   const [activeTab, setActiveTabState] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('expense_active_tab');
@@ -196,17 +195,8 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
     (async () => {
       const id = ++reconLoadId.current;
       try {
-        const resp = await api.getReconciliations(365, { include_cash_on_hand: '1' });
+        const data = await api.getReconciliations(365);
         if (id !== reconLoadId.current) return; // stale
-        // Backward compat: old backend returns array, new returns { records, cash_on_hand }
-        const data = Array.isArray(resp) ? resp : resp.records;
-        if (!Array.isArray(resp) && resp.cash_on_hand != null) {
-          setBusinessSummary((prev: any) => ({
-            ...prev,
-            cash_on_hand: resp.cash_on_hand,
-            cumulative_expense: resp.cumulative_expense ?? prev.cumulative_expense,
-          }));
-        }
         if (!data || data.length === 0) {
           updateRecon('cardBalance', ''); updateRecon('cashBalance', '');
           updateRecon('dineIn', ''); updateRecon('meituan', '');
@@ -394,8 +384,6 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         feeSheet.hide();
         // Reload all months to keep totals accurate
         api.getPlatformFees().then((all: any) => setAllFees(Array.isArray(all) ? all : [])).catch(() => {});
-        // Refresh business summary so cash_on_hand reflects new fees
-        loadBusinessSummary();
       } else {
         showToast(r?.message || t('toastSubmitFailed'));
       }
@@ -520,11 +508,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
                           } as any}>{diff >= 0 ? '+' : '-'}¥</Text>
                           {/* @ts-ignore */}
-                          <Text style={{
+                          <NumberTicker value={Math.abs(diff)} formatFn={toDec2Comma} style={{
                             fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
                             color: colors.expenseAmountColor,
 
-                          } as any}><NumberTicker value={Math.abs(diff)} formatFn={toDec2Comma} /></Text>
+                          } as any} />
                         </View>
                       </View>
                       {/* Sub-cards: 账面余额 | 当前资金 */}
@@ -542,7 +530,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                             color: 'rgba(255,255,255,0.95)',
-                          }}><NumberTicker value={businessSummary.cash_on_hand || 0} formatFn={(v: number) => '¥' + toDec2Comma(v)} /></Text>
+                          }}>{'¥' + toDec2Comma(businessSummary.cash_on_hand || 0)}</Text>
                         </View>
                         <View style={{
                           flex: 1, backgroundColor: withAlpha(colors.info, 0.15),
@@ -557,7 +545,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
                           <Text style={{
                             fontSize: FONTS.body.size, fontWeight: FONTS.h2.weight,
                             color: 'rgba(255,255,255,0.95)',
-                          }}><NumberTicker value={realTotal} formatFn={(v: number) => '¥' + toDec2Comma(v)} /></Text>
+                          }}>{'¥' + toDec2Comma(realTotal)}</Text>
                         </View>
                       </View>
                     </View>
@@ -703,7 +691,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 }}>
               <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.primary, marginRight: 6 }}>¥</Text>
               <Text style={{ fontSize: FONTS.amount.size, fontWeight: FONTS.amount.weight, color: colors.textMain }}>
-                <NumberTicker value={feeTotal} formatFn={(v: number) => v.toLocaleString(undefined, { minimumFractionDigits: 2 })} />
+                {feeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </Text>
             </View>
 
