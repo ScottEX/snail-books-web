@@ -103,7 +103,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       setBusinessSummary(data || {});
     }).catch(() => {});
   }, []);
-  useEffect(() => { loadBusinessSummary(); }, [loadBusinessSummary]);
+
 
   const [activeTab, setActiveTabState] = useState<number>(() => {
     try {
@@ -200,7 +200,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
         // Backward compat: old backend returns array, new returns { records, cash_on_hand }
         const data = Array.isArray(resp) ? resp : resp.records;
         if (!Array.isArray(resp) && resp.cash_on_hand != null) {
-          setBusinessSummary((prev: any) => ({ ...prev, cash_on_hand: resp.cash_on_hand }));
+          setBusinessSummary((prev: any) => ({
+            ...prev,
+            cash_on_hand: resp.cash_on_hand,
+            cumulative_expense: resp.cumulative_expense ?? prev.cumulative_expense,
+          }));
         }
         if (!data || data.length === 0) {
           updateRecon('cardBalance', ''); updateRecon('cashBalance', '');

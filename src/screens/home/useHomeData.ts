@@ -16,6 +16,7 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   const [chartMonthly, setChartMonthly] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [businessSummary, setBusinessSummary] = useState<any>({});
+  const summaryRef = useRef<any>(null); // avoids batching flash (consistency with iOS)
   const [dailyRevenues, setDailyRevenues] = useState<any[]>([]);
   const [last7Records, setLast7Records] = useState<any[]>([]);
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -83,6 +84,7 @@ export function useHomeData(tab: Tab, setToast: (msg: string) => void) {
   const loadBusinessSummary = async () => {
     try {
       const data: any = await api.getBusinessSummary();
+      summaryRef.current = data;
       setBusinessSummary(data || {});
     } catch { /* silent */ }
   };
