@@ -544,7 +544,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     const path = dExistingFilePath[index];
     if (path && /\.pdf(\?|$)/i.test(path)) {
       setPdfPreviewUrl(api.getInvoiceFileUrl(path));
-      setPdfPreviewTitle(path.split('/').pop() || 'PDF');
+      setPdfPreviewTitle(t('invTitle'));
       return;
     }
     openPreview(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)), index);
@@ -554,7 +554,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
     const f = dFiles[index];
     if (f && (f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''))) {
       setPdfPreviewUrl(URL.createObjectURL(f));
-      setPdfPreviewTitle(f.name || 'PDF');
+      setPdfPreviewTitle(t('invTitle'));
       return;
     }
     openPreview(dFiles.map(f => URL.createObjectURL(f)), index);
