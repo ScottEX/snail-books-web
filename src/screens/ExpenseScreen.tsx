@@ -103,6 +103,7 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
       setBusinessSummary(data || {});
     }).catch(() => {});
   }, []);
+  useEffect(() => { loadBusinessSummary(); }, [loadBusinessSummary]);
 
 
   const [activeTab, setActiveTabState] = useState<number>(() => {
