@@ -513,11 +513,11 @@ export default function ExpenseScreen({ onReconHistory, onExpenseHistory }: { on
 
                           } as any}>{diff >= 0 ? '+' : '-'}¥</Text>
                           {/* @ts-ignore */}
-                          <NumberTicker value={Math.abs(diff)} formatFn={toDec2Comma} style={{
+                          <Text style={{
                             fontSize: FONTS.h1.size + 4, fontWeight: FONTS.h1.weight,
                             color: colors.expenseAmountColor,
 
-                          } as any} />
+                          } as any}>{toDec2Comma(Math.abs(diff))}</Text>
                         </View>
                       </View>
                       {/* Sub-cards: 账面余额 | 当前资金 */}
