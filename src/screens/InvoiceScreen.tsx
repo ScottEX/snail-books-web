@@ -487,8 +487,20 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         // New mode: create record first to get rid, then upload all files
         const res = await api.createInvoiceRecord(payload);
         rid = res.id;
+        const uploadedPaths: string[] = [];
+        const uploadedThumbPaths: string[] = [];
         for (const f of dFiles) {
-          await api.uploadInvoiceFile(rid, f);
+          const upRes = await api.uploadInvoiceFile(rid, f);
+          if (upRes.file_path) {
+            uploadedPaths.push(upRes.file_path);
+            uploadedThumbPaths.push(upRes.thumb_path || upRes.file_path);
+          }
+        }
+        if (uploadedPaths.length > 0) {
+          await api.updateInvoiceRecord(rid, {
+            file_path: JSON.stringify(uploadedPaths),
+            file_thumb_paths: JSON.stringify(uploadedThumbPaths),
+          });
         }
       }
       closeDrawer();
