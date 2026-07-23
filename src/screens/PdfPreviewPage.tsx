@@ -349,26 +349,34 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   }, [batchId, title]);
 
   const doDownloadImage = useCallback(async () => {
-    const pngUrl = supplier
-      ? `/api/procurement-batches/${batchId}/png?supplier=${encodeURIComponent(supplier)}`
-      : `/api/procurement-batches/${batchId}/png`;
+    // Invoice file mode: fileUrl is set, batchId is not
+    const pngUrl = batchId
+      ? (supplier
+        ? `/api/procurement-batches/${batchId}/png?supplier=${encodeURIComponent(supplier)}`
+        : `/api/procurement-batches/${batchId}/png`)
+      : `${fileUrl}/png`;
+
+    const dlName = batchId
+      ? `procurement_${batchId}_${getLang()}.png`
+      : `invoice_${getLang()}.png`;
+
     try {
       const res = await fetch(pngUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-      const file = new File([blob], `procurement_${batchId}_${getLang()}.png`, { type: 'image/png' });
+      const file = new File([blob], dlName, { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try { await navigator.share({ files: [file], title }); return; }
         catch (e) { if ((e as DOMException).name === 'AbortError') return; }
       }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `procurement_${batchId}_${getLang()}.png`;
+      a.download = dlName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     } catch (e) { /* silently fail */ }
-  }, [batchId, supplier, title]);
+  }, [batchId, supplier, title, fileUrl]);
 
   /* ── Zoom ── */
   const stepZoom = useCallback((delta: number) => {
