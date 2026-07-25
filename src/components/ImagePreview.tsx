@@ -3,7 +3,6 @@ import {
   View, Text, TouchableOpacity, StyleSheet, Animated,
   PanResponder, ScrollView, Image, Platform, useWindowDimensions,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { FONTS, CONTENT_MAX_WIDTH } from '../theme';
 
 const SPRING = { friction: 8, tension: 60 };
@@ -130,12 +129,14 @@ export default function ImagePreview({
 
   return (
     <Animated.View style={[styles.overlay, { opacity: overlayOpacity, maxWidth: CONTENT_MAX_WIDTH, marginLeft: 'auto' as any, marginRight: 'auto' as any }]} onLayout={onLayout} {...panResponder.panHandlers}>
-      {/* Close button */}
-      <TouchableOpacity style={styles.close} onPress={animateClose} activeOpacity={0.7}>
-        <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round">
-          <Path d="M18 6L6 18M6 6l12 12" />
-        </Svg>
-      </TouchableOpacity>
+      {/* Header: close left + counter center (matches iOS) */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.closeBtn} onPress={animateClose} activeOpacity={0.7}>
+          <Text style={styles.closeBtnTxt}>✕</Text>
+        </TouchableOpacity>
+        <Text style={styles.counter}>{idx + 1} / {images.length}</Text>
+        <View style={{ width: 40 }} />
+      </View>
 
       {/* Paged ScrollView — native horizontal swipe */}
       <ScrollView
@@ -475,12 +476,19 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { alignItems: 'center' },
   page: { alignItems: 'center', justifyContent: 'center' },
-  close: {
-    position: 'absolute', top: 7, right: 20, zIndex: 10,
+  header: {
+    position: 'absolute' as any, top: 0, left: 0, right: 0, zIndex: 10,
+    flexDirection: 'row' as any, alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'web' ? 50 : 48, paddingHorizontal: 16,
+  },
+  closeBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
+  closeBtnTxt: { color: '#fff', fontSize: FONTS.sub.size, fontWeight: '500' },
+  counter: { color: 'rgba(255,255,255,0.85)', fontSize: FONTS.sub.size, fontWeight: '500' },
   dots: {
     position: 'absolute' as any, bottom: 60, alignSelf: 'center', zIndex: 10,
     flexDirection: 'row' as any, gap: 6,
