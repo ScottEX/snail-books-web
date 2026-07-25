@@ -1,25 +1,22 @@
 import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface Props {
   batchId?: number;
   batchNumber?: number;
   supplier?: string;
-  /** If provided, preview this file URL directly instead of fetching by batchId */
   fileUrl?: string;
-  /** Custom title (used with fileUrl mode) */
   title?: string;
   onBack: () => void;
 }
 
-const MAX_SCALE = 4;
 const NAV_H = 50;
 
 const getCSS = (c: ThemeColors) => {
@@ -40,18 +37,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
-.pv-pill{position:absolute;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:20px;padding:4px 14px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;pointer-events:none}
-.pv-zi{position:absolute;top:${NAV_H + 12}px;right:16px;background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:8px;padding:4px 10px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;opacity:0;transition:opacity .25s;pointer-events:none}
-.pv-zi.on{opacity:1}
-.pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:hidden;background:#F9F7F4}
-.pv-pdf-wrap{position:absolute;top:0;left:50%;transform-origin:center top;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center}
-.pv-pdf-wrap canvas{display:block;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px}
-.pv-pdf-wrap .react-pdf__Page{margin-bottom:12px}
-.pv-zoom-strip{position:absolute;right:16px;bottom:18px;z-index:95;display:flex;flex-direction:column;gap:6px}
-.pv-zoom-btn{width:40px;height:40px;border-radius:50%;background:${btnBg};backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35)}
-.pv-zoom-btn:active{background:${btnBgActive};transform:scale(.92)}
-.pv-zoom-btn svg{width:16px;height:16px;stroke:#2C2626;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.pv-zoom-btn svg text{fill:#2C2626;stroke:none}
+.pv-iframe{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;border:none;width:100%;height:calc(100% - ${NAV_H}px);background:#F9F7F4}
 .pv-intro-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
 .pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
@@ -62,7 +48,6 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-err-msg{font-size:13px;color:#999}
 .pv-err-btn{padding:10px 28px;border-radius:8px;background:${c.accent};color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .pv-err-btn:active{opacity:.8}
-.pv-loading-mask{position:absolute;inset:0;z-index:195;background:rgba(0,0,0,0.35);pointer-events:auto}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .pv-root{background:linear-gradient(to bottom,transparent 56px,#F9F7F4 56px);animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
@@ -85,17 +70,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
   const pdfBlobRef = useRef<Blob | null>(null);
   const [pdfError, setPdfError] = useState('');
-  const [zoomVis, setZoomVis] = useState(false);
-  const [zoomPct, setZoomPct] = useState(100);
-  const [pageW, setPageW] = useState(340);
   const [exiting, setExiting] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [introSec, setIntroSec] = useState(0);
-  const phRef = useRef(0); // page height
-  const numPagesRef = useRef(0);
-  const setPageRef = useRef(setCurrentPage);
-  setPageRef.current = setCurrentPage;
-  numPagesRef.current = numPages;
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -104,6 +80,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   }, [exiting, onBack]);
 
   const swipeBack = useSwipeBack(handleBack);
+
+  useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
+
+  // Fetch & prepare PDF blob for iframe
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -112,25 +92,22 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const blob = await res.blob();
         if (blob.size === 0) throw new Error('Empty PDF (0 bytes)');
-        if (!cancelled) { setPdfBlobUrl(URL.createObjectURL(blob)); pdfBlobRef.current = blob; }
+        if (!cancelled) {
+          setPdfBlobUrl(URL.createObjectURL(blob));
+          pdfBlobRef.current = blob;
+          // Get page count for download-image button visibility
+          try {
+            const doc = (await getDocument({ url: URL.createObjectURL(blob) }).promise);
+            if (!cancelled) setNumPages(doc.numPages);
+          } catch (_) { /* numPages stays 0, download-image hidden */ }
+          setPdfLoading(false);
+        }
       } catch (e: any) {
         if (!cancelled) { setPdfError(e?.message || String(e)); setPdfLoading(false); }
       }
     })();
     return () => { cancelled = true; };
   }, [pdfUrl]);
-
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const gRef = useRef({ scale: 1, tx: 0, ty: 0 });
-  const dragRef = useRef({ active: false, sx: 0, sy: 0, stx: 0, sty: 0 });
-  const pinchRef = useRef({ dist: 0, scale: 1 });
-  const lastTapRef = useRef(0);
-  const rafRef = useRef(0);
-  const ziTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const momRef = useRef(0); // momentum animation raf id
-  const velRef = useRef({ vy: 0, ly: 0, vx: 0, lx: 0, lt: 0 }); // velocity tracking
-
-  useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
 
   // Loading countdown timer
   useEffect(() => {
@@ -140,197 +117,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => clearInterval(id);
   }, [pdfLoading]);
 
-  const applyTransform = useCallback((animated: boolean) => {
-    const el = wrapRef.current; if (!el) return;
-    const g = gRef.current;
-    el.style.transition = animated ? 'transform .25s cubic-bezier(.4,0,.2,1)' : 'none';
-    el.style.transform = `translate(-50%, 0) translate(${g.tx}px, ${g.ty}px) scale(${g.scale})`;
-    if (animated) setTimeout(() => { if (el) el.style.transition = 'none'; }, 260);
-    // sync current page
-    if (phRef.current > 0 && numPagesRef.current > 0) {
-      const p = Math.max(1, Math.min(numPagesRef.current, Math.round((-g.ty) / phRef.current) + 1));
-      setPageRef.current(p);
-    }
-  }, []);
-
-  const clamp = useCallback(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const g = gRef.current;
-    const vp = el.parentElement; if (!vp) return;
-    // Snap scale below 1
-    if (g.scale < 1) { g.scale = 1; g.tx = 0; g.ty = 0; }
-    const cw = el.scrollWidth * g.scale;
-    const ch = el.scrollHeight * g.scale;
-    const vw = vp.clientWidth;
-    const vh = vp.clientHeight;
-    const scrollW = Math.max(0, cw - vw);
-    const scrollH = Math.max(0, ch - vh);
-    // Horizontal: locked at center when content fits, scrollable when zoomed in
-    if (cw > vw) {
-      g.tx = Math.max(-scrollW / 2 - 20, Math.min(scrollW / 2 + 20, g.tx));
-    } else {
-      g.tx = 0;
-    }
-    g.ty = Math.max(-scrollH - 20, Math.min(20, g.ty));
-  }, []);
-
-  const flushZoom = useCallback((animated: boolean) => {
-    setZoomPct(Math.round(gRef.current.scale * 100));
-    setZoomVis(true);
-    clearTimeout(ziTimer.current);
-    ziTimer.current = setTimeout(() => setZoomVis(false), 1500);
-  }, []);
-
-  const scheduleApply = useCallback(() => {
-    if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = 0;
-      applyTransform(false);
-    });
-  }, [applyTransform]);
-
-  // Momentum scroll — continues after finger lifts, decelerates, bounces at bounds
-  const startMomentum = useCallback(() => {
-    const g = gRef.current;
-    let vx = velRef.current.vx * 16; // px/frame (~60fps)
-    let vy = velRef.current.vy * 16;
-    if (Math.abs(vx) < 0.5 && Math.abs(vy) < 0.5) { clamp(); applyTransform(true); return; }
-
-    const tick = () => {
-      g.tx += vx;
-      g.ty += vy;
-      vx *= 0.94; // friction
-      vy *= 0.94;
-
-      // Check bounds — if overscrolled, bounce back
-      const el = wrapRef.current;
-      if (el) {
-        const vp = el.parentElement;
-        if (vp) {
-          const cw = el.scrollWidth * g.scale;
-          const ch = el.scrollHeight * g.scale;
-          const vw = vp.clientWidth;
-          const vh = vp.clientHeight;
-          const scrollW = Math.max(0, cw - vw);
-          const scrollH = Math.max(0, ch - vh);
-          const leftLimit = cw > vw ? -scrollW / 2 - 20 : 0;
-          const rightLimit = cw > vw ? scrollW / 2 + 20 : 0;
-          const topLimit = -scrollH - 20;
-          if (g.tx > rightLimit || g.tx < leftLimit || g.ty > 20 || g.ty < topLimit) {
-            clamp(); applyTransform(true);
-            momRef.current = 0;
-            return;
-          }
-        }
-      }
-
-      if (Math.abs(vx) < 0.3 && Math.abs(vy) < 0.3) {
-        clamp(); applyTransform(true);
-        momRef.current = 0;
-        return;
-      }
-
-      applyTransform(false);
-      momRef.current = requestAnimationFrame(tick);
-    };
-
-    momRef.current = requestAnimationFrame(tick);
-  }, [clamp, applyTransform]);
-
-  const initZoom = useCallback(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const vp = el.parentElement; if (!vp) return;
-    setPageW(vp.clientWidth);
-    gRef.current = { scale: 1, tx: 0, ty: 0 };
-    applyTransform(false);
-  }, [applyTransform]);
-
-  useEffect(() => {
-    if (!pdfLoading && wrapRef.current) setTimeout(initZoom, 100);
-  }, [pdfLoading, initZoom]);
-
-  // capture page height after canvases render
-  useEffect(() => {
-    if (numPages > 0 && !pdfLoading) {
-      requestAnimationFrame(() => {
-        const canvas = wrapRef.current?.querySelector('canvas');
-        if (canvas) phRef.current = canvas.clientHeight;
-      });
-    }
-  }, [numPages, pdfLoading]);
-
-  // ── 手势事件 ──
-  useEffect(() => {
-    const el = wrapRef.current; if (!el) return;
-
-    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-    const onTS = (e: TouchEvent) => {
-      e.preventDefault();
-      cancelAnimationFrame(momRef.current);
-      if (e.touches.length === 1) {
-        const now = Date.now();
-        if (now - lastTapRef.current < 300) {
-          const ns = gRef.current.scale > 1.1 ? 1 : 2;
-          gRef.current.scale = ns; gRef.current.tx = 0; gRef.current.ty = 0;
-          clamp(); applyTransform(true); flushZoom(true); lastTapRef.current = 0; return;
-        }
-        lastTapRef.current = now;
-        gRef.current.tx = gRef.current.tx; // preserve current horizontal position
-        dragRef.current = { active: true, sx: e.touches[0].clientX, sy: e.touches[0].clientY, stx: gRef.current.tx, sty: gRef.current.ty };
-        velRef.current = { vy: 0, ly: e.touches[0].clientY, vx: 0, lx: e.touches[0].clientX, lt: performance.now() };
-      } else if (e.touches.length === 2) {
-        pinchRef.current = { dist: dist(e.touches), scale: gRef.current.scale };
-      }
-    };
-    const onTM = (e: TouchEvent) => {
-      e.preventDefault();
-      if (dragRef.current.active && e.touches.length === 1) {
-        const d = dragRef.current;
-        gRef.current.tx = d.stx + (e.touches[0].clientX - d.sx);
-        gRef.current.ty = d.sty + (e.touches[0].clientY - d.sy);
-        // Lock horizontal axis when content fits the viewport
-        const vp = el.parentElement;
-        if (vp && el.scrollWidth * gRef.current.scale <= vp.clientWidth) {
-          gRef.current.tx = 0;
-        }
-        // track velocity
-        const now = performance.now();
-        const dy = e.touches[0].clientY - velRef.current.ly;
-        const dx = e.touches[0].clientX - velRef.current.lx;
-        const dt = now - velRef.current.lt;
-        if (dt > 5) { velRef.current.vy = dy / dt; velRef.current.vx = dx / dt; }
-        velRef.current.ly = e.touches[0].clientY;
-        velRef.current.lx = e.touches[0].clientX;
-        velRef.current.lt = now;
-        scheduleApply();
-      } else if (e.touches.length === 2 && pinchRef.current.dist > 0) {
-        const ns = Math.max(1, Math.min(MAX_SCALE, pinchRef.current.scale * (dist(e.touches) / pinchRef.current.dist)));
-        gRef.current.scale = ns;
-        clamp(); applyTransform(false); flushZoom(false);
-      }
-    };
-    const onTE = (e: TouchEvent) => {
-      if (e.touches.length === 0 && dragRef.current.active) { dragRef.current.active = false; startMomentum(); }
-      else if (e.touches.length === 1) { dragRef.current.active = false; }
-    };
-    el.addEventListener('touchstart', onTS, { passive: false });
-    el.addEventListener('touchmove', onTM, { passive: false });
-    el.addEventListener('touchend', onTE);
-
-    return () => {
-      el.removeEventListener('touchstart', onTS);
-      el.removeEventListener('touchmove', onTM);
-      el.removeEventListener('touchend', onTE);
-    };
-  }, [scheduleApply, clamp, applyTransform, flushZoom, startMomentum]);
-
   const doDownload = useCallback(async () => {
     const blob = pdfBlobRef.current;
     if (!blob) return;
     const file = new File([blob], `procurement_${batchId}_${getLang()}.pdf`, { type: 'application/pdf' });
-    // 1. Try real file sharing (works on HTTPS, Chrome, Android)
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({ files: [file], title });
@@ -339,7 +129,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         if ((e as DOMException).name === 'AbortError') return;
       }
     }
-    // 2. Fallback: octet-stream blob forces Safari to download (not preview)
     const dlBlob = new Blob([blob], { type: 'application/octet-stream' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(dlBlob);
@@ -350,7 +139,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   }, [batchId, title]);
 
   const doDownloadImage = useCallback(async () => {
-    // Invoice file mode: fileUrl is set, batchId is not
     const pngUrl = batchId
       ? (supplier
         ? `/api/procurement-batches/${batchId}/png?supplier=${encodeURIComponent(supplier)}`
@@ -379,19 +167,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     } catch (e) { /* silently fail */ }
   }, [batchId, supplier, title, fileUrl]);
 
-  /* ── Zoom ── */
-  const stepZoom = useCallback((delta: number) => {
-    const g = gRef.current;
-    g.scale = Math.max(1, Math.min(MAX_SCALE, g.scale + delta));
-    if (g.scale <= 1) { g.tx = 0; g.ty = 0; }
-    clamp(); applyTransform(true); flushZoom(true);
-  }, [clamp, applyTransform, flushZoom]);
-
-  const resetZoom = useCallback(() => {
-    gRef.current = { scale: 1, tx: 0, ty: 0 };
-    applyTransform(true); flushZoom(true);
-  }, [applyTransform, flushZoom]);
-
   return (
     <View style={st.container} {...swipeBack}>
       {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'absolute', inset: 0, zIndex: 9999, marginLeft: 'auto', marginRight: 'auto', maxWidth: CONTENT_MAX_WIDTH }}>
@@ -419,13 +194,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         </div>
 
-        {/* Page pill */}
-        {numPages > 0 && <div className="pv-pill">{t('pdfPageInfo').replace('{current}', String(currentPage)).replace('{total}', String(numPages))}</div>}
-
-        {/* Zoom indicator */}
-        <div className={`pv-zi${zoomVis ? ' on' : ''}`}>{zoomPct}%</div>
-
-        {/* Intro loading — outside viewport for full-screen centering */}
+        {/* Intro loading */}
         {pdfLoading && !pdfError && (
           <div className="pv-intro-overlay">
             <div className="pv-intro on">
@@ -435,56 +204,24 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         )}
 
-        {/* PDF Viewport */}
-        <div className="pv-vp">
-          {/* Mask — blocks interaction while PDF loads */}
-          {pdfLoading && !pdfError && <div className="pv-loading-mask" />}
-          {pdfError && (
-            <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
-              <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round">
-                <circle cx="24" cy="24" r="20" stroke="#e0dcd5" strokeWidth="1.5" fill="#f5f2eb" />
-                <line x1="24" y1="14" x2="24" y2="28" />
-                <circle cx="24" cy="33" r="1.5" fill="#999" stroke="none" />
-              </svg>
-              <div>{t('pdfLoadFailed')}</div>
-              <div className="pv-err-msg">{pdfError}</div>
-              <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); }}>{t('retry')}</button>
-            </div>
-          )}
-          <div className="pv-pdf-wrap" ref={wrapRef} style={{ visibility: pdfLoading ? 'hidden' : 'visible' }}>
-            {pdfBlobUrl && (
-            <Document
-              file={pdfBlobUrl}
-              onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfLoading(false); }}
-              onLoadError={(e) => { setPdfError(e?.message || 'PDF 解析失败'); setPdfLoading(false); }}
-              loading={null}
-            >
-              {Array.from({ length: numPages || 1 }, (_, i) => i + 1).map(p => (
-                <Page
-                  key={p}
-                  pageNumber={p}
-                  width={pageW}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                />
-              ))}
-            </Document>
-            )}
+        {/* Error state */}
+        {pdfError && (
+          <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
+            <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round">
+              <circle cx="24" cy="24" r="20" stroke="#e0dcd5" strokeWidth="1.5" fill="#f5f2eb" />
+              <line x1="24" y1="14" x2="24" y2="28" />
+              <circle cx="24" cy="33" r="1.5" fill="#999" stroke="none" />
+            </svg>
+            <div>{t('pdfLoadFailed')}</div>
+            <div className="pv-err-msg">{pdfError}</div>
+            <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); }}>{t('retry')}</button>
           </div>
-        </div>
+        )}
 
-        {/* Zoom buttons */}
-        <div className="pv-zoom-strip">
-          <div className="pv-zoom-btn" onClick={() => stepZoom(0.25)}>
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>
-          <div className="pv-zoom-btn" onClick={resetZoom}>
-            <svg viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="700" fill="#2C2626" font-family="system-ui">1x</text></svg>
-          </div>
-          <div className="pv-zoom-btn" onClick={() => stepZoom(-0.25)}>
-            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>
-        </div>
+        {/* PDF iframe — browser-native rendering */}
+        {pdfBlobUrl && !pdfError && (
+          <iframe className="pv-iframe" src={pdfBlobUrl} title={title} />
+        )}
       </div>, document.body)}
     </View>
   );
