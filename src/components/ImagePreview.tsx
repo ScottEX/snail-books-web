@@ -4,7 +4,7 @@ import {
   PanResponder, ScrollView, Image, Platform, useWindowDimensions,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { FONTS } from '../theme';
+import { FONTS, CONTENT_MAX_WIDTH } from '../theme';
 
 const SPRING = { friction: 8, tension: 60 };
 const DISMISS_THRESHOLD = 80;
@@ -126,7 +126,7 @@ export default function ImagePreview({
   if (!visible || images.length === 0 || WINDOW_W === 0) return null;
 
   return (
-    <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]} {...panResponder.panHandlers}>
+    <Animated.View style={[styles.overlay, { opacity: overlayOpacity, maxWidth: CONTENT_MAX_WIDTH, marginLeft: 'auto' as any, marginRight: 'auto' as any }]} {...panResponder.panHandlers}>
       {/* Close button */}
       <TouchableOpacity style={styles.close} onPress={animateClose} activeOpacity={0.7}>
         <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round">
