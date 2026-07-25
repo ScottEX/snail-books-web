@@ -629,7 +629,7 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   }, [dBatchId]);
 
   return (
-    <View style={[s.root, { backgroundColor: c.bg }]} {...swipeBack}>
+    <View style={[s.root, { backgroundColor: c.bg }]} {...(pdfPreviewUrl ? {} : swipeBack)}>
       {/* ═══ ENTRY CARD ═══ */}
       <View style={[s.entryCard, { backgroundColor: '#D15F6C' }]} onLayout={(e: any) => { const h = e.nativeEvent?.layout?.height; if (h && entryCardH === 0) setEntryCardH(h); }}>
           <View style={s.ecTop}>
