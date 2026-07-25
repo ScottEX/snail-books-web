@@ -1,12 +1,9 @@
 import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface Props {
   batchId?: number;
@@ -35,9 +32,8 @@ const getCSS = (c: ThemeColors) => {
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
-.pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:auto;background:#F9F7F4;-webkit-overflow-scrolling:touch}
-.pv-pages{display:flex;flex-direction:column;align-items:center;padding:12px 0}
-.pv-page{display:block;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px;background:#fff}
+.pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;background:#F9F7F4}
+.pv-obj{width:100%;height:100%;border:none}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
 .pv-err svg{display:block}
 .pv-err-msg{font-size:13px;color:#999}
@@ -55,17 +51,6 @@ const getCSS = (c: ThemeColors) => {
 `;
 };
 
-function usePageWidth() {
-  const [w, setW] = useState(340);
-  useEffect(() => {
-    const calc = () => setW(Math.min(window.innerWidth, window.innerWidth > 768 ? 768 : window.innerWidth) - 24);
-    calc();
-    window.addEventListener('resize', calc);
-    return () => window.removeEventListener('resize', calc);
-  }, []);
-  return w;
-}
-
 export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl, title: customTitle, onBack }: Props) {
   const { colors: c } = useTheme();
   const st = useMemo(() => getStyles(c), [c]);
@@ -76,17 +61,12 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       : `/api/procurement-batches/${batchId}/pdf`);
   const isLocal = pdfUrl.startsWith('blob:');
 
-  const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
   const pdfBlobRef = useRef<Blob | null>(null);
   const [pdfError, setPdfError] = useState('');
   const [exiting, setExiting] = useState(false);
   const [introSec, setIntroSec] = useState(0);
-
-  const pageWidth = usePageWidth();
-  const canvasRefs = useRef<Map<number, HTMLCanvasElement>>(new Map());
-  const docRef = useRef<any>(null);
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -96,68 +76,27 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const swipeBack = useSwipeBack(handleBack);
 
-  // Step 1: Fetch PDF & get page count
+  // Fetch PDF blob for <object> tag and download
   useEffect(() => {
     let cancelled = false;
-    const cleanupUrls: string[] = [];
     (async () => {
       try {
         const res = await fetch(pdfUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const blob = await res.blob();
         if (blob.size === 0) throw new Error('Empty PDF (0 bytes)');
-        if (cancelled) return;
-
-        const blobUrl = URL.createObjectURL(blob);
-        cleanupUrls.push(blobUrl);
-        setPdfBlobUrl(blobUrl);
-        pdfBlobRef.current = blob;
-
-        const doc = await getDocument({ url: blobUrl }).promise;
-        if (cancelled) return;
-        docRef.current = doc;
-        setNumPages(doc.numPages);
-        setPdfLoading(false);
+        if (!cancelled) {
+          const blobUrl = URL.createObjectURL(blob);
+          setPdfBlobUrl(blobUrl);
+          pdfBlobRef.current = blob;
+          setPdfLoading(false);
+        }
       } catch (e: any) {
         if (!cancelled) { setPdfError(e?.message || String(e)); setPdfLoading(false); }
       }
     })();
-    return () => {
-      cancelled = true;
-      cleanupUrls.forEach(u => URL.revokeObjectURL(u));
-    };
-  }, [pdfUrl]);
-
-  // Step 2: Render pages to canvases once they're mounted
-  useEffect(() => {
-    if (numPages === 0 || !docRef.current) return;
-    const doc = docRef.current;
-    let cancelled = false;
-    (async () => {
-      for (let p = 1; p <= numPages; p++) {
-        if (cancelled) break;
-        // Wait for canvas to appear in DOM
-        let canvas = canvasRefs.current.get(p);
-        let retries = 0;
-        while (!canvas && retries < 20) {
-          await new Promise(r => requestAnimationFrame(r));
-          canvas = canvasRefs.current.get(p);
-          retries++;
-        }
-        if (!canvas) continue;
-        const page = await doc.getPage(p);
-        const vp = page.getViewport({ scale: 1 });
-        const scale = pageWidth / vp.width;
-        const scaledVp = page.getViewport({ scale });
-        canvas.width = scaledVp.width;
-        canvas.height = scaledVp.height;
-        canvas.style.width = `${scaledVp.width}px`;
-        canvas.style.height = `${scaledVp.height}px`;
-        await page.render({ canvas, viewport: scaledVp }).promise;
-      }
-    })();
     return () => { cancelled = true; };
-  }, [numPages, pageWidth]);
+  }, [pdfUrl]);
 
   // Loading countdown
   useEffect(() => {
@@ -220,11 +159,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
             <div className="pv-share-btn" onClick={doDownload} title={t('downloadPdf')}>
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#2C2626" strokeWidth="2" fill="none"/><polyline points="7 10 12 15 17 10" stroke="#2C2626" strokeWidth="2" fill="none"/><line x1="12" y1="15" x2="12" y2="3" stroke="#2C2626" strokeWidth="2"/></svg>
             </div>
-            {numPages > 0 && numPages <= 5 && (
             <div className="pv-share-btn" onClick={doDownloadImage} title={t('downloadImage')}>
               <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="#2C2626" strokeWidth="2" fill="none"/><circle cx="8.5" cy="8.5" r="1.5" fill="#2C2626"/><polyline points="21 15 16 10 5 21" stroke="#2C2626" strokeWidth="2" fill="none"/><line x1="12" y1="18" x2="12" y2="12" stroke="#2C2626" strokeWidth="2"/><polyline points="9 15 12 12 15 15" stroke="#2C2626" strokeWidth="2" fill="none"/></svg>
             </div>
-            )}
             </>
             )}
           </div>
@@ -254,18 +191,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         )}
 
-        {/* Canvas-based PDF pages */}
-        <div className="pv-vp">
-          <div className="pv-pages">
-            {Array.from({ length: numPages }, (_, i) => i + 1).map(p => (
-              <canvas
-                key={p}
-                ref={el => { if (el) canvasRefs.current.set(p, el); }}
-                className="pv-page"
-              />
-            ))}
+        {/* <object> — browser-native PDF viewer, better compat than iframe */}
+        {pdfBlobUrl && !pdfError && (
+          <div className="pv-vp">
+            <object className="pv-obj" data={pdfBlobUrl} type="application/pdf" title={title}>
+              <p>{t('pdfLoadFailed')}</p>
+            </object>
           </div>
-        </div>
+        )}
       </div>, document.body)}
     </View>
   );
