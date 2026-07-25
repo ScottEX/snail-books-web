@@ -150,7 +150,23 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
   const st = useMemo(() => getStyles(c), [c]);
   const [showLinkedPartnerHint, setShowLinkedPartnerHint] = useState(false);
 
-  const [detail, setDetail] = useState<UserData | null>(null);
+  const [detail, setDetail] = useState<UserData>({
+    id: user.id,
+    username: user.username,
+    email: user.email || '',
+    phone: '',
+    role: '',
+    remark: '',
+    is_disabled: user.is_disabled,
+    created_at: '',
+    last_login: '',
+    avatar: user.avatar || '',
+    signature: '',
+    delete_scheduled: '',
+    delete_by: '',
+    linked_partner_id: null,
+    linked_partner_name: '',
+  });
   const [loading, setLoading] = useState(true);
   const [isDisabled, setIsDisabled] = useState(user.is_disabled);
   const [role, setRole] = useState('');
@@ -336,16 +352,12 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         <View style={{ width: 36 }} />
       </View>
 
-      {loading ? (
-        <View style={[st.body, { alignItems: 'center', justifyContent: 'center' }]}>
-          <LoadingSpinner size={24} color={c.primary} />
+      {loading && (
+        <View style={{ height: 2, backgroundColor: c.primary, opacity: 0.6 }}>
+          <View style={{ height: 2, width: '30%', backgroundColor: c.primary }} />
         </View>
-      ) : !detail ? (
-        <View style={st.body}>
-          <Text style={{ textAlign: 'center', color: c.textSub, marginTop: 60, fontSize: 13 }}>User not found</Text>
-        </View>
-      ) : (
-        <ScrollView style={st.body} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, paddingTop: 16 }}>
+      )}
+        <ScrollView style={st.body} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, paddingTop: loading ? 10 : 16 }}>
           {/* Avatar section: avatar left, info + button right */}
           <View style={st.avatarSection}>
             {detail.avatar ? (
@@ -527,7 +539,6 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             </View>
           </View>
         </ScrollView>
-      )}
 
       <ConfirmModal visible={showDeleteConfirm}
         title={t('deleteUser') || '删除用户'}
