@@ -37,7 +37,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
-.pv-iframe{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;border:none;width:100%;height:calc(100% - ${NAV_H}px);background:#F9F7F4}
+.pv-iframe{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;border:none;background:#F9F7F4}
 .pv-intro-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
 .pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
@@ -93,11 +93,12 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         const blob = await res.blob();
         if (blob.size === 0) throw new Error('Empty PDF (0 bytes)');
         if (!cancelled) {
-          setPdfBlobUrl(URL.createObjectURL(blob));
+          const blobUrl = URL.createObjectURL(blob);
+          setPdfBlobUrl(blobUrl);
           pdfBlobRef.current = blob;
-          // Get page count for download-image button visibility
+          // Get page count for download-image button visibility (reuses same blob URL)
           try {
-            const doc = (await getDocument({ url: URL.createObjectURL(blob) }).promise);
+            const doc = (await getDocument({ url: blobUrl }).promise);
             if (!cancelled) setNumPages(doc.numPages);
           } catch (_) { /* numPages stays 0, download-image hidden */ }
           setPdfLoading(false);
