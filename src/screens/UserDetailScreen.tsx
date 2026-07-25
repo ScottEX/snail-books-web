@@ -600,29 +600,29 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
         onCancel={() => setShowUnlinkConfirm(false)} />
 
       {/* Partner Picker Modal */}
-      <ModalOverlay visible={showPartnerPicker} onClose={() => setShowPartnerPicker(false)} animation="blurMorph">
-        <View style={{ backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, width: 320, maxWidth: '100%', overflow: 'hidden', } as any} onStartShouldSetResponder={() => true}>
+      <ModalOverlay visible={showPartnerPicker} onClose={() => setShowPartnerPicker(false)} animation="springScale">
+        <View style={{ backgroundColor: c.surface, borderRadius: MODAL_CARD_RADIUS, width: 320, maxWidth: '100%', overflow: 'hidden' } as any} onStartShouldSetResponder={() => true}>
           <View style={{ backgroundColor: c.primary, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: c.surface }}>{t('selectPartner')}</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: c.surface }}>{t('linkPartner')}</Text>
             <TouchableOpacity onPress={() => setShowPartnerPicker(false)}>
               <Text style={{ ...modalClose as any }}>✕</Text>
             </TouchableOpacity>
           </View>
-          <View style={{ padding: 16 }}>
+          <ScrollView style={{ paddingTop: 8, paddingBottom: 4, maxHeight: 360, paddingHorizontal: 12 }}>
             {availablePartners.map((p: any) => (
               <TouchableOpacity key={p.id}
                 onPress={() => handleLinkPartner(p.id, p.name)}
-                style={{ paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: withAlpha(c.textMain, 0.08) }}
-                activeOpacity={0.7}>
-                <Text style={{ fontSize: 15, color: c.textMain }}>{translateName(p.name, p.name_pinyin, p.name_tw)}</Text>
+                style={{ paddingVertical: 14, paddingHorizontal: 12, marginBottom: 4, borderRadius: 14, backgroundColor: withAlpha(c.primary, 0.1), alignItems: 'center' }}
+                activeOpacity={0.6}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: c.textMain }}>{translateName(p.name, p.name_pinyin, p.name_tw)}</Text>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity onPress={() => setShowPartnerPicker(false)}
-              style={{ marginTop: 12, alignItems: 'center', paddingVertical: 8 }}
-              activeOpacity={0.7}>
-              <Text style={{ fontSize: 13, color: c.textMain }}>{t('cancel')}</Text>
-            </TouchableOpacity>
-          </View>
+          </ScrollView>
+          <TouchableOpacity onPress={() => setShowPartnerPicker(false)}
+            style={{ marginHorizontal: 16, marginBottom: 16, marginTop: 8, paddingVertical: 12, borderRadius: 10, backgroundColor: c.primary, alignItems: 'center' }}
+            activeOpacity={0.7}>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: c.surface }}>{t('cancel')}</Text>
+          </TouchableOpacity>
         </View>
       </ModalOverlay>
 
