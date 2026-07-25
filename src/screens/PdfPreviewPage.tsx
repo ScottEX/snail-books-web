@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
-const MIN_SCALE = 0.5;
+const MIN_SCALE = 1;
 const MAX_SCALE = 4;
 const NAV_H = 50;
 const ZOOM_STEP = 0.25;
@@ -92,7 +92,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [showZoomBadge, setShowZoomBadge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const pinchRef = useRef({ active: false, startDist: 0, startScale: 1 });
+  const pinchRef = useRef({ active: false, startDist: 0, startScale: 1, cx: 0, cy: 0 });
   const lastTapRef = useRef(0);
   const zoomTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const rafRef = useRef(0);
@@ -111,14 +111,20 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const pageWidth = useMemo(() => Math.max(100, baseW * scale), [baseW, scale]);
 
-  // Reset CSS transform after react-pdf re-renders at committed scale
+  // Reset CSS transform AFTER react-pdf re-renders at committed scale
   useEffect(() => {
-    const el = pagesElRef.current;
-    if (el) {
-      el.style.transform = 'scale(1)';
-      el.style.transformOrigin = 'top center';
-      cssScaleRef.current = 1;
-    }
+    // Double rAF: first frame = state committed, second = react-pdf painted
+    const id1 = requestAnimationFrame(() => {
+      const id2 = requestAnimationFrame(() => {
+        const el = pagesElRef.current;
+        if (el) {
+          el.style.transform = 'scale(1)';
+          el.style.transformOrigin = 'top center';
+          cssScaleRef.current = 1;
+        }
+      });
+    });
+    return () => { cancelAnimationFrame(id1); };
   }, [scale]);
 
   // Apply CSS transform for smooth zoom (no react-pdf re-render)
@@ -171,24 +177,48 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       return Math.sqrt(dx * dx + dy * dy);
     };
 
+    const getMid = (touches: TouchList, el: HTMLElement) => {
+      const rect = el.getBoundingClientRect();
+      return {
+        x: ((touches[0].clientX + touches[1].clientX) / 2) - rect.left,
+        y: ((touches[0].clientY + touches[1].clientY) / 2) - rect.top,
+      };
+    };
+
     const onTS = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
         cancelAnimationFrame(rafRef.current);
-        pinchRef.current = { active: true, startDist: getDist(e.touches), startScale: cssScaleRef.current };
+        const el = pagesElRef.current;
+        if (!el) return;
+        const mid = getMid(e.touches, el);
+        pinchRef.current = {
+          active: true,
+          startDist: getDist(e.touches),
+          startScale: cssScaleRef.current,
+          cx: mid.x,
+          cy: mid.y,
+        };
+        // Set origin to pinch center
+        el.style.transformOrigin = `${mid.x}px ${mid.y}px`;
       }
     };
+
     const onTM = (e: TouchEvent) => {
       if (e.touches.length === 2 && pinchRef.current.active) {
         e.preventDefault();
         const next = pinchRef.current.startScale * (getDist(e.touches) / pinchRef.current.startDist);
-        applyCssScale(next);
+        const el = pagesElRef.current;
+        if (!el) return;
+        const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, next));
+        cssScaleRef.current = clamped;
+        el.style.transform = `scale(${clamped})`;
       }
     };
+
     const onTE = () => {
       if (!pinchRef.current.active) return;
       pinchRef.current.active = false;
-      // Sync committed scale → triggers react-pdf re-render at final crisp resolution
       const final = cssScaleRef.current;
       setScale(final);
       setShowZoomBadge(true);
