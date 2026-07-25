@@ -84,13 +84,18 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [introSec, setIntroSec] = useState(0);
 
   // ── Zoom state ──
+  // `scale` = committed scale (triggers react-pdf re-render, crisp pixels)
+  // `cssScale` = live CSS transform during pinch (GPU-accelerated, no re-render)
   const [scale, setScale] = useState(1);
+  const cssScaleRef = useRef(1);
+  const pagesElRef = useRef<HTMLDivElement | null>(null);
   const [showZoomBadge, setShowZoomBadge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const pinchRef = useRef({ active: false, startDist: 0, startScale: 1 });
   const lastTapRef = useRef(0);
   const zoomTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const rafRef = useRef(0);
 
   // Base width = container width (fills screen at scale=1)
   const [baseW, setBaseW] = useState(340);
@@ -106,11 +111,32 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const pageWidth = useMemo(() => Math.max(100, baseW * scale), [baseW, scale]);
 
+  // Reset CSS transform after react-pdf re-renders at committed scale
+  useEffect(() => {
+    const el = pagesElRef.current;
+    if (el) {
+      el.style.transform = 'scale(1)';
+      el.style.transformOrigin = 'top center';
+      cssScaleRef.current = 1;
+    }
+  }, [scale]);
+
+  // Apply CSS transform for smooth zoom (no react-pdf re-render)
+  const applyCssScale = (s: number) => {
+    const el = pagesElRef.current;
+    if (!el) return;
+    const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, s));
+    cssScaleRef.current = clamped;
+    el.style.transform = `scale(${clamped})`;
+    el.style.transformOrigin = 'top center';
+  };
+
   const zoomPct = Math.round(scale * 100);
 
-  // ── Apply scale with badge ──
+  // ── Apply scale (buttons / double-tap: immediate both CSS + react-pdf) ──
   const applyScale = useCallback((next: number) => {
     const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, next));
+    applyCssScale(clamped);
     setScale(clamped);
     setShowZoomBadge(true);
     clearTimeout(zoomTimer.current);
@@ -134,7 +160,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => { meta.content = prev; };
   }, []);
 
-  // ── Pinch-to-zoom ──
+  // ── Pinch-to-zoom (CSS transform during gesture, sync on end) ──
   useEffect(() => {
     const vp = viewportRef.current;
     if (!vp) return;
@@ -148,17 +174,27 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     const onTS = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        pinchRef.current = { active: true, startDist: getDist(e.touches), startScale: scale };
+        cancelAnimationFrame(rafRef.current);
+        pinchRef.current = { active: true, startDist: getDist(e.touches), startScale: cssScaleRef.current };
       }
     };
     const onTM = (e: TouchEvent) => {
       if (e.touches.length === 2 && pinchRef.current.active) {
         e.preventDefault();
         const next = pinchRef.current.startScale * (getDist(e.touches) / pinchRef.current.startDist);
-        applyScale(next);
+        applyCssScale(next);
       }
     };
-    const onTE = () => { pinchRef.current.active = false; };
+    const onTE = () => {
+      if (!pinchRef.current.active) return;
+      pinchRef.current.active = false;
+      // Sync committed scale → triggers react-pdf re-render at final crisp resolution
+      const final = cssScaleRef.current;
+      setScale(final);
+      setShowZoomBadge(true);
+      clearTimeout(zoomTimer.current);
+      zoomTimer.current = setTimeout(() => setShowZoomBadge(false), 1500);
+    };
 
     vp.addEventListener('touchstart', onTS, { passive: false });
     vp.addEventListener('touchmove', onTM, { passive: false });
@@ -169,16 +205,17 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       vp.removeEventListener('touchmove', onTM);
       vp.removeEventListener('touchend', onTE);
     };
-  }, [scale, applyScale]);
+  }, []);
 
   // ── Double-tap zoom toggle ──
   const onViewportTouchEnd = useCallback(() => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      applyScale(scale > 1.1 ? 1 : 2);
+      const cur = cssScaleRef.current;
+      applyScale(cur > 1.1 ? 1 : 2);
     }
     lastTapRef.current = now;
-  }, [scale, applyScale]);
+  }, [applyScale]);
 
   // ── Desktop Ctrl+wheel zoom ──
   useEffect(() => {
@@ -187,7 +224,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        applyScale(scale * (e.deltaY > 0 ? 0.9 : 1.1));
+        applyScale(cssScaleRef.current * (e.deltaY > 0 ? 0.9 : 1.1));
       }
     };
     vp.addEventListener('wheel', onWheel, { passive: false });
@@ -314,7 +351,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
         {/* PDF viewport with pinch/double-tap/scroll handlers */}
         <div className="pv-vp" ref={viewportRef} onTouchEnd={onViewportTouchEnd}>
-          <div className="pv-pages" ref={containerRef}>
+          <div className="pv-pages" ref={(el) => { containerRef.current = el; pagesElRef.current = el; }}>
             {pdfBlobUrl && !pdfError && (
               <Document
                 file={pdfBlobUrl}
