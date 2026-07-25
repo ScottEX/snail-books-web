@@ -390,6 +390,7 @@ export default function HomeScreen({
             onBack={onBack}
             onDeleted={() => { setExpenseRefreshKey(k => k + 1); loadData(); }}
             onEdited={() => { setExpenseRefreshKey(k => k + 1); }}
+            onPdf={(url, title) => { setPdfPreview({ id: 0, number: 0, fileUrl: url, title }); pushPage('pdf'); }}
           />
         ) : null;
       case 'daily':

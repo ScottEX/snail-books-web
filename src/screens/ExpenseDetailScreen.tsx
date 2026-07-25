@@ -68,11 +68,12 @@ function parseImages(raw: any): string[] {
   return [];
 }
 
-export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdited }: {
+export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdited, onPdf }: {
   record: ExpenseRecord;
   onBack: () => void;
   onDeleted?: () => void;
   onEdited?: () => void;
+  onPdf?: (url: string, title: string) => void;
 }) {
   const { colors: c, theme } = useTheme();
   const swipeBack = useSwipeBack(onBack);
@@ -358,11 +359,27 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               <View style={styles.section}>
                 <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>{t('receiptExpenseLabel')}</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {displayImgs.map((url: string, i: number) => (
-                    <TouchableOpacity key={i} onPress={() => openPreview(previewImgs, i)} activeOpacity={0.8}>
-                      <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
+                  {displayImgs.map((url: string, i: number) => {
+                    const pUrl = String(previewImgs[i] || '');
+                    const isPdf = /\.pdf(\?|$)/i.test(pUrl);
+                    return (
+                    <TouchableOpacity key={i} onPress={() => {
+                      if (isPdf) {
+                        onPdf?.(pUrl, `${t('expensePdfTitle')}`);
+                      } else {
+                        openPreview(previewImgs, i);
+                      }
+                    }} activeOpacity={0.8}>
+                      {isPdf ? (
+                        <View style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: withAlpha(c.textMain, 0.06) }]}>
+                          <Text style={{ fontSize: 28 }}>📄</Text>
+                          <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>PDF</Text>
+                        </View>
+                      ) : (
+                        <Image source={{ uri: url }} style={[styles.thumb, { width: thumbSize, height: thumbSize, marginRight: 0 }]} />
+                      )}
                     </TouchableOpacity>
-                  ))}
+                  );})}
                 </View>
               </View>
             )}
@@ -446,7 +463,14 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
               onRemoveNew={removeNewFile}
               getPreviewUrl={getPreviewUrl}
               maxThumbSize={thumbSize}
-              onPreviewExisting={(i: number) => openPreview(previewImgs, i)}
+              onPreviewExisting={(i: number) => {
+                const pUrl = String(previewImgs[i] || '');
+                if (/\.pdf(\?|$)/i.test(pUrl)) {
+                  onPdf?.(pUrl, `${t('expensePdfTitle')}`);
+                } else {
+                  openPreview(previewImgs, i);
+                }
+              }}
             />
           </View>
         )}
