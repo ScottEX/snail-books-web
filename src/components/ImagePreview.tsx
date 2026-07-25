@@ -31,6 +31,8 @@ export default function ImagePreview({
   onClose,
 }: ImagePreviewProps) {
   const { width: WINDOW_W, height: WINDOW_H } = useWindowDimensions();
+  const [containerWidth, setContainerWidth] = useState(0);
+  const pageWidth = containerWidth > 0 ? containerWidth : WINDOW_W;
   const [idx, setIdx] = useState(initialIdx);
   const [dismissing, setDismissing] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
@@ -52,10 +54,10 @@ export default function ImagePreview({
 
   // ── Scroll to initial index ──
   useEffect(() => {
-    if (WINDOW_W > 0) {
-      scrollRef.current?.scrollTo({ x: initialIdx * WINDOW_W, animated: false });
+    if (pageWidth > 0) {
+      scrollRef.current?.scrollTo({ x: initialIdx * pageWidth, animated: false });
     }
-  }, [initialIdx, WINDOW_W]);
+  }, [initialIdx, pageWidth]);
 
   // ── Close ──
   const animateClose = useCallback(() => {
@@ -120,13 +122,14 @@ export default function ImagePreview({
     const nextIdx = idx + direction;
     if (nextIdx < 0 || nextIdx >= images.length) return;
     setIdx(nextIdx);
-    scrollRef.current?.scrollTo({ x: nextIdx * WINDOW_W, animated: true });
-  }, [idx, images.length, WINDOW_W]);
+    scrollRef.current?.scrollTo({ x: nextIdx * pageWidth, animated: true });
+  }, [idx, images.length, pageWidth]);
 
   if (!visible || images.length === 0 || WINDOW_W === 0) return null;
+  const onLayout = (e: any) => { const w = e.nativeEvent?.layout?.width; if (w) setContainerWidth(w); };
 
   return (
-    <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]} {...panResponder.panHandlers}>
+    <Animated.View style={[styles.overlay, { opacity: overlayOpacity, maxWidth: CONTENT_MAX_WIDTH, marginLeft: 'auto' as any, marginRight: 'auto' as any }]} onLayout={onLayout} {...panResponder.panHandlers}>
       {/* Close button */}
       <TouchableOpacity style={styles.close} onPress={animateClose} activeOpacity={0.7}>
         <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round">
@@ -143,7 +146,7 @@ export default function ImagePreview({
         scrollEventThrottle={16}
         onScroll={(e) => {
           const offsetX = e.nativeEvent.contentOffset.x;
-          const raw = offsetX / WINDOW_W;
+          const raw = offsetX / pageWidth;
           const page = Math.round(raw);
           if (page >= 0 && page < images.length && page !== idx) {
             setIdx(page);
@@ -157,11 +160,11 @@ export default function ImagePreview({
         {images.map((src, i) => (
           <Animated.View
             key={i}
-            style={[styles.page, { width: WINDOW_W, transform: [{ scale: imageScale }] }]}
+            style={[styles.page, { width: pageWidth, transform: [{ scale: imageScale }] }]}
           >
             <ZoomableImage
               src={src}
-              windowW={WINDOW_W}
+              windowW={pageWidth}
               windowH={WINDOW_H}
               onZoomActive={(v) => { zoomActiveRef.current = v; setScrollLocked(v); }}
               onSwipeToPage={handleSwipeToPage}
