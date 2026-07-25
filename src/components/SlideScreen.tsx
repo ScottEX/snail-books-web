@@ -85,6 +85,8 @@ export default function SlideScreen({
         top,
         zIndex,
         maxWidth: CONTENT_MAX_WIDTH,
+        marginLeft: 'auto',
+        marginRight: 'auto',
         backgroundColor: backgroundColor || 'transparent',
         pointerEvents: isTop ? 'auto' : 'none',
         display: 'flex',
