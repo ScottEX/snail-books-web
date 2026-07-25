@@ -505,8 +505,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
           </View>
           )}
 
-          {/* Linked Partner — hide when no partner linked and none available */}
-          {(linkedPartnerId !== null || partnersLoading || availablePartners.length > 0) && (
+          {/* Linked Partner — always show (matches iOS) */}
           <View style={st.section}>
             <View style={st.sectionTitleRow}>
               <Text style={st.sectionTitleText}>{t('linkedPartner')}</Text>
@@ -515,21 +514,28 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
             <View style={st.card}>
               <View style={st.toggleRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={st.toggleLabel}>{linkedPartnerId ? translateName(linkedPartnerName, linkedPartnerNamePinyin, linkedPartnerNameTW) : t('unlinked')}</Text>
+                  {loading ? (
+                    <View style={{ height: 16, flex: 1, borderRadius: 4, backgroundColor: c.bg, marginRight: 12 }} />
+                  ) : (
+                    <Text style={st.toggleLabel}>{linkedPartnerId ? translateName(linkedPartnerName, linkedPartnerNamePinyin, linkedPartnerNameTW) : t('unlinked')}</Text>
+                  )}
                 </View>
-                {linkedPartnerId ? (
+                {loading ? (
+                  <View style={{ height: 16, width: 56, borderRadius: 4, backgroundColor: c.bg }} />
+                ) : linkedPartnerId ? (
                   <TouchableOpacity onPress={() => setShowUnlinkConfirm(true)} disabled={saving} activeOpacity={0.7}>
                     <Text style={{ color: c.danger, fontSize: 13, fontWeight: '500' }}>{t('unlinkPartner')}</Text>
                   </TouchableOpacity>
-                ) : (
+                ) : availablePartners.length > 0 ? (
                   <TouchableOpacity onPress={() => { fetchPartnerList(); setShowPartnerPicker(true); }} disabled={saving} activeOpacity={0.7}>
                     <Text style={{ color: c.primary, fontSize: 13, fontWeight: '500' }}>{t('linkPartner')}</Text>
                   </TouchableOpacity>
+                ) : (
+                  <Text style={{ color: c.danger, fontSize: 13, fontWeight: '500' }}>{t('noPartnerAvailable')}</Text>
                 )}
               </View>
             </View>
           </View>
-          )}
 
           {/* Other Info */}
           <View style={st.section}>

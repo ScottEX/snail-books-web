@@ -572,6 +572,7 @@ const I18N: Record<string, Record<string, string>> = {
     transactions: '交易记录',
     tuan: '团购',
     unlinkPartner: '解除关联',
+    noPartnerAvailable: '此间账簿，已无共笔之人',
     unlinked: '未关联',
     uploadFailed: '上传失败，请重试',
     uploadFailedShort: '上传失败',
@@ -672,6 +673,7 @@ const I18N: Record<string, Record<string, string>> = {
     confirmPassword: '確認密碼',
     confirmRecord: '確認記錄',
     confirmUnlinkMsg: '確認解除與 {name} 的關聯？',
+    noPartnerAvailable: '此間賬簿，已無共筆之人',
     confirmUse: '確認使用',
     copyright: '© 2026 柳味探秘 · 經營查詢 · 版權所有',
     coverCropTitle: '編輯封面',
@@ -1273,6 +1275,7 @@ const I18N: Record<string, Record<string, string>> = {
     confirmPassword: 'Confirm Password',
     confirmRecord: 'Record',
     confirmUnlinkMsg: 'Confirm unlink from {name}?',
+    noPartnerAvailable: 'No one left to write with in these ledgers.',
     confirmUse: 'Confirm',
     copyright: '© 2026 LiuWei TanMi · Business Dashboard · All Rights Reserved',
     coverCropTitle: 'Edit Cover',
@@ -1875,6 +1878,7 @@ export type I18nKey =
   | 'confirmPassword'
   | 'confirmRecord'
   | 'confirmUnlinkMsg'
+  | 'noPartnerAvailable'
   | 'confirmUse'
   | 'copyright'
   | 'coverCropTitle'
