@@ -1,9 +1,12 @@
 import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
+import { Document, Page, pdfjs } from 'react-pdf';
 import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface Props {
   batchId?: number;
@@ -32,8 +35,10 @@ const getCSS = (c: ThemeColors) => {
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
-.pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:auto;background:#F9F7F4;-webkit-overflow-scrolling:touch;touch-action:auto}
-.pv-obj{width:100%;min-height:100%;border:none;display:block}
+.pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:auto;background:#F9F7F4;-webkit-overflow-scrolling:touch}
+.pv-pages{display:flex;flex-direction:column;align-items:center;padding:12px 0}
+.pv-pages .react-pdf__Page{margin-bottom:12px}
+.pv-pages canvas{display:block;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px;max-width:100%;height:auto!important}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
 .pv-err svg{display:block}
 .pv-err-msg{font-size:13px;color:#999}
@@ -51,6 +56,17 @@ const getCSS = (c: ThemeColors) => {
 `;
 };
 
+function usePageWidth() {
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    const calc = () => setW(Math.min(window.innerWidth, window.innerWidth > 768 ? 768 : window.innerWidth) - 24);
+    calc();
+    window.addEventListener('resize', calc);
+    return () => window.removeEventListener('resize', calc);
+  }, []);
+  return w;
+}
+
 export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl, title: customTitle, onBack }: Props) {
   const { colors: c } = useTheme();
   const st = useMemo(() => getStyles(c), [c]);
@@ -61,12 +77,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       : `/api/procurement-batches/${batchId}/pdf`);
   const isLocal = pdfUrl.startsWith('blob:');
 
+  const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
   const pdfBlobRef = useRef<Blob | null>(null);
   const [pdfError, setPdfError] = useState('');
   const [exiting, setExiting] = useState(false);
   const [introSec, setIntroSec] = useState(0);
+
+  const pageWidth = usePageWidth();
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -87,7 +106,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         if (!cancelled) {
           setPdfBlobUrl(URL.createObjectURL(blob));
           pdfBlobRef.current = blob;
-          setPdfLoading(false);
         }
       } catch (e: any) {
         if (!cancelled) { setPdfError(e?.message || String(e)); setPdfLoading(false); }
@@ -155,9 +173,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
             <div className="pv-share-btn" onClick={doDownload} title={t('downloadPdf')}>
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#2C2626" strokeWidth="2" fill="none"/><polyline points="7 10 12 15 17 10" stroke="#2C2626" strokeWidth="2" fill="none"/><line x1="12" y1="15" x2="12" y2="3" stroke="#2C2626" strokeWidth="2"/></svg>
             </div>
+            {numPages > 0 && numPages <= 5 && (
             <div className="pv-share-btn" onClick={doDownloadImage} title={t('downloadImage')}>
               <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="#2C2626" strokeWidth="2" fill="none"/><circle cx="8.5" cy="8.5" r="1.5" fill="#2C2626"/><polyline points="21 15 16 10 5 21" stroke="#2C2626" strokeWidth="2" fill="none"/><line x1="12" y1="18" x2="12" y2="12" stroke="#2C2626" strokeWidth="2"/><polyline points="9 15 12 12 15 15" stroke="#2C2626" strokeWidth="2" fill="none"/></svg>
             </div>
+            )}
             </>
             )}
           </div>
@@ -185,13 +205,28 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         )}
 
-        {pdfBlobUrl && !pdfError && (
-          <div className="pv-vp">
-            <object className="pv-obj" data={pdfBlobUrl} type="application/pdf" title={title}>
-              <p>{t('pdfLoadFailed')}</p>
-            </object>
+        <div className="pv-vp">
+          <div className="pv-pages">
+            {pdfBlobUrl && !pdfError && (
+              <Document
+                file={pdfBlobUrl}
+                onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfLoading(false); }}
+                onLoadError={(e: any) => { setPdfError(e?.message || 'PDF parse error'); setPdfLoading(false); }}
+                loading={null}
+              >
+                {Array.from({ length: numPages || 1 }, (_, i) => i + 1).map(p => (
+                  <Page
+                    key={p}
+                    pageNumber={p}
+                    width={pageWidth || undefined}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                  />
+                ))}
+              </Document>
+            )}
           </div>
-        )}
+        </div>
       </div>, document.body)}
     </View>
   );
