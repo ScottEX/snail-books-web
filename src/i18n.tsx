@@ -344,6 +344,9 @@ const I18N: Record<string, Record<string, string>> = {
     noExpenseRecords: '暂无支出记录',
     noRecords: '暂无记录',
     noUsers: '暂无用户',
+    noUsersHintBurgundy: '此处暂无归人，只余清风。',
+    noUsersHintObsidian: '岁月无声，待君落笔。',
+    noUsersHintSpaceBlue: '空山新雨，无人自静。',
     normalStatus: '正常',
     normalUser: '打杂',
     notePlaceholder: '如：葱、香菜、电费',
@@ -948,6 +951,9 @@ const I18N: Record<string, Record<string, string>> = {
     noExpenseRecords: '暫無支出記錄',
     noRecords: '暫無記錄',
     noUsers: '暫無用戶',
+    noUsersHintBurgundy: '此處暫無歸人，只餘清風。',
+    noUsersHintObsidian: '歲月無聲，待君落筆。',
+    noUsersHintSpaceBlue: '空山新雨，無人自靜。',
     normalStatus: '正常',
     normalUser: '打雜',
     notePlaceholder: '如：蔥、香菜、電費',
@@ -1549,6 +1555,9 @@ const I18N: Record<string, Record<string, string>> = {
     noExpenseRecords: 'No expense records',
     noRecords: 'No records yet',
     noUsers: 'No users',
+    noUsersHintBurgundy: 'No one returns here — only the breeze remains.',
+    noUsersHintObsidian: 'Silent years await your pen.',
+    noUsersHintSpaceBlue: 'Fresh rain on quiet hills, at peace alone.',
     normalStatus: 'Normal',
     normalUser: 'Helper',
     notePlaceholder: 'e.g. scallions, cilantro, electricity',
@@ -2153,6 +2162,9 @@ export type I18nKey =
   | 'noExpenseRecords'
   | 'noRecords'
   | 'noUsers'
+  | 'noUsersHintBurgundy'
+  | 'noUsersHintObsidian'
+  | 'noUsersHintSpaceBlue'
   | 'normalStatus'
   | 'normalUser'
   | 'notePlaceholder'

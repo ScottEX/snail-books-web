@@ -89,7 +89,7 @@ function lastDayOfMonth(y: number, m: number): string {
 }
 
 export default function UserManagementScreen({ onBack, onUserSelect, silentRefreshKey, reviewedUserId }: Props) {
-  const { colors: c } = useTheme();
+  const { theme, colors: c } = useTheme();
   const sd = useServerDate();
   const swipeBack = useSwipeBack(onBack);
   const st = useMemo(() => getStyles(c), [c]);
@@ -413,7 +413,9 @@ export default function UserManagementScreen({ onBack, onUserSelect, silentRefre
           ) : users.length === 0 ? (
             <EmptyState
               icon={<UserEmptyIcon color={c.textSub} />}
-              title={t('noUsers') || '暂无用户'}
+              title={theme.id === 'burgundy-warm' ? t('noUsersHintBurgundy') :
+                     theme.id === 'obsidian-gold' ? t('noUsersHintObsidian') :
+                     t('noUsersHintSpaceBlue')}
             />
           ) : (
             filteredUsers.map((u) => (
