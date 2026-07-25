@@ -86,6 +86,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const pageWidth = usePageWidth();
   const canvasRefs = useRef<Map<number, HTMLCanvasElement>>(new Map());
+  const docRef = useRef<any>(null);
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -95,7 +96,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const swipeBack = useSwipeBack(handleBack);
 
-  // Fetch PDF & render pages
+  // Step 1: Fetch PDF & get page count
   useEffect(() => {
     let cancelled = false;
     const cleanupUrls: string[] = [];
@@ -113,28 +114,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         pdfBlobRef.current = blob;
 
         const doc = await getDocument({ url: blobUrl }).promise;
-        const n = doc.numPages;
         if (cancelled) return;
-        setNumPages(n);
+        docRef.current = doc;
+        setNumPages(doc.numPages);
         setPdfLoading(false);
-
-        // Render pages after a tick so canvas refs are mounted
-        requestAnimationFrame(async () => {
-          for (let p = 1; p <= n; p++) {
-            if (cancelled) break;
-            const canvas = canvasRefs.current.get(p);
-            if (!canvas) continue;
-            const page = await doc.getPage(p);
-            const vp = page.getViewport({ scale: 1 });
-            const scale = pageWidth / vp.width;
-            const scaledVp = page.getViewport({ scale });
-            canvas.width = scaledVp.width;
-            canvas.height = scaledVp.height;
-            canvas.style.width = `${scaledVp.width}px`;
-            canvas.style.height = `${scaledVp.height}px`;
-            await page.render({ canvas, viewport: scaledVp }).promise;
-          }
-        });
       } catch (e: any) {
         if (!cancelled) { setPdfError(e?.message || String(e)); setPdfLoading(false); }
       }
@@ -143,7 +126,38 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       cancelled = true;
       cleanupUrls.forEach(u => URL.revokeObjectURL(u));
     };
-  }, [pdfUrl, pageWidth]);
+  }, [pdfUrl]);
+
+  // Step 2: Render pages to canvases once they're mounted
+  useEffect(() => {
+    if (numPages === 0 || !docRef.current) return;
+    const doc = docRef.current;
+    let cancelled = false;
+    (async () => {
+      for (let p = 1; p <= numPages; p++) {
+        if (cancelled) break;
+        // Wait for canvas to appear in DOM
+        let canvas = canvasRefs.current.get(p);
+        let retries = 0;
+        while (!canvas && retries < 20) {
+          await new Promise(r => requestAnimationFrame(r));
+          canvas = canvasRefs.current.get(p);
+          retries++;
+        }
+        if (!canvas) continue;
+        const page = await doc.getPage(p);
+        const vp = page.getViewport({ scale: 1 });
+        const scale = pageWidth / vp.width;
+        const scaledVp = page.getViewport({ scale });
+        canvas.width = scaledVp.width;
+        canvas.height = scaledVp.height;
+        canvas.style.width = `${scaledVp.width}px`;
+        canvas.style.height = `${scaledVp.height}px`;
+        await page.render({ canvas, viewport: scaledVp }).promise;
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [numPages, pageWidth]);
 
   // Loading countdown
   useEffect(() => {
