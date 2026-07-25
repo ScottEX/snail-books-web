@@ -80,6 +80,7 @@ export default function App() {
     document.body.style.maxWidth = `${CONTENT_MAX_WIDTH}px`;
     document.body.style.margin = '0 auto';
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'relative';
   }, []);
 
   // Listen for user state changes (401 handler, login, logout).

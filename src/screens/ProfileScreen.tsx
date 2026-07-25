@@ -1230,8 +1230,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
 
 function getStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    root: { flex: 1, backgroundColor: colors.surface, maxWidth: 520, width: '100%', alignSelf: 'center' as const },
-    scroll: { flex: 1, width: '100%', maxWidth: 520, alignSelf: 'center' as const },
+    root: { flex: 1, backgroundColor: colors.surface },
+    scroll: { flex: 1 },
     // Cover
     coverWrap: { height: 260, position: 'relative', overflow: 'visible' as any },
     coverImg: { width: '100%', height: '100%', resizeMode: 'cover' as any } as any,
