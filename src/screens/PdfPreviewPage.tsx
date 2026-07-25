@@ -26,7 +26,7 @@ const getCSS = (c: ThemeColors) => {
   const btnBg = `rgba(${r},${g},${b},0.30)`;
   const btnBgActive = `rgba(${r},${g},${b},0.45)`;
   return `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html.pv-lock{overflow:hidden;touch-action:none}
+html.pv-lock{touch-action:none}
 .pv-nav{position:absolute;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:transparent;backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
 .pv-nav-l{display:flex;align-items:center;gap:10px}
 .pv-back{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
@@ -37,7 +37,7 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
-.pv-iframe{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;border:none;background:#F9F7F4}
+.pv-iframe{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;border:none;width:100%;height:100%;background:#F9F7F4}
 .pv-intro-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
 .pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 .pv-intro.on{opacity:1;transform:translateY(0)}
