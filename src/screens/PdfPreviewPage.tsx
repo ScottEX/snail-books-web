@@ -26,34 +26,45 @@ const getCSS = (c: ThemeColors) => {
   const btnBg = `rgba(${r},${g},${b},0.30)`;
   const btnBgActive = `rgba(${r},${g},${b},0.45)`;
   return `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html.pv-lock{touch-action:none}
 .pv-nav{position:absolute;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:transparent;backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
 .pv-nav-l{display:flex;align-items:center;gap:10px}
 .pv-back{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .pv-back:active{background:${btnBgActive}}
 .pv-back svg{width:16px;height:16px;stroke:#2C2626;stroke-width:2;fill:none;display:block}
 .pv-title{font-size:15px;font-weight:600;color:#2C2626;letter-spacing:.01em}
-.pv-sub{font-size:10px;color:rgba(240,237,232,0.28);font-family:'DM Mono',monospace;margin-top:1px}
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
-.pv-iframe{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;border:none;width:100%;height:100%;background:#F9F7F4}
-.pv-intro-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
-.pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
-.pv-intro.on{opacity:1;transform:translateY(0)}
-.pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
-.pv-intro-sec{font-size:36px;font-weight:800;font-family:'DM Mono',monospace}
+.pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:auto;background:#F9F7F4;-webkit-overflow-scrolling:touch}
+.pv-pages{display:flex;flex-direction:column;align-items:center;padding:12px 0}
+.pv-page{display:block;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px;background:#fff}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
 .pv-err svg{display:block}
 .pv-err-msg{font-size:13px;color:#999}
 .pv-err-btn{padding:10px 28px;border-radius:8px;background:${c.accent};color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .pv-err-btn:active{opacity:.8}
+.pv-intro-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
+.pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.pv-intro.on{opacity:1;transform:translateY(0)}
+.pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
+.pv-intro-sec{font-size:36px;font-weight:800;font-family:'DM Mono',monospace}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .pv-root{background:linear-gradient(to bottom,transparent 56px,#F9F7F4 56px);animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
 .pv-root.out{animation:pv-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
 `;
 };
+
+function usePageWidth() {
+  const [w, setW] = useState(340);
+  useEffect(() => {
+    const calc = () => setW(Math.min(window.innerWidth, window.innerWidth > 768 ? 768 : window.innerWidth) - 24);
+    calc();
+    window.addEventListener('resize', calc);
+    return () => window.removeEventListener('resize', calc);
+  }, []);
+  return w;
+}
 
 export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl, title: customTitle, onBack }: Props) {
   const { colors: c } = useTheme();
@@ -73,6 +84,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [exiting, setExiting] = useState(false);
   const [introSec, setIntroSec] = useState(0);
 
+  const pageWidth = usePageWidth();
+  const canvasRefs = useRef<Map<number, HTMLCanvasElement>>(new Map());
+
   const handleBack = useCallback(() => {
     if (exiting) return;
     setExiting(true);
@@ -81,36 +95,57 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const swipeBack = useSwipeBack(handleBack);
 
-  useEffect(() => { document.documentElement.classList.add('pv-lock'); return () => document.documentElement.classList.remove('pv-lock'); }, []);
-
-  // Fetch & prepare PDF blob for iframe
+  // Fetch PDF & render pages
   useEffect(() => {
     let cancelled = false;
+    const cleanupUrls: string[] = [];
     (async () => {
       try {
         const res = await fetch(pdfUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const blob = await res.blob();
         if (blob.size === 0) throw new Error('Empty PDF (0 bytes)');
-        if (!cancelled) {
-          const blobUrl = URL.createObjectURL(blob);
-          setPdfBlobUrl(blobUrl);
-          pdfBlobRef.current = blob;
-          // Get page count for download-image button visibility (reuses same blob URL)
-          try {
-            const doc = (await getDocument({ url: blobUrl }).promise);
-            if (!cancelled) setNumPages(doc.numPages);
-          } catch (_) { /* numPages stays 0, download-image hidden */ }
-          setPdfLoading(false);
-        }
+        if (cancelled) return;
+
+        const blobUrl = URL.createObjectURL(blob);
+        cleanupUrls.push(blobUrl);
+        setPdfBlobUrl(blobUrl);
+        pdfBlobRef.current = blob;
+
+        const doc = await getDocument({ url: blobUrl }).promise;
+        const n = doc.numPages;
+        if (cancelled) return;
+        setNumPages(n);
+        setPdfLoading(false);
+
+        // Render pages after a tick so canvas refs are mounted
+        requestAnimationFrame(async () => {
+          for (let p = 1; p <= n; p++) {
+            if (cancelled) break;
+            const canvas = canvasRefs.current.get(p);
+            if (!canvas) continue;
+            const page = await doc.getPage(p);
+            const vp = page.getViewport({ scale: 1 });
+            const scale = pageWidth / vp.width;
+            const scaledVp = page.getViewport({ scale });
+            canvas.width = scaledVp.width;
+            canvas.height = scaledVp.height;
+            canvas.style.width = `${scaledVp.width}px`;
+            canvas.style.height = `${scaledVp.height}px`;
+            await page.render({ canvas, viewport: scaledVp }).promise;
+          }
+        });
       } catch (e: any) {
         if (!cancelled) { setPdfError(e?.message || String(e)); setPdfLoading(false); }
       }
     })();
-    return () => { cancelled = true; };
-  }, [pdfUrl]);
+    return () => {
+      cancelled = true;
+      cleanupUrls.forEach(u => URL.revokeObjectURL(u));
+    };
+  }, [pdfUrl, pageWidth]);
 
-  // Loading countdown timer
+  // Loading countdown
   useEffect(() => {
     if (!pdfLoading) { setIntroSec(0); return; }
     setIntroSec(0);
@@ -123,20 +158,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     if (!blob) return;
     const file = new File([blob], `procurement_${batchId}_${getLang()}.pdf`, { type: 'application/pdf' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title });
-        return;
-      } catch (e) {
-        if ((e as DOMException).name === 'AbortError') return;
-      }
+      try { await navigator.share({ files: [file], title }); return; }
+      catch (e) { if ((e as DOMException).name === 'AbortError') return; }
     }
     const dlBlob = new Blob([blob], { type: 'application/octet-stream' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(dlBlob);
     a.download = `procurement_${batchId}_${getLang()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }, [batchId, title]);
 
   const doDownloadImage = useCallback(async () => {
@@ -145,11 +174,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         ? `/api/procurement-batches/${batchId}/png?supplier=${encodeURIComponent(supplier)}`
         : `/api/procurement-batches/${batchId}/png`)
       : `${fileUrl}/png`;
-
-    const dlName = batchId
-      ? `procurement_${batchId}_${getLang()}.png`
-      : `invoice_${getLang()}.png`;
-
+    const dlName = batchId ? `procurement_${batchId}_${getLang()}.png` : `invoice_${getLang()}.png`;
     try {
       const res = await fetch(pngUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -159,12 +184,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         try { await navigator.share({ files: [file], title }); return; }
         catch (e) { if ((e as DOMException).name === 'AbortError') return; }
       }
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = dlName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = dlName; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     } catch (e) { /* silently fail */ }
   }, [batchId, supplier, title, fileUrl]);
 
@@ -195,7 +216,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         </div>
 
-        {/* Intro loading */}
+        {/* Loading */}
         {pdfLoading && !pdfError && (
           <div className="pv-intro-overlay">
             <div className="pv-intro on">
@@ -205,7 +226,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         )}
 
-        {/* Error state */}
+        {/* Error */}
         {pdfError && (
           <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
             <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round">
@@ -219,10 +240,18 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         )}
 
-        {/* PDF iframe — browser-native rendering */}
-        {pdfBlobUrl && !pdfError && (
-          <iframe className="pv-iframe" src={pdfBlobUrl} title={title} />
-        )}
+        {/* Canvas-based PDF pages */}
+        <div className="pv-vp">
+          <div className="pv-pages">
+            {Array.from({ length: numPages }, (_, i) => i + 1).map(p => (
+              <canvas
+                key={p}
+                ref={el => { if (el) canvasRefs.current.set(p, el); }}
+                className="pv-page"
+              />
+            ))}
+          </div>
+        </div>
       </div>, document.body)}
     </View>
   );
