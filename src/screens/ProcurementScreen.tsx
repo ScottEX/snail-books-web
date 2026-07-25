@@ -1197,20 +1197,29 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     const thumbImgs: string[] = (batch.thumb_images?.length ? batch.thumb_images : batch.images) || [];
                     return thumbImgs.length > 0 && (
                       <View style={styles.histImages}>
-                        {thumbImgs.map((img: string, i: number) => (
+                        {thumbImgs.map((img: string, i: number) => {
+                          const fullImgs = batch.images || [];
+                          const imgUrl = String(fullImgs[i] || thumbImgs[i] || '');
+                          const isPdf = /\.pdf(\?|$)/i.test(imgUrl);
+                          return (
                           <TouchableOpacity key={i} onPress={() => {
-                            const fullImgs = batch.images || [];
-                            const imgUrl = String(fullImgs[i] || thumbImgs[i] || '');
-                            if (/\.pdf(\?|$)/i.test(imgUrl)) {
+                            if (isPdf) {
                               openPdf(imgUrl, batch.id);
                             } else {
                               openPreview((batch.images?.length ? batch.images : thumbImgs), i);
                             }
                           }}>
-                            <Image source={{ uri: img }}
-                              style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
+                            {isPdf ? (
+                              <View style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08), backgroundColor: withAlpha(c.textMain, 0.06), alignItems: 'center', justifyContent: 'center' }}>
+                                <Text style={{ fontSize: 24 }}>📄</Text>
+                                <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>PDF</Text>
+                              </View>
+                            ) : (
+                              <Image source={{ uri: img }}
+                                style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
+                            )}
                           </TouchableOpacity>
-                        ))}
+                        );})}
                       </View>
                     );
                   })()}

@@ -272,22 +272,31 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('procImages')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {thumbImgs.map((img: string, i: number) => (
+              {thumbImgs.map((img: string, i: number) => {
+                const fullImgs = images.length ? images : thumbImgs;
+                const imgUrl = String(fullImgs[i] || '');
+                const isPdf = /\.pdf(\?|$)/i.test(imgUrl);
+                return (
                 <TouchableOpacity key={i} onPress={() => {
-                  const fullImgs = images.length ? images : thumbImgs;
-                  const imgUrl = String(fullImgs[i] || '');
-                  if (/\.pdf(\?|$)/i.test(imgUrl)) {
+                  if (isPdf) {
                     onPdf?.(imgUrl, cur.batch_number || 0);
                   } else {
                     openPreview(fullImgs, i);
                   }
                 }} activeOpacity={0.8}>
-                  <Image
-                    source={{ uri: img }}
-                    style={styles.thumb}
-                  />
+                  {isPdf ? (
+                    <View style={[styles.thumb, { alignItems: 'center', justifyContent: 'center', backgroundColor: withAlpha(c.textMain, 0.06) }]}>
+                      <Text style={{ fontSize: 28 }}>📄</Text>
+                      <Text style={{ fontSize: FONTS.micro.size, color: c.textSub }}>PDF</Text>
+                    </View>
+                  ) : (
+                    <Image
+                      source={{ uri: img }}
+                      style={styles.thumb}
+                    />
+                  )}
                 </TouchableOpacity>
-              ))}
+              );})}
             </ScrollView>
           </View>
         )}

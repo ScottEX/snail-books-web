@@ -221,18 +221,25 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
         {/* Image thumbnails — lazy + async + bg placeholder so JS thread stays free for scroll */}
         {displayImgs.length > 0 && (
           <View style={st.imgThumbs}>
-            {displayImgs.map((url: string, j: number) => (
+            {displayImgs.map((url: string, j: number) => {
+              const pUrl = String(previewImgs[j] || '');
+              const isPdf = /\.pdf(\?|$)/i.test(pUrl);
+              return (
               <TouchableOpacity key={j}
                 onPress={() => {
-                  const pUrl = String(previewImgs[j] || '');
-                  if (/\.pdf(\?|$)/i.test(pUrl)) {
+                  if (isPdf) {
                     openPdf(pUrl);
                   } else {
                     openPreview(previewImgs, j);
                   }
                 }}
                 activeOpacity={0.8}>
-                {Platform.OS === 'web' ? (
+                {isPdf ? (
+                  <View style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: withAlpha(colors.textMain, 0.06), alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 20 }}>📄</Text>
+                    <Text style={{ fontSize: FONTS.micro.size, color: colors.textSub }}>PDF</Text>
+                  </View>
+                ) : Platform.OS === 'web' ? (
                   React.createElement('img', {
                     src: url,
                     loading: 'lazy' as any,
@@ -247,7 +254,7 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
                   <Image source={{ uri: url }} style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: colors.bg }} />
                 )}
               </TouchableOpacity>
-            ))}
+            );})}
           </View>
         )}
         </View>
