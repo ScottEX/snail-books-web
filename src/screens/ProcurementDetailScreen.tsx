@@ -67,7 +67,7 @@ function EditIcon({ color }: { color: string }) {
   );
 }
 
-export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPreview }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void; onPreview?: (id: number, number: number, supplier?: string) => void }) {
+export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPreview, onPdf }: { batch: BatchRecord | null; onBack: () => void; onEdit?: () => void; onPreview?: (id: number, number: number, supplier?: string) => void; onPdf?: (url: string, batchNumber: number) => void }) {
   const { colors: c } = useTheme();
   const swipeBack = useSwipeBack(onBack);
   const styles = useMemo(() => getStyles(c), [c]);
@@ -273,7 +273,15 @@ export default function ProcurementDetailScreen({ batch, onBack, onEdit, onPrevi
             <Text style={styles.sectionTitle}>{t('procImages')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {thumbImgs.map((img: string, i: number) => (
-                <TouchableOpacity key={i} onPress={() => openPreview(images.length ? images : thumbImgs, i)} activeOpacity={0.8}>
+                <TouchableOpacity key={i} onPress={() => {
+                  const fullImgs = images.length ? images : thumbImgs;
+                  const imgUrl = String(fullImgs[i] || '');
+                  if (/\.pdf(\?|$)/i.test(imgUrl)) {
+                    onPdf?.(imgUrl, cur.batch_number || 0);
+                  } else {
+                    openPreview(fullImgs, i);
+                  }
+                }} activeOpacity={0.8}>
                   <Image
                     source={{ uri: img }}
                     style={styles.thumb}

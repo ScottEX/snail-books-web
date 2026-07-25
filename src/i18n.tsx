@@ -166,6 +166,7 @@ const I18N: Record<string, Record<string, string>> = {
     expenseDate: '支出日期',
     expenseHistory: '支出记录',
     expenseNote: '支出说明',
+    expensePdfTitle: '支出凭证',
     faceIDDesc: '使用面容快速登录',
     faceIDLabel: '面容登录',
     faceIDLogin: '面容登录',
@@ -400,6 +401,7 @@ const I18N: Record<string, Record<string, string>> = {
     procGenerating: '生成中...',
     procGeneratingPDF: '正在生成进货单…',
     procHistory: '进货记录',
+    procVoucherFileName: '进货凭证',
     procImages: '凭证预览',
     procMargin: '货款利润率',
     procNewOrder: '新建进货',
@@ -774,6 +776,7 @@ const I18N: Record<string, Record<string, string>> = {
     expenseDate: '支出日期',
     expenseHistory: '支出記錄',
     expenseNote: '支出說明',
+    expensePdfTitle: '支出憑證',
     faceIDDesc: '使用面容快速登入',
     faceIDLabel: '面容登入',
     faceIDLogin: '面容登入',
@@ -1006,6 +1009,7 @@ const I18N: Record<string, Record<string, string>> = {
     procGenerating: '生成中...',
     procGeneratingPDF: '正在生成進貨單…',
     procHistory: '進貨記錄',
+    procVoucherFileName: '進貨憑證',
     procImages: '憑證預覽',
     procMargin: '貨款利潤率',
     procNewOrder: '新建進貨',
@@ -1378,6 +1382,7 @@ const I18N: Record<string, Record<string, string>> = {
     expenseDate: 'Expense Date',
     expenseHistory: 'Expense Records',
     expenseNote: 'Description',
+    expensePdfTitle: 'Expense Receipt',
     faceIDDesc: 'Sign in with Face ID',
     faceIDLabel: 'Face ID',
     faceIDLogin: 'Face ID',
@@ -1610,6 +1615,7 @@ const I18N: Record<string, Record<string, string>> = {
     procGenerating: 'Generating...',
     procGeneratingPDF: 'Generating purchase order...',
     procHistory: 'History',
+    procVoucherFileName: 'Receipt',
     procImages: 'Voucher Preview',
     procMargin: 'Margin',
     procNewOrder: 'New Order',
@@ -1985,6 +1991,7 @@ export type I18nKey =
   | 'expenseDate'
   | 'expenseHistory'
   | 'expenseNote'
+  | 'expensePdfTitle'
   | 'faceIDDesc'
   | 'faceIDLabel'
   | 'faceIDLogin'
@@ -2218,6 +2225,7 @@ export type I18nKey =
   | 'procGenerating'
   | 'procGeneratingPDF'
   | 'procHistory'
+  | 'procVoucherFileName'
   | 'procImages'
   | 'procMargin'
   | 'procNewOrder'

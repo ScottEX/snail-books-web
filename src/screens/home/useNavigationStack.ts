@@ -28,7 +28,7 @@ export function useNavigationStack({
   });
 
   const [removing, setRemoving] = useState<SubPage | null>(null);
-  const [pdfPreview, setPdfPreview] = useState<{ id: number; number: number; supplier?: string } | null>(() => {
+  const [pdfPreview, setPdfPreview] = useState<{ id: number; number: number; supplier?: string; fileUrl?: string; title?: string } | null>(() => {
     if (previewRoute) return previewRoute;
     try {
       const m = window.location.hash.match(/^#\/preview-pdf\?id=(\d+)(?:&.*)?$/);

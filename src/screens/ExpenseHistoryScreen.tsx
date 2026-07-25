@@ -56,7 +56,7 @@ function IcnSealExp({ color, label }: { color: string; label: string }) {
   );
 }
 
-export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, onInvoice }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void; onInvoice?: (batchId: number) => void }) {
+export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, onInvoice, onPdf }: { onBack: () => void; refreshKey?: number; onExpDetail?: (e: any) => void; onInvoice?: (batchId: number) => void; onPdf?: (url: string, title: string) => void }) {
   const swipeBack = useSwipeBack(onBack);
   const { showToast, ToastHost } = useToast();
   const { preview: previewData, openPreview, closePreview } = useImagePreview();
@@ -95,6 +95,11 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
 
   const { colors } = useTheme();
   const st = useMemo(() => getSt(colors), [colors]);
+
+  // ── PDF preview navigation (matches iOS) ──
+  const openPdf = useCallback((url: string) => {
+    onPdf?.(url, t('expensePdfTitle') as string);
+  }, [onPdf]);
 
   // Build filter params from applied values
   const getFilterParams = useCallback((): Record<string, string> => {
@@ -218,7 +223,14 @@ export default function ExpenseHistoryScreen({ onBack, refreshKey, onExpDetail, 
           <View style={st.imgThumbs}>
             {displayImgs.map((url: string, j: number) => (
               <TouchableOpacity key={j}
-                onPress={() => openPreview(previewImgs, j)}
+                onPress={() => {
+                  const pUrl = String(previewImgs[j] || '');
+                  if (/\.pdf(\?|$)/i.test(pUrl)) {
+                    openPdf(pUrl);
+                  } else {
+                    openPreview(previewImgs, j);
+                  }
+                }}
                 activeOpacity={0.8}>
                 {Platform.OS === 'web' ? (
                   React.createElement('img', {

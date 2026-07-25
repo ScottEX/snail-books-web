@@ -382,7 +382,7 @@ export default function HomeScreen({
           <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => setUserRefreshKey(k => k + 1)} />
         ) : null;
       case 'expense':
-        return <ExpenseHistoryScreen onBack={onBack} refreshKey={expenseRefreshKey} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} />;
+        return <ExpenseHistoryScreen onBack={onBack} refreshKey={expenseRefreshKey} onExpDetail={(e: any) => { setExpDetailRecord(e); pushPage('expdetail'); }} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} onPdf={(url, title) => { setPdfPreview({ id: 0, number: 0, fileUrl: url, title }); pushPage('pdf'); }} />;
       case 'expdetail':
         return expDetailRecord ? (
           <ExpenseDetailScreen
@@ -434,6 +434,7 @@ export default function HomeScreen({
               setPdfPreview({ id, number, supplier });
               pushPage('pdf');
             }}
+            onPdf={(url, batchNumber) => { setPdfPreview({ id: 0, number: batchNumber, fileUrl: url, title: t('procVoucherFileName') as string }); pushPage('pdf'); }}
           />
         );
       case 'pdf':
@@ -447,6 +448,8 @@ export default function HomeScreen({
             batchId={pdfPreview?.id ?? 0}
             batchNumber={pdfPreview?.number ?? 0}
             supplier={pdfPreview?.supplier}
+            fileUrl={pdfPreview?.fileUrl}
+            title={pdfPreview?.title}
             onBack={onBack}
           />
         );
@@ -529,7 +532,7 @@ export default function HomeScreen({
         {tab === 'partner' ? (
           <PartnerScreen onBack={() => setTab('list')} onProfile={() => setShowProfile(true)} refreshKey={partnerRefreshKey} />
         ) : tab === 'supply' ? (
-          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} />
+          <ProcurementScreen onDrawerOpen={() => setShowCartDrawer(true)} onDrawerClose={() => setShowCartDrawer(false)} onProcurementDetail={(batch) => { setProcDetailBatch(batch); pushPage('proc'); }} pendingEditBatch={pendingEditBatch} onPendingEditConsumed={() => setPendingEditBatch(null)} onInvoice={(batchId) => { setInvoiceFilterBatchId(batchId); pushPage('invoice'); }} onPdf={(url, batchNumber) => { setPdfPreview({ id: 0, number: batchNumber, fileUrl: url, title: t('procVoucherFileName') as string }); pushPage('pdf'); }} />
         ) : (
           <>
             {/* Underlying tab content */}

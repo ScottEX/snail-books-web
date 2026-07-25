@@ -317,7 +317,7 @@ const getStyles = (c: ThemeColors) => StyleSheet.create({
 // ═══════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════
-export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed, onInvoice }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void; onInvoice?: (batchId: number) => void }) {
+export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcurementDetail, pendingEditBatch, onPendingEditConsumed, onInvoice, onPdf }: { onDrawerOpen?: () => void; onDrawerClose?: () => void; onProcurementDetail?: (batch: BatchRecord) => void; pendingEditBatch?: BatchRecord | null; onPendingEditConsumed?: () => void; onInvoice?: (batchId: number) => void; onPdf?: (url: string, batchNumber: number) => void }) {
   const { colors: c } = useTheme();
   const sd = useServerDate();
   const styles = useMemo(() => getStyles(c), [c]);
@@ -398,6 +398,11 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
   const [productPickerSearch, setProductPickerSearch] = useState('');
 
   // detailItems, detailTotal, detailBatchId, downloadingPDF, pdfDone — removed with history detail modal (moved to ProcurementDetailScreen)
+
+  // ── PDF preview navigation ──
+  const openPdf = useCallback((url: string, batchNumber?: number) => {
+    onPdf?.(url, batchNumber || 0);
+  }, [onPdf]);
 
   const [successTotal, setSuccessTotal] = useState(0);
   const [successBatch, setSuccessBatch] = useState(0);
@@ -1193,7 +1198,15 @@ export default function ProcurementScreen({ onDrawerOpen, onDrawerClose, onProcu
                     return thumbImgs.length > 0 && (
                       <View style={styles.histImages}>
                         {thumbImgs.map((img: string, i: number) => (
-                          <TouchableOpacity key={i} onPress={() => openPreview((batch.images?.length ? batch.images : thumbImgs), i)}>
+                          <TouchableOpacity key={i} onPress={() => {
+                            const fullImgs = batch.images || [];
+                            const imgUrl = String(fullImgs[i] || thumbImgs[i] || '');
+                            if (/\.pdf(\?|$)/i.test(imgUrl)) {
+                              openPdf(imgUrl, batch.id);
+                            } else {
+                              openPreview((batch.images?.length ? batch.images : thumbImgs), i);
+                            }
+                          }}>
                             <Image source={{ uri: img }}
                               style={{ width: 60, height: 60, borderRadius: 6, borderWidth: 1, borderColor: withAlpha(c.textMain, 0.08) }} />
                           </TouchableOpacity>
