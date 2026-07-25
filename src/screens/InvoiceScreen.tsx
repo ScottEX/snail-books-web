@@ -19,6 +19,7 @@ import ReceiptUpload from '../components/ReceiptUpload';
 import ExpenseNoteInput from '../components/ExpenseNoteInput';
 import DatePicker from '../components/DatePicker';
 import EmptyState from '../components/EmptyState';
+import PdfPreviewPage from './PdfPreviewPage';
 import ConfirmModal from '../components/ConfirmModal';
 import TrashIcon from '../components/icons/TrashIcon';
 import ImagePreview from '../components/ImagePreview';
@@ -284,6 +285,8 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
   const deleteIdRef = useRef<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState('');
+  const [pdfPreviewTitle, setPdfPreviewTitle] = useState('');
 
   // Toast
   const { showToast, ToastHost } = useToast();
@@ -487,8 +490,20 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
         // New mode: create record first to get rid, then upload all files
         const res = await api.createInvoiceRecord(payload);
         rid = res.id;
+        const uploadedPaths: string[] = [];
+        const uploadedThumbPaths: string[] = [];
         for (const f of dFiles) {
-          await api.uploadInvoiceFile(rid, f);
+          const upRes = await api.uploadInvoiceFile(rid, f);
+          if (upRes.file_path) {
+            uploadedPaths.push(upRes.file_path);
+            uploadedThumbPaths.push(upRes.thumb_path || upRes.file_path);
+          }
+        }
+        if (uploadedPaths.length > 0) {
+          await api.updateInvoiceRecord(rid, {
+            file_path: JSON.stringify(uploadedPaths),
+            file_thumb_paths: JSON.stringify(uploadedThumbPaths),
+          });
         }
       }
       closeDrawer();
@@ -526,10 +541,22 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
 
   // ── Preview handlers ──
   const handlePreviewExisting = useCallback((index: number) => {
+    const path = dExistingFilePath[index];
+    if (path && /\.pdf(\?|$)/i.test(path)) {
+      setPdfPreviewUrl(api.getInvoiceFileUrl(path));
+      setPdfPreviewTitle(t('invTitle'));
+      return;
+    }
     openPreview(dExistingFilePath.map(p => api.getInvoiceFileUrl(p)), index);
   }, [dExistingFilePath, openPreview]);
 
   const handlePreviewNew = useCallback((index: number) => {
+    const f = dFiles[index];
+    if (f && (f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''))) {
+      setPdfPreviewUrl(URL.createObjectURL(f));
+      setPdfPreviewTitle(t('invTitle'));
+      return;
+    }
     openPreview(dFiles.map(f => URL.createObjectURL(f)), index);
   }, [dFiles, openPreview]);
 
@@ -1102,6 +1129,14 @@ export default function InvoiceScreen({ onBack, filterBatchId }: Props) {
           initialIdx={preview.idx}
           visible={true}
           onClose={closePreview}
+        />,
+        document.body,
+      )}
+      {pdfPreviewUrl !== '' && createPortal(
+        <PdfPreviewPage
+          fileUrl={pdfPreviewUrl}
+          title={pdfPreviewTitle}
+          onBack={() => { setPdfPreviewUrl(''); setPdfPreviewTitle(''); }}
         />,
         document.body,
       )}

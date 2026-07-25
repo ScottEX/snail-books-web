@@ -9,9 +9,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface Props {
-  batchId: number;
-  batchNumber: number;
+  batchId?: number;
+  batchNumber?: number;
   supplier?: string;
+  /** If provided, preview this file URL directly instead of fetching by batchId */
+  fileUrl?: string;
+  /** Custom title (used with fileUrl mode) */
+  title?: string;
   onBack: () => void;
 }
 
@@ -66,13 +70,15 @@ html.pv-lock{overflow:hidden;touch-action:none}
 `;
 };
 
-export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack }: Props) {
+export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl, title: customTitle, onBack }: Props) {
   const { colors: c } = useTheme();
   const st = useMemo(() => getStyles(c), [c]);
-  const title = t('procPdfTitle').replace('{n}', String(batchNumber));
-  const pdfUrl = supplier
-    ? `/api/procurement-batches/${batchId}/pdf?supplier=${encodeURIComponent(supplier)}`
-    : `/api/procurement-batches/${batchId}/pdf`;
+  const title = customTitle || t('procPdfTitle').replace('{n}', String(batchNumber));
+  const pdfUrl = fileUrl
+    || (supplier
+      ? `/api/procurement-batches/${batchId}/pdf?supplier=${encodeURIComponent(supplier)}`
+      : `/api/procurement-batches/${batchId}/pdf`);
+  const isLocal = pdfUrl.startsWith('blob:');
 
   const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(true);
@@ -344,26 +350,34 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack 
   }, [batchId, title]);
 
   const doDownloadImage = useCallback(async () => {
-    const pngUrl = supplier
-      ? `/api/procurement-batches/${batchId}/png?supplier=${encodeURIComponent(supplier)}`
-      : `/api/procurement-batches/${batchId}/png`;
+    // Invoice file mode: fileUrl is set, batchId is not
+    const pngUrl = batchId
+      ? (supplier
+        ? `/api/procurement-batches/${batchId}/png?supplier=${encodeURIComponent(supplier)}`
+        : `/api/procurement-batches/${batchId}/png`)
+      : `${fileUrl}/png`;
+
+    const dlName = batchId
+      ? `procurement_${batchId}_${getLang()}.png`
+      : `invoice_${getLang()}.png`;
+
     try {
       const res = await fetch(pngUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-      const file = new File([blob], `procurement_${batchId}_${getLang()}.png`, { type: 'image/png' });
+      const file = new File([blob], dlName, { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try { await navigator.share({ files: [file], title }); return; }
         catch (e) { if ((e as DOMException).name === 'AbortError') return; }
       }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `procurement_${batchId}_${getLang()}.png`;
+      a.download = dlName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     } catch (e) { /* silently fail */ }
-  }, [batchId, supplier, title]);
+  }, [batchId, supplier, title, fileUrl]);
 
   /* ── Zoom ── */
   const stepZoom = useCallback((delta: number) => {
@@ -390,12 +404,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, onBack 
             <div><div className="pv-title">{title}</div></div>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {!isLocal && (
+            <>
             <div className="pv-share-btn" onClick={doDownload} title={t('downloadPdf')}>
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#2C2626" strokeWidth="2" fill="none"/><polyline points="7 10 12 15 17 10" stroke="#2C2626" strokeWidth="2" fill="none"/><line x1="12" y1="15" x2="12" y2="3" stroke="#2C2626" strokeWidth="2"/></svg>
             </div>
             <div className="pv-share-btn" onClick={doDownloadImage} title={t('downloadImage')}>
               <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="#2C2626" strokeWidth="2" fill="none"/><circle cx="8.5" cy="8.5" r="1.5" fill="#2C2626"/><polyline points="21 15 16 10 5 21" stroke="#2C2626" strokeWidth="2" fill="none"/><line x1="12" y1="18" x2="12" y2="12" stroke="#2C2626" strokeWidth="2"/><polyline points="9 15 12 12 15 15" stroke="#2C2626" strokeWidth="2" fill="none"/></svg>
             </div>
+            </>
+            )}
           </div>
         </div>
 
