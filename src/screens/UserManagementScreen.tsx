@@ -108,6 +108,8 @@ export default function UserManagementScreen({ onBack, onUserSelect, silentRefre
   const [dropYear, setDropYear] = useState(FALLBACK_YEAR);
   useEffect(() => { if (sd.ready) { setDropYear(sd.year || FALLBACK_YEAR); setDropMonth(sd.month); } }, [sd.ready, sd.year, sd.month]);
   const [dropMonth, setDropMonth] = useState(new Date().getMonth() + 1);
+  type PendingDate = { type: 'any' } | { type: 'quick'; days: number } | { type: 'custom'; year: number; month: number };
+  const [pendingDate, setPendingDate] = useState<PendingDate>({ type: 'any' });
 
   const fetchUsers = useCallback(async (sts: string, df: string, dt: string) => {
     try {
@@ -160,38 +162,44 @@ export default function UserManagementScreen({ onBack, onUserSelect, silentRefre
     fetchUsers(val, dateFrom, dateTo);
   }, [dateFrom, dateTo, fetchUsers]);
 
-  // Apply year+month picker selection
+  // Apply pending date selection (matches iOS: deferred commit)
   const applyPick = useCallback(() => {
-    const from = `${dropYear}-${String(dropMonth).padStart(2, '0')}-01`;
-    const to = lastDayOfMonth(dropYear, dropMonth);
-    setDateFrom(from);
-    setDateTo(to);
-    setShowDateDrop(false);
-    fetchUsers(statusFilter, from, to);
-  }, [dropYear, dropMonth, statusFilter, fetchUsers]);
+    if (pendingDate.type === 'any') {
+      setDateFrom('');
+      setDateTo('');
+      setShowDateDrop(false);
+      setDateRect(null);
+      fetchUsers(statusFilter, '', '');
+    } else if (pendingDate.type === 'quick') {
+      setDateFrom(sd.offset(-pendingDate.days));
+      setDateTo(sd.today);
+      setShowDateDrop(false);
+      setDateRect(null);
+      fetchUsers(statusFilter, sd.offset(-pendingDate.days), sd.today);
+    } else {
+      const from = `${pendingDate.year}-${String(pendingDate.month).padStart(2, '0')}-01`;
+      const to = lastDayOfMonth(pendingDate.year, pendingDate.month);
+      setDateFrom(from);
+      setDateTo(to);
+      setShowDateDrop(false);
+      setDateRect(null);
+      fetchUsers(statusFilter, from, to);
+    }
+  }, [pendingDate, statusFilter, sd, fetchUsers]);
 
-  // Quick presets — fetch immediately (matching iOS)
-  const applyQuick = useCallback((days: number) => {
-    setDateFrom(sd.offset(-days)); setDateTo(sd.today);
-    setShowDateDrop(false);
-    fetchUsers(statusFilter, sd.offset(-days), sd.today);
-  }, [sd.today, sd.offset, statusFilter, fetchUsers]);
-
-  const clearDate = useCallback(() => {
-    setDateFrom('');
-    setDateTo('');
-    setShowDateDrop(false);
-    fetchUsers(statusFilter, '', '');
-  }, [statusFilter, fetchUsers]);
-
-  // ── Which quick preset is active? (matching iOS) ──
+  // ── Which quick preset is active? (in-dropdown: pendingDate; outside: actual filter) ──
   const quickActive = useMemo(() => {
+    if (showDateDrop) {
+      if (pendingDate.type === 'any') return 0;
+      if (pendingDate.type === 'quick') return pendingDate.days;
+      return -1;
+    }
     if (!dateFrom && !dateTo) return 0;
     if (sd.ready && dateFrom === sd.offset(-7) && dateTo === sd.today) return 7;
     if (sd.ready && dateFrom === sd.offset(-30) && dateTo === sd.today) return 30;
     if (sd.ready && dateFrom === sd.offset(-90) && dateTo === sd.today) return 90;
-    return null;
-  }, [dateFrom, dateTo, sd.today, sd.ready]);
+    return -1;
+  }, [showDateDrop, pendingDate, dateFrom, dateTo, sd.today, sd.ready]);
 
   const statusLabel = statusFilter === 'normal' ? t('normalStatus') : statusFilter === 'disabled' ? t('disabledStatus') : statusFilter === 'grace' ? t('graceStatus') : t('all');
   const dateLabel = (dateFrom || dateTo)
@@ -233,9 +241,25 @@ export default function UserManagementScreen({ onBack, onUserSelect, silentRefre
       setDropYear(sd.year || FALLBACK_YEAR);
       setDropMonth(sd.month || new Date().getMonth() + 1);
     }
+    // Init pending date from current filter
+    if (dateFrom && dateTo) {
+      if (dateTo === sd.today) {
+        const d = new Date(dateTo).getTime() - new Date(dateFrom).getTime();
+        const days = Math.round(d / 86400000);
+        if (days >= 6 && days <= 7) { setPendingDate({ type: 'quick', days: 7 }); }
+        else if (days >= 29 && days <= 30) { setPendingDate({ type: 'quick', days: 30 }); }
+        else if (days >= 89 && days <= 90) { setPendingDate({ type: 'quick', days: 90 }); }
+        else { setPendingDate({ type: 'custom', year: dropYear, month: dropMonth }); }
+      } else {
+        setPendingDate({ type: 'custom', year: dropYear, month: dropMonth });
+      }
+    } else {
+      setPendingDate({ type: 'any' });
+    }
     setShowDateDrop(true);
     setShowStatusDrop(false);
-  }, [dateFrom]);
+    setStatusRect(null);
+  }, [dateFrom, dateTo, sd.year, sd.month, sd.today]);
 
   const closeDrops = useCallback(() => {
     setShowStatusDrop(false);
@@ -326,13 +350,13 @@ export default function UserManagementScreen({ onBack, onUserSelect, silentRefre
             <div style={portalDropdownStyle(c)}>
               {/* Year selector */}
               <View style={st.pickerRow}>
-                {(sd.ready ? [sd.year - 2, sd.year - 1, sd.year, sd.year + 1] : FALLBACK_YEARS).map(y => (
+                {(sd.ready ? [sd.year - 3, sd.year - 2, sd.year - 1, sd.year] : FALLBACK_YEARS.slice(-4)).map(y => (
                   <TouchableOpacity
                     key={y}
-                    style={[st.pickerBtn, dateFrom && dropYear === y && st.pickerBtnOn]}
-                    onPress={() => setDropYear(y)}
+                    style={[st.pickerBtn, pendingDate.type === 'custom' && pendingDate.year === y && st.pickerBtnOn]}
+                    onPress={() => { const m = new Date().getMonth() + 1; setDropYear(y); setDropMonth(m); setPendingDate({ type: 'custom', year: y, month: m }); }}
                   >
-                    <Text style={[st.pickerBtnText, dateFrom && dropYear === y && st.pickerBtnTextOn]}>
+                    <Text style={[st.pickerBtnText, pendingDate.type === 'custom' && pendingDate.year === y && st.pickerBtnTextOn]}>
                       {y}
                     </Text>
                   </TouchableOpacity>
@@ -343,10 +367,10 @@ export default function UserManagementScreen({ onBack, onUserSelect, silentRefre
                 {MONTHS.map(m => (
                   <TouchableOpacity
                     key={m}
-                    style={[st.monthBtn, dateFrom && dropMonth === m && st.monthBtnOn]}
-                    onPress={() => setDropMonth(m)}
+                    style={[st.monthBtn, pendingDate.type === 'custom' && pendingDate.month === m && st.monthBtnOn]}
+                    onPress={() => { const y = sd.year || new Date().getFullYear(); setDropYear(y); setDropMonth(m); setPendingDate({ type: 'custom', year: y, month: m }); }}
                   >
-                    <Text style={[st.monthBtnText, dateFrom && dropMonth === m && st.monthBtnTextOn]}>
+                    <Text style={[st.monthBtnText, pendingDate.type === 'custom' && pendingDate.month === m && st.monthBtnTextOn]}>
                       {m}{t('monthUnit')}
                     </Text>
                   </TouchableOpacity>
@@ -354,22 +378,22 @@ export default function UserManagementScreen({ onBack, onUserSelect, silentRefre
               </View>
               {/* Quick presets */}
               <View style={st.quickRow}>
-                <TouchableOpacity style={[st.quickBtn, quickActive === 0 && st.quickBtnOn]} onPress={clearDate}>
+                <TouchableOpacity style={[st.quickBtn, quickActive === 0 && st.quickBtnOn]} onPress={() => setPendingDate({ type: 'any' })}>
                   <Text style={[st.quickBtnText, quickActive === 0 && st.quickBtnTextOn]}>{t('anyDate')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[st.quickBtn, quickActive === 7 && st.quickBtnOn]} onPress={() => applyQuick(7)}>
+                <TouchableOpacity style={[st.quickBtn, quickActive === 7 && st.quickBtnOn]} onPress={() => setPendingDate({ type: 'quick', days: 7 })}>
                   <Text style={[st.quickBtnText, quickActive === 7 && st.quickBtnTextOn]}>{t('last7Days')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[st.quickBtn, quickActive === 30 && st.quickBtnOn]} onPress={() => applyQuick(30)}>
+                <TouchableOpacity style={[st.quickBtn, quickActive === 30 && st.quickBtnOn]} onPress={() => setPendingDate({ type: 'quick', days: 30 })}>
                   <Text style={[st.quickBtnText, quickActive === 30 && st.quickBtnTextOn]}>{t('last30Days')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[st.quickBtn, quickActive === 90 && st.quickBtnOn]} onPress={() => applyQuick(90)}>
+                <TouchableOpacity style={[st.quickBtn, quickActive === 90 && st.quickBtnOn]} onPress={() => setPendingDate({ type: 'quick', days: 90 })}>
                   <Text style={[st.quickBtnText, quickActive === 90 && st.quickBtnTextOn]}>{t('last3Months')}</Text>
                 </TouchableOpacity>
               </View>
               {/* Actions */}
               <View style={st.dateActions}>
-                <TouchableOpacity style={st.dateActionBtn} onPress={clearDate}>
+                <TouchableOpacity style={st.dateActionBtn} onPress={() => setPendingDate({ type: 'any' })}>
                   <Text style={st.dateActionText}>{t('reset') || '重置'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.dateActionBtn, st.dateActionApply]} onPress={applyPick}>
@@ -436,7 +460,7 @@ export default function UserManagementScreen({ onBack, onUserSelect, silentRefre
 function portalDropdownStyle(c: ThemeColors): React.CSSProperties {
   return {
     backgroundColor: c.surface,
-    borderRadius: 10,
+    borderRadius: 14,
     border: `0.5px solid ${withAlpha(c.textMain, 0.08)}`,
 
     overflow: 'hidden',
@@ -462,7 +486,7 @@ const getStyles = (c: ThemeColors) => {
       flexDirection: 'row' as const, alignItems: 'center' as const,
       marginHorizontal: 16, marginTop: 16, marginBottom: 10,
       backgroundColor: c.surface,
-      borderRadius: 10, paddingHorizontal: 12, height: 40,
+      borderRadius: 14, paddingHorizontal: 12, height: 40,
       borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     },
     searchInput: {
@@ -477,7 +501,7 @@ const getStyles = (c: ThemeColors) => {
     filterChip: {
       flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between',
       backgroundColor: c.surface,
-      borderRadius: 10, height: 40, paddingHorizontal: 12,
+      borderRadius: 14, height: 40, paddingHorizontal: 12,
       borderWidth: 0.5, borderColor: withAlpha(c.textMain, 0.08),
     },
     filterChipText: { fontSize: 13, color: c.textSub, flex: 1 } as any,
