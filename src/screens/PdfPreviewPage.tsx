@@ -95,6 +95,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const swipeBack = useSwipeBack(handleBack);
 
+  // Enable pinch-zoom while PDF is open (viewport normally blocks it)
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
+    if (!meta) return;
+    const prev = meta.content;
+    meta.content = 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover';
+    return () => { meta.content = prev; };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
