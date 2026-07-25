@@ -694,7 +694,7 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
           </View>
           <View style={st.authCard}>
             {/* Face ID row — only on devices that support WebAuthn */}
-            {webauthnSupported && (
+            {webauthnSupported && (<>
             <View style={st.authRow}>
               <View style={st.authHeaderRow}>
                 <View style={[st.iconWrap, st.iconFace]}>
@@ -716,8 +716,8 @@ export default function ProfileScreen({ onBack, onLogout, onLangChange, onAvatar
               </View>
               <Text style={st.authDesc}>{t('faceIDDesc') || '使用面容快速登录'}</Text>
             </View>
-            )}
             <View style={st.divider} />
+            </>)}
             {/* SSO row */}
             <View style={st.authRow}>
               <View style={st.authHeaderRow}>
