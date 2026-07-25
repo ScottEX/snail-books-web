@@ -1,7 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING } from '../theme';
+import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -394,7 +394,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   return (
     <View style={st.container} {...swipeBack}>
-      {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'absolute', inset: 0, zIndex: 9999, marginLeft: 'auto', marginRight: 'auto' }}>
+      {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'absolute', inset: 0, zIndex: 9999, marginLeft: 'auto', marginRight: 'auto', maxWidth: CONTENT_MAX_WIDTH }}>
         <style dangerouslySetInnerHTML={{ __html: getCSS(c) }} />
 
         {/* Navbar */}

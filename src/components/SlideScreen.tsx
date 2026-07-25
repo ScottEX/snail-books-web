@@ -1,4 +1,4 @@
-import { ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING } from '../theme';
+import { ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Props {
@@ -84,6 +84,7 @@ export default function SlideScreen({
       style={{
         top,
         zIndex,
+        maxWidth: CONTENT_MAX_WIDTH,
         backgroundColor: backgroundColor || 'transparent',
         pointerEvents: isTop ? 'auto' : 'none',
         display: 'flex',
