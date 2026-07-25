@@ -8,6 +8,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 4;
+const NAV_H = 50;
+const ZOOM_STEP = 0.25;
+
 interface Props {
   batchId?: number;
   batchNumber?: number;
@@ -16,8 +21,6 @@ interface Props {
   title?: string;
   onBack: () => void;
 }
-
-const NAV_H = 50;
 
 const getCSS = (c: ThemeColors) => {
   const r = parseInt(c.bg.slice(1,3),16);
@@ -36,9 +39,15 @@ const getCSS = (c: ThemeColors) => {
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
 .pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:auto;background:#F9F7F4;-webkit-overflow-scrolling:touch}
-.pv-pages{display:flex;flex-direction:column;align-items:center;padding:12px 0}
+.pv-pages{display:flex;flex-direction:column;align-items:center;padding:12px 0;min-height:100%}
 .pv-pages .react-pdf__Page{margin-bottom:12px}
-.pv-pages canvas{display:block;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px;max-width:100%;height:auto!important}
+.pv-pages canvas{display:block;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px;height:auto!important}
+.pv-zoom-badge{position:absolute;top:${NAV_H + 10}px;right:12px;z-index:90;background:rgba(0,0,0,0.35);backdrop-filter:blur(8px);color:rgba(255,255,255,0.9);font-size:11px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .2s}
+.pv-zoom-badge.on{opacity:1}
+.pv-zoom-strip{position:absolute;right:16px;bottom:24px;z-index:95;display:flex;flex-direction:column;gap:6px}
+.pv-zoom-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent}
+.pv-zoom-btn:active{background:${btnBgActive};transform:scale(.92)}
+.pv-zoom-btn svg{width:16px;height:16px;stroke:#2C2626;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
 .pv-err svg{display:block}
 .pv-err-msg{font-size:13px;color:#999}
@@ -55,17 +64,6 @@ const getCSS = (c: ThemeColors) => {
 .pv-root.out{animation:pv-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
 `;
 };
-
-function usePageWidth() {
-  const [w, setW] = useState(0);
-  useEffect(() => {
-    const calc = () => setW(Math.min(window.innerWidth, window.innerWidth > 768 ? 768 : window.innerWidth) - 24);
-    calc();
-    window.addEventListener('resize', calc);
-    return () => window.removeEventListener('resize', calc);
-  }, []);
-  return w;
-}
 
 export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl, title: customTitle, onBack }: Props) {
   const { colors: c } = useTheme();
@@ -85,7 +83,31 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [exiting, setExiting] = useState(false);
   const [introSec, setIntroSec] = useState(0);
 
-  const pageWidth = usePageWidth();
+  // ── Zoom state ──
+  const [scale, setScale] = useState(1);
+  const [baseScale, setBaseScale] = useState(1);
+  const [showZoomBadge, setShowZoomBadge] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const pinchRef = useRef({ active: false, startDist: 0, startScale: 1 });
+  const lastTapRef = useRef(0);
+  const zoomTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const pageWidth = useMemo(() => {
+    const availW = (containerRef.current?.clientWidth ?? window.innerWidth) - 24;
+    return Math.max(100, availW * scale);
+  }, [scale]);
+
+  const zoomPct = Math.round(scale * 100);
+
+  // ── Apply scale with badge ──
+  const applyScale = useCallback((next: number) => {
+    const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, next));
+    setScale(clamped);
+    setShowZoomBadge(true);
+    clearTimeout(zoomTimer.current);
+    zoomTimer.current = setTimeout(() => setShowZoomBadge(false), 1500);
+  }, []);
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -95,7 +117,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const swipeBack = useSwipeBack(handleBack);
 
-  // Enable pinch-zoom while PDF is open (viewport normally blocks it)
+  // ── Viewport meta (browser pinch-zoom as fallback) ──
   useEffect(() => {
     const meta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
     if (!meta) return;
@@ -104,6 +126,82 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => { meta.content = prev; };
   }, []);
 
+  // ── Pinch-to-zoom ──
+  useEffect(() => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+
+    const getDist = (touches: TouchList) => {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const onTS = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        pinchRef.current = { active: true, startDist: getDist(e.touches), startScale: scale };
+      }
+    };
+    const onTM = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinchRef.current.active) {
+        e.preventDefault();
+        const next = pinchRef.current.startScale * (getDist(e.touches) / pinchRef.current.startDist);
+        applyScale(next);
+      }
+    };
+    const onTE = () => { pinchRef.current.active = false; };
+
+    vp.addEventListener('touchstart', onTS, { passive: false });
+    vp.addEventListener('touchmove', onTM, { passive: false });
+    vp.addEventListener('touchend', onTE);
+
+    return () => {
+      vp.removeEventListener('touchstart', onTS);
+      vp.removeEventListener('touchmove', onTM);
+      vp.removeEventListener('touchend', onTE);
+    };
+  }, [scale, applyScale]);
+
+  // ── Double-tap zoom toggle ──
+  const onViewportTouchEnd = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      applyScale(scale > 1.1 ? 1 : 2);
+    }
+    lastTapRef.current = now;
+  }, [scale, applyScale]);
+
+  // ── Desktop Ctrl+wheel zoom ──
+  useEffect(() => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        applyScale(scale * (e.deltaY > 0 ? 0.9 : 1.1));
+      }
+    };
+    vp.addEventListener('wheel', onWheel, { passive: false });
+    return () => vp.removeEventListener('wheel', onWheel);
+  }, [scale, applyScale]);
+
+  // ── Compute baseScale on first page render ──
+  const onPageRender = useCallback(() => {
+    const el = containerRef.current;
+    if (!el || baseScale > 1) return;
+    const canvas = el.querySelector('canvas');
+    if (!canvas) return;
+    const availW = el.clientWidth - 24;
+    const cw = canvas.width;
+    if (cw > 0) {
+      const bs = Math.min(1, availW / cw);
+      setBaseScale(bs);
+      setScale(bs);
+    }
+  }, [baseScale]);
+
+  // ── Fetch PDF ──
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -123,6 +221,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => { cancelled = true; };
   }, [pdfUrl]);
 
+  // ── Loading countdown ──
   useEffect(() => {
     if (!pdfLoading) { setIntroSec(0); return; }
     setIntroSec(0);
@@ -171,6 +270,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'absolute', inset: 0, zIndex: 9999, marginLeft: 'auto', marginRight: 'auto', maxWidth: CONTENT_MAX_WIDTH }}>
         <style dangerouslySetInnerHTML={{ __html: getCSS(c) }} />
 
+        {/* Navbar */}
         <div className="pv-nav">
           <div className="pv-nav-l">
             <div className="pv-back" onClick={handleBack}><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></div>
@@ -192,6 +292,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         </div>
 
+        {/* Zoom badge */}
+        <div className={`pv-zoom-badge${showZoomBadge ? ' on' : ''}`}>{zoomPct}%</div>
+
+        {/* Loading */}
         {pdfLoading && !pdfError && (
           <div className="pv-intro-overlay">
             <div className="pv-intro on">
@@ -201,6 +305,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         )}
 
+        {/* Error */}
         {pdfError && (
           <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
             <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round">
@@ -214,8 +319,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           </div>
         )}
 
-        <div className="pv-vp">
-          <div className="pv-pages">
+        {/* PDF viewport with pinch/double-tap/scroll handlers */}
+        <div className="pv-vp" ref={viewportRef} onTouchEnd={onViewportTouchEnd}>
+          <div className="pv-pages" ref={containerRef}>
             {pdfBlobUrl && !pdfError && (
               <Document
                 file={pdfBlobUrl}
@@ -227,15 +333,31 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
                   <Page
                     key={p}
                     pageNumber={p}
-                    width={pageWidth || undefined}
+                    width={pageWidth}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
+                    onRenderSuccess={p === 1 ? onPageRender : undefined}
                   />
                 ))}
               </Document>
             )}
           </div>
         </div>
+
+        {/* Zoom buttons */}
+        {!pdfLoading && !pdfError && pdfBlobUrl && (
+          <div className="pv-zoom-strip">
+            <div className="pv-zoom-btn" onClick={() => applyScale(scale + ZOOM_STEP)}>
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <div className="pv-zoom-btn" onClick={() => applyScale(1)}>
+              <svg viewBox="0 0 24 24"><text x="12" y="17" textAnchor="middle" fontSize="13" fontWeight="700" fill="#2C2626" fontFamily="system-ui">1x</text></svg>
+            </div>
+            <div className="pv-zoom-btn" onClick={() => applyScale(scale - ZOOM_STEP)}>
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+          </div>
+        )}
       </div>, document.body)}
     </View>
   );
