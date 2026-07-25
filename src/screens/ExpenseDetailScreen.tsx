@@ -91,7 +91,7 @@ export default function ExpenseDetailScreen({ record, onBack, onDeleted, onEdite
   const lang = getLang();
   const { width: w } = useWindowDimensions();
   const screenW = w;
-  const thumbSize = (screenW - 16 * 2 - 8 * 3) / 4;
+  const thumbSize = Math.min((screenW - 16 * 2 - 8 * 3) / 4, 80);
 
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
