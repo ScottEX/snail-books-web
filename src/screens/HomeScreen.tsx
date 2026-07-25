@@ -72,6 +72,7 @@ export default function HomeScreen({
   const [expDetailRecord, setExpDetailRecord] = useState<any>(null);
   const [expenseRefreshKey, setExpenseRefreshKey] = useState(0);
   const [userRefreshKey, setUserRefreshKey] = useState(0);
+  const [reviewedUserId, setReviewedUserId] = useState<number | null>(null);
   const [partnerRefreshKey, setPartnerRefreshKey] = useState(0);
   // External signal for ProcurementScreen.edit flow. When set, the
   // newly-mounted ProcurementScreen instance (which mounts when
@@ -375,7 +376,7 @@ export default function HomeScreen({
   const renderSubPage = (p: SubPage) => (onBack: () => void) => {
     switch (p) {
       case 'usermgmt':
-        return <UserManagementScreen key={userRefreshKey} onBack={onBack} onUserSelect={async (u) => { if (!u.reviewed) { await api.admin.markReviewed(u.id); setUserRefreshKey(k => k + 1); } setSelectedUser(u); pushPage('userdetail'); }} />;
+        return <UserManagementScreen silentRefreshKey={userRefreshKey} reviewedUserId={reviewedUserId} onBack={onBack} onUserSelect={async (u) => { if (!u.reviewed) { await api.admin.markReviewed(u.id); setReviewedUserId(u.id); } setSelectedUser(u); pushPage('userdetail'); }} />;
       case 'userdetail':
         return selectedUser ? (
           <UserDetailScreen user={selectedUser} onBack={onBack} onUpdated={() => setUserRefreshKey(k => k + 1)} />
@@ -853,8 +854,8 @@ export default function HomeScreen({
           onClose={() => setProfileSubPage(null)}
         >
           {(close) => (
-            <UserManagementScreen key={userRefreshKey} onBack={close} onUserSelect={async (u) => {
-              if (!u.reviewed) { await api.admin.markReviewed(u.id); setUserRefreshKey(k => k + 1); }
+            <UserManagementScreen silentRefreshKey={userRefreshKey} reviewedUserId={reviewedUserId} onBack={close} onUserSelect={async (u) => {
+              if (!u.reviewed) { await api.admin.markReviewed(u.id); setReviewedUserId(u.id); }
               setSelectedUser(u); setProfileSubPage('userdetail');
             }} />
           )}

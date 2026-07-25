@@ -23,6 +23,10 @@ interface UserItem {
 interface Props {
   onBack: () => void;
   onUserSelect: (user: UserItem) => void;
+  /** Increment to silently re-fetch users without showing loading spinner */
+  silentRefreshKey?: number;
+  /** Set to a user ID to mark as reviewed locally, without re-fetching */
+  reviewedUserId?: number | null;
 }
 
 function BackArrowSvg({ color }: { color: string }) {
@@ -84,7 +88,7 @@ function lastDayOfMonth(y: number, m: number): string {
   return `${y}-${String(m).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
+export default function UserManagementScreen({ onBack, onUserSelect, silentRefreshKey, reviewedUserId }: Props) {
   const { colors: c } = useTheme();
   const sd = useServerDate();
   const swipeBack = useSwipeBack(onBack);
@@ -125,6 +129,20 @@ export default function UserManagementScreen({ onBack, onUserSelect }: Props) {
   }, []);
 
   useEffect(() => { fetchUsers('', '', ''); }, []);
+
+  // ── Silent refresh when returning from detail screen ──
+  useEffect(() => {
+    if (silentRefreshKey === undefined) return;
+    fetchUsers(statusFilter, dateFrom, dateTo);
+  }, [silentRefreshKey]); // eslint-disable-line
+
+  // ── Local mark-as-reviewed (from detail screen) ──
+  useEffect(() => {
+    if (!reviewedUserId) return;
+    setUsers((prev) => prev.map((u) =>
+      u.id === reviewedUserId ? { ...u, reviewed: true } : u
+    ));
+  }, [reviewedUserId]);
 
   // Client-side filter (matches ProcurementScreen pattern)
   const filteredUsers = useMemo(() => {

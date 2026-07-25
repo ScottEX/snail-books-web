@@ -32,6 +32,7 @@ interface UserData {
   delete_by: string;
   linked_partner_id: number | null;
   linked_partner_name: string;
+  reviewed: boolean;
 }
 
 interface Props {
@@ -166,6 +167,7 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     delete_by: '',
     linked_partner_id: null,
     linked_partner_name: '',
+    reviewed: false,
   });
   const [loading, setLoading] = useState(true);
   const [isDisabled, setIsDisabled] = useState(user.is_disabled);
@@ -254,6 +256,17 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
     setIsDisabled(val);
     saveField('is_disabled', val);
   }, [saveField]);
+
+  // ── Mark as reviewed ──
+  const handleMarkReviewed = useCallback(async () => {
+    setSaving(true);
+    try {
+      await api.admin.markReviewed(user.id);
+      setDetail((prev) => ({ ...prev, reviewed: true }));
+      onUpdated();
+    } catch {}
+    setSaving(false);
+  }, [user.id, onUpdated]);
 
   const handleRoleSelect = useCallback((r: string) => {
     setRole(r);
@@ -405,6 +418,24 @@ export default function UserDetailScreen({ user, onBack, onUpdated }: Props) {
                   <Text style={[st.statusText, { color: isDisabled ? c.danger : c.success }]}>
                     {isDisabled ? t('disabledStatus') : t('normalStatus')}
                   </Text>
+                </View>
+              )}
+              {/* Unreviewed badge + Mark reviewed action */}
+              {!loading && !detail.reviewed && (
+                <View style={{ flexDirection: 'row' as const, alignItems: 'center', gap: 8, marginTop: 4 }}>
+                  <View style={[st.statusBadge, { alignSelf: 'flex-start', backgroundColor: withAlpha(c.warning, 0.08) }]}>
+                    <Text style={[st.statusText, { color: c.warning, fontSize: 11 }]}>{t('newUserBadge')}</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={handleMarkReviewed}
+                    disabled={saving}
+                    style={[st.markReviewedBtn, saving && { opacity: 0.5 }]}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={st.markReviewedBtnText}>
+                      {getLang() === 'en' ? 'Mark reviewed' : '标记已审核'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
               {/* Cooldown hint */}
@@ -636,6 +667,11 @@ const getStyles = (c: ThemeColors) => {
     },
     statusDot: { width: 6, height: 6, borderRadius: 3 },
     statusText: { fontSize: 12, fontWeight: '500' } as any,
+    markReviewedBtn: {
+      paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
+      borderWidth: 1, borderColor: c.primary,
+    },
+    markReviewedBtnText: { fontSize: 12, fontWeight: '500', color: c.primary },
     roleBadge: {
       paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6,
     },
