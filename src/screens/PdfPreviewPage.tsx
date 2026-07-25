@@ -85,19 +85,26 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   // ── Zoom state ──
   const [scale, setScale] = useState(1);
-  const [baseScale, setBaseScale] = useState(1);
   const [showZoomBadge, setShowZoomBadge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const pinchRef = useRef({ active: false, startDist: 0, startScale: 1 });
   const lastTapRef = useRef(0);
   const zoomTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const baseScaleSet = useRef(false);
 
-  const pageWidth = useMemo(() => {
-    const availW = (containerRef.current?.clientWidth ?? window.innerWidth) - 24;
-    return Math.max(100, availW * scale);
-  }, [scale]);
+  // Base width = container width (fills screen at scale=1)
+  const [baseW, setBaseW] = useState(340);
+  useEffect(() => {
+    const calc = () => {
+      const w = containerRef.current?.clientWidth ?? window.innerWidth;
+      setBaseW(Math.max(100, w - 24));
+    };
+    calc();
+    window.addEventListener('resize', calc);
+    return () => window.removeEventListener('resize', calc);
+  }, []);
+
+  const pageWidth = useMemo(() => Math.max(100, baseW * scale), [baseW, scale]);
 
   const zoomPct = Math.round(scale * 100);
 
@@ -186,23 +193,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     vp.addEventListener('wheel', onWheel, { passive: false });
     return () => vp.removeEventListener('wheel', onWheel);
   }, [scale, applyScale]);
-
-  // ── Compute baseScale once on first page render ──
-  const onPageRender = useCallback(() => {
-    if (baseScaleSet.current) return;
-    const el = containerRef.current;
-    if (!el) return;
-    const canvas = el.querySelector('canvas');
-    if (!canvas) return;
-    const availW = el.clientWidth - 24;
-    const cw = canvas.width;
-    if (cw > 0) {
-      baseScaleSet.current = true;
-      const bs = Math.min(1, availW / cw);
-      setBaseScale(bs);
-      setScale(bs);
-    }
-  }, []);
 
   // ── Fetch PDF ──
   useEffect(() => {
@@ -339,7 +329,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
                     width={pageWidth}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
-                    onRenderSuccess={p === 1 ? onPageRender : undefined}
                   />
                 ))}
               </Document>
