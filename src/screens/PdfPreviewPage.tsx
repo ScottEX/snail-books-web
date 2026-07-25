@@ -63,8 +63,8 @@ html.pv-lock{overflow:hidden;touch-action:none}
 .pv-err-btn{padding:10px 28px;border-radius:8px;background:${c.accent};color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .pv-err-btn:active{opacity:.8}
 .pv-loading-mask{position:absolute;inset:0;z-index:195;background:rgba(0,0,0,0.35);pointer-events:auto}
-@keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
-@keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
+@keyframes pv-slide-in{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
+@keyframes pv-slide-out{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(0.96)}}
 .pv-root{background:linear-gradient(to bottom,transparent 56px,#F9F7F4 56px);animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
 .pv-root.out{animation:pv-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
 `;
