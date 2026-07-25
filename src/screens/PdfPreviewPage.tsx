@@ -92,6 +92,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const pinchRef = useRef({ active: false, startDist: 0, startScale: 1 });
   const lastTapRef = useRef(0);
   const zoomTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const baseScaleSet = useRef(false);
 
   const pageWidth = useMemo(() => {
     const availW = (containerRef.current?.clientWidth ?? window.innerWidth) - 24;
@@ -186,20 +187,22 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => vp.removeEventListener('wheel', onWheel);
   }, [scale, applyScale]);
 
-  // ── Compute baseScale on first page render ──
+  // ── Compute baseScale once on first page render ──
   const onPageRender = useCallback(() => {
+    if (baseScaleSet.current) return;
     const el = containerRef.current;
-    if (!el || baseScale > 1) return;
+    if (!el) return;
     const canvas = el.querySelector('canvas');
     if (!canvas) return;
     const availW = el.clientWidth - 24;
     const cw = canvas.width;
     if (cw > 0) {
+      baseScaleSet.current = true;
       const bs = Math.min(1, availW / cw);
       setBaseScale(bs);
       setScale(bs);
     }
-  }, [baseScale]);
+  }, []);
 
   // ── Fetch PDF ──
   useEffect(() => {
