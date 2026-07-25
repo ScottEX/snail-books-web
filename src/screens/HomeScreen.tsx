@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Image } from 'react-native';
 import { createPortal } from 'react-dom';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { t, langs, useLang } from '../i18n';
 import { api } from '../api/client';
 import { useTheme, withAlpha, ThemeColors } from '../theme';
@@ -882,8 +882,9 @@ export default function HomeScreen({
 
 function NavIconList({ active, colors }: { active: boolean; colors: ThemeColors }) {
   const c = active ? colors.navActiveColor : '#000000';
+  const fillColor = active ? withAlpha(colors.navActiveColor, 0.20) : 'none';
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round">
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill={fillColor} stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
       <Path d="M9 5a2 2 0 012-2h2a2 2 0 012 2v0a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       <Path d="M9 12h6M9 16h6" />
@@ -892,11 +893,10 @@ function NavIconList({ active, colors }: { active: boolean; colors: ThemeColors 
 }
 
 function NavIconExpense({ active, colors }: { active: boolean; colors: ThemeColors }) {
-  // Wallet icon — semantic match for "Expense" tab label (avoiding literal `+` ambiguity).
-  // Other tabs use object/silhouette/chart icons; this one represents money-out.
   const c = active ? colors.navActiveColor : '#000000';
+  const fillColor = active ? withAlpha(colors.navActiveColor, 0.20) : 'none';
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill={fillColor} stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M20 12V8H6a2 2 0 010-4h12v4" />
       <Path d="M4 6v12a2 2 0 002 2h14v-4" />
       <Path d="M18 12a2 2 0 100 4h4v-4h-4z" />
@@ -906,8 +906,9 @@ function NavIconExpense({ active, colors }: { active: boolean; colors: ThemeColo
 
 function NavIconSupply({ active, colors }: { active: boolean; colors: ThemeColors }) {
   const c = active ? colors.navActiveColor : '#000000';
+  const fillColor = active ? withAlpha(colors.navActiveColor, 0.20) : 'none';
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill={fillColor} stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
       <Path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
     </Svg>
@@ -916,20 +917,25 @@ function NavIconSupply({ active, colors }: { active: boolean; colors: ThemeColor
 
 function NavIconChart({ active, colors }: { active: boolean; colors: ThemeColors }) {
   const c = active ? colors.navActiveColor : '#000000';
+  const fillColor = active ? withAlpha(colors.navActiveColor, 0.20) : 'none';
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M3 3v18h18" />
-      <Path d="M7 16l4-8 4 4 4-6" />
+      <Path d="M7 16 L11 8 L15 12 L19 6 L19 21 L3 21 L3 16 Z" fill={fillColor} stroke="none" />
+      <Path d="M3 3 L3 16 L7 16 L11 8 L15 12 L19 6 L19 3 Z" fill={fillColor} stroke="none" />
+      <Path d="M7 16l4-8 4 4 4-6" fill="none" />
     </Svg>
   );
 }
 
 function NavIconPartner({ active, colors }: { active: boolean; colors: ThemeColors }) {
   const c = active ? colors.navActiveColor : '#000000';
+  const fillColor = active ? withAlpha(colors.navActiveColor, 0.20) : 'none';
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill={fillColor} stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-      <Path d="M12 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+      <Circle cx="9" cy="7" r="4" />
+      <Path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
     </Svg>
   );
 }
