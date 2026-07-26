@@ -134,13 +134,20 @@
         window._pdfDoc = doc;
         pdfViewer.setDocument(doc);
         linkService.setDocument(doc, null);
-      }).catch((err) => {
+
         parent.postMessage({
-          type: 'pdf-error',
-          data: { message: err.message },
+          type: 'pdf-ready',
+          data: { numPages: pdfViewer.pagesCount },
         }, '*');
-      });
-    }
+
+        // Force the PDF to fill the container width
+        const firstPage = doc.getPage(1);
+        firstPage.then(page => {
+          const vp = page.getViewport({ scale: 1 });
+          const scale = container.clientWidth / vp.width;
+          pdfViewer.currentScale = scale;
+        });
+      }).catch((err) => {
 
     // ── Receive commands from parent ──
     window.addEventListener('message', (e) => {
