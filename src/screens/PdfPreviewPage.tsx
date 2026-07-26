@@ -17,14 +17,15 @@ const getCSS = (c: ThemeColors) => {
   return `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 .pv-nav{position:absolute;top:0;left:0;right:0;z-index:100;height:${NAV_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:transparent;backdrop-filter:saturate(200%) blur(30px);border-bottom:0.5px solid rgba(0,0,0,0.06)}
 .pv-nav-l{display:flex;align-items:center;gap:10px}
+.pv-nav-r{display:flex;align-items:center;gap:8px}
 .pv-back{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .pv-back:active{background:${btnBgActive}}
 .pv-back svg{width:16px;height:16px;stroke:#2C2626;stroke-width:2;fill:none;display:block}
 .pv-title{font-size:15px;font-weight:600;color:#2C2626;letter-spacing:.01em}
 .pv-sub{font-size:10px;color:rgba(240,237,232,0.28);font-family:'DM Mono',monospace;margin-top:1px}
-.pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
-.pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
-.pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
+.pv-action-btn{width:34px;height:34px;border-radius:17px;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.pv-action-btn:active{background:${btnBgActive};transform:scale(.92)}
+.pv-action-btn svg{display:block}
 .pv-iframe{display:block;border:none;touch-action:manipulation;-webkit-overflow-scrolling:touch}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
@@ -42,6 +43,29 @@ interface Props {
   onBack: () => void;
 }
 
+// ── SVG Icons (matches iOS DownloadSvg / ImageDownloadSvg) ──
+function DownloadIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#2C2626" strokeWidth="2"/>
+      <polyline points="7 10 12 15 17 10" stroke="#2C2626" strokeWidth="2"/>
+      <line x1="12" y1="15" x2="12" y2="3" stroke="#2C2626" strokeWidth="2"/>
+    </svg>
+  );
+}
+
+function ImageDownloadIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="#2C2626" strokeWidth="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5" fill="#2C2626"/>
+      <polyline points="21 15 16 10 5 21" stroke="#2C2626" strokeWidth="2"/>
+      <line x1="12" y1="18" x2="12" y2="12" stroke="#2C2626" strokeWidth="2"/>
+      <polyline points="9 15 12 12 15 15" stroke="#2C2626" strokeWidth="2"/>
+    </svg>
+  );
+}
+
 export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl, title: customTitle, onBack }: Props) {
   const { colors: c } = useTheme();
   const st = useMemo(() => getStyles(c), [c]);
@@ -50,8 +74,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     || (supplier
       ? `/api/procurement-batches/${batchId}/pdf?supplier=${encodeURIComponent(supplier)}`
       : `/api/procurement-batches/${batchId}/pdf`);
+  const pngUrl = (batchId && batchId > 0) ? `/api/procurement-batches/${batchId}/png` : '';
   const isLocal = pdfUrl.startsWith('blob:');
   const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}`;
+
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -59,14 +85,30 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [numPages, setNumPages] = useState(0);
   const [zoomPct, setZoomPct] = useState(100);
   const [introSec, setIntroSec] = useState(0);
+  const [actionLoading, setActionLoading] = useState<'download' | 'images' | null>(null);
+  const [pdfPages, setPdfPages] = useState<number | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Seconds counter while loading — matches iOS behavior
+  // Seconds counter while loading
   useEffect(() => {
     if (!loading) { setIntroSec(0); return; }
     const id = setInterval(() => setIntroSec(s => s + 1), 1000);
     return () => clearInterval(id);
   }, [loading]);
+
+  // Fetch page count for export-image button visibility (hide when >5 pages)
+  useEffect(() => {
+    if (!pngUrl) return;
+    let cancelled = false;
+    fetch(`${pngUrl}?pages=1`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        if (!cancelled && typeof data.pages === 'number') setPdfPages(data.pages);
+        else if (!cancelled) setPdfPages(-1);
+      })
+      .catch(() => { if (!cancelled) setPdfPages(-1); });
+    return () => { cancelled = true; };
+  }, [pngUrl]);
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -81,7 +123,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     iframeRef.current?.contentWindow?.postMessage({ type, data }, window.location.origin);
   }, []);
 
-  // Swipe-back gesture on left edge (above iframe)
+  // Swipe-back gesture on left edge
   const swipeRef = useRef<{ sx: number; sy: number } | null>(null);
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length !== 1) return;
@@ -122,28 +164,40 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => window.removeEventListener('message', onMessage);
   }, []);
 
-  // ── Share / download ──
-  const handleShare = useCallback(async () => {
-    if (navigator.share) {
-      try { await navigator.share({ title, url: pdfUrl }); } catch {}
-    } else {
-      try { await navigator.clipboard.writeText(pdfUrl); } catch {}
+  // ── Actions (matches iOS) ──
+  const handleDownload = useCallback(async () => {
+    setActionLoading('download');
+    try {
+      const a = document.createElement('a');
+      a.href = pdfUrl;
+      a.download = `${title}.pdf`;
+      a.click();
+    } finally {
+      setActionLoading(null);
     }
-  }, [title, pdfUrl]);
-
-  const handleDownload = useCallback(() => {
-    const a = document.createElement('a');
-    a.href = pdfUrl;
-    a.download = `${title}.pdf`;
-    a.click();
   }, [pdfUrl, title]);
+
+  const handleExportImage = useCallback(async () => {
+    if (!pngUrl) return;
+    setActionLoading('images');
+    try {
+      const a = document.createElement('a');
+      a.href = pngUrl;
+      a.download = `${title}.png`;
+      a.click();
+    } finally {
+      setActionLoading(null);
+    }
+  }, [pngUrl, title]);
+
+  const showExportImage = pngUrl !== '' && (pdfPages === null || pdfPages <= 5);
 
   return (
     <View style={st.container} {...swipeBack}>
       {createPortal(
         <div className={`pv-root${exiting ? ' out' : ''}${isLocal ? ' is-local' : ''}`} style={{ position: 'absolute', inset: 0, zIndex: 9999, maxWidth: CONTENT_MAX_WIDTH, marginLeft: 'auto', marginRight: 'auto' }}>
           
-          {/* Nav */}
+          {/* Nav — matches iOS HistoryHeader layout: left=back+title, right=download+export */}
           <div className="pv-nav">
             <div className="pv-nav-l">
               <div className="pv-back" onClick={handleBack}>
@@ -156,11 +210,26 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
                 )}
               </div>
             </div>
-            {!isLocal && (
-              <div className="pv-share-btn" onClick={handleShare}>
-                <svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="5" r="2.5"/><circle cx="18" cy="19" r="2.5"/><line x1="8.5" y1="11" x2="15.5" y2="5.5"/><line x1="8.5" y1="13" x2="15.5" y2="18.5"/></svg>
-              </div>
-            )}
+            <div className="pv-nav-r">
+              {!isLocal && (
+                <div className="pv-action-btn" onClick={handleDownload}>
+                  {actionLoading === 'download' ? (
+                    <LoadingSpinner label={false} size={16} color="#2C2626" />
+                  ) : (
+                    <DownloadIcon />
+                  )}
+                </div>
+              )}
+              {showExportImage && (
+                <div className="pv-action-btn" onClick={handleExportImage}>
+                  {actionLoading === 'images' ? (
+                    <LoadingSpinner label={false} size={16} color="#2C2626" />
+                  ) : (
+                    <ImageDownloadIcon />
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* iframe */}
@@ -182,7 +251,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
             style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 30, zIndex: 50 }}
           />
 
-          {/* Loading overlay — matches iOS: spinner + label + seconds counter */}
+          {/* Loading overlay */}
           {loading && !loadError && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 60 }}>
               <LoadingSpinner label={false} size={36} />
