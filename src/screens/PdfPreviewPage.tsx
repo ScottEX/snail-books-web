@@ -87,6 +87,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   // `scale` = committed scale (triggers react-pdf re-render, crisp pixels)
   // `cssScale` = live CSS transform during pinch (GPU-accelerated, no re-render)
   const [scale, setScale] = useState(1);
+  const committedScaleRef = useRef(1);
   const cssScaleRef = useRef(1);
   const pagesElRef = useRef<HTMLDivElement | null>(null);
   const [showZoomBadge, setShowZoomBadge] = useState(false);
@@ -113,14 +114,17 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   // Reset CSS transform AFTER react-pdf re-renders at committed scale
   useEffect(() => {
-    // Double rAF: first frame = state committed, second = react-pdf painted
     const id1 = requestAnimationFrame(() => {
       const id2 = requestAnimationFrame(() => {
         const el = pagesElRef.current;
         if (el) {
+          el.style.transition = 'transform 0.12s ease-out';
           el.style.transform = 'scale(1)';
           el.style.transformOrigin = 'top center';
           cssScaleRef.current = 1;
+          committedScaleRef.current = scale;
+          const t = setTimeout(() => { el.style.transition = ''; }, 150);
+          return () => clearTimeout(t);
         }
       });
     });
@@ -143,6 +147,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const applyScale = useCallback((next: number) => {
     const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, next));
     applyCssScale(clamped);
+    committedScaleRef.current = clamped;
     setScale(clamped);
     setShowZoomBadge(true);
     clearTimeout(zoomTimer.current);
@@ -195,7 +200,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         pinchRef.current = {
           active: true,
           startDist: getDist(e.touches),
-          startScale: cssScaleRef.current,
+          startScale: committedScaleRef.current,
           cx: mid.x,
           cy: mid.y,
         };
@@ -241,7 +246,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const onViewportTouchEnd = useCallback(() => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      const cur = cssScaleRef.current;
+      const cur = committedScaleRef.current;
       applyScale(cur > 1.1 ? 1 : 2);
     }
     lastTapRef.current = now;
@@ -254,7 +259,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        applyScale(cssScaleRef.current * (e.deltaY > 0 ? 0.9 : 1.1));
+        applyScale(committedScaleRef.current * (e.deltaY > 0 ? 0.9 : 1.1));
       }
     };
     vp.addEventListener('wheel', onWheel, { passive: false });
