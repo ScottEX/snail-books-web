@@ -683,11 +683,10 @@ See https://github.com/adobe-type-tools/cmap-resources
           }
           app.eventBus.dispatch('resize', { source: window });
           requestAnimationFrame(() => {
-            app.pdfViewer.currentScaleValue = 'page-width';
-            // Ensure never below 100%
-            if (app.pdfViewer.currentScale < 1.0) app.pdfViewer.currentScale = 1.0;
+            app.pdfViewer.currentScaleValue = 'page-fit';
+            // Capture page-fit as the minimum allowed scale
+            window._minScale = app.pdfViewer.currentScale;
           });
-        }
 
         // PDF loaded
         app.eventBus.on('documentloaded', () => {
@@ -706,9 +705,10 @@ See https://github.com/adobe-type-tools/cmap-resources
         });
         // Zoom change
         app.eventBus.on('scalechanging', ({ scale }) => {
-          // Hard clamp to 100% minimum
-          if (scale < 1.0) {
-            app.pdfViewer.currentScale = 1.0;
+          // Hard clamp to page-fit minimum
+          const min = window._minScale || 1.0;
+          if (scale < min) {
+            app.pdfViewer.currentScale = min;
             return;
           }
           parent.postMessage({
@@ -730,7 +730,7 @@ See https://github.com/adobe-type-tools/cmap-resources
             app.eventBus.dispatch('zoomout', { source: window });
             break;
           case 'zoom-reset':
-            app.pdfViewer.currentScaleValue = 'page-width';
+            app.pdfViewer.currentScaleValue = 'page-fit';
             break;
           case 'set-scale':
             if (data?.scale) app.pdfViewer.currentScale = data.scale;
