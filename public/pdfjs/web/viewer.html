@@ -13,7 +13,6 @@
     #toolbarContainer, #toolbarViewer, #sidebarContainer { display: none !important; }
     #viewerContainer {
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
       overflow: auto;
     }
     #viewer .page {
@@ -37,9 +36,17 @@
     window.onerror = (msg, src, line) => {
       parent.postMessage({ type: 'pdf-error', data: { message: String(msg), source: src, line } }, '*');
     };
-    window.onunhandledrejection = evt => {
-      parent.postMessage({ type: 'pdf-error', data: { message: String(evt.reason?.message || evt.reason) } }, '*');
-    };
+
+    // Force container to fill viewport via JS, bypassing CSS height chain
+    function resizeContainer() {
+      const c = document.getElementById('viewerContainer');
+      if (c) {
+        c.style.height = window.innerHeight + 'px';
+        c.style.width = window.innerWidth + 'px';
+      }
+    }
+    window.addEventListener('resize', resizeContainer);
+    resizeContainer();
 
     import * as pdfjsLib from '../build/pdf.min.mjs';
     import { PDFViewer, PDFLinkService, EventBus } from './pdf_viewer.mjs';
