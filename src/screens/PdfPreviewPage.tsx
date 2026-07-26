@@ -72,7 +72,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       ? `/api/procurement-batches/${batchId}/pdf?supplier=${encodeURIComponent(supplier)}`
       : `/api/procurement-batches/${batchId}/pdf`);
   const isLocal = pdfUrl.startsWith('blob:');
-  const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}&v=2`;
+  // Invalidate iframe cache on every mount so bfcache can't restore old zoom state
+  const mountKey = useRef(Date.now());
+  const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}&_t=${mountKey.current}`;
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
