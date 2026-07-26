@@ -56,27 +56,19 @@
 
     pdfjsLib.GlobalWorkerOptions.workerSrc = '../build/pdf.worker.min.mjs';
 
-    // Force viewerContainer to fill viewport
-    (function fixHeight() {
-      const c = document.getElementById('viewerContainer');
-      if (c) {
-        c.style.height = window.innerHeight + 'px';
-        c.style.width = window.innerWidth + 'px';
-      }
-    })();
-    window.addEventListener('resize', () => {
-      const c = document.getElementById('viewerContainer');
-      if (c) {
-        c.style.height = window.innerHeight + 'px';
-        c.style.width = window.innerWidth + 'px';
-      }
-    });
+    // Fill viewport — the CSS height chain breaks inside an iframe
+    const container = document.getElementById('viewerContainer');
+    function syncContainerHeight() {
+      container.style.height = window.innerHeight + 'px';
+    }
+    syncContainerHeight();
+    window.addEventListener('resize', syncContainerHeight);
 
     const DEFAULT_URL = new URLSearchParams(location.search).get('file') || '';
     const ENABLE_XFA = true;
 
-    const container = document.getElementById('viewerContainer');
     const viewerEl = document.getElementById('viewer');
+    // container already defined above
 
     const eventBus = new EventBus();
     const linkService = new PDFLinkService({ eventBus });
@@ -134,20 +126,13 @@
         window._pdfDoc = doc;
         pdfViewer.setDocument(doc);
         linkService.setDocument(doc, null);
-
-        parent.postMessage({
-          type: 'pdf-ready',
-          data: { numPages: pdfViewer.pagesCount },
-        }, '*');
-
-        // Force the PDF to fill the container width
-        const firstPage = doc.getPage(1);
-        firstPage.then(page => {
-          const vp = page.getViewport({ scale: 1 });
-          const scale = container.clientWidth / vp.width;
-          pdfViewer.currentScale = scale;
-        });
       }).catch((err) => {
+        parent.postMessage({
+          type: 'pdf-error',
+          data: { message: err.message },
+        }, '*');
+      });
+    }
 
     // ── Receive commands from parent ──
     window.addEventListener('message', (e) => {
