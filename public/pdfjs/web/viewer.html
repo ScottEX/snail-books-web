@@ -36,16 +36,27 @@ See https://github.com/adobe-type-tools/cmap-resources
   <script src="viewer.mjs" type="module"></script>
 
   <style>
-    /* Override viewer.css — ensure full-viewport layout in iframe */
-    html, body, #outerContainer {
-      height: 100dvh !important;
-      margin: 0;
+    /* Full viewport height chain */
+    html, body {
+      height: 100%;
+      width: 100%;
       overflow: hidden;
     }
-    #mainContainer {
+    #outerContainer {
+      width: 100%;
+      height: 100%;
       position: relative;
-      height: 100% !important; 
     }
+    #mainContainer {
+      width: 100%;
+      height: 100%;
+    }
+    #viewerContainer {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+    /* Hide PDF.js default UI */
     #toolbarContainer,
     #secondaryToolbar,
     #sidebarContainer,
@@ -55,13 +66,6 @@ See https://github.com/adobe-type-tools/cmap-resources
     #toolbarViewerRight,
     #toolbarViewerMiddle {
       display: none !important;
-    }
-    #viewerContainer {
-      top: 0 !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      position: absolute !important;
     }
   </style>
   </head>
@@ -668,19 +672,29 @@ See https://github.com/adobe-type-tools/cmap-resources
       const app = window.PDFViewerApplication;
       if (!app) return;
       app.initializedPromise.then(() => {
+        // Ensure container has real dimensions before setting scale
+        function ensureLayout() {
+          const container = document.getElementById('viewerContainer');
+          if (!container) return;
+          const { width, height } = container.getBoundingClientRect();
+          if (width === 0 || height === 0) {
+            requestAnimationFrame(ensureLayout);
+            return;
+          }
+          app.eventBus.dispatch('resize', { source: window });
+          requestAnimationFrame(() => {
+            app.pdfViewer.currentScaleValue = 'page-width';
+          });
+        }
+
         // PDF loaded
         app.eventBus.on('documentloaded', () => {
           parent.postMessage({
             type: 'pdf-ready',
             data: { numPages: app.pdfDocument.numPages },
           }, '*');
+          requestAnimationFrame(ensureLayout);
         });
-        // After pages rendered, force scale to fill container
-        app.eventBus.on('pagesloaded', () => {
-          requestAnimationFrame(() => {
-            app.pdfViewer.currentScaleValue = 'page-width';
-          });
-        }, { once: true });
         // Page change
         app.eventBus.on('pagechanging', ({ pageNumber }) => {
           parent.postMessage({

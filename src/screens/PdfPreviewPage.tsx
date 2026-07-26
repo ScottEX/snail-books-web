@@ -180,7 +180,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
             <iframe
               ref={iframeRef}
               src={viewerUrl}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, border: 'none' }}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block', border: 'none' }}
             allow="fullscreen"
             sandbox="allow-scripts allow-same-origin allow-forms"
               onError={() => { setLoading(false); setLoadError('iframe load failed'); }}
