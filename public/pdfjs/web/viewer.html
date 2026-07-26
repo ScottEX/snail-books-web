@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html dir="ltr">
+<html dir="ltr" mozdisallowselectionprint>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -8,8 +8,13 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; overflow: hidden; background: #1c1c1e; }
-    #container {
-      position: absolute; inset: 0; overflow: auto;
+    #outerContainer { height: 100%; }
+    #mainContainer { position: relative; width: 100%; height: 100%; }
+    #toolbarContainer, #toolbarViewer, #sidebarContainer { display: none !important; }
+    #viewerContainer {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: auto;
     }
     #viewer .page {
       margin: 10px auto;
@@ -18,14 +23,21 @@
   </style>
 </head>
 <body>
-  <div id="container"><div id="viewer" class="pdfViewer"></div></div>
+  <div id="outerContainer">
+    <div id="sidebarContainer"></div>
+    <div id="mainContainer">
+      <div id="toolbarContainer"><div id="toolbarViewer"></div></div>
+      <div id="viewerContainer">
+        <div id="viewer" class="pdfViewer"></div>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
-    // Report any JS errors to parent
-    window.onerror = (msg, src, line, col, err) => {
-      parent.postMessage({ type: 'pdf-error', data: { message: String(msg), line, source: src } }, '*');
+    window.onerror = (msg, src, line) => {
+      parent.postMessage({ type: 'pdf-error', data: { message: String(msg), source: src, line } }, '*');
     };
-    window.onunhandledrejection = (evt) => {
+    window.onunhandledrejection = evt => {
       parent.postMessage({ type: 'pdf-error', data: { message: String(evt.reason?.message || evt.reason) } }, '*');
     };
 
@@ -37,7 +49,7 @@
     const url = new URLSearchParams(location.search).get('file') || '';
     if (!url) return;
 
-    const container = document.getElementById('container');
+    const container = document.getElementById('viewerContainer');
     const viewerEl = document.getElementById('viewer');
 
     const eventBus = new EventBus();
@@ -47,9 +59,8 @@
       textLayerMode: 0, annotationMode: 2, maxCanvasPixels: 16777216,
     });
     linkService.setViewer(pdfViewer);
-    pdfViewer.currentScaleValue = 'page-width';
 
-    // Events → parent
+    // Events
     eventBus.on('pagechanging', evt => {
       parent.postMessage({ type: 'pdf-page-change', data: { page: evt.pageNumber } }, '*');
     });
@@ -68,16 +79,16 @@
       cMapUrl: '../cmaps/', cMapPacked: true,
       standardFontDataUrl: '../standard_fonts/',
     }).promise.then(doc => {
-      window._pdfDoc = doc;
       pdfViewer.setDocument(doc);
       linkService.setDocument(doc, null);
+      // Force full-width after document is set
       pdfViewer.currentScaleValue = 'page-width';
       parent.postMessage({ type: 'pdf-ready', data: { numPages: doc.numPages } }, '*');
     }).catch(err => {
       parent.postMessage({ type: 'pdf-error', data: { message: err.message } }, '*');
     });
 
-    // Parent commands
+    // Commands from parent
     window.addEventListener('message', e => {
       const { type, data } = e.data || {};
       switch (type) {
