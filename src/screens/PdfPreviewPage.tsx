@@ -40,7 +40,7 @@ const getCSS = (c: ThemeColors) => {
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
 .pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:auto;background:#F9F7F4;-webkit-overflow-scrolling:touch}
 .pv-pages{padding:12px 0;min-height:100%}
-.pv-pages .react-pdf__Page{margin-bottom:12px}
+.pv-pages .react-pdf__Page{margin-bottom:12px;align-self:center}
 .pv-pages canvas{display:block;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px;height:auto!important}
 .pv-zoom-badge{position:absolute;top:${NAV_H + 10}px;right:12px;z-index:90;background:rgba(0,0,0,0.35);backdrop-filter:blur(8px);color:rgba(255,255,255,0.9);font-size:11px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .2s}
 .pv-zoom-badge.on{opacity:1}
@@ -90,7 +90,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const committedScaleRef = useRef(1);
   const cssScaleRef = useRef(1);
   const gRef = useRef({ scale: 1 });      // live CSS zoom (pinch)
-  const naturalWidthRef = useRef(340);     // canvas width at scale=1
   const pagesElRef = useRef<HTMLDivElement | null>(null);
   const [showZoomBadge, setShowZoomBadge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -120,8 +119,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     const el = pagesElRef.current;
     if (el) {
       el.style.transform = 'scale(1)';
-      el.style.transformOrigin = '0 0';
-      el.style.width = '';
+      el.style.transformOrigin = 'center top';
       gRef.current.scale = 1;
     }
   }, [scale]);
@@ -133,25 +131,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     const clamped = Math.max(1, Math.min(MAX_SCALE, s));
     gRef.current.scale = clamped;
     el.style.transform = `scale(${clamped})`;
-    el.style.transformOrigin = '0 0';
-    const nw = naturalWidthRef.current;
-    if (nw > 0) el.style.width = (nw * clamped) + 'px';
+    el.style.transformOrigin = 'center top';
   };
-
-  // Record natural canvas width for width sync
-  useEffect(() => {
-    if (scale === 1) return;
-    const el = pagesElRef.current;
-    if (!el) return;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          const canvas = el.querySelector('canvas');
-          if (canvas) naturalWidthRef.current = canvas.clientWidth;
-        }, 80);
-      });
-    });
-  }, [scale]);
 
   const zoomPct = Math.round(Math.max(gRef.current.scale, committedScaleRef.current) * 100);
 
