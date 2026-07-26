@@ -35,7 +35,7 @@ const getCSS = (c: ThemeColors) => {
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
 .pv-pill{position:absolute;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:20px;padding:4px 14px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;pointer-events:none}
-.pv-iframe{display:block;border:none;touch-action:none}
+.pv-iframe{display:block;border:none;touch-action:manipulation;-webkit-overflow-scrolling:touch}
 .pv-toolbar{position:absolute;bottom:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px 8px;z-index:95;background:transparent;backdrop-filter:blur(30px);border-top:0.5px solid rgba(0,0,0,0.06)}
 .pv-tool-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:rgba(44,38,38,0.55);cursor:pointer;padding:6px 10px;border-radius:8px;min-width:40px}
 .pv-tool-btn:active{background:${btnBg}}
@@ -48,7 +48,7 @@ const getCSS = (c: ThemeColors) => {
 @keyframes pv-dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
-.pv-root{background:#F9F7F4;animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
+.pv-root{overscroll-behavior:none;background:#F9F7F4;animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
 .pv-root.out{animation:pv-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
 .pv-root.is-local .pv-toolbar{display:none}
 `;
