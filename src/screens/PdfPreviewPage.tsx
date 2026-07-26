@@ -94,6 +94,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     iframeRef.current?.contentWindow?.postMessage({ type, data }, window.location.origin);
   }, []);
 
+  // Fallback: hide loader after timeout
+  useEffect(() => {
+    if (!loading) return;
+    const t = setTimeout(() => setLoading(false), 8000);
+    return () => clearTimeout(t);
+  }, [loading]);
+
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.origin !== window.location.origin) return;
