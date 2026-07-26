@@ -81,9 +81,9 @@
         withCredentials: !isBlob,
         httpHeaders: isBlob ? undefined : { 'X-Lang': lang },
         enableXfa: ENABLE_XFA,
-        cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.0.227/cmaps/',
+        cMapUrl: '../cmaps/',
         cMapPacked: true,
-        standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.0.227/standard_fonts/',
+        standardFontDataUrl: '../standard_fonts/',
       });
       loadingTask.promise.then((doc) => {
         window._pdfDoc = doc;
