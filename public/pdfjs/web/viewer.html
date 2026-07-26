@@ -706,6 +706,11 @@ See https://github.com/adobe-type-tools/cmap-resources
         });
         // Zoom change
         app.eventBus.on('scalechanging', ({ scale }) => {
+          // Hard clamp to 100% minimum
+          if (scale < 1.0) {
+            app.pdfViewer.currentScale = 1.0;
+            return;
+          }
           parent.postMessage({
             type: 'pdf-zoom-change',
             data: { zoom: scale },
