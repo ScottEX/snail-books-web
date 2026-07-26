@@ -702,8 +702,6 @@ See https://github.com/adobe-type-tools/cmap-resources
 
         // PDF loaded
         app.eventBus.on('documentloaded', () => {
-          // Force reset to 100% every time a document loads
-          app.pdfViewer.currentScale = 1.0;
           parent.postMessage({
             type: 'pdf-ready',
             data: { numPages: app.pdfDocument.numPages },

@@ -1,21 +1,11 @@
 import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
 import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
-import { t, getLang } from '../i18n';
+import { t } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const NAV_H = 52;
-
-// ── Tool icon helper ──
-function ToolIcon({ d }: { d: string }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 18 18" fill="none"
-      stroke="rgba(255,255,255,0.55)" strokeWidth="1.7" strokeLinecap="round">
-      <path d={d} />
-    </svg>
-  );
-}
 
 const getCSS = (c: ThemeColors) => {
   const r = parseInt(c.bg.slice(1,3),16);
@@ -34,23 +24,11 @@ const getCSS = (c: ThemeColors) => {
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
-.pv-pill{position:absolute;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:20px;padding:4px 14px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;pointer-events:none}
 .pv-iframe{display:block;border:none;touch-action:manipulation;-webkit-overflow-scrolling:touch}
-.pv-toolbar{position:absolute;bottom:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px 8px;z-index:95;background:transparent;backdrop-filter:blur(30px);border-top:0.5px solid rgba(0,0,0,0.06)}
-.pv-tool-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:rgba(44,38,38,0.55);cursor:pointer;padding:6px 10px;border-radius:8px;min-width:40px}
-.pv-tool-btn:active{background:${btnBg}}
-.pv-tool-label{font-size:10px}
-.pv-tool-sep{width:0.5px;height:24px;background:rgba(0,0,0,0.08)}
-.pv-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:80;pointer-events:none}
-.pv-loading-dot{width:8px;height:8px;border-radius:50%;background:#ccc;margin:0 3px;animation:pv-dot 1.2s ease-in-out infinite}
-.pv-loading-dot:nth-child(2){animation-delay:.15s}
-.pv-loading-dot:nth-child(3){animation-delay:.3s}
-@keyframes pv-dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
 .pv-root{overscroll-behavior:none;background:#F9F7F4;animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
 .pv-root.out{animation:pv-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
-.pv-root.is-local .pv-toolbar{display:none}
 `;
 };
 
@@ -72,26 +50,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       ? `/api/procurement-batches/${batchId}/pdf?supplier=${encodeURIComponent(supplier)}`
       : `/api/procurement-batches/${batchId}/pdf`);
   const isLocal = pdfUrl.startsWith('blob:');
-  // Invalidate iframe cache on every mount so bfcache can't restore old zoom state
-  const mountKey = useRef(Date.now());
-  const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}&_t=${mountKey.current}`;
-  
-  // Force fresh iframe — key changes on every entry even if component doesn't unmount
-  // State initializer runs only on first mount; but we also regenerate on every
-  // "entry" by watching for when the screen logically re-appears.
-  const [iframeKey, setIframeKey] = useState(() => Date.now());
-  
-  // Reset iframe key on mount AND whenever this effect re-runs
-  useEffect(() => {
-    setIframeKey(Date.now());
-  }, [batchId, batchNumber, supplier, fileUrl, title]);
-
-  // Nuke: set src dynamically after mount to bypass browser iframe cache
-  useEffect(() => {
-    if (iframeRef.current) {
-      iframeRef.current.src = viewerUrl;
-    }
-  }, [iframeKey, viewerUrl]);
+  const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}`;
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -113,14 +72,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     iframeRef.current?.contentWindow?.postMessage({ type, data }, window.location.origin);
   }, []);
 
-  // Fallback: hide loader after timeout
-  useEffect(() => {
-    if (!loading) return;
-    const t = setTimeout(() => setLoading(false), 8000);
-    return () => clearTimeout(t);
-  }, [loading]);
-
-  // Swipe-back gesture (right swipe on left edge)
+  // Swipe-back gesture on left edge (above iframe)
   const swipeRef = useRef<{ sx: number; sy: number } | null>(null);
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length !== 1) return;
@@ -130,7 +82,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     if (!swipeRef.current || e.touches.length !== 1) return;
     const dx = e.touches[0].clientX - swipeRef.current.sx;
     const dy = Math.abs(e.touches[0].clientY - swipeRef.current.sy);
-    // Require horizontal swipe (> 1.5x vertical) and rightward
     if (dx > 40 && dx > dy * 1.5) {
       onBack();
       swipeRef.current = null;
@@ -155,9 +106,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         case 'pdf-error':
           setLoading(false);
           console.error('PDF load error:', data?.message);
-          break;
-        case 'pdf-dimensions':
-          console.log('PDF iframe dims:', data);
           break;
       }
     }
@@ -206,20 +154,19 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
             )}
           </div>
 
-          {/* iframe: PDF.js viewer handles all gestures natively */}
+          {/* iframe */}
           {!loadError && (
             <iframe
               ref={iframeRef}
-              key={iframeKey}
               src={viewerUrl}
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block', border: 'none' }}
-            allow="fullscreen"
-            sandbox="allow-scripts allow-same-origin allow-forms"
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block', border: 'none' }}
+              allow="fullscreen"
+              sandbox="allow-scripts allow-same-origin allow-forms"
               onError={() => { setLoading(false); setLoadError('iframe load failed'); }}
             />
           )}
 
-          {/* Swipe-back edge (30px left strip, above iframe) */}
+          {/* Swipe-back edge */}
           <div
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -228,7 +175,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
           {/* Error state */}
           {loadError && (
-            <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
               <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round">
                 <circle cx="24" cy="24" r="20" stroke="#e0dcd5" strokeWidth="1.5" fill="#f5f2eb" />
                 <line x1="24" y1="14" x2="24" y2="28" />
