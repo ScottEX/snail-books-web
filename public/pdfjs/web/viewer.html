@@ -52,10 +52,11 @@
     window.addEventListener('resize', resizeContainer);
     resizeContainer();
 
-    import * as pdfjsLib from '../build/pdf.min.mjs';
-    import { PDFViewer, PDFLinkService, EventBus } from './pdf_viewer.mjs';
+    import * as pdfjsLib from '../build/pdf.min.js';
+    import { PDFViewer, PDFLinkService, EventBus } from './pdf_viewer.js';
 
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '../build/pdf.worker.min.mjs';
+    try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '../build/pdf.worker.min.js';
 
     const url = new URLSearchParams(location.search).get('file') || '';
     if (!url) return;
@@ -110,6 +111,9 @@
         case 'jump-page': if (data?.page) pdfViewer.currentPageNumber = data.page; break;
       }
     });
+  } catch (err) {
+    parent.postMessage({ type: 'pdf-error', data: { message: 'Script error: ' + (err.message || String(err)) } }, '*');
+  }
   </script>
 </body>
 </html>
