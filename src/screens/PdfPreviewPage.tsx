@@ -76,7 +76,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const mountKey = useRef(Date.now());
   const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}&_t=${mountKey.current}`;
   // Force fresh iframe every mount via unique key
-  const [iframeKey] = useState(() => Date.now());
+  const [iframeKey, setIframeKey] = useState(() => Date.now());
+
+  // Detect bfcache / page re-show and force iframe reload
+  useEffect(() => {
+    const handler = () => setIframeKey(Date.now());
+    window.addEventListener('pageshow', handler);
+    return () => window.removeEventListener('pageshow', handler);
+  }, []);
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
