@@ -241,6 +241,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
               allow="fullscreen"
               sandbox="allow-scripts allow-same-origin allow-forms"
               onError={() => { setLoading(false); setLoadError('iframe load failed'); }}
+              onLoad={() => {
+                // Fallback: if pdf-ready message doesn't arrive within 3s, hide spinner
+                setTimeout(() => setLoading(false), 3000);
+              }}
             />
           )}
 

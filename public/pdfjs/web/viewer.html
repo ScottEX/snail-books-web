@@ -702,9 +702,10 @@ See https://github.com/adobe-type-tools/cmap-resources
 
         // PDF loaded
         app.eventBus.on('documentloaded', () => {
+          const numPages = app.pdfDocument?.numPages || 0;
           parent.postMessage({
             type: 'pdf-ready',
-            data: { numPages: app.pdfDocument.numPages },
+            data: { numPages },
           }, '*');
           requestAnimationFrame(ensureLayout);
         });
