@@ -681,15 +681,19 @@ See https://github.com/adobe-type-tools/cmap-resources
             requestAnimationFrame(ensureLayout);
             return;
           }
+          // Reset to 100% immediately, before cached state can override
+          app.pdfViewer.currentScale = 1.0;
           app.eventBus.dispatch('resize', { source: window });
           requestAnimationFrame(() => {
-            // Open at exactly 100%
+            // Double set: once now, once after layout — guard against cache restore
             app.pdfViewer.currentScale = 1.0;
             window._minScale = 1.0;
           });
 
         // PDF loaded
         app.eventBus.on('documentloaded', () => {
+          // Force reset to 100% every time a document loads
+          app.pdfViewer.currentScale = 1.0;
           parent.postMessage({
             type: 'pdf-ready',
             data: { numPages: app.pdfDocument.numPages },
