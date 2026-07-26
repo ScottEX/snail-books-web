@@ -71,8 +71,28 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     || (supplier
       ? `/api/procurement-batches/${batchId}/pdf?supplier=${encodeURIComponent(supplier)}`
       : `/api/procurement-batches/${batchId}/pdf`);
-  const isLocal = pdfUrl.startsWith('blob:');
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string>(fileUrl || '');
+  const isLocal = fileUrl?.startsWith('blob:') || false;
 
+  // Fetch PDF as blob (for auth) then pass blob URL to iframe
+  useEffect(() => {
+    if (!pdfUrl || pdfBlobUrl) return;
+    let cancelled = false;
+    const fetchPdf = async () => {
+      try {
+        const res = await fetch(pdfUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        if (!cancelled) setPdfBlobUrl(URL.createObjectURL(blob));
+      } catch (e) { console.error('PDF fetch error:', e); }
+    };
+    fetchPdf();
+    return () => { cancelled = true; };
+  }, [pdfUrl]);
+
+  const viewerUrl = pdfBlobUrl
+    ? `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfBlobUrl)}`
+    : '';
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -137,8 +157,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     a.download = `${title}.pdf`;
     a.click();
   }, [pdfUrl, title]);
-
-  const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}&lang=${getLang()}`;
 
   return (
     <View style={st.container} {...swipeBack}>
