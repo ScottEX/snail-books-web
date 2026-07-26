@@ -39,8 +39,8 @@ const getCSS = (c: ThemeColors) => {
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
 .pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:auto;background:#F9F7F4;-webkit-overflow-scrolling:touch}
-.pv-pages{display:flex;flex-direction:column;align-items:flex-start;padding:12px 0;min-height:100%;min-width:100%}
-.pv-pages .react-pdf__Page{margin-bottom:12px;align-self:center}
+.pv-pages{padding:12px 0;min-height:100%}
+.pv-pages .react-pdf__Page{margin-bottom:12px}
 .pv-pages canvas{display:block;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px;height:auto!important}
 .pv-zoom-badge{position:absolute;top:${NAV_H + 10}px;right:12px;z-index:90;background:rgba(0,0,0,0.35);backdrop-filter:blur(8px);color:rgba(255,255,255,0.9);font-size:11px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .2s}
 .pv-zoom-badge.on{opacity:1}
@@ -381,7 +381,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
         {/* PDF viewport with pinch/double-tap/scroll handlers */}
         <div className="pv-vp" ref={viewportRef} onTouchEnd={onViewportTouchEnd}>
-          <div className="pv-pages" ref={(el) => { containerRef.current = el; pagesElRef.current = el; }}>
+          <div className="pv-pages">
+            <div ref={(el) => { containerRef.current = el; pagesElRef.current = el; }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100%', width: 'max-content' as any }}>
             {pdfBlobUrl && !pdfError && (
               <Document
                 file={pdfBlobUrl}
@@ -400,6 +401,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
                 ))}
               </Document>
             )}
+            </div>
           </div>
         </div>
 
