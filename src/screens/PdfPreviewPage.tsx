@@ -89,11 +89,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [scale, setScale] = useState(1);
   const committedScaleRef = useRef(1);
   const cssScaleRef = useRef(1);
+  const gRef = useRef({ scale: 1 });      // live CSS zoom (pinch)
+  const naturalWidthRef = useRef(340);     // canvas width at scale=1
   const pagesElRef = useRef<HTMLDivElement | null>(null);
   const [showZoomBadge, setShowZoomBadge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const pinchRef = useRef({ active: false, startDist: 0, effectiveBase: 1, cssBase: 1, cx: 0, cy: 0 });
+  const pinchRef = useRef({ active: false, startDist: 0, startScale: 1 });
   const lastTapRef = useRef(0);
   const zoomTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const rafRef = useRef(0);
@@ -112,34 +114,51 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const pageWidth = useMemo(() => Math.max(100, baseW * scale), [baseW, scale]);
 
-  // Reset CSS transform after React DOM commit — before browser paint,
-  // so new canvas (already at correct size) never gets double-scaled.
+  // Reset CSS transform after React DOM commit — before browser paint
   useLayoutEffect(() => {
-    if (cssScaleRef.current === 1) return;
+    if (gRef.current.scale === 1) return;
     const el = pagesElRef.current;
     if (el) {
       el.style.transform = 'scale(1)';
-      el.style.transformOrigin = 'top center';
-      cssScaleRef.current = 1;
+      el.style.transformOrigin = '0 0';
+      el.style.width = '';
+      gRef.current.scale = 1;
     }
   }, [scale]);
 
-  // Apply CSS transform for smooth zoom (no react-pdf re-render)
-  const applyCssScale = (s: number) => {
+  // Apply CSS zoom + width sync (pinch — smooth, no react-pdf commit)
+  const applyZoom = (s: number) => {
     const el = pagesElRef.current;
     if (!el) return;
-    const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, s));
-    cssScaleRef.current = clamped;
+    const clamped = Math.max(1, Math.min(MAX_SCALE, s));
+    gRef.current.scale = clamped;
     el.style.transform = `scale(${clamped})`;
-    el.style.transformOrigin = 'top center';
+    el.style.transformOrigin = '0 0';
+    const nw = naturalWidthRef.current;
+    if (nw > 0) el.style.width = (nw * clamped) + 'px';
   };
 
-  const zoomPct = Math.round(scale * 100);
+  // Record natural canvas width for width sync
+  useEffect(() => {
+    if (scale === 1) return;
+    const el = pagesElRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const canvas = el.querySelector('canvas');
+          if (canvas) naturalWidthRef.current = canvas.clientWidth;
+        }, 80);
+      });
+    });
+  }, [scale]);
+
+  const zoomPct = Math.round(Math.max(gRef.current.scale, committedScaleRef.current) * 100);
 
   // ── Apply scale (buttons / double-tap: immediate both CSS + react-pdf) ──
   const applyScale = useCallback((next: number) => {
     const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, next));
-    applyCssScale(clamped);
+    applyZoom(clamped);
     committedScaleRef.current = clamped;
     setScale(clamped);
     setShowZoomBadge(true);
@@ -164,7 +183,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => { meta.content = prev; };
   }, []);
 
-  // ── Pinch-to-zoom (CSS transform during gesture, sync on end) ──
+  // ── Pinch-to-zoom (production-style: pure CSS, no react-pdf commit) ──
   useEffect(() => {
     const vp = viewportRef.current;
     if (!vp) return;
@@ -175,56 +194,28 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       return Math.sqrt(dx * dx + dy * dy);
     };
 
-    const getMid = (touches: TouchList, el: HTMLElement) => {
-      const rect = el.getBoundingClientRect();
-      return {
-        x: ((touches[0].clientX + touches[1].clientX) / 2) - rect.left,
-        y: ((touches[0].clientY + touches[1].clientY) / 2) - rect.top,
-      };
-    };
-
     const onTS = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        cancelAnimationFrame(rafRef.current);
-        const el = pagesElRef.current;
-        if (!el) return;
-        const mid = getMid(e.touches, el);
         pinchRef.current = {
           active: true,
           startDist: getDist(e.touches),
-          effectiveBase: committedScaleRef.current,
-          cssBase: cssScaleRef.current,
-          cx: mid.x,
-          cy: mid.y,
+          startScale: gRef.current.scale,
         };
-        // Set origin to pinch center
-        el.style.transformOrigin = `${mid.x}px ${mid.y}px`;
       }
     };
 
     const onTM = (e: TouchEvent) => {
       if (e.touches.length === 2 && pinchRef.current.active) {
         e.preventDefault();
-        const ratio = getDist(e.touches) / pinchRef.current.startDist;
-        const effective = pinchRef.current.effectiveBase * ratio;
-        const el = pagesElRef.current;
-        if (!el) return;
-        const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, effective));
-        const cssS = clamped / (pinchRef.current.effectiveBase / pinchRef.current.cssBase);
-        cssScaleRef.current = cssS;
-        el.style.transform = `scale(${cssS})`;
+        const ns = Math.max(1, Math.min(MAX_SCALE,
+          pinchRef.current.startScale * (getDist(e.touches) / pinchRef.current.startDist)));
+        applyZoom(ns);
       }
     };
 
     const onTE = () => {
-      if (!pinchRef.current.active) return;
       pinchRef.current.active = false;
-      // Final effective scale = cssScale × committed base
-      const final = cssScaleRef.current * committedScaleRef.current;
-      const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, final));
-      committedScaleRef.current = clamped;
-      setScale(clamped);
       setShowZoomBadge(true);
       clearTimeout(zoomTimer.current);
       zoomTimer.current = setTimeout(() => setShowZoomBadge(false), 1500);
@@ -245,8 +236,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const onViewportTouchEnd = useCallback(() => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      const cur = committedScaleRef.current;
-      applyScale(cur > 1.1 ? 1 : 2);
+      const eff = Math.max(gRef.current.scale, committedScaleRef.current);
+      if (eff > 1.1) {
+        // Reset to 1x (both CSS zoom and committed)
+        applyZoom(1);
+        if (committedScaleRef.current > 1) { committedScaleRef.current = 1; setScale(1); }
+      } else {
+        // Go to crisp 2x
+        applyScale(2);
+      }
     }
     lastTapRef.current = now;
   }, [applyScale]);
@@ -258,7 +256,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        applyScale(committedScaleRef.current * (e.deltaY > 0 ? 0.9 : 1.1));
+        const eff = Math.max(gRef.current.scale, committedScaleRef.current);
+        applyScale(eff * (e.deltaY > 0 ? 0.9 : 1.1));
       }
     };
     vp.addEventListener('wheel', onWheel, { passive: false });
