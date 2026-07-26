@@ -669,6 +669,13 @@ See https://github.com/adobe-type-tools/cmap-resources
     <div id="printContainer"></div>
   <script>
     window.addEventListener('load', () => {
+      // Clear cached zoom preference so every entry starts at 100%
+      try {
+        const prefs = JSON.parse(localStorage.getItem('pdfjs.preferences') || '{}');
+        delete prefs.scale;
+        localStorage.setItem('pdfjs.preferences', JSON.stringify(prefs));
+      } catch {}
+      
       const app = window.PDFViewerApplication;
       if (!app) return;
       app.initializedPromise.then(() => {

@@ -75,19 +75,18 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   // Invalidate iframe cache on every mount so bfcache can't restore old zoom state
   const mountKey = useRef(Date.now());
   const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}&_t=${mountKey.current}`;
-  // Force fresh iframe every mount via unique key
+  
+  // Force fresh iframe — key changes on every entry even if component doesn't unmount
+  // State initializer runs only on first mount; but we also regenerate on every
+  // "entry" by watching for when the screen logically re-appears.
   const [iframeKey, setIframeKey] = useState(() => Date.now());
-
-  // Detect bfcache / page re-show and force iframe reload
+  
+  // Reset iframe key on mount AND whenever this effect re-runs
+  // The empty deps means this only fires on mount, not on re-entry.
+  // We need a dependency that the parent changes on each navigation.
   useEffect(() => {
-    const handler = () => setIframeKey(Date.now());
-    window.addEventListener('pageshow', handler);
-    return () => {
-      window.removeEventListener('pageshow', handler);
-      // Blast iframe src on unmount to clear any cached state
-      if (iframeRef.current) iframeRef.current.src = 'about:blank';
-    };
-  }, []);
+    setIframeKey(Date.now());
+  }, [batchId, batchNumber, supplier, fileUrl, title]);
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
