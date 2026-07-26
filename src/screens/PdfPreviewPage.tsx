@@ -75,6 +75,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   // Invalidate iframe cache on every mount so bfcache can't restore old zoom state
   const mountKey = useRef(Date.now());
   const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}&_t=${mountKey.current}`;
+  // Force fresh iframe every mount via unique key
+  const [iframeKey] = useState(() => Date.now());
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -193,6 +195,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           {!loadError && (
             <iframe
               ref={iframeRef}
+              key={iframeKey}
               src={viewerUrl}
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block', border: 'none' }}
             allow="fullscreen"
