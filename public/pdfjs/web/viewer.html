@@ -116,18 +116,17 @@
       });
       loadingTask.promise.then((doc) => {
         window._pdfDoc = doc;
-        pdfViewer.setDocument(doc);
-        linkService.setDocument(doc, null);
-        // Fill container dimensions explicitly
+        // Set container dimensions BEFORE setDocument triggers rendering
         container.style.height = window.innerHeight + 'px';
         container.style.width = window.innerWidth + 'px';
-        // Wait two frames for browser + PDF.js layout to settle
+        pdfViewer.setDocument(doc);
+        linkService.setDocument(doc, null);
+        // Scale after browser + PDF.js layout settle
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            // Compute scale from container vs first page native width
             const cw = container.clientWidth;
-            if (cw > 0 && window._pdfDoc) {
-              window._pdfDoc.getPage(1).then(page => {
+            if (cw > 0) {
+              doc.getPage(1).then(page => {
                 const vp = page.getViewport({ scale: 1 });
                 pdfViewer.currentScale = cw / vp.width;
               });
