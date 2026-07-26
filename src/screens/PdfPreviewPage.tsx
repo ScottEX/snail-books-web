@@ -39,7 +39,7 @@ const getCSS = (c: ThemeColors) => {
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
 .pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:auto;background:#F9F7F4;-webkit-overflow-scrolling:touch}
-.pv-pages{padding:12px 0;min-height:100%}
+.pv-pages{display:flex;flex-direction:column;padding:12px 0;min-height:100%}
 .pv-pages .react-pdf__Page{margin-bottom:12px;align-self:center}
 .pv-pages canvas{display:block;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px;height:auto!important}
 .pv-zoom-badge{position:absolute;top:${NAV_H + 10}px;right:12px;z-index:90;background:rgba(0,0,0,0.35);backdrop-filter:blur(8px);color:rgba(255,255,255,0.9);font-size:11px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .2s}
@@ -125,10 +125,14 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const restoreAnchor = useCallback(() => {
     const vp = viewportRef.current;
     if (!vp) return;
+    // Double rAF: wait for canvas paint to affect layout, then restore
     requestAnimationFrame(() => {
-      const { scrollHeight, clientHeight } = vp;
-      const target = scrollAnchorRef.current.ratio * scrollHeight - clientHeight / 2;
-      vp.scrollTop = Math.max(0, target);
+      requestAnimationFrame(() => {
+        if (!vp) return;
+        const { scrollHeight, clientHeight } = vp;
+        const target = scrollAnchorRef.current.ratio * scrollHeight - clientHeight / 2;
+        vp.scrollTop = Math.max(0, target);
+      });
     });
   }, []);
 
@@ -232,6 +236,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       if (!isPinching.current) return;
       if (e.touches.length >= 2) return;
       isPinching.current = false;
+      saveAnchor();  // capture scroll position at pinch release, before debounce
       const target = scale * cssScaleRef.current;
       clearTimeout(commitTimer.current);
       commitTimer.current = setTimeout(() => commitScale(target), 100);
@@ -411,6 +416,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
                     width={pageWidth}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
+                    onRenderSuccess={p === numPages ? restoreAnchor : undefined}
                   />
                 ))}
               </Document>
