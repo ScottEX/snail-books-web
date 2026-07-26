@@ -36,7 +36,16 @@ See https://github.com/adobe-type-tools/cmap-resources
   <script src="viewer.mjs" type="module"></script>
 
   <style>
-    /* Hide PDF.js default UI — we provide our own nav/toolbar */
+    /* Override viewer.css — ensure full-viewport layout in iframe */
+    html, body, #outerContainer {
+      height: 100dvh !important;
+      margin: 0;
+      overflow: hidden;
+    }
+    #mainContainer {
+      position: relative;
+      height: 100% !important; 
+    }
     #toolbarContainer,
     #secondaryToolbar,
     #sidebarContainer,
@@ -49,6 +58,10 @@ See https://github.com/adobe-type-tools/cmap-resources
     }
     #viewerContainer {
       top: 0 !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      position: absolute !important;
     }
   </style>
   </head>
