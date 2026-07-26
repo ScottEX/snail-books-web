@@ -101,6 +101,23 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => clearTimeout(t);
   }, [loading]);
 
+  // Swipe-back gesture (right swipe on left edge)
+  const swipeRef = useRef<{ sx: number; sy: number } | null>(null);
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    swipeRef.current = { sx: e.touches[0].clientX, sy: e.touches[0].clientY };
+  }, []);
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!swipeRef.current || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - swipeRef.current.sx;
+    const dy = Math.abs(e.touches[0].clientY - swipeRef.current.sy);
+    // Require horizontal swipe (> 1.5x vertical) and rightward
+    if (dx > 40 && dx > dy * 1.5) {
+      onBack();
+      swipeRef.current = null;
+    }
+  }, [onBack]);
+
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.origin !== window.location.origin) return;
@@ -170,18 +187,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
             )}
           </div>
 
-          {/* Loading dots */}
-          {loading && (
-            <div className="pv-loading">
-              <div className="pv-loading-dot" />
-              <div className="pv-loading-dot" />
-              <div className="pv-loading-dot" />
-            </div>
-          )}
-
-          {/* Page indicator */}
-          {numPages > 0 && <div className="pv-pill">{currPage} / {numPages}</div>}
-
           {/* iframe: PDF.js viewer handles all gestures natively */}
           {!loadError && (
             <iframe
@@ -193,6 +198,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
               onError={() => { setLoading(false); setLoadError('iframe load failed'); }}
             />
           )}
+
+          {/* Swipe-back edge (30px left strip, above iframe) */}
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 30, zIndex: 50 }}
+          />
 
           {/* Error state */}
           {loadError && (
