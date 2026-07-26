@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html dir="ltr" mozdisallowselectionprint>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>PDF</title>
+  <link rel="stylesheet" href="pdf_viewer.css">
+  <style>
+    /* Hide all PDF.js default UI — we provide our own nav/toolbar */
+    #toolbarContainer, #secondaryToolbar, #sidebarContainer,
+    #toolbarSidebar, #outerContainer > .toolbar,
+    .toolbar, #findbar, #secondaryToolbarButtonContainer,
+    #toolbarViewer, #toolbarViewerLeft, #toolbarViewerRight,
+    #toolbarViewerMiddle, #scaleSelectContainer, #pageNumberLabel {
+      display: none !important;
+    }
+    #viewerContainer {
+      top: 0 !important;
+      bottom: 0 !important;
+    }
+    html, body, #outerContainer, #mainContainer, #viewerContainer, #viewer {
+      height: 100%; margin: 0; padding: 0;
+      background: #1c1c1e;
+    }
+    #viewer .page {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="outerContainer">
+    <div id="sidebarContainer"><div id="toolbarSidebar"></div><div id="sidebarContent"></div></div>
+    <div id="mainContainer">
+      <div id="toolbarContainer"><div id="toolbarViewer"></div></div>
+      <div id="viewerContainer"><div id="viewer"></div></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as pdfjsLib from '../build/pdf.min.mjs';
+    import { PDFViewer, PDFLinkService } from './pdf_viewer.mjs';
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '../build/pdf.worker.min.mjs';
+
+    const DEFAULT_URL = new URLSearchParams(location.search).get('file') || '';
+    const ENABLE_XFA = true;
+
+    const container = document.getElementById('viewerContainer');
+    const viewerEl = document.getElementById('viewer');
+
+    const linkService = new PDFLinkService();
+    const pdfViewer = new PDFViewer({
+      container,
+      viewer: viewerEl,
+      linkService,
+      textLayerMode: 0,
+      annotationMode: 2,
+      maxCanvasPixels: 16777216,
+    });
+    linkService.setViewer(pdfViewer);
+
+    // Store on window for postMessage bridge
+    window._pdfViewer = pdfViewer;
+    window._pdfDoc = null;
+
+    // ── Load PDF ──
+    if (DEFAULT_URL) {
+      const loadingTask = pdfjsLib.getDocument({
+        url: DEFAULT_URL,
+        enableXfa: ENABLE_XFA,
+        cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.0.227/cmaps/',
+        cMapPacked: true,
+        standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.0.227/standard_fonts/',
+      });
+      loadingTask.promise.then((doc) => {
+        window._pdfDoc = doc;
+        pdfViewer.setDocument(doc);
+        linkService.setDocument(doc, null);
+
+        parent.postMessage({
+          type: 'pdf-ready',
+          data: { numPages: doc.numPages },
+        }, '*');
+      }).catch((err) => {
+        parent.postMessage({
+          type: 'pdf-error',
+          data: { message: err.message },
+        }, '*');
+      });
+
+      // ── Page change ──
+      pdfViewer.eventBus.on('pagechanging', (evt) => {
+        parent.postMessage({
+          type: 'pdf-page-change',
+          data: { page: evt.pageNumber },
+        }, '*');
+      });
+
+      // ── Zoom change ──
+      pdfViewer.eventBus.on('scalechanging', (evt) => {
+        parent.postMessage({
+          type: 'pdf-zoom-change',
+          data: { scale: evt.scale },
+        }, '*');
+      });
+    }
+
+    // ── Receive commands from parent ──
+    window.addEventListener('message', (e) => {
+      const { type, data } = e.data || {};
+      switch (type) {
+        case 'zoom-in':
+          pdfViewer.currentScale *= 1.25;
+          break;
+        case 'zoom-out':
+          pdfViewer.currentScale /= 1.25;
+          break;
+        case 'zoom-reset':
+          pdfViewer.currentScaleValue = 'page-width';
+          break;
+        case 'set-scale':
+          if (data?.scale) pdfViewer.currentScale = data.scale;
+          break;
+        case 'jump-page':
+          if (data?.page) pdfViewer.currentPageNumber = data.page;
+          break;
+      }
+    });
+  </script>
+</body>
+</html>

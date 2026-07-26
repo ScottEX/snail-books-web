@@ -1,25 +1,20 @@
 import { View, StyleSheet } from 'react-native';
 import { createPortal } from 'react-dom';
-import { Document, Page, pdfjs } from 'react-pdf';
 import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+const NAV_H = 52;
 
-const MIN_SCALE = 1;
-const MAX_SCALE = 4;
-const NAV_H = 50;
-const ZOOM_STEP = 0.25;
-
-interface Props {
-  batchId?: number;
-  batchNumber?: number;
-  supplier?: string;
-  fileUrl?: string;
-  title?: string;
-  onBack: () => void;
+// ── Tool icon helper ──
+function ToolIcon({ d }: { d: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 18 18" fill="none"
+      stroke="rgba(255,255,255,0.55)" strokeWidth="1.7" strokeLinecap="round">
+      <path d={d} />
+    </svg>
+  );
 }
 
 const getCSS = (c: ThemeColors) => {
@@ -35,35 +30,38 @@ const getCSS = (c: ThemeColors) => {
 .pv-back:active{background:${btnBgActive}}
 .pv-back svg{width:16px;height:16px;stroke:#2C2626;stroke-width:2;fill:none;display:block}
 .pv-title{font-size:15px;font-weight:600;color:#2C2626;letter-spacing:.01em}
+.pv-sub{font-size:10px;color:rgba(240,237,232,0.28);font-family:'DM Mono',monospace;margin-top:1px}
 .pv-share-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .pv-share-btn:active{background:${btnBgActive};transform:scale(.92)}
 .pv-share-btn svg{width:16px;height:16px;stroke:#8C8583;stroke-width:2;fill:none}
-.pv-vp{position:absolute;top:${NAV_H}px;left:0;right:0;bottom:0;overflow:auto;background:#F9F7F4;-webkit-overflow-scrolling:touch}
-.pv-pages{display:flex;flex-direction:column;padding:12px 0;min-height:100%}
-.pv-pages .react-pdf__Page{margin-bottom:12px;align-self:center}
-.pv-pages canvas{display:block;box-shadow:0 1px 3px rgba(0,0,0,.12);border-radius:2px;height:auto!important}
-.pv-zoom-badge{position:absolute;top:${NAV_H + 10}px;right:12px;z-index:90;background:rgba(0,0,0,0.35);backdrop-filter:blur(8px);color:rgba(255,255,255,0.9);font-size:11px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .2s}
-.pv-zoom-badge.on{opacity:1}
-.pv-zoom-strip{position:absolute;right:16px;bottom:24px;z-index:95;display:flex;flex-direction:column;gap:6px}
-.pv-zoom-btn{width:36px;height:36px;border-radius:50%;background:${btnBg};backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent}
-.pv-zoom-btn:active{background:${btnBgActive};transform:scale(.92)}
-.pv-zoom-btn svg{width:16px;height:16px;stroke:#2C2626;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.pv-err{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;font-size:14px;text-align:center;padding:40px}
-.pv-err svg{display:block}
-.pv-err-msg{font-size:13px;color:#999}
-.pv-err-btn{padding:10px 28px;border-radius:8px;background:${c.accent};color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
-.pv-err-btn:active{opacity:.8}
-.pv-intro-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none}
-.pv-intro{background:#F9F7F4;border-radius:8px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.08)}
-.pv-intro.on{opacity:1;transform:translateY(0)}
-.pv-intro-text{color:#999;font-size:15px;text-align:center;white-space:nowrap}
-.pv-intro-sec{font-size:36px;font-weight:800;font-family:'DM Mono',monospace}
+.pv-pill{position:absolute;top:${NAV_H + 12}px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.25);backdrop-filter:blur(12px);border:0.5px solid rgba(0,0,0,0.10);border-radius:20px;padding:4px 14px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(240,237,232,0.5);z-index:90;pointer-events:none}
+.pv-iframe{border:none;width:100%;touch-action:none}
+.pv-toolbar{position:absolute;bottom:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px 8px;z-index:95;background:transparent;backdrop-filter:blur(30px);border-top:0.5px solid rgba(0,0,0,0.06)}
+.pv-tool-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:rgba(44,38,38,0.55);cursor:pointer;padding:6px 10px;border-radius:8px;min-width:40px}
+.pv-tool-btn:active{background:${btnBg}}
+.pv-tool-label{font-size:10px}
+.pv-tool-sep{width:0.5px;height:24px;background:rgba(0,0,0,0.08)}
+.pv-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:80;pointer-events:none}
+.pv-loading-dot{width:8px;height:8px;border-radius:50%;background:#ccc;margin:0 3px;animation:pv-dot 1.2s ease-in-out infinite}
+.pv-loading-dot:nth-child(2){animation-delay:.15s}
+.pv-loading-dot:nth-child(3){animation-delay:.3s}
+@keyframes pv-dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 @keyframes pv-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes pv-slide-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
-.pv-root{background:linear-gradient(to bottom,transparent 56px,#F9F7F4 56px);animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
+.pv-root{background:#F9F7F4;animation:pv-slide-in ${ENTER_DURATION}ms ${ENTER_EASING} both}
 .pv-root.out{animation:pv-slide-out ${EXIT_DURATION}ms ${EXIT_EASING} both}
+.pv-root.is-local .pv-toolbar{display:none}
 `;
 };
+
+interface Props {
+  batchId?: number;
+  batchNumber?: number;
+  supplier?: string;
+  fileUrl?: string;
+  title?: string;
+  onBack: () => void;
+}
 
 export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl, title: customTitle, onBack }: Props) {
   const { colors: c } = useTheme();
@@ -75,104 +73,12 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       : `/api/procurement-batches/${batchId}/pdf`);
   const isLocal = pdfUrl.startsWith('blob:');
 
-  const [numPages, setNumPages] = useState(0);
-  const [pdfLoading, setPdfLoading] = useState(true);
-  const [pdfBlobUrl, setPdfBlobUrl] = useState('');
-  const pdfBlobRef = useRef<Blob | null>(null);
-  const [pdfError, setPdfError] = useState('');
   const [exiting, setExiting] = useState(false);
-  const [introSec, setIntroSec] = useState(0);
-
-  // ── Zoom state ──
-  // `scale` = react-pdf render scale (crisp pixels)
-  // `cssScaleRef` = live CSS transform during pinch (relative to current `scale`)
-  const [scale, setScale] = useState(1);
-  const cssScaleRef = useRef(1);
-  const pagesElRef = useRef<HTMLDivElement | null>(null);
-  const scrollAnchorRef = useRef({ ratio: 0.5 });
-  const [showZoomBadge, setShowZoomBadge] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const pinchRef = useRef({ active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 });
-  const lastTapRef = useRef(0);
-  const zoomTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const rafRef = useRef(0);
-
-  // Base width = container width (fills screen at scale=1)
-  const [baseW, setBaseW] = useState(340);
-  useEffect(() => {
-    const calc = () => {
-      const w = containerRef.current?.clientWidth ?? window.innerWidth;
-      setBaseW(Math.max(100, w - 24));
-    };
-    calc();
-    window.addEventListener('resize', calc);
-    return () => window.removeEventListener('resize', calc);
-  }, []);
-
-  const pageWidth = useMemo(() => Math.max(100, baseW * scale), [baseW, scale]);
-
-  // Scroll anchor: save ratio before commit, restore after react-pdf re-renders
-  const saveAnchor = () => {
-    const vp = viewportRef.current;
-    if (!vp) return;
-    const { scrollTop, scrollHeight, clientHeight } = vp;
-    scrollAnchorRef.current.ratio = scrollHeight > clientHeight
-      ? (scrollTop + clientHeight / 2) / scrollHeight
-      : 0.5;
-  };
-
-  const restoreAnchor = useCallback(() => {
-    const vp = viewportRef.current;
-    if (!vp) return;
-    // Double rAF: wait for canvas paint to affect layout, then restore
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!vp) return;
-        const { scrollHeight, clientHeight } = vp;
-        const target = scrollAnchorRef.current.ratio * scrollHeight - clientHeight / 2;
-        vp.scrollTop = Math.max(0, target);
-      });
-    });
-  }, []);
-
-  // Apply CSS transform with dynamic origin for smooth pinch
-  const applyCssTransform = (cssScale: number, originX: number, originY: number) => {
-    const el = pagesElRef.current;
-    if (!el) return;
-    cssScaleRef.current = cssScale;
-    el.style.transformOrigin = `${originX}px ${originY}px`;
-    el.style.transform = `scale(${cssScale})`;
-  };
-
-  // Commit to react-pdf for crisp pixels
-  const lastCommitRef = useRef(1);
-  const commitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const commitScale = useCallback((targetScale: number) => {
-    const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, targetScale));
-    if (Math.abs(clamped - lastCommitRef.current) < 0.02) return;
-    saveAnchor();
-    lastCommitRef.current = clamped;
-    setScale(clamped);
-    requestAnimationFrame(() => {
-      const el = pagesElRef.current;
-      if (el) {
-        el.style.transform = 'scale(1)';
-        el.style.transformOrigin = 'center top';
-        cssScaleRef.current = 1;
-      }
-    });
-  }, []);
-
-  const zoomPct = Math.round(scale * cssScaleRef.current * 100);
-
-  // Button zoom
-  const applyScaleBtn = useCallback((next: number) => {
-    setShowZoomBadge(true);
-    clearTimeout(zoomTimer.current);
-    zoomTimer.current = setTimeout(() => setShowZoomBadge(false), 1500);
-    commitScale(next);
-  }, [commitScale]);
+  const [loading, setLoading] = useState(true);
+  const [currPage, setCurrPage] = useState(1);
+  const [numPages, setNumPages] = useState(0);
+  const [zoomPct, setZoomPct] = useState(100);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -182,265 +88,132 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const swipeBack = useSwipeBack(handleBack);
 
-  // ── Viewport meta (browser pinch-zoom as fallback) ──
-  useEffect(() => {
-    const meta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
-    if (!meta) return;
-    const prev = meta.content;
-    meta.content = 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover';
-    return () => { meta.content = prev; };
+  // ── postMessage bridge ──
+  const sendCmd = useCallback((type: string, data?: any) => {
+    iframeRef.current?.contentWindow?.postMessage({ type, data }, window.location.origin);
   }, []);
 
-  // ── Pinch-to-zoom (CSS during gesture, commit on release) ──
   useEffect(() => {
-    const vp = viewportRef.current;
-    if (!vp) return;
-
-    const getDist = (touches: TouchList) => {
-      const dx = touches[0].clientX - touches[1].clientX;
-      const dy = touches[0].clientY - touches[1].clientY;
-      return Math.sqrt(dx * dx + dy * dy);
-    };
-
-    const isPinching = { current: false };
-
-    const onTS = (e: TouchEvent) => {
-      if (e.touches.length !== 2) return;
-      e.preventDefault();
-      isPinching.current = true;
-      clearTimeout(commitTimer.current);
-      const dist = getDist(e.touches);
-      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      const el = pagesElRef.current;
-      const rect = el?.getBoundingClientRect();
-      const vpTop = viewportRef.current?.scrollTop ?? 0;
-      pinchRef.current = {
-        active: true,
-        startDist: dist,
-        startScale: cssScaleRef.current,
-        midX: rect ? midX - rect.left : midX,
-        midY: rect ? midY - rect.top + vpTop : midY,
-      };
-    };
-
-    const onTM = (e: TouchEvent) => {
-      if (!isPinching.current || e.touches.length !== 2) return;
-      e.preventDefault();
-      const ratio = getDist(e.touches) / pinchRef.current.startDist;
-      const newCss = Math.max(MIN_SCALE / scale, Math.min(MAX_SCALE / scale, ratio));
-      applyCssTransform(newCss, pinchRef.current.midX, pinchRef.current.midY);
-    };
-
-    const onTE = (e: TouchEvent) => {
-      if (!isPinching.current) return;
-      if (e.touches.length >= 2) return;
-      isPinching.current = false;
-      saveAnchor();  // capture scroll position at pinch release, before debounce
-      const target = scale * cssScaleRef.current;
-      clearTimeout(commitTimer.current);
-      commitTimer.current = setTimeout(() => commitScale(target), 100);
-      setShowZoomBadge(true);
-      clearTimeout(zoomTimer.current);
-      zoomTimer.current = setTimeout(() => setShowZoomBadge(false), 1500);
-    };
-
-    vp.addEventListener('touchstart', onTS, { passive: false });
-    vp.addEventListener('touchmove', onTM, { passive: false });
-    vp.addEventListener('touchend', onTE);
-
-    return () => {
-      vp.removeEventListener('touchstart', onTS);
-      vp.removeEventListener('touchmove', onTM);
-      vp.removeEventListener('touchend', onTE);
-    };
+    function onMessage(e: MessageEvent) {
+      if (e.origin !== window.location.origin) return;
+      const { type, data } = e.data ?? {};
+      switch (type) {
+        case 'pdf-ready':
+          setLoading(false);
+          setNumPages(data?.numPages || 0);
+          break;
+        case 'pdf-page-change':
+          setCurrPage(data?.page || 1);
+          break;
+        case 'pdf-zoom-change':
+          setZoomPct(Math.round((data?.scale || 1) * 100));
+          break;
+      }
+    }
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
   }, []);
 
-  // ── Double-tap zoom toggle ──
-  const onViewportTouchEnd = useCallback(() => {
-    const now = Date.now();
-    if (now - lastTapRef.current < 300) {
-      const eff = scale * cssScaleRef.current;
-      commitScale(eff > 1.1 ? 1 : 2);
+  // ── Share / download ──
+  const handleShare = useCallback(async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title, url: pdfUrl }); } catch {}
+    } else {
+      try { await navigator.clipboard.writeText(pdfUrl); } catch {}
     }
-    lastTapRef.current = now;
-  }, [scale, commitScale]);
+  }, [title, pdfUrl]);
 
-  // ── Desktop Ctrl+wheel zoom ──
-  useEffect(() => {
-    const vp = viewportRef.current;
-    if (!vp) return;
-    const onWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        const eff = scale * cssScaleRef.current;
-        commitScale(eff * (e.deltaY > 0 ? 0.9 : 1.1));
-      }
-    };
-    vp.addEventListener('wheel', onWheel, { passive: false });
-    return () => vp.removeEventListener('wheel', onWheel);
-  }, [scale, commitScale]);
-
-  // ── Fetch PDF ──
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(pdfUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-        const blob = await res.blob();
-        if (blob.size === 0) throw new Error('Empty PDF (0 bytes)');
-        if (!cancelled) {
-          setPdfBlobUrl(URL.createObjectURL(blob));
-          pdfBlobRef.current = blob;
-        }
-      } catch (e: any) {
-        if (!cancelled) { setPdfError(e?.message || String(e)); setPdfLoading(false); }
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [pdfUrl]);
-
-  // ── Loading countdown ──
-  useEffect(() => {
-    if (!pdfLoading) { setIntroSec(0); return; }
-    setIntroSec(0);
-    const id = setInterval(() => setIntroSec(s => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [pdfLoading]);
-
-  const doDownload = useCallback(async () => {
-    const blob = pdfBlobRef.current;
-    if (!blob) return;
-    const file = new File([blob], `procurement_${batchId}_${getLang()}.pdf`, { type: 'application/pdf' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title }); return; }
-      catch (e) { if ((e as DOMException).name === 'AbortError') return; }
-    }
-    const dlBlob = new Blob([blob], { type: 'application/octet-stream' });
+  const handleDownload = useCallback(() => {
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(dlBlob);
-    a.download = `procurement_${batchId}_${getLang()}.pdf`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  }, [batchId, title]);
+    a.href = pdfUrl;
+    a.download = `${title}.pdf`;
+    a.click();
+  }, [pdfUrl, title]);
 
-  const doDownloadImage = useCallback(async () => {
-    const pngUrl = batchId
-      ? (supplier
-        ? `/api/procurement-batches/${batchId}/png?supplier=${encodeURIComponent(supplier)}`
-        : `/api/procurement-batches/${batchId}/png`)
-      : `${fileUrl}/png`;
-    const dlName = batchId ? `procurement_${batchId}_${getLang()}.png` : `invoice_${getLang()}.png`;
-    try {
-      const res = await fetch(pngUrl, { credentials: 'include', headers: { 'X-Lang': getLang() } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const file = new File([blob], dlName, { type: 'image/png' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title }); return; }
-        catch (e) { if ((e as DOMException).name === 'AbortError') return; }
-      }
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = dlName; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    } catch (e) { /* silently fail */ }
-  }, [batchId, supplier, title, fileUrl]);
+  const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}`;
 
   return (
     <View style={st.container} {...swipeBack}>
-      {createPortal(<div className={`pv-root${exiting ? ' out' : ''}`} style={{ position: 'absolute', inset: 0, zIndex: 9999, marginLeft: 'auto', marginRight: 'auto', maxWidth: CONTENT_MAX_WIDTH }}>
-        <style dangerouslySetInnerHTML={{ __html: getCSS(c) }} />
-
-        {/* Navbar */}
-        <div className="pv-nav">
-          <div className="pv-nav-l">
-            <div className="pv-back" onClick={handleBack}><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></div>
-            <div><div className="pv-title">{title}</div></div>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      {createPortal(
+        <div className={`pv-root${exiting ? ' out' : ''}${isLocal ? ' is-local' : ''}`} style={{ position: 'absolute', inset: 0, zIndex: 9999, maxWidth: CONTENT_MAX_WIDTH, marginLeft: 'auto', marginRight: 'auto' }}>
+          
+          {/* Nav */}
+          <div className="pv-nav">
+            <div className="pv-nav-l">
+              <div className="pv-back" onClick={handleBack}>
+                <svg viewBox="0 0 24 24"><polyline points="15,4 7,12 15,20"/></svg>
+              </div>
+              <div>
+                <div className="pv-title">{title}</div>
+                {numPages > 0 && (
+                  <div className="pv-sub">{currPage} / {numPages}</div>
+                )}
+              </div>
+            </div>
             {!isLocal && (
-            <>
-            <div className="pv-share-btn" onClick={doDownload} title={t('downloadPdf')}>
-              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#2C2626" strokeWidth="2" fill="none"/><polyline points="7 10 12 15 17 10" stroke="#2C2626" strokeWidth="2" fill="none"/><line x1="12" y1="15" x2="12" y2="3" stroke="#2C2626" strokeWidth="2"/></svg>
-            </div>
-            {numPages > 0 && numPages <= 5 && (
-            <div className="pv-share-btn" onClick={doDownloadImage} title={t('downloadImage')}>
-              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="#2C2626" strokeWidth="2" fill="none"/><circle cx="8.5" cy="8.5" r="1.5" fill="#2C2626"/><polyline points="21 15 16 10 5 21" stroke="#2C2626" strokeWidth="2" fill="none"/><line x1="12" y1="18" x2="12" y2="12" stroke="#2C2626" strokeWidth="2"/><polyline points="9 15 12 12 15 15" stroke="#2C2626" strokeWidth="2" fill="none"/></svg>
-            </div>
-            )}
-            </>
+              <div className="pv-share-btn" onClick={handleShare}>
+                <svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="5" r="2.5"/><circle cx="18" cy="19" r="2.5"/><line x1="8.5" y1="11" x2="15.5" y2="5.5"/><line x1="8.5" y1="13" x2="15.5" y2="18.5"/></svg>
+              </div>
             )}
           </div>
-        </div>
 
-        {/* Zoom badge */}
-        <div className={`pv-zoom-badge${showZoomBadge ? ' on' : ''}`}>{zoomPct}%</div>
-
-        {/* Loading */}
-        {pdfLoading && !pdfError && (
-          <div className="pv-intro-overlay">
-            <div className="pv-intro on">
-              <div className="pv-intro-text">{t('pdfGenerating')}</div>
-              <div className="pv-intro-sec" style={{ color: c.primary }}>{introSec}s</div>
+          {/* Loading dots */}
+          {loading && (
+            <div className="pv-loading">
+              <div className="pv-loading-dot" />
+              <div className="pv-loading-dot" />
+              <div className="pv-loading-dot" />
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Error */}
-        {pdfError && (
-          <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}>
-            <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round">
-              <circle cx="24" cy="24" r="20" stroke="#e0dcd5" strokeWidth="1.5" fill="#f5f2eb" />
-              <line x1="24" y1="14" x2="24" y2="28" />
-              <circle cx="24" cy="33" r="1.5" fill="#999" stroke="none" />
-            </svg>
-            <div>{t('pdfLoadFailed')}</div>
-            <div className="pv-err-msg">{pdfError}</div>
-            <button className="pv-err-btn" onClick={() => { setPdfError(''); setPdfLoading(true); setPdfBlobUrl(''); }}>{t('retry')}</button>
-          </div>
-        )}
+          {/* Page indicator */}
+          {numPages > 0 && <div className="pv-pill">{currPage} / {numPages}</div>}
 
-        {/* PDF viewport with pinch/double-tap/scroll handlers */}
-        <div className="pv-vp" ref={viewportRef} onTouchEnd={onViewportTouchEnd}>
-          <div className="pv-pages" ref={(el) => { containerRef.current = el; pagesElRef.current = el; }}>
-            {pdfBlobUrl && !pdfError && (
-              <Document
-                file={pdfBlobUrl}
-                onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfLoading(false); }}
-                onLoadError={(e: any) => { setPdfError(e?.message || 'PDF parse error'); setPdfLoading(false); }}
-                loading={null}
-              >
-                {Array.from({ length: numPages || 1 }, (_, i) => i + 1).map(p => (
-                  <Page
-                    key={p}
-                    pageNumber={p}
-                    width={pageWidth}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    onRenderSuccess={p === numPages ? restoreAnchor : undefined}
-                  />
-                ))}
-              </Document>
-            )}
-          </div>
-        </div>
+          {/* iframe: PDF.js viewer handles all gestures natively */}
+          <iframe
+            ref={iframeRef}
+            src={viewerUrl}
+            className="pv-iframe"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56, height: 'auto' }}
+            allow="fullscreen"
+            sandbox="allow-scripts allow-same-origin allow-forms"
+          />
 
-        {/* Zoom buttons */}
-        {!pdfLoading && !pdfError && pdfBlobUrl && (
-          <div className="pv-zoom-strip">
-            <div className="pv-zoom-btn" onClick={() => applyScaleBtn(scale + ZOOM_STEP)}>
-              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          {/* Bottom toolbar */}
+          {!isLocal && (
+            <div className="pv-toolbar">
+              <button className="pv-tool-btn" onClick={handleDownload}>
+                <ToolIcon d="M8 1v10M4 7l4 4 4-4M1 14v2a1 1 0 001 1h12a1 1 0 001-1v-2" />
+                <span className="pv-tool-label">{t('download')}</span>
+              </button>
+              <div className="pv-tool-sep" />
+              <button className="pv-tool-btn" onClick={() => sendCmd('zoom-out')}>
+                <ToolIcon d="M4 8h8M1 8a7 7 0 1014 0A7 7 0 001 8z" />
+              </button>
+              <button className="pv-tool-btn" onClick={() => sendCmd('zoom-reset')}>
+                <span style={{ fontSize: 13, color: 'rgba(44,38,38,0.55)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                  {zoomPct}%
+                </span>
+              </button>
+              <button className="pv-tool-btn" onClick={() => sendCmd('zoom-in')}>
+                <ToolIcon d="M8 4v8M4 8h8M1 8a7 7 0 1014 0A7 7 0 001 8z" />
+              </button>
+              <div className="pv-tool-sep" />
+              <button className="pv-tool-btn" onClick={handleShare}>
+                <ToolIcon d="M4 8v8h10V8M4 4l5-3 5 3M9 1v11" />
+                <span className="pv-tool-label">{t('share')}</span>
+              </button>
             </div>
-            <div className="pv-zoom-btn" onClick={() => applyScaleBtn(1)}>
-              <svg viewBox="0 0 24 24"><text x="12" y="17" textAnchor="middle" fontSize="13" fontWeight="700" fill="#2C2626" fontFamily="system-ui">1x</text></svg>
-            </div>
-            <div className="pv-zoom-btn" onClick={() => applyScaleBtn(scale - ZOOM_STEP)}>
-              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </div>
-          </div>
-        )}
-      </div>, document.body)}
+          )}
+
+          <style dangerouslySetInnerHTML={{ __html: getCSS(c) }} />
+        </div>,
+        document.body
+      )}
     </View>
   );
 }
 
-const getStyles = (c: ThemeColors) => StyleSheet.create({ container: { flex: 1 } });
+const getStyles = (_c: ThemeColors) => StyleSheet.create({
+  container: { flex: 1 },
+});
