@@ -66,8 +66,12 @@
 
     // ── Load PDF ──
     if (DEFAULT_URL) {
+      const lang = new URLSearchParams(location.search).get('lang') || 'zh';
+      const isBlob = DEFAULT_URL.startsWith('blob:');
       const loadingTask = pdfjsLib.getDocument({
         url: DEFAULT_URL,
+        withCredentials: !isBlob,
+        httpHeaders: isBlob ? undefined : { 'X-Lang': lang },
         enableXfa: ENABLE_XFA,
         cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.0.227/cmaps/',
         cMapPacked: true,

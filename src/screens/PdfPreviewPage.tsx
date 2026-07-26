@@ -108,6 +108,10 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         case 'pdf-zoom-change':
           setZoomPct(Math.round((data?.scale || 1) * 100));
           break;
+        case 'pdf-error':
+          setLoading(false);
+          console.error('PDF load error:', data?.message);
+          break;
       }
     }
     window.addEventListener('message', onMessage);
@@ -130,7 +134,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     a.click();
   }, [pdfUrl, title]);
 
-  const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}`;
+  const viewerUrl = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}&lang=${getLang()}`;
 
   return (
     <View style={st.container} {...swipeBack}>
