@@ -82,11 +82,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [iframeKey, setIframeKey] = useState(() => Date.now());
   
   // Reset iframe key on mount AND whenever this effect re-runs
-  // The empty deps means this only fires on mount, not on re-entry.
-  // We need a dependency that the parent changes on each navigation.
   useEffect(() => {
     setIframeKey(Date.now());
   }, [batchId, batchNumber, supplier, fileUrl, title]);
+
+  // Nuke: set src dynamically after mount to bypass browser iframe cache
+  useEffect(() => {
+    if (iframeRef.current) {
+      iframeRef.current.src = viewerUrl;
+    }
+  }, [iframeKey, viewerUrl]);
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
