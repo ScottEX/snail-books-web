@@ -4,6 +4,7 @@ import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXI
 import { t } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const NAV_H = 52;
 
@@ -57,7 +58,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [currPage, setCurrPage] = useState(1);
   const [numPages, setNumPages] = useState(0);
   const [zoomPct, setZoomPct] = useState(100);
+  const [introSec, setIntroSec] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Seconds counter while loading — matches iOS behavior
+  useEffect(() => {
+    if (!loading) { setIntroSec(0); return; }
+    const id = setInterval(() => setIntroSec(s => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [loading]);
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -172,6 +181,19 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
             onTouchMove={handleTouchMove}
             style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 30, zIndex: 50 }}
           />
+
+          {/* Loading overlay — matches iOS: spinner + label + seconds counter */}
+          {loading && !loadError && (
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.08)', zIndex: 60 }}>
+              <LoadingSpinner label={false} size={36} />
+              <div style={{ marginTop: 16, fontSize: 14, color: '#2C2626', fontWeight: '500' }}>
+                {batchId && batchId > 0 ? t('pdfGenerating') : t('loading')}
+              </div>
+              <div style={{ marginTop: 4, fontSize: 14, fontWeight: '800', color: c.primary }}>
+                {introSec}s
+              </div>
+            </div>
+          )}
 
           {/* Error state */}
           {loadError && (
