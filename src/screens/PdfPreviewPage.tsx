@@ -107,7 +107,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           setCurrPage(data?.page || 1);
           break;
         case 'pdf-zoom-change':
-          setZoomPct(Math.round((data?.scale || 1) * 100));
+          setZoomPct(Math.round((data?.zoom || 1) * 100));
           break;
         case 'pdf-error':
           setLoading(false);
@@ -180,9 +180,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
             <iframe
               ref={iframeRef}
               src={viewerUrl}
-              className="pv-iframe"
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56, border: 'none' }}
-              allow="fullscreen"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56, border: 'none' }}
+            allow="fullscreen"
+            sandbox="allow-scripts allow-same-origin allow-forms"
               onError={() => { setLoading(false); setLoadError('iframe load failed'); }}
             />
           )}

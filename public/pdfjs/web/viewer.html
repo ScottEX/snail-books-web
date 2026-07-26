@@ -673,7 +673,7 @@ See https://github.com/adobe-type-tools/cmap-resources
         app.eventBus.on('scalechanging', ({ scale }) => {
           parent.postMessage({
             type: 'pdf-zoom-change',
-            data: { scale },
+            data: { zoom: scale },
           }, '*');
         });
       });
