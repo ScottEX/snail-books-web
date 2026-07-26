@@ -677,7 +677,9 @@ See https://github.com/adobe-type-tools/cmap-resources
         });
         // After pages rendered, force scale to fill container
         app.eventBus.on('pagesloaded', () => {
-          app.pdfViewer.currentScaleValue = 'page-width';
+          requestAnimationFrame(() => {
+            app.pdfViewer.currentScaleValue = 'page-width';
+          });
         }, { once: true });
         // Page change
         app.eventBus.on('pagechanging', ({ pageNumber }) => {
