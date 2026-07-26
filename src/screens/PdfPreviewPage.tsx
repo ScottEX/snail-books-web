@@ -82,7 +82,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   useEffect(() => {
     const handler = () => setIframeKey(Date.now());
     window.addEventListener('pageshow', handler);
-    return () => window.removeEventListener('pageshow', handler);
+    return () => {
+      window.removeEventListener('pageshow', handler);
+      // Blast iframe src on unmount to clear any cached state
+      if (iframeRef.current) iframeRef.current.src = 'about:blank';
+    };
   }, []);
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
