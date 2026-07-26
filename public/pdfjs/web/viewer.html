@@ -33,11 +33,12 @@ See https://github.com/adobe-type-tools/cmap-resources
 
     <link rel="stylesheet" href="viewer.css">
 
-  <!-- Clear cached zoom BEFORE viewer.mjs reads localStorage -->
+  <!-- Clear cached zoom/history BEFORE viewer.mjs reads localStorage -->
   <script>
     try {
+      localStorage.removeItem('pdfjs.history');
       const prefs = JSON.parse(localStorage.getItem('pdfjs.preferences') || '{}');
-      delete prefs.scale;
+      delete prefs.defaultZoomValue;
       localStorage.setItem('pdfjs.preferences', JSON.stringify(prefs));
     } catch {}
   </script>
