@@ -47,7 +47,7 @@
 
   <script type="module">
     import * as pdfjsLib from '../build/pdf.min.mjs';
-    import { PDFViewer, PDFLinkService } from './pdf_viewer.mjs';
+    import { PDFViewer, PDFLinkService, EventBus } from './pdf_viewer.mjs';
 
     pdfjsLib.GlobalWorkerOptions.workerSrc = '../build/pdf.worker.min.mjs';
 
@@ -57,10 +57,12 @@
     const container = document.getElementById('viewerContainer');
     const viewerEl = document.getElementById('viewer');
 
-    const linkService = new PDFLinkService();
+    const eventBus = new EventBus();
+    const linkService = new PDFLinkService({ eventBus });
     const pdfViewer = new PDFViewer({
       container,
       viewer: viewerEl,
+      eventBus,
       linkService,
       textLayerMode: 0,
       annotationMode: 2,
