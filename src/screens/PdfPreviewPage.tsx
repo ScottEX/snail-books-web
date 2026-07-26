@@ -180,7 +180,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
             <iframe
               ref={iframeRef}
               src={viewerUrl}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56, border: 'none' }}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, border: 'none' }}
             allow="fullscreen"
             sandbox="allow-scripts allow-same-origin allow-forms"
               onError={() => { setLoading(false); setLoadError('iframe load failed'); }}
@@ -200,33 +200,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
               <button style={{ padding: '10px 28px', borderRadius: 8, background: c.accent, color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                 onClick={() => { setLoadError(''); setLoading(true); }}>
                 {t('retry')}
-              </button>
-            </div>
-          )}
-
-          {/* Bottom toolbar */}
-          {!isLocal && (
-            <div className="pv-toolbar">
-              <button className="pv-tool-btn" onClick={handleDownload}>
-                <ToolIcon d="M8 1v10M4 7l4 4 4-4M1 14v2a1 1 0 001 1h12a1 1 0 001-1v-2" />
-                <span className="pv-tool-label">{t('download')}</span>
-              </button>
-              <div className="pv-tool-sep" />
-              <button className="pv-tool-btn" onClick={() => sendCmd('zoom-out')}>
-                <ToolIcon d="M4 8h8M1 8a7 7 0 1014 0A7 7 0 001 8z" />
-              </button>
-              <button className="pv-tool-btn" onClick={() => sendCmd('zoom-reset')}>
-                <span style={{ fontSize: 13, color: 'rgba(44,38,38,0.55)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
-                  {zoomPct}%
-                </span>
-              </button>
-              <button className="pv-tool-btn" onClick={() => sendCmd('zoom-in')}>
-                <ToolIcon d="M8 4v8M4 8h8M1 8a7 7 0 1014 0A7 7 0 001 8z" />
-              </button>
-              <div className="pv-tool-sep" />
-              <button className="pv-tool-btn" onClick={handleShare}>
-                <ToolIcon d="M4 8v8h10V8M4 4l5-3 5 3M9 1v11" />
-                <span className="pv-tool-label">{t('share')}</span>
               </button>
             </div>
           )}
