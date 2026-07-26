@@ -4,7 +4,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
@@ -112,21 +112,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const pageWidth = useMemo(() => Math.max(100, baseW * scale), [baseW, scale]);
 
-  // After react-pdf renders new canvas, ensure CSS transform is scale(1)
-  useEffect(() => {
+  // Reset CSS transform after React DOM commit — before browser paint,
+  // so new canvas (already at correct size) never gets double-scaled.
+  useLayoutEffect(() => {
     if (cssScaleRef.current === 1) return;
-    const id1 = requestAnimationFrame(() => {
-      const id2 = requestAnimationFrame(() => {
-        const el = pagesElRef.current;
-        if (el) {
-          el.style.transform = 'scale(1)';
-          el.style.transformOrigin = 'top center';
-          el.style.transition = '';
-          cssScaleRef.current = 1;
-        }
-      });
-    });
-    return () => { cancelAnimationFrame(id1); };
+    const el = pagesElRef.current;
+    if (el) {
+      el.style.transform = 'scale(1)';
+      el.style.transformOrigin = 'top center';
+      cssScaleRef.current = 1;
+    }
   }, [scale]);
 
   // Apply CSS transform for smooth zoom (no react-pdf re-render)
