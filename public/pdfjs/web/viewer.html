@@ -701,15 +701,15 @@ See https://github.com/adobe-type-tools/cmap-resources
           });
 
         // PDF loaded
-        // Signal parent that PDF is ready via document.title (reliable cross-iframe)
-        function notifyReady(numPages: number) {
-          document.title = 'PDFJS_READY:' + numPages;
-          try { parent.postMessage({ type: 'pdf-ready', data: { numPages } }, '*'); } catch {}
+        function notifyParent(type: string, data: any) {
+          const msg = { type, data };
+          try { parent.postMessage(msg, '*'); } catch {}
+          try { window.top?.postMessage(msg, '*'); } catch {}
         }
 
         app.eventBus.on('documentloaded', () => {
           const numPages = app.pdfDocument?.numPages || 0;
-          notifyReady(numPages);
+          notifyParent('pdf-ready', { numPages });
           requestAnimationFrame(ensureLayout);
         });
 
@@ -718,19 +718,16 @@ See https://github.com/adobe-type-tools/cmap-resources
         const safetyCheck = setInterval(() => {
           safetyTries++;
           if (app.pdfDocument) {
-            notifyReady(app.pdfDocument.numPages || 0);
+            notifyParent('pdf-ready', { numPages: app.pdfDocument.numPages || 0 });
             clearInterval(safetyCheck);
           } else if (safetyTries > 20) {
-            notifyReady(0);
+            notifyParent('pdf-ready', { numPages: 0 });
             clearInterval(safetyCheck);
           }
         }, 500);
         // Page change
         app.eventBus.on('pagechanging', ({ pageNumber }) => {
-          parent.postMessage({
-            type: 'pdf-page-change',
-            data: { page: pageNumber },
-          }, '*');
+          notifyParent('pdf-page-change', { page: pageNumber });
         });
         // Zoom change
         app.eventBus.on('scalechanging', ({ scale }) => {
@@ -738,12 +735,9 @@ See https://github.com/adobe-type-tools/cmap-resources
           const min = window._minScale || 1.0;
           if (scale < min) {
             app.pdfViewer.currentScale = min;
-            return;
+            scale = min;
           }
-          parent.postMessage({
-            type: 'pdf-zoom-change',
-            data: { zoom: scale },
-          }, '*');
+          notifyParent('pdf-zoom-change', { zoom: scale });
         });
       });
 
