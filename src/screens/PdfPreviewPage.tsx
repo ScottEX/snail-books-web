@@ -75,6 +75,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const [exiting, setExiting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [currPage, setCurrPage] = useState(1);
   const [numPages, setNumPages] = useState(0);
   const [zoomPct, setZoomPct] = useState(100);
@@ -174,14 +175,33 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           {numPages > 0 && <div className="pv-pill">{currPage} / {numPages}</div>}
 
           {/* iframe: PDF.js viewer handles all gestures natively */}
-          <iframe
-            ref={iframeRef}
-            src={viewerUrl}
-            className="pv-iframe"
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56, height: 'auto' }}
-            allow="fullscreen"
-            sandbox="allow-scripts allow-same-origin allow-forms"
-          />
+          {!loadError && (
+            <iframe
+              ref={iframeRef}
+              src={viewerUrl}
+              className="pv-iframe"
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56, height: 'auto' }}
+              allow="fullscreen"
+              onError={() => { setLoading(false); setLoadError('iframe load failed'); }}
+            />
+          )}
+
+          {/* Error state */}
+          {loadError && (
+            <div className="pv-err" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+              <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round">
+                <circle cx="24" cy="24" r="20" stroke="#e0dcd5" strokeWidth="1.5" fill="#f5f2eb" />
+                <line x1="24" y1="14" x2="24" y2="28" />
+                <circle cx="24" cy="33" r="1.5" fill="#999" stroke="none" />
+              </svg>
+              <div style={{ fontSize: 14, color: '#555' }}>{t('pdfLoadFailed')}</div>
+              <div style={{ fontSize: 13, color: '#999' }}>{loadError}</div>
+              <button style={{ padding: '10px 28px', borderRadius: 8, background: c.accent, color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                onClick={() => { setLoadError(''); setLoading(true); }}>
+                {t('retry')}
+              </button>
+            </div>
+          )}
 
           {/* Bottom toolbar */}
           {!isLocal && (
