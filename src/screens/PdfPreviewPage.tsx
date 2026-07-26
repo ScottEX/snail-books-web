@@ -113,6 +113,9 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
           setLoading(false);
           console.error('PDF load error:', data?.message);
           break;
+        case 'pdf-dimensions':
+          console.log('PDF iframe dims:', data);
+          break;
       }
     }
     window.addEventListener('message', onMessage);

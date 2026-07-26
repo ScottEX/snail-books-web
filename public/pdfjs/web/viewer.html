@@ -43,6 +43,10 @@
       if (c) {
         c.style.height = window.innerHeight + 'px';
         c.style.width = window.innerWidth + 'px';
+        parent.postMessage({ type: 'pdf-dimensions', data: { 
+          innerW: window.innerWidth, innerH: window.innerHeight,
+          containerW: c.clientWidth, containerH: c.clientHeight
+        } }, '*');
       }
     }
     window.addEventListener('resize', resizeContainer);
