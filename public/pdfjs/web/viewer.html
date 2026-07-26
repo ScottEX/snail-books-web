@@ -118,10 +118,11 @@
         window._pdfDoc = doc;
         pdfViewer.setDocument(doc);
         linkService.setDocument(doc, null);
-        // Fill container width
-        pdfViewer.currentScaleValue = 'page-width';
-        // Fill container height — CSS height chain breaks in an iframe
+        // Fill container height & width explicitly FIRST
         container.style.height = window.innerHeight + 'px';
+        container.style.width = window.innerWidth + 'px';
+        // Then scale to fill container
+        pdfViewer.currentScaleValue = 'page-width';
       }).catch((err) => {
         parent.postMessage({
           type: 'pdf-error',
