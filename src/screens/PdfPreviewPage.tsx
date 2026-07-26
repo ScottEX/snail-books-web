@@ -164,6 +164,25 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => window.removeEventListener('message', onMessage);
   }, []);
 
+  // Poll iframe document.title as fallback (when postMessage blocked by sandbox)
+  useEffect(() => {
+    let cancelled = false;
+    const poll = setInterval(() => {
+      if (cancelled || !loading) return;
+      try {
+        const title = iframeRef.current?.contentDocument?.title || '';
+        if (title.startsWith('PDFJS_READY:')) {
+          const numPages = parseInt(title.split(':')[1], 10) || 0;
+          if (!cancelled) {
+            setLoading(false);
+            setNumPages(numPages);
+          }
+        }
+      } catch {}
+    }, 200);
+    return () => { cancelled = true; clearInterval(poll); };
+  }, [loading]);
+
   // ── Actions (matches iOS) ──
   const handleDownload = useCallback(async () => {
     setActionLoading('download');

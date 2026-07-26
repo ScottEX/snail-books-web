@@ -701,23 +701,27 @@ See https://github.com/adobe-type-tools/cmap-resources
           });
 
         // PDF loaded
+        // Signal parent that PDF is ready via document.title (reliable cross-iframe)
+        function notifyReady(numPages: number) {
+          document.title = 'PDFJS_READY:' + numPages;
+          try { parent.postMessage({ type: 'pdf-ready', data: { numPages } }, '*'); } catch {}
+        }
+
         app.eventBus.on('documentloaded', () => {
           const numPages = app.pdfDocument?.numPages || 0;
-          try { parent.postMessage({ type: 'pdf-ready', data: { numPages } }, '*'); } catch {}
+          notifyReady(numPages);
           requestAnimationFrame(ensureLayout);
         });
 
-        // Safety net: if documentloaded never fires, poll for ready state
+        // Safety net: poll for ready state
         let safetyTries = 0;
         const safetyCheck = setInterval(() => {
           safetyTries++;
           if (app.pdfDocument) {
-            const numPages = app.pdfDocument.numPages || 0;
-            try { parent.postMessage({ type: 'pdf-ready', data: { numPages } }, '*'); } catch {}
+            notifyReady(app.pdfDocument.numPages || 0);
             clearInterval(safetyCheck);
           } else if (safetyTries > 20) {
-            // 10 seconds max — give up and report ready anyway
-            try { parent.postMessage({ type: 'pdf-ready', data: { numPages: 0 } }, '*'); } catch {}
+            notifyReady(0);
             clearInterval(safetyCheck);
           }
         }, 500);
