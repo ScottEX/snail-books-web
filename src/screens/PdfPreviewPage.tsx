@@ -93,7 +93,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [showZoomBadge, setShowZoomBadge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const pinchRef = useRef({ active: false, startDist: 0, startScale: 1, cx: 0, cy: 0 });
+  const pinchRef = useRef({ active: false, startDist: 0, effectiveBase: 1, cssBase: 1, cx: 0, cy: 0 });
   const lastTapRef = useRef(0);
   const zoomTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const rafRef = useRef(0);
@@ -112,19 +112,17 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const pageWidth = useMemo(() => Math.max(100, baseW * scale), [baseW, scale]);
 
-  // Reset CSS transform AFTER react-pdf re-renders at committed scale
+  // After react-pdf renders new canvas, ensure CSS transform is scale(1)
   useEffect(() => {
+    if (cssScaleRef.current === 1) return;
     const id1 = requestAnimationFrame(() => {
       const id2 = requestAnimationFrame(() => {
         const el = pagesElRef.current;
         if (el) {
-          el.style.transition = 'transform 0.12s ease-out';
           el.style.transform = 'scale(1)';
           el.style.transformOrigin = 'top center';
+          el.style.transition = '';
           cssScaleRef.current = 1;
-          committedScaleRef.current = scale;
-          const t = setTimeout(() => { el.style.transition = ''; }, 150);
-          return () => clearTimeout(t);
         }
       });
     });
@@ -200,7 +198,8 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
         pinchRef.current = {
           active: true,
           startDist: getDist(e.touches),
-          startScale: committedScaleRef.current,
+          effectiveBase: committedScaleRef.current,
+          cssBase: cssScaleRef.current,
           cx: mid.x,
           cy: mid.y,
         };
@@ -212,20 +211,25 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     const onTM = (e: TouchEvent) => {
       if (e.touches.length === 2 && pinchRef.current.active) {
         e.preventDefault();
-        const next = pinchRef.current.startScale * (getDist(e.touches) / pinchRef.current.startDist);
+        const ratio = getDist(e.touches) / pinchRef.current.startDist;
+        const effective = pinchRef.current.effectiveBase * ratio;
         const el = pagesElRef.current;
         if (!el) return;
-        const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, next));
-        cssScaleRef.current = clamped;
-        el.style.transform = `scale(${clamped})`;
+        const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, effective));
+        const cssS = clamped / (pinchRef.current.effectiveBase / pinchRef.current.cssBase);
+        cssScaleRef.current = cssS;
+        el.style.transform = `scale(${cssS})`;
       }
     };
 
     const onTE = () => {
       if (!pinchRef.current.active) return;
       pinchRef.current.active = false;
-      const final = cssScaleRef.current;
-      setScale(final);
+      // Final effective scale = cssScale × committed base
+      const final = cssScaleRef.current * committedScaleRef.current;
+      const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, final));
+      committedScaleRef.current = clamped;
+      setScale(clamped);
       setShowZoomBadge(true);
       clearTimeout(zoomTimer.current);
       zoomTimer.current = setTimeout(() => setShowZoomBadge(false), 1500);
