@@ -118,11 +118,22 @@
         window._pdfDoc = doc;
         pdfViewer.setDocument(doc);
         linkService.setDocument(doc, null);
-        // Fill container height & width explicitly FIRST
+        // Fill container dimensions explicitly
         container.style.height = window.innerHeight + 'px';
         container.style.width = window.innerWidth + 'px';
-        // Then scale to fill container
-        pdfViewer.currentScaleValue = 'page-width';
+        // Wait two frames for browser + PDF.js layout to settle
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            // Compute scale from container vs first page native width
+            const cw = container.clientWidth;
+            if (cw > 0 && window._pdfDoc) {
+              window._pdfDoc.getPage(1).then(page => {
+                const vp = page.getViewport({ scale: 1 });
+                pdfViewer.currentScale = cw / vp.width;
+              });
+            }
+          });
+        });
       }).catch((err) => {
         parent.postMessage({
           type: 'pdf-error',
