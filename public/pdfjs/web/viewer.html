@@ -3,63 +3,77 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>PDF</title>
   <link rel="stylesheet" href="pdf_viewer.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; overflow: hidden; background: #1c1c1e; }
-    #outerContainer { height: 100%; }
-    #mainContainer { position: relative; width: 100%; height: 100%; }
-    #toolbarContainer, #toolbarViewer, #sidebarContainer { display: none !important; }
+    /* Hide all PDF.js default UI — we provide our own nav/toolbar */
+    #toolbarContainer, #secondaryToolbar, #sidebarContainer,
+    #toolbarSidebar, #outerContainer > .toolbar,
+    .toolbar, #findbar, #secondaryToolbarButtonContainer,
+    #toolbarViewer, #toolbarViewerLeft, #toolbarViewerRight,
+    #toolbarViewerMiddle, #scaleSelectContainer, #pageNumberLabel {
+      display: none !important;
+    }
     #viewerContainer {
-      position: absolute;
+      position: absolute !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
       overflow: auto;
     }
+    html, body, #outerContainer, #mainContainer {
+      height: 100%; margin: 0; padding: 0;
+      background: #1c1c1e;
+    }
+    #outerContainer {
+      position: relative;
+      height: 100%;
+    }
+    #mainContainer {
+      position: relative;
+      height: 100%;
+    }
+    /* viewer sizes to content; viewerContainer scrolls */
     #viewer .page {
-      margin: 10px auto;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
   </style>
 </head>
 <body>
   <div id="outerContainer">
-    <div id="sidebarContainer"></div>
+    <div id="sidebarContainer"><div id="toolbarSidebar"></div><div id="sidebarContent"></div></div>
     <div id="mainContainer">
       <div id="toolbarContainer"><div id="toolbarViewer"></div></div>
-      <div id="viewerContainer">
-        <div id="viewer" class="pdfViewer"></div>
-      </div>
+      <div id="viewerContainer"><div id="viewer" class="pdfViewer"></div></div>
     </div>
   </div>
 
   <script type="module">
-    window.onerror = (msg, src, line) => {
-      parent.postMessage({ type: 'pdf-error', data: { message: String(msg), source: src, line } }, '*');
-    };
+    import * as pdfjsLib from '../build/pdf.min.mjs';
+    import { PDFViewer, PDFLinkService, EventBus } from './pdf_viewer.mjs';
 
-    // Force container to fill viewport via JS, bypassing CSS height chain
-    function resizeContainer() {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '../build/pdf.worker.min.mjs';
+
+    // Force viewerContainer to fill viewport
+    (function fixHeight() {
       const c = document.getElementById('viewerContainer');
       if (c) {
         c.style.height = window.innerHeight + 'px';
         c.style.width = window.innerWidth + 'px';
-        parent.postMessage({ type: 'pdf-dimensions', data: { 
-          innerW: window.innerWidth, innerH: window.innerHeight,
-          containerW: c.clientWidth, containerH: c.clientHeight
-        } }, '*');
       }
-    }
-    window.addEventListener('resize', resizeContainer);
-    resizeContainer();
+    })();
+    window.addEventListener('resize', () => {
+      const c = document.getElementById('viewerContainer');
+      if (c) {
+        c.style.height = window.innerHeight + 'px';
+        c.style.width = window.innerWidth + 'px';
+      }
+    });
 
-    import * as pdfjsLib from '../build/pdf.min.js';
-    import { PDFViewer, PDFLinkService, EventBus } from './pdf_viewer.js';
-
-    try {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '../build/pdf.worker.min.js';
-
-    const url = new URLSearchParams(location.search).get('file') || '';
-    if (!url) return;
+    const DEFAULT_URL = new URLSearchParams(location.search).get('file') || '';
+    const ENABLE_XFA = true;
 
     const container = document.getElementById('viewerContainer');
     const viewerEl = document.getElementById('viewer');
@@ -67,53 +81,88 @@
     const eventBus = new EventBus();
     const linkService = new PDFLinkService({ eventBus });
     const pdfViewer = new PDFViewer({
-      container, viewer: viewerEl, eventBus, linkService,
-      textLayerMode: 0, annotationMode: 2, maxCanvasPixels: 16777216,
+      container,
+      viewer: viewerEl,
+      eventBus,
+      linkService,
+      textLayerMode: 0,
+      annotationMode: 2,
+      maxCanvasPixels: 16777216,
     });
     linkService.setViewer(pdfViewer);
 
-    // Events
-    eventBus.on('pagechanging', evt => {
-      parent.postMessage({ type: 'pdf-page-change', data: { page: evt.pageNumber } }, '*');
-    });
-    eventBus.on('scalechanging', evt => {
-      parent.postMessage({ type: 'pdf-zoom-change', data: { scale: evt.scale } }, '*');
-    });
+    // Store on window for postMessage bridge
+    window._pdfViewer = pdfViewer;
+    window._pdfDoc = null;
 
-    // Load PDF
-    const lang = new URLSearchParams(location.search).get('lang') || 'zh';
-    const isBlob = url.startsWith('blob:');
-    pdfjsLib.getDocument({
-      url,
-      withCredentials: !isBlob,
-      httpHeaders: isBlob ? undefined : { 'X-Lang': lang },
-      enableXfa: true,
-      cMapUrl: '../cmaps/', cMapPacked: true,
-      standardFontDataUrl: '../standard_fonts/',
-    }).promise.then(doc => {
-      pdfViewer.setDocument(doc);
-      linkService.setDocument(doc, null);
-      // Force full-width after document is set
-      pdfViewer.currentScaleValue = 'page-width';
-      parent.postMessage({ type: 'pdf-ready', data: { numPages: doc.numPages } }, '*');
-    }).catch(err => {
-      parent.postMessage({ type: 'pdf-error', data: { message: err.message } }, '*');
-    });
+    // ── Load PDF ──
+    if (DEFAULT_URL) {
+      // Register event listeners BEFORE setDocument
+      pdfViewer.eventBus.on('pagesloaded', () => {
+        parent.postMessage({
+          type: 'pdf-ready',
+          data: { numPages: pdfViewer.pagesCount },
+        }, '*');
+      }, { once: true });
 
-    // Commands from parent
-    window.addEventListener('message', e => {
+      pdfViewer.eventBus.on('pagechanging', (evt) => {
+        parent.postMessage({
+          type: 'pdf-page-change',
+          data: { page: evt.pageNumber },
+        }, '*');
+      });
+
+      pdfViewer.eventBus.on('scalechanging', (evt) => {
+        parent.postMessage({
+          type: 'pdf-zoom-change',
+          data: { scale: evt.scale },
+        }, '*');
+      });
+
+      const lang = new URLSearchParams(location.search).get('lang') || 'zh';
+      const isBlob = DEFAULT_URL.startsWith('blob:');
+      const loadingTask = pdfjsLib.getDocument({
+        url: DEFAULT_URL,
+        withCredentials: !isBlob,
+        httpHeaders: isBlob ? undefined : { 'X-Lang': lang },
+        enableXfa: ENABLE_XFA,
+        cMapUrl: '../cmaps/',
+        cMapPacked: true,
+        standardFontDataUrl: '../standard_fonts/',
+      });
+      loadingTask.promise.then((doc) => {
+        window._pdfDoc = doc;
+        pdfViewer.setDocument(doc);
+        linkService.setDocument(doc, null);
+      }).catch((err) => {
+        parent.postMessage({
+          type: 'pdf-error',
+          data: { message: err.message },
+        }, '*');
+      });
+    }
+
+    // ── Receive commands from parent ──
+    window.addEventListener('message', (e) => {
       const { type, data } = e.data || {};
       switch (type) {
-        case 'zoom-in':  pdfViewer.currentScale *= 1.25; break;
-        case 'zoom-out': pdfViewer.currentScale /= 1.25; break;
-        case 'zoom-reset': pdfViewer.currentScaleValue = 'page-width'; break;
-        case 'set-scale': if (data?.scale) pdfViewer.currentScale = data.scale; break;
-        case 'jump-page': if (data?.page) pdfViewer.currentPageNumber = data.page; break;
+        case 'zoom-in':
+          pdfViewer.currentScale *= 1.25;
+          break;
+        case 'zoom-out':
+          pdfViewer.currentScale /= 1.25;
+          break;
+        case 'zoom-reset':
+          pdfViewer.currentScaleValue = 'page-width';
+          break;
+        case 'set-scale':
+          if (data?.scale) pdfViewer.currentScale = data.scale;
+          break;
+        case 'jump-page':
+          if (data?.page) pdfViewer.currentPageNumber = data.page;
+          break;
       }
     });
-  } catch (err) {
-    parent.postMessage({ type: 'pdf-error', data: { message: 'Script error: ' + (err.message || String(err)) } }, '*');
-  }
   </script>
 </body>
 </html>
