@@ -4,7 +4,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import { useTheme, ThemeColors, ENTER_DURATION, EXIT_DURATION, ENTER_EASING, EXIT_EASING, CONTENT_MAX_WIDTH } from '../theme';
 import { t, getLang } from '../i18n';
 import { useSwipeBack } from '../hooks/useSwipeBack';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
@@ -84,17 +84,16 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const [introSec, setIntroSec] = useState(0);
 
   // ── Zoom state ──
-  // `scale` = committed scale (triggers react-pdf re-render, crisp pixels)
-  // `cssScale` = live CSS transform during pinch (GPU-accelerated, no re-render)
+  // `scale` = react-pdf render scale (crisp pixels)
+  // `cssScaleRef` = live CSS transform during pinch (relative to current `scale`)
   const [scale, setScale] = useState(1);
-  const committedScaleRef = useRef(1);
   const cssScaleRef = useRef(1);
-  const gRef = useRef({ scale: 1 });      // live CSS zoom (pinch)
   const pagesElRef = useRef<HTMLDivElement | null>(null);
+  const scrollAnchorRef = useRef({ ratio: 0.5 });
   const [showZoomBadge, setShowZoomBadge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const pinchRef = useRef({ active: false, startDist: 0, startScale: 1 });
+  const pinchRef = useRef({ active: false, startDist: 0, startScale: 1, midX: 0, midY: 0 });
   const lastTapRef = useRef(0);
   const zoomTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const rafRef = useRef(0);
@@ -113,39 +112,63 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
   const pageWidth = useMemo(() => Math.max(100, baseW * scale), [baseW, scale]);
 
-  // Reset CSS transform after React DOM commit — before browser paint
-  useLayoutEffect(() => {
-    if (gRef.current.scale === 1) return;
-    const el = pagesElRef.current;
-    if (el) {
-      el.style.transform = 'scale(1)';
-      el.style.transformOrigin = 'center top';
-      gRef.current.scale = 1;
-    }
-  }, [scale]);
-
-  // Apply CSS zoom + width sync (pinch — smooth, no react-pdf commit)
-  const applyZoom = (s: number) => {
-    const el = pagesElRef.current;
-    if (!el) return;
-    const clamped = Math.max(1, Math.min(MAX_SCALE, s));
-    gRef.current.scale = clamped;
-    el.style.transform = `scale(${clamped})`;
-    el.style.transformOrigin = 'center top';
+  // Scroll anchor: save ratio before commit, restore after react-pdf re-renders
+  const saveAnchor = () => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+    const { scrollTop, scrollHeight, clientHeight } = vp;
+    scrollAnchorRef.current.ratio = scrollHeight > clientHeight
+      ? (scrollTop + clientHeight / 2) / scrollHeight
+      : 0.5;
   };
 
-  const zoomPct = Math.round(Math.max(gRef.current.scale, committedScaleRef.current) * 100);
+  const restoreAnchor = useCallback(() => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+    requestAnimationFrame(() => {
+      const { scrollHeight, clientHeight } = vp;
+      const target = scrollAnchorRef.current.ratio * scrollHeight - clientHeight / 2;
+      vp.scrollTop = Math.max(0, target);
+    });
+  }, []);
 
-  // ── Apply scale (buttons / double-tap: immediate both CSS + react-pdf) ──
-  const applyScale = useCallback((next: number) => {
-    const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, next));
-    applyZoom(clamped);
-    committedScaleRef.current = clamped;
+  // Apply CSS transform with dynamic origin for smooth pinch
+  const applyCssTransform = (cssScale: number, originX: number, originY: number) => {
+    const el = pagesElRef.current;
+    if (!el) return;
+    cssScaleRef.current = cssScale;
+    el.style.transformOrigin = `${originX}px ${originY}px`;
+    el.style.transform = `scale(${cssScale})`;
+  };
+
+  // Commit to react-pdf for crisp pixels
+  const lastCommitRef = useRef(1);
+  const commitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const commitScale = useCallback((targetScale: number) => {
+    const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, targetScale));
+    if (Math.abs(clamped - lastCommitRef.current) < 0.02) return;
+    saveAnchor();
+    lastCommitRef.current = clamped;
     setScale(clamped);
+    requestAnimationFrame(() => {
+      const el = pagesElRef.current;
+      if (el) {
+        el.style.transform = 'scale(1)';
+        el.style.transformOrigin = 'center top';
+        cssScaleRef.current = 1;
+      }
+    });
+  }, []);
+
+  const zoomPct = Math.round(scale * cssScaleRef.current * 100);
+
+  // Button zoom
+  const applyScaleBtn = useCallback((next: number) => {
     setShowZoomBadge(true);
     clearTimeout(zoomTimer.current);
     zoomTimer.current = setTimeout(() => setShowZoomBadge(false), 1500);
-  }, []);
+    commitScale(next);
+  }, [commitScale]);
 
   const handleBack = useCallback(() => {
     if (exiting) return;
@@ -164,7 +187,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => { meta.content = prev; };
   }, []);
 
-  // ── Pinch-to-zoom (production-style: pure CSS, no react-pdf commit) ──
+  // ── Pinch-to-zoom (CSS during gesture, commit on release) ──
   useEffect(() => {
     const vp = viewportRef.current;
     if (!vp) return;
@@ -175,28 +198,43 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
       return Math.sqrt(dx * dx + dy * dy);
     };
 
+    const isPinching = { current: false };
+
     const onTS = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        e.preventDefault();
-        pinchRef.current = {
-          active: true,
-          startDist: getDist(e.touches),
-          startScale: gRef.current.scale,
-        };
-      }
+      if (e.touches.length !== 2) return;
+      e.preventDefault();
+      isPinching.current = true;
+      clearTimeout(commitTimer.current);
+      const dist = getDist(e.touches);
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const el = pagesElRef.current;
+      const rect = el?.getBoundingClientRect();
+      const vpTop = viewportRef.current?.scrollTop ?? 0;
+      pinchRef.current = {
+        active: true,
+        startDist: dist,
+        startScale: cssScaleRef.current,
+        midX: rect ? midX - rect.left : midX,
+        midY: rect ? midY - rect.top + vpTop : midY,
+      };
     };
 
     const onTM = (e: TouchEvent) => {
-      if (e.touches.length === 2 && pinchRef.current.active) {
-        e.preventDefault();
-        const ns = Math.max(1, Math.min(MAX_SCALE,
-          pinchRef.current.startScale * (getDist(e.touches) / pinchRef.current.startDist)));
-        applyZoom(ns);
-      }
+      if (!isPinching.current || e.touches.length !== 2) return;
+      e.preventDefault();
+      const ratio = getDist(e.touches) / pinchRef.current.startDist;
+      const newCss = Math.max(MIN_SCALE / scale, Math.min(MAX_SCALE / scale, ratio));
+      applyCssTransform(newCss, pinchRef.current.midX, pinchRef.current.midY);
     };
 
-    const onTE = () => {
-      pinchRef.current.active = false;
+    const onTE = (e: TouchEvent) => {
+      if (!isPinching.current) return;
+      if (e.touches.length >= 2) return;
+      isPinching.current = false;
+      const target = scale * cssScaleRef.current;
+      clearTimeout(commitTimer.current);
+      commitTimer.current = setTimeout(() => commitScale(target), 100);
       setShowZoomBadge(true);
       clearTimeout(zoomTimer.current);
       zoomTimer.current = setTimeout(() => setShowZoomBadge(false), 1500);
@@ -217,18 +255,11 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
   const onViewportTouchEnd = useCallback(() => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      const eff = Math.max(gRef.current.scale, committedScaleRef.current);
-      if (eff > 1.1) {
-        // Reset to 1x (both CSS zoom and committed)
-        applyZoom(1);
-        if (committedScaleRef.current > 1) { committedScaleRef.current = 1; setScale(1); }
-      } else {
-        // Go to crisp 2x
-        applyScale(2);
-      }
+      const eff = scale * cssScaleRef.current;
+      commitScale(eff > 1.1 ? 1 : 2);
     }
     lastTapRef.current = now;
-  }, [applyScale]);
+  }, [scale, commitScale]);
 
   // ── Desktop Ctrl+wheel zoom ──
   useEffect(() => {
@@ -237,13 +268,13 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        const eff = Math.max(gRef.current.scale, committedScaleRef.current);
-        applyScale(eff * (e.deltaY > 0 ? 0.9 : 1.1));
+        const eff = scale * cssScaleRef.current;
+        commitScale(eff * (e.deltaY > 0 ? 0.9 : 1.1));
       }
     };
     vp.addEventListener('wheel', onWheel, { passive: false });
     return () => vp.removeEventListener('wheel', onWheel);
-  }, [scale, applyScale]);
+  }, [scale, commitScale]);
 
   // ── Fetch PDF ──
   useEffect(() => {
@@ -365,8 +396,7 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
 
         {/* PDF viewport with pinch/double-tap/scroll handlers */}
         <div className="pv-vp" ref={viewportRef} onTouchEnd={onViewportTouchEnd}>
-          <div className="pv-pages">
-            <div ref={(el) => { containerRef.current = el; pagesElRef.current = el; }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100%', width: 'max-content' as any }}>
+          <div className="pv-pages" ref={(el) => { containerRef.current = el; pagesElRef.current = el; }}>
             {pdfBlobUrl && !pdfError && (
               <Document
                 file={pdfBlobUrl}
@@ -385,20 +415,19 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
                 ))}
               </Document>
             )}
-            </div>
           </div>
         </div>
 
         {/* Zoom buttons */}
         {!pdfLoading && !pdfError && pdfBlobUrl && (
           <div className="pv-zoom-strip">
-            <div className="pv-zoom-btn" onClick={() => applyScale(scale + ZOOM_STEP)}>
+            <div className="pv-zoom-btn" onClick={() => applyScaleBtn(scale + ZOOM_STEP)}>
               <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </div>
-            <div className="pv-zoom-btn" onClick={() => applyScale(1)}>
+            <div className="pv-zoom-btn" onClick={() => applyScaleBtn(1)}>
               <svg viewBox="0 0 24 24"><text x="12" y="17" textAnchor="middle" fontSize="13" fontWeight="700" fill="#2C2626" fontFamily="system-ui">1x</text></svg>
             </div>
-            <div className="pv-zoom-btn" onClick={() => applyScale(scale - ZOOM_STEP)}>
+            <div className="pv-zoom-btn" onClick={() => applyScaleBtn(scale - ZOOM_STEP)}>
               <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </div>
           </div>
