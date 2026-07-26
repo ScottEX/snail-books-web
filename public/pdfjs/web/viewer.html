@@ -21,6 +21,14 @@
   <div id="container"><div id="viewer" class="pdfViewer"></div></div>
 
   <script type="module">
+    // Report any JS errors to parent
+    window.onerror = (msg, src, line, col, err) => {
+      parent.postMessage({ type: 'pdf-error', data: { message: String(msg), line, source: src } }, '*');
+    };
+    window.onunhandledrejection = (evt) => {
+      parent.postMessage({ type: 'pdf-error', data: { message: String(evt.reason?.message || evt.reason) } }, '*');
+    };
+
     import * as pdfjsLib from '../build/pdf.min.mjs';
     import { PDFViewer, PDFLinkService, EventBus } from './pdf_viewer.mjs';
 
@@ -42,9 +50,6 @@
     pdfViewer.currentScaleValue = 'page-width';
 
     // Events → parent
-    eventBus.on('pagesloaded', () => {
-      parent.postMessage({ type: 'pdf-ready', data: { numPages: pdfViewer.pagesCount } }, '*');
-    }, { once: true });
     eventBus.on('pagechanging', evt => {
       parent.postMessage({ type: 'pdf-page-change', data: { page: evt.pageNumber } }, '*');
     });
@@ -63,9 +68,11 @@
       cMapUrl: '../cmaps/', cMapPacked: true,
       standardFontDataUrl: '../standard_fonts/',
     }).promise.then(doc => {
+      window._pdfDoc = doc;
       pdfViewer.setDocument(doc);
       linkService.setDocument(doc, null);
       pdfViewer.currentScaleValue = 'page-width';
+      parent.postMessage({ type: 'pdf-ready', data: { numPages: doc.numPages } }, '*');
     }).catch(err => {
       parent.postMessage({ type: 'pdf-error', data: { message: err.message } }, '*');
     });
