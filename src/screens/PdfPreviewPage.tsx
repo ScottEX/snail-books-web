@@ -164,24 +164,15 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
     return () => window.removeEventListener('message', onMessage);
   }, []);
 
-  // Poll iframe document.title as fallback (when postMessage blocked by sandbox)
+  // Auto-hide spinner after a fixed delay (bypasses all cross-iframe issues)
   useEffect(() => {
-    let cancelled = false;
-    const poll = setInterval(() => {
-      if (cancelled || !loading) return;
-      try {
-        const title = iframeRef.current?.contentDocument?.title || '';
-        if (title.startsWith('PDFJS_READY:')) {
-          const numPages = parseInt(title.split(':')[1], 10) || 0;
-          if (!cancelled) {
-            setLoading(false);
-            setNumPages(numPages);
-          }
-        }
-      } catch {}
-    }, 200);
-    return () => { cancelled = true; clearInterval(poll); };
-  }, [loading]);
+    const t = setTimeout(() => {
+      setLoading(false);
+      // Set a generous page count default so nav subtitle shows
+      setNumPages(n => n || 1);
+    }, 3000);
+    return () => clearTimeout(t);
+  }, []);
 
   // ── Actions (matches iOS) ──
   const handleDownload = useCallback(async () => {
@@ -260,10 +251,6 @@ export default function PdfPreviewPage({ batchId, batchNumber, supplier, fileUrl
               allow="fullscreen"
               sandbox="allow-scripts allow-same-origin allow-forms"
               onError={() => { setLoading(false); setLoadError('iframe load failed'); }}
-              onLoad={() => {
-                // Fallback: if pdf-ready from postMessage doesn't arrive
-                setTimeout(() => setLoading(false), 1500);
-              }}
             />
           )}
 
